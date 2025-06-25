@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, Settings, Star, Users } from "lucide-react";
+import { Clock, Settings, Star, Users, FileText } from "lucide-react";
 
 const reportSchema = z.object({
   projectId: z.string().min(1, "Project is required"),
@@ -20,6 +20,7 @@ const reportSchema = z.object({
   type: z.string().min(1, "Template type is required"),
   date: z.string().min(1, "Date is required"),
   content: z.record(z.any()),
+  templateId: z.number().optional(),
 });
 
 type ReportFormData = z.infer<typeof reportSchema>;
@@ -29,9 +30,14 @@ export default function ReportBuilder() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
+  const [customTemplate, setCustomTemplate] = useState<any>(null);
 
   const { data: projects = [] } = useQuery({
     queryKey: ["/api/projects"],
+  });
+
+  const { data: templateData } = useQuery({
+    queryKey: ["/api/templates"],
   });
 
   const form = useForm<ReportFormData>({
@@ -70,7 +76,7 @@ export default function ReportBuilder() {
     },
   });
 
-  const templates = [
+  const builtInTemplates = [
     {
       id: "rehearsal",
       name: "Rehearsal Report",
@@ -105,14 +111,41 @@ export default function ReportBuilder() {
     },
   ];
 
+  // Combine built-in and custom templates
+  const userTemplates = Array.isArray(templateData?.userTemplates) ? templateData.userTemplates : [];
+  const defaultTemplates = Array.isArray(templateData?.defaultTemplates) ? templateData.defaultTemplates : [];
+  const publicTemplates = Array.isArray(templateData?.publicTemplates) ? templateData.publicTemplates : [];
+  
+  const allCustomTemplates = [...userTemplates, ...defaultTemplates, ...publicTemplates].map((template: any) => ({
+    id: `custom-${template.id}`,
+    name: template.name,
+    description: template.description || "Custom template",
+    icon: FileText,
+    color: "bg-gray-100",
+    iconColor: "text-gray-600",
+    isCustom: true,
+    template: template,
+  }));
+
+  const templates = [...builtInTemplates, ...allCustomTemplates];
+
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId);
-    form.setValue("type", templateId);
-    
-    // Update title placeholder based on template
     const template = templates.find(t => t.id === templateId);
+    
     if (template) {
-      form.setValue("title", `${template.name} #1`);
+      // Check if it's a custom template
+      if ('isCustom' in template && template.isCustom && template.template) {
+        const customTemplate = template.template;
+        setCustomTemplate(customTemplate);
+        form.setValue("type", customTemplate.type || "custom");
+        form.setValue("title", `${template.name} #1`);
+      } else {
+        // Built-in template
+        setCustomTemplate(null);
+        form.setValue("type", templateId);
+        form.setValue("title", `${template.name} #1`);
+      }
     }
   };
 
@@ -356,8 +389,148 @@ export default function ReportBuilder() {
         );
       
       default:
+        // Handle custom templates
+        if (customTemplate && customTemplate.fields) {
+          return (
+            <>
+              {commonFields}
+              {renderCustomFields(customTemplate.fields)}
+            </>
+          );
+        }
         return commonFields;
     }
+  };
+
+  const renderCustomFields = (fields: any[]) => {
+    return fields.map((field: any) => {
+      const fieldId = `custom-${field.id}`;
+      
+      switch (field.type) {
+        case 'text':
+          return (
+            <div key={field.id}>
+              <Label htmlFor={fieldId}>
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+              <Input
+                id={fieldId}
+                placeholder={field.placeholder || ''}
+                required={field.required}
+                onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
+              />
+            </div>
+          );
+          
+        case 'textarea':
+          return (
+            <div key={field.id}>
+              <Label htmlFor={fieldId}>
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+              <Textarea
+                id={fieldId}
+                placeholder={field.placeholder || ''}
+                rows={4}
+                required={field.required}
+                onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
+              />
+            </div>
+          );
+          
+        case 'number':
+          return (
+            <div key={field.id}>
+              <Label htmlFor={fieldId}>
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+              <Input
+                id={fieldId}
+                type="number"
+                placeholder={field.placeholder || '0'}
+                required={field.required}
+                onChange={(e) => form.setValue(`content.${field.id}`, parseInt(e.target.value))}
+              />
+            </div>
+          );
+          
+        case 'date':
+          return (
+            <div key={field.id}>
+              <Label htmlFor={fieldId}>
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+              <Input
+                id={fieldId}
+                type="date"
+                required={field.required}
+                onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
+              />
+            </div>
+          );
+          
+        case 'datetime':
+          return (
+            <div key={field.id}>
+              <Label htmlFor={fieldId}>
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+              <Input
+                id={fieldId}
+                type="datetime-local"
+                required={field.required}
+                onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
+              />
+            </div>
+          );
+          
+        case 'select':
+          return (
+            <div key={field.id}>
+              <Label htmlFor={fieldId}>
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+              <Select onValueChange={(value) => form.setValue(`content.${field.id}`, value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder={field.placeholder || 'Select an option'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {field.options?.map((option: string, index: number) => (
+                    <SelectItem key={index} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          );
+          
+        case 'checkbox':
+          return (
+            <div key={field.id} className="flex items-center space-x-2">
+              <input
+                id={fieldId}
+                type="checkbox"
+                className="rounded border-gray-300"
+                onChange={(e) => form.setValue(`content.${field.id}`, e.target.checked)}
+              />
+              <Label htmlFor={fieldId}>
+                {field.label}
+                {field.required && <span className="text-red-500 ml-1">*</span>}
+              </Label>
+            </div>
+          );
+          
+        default:
+          return null;
+      }
+    });
   };
 
   return (

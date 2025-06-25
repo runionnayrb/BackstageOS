@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -274,6 +274,117 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating report:", error);
       res.status(500).json({ message: "Failed to update report" });
+    }
+  });
+
+  // Report template routes
+  app.get('/api/templates', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const [userTemplates, publicTemplates, defaultTemplates] = await Promise.all([
+        storage.getReportTemplatesByUserId(userId),
+        storage.getPublicReportTemplates(),
+        storage.getDefaultReportTemplates()
+      ]);
+
+      res.json({
+        userTemplates,
+        publicTemplates,
+        defaultTemplates
+      });
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+      res.status(500).json({ message: "Failed to fetch templates" });
+    }
+  });
+
+  app.get('/api/templates/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const template = await storage.getReportTemplateById(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check access (owner, public, or default)
+      const userId = req.user.claims.sub;
+      if (template.createdBy !== userId && !template.isPublic && !template.isDefault) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      res.json(template);
+    } catch (error) {
+      console.error("Error fetching template:", error);
+      res.status(500).json({ message: "Failed to fetch template" });
+    }
+  });
+
+  app.post('/api/templates', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const templateData = insertReportTemplateSchema.parse({
+        ...req.body,
+        createdBy: userId,
+      });
+
+      const template = await storage.createReportTemplate(templateData);
+      res.json(template);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid template data", errors: error.errors });
+      }
+      console.error("Error creating template:", error);
+      res.status(500).json({ message: "Failed to create template" });
+    }
+  });
+
+  app.put('/api/templates/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const template = await storage.getReportTemplateById(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check ownership
+      if (template.createdBy !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updatedTemplate = await storage.updateReportTemplate(templateId, req.body);
+      res.json(updatedTemplate);
+    } catch (error) {
+      console.error("Error updating template:", error);
+      res.status(500).json({ message: "Failed to update template" });
+    }
+  });
+
+  app.delete('/api/templates/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const template = await storage.getReportTemplateById(templateId);
+      
+      if (!template) {
+        return res.status(404).json({ message: "Template not found" });
+      }
+
+      // Check ownership
+      if (template.createdBy !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Don't allow deletion of default templates
+      if (template.isDefault) {
+        return res.status(403).json({ message: "Cannot delete default templates" });
+      }
+
+      await storage.deleteReportTemplate(templateId);
+      res.json({ message: "Template deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting template:", error);
+      res.status(500).json({ message: "Failed to delete template" });
     }
   });
 

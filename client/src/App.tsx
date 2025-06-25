@@ -14,6 +14,8 @@ import Team from "@/pages/team";
 import Invitations from "@/pages/invitations";
 import Reports from "@/pages/reports";
 import ReportBuilder from "@/pages/report-builder";
+import Templates from "@/pages/templates";
+import TemplateBuilder from "@/pages/template-builder";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -45,6 +47,8 @@ function Router() {
         <Route path="/invitations" component={Invitations} />
         <Route path="/reports" component={Reports} />
         <Route path="/report-builder" component={ReportBuilder} />
+        <Route path="/templates" component={Templates} />
+        <Route path="/template-builder" component={TemplateBuilder} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

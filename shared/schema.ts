@@ -66,10 +66,24 @@ export const reports = pgTable("reports", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id),
   title: varchar("title").notNull(),
-  type: varchar("type").notNull(), // rehearsal, tech, performance, meeting
+  type: varchar("type").notNull(), // rehearsal, tech, performance, meeting, custom
+  templateId: integer("template_id").references(() => reportTemplates.id),
   content: jsonb("content").notNull(),
   status: varchar("status").notNull().default("draft"), // draft, complete
   date: timestamp("date").notNull(),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const reportTemplates = pgTable("report_templates", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  type: varchar("type").notNull(), // rehearsal, tech, performance, meeting, custom
+  fields: jsonb("fields").notNull(), // JSON array of field definitions
+  isDefault: boolean("is_default").default(false),
+  isPublic: boolean("is_public").default(false), // Can be shared with other users
   createdBy: varchar("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -110,6 +124,18 @@ export const reportsRelations = relations(reports, ({ one }) => ({
     fields: [reports.createdBy],
     references: [users.id],
   }),
+  template: one(reportTemplates, {
+    fields: [reports.templateId],
+    references: [reportTemplates.id],
+  }),
+}));
+
+export const reportTemplatesRelations = relations(reportTemplates, ({ one, many }) => ({
+  createdByUser: one(users, {
+    fields: [reportTemplates.createdBy],
+    references: [users.id],
+  }),
+  reports: many(reports),
 }));
 
 // Insert schemas
@@ -136,6 +162,12 @@ export const insertReportSchema = createInsertSchema(reports).omit({
   updatedAt: true,
 });
 
+export const insertReportTemplateSchema = createInsertSchema(reportTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -145,3 +177,5 @@ export type TeamMember = typeof teamMembers.$inferSelect;
 export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 export type Report = typeof reports.$inferSelect;
 export type InsertReport = z.infer<typeof insertReportSchema>;
+export type ReportTemplate = typeof reportTemplates.$inferSelect;
+export type InsertReportTemplate = z.infer<typeof insertReportTemplateSchema>;
