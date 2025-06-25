@@ -6,9 +6,6 @@ import { useLocation } from "wouter";
 import {
   FolderOpen,
   FileText,
-  Users,
-  Clock,
-  TrendingUp,
 } from "lucide-react";
 
 export default function Dashboard() {
@@ -58,68 +55,7 @@ export default function Dashboard() {
         <p className="text-gray-600">Overview of your current projects and activities</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-primary rounded-lg">
-                <FolderOpen className="w-6 h-6 text-white" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Active {projectLabel}</p>
-                <p className="text-2xl font-semibold text-gray-900">{activeProjects}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-600 rounded-lg">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Reports Generated</p>
-                <p className="text-2xl font-semibold text-gray-900">{reports.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-secondary rounded-lg">
-                <Users className="w-6 h-6 text-white" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total {projectLabel}</p>
-                <p className="text-2xl font-semibold text-gray-900">{projects.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-orange-600 rounded-lg">
-                <TrendingUp className="w-6 h-6 text-white" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">This Month</p>
-                <p className="text-2xl font-semibold text-gray-900">
-                  {reports.filter((r: any) => 
-                    new Date(r.createdAt).getMonth() === new Date().getMonth()
-                  ).length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+
 
       {/* Recent Activity & Current Projects */}
       <div className="grid lg:grid-cols-2 gap-8">

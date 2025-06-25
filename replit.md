@@ -127,9 +127,12 @@ Required environment variables:
 - `REPL_ID`: Replit environment identifier
 - `ISSUER_URL`: OAuth issuer URL (defaults to Replit)
 
-## Changelog
-- June 25, 2025. Initial setup
+## Recent Changes
+- June 25, 2025: Initial setup with complete authentication system
+- June 25, 2025: Fixed database schema and authentication flow for profile type selection
+- June 25, 2025: Removed dashboard statistics cards per user feedback - stage managers don't need count metrics
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Dashboard design: Remove statistics/metrics - focus on recent projects and reports only.
