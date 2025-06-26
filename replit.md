@@ -148,6 +148,11 @@ Required environment variables:
 - June 26, 2025: **NAVIGATION REDESIGN**: Replaced sidebar with streamlined show-centric interface
 - June 26, 2025: Implemented click-into-show navigation with organized categories: Reports, Calendar, Script, Cast, Tasks
 - June 26, 2025: Added dual profile type support - interface adapts terminology for freelance vs full-time theater professionals
+- June 26, 2025: **PHASE 2 IMPLEMENTATION**: Built core workflow tools for daily stage management use
+- June 26, 2025: Script Editor with cue-building system - supports lighting, sound, video, automation cues with visual overlays
+- June 26, 2025: Props Tracker with scene/character organization, status tracking, and sourcing notes
+- June 26, 2025: Costume Tracker with quick-change timing, repair tracking, and character-based organization
+- June 26, 2025: Enhanced Template Customization System with dynamic field types and drag-drop reordering
 
 ## User Preferences
 

@@ -127,6 +127,69 @@ export const showCharacters = pgTable("show_characters", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Phase 2: Script management
+export const scripts = pgTable("scripts", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(),
+  content: text("content"),
+  version: varchar("version").default("1.0"),
+  totalPages: integer("total_pages").default(1),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const scriptCues = pgTable("script_cues", {
+  id: serial("id").primaryKey(),
+  scriptId: integer("script_id").notNull().references(() => scripts.id, { onDelete: "cascade" }),
+  type: varchar("type").notNull(), // lighting, sound, video, automation, other
+  number: varchar("number").notNull(),
+  description: text("description"),
+  position: integer("position").notNull(),
+  page: integer("page").notNull(),
+  act: integer("act"),
+  scene: integer("scene"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Phase 2: Props tracking
+export const props = pgTable("props", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  scene: varchar("scene"),
+  character: varchar("character"),
+  location: varchar("location"),
+  status: varchar("status").notNull().default("needed"), // needed, pulled, rehearsal, performance, returned
+  notes: text("notes"),
+  quantity: integer("quantity").default(1),
+  sourcingNotes: text("sourcing_notes"),
+  imageUrl: varchar("image_url"),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Phase 2: Costume tracking
+export const costumes = pgTable("costumes", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  character: varchar("character").notNull(),
+  piece: varchar("piece").notNull(),
+  scene: varchar("scene"),
+  notes: text("notes"),
+  status: varchar("status").notNull().default("needed"), // needed, fitted, ready, in_use, repair
+  isQuickChange: boolean("is_quick_change").default(false),
+  quickChangeTime: integer("quick_change_time").default(60), // seconds
+  quickChangeNotes: text("quick_change_notes"),
+  imageUrl: varchar("image_url"),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),

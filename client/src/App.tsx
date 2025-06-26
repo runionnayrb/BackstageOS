@@ -18,6 +18,10 @@ import Templates from "@/pages/templates";
 import TemplateBuilder from "@/pages/template-builder";
 import ShowDetail from "@/pages/show-detail";
 import ShowReports from "@/pages/show-reports";
+import ScriptEditor from "@/pages/script-editor";
+import PropsTracker from "@/pages/props-tracker";
+import CostumeTracker from "@/pages/costume-tracker";
+import TemplateCustomizer from "@/pages/template-customizer";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -53,6 +57,11 @@ function Router() {
         <Route path="/template-builder" component={TemplateBuilder} />
         <Route path="/shows/:id" component={ShowDetail} />
         <Route path="/shows/:id/reports/:type" component={ShowReports} />
+        <Route path="/shows/:id/script" component={ScriptEditor} />
+        <Route path="/shows/:id/props" component={PropsTracker} />
+        <Route path="/shows/:id/costumes" component={CostumeTracker} />
+        <Route path="/shows/:id/templates/new" component={TemplateCustomizer} />
+        <Route path="/shows/:id/templates/:templateId/edit" component={TemplateCustomizer} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

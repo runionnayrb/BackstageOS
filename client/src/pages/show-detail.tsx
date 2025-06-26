@@ -84,7 +84,16 @@ export default function ShowDetail() {
       description: isFreelance ? "Script and materials" : "Script management and notes",
       icon: BookOpen,
       items: [
-        { name: "View Script", href: `/shows/${projectId}/script` },
+        { name: "Script Editor", href: `/shows/${projectId}/script` },
+      ],
+    },
+    {
+      title: "Props & Costumes",
+      description: isFreelance ? "Project inventory tracking" : "Props and costume management",
+      icon: FileText,
+      items: [
+        { name: "Props Tracker", href: `/shows/${projectId}/props` },
+        { name: "Costume Tracker", href: `/shows/${projectId}/costumes` },
       ],
     },
     {
