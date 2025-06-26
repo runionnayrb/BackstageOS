@@ -154,6 +154,7 @@ Required environment variables:
 - June 26, 2025: Costume Tracker with quick-change timing, repair tracking, and character-based organization
 - June 26, 2025: Enhanced Template Customization System with dynamic field types and drag-drop reordering
 - June 26, 2025: **COMPREHENSIVE SHOW SETTINGS**: Added complete settings system for team member management, sharing controls, template configuration, report settings, and schedule preferences with secure shareable links
+- June 26, 2025: **SIDEBAR REMOVAL**: Completely removed sidebar navigation - interface now centers on simple show access through clean projects page
 
 ## User Preferences
 

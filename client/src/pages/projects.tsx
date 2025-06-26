@@ -10,7 +10,7 @@ export default function Projects() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   
-  const isFullTime = user?.profileType === "fulltime";
+  const isFullTime = (user as any)?.profileType === "fulltime";
   const projectLabel = isFullTime ? "Shows" : "Projects";
   const projectSingle = isFullTime ? "Show" : "Project";
 
@@ -52,19 +52,22 @@ export default function Projects() {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">All {projectLabel}</h2>
-          <p className="text-gray-600">Manage your current and past {projectLabel.toLowerCase()}</p>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">{projectLabel}</h1>
+            <p className="text-muted-foreground mt-2">
+              {isFullTime ? "Manage your theater productions" : "Manage your client projects"}
+            </p>
+          </div>
+          <Button onClick={() => setLocation("/create-project")}>
+            <Plus className="w-5 h-5 mr-2" />
+            New {projectSingle}
+          </Button>
         </div>
-        <Button onClick={() => setLocation("/create-project")}>
-          <Plus className="w-5 h-5 mr-2" />
-          New {projectSingle}
-        </Button>
-      </div>
 
-      {projects.length === 0 ? (
+        {(projects as any[]).length === 0 ? (
         <div className="text-center py-12">
           <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No {projectLabel.toLowerCase()} yet</h3>
@@ -76,8 +79,12 @@ export default function Projects() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project: any) => (
-            <Card key={project.id} className="hover:shadow-lg transition-shadow cursor-pointer">
+          {(projects as any[]).map((project: any) => (
+            <Card 
+              key={project.id} 
+              className="hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => setLocation(`/shows/${project.id}`)}
+            >
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-primary to-blue-600 rounded-lg flex items-center justify-center">
@@ -91,16 +98,16 @@ export default function Projects() {
                     {project.status}
                   </Badge>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{project.name}</h3>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                <h3 className="text-lg font-semibold mb-2">{project.name}</h3>
+                <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
                   {project.description || "No description provided"}
                 </p>
-                <div className="flex items-center justify-between text-sm text-gray-500">
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <span>{project.venue || "No venue set"}</span>
                   <span>Updated {formatDate(project.updatedAt)}</span>
                 </div>
                 {project.openingNight && (
-                  <div className="mt-2 text-sm text-gray-500">
+                  <div className="mt-2 text-sm text-muted-foreground">
                     Opens: {formatDate(project.openingNight)}
                   </div>
                 )}
@@ -109,6 +116,7 @@ export default function Projects() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

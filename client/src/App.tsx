@@ -40,22 +40,15 @@ function Router() {
     return <Landing />;
   }
 
-  if (!user?.profileType) {
+  if (!(user as any)?.profileType) {
     return <ProfileSelection />;
   }
 
   return (
     <Layout>
       <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/projects" component={Projects} />
+        <Route path="/" component={Projects} />
         <Route path="/create-project" component={CreateProject} />
-        <Route path="/team" component={Team} />
-        <Route path="/invitations" component={Invitations} />
-        <Route path="/reports" component={Reports} />
-        <Route path="/report-builder" component={ReportBuilder} />
-        <Route path="/templates" component={Templates} />
-        <Route path="/template-builder" component={TemplateBuilder} />
         <Route path="/shows/:id" component={ShowDetail} />
         <Route path="/shows/:id/reports/:type" component={ShowReports} />
         <Route path="/shows/:id/script" component={ScriptEditor} />

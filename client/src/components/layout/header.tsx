@@ -1,13 +1,11 @@
-import { Bell, Menu } from "lucide-react";
+import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 
-interface HeaderProps {
-  onMenuClick: () => void;
-}
-
-export default function Header({ onMenuClick }: HeaderProps) {
+export default function Header() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
   const getInitials = (firstName?: string, lastName?: string) => {
     if (!firstName && !lastName) return "U";
@@ -21,15 +19,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
           <div className="flex items-center">
             <Button
               variant="ghost"
-              size="sm"
-              className="lg:hidden"
-              onClick={onMenuClick}
+              onClick={() => setLocation("/")}
+              className="text-xl font-semibold text-gray-900 p-0 hover:bg-transparent"
             >
-              <Menu className="h-6 w-6" />
-            </Button>
-            <h1 className="text-xl font-semibold text-gray-900 ml-3 lg:ml-0">
               Backstage OS
-            </h1>
+            </Button>
           </div>
           
           <div className="flex items-center space-x-4">
@@ -48,13 +42,13 @@ export default function Header({ onMenuClick }: HeaderProps) {
               >
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">
-                    {getInitials(user?.firstName, user?.lastName)}
+                    {getInitials((user as any)?.firstName, (user as any)?.lastName)}
                   </span>
                 </div>
                 <span className="hidden sm:block text-sm font-medium text-gray-700">
-                  {user?.firstName || user?.lastName 
-                    ? `${user?.firstName || ""} ${user?.lastName || ""}`.trim()
-                    : user?.email
+                  {(user as any)?.firstName || (user as any)?.lastName 
+                    ? `${(user as any)?.firstName || ""} ${(user as any)?.lastName || ""}`.trim()
+                    : (user as any)?.email
                   }
                 </span>
               </Button>
