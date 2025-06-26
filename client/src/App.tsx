@@ -57,8 +57,8 @@ function Router() {
         <Route path="/shows/:id/script" component={ScriptEditor} />
         <Route path="/shows/:id/props" component={PropsTracker} />
         <Route path="/shows/:id/costumes" component={CostumeTracker} />
-        <Route path="/shows/:id/templates/new" component={TemplateCustomizer} />
-        <Route path="/shows/:id/templates/:templateId/edit" component={TemplateCustomizer} />
+        <Route path="/shows/:id/templates/new" component={TemplateBuilder} />
+        <Route path="/shows/:id/templates/:templateId/edit" component={TemplateBuilder} />
         <Route path="/shows/:id/templates" component={TemplateSettings} />
         <Route path="/shows/:id/settings" component={ShowSettings} />
         <Route component={NotFound} />
