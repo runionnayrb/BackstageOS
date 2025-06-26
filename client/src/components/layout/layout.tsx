@@ -10,7 +10,7 @@ export default function Layout({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Header onMenuClick={() => setSidebarOpen(true)} />
       <div className="flex">
         <Sidebar 
