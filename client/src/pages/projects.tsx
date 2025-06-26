@@ -11,8 +11,8 @@ export default function Projects() {
   const [, setLocation] = useLocation();
   
   const isFullTime = (user as any)?.profileType === "fulltime";
-  const projectLabel = isFullTime ? "Shows" : "Projects";
-  const projectSingle = isFullTime ? "Show" : "Project";
+  const projectLabel = "Shows";
+  const projectSingle = "Show";
 
   const { data: projects = [], isLoading } = useQuery({
     queryKey: ["/api/projects"],
@@ -68,7 +68,7 @@ export default function Projects() {
           <div>
             <h1 className="text-3xl font-bold">{projectLabel}</h1>
             <p className="text-muted-foreground mt-2">
-              {isFullTime ? "Manage your theater productions" : "Manage your client projects"}
+              Manage your theater productions
             </p>
           </div>
           <Button onClick={() => setLocation("/create-project")}>

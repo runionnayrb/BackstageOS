@@ -34,7 +34,7 @@ export default function CreateProject() {
   const queryClient = useQueryClient();
 
   const isFullTime = (user as any)?.profileType === "fulltime";
-  const projectSingle = isFullTime ? "Show" : "Project";
+  const projectSingle = "Show";
 
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
