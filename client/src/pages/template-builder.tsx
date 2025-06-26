@@ -266,108 +266,75 @@ export default function TemplateBuilder() {
     }
   };
 
-  const renderFieldEditor = (field: TemplateField) => {
-    return (
-      <Card className="border-2 border-blue-200">
-        <CardContent className="p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <Input
-              value={field.label}
-              onChange={(e) => updateField(field.id, { label: e.target.value })}
-              className="font-medium"
-              placeholder="Field label"
+  const renderFieldEditable = (field: TemplateField) => {
+    const value = sampleData[field.id];
+
+    const handleFieldChange = (newValue: any) => {
+      setSampleData(prev => ({ ...prev, [field.id]: newValue }));
+    };
+
+    switch (field.type) {
+      case "text":
+      case "number":
+        return (
+          <Input
+            value={value || ""}
+            onChange={(e) => handleFieldChange(e.target.value)}
+            placeholder={field.placeholder || field.label}
+            className="text-sm"
+            type={field.type}
+          />
+        );
+      case "textarea":
+        return (
+          <Textarea
+            value={value || ""}
+            onChange={(e) => handleFieldChange(e.target.value)}
+            placeholder={field.placeholder || field.label}
+            className="text-sm min-h-[80px]"
+          />
+        );
+      case "date":
+      case "time":
+        return (
+          <Input
+            value={value || ""}
+            onChange={(e) => handleFieldChange(e.target.value)}
+            type={field.type}
+            className="text-sm w-40"
+          />
+        );
+      case "select":
+        return (
+          <Select value={value || ""} onValueChange={handleFieldChange}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Select an option" />
+            </SelectTrigger>
+            <SelectContent>
+              {field.options?.map(option => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        );
+      case "checkbox":
+        return (
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={value || false}
+              onCheckedChange={handleFieldChange}
             />
-            <div className="flex items-center space-x-2">
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => moveField(field.id, "up")}
-                disabled={fields.findIndex(f => f.id === field.id) === 0}
-              >
-                <ChevronUp className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => moveField(field.id, "down")}
-                disabled={fields.findIndex(f => f.id === field.id) === fields.length - 1}
-              >
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => removeField(field.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+            <span className="text-sm">{field.label}</span>
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Field Type</Label>
-              <Select
-                value={field.type}
-                onValueChange={(value) => updateField(field.id, { type: value as any })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FIELD_TYPES.map(type => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Switch
-                checked={field.required}
-                onCheckedChange={(checked) => updateField(field.id, { required: checked })}
-              />
-              <Label>Required</Label>
-            </div>
-          </div>
-
-          <div>
-            <Label>Placeholder Text</Label>
-            <Input
-              value={field.placeholder || ""}
-              onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
-              placeholder="Enter placeholder text..."
-            />
-          </div>
-
-          {field.type === "select" && (
-            <div>
-              <Label>Options (one per line)</Label>
-              <Textarea
-                value={field.options?.join("\n") || ""}
-                onChange={(e) => updateField(field.id, { 
-                  options: e.target.value.split("\n").filter(Boolean) 
-                })}
-                placeholder="Option 1&#10;Option 2&#10;Option 3"
-              />
-            </div>
-          )}
-
-          <div className="flex justify-end space-x-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setEditingField(null)}
-            >
-              Done
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
+        );
+      default:
+        return null;
+    }
   };
+
+
 
   const processText = (text: string | undefined) => {
     if (!text) return "";
@@ -539,56 +506,106 @@ export default function TemplateBuilder() {
                   fontFamily: "Arial, sans-serif"
                 }}>
                   {/* Header */}
-                  {form.watch("header") && (
-                    <div className="text-center mb-6 pb-4 border-b">
+                  <div className="text-center mb-6 pb-4 border-b">
+                    {isPreviewMode ? (
                       <div className="whitespace-pre-line text-lg font-semibold">
                         {processText(form.watch("header"))}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <Textarea
+                        {...form.register("header")}
+                        placeholder="{{showName}} - {{reportType}}&#10;{{date}}"
+                        className="text-center text-lg font-semibold border-0 bg-transparent resize-none whitespace-pre-line p-0 focus:ring-0 focus:outline-none"
+                        style={{ minHeight: "auto" }}
+                      />
+                    )}
+                  </div>
 
                   {/* Fields */}
                   <div className="space-y-6">
-                    {fields.map((field) => (
-                      <div key={field.id} className="space-y-2">
-                        {editingField === field.id && !isPreviewMode ? (
-                          renderFieldEditor(field)
-                        ) : (
-                          <div 
-                            className={`${!isPreviewMode ? "cursor-pointer hover:bg-gray-50 p-2 rounded border-2 border-transparent hover:border-gray-200" : ""}`}
-                            onClick={() => !isPreviewMode && setEditingField(field.id)}
-                          >
-                            <div className="flex items-start justify-between">
-                              <Label className="text-sm font-medium text-gray-700">
-                                {field.label}
-                                {field.required && <span className="text-red-500 ml-1">*</span>}
-                              </Label>
-                              {!isPreviewMode && (
-                                <div className="flex items-center space-x-1">
-                                  <GripVertical className="h-4 w-4 text-gray-400" />
-                                  <Badge variant="secondary" className="text-xs">
-                                    {field.type}
-                                  </Badge>
-                                </div>
-                              )}
+                    {fields.map((field, index) => (
+                      <div key={field.id} className="space-y-2 relative group">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-medium text-gray-700">
+                            {isPreviewMode ? (
+                              field.label
+                            ) : (
+                              <Input
+                                value={field.label}
+                                onChange={(e) => updateField(field.id, { label: e.target.value })}
+                                className="text-sm font-medium border-0 bg-transparent p-0 focus:ring-0 focus:outline-none h-auto"
+                                placeholder="Field label"
+                              />
+                            )}
+                            {field.required && <span className="text-red-500 ml-1">*</span>}
+                          </Label>
+                          
+                          {!isPreviewMode && (
+                            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => moveField(field.id, "up")}
+                                disabled={index === 0}
+                                className="h-6 w-6 p-0"
+                              >
+                                <ChevronUp className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => moveField(field.id, "down")}
+                                disabled={index === fields.length - 1}
+                                className="h-6 w-6 p-0"
+                              >
+                                <ChevronDown className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => removeField(field.id)}
+                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
                             </div>
-                            <div className="mt-1">
-                              {renderFieldPreview(field)}
-                            </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
+                        <div className="mt-1">
+                          {isPreviewMode ? renderFieldPreview(field) : renderFieldEditable(field)}
+                        </div>
                       </div>
                     ))}
+                    
+                    {!isPreviewMode && (
+                      <div className="text-center pt-4">
+                        <Button
+                          variant="outline"
+                          onClick={addField}
+                          className="w-full border-dashed"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Field
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Footer */}
-                  {form.watch("footer") && (
-                    <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
+                  <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
+                    {isPreviewMode ? (
                       <div className="whitespace-pre-line">
                         {processText(form.watch("footer"))}
                       </div>
-                    </div>
-                  )}
+                    ) : (
+                      <Textarea
+                        {...form.register("footer")}
+                        placeholder="Prepared by: {{preparedBy}}"
+                        className="text-center text-sm text-gray-600 border-0 bg-transparent resize-none whitespace-pre-line p-0 focus:ring-0 focus:outline-none"
+                        style={{ minHeight: "auto" }}
+                      />
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
