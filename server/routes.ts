@@ -464,6 +464,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Report template routes
+  app.get("/api/projects/:id/templates", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check access (owner or team member)
+      if (project.ownerId !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const templates = await storage.getReportTemplatesByProjectId(projectId);
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching report templates:", error);
+      res.status(500).json({ message: "Failed to fetch templates" });
+    }
+  });
+
+  app.post("/api/projects/:id/templates", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const templateData = {
+        ...req.body,
+        projectId,
+        createdBy: req.user.claims.sub,
+      };
+
+      const template = await storage.createReportTemplate(templateData);
+      res.json(template);
+    } catch (error) {
+      console.error("Error creating report template:", error);
+      res.status(500).json({ message: "Failed to create template" });
+    }
+  });
+
+  app.patch("/api/projects/:id/templates/:templateId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const templateId = parseInt(req.params.templateId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const template = await storage.updateReportTemplate(templateId, req.body);
+      res.json(template);
+    } catch (error) {
+      console.error("Error updating report template:", error);
+      res.status(500).json({ message: "Failed to update template" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

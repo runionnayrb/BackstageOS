@@ -83,7 +83,10 @@ export const reportTemplates = pgTable("report_templates", {
   name: varchar("name").notNull(),
   description: text("description"),
   type: varchar("type").notNull(), // rehearsal, tech, performance, meeting, custom
-  fields: jsonb("fields").notNull(), // JSON array of field definitions
+  phase: varchar("phase"), // prep, rehearsal, tech, previews, performance
+  header: text("header"), // template header with variables
+  footer: text("footer"), // template footer with variables
+  fields: jsonb("fields").notNull(), // JSON array of field definitions with order, type, etc.
   isDefault: boolean("is_default").default(false),
   isPublic: boolean("is_public").default(false), // Can be shared with other users
   createdBy: varchar("created_by").notNull().references(() => users.id),

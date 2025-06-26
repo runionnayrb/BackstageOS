@@ -116,7 +116,8 @@ export default function ShowDetail() {
       description: isFreelance ? "Project configuration" : "Show configuration and permissions",
       icon: Settings,
       items: [
-        { name: "Settings", href: `/shows/${projectId}/settings` },
+        { name: "General Settings", href: `/shows/${projectId}/settings` },
+        { name: "Report Templates", href: `/shows/${projectId}/templates` },
       ],
     },
   ];
