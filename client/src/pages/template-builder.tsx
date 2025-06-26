@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -27,29 +27,12 @@ import {
   ArrowLeft
 } from "lucide-react";
 
-const fieldTypeOptions = [
-  { value: "text", label: "Short Text", icon: Type },
-  { value: "textarea", label: "Long Text", icon: FileText },
-  { value: "number", label: "Number", icon: Hash },
-  { value: "date", label: "Date", icon: Calendar },
-  { value: "time", label: "Time", icon: Clock },
-  { value: "select", label: "Dropdown", icon: ToggleLeft },
-  { value: "checkbox", label: "Checkbox", icon: Settings },
-];
-
 const templateSchema = z.object({
   name: z.string().min(1, "Template name is required"),
   description: z.string().optional(),
   type: z.string().min(1, "Template type is required"),
   isPublic: z.boolean().default(false),
-  fields: z.array(z.object({
-    id: z.string(),
-    label: z.string(),
-    type: z.string(),
-    required: z.boolean(),
-    placeholder: z.string().optional(),
-    options: z.array(z.string()).optional(),
-  })),
+  fields: z.array(z.any()).default([]),
 });
 
 type TemplateFormData = z.infer<typeof templateSchema>;
@@ -69,7 +52,7 @@ export default function TemplateBuilder() {
   const queryClient = useQueryClient();
   const [fields, setFields] = useState<TemplateField[]>([]);
   const [editingField, setEditingField] = useState<TemplateField | null>(null);
-
+  
   const form = useForm<TemplateFormData>({
     resolver: zodResolver(templateSchema),
     defaultValues: {
@@ -149,20 +132,21 @@ export default function TemplateBuilder() {
   };
 
   const onSubmit = (data: TemplateFormData) => {
-    if (fields.length === 0) {
-      toast({
-        title: "No Fields",
-        description: "Please add at least one field to your template.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     mutation.mutate({
       ...data,
-      fields,
+      fields: fields,
     });
   };
+
+  const fieldTypeOptions = [
+    { value: "text", label: "Text", icon: Type },
+    { value: "textarea", label: "Long Text", icon: FileText },
+    { value: "number", label: "Number", icon: Hash },
+    { value: "date", label: "Date", icon: Calendar },
+    { value: "datetime", label: "Date & Time", icon: Clock },
+    { value: "select", label: "Dropdown", icon: Settings },
+    { value: "checkbox", label: "Checkbox", icon: ToggleLeft },
+  ];
 
   const getFieldIcon = (type: string) => {
     const option = fieldTypeOptions.find(opt => opt.value === type);
@@ -188,10 +172,9 @@ export default function TemplateBuilder() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Template Settings */}
           <Card>
             <CardHeader>
-              <CardTitle>Template Settings</CardTitle>
+              <CardTitle>Template Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
@@ -325,12 +308,16 @@ export default function TemplateBuilder() {
               </div>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Field Editor */}
-          {editingField && (
-            <Card>
+        {/* Field Editor Modal */}
+        {editingField && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto mx-4">
               <CardHeader>
-                <CardTitle>Edit Field</CardTitle>
+                <CardTitle>
+                  {fields.find(f => f.id === editingField.id) ? "Edit Field" : "Add New Field"}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -360,17 +347,11 @@ export default function TemplateBuilder() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {fieldTypeOptions.map((option) => {
-                        const Icon = option.icon;
-                        return (
-                          <SelectItem key={option.value} value={option.value}>
-                            <div className="flex items-center">
-                              <Icon className="w-4 h-4 mr-2" />
-                              {option.label}
-                            </div>
-                          </SelectItem>
-                        );
-                      })}
+                      {fieldTypeOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -392,8 +373,8 @@ export default function TemplateBuilder() {
                   <div>
                     <Label>Dropdown Options</Label>
                     <div className="space-y-2">
-                      {editingField.options?.map((option, index) => (
-                        <div key={index} className="flex space-x-2">
+                      {(editingField.options || []).map((option, index) => (
+                        <div key={index} className="flex items-center space-x-2">
                           <Input
                             value={option}
                             onChange={(e) => {
@@ -468,8 +449,8 @@ export default function TemplateBuilder() {
                 </div>
               </CardContent>
             </Card>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
