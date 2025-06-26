@@ -41,7 +41,8 @@ export const projects = pgTable("projects", {
   name: varchar("name").notNull(),
   description: text("description"),
   venue: varchar("venue"),
-  startDate: timestamp("start_date"),
+  prepStartDate: timestamp("prep_start_date"),
+  closingDate: timestamp("closing_date"),
   openingNight: timestamp("opening_night"),
   status: varchar("status").notNull().default("planning"), // planning, pre-production, rehearsal, tech, performance, closed
   season: varchar("season"), // for full-time users

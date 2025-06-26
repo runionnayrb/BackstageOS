@@ -18,7 +18,8 @@ const projectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
   description: z.string().optional(),
   venue: z.string().optional(),
-  startDate: z.string().optional(),
+  prepStartDate: z.string().optional(),
+  closingDate: z.string().optional(),
   openingNight: z.string().optional(),
   status: z.string().default("planning"),
   season: z.string().optional(),
@@ -32,7 +33,7 @@ export default function CreateProject() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const isFullTime = user?.profileType === "fulltime";
+  const isFullTime = (user as any)?.profileType === "fulltime";
   const projectSingle = isFullTime ? "Show" : "Project";
 
   const form = useForm<ProjectFormData>({
@@ -41,7 +42,8 @@ export default function CreateProject() {
       name: "",
       description: "",
       venue: "",
-      startDate: "",
+      prepStartDate: "",
+      closingDate: "",
       openingNight: "",
       status: "planning",
       season: "",
@@ -52,7 +54,8 @@ export default function CreateProject() {
     mutationFn: async (data: ProjectFormData) => {
       const projectData = {
         ...data,
-        startDate: data.startDate ? new Date(data.startDate) : null,
+        prepStartDate: data.prepStartDate ? new Date(data.prepStartDate) : null,
+        closingDate: data.closingDate ? new Date(data.closingDate) : null,
         openingNight: data.openingNight ? new Date(data.openingNight) : null,
       };
       await apiRequest("POST", "/api/projects", projectData);
@@ -125,13 +128,24 @@ export default function CreateProject() {
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="startDate">Start Date</Label>
+                  <Label htmlFor="prepStartDate">Prep Start Date</Label>
                   <Input
-                    id="startDate"
+                    id="prepStartDate"
                     type="date"
-                    {...form.register("startDate")}
+                    {...form.register("prepStartDate")}
                   />
                 </div>
+                <div>
+                  <Label htmlFor="closingDate">Closing Date</Label>
+                  <Input
+                    id="closingDate"
+                    type="date"
+                    {...form.register("closingDate")}
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="openingNight">Opening Night</Label>
                   <Input

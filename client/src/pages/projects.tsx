@@ -36,6 +36,16 @@ export default function Projects() {
     return new Date(dateString).toLocaleDateString();
   };
 
+  const formatDateRange = (prepStart?: string, closing?: string) => {
+    if (!prepStart && !closing) return "No dates set";
+    if (prepStart && closing) {
+      return `${formatDate(prepStart)} - ${formatDate(closing)}`;
+    }
+    if (prepStart) return `From ${formatDate(prepStart)}`;
+    if (closing) return `Until ${formatDate(closing)}`;
+    return "No dates set";
+  };
+
   if (isLoading) {
     return (
       <div className="p-6">
@@ -86,31 +96,18 @@ export default function Projects() {
               onClick={() => setLocation(`/shows/${project.id}`)}
             >
               <CardContent className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-blue-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-semibold text-lg">
-                      {getProjectInitial(project.name)}
-                    </span>
+                <h3 className="text-lg font-semibold mb-3">{project.name}</h3>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <div>
+                    <span className="font-medium">Venue:</span> {project.venue || "No venue set"}
                   </div>
-                  <Badge 
-                    className={`${getStatusColor(project.status)} text-white capitalize`}
-                  >
-                    {project.status}
-                  </Badge>
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{project.name}</h3>
-                <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                  {project.description || "No description provided"}
-                </p>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>{project.venue || "No venue set"}</span>
-                  <span>Updated {formatDate(project.updatedAt)}</span>
-                </div>
-                {project.openingNight && (
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    Opens: {formatDate(project.openingNight)}
+                  <div>
+                    <span className="font-medium">Dates:</span> {formatDateRange(project.prepStartDate, project.closingDate)}
                   </div>
-                )}
+                  <div>
+                    <span className="font-medium">Updated:</span> {formatDate(project.updatedAt)}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}

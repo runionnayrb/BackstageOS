@@ -155,6 +155,7 @@ Required environment variables:
 - June 26, 2025: Enhanced Template Customization System with dynamic field types and drag-drop reordering
 - June 26, 2025: **COMPREHENSIVE SHOW SETTINGS**: Added complete settings system for team member management, sharing controls, template configuration, report settings, and schedule preferences with secure shareable links
 - June 26, 2025: **SIDEBAR REMOVAL**: Completely removed sidebar navigation - interface now centers on simple show access through clean projects page
+- June 26, 2025: **SIMPLIFIED SHOW CARDS**: Removed icons, status badges, and visual clutter - cards now display only essential info: show name, venue, date range (prep start to closing), and last updated
 
 ## User Preferences
 
