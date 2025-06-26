@@ -7,6 +7,7 @@ import {
   showDocuments,
   showSchedules,
   showCharacters,
+  showSettings,
   type User,
   type UpsertUser,
   type Project,
@@ -23,6 +24,8 @@ import {
   type InsertShowSchedule,
   type ShowCharacter,
   type InsertShowCharacter,
+  type ShowSettings,
+  type InsertShowSettings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -80,6 +83,12 @@ export interface IStorage {
   createShowCharacter(character: InsertShowCharacter): Promise<ShowCharacter>;
   updateShowCharacter(id: number, character: Partial<InsertShowCharacter>): Promise<ShowCharacter>;
   deleteShowCharacter(id: number): Promise<void>;
+
+  // Show settings operations
+  getShowSettingsByProjectId(projectId: number): Promise<ShowSettings | undefined>;
+  upsertShowSettings(settings: InsertShowSettings): Promise<ShowSettings>;
+  updateShowSettings(projectId: number, settings: Partial<InsertShowSettings>): Promise<ShowSettings>;
+  generateShareLink(projectId: number): Promise<string>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -392,6 +401,52 @@ export class DatabaseStorage implements IStorage {
       .from(reportTemplates)
       .where(eq(reportTemplates.projectId, projectId))
       .orderBy(desc(reportTemplates.createdAt));
+  }
+
+  // Show settings operations
+  async getShowSettingsByProjectId(projectId: number): Promise<ShowSettings | undefined> {
+    const [settings] = await db.select().from(showSettings).where(eq(showSettings.projectId, projectId));
+    return settings;
+  }
+
+  async upsertShowSettings(settingsData: InsertShowSettings): Promise<ShowSettings> {
+    const [settings] = await db
+      .insert(showSettings)
+      .values(settingsData)
+      .onConflictDoUpdate({
+        target: showSettings.projectId,
+        set: {
+          ...settingsData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return settings;
+  }
+
+  async updateShowSettings(projectId: number, settingsData: Partial<InsertShowSettings>): Promise<ShowSettings> {
+    const [settings] = await db
+      .update(showSettings)
+      .set({
+        ...settingsData,
+        updatedAt: new Date(),
+      })
+      .where(eq(showSettings.projectId, projectId))
+      .returning();
+    return settings;
+  }
+
+  async generateShareLink(projectId: number): Promise<string> {
+    const shareableLink = `${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/shared/${projectId}/${Math.random().toString(36).substring(2, 15)}`;
+    
+    await this.updateShowSettings(projectId, {
+      sharingSettings: {
+        shareableLink,
+        linkExpiration: null,
+      } as any,
+    });
+    
+    return shareableLink;
   }
 }
 

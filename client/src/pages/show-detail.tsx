@@ -13,7 +13,8 @@ import {
   Users, 
   CheckSquare,
   ArrowLeft,
-  Plus
+  Plus,
+  Settings
 } from "lucide-react";
 
 interface ShowDetailParams {
@@ -112,6 +113,14 @@ export default function ShowDetail() {
       items: [
         { name: "List View", href: `/shows/${projectId}/tasks/list` },
         { name: "Board View", href: `/shows/${projectId}/tasks/board` },
+      ],
+    },
+    {
+      title: "Settings",
+      description: isFreelance ? "Project configuration" : "Show configuration and permissions",
+      icon: Settings,
+      items: [
+        { name: "Settings", href: `/shows/${projectId}/settings` },
       ],
     },
   ];

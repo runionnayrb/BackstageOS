@@ -387,6 +387,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Show settings routes
+  app.get("/api/projects/:id/settings", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      let settings = await storage.getShowSettingsByProjectId(projectId);
+      
+      if (!settings) {
+        // Create default settings if none exist
+        settings = await storage.upsertShowSettings({
+          projectId,
+          createdBy: req.user.claims.sub,
+        });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching show settings:", error);
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  app.patch("/api/projects/:id/settings", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const settingsData = req.body;
+      const settings = await storage.updateShowSettings(projectId, settingsData);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating show settings:", error);
+      res.status(500).json({ message: "Failed to update settings" });
+    }
+  });
+
+  app.post("/api/projects/:id/share-link", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const shareLink = await storage.generateShareLink(projectId);
+      res.json({ shareableLink: shareLink });
+    } catch (error) {
+      console.error("Error generating share link:", error);
+      res.status(500).json({ message: "Failed to generate share link" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

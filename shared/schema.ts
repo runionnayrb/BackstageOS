@@ -190,6 +190,20 @@ export const costumes = pgTable("costumes", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Phase 2: Show settings
+export const showSettings = pgTable("show_settings", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }).unique(),
+  teamMemberSettings: jsonb("team_member_settings").notNull().default('{"allowInvitations":true,"requireApproval":false,"defaultRole":"member","maxMembers":20}'),
+  sharingSettings: jsonb("sharing_settings").notNull().default('{"isPublic":false,"allowGuestView":false,"shareableLink":null,"linkExpiration":null,"password":null}'),
+  templateSettings: jsonb("template_settings").notNull().default('{"useDefaultTemplates":true,"allowCustomTemplates":true,"templateApprovalRequired":false,"sharedTemplateLibrary":false}'),
+  reportSettings: jsonb("report_settings").notNull().default('{"defaultReportType":"rehearsal","requireReview":false,"autoArchive":false,"archiveDays":30,"notificationsEnabled":true}'),
+  scheduleSettings: jsonb("schedule_settings").notNull().default('{"timeZone":"America/New_York","workingHours":{"start":"09:00","end":"18:00"},"allowConflicts":false,"reminderSettings":{"enabled":true,"minutesBefore":30}}'),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
@@ -324,6 +338,12 @@ export const insertShowCharacterSchema = createInsertSchema(showCharacters).omit
   updatedAt: true,
 });
 
+export const insertShowSettingsSchema = createInsertSchema(showSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -341,3 +361,5 @@ export type ShowSchedule = typeof showSchedules.$inferSelect;
 export type InsertShowSchedule = z.infer<typeof insertShowScheduleSchema>;
 export type ShowCharacter = typeof showCharacters.$inferSelect;
 export type InsertShowCharacter = z.infer<typeof insertShowCharacterSchema>;
+export type ShowSettings = typeof showSettings.$inferSelect;
+export type InsertShowSettings = z.infer<typeof insertShowSettingsSchema>;

@@ -153,6 +153,7 @@ Required environment variables:
 - June 26, 2025: Props Tracker with scene/character organization, status tracking, and sourcing notes
 - June 26, 2025: Costume Tracker with quick-change timing, repair tracking, and character-based organization
 - June 26, 2025: Enhanced Template Customization System with dynamic field types and drag-drop reordering
+- June 26, 2025: **COMPREHENSIVE SHOW SETTINGS**: Added complete settings system for team member management, sharing controls, template configuration, report settings, and schedule preferences with secure shareable links
 
 ## User Preferences
 

@@ -22,6 +22,7 @@ import ScriptEditor from "@/pages/script-editor";
 import PropsTracker from "@/pages/props-tracker";
 import CostumeTracker from "@/pages/costume-tracker";
 import TemplateCustomizer from "@/pages/template-customizer";
+import ShowSettings from "@/pages/show-settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -62,6 +63,7 @@ function Router() {
         <Route path="/shows/:id/costumes" component={CostumeTracker} />
         <Route path="/shows/:id/templates/new" component={TemplateCustomizer} />
         <Route path="/shows/:id/templates/:templateId/edit" component={TemplateCustomizer} />
+        <Route path="/shows/:id/settings" component={ShowSettings} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
