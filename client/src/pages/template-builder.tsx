@@ -248,7 +248,7 @@ export default function TemplateBuilder() {
               <div className="border-t pt-6">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-semibold">Template Fields</h3>
-                  <Button onClick={addField} size="sm">
+                  <Button type="button" onClick={addField} size="sm">
                     <Plus className="w-4 h-4 mr-2" />
                     Add Field
                   </Button>
@@ -271,19 +271,20 @@ export default function TemplateBuilder() {
                         </div>
                         <div className="flex items-center space-x-2">
                           {index > 0 && (
-                            <Button variant="ghost" size="sm" onClick={() => moveField(index, 'up')}>
+                            <Button type="button" variant="ghost" size="sm" onClick={() => moveField(index, 'up')}>
                               ↑
                             </Button>
                           )}
                           {index < fields.length - 1 && (
-                            <Button variant="ghost" size="sm" onClick={() => moveField(index, 'down')}>
+                            <Button type="button" variant="ghost" size="sm" onClick={() => moveField(index, 'down')}>
                               ↓
                             </Button>
                           )}
-                          <Button variant="ghost" size="sm" onClick={() => editField(field)}>
+                          <Button type="button" variant="ghost" size="sm" onClick={() => editField(field)}>
                             Edit
                           </Button>
                           <Button 
+                            type="button"
                             variant="ghost" 
                             size="sm" 
                             onClick={() => deleteField(field.id)}
@@ -405,6 +406,7 @@ export default function TemplateBuilder() {
                             }}
                           />
                           <Button
+                            type="button"
                             variant="ghost"
                             size="sm"
                             onClick={() => {
@@ -420,6 +422,7 @@ export default function TemplateBuilder() {
                         </div>
                       ))}
                       <Button
+                        type="button"
                         variant="outline"
                         size="sm"
                         onClick={() => {
@@ -453,12 +456,13 @@ export default function TemplateBuilder() {
 
                 <div className="flex justify-end space-x-4 pt-4">
                   <Button
+                    type="button"
                     variant="outline"
                     onClick={() => setEditingField(null)}
                   >
                     Cancel
                   </Button>
-                  <Button onClick={saveField}>
+                  <Button type="button" onClick={saveField}>
                     Save Field
                   </Button>
                 </div>

@@ -131,6 +131,8 @@ Required environment variables:
 - June 25, 2025: Initial setup with complete authentication system
 - June 25, 2025: Fixed database schema and authentication flow for profile type selection
 - June 25, 2025: Removed dashboard statistics cards per user feedback - stage managers don't need count metrics
+- June 25, 2025: Implemented advanced report template customization system with dynamic field types
+- June 25, 2025: Fixed template builder button functionality - buttons now work correctly for adding/editing fields
 
 ## User Preferences
 
