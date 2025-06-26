@@ -4,6 +4,9 @@ import {
   teamMembers,
   reports,
   reportTemplates,
+  showDocuments,
+  showSchedules,
+  showCharacters,
   type User,
   type UpsertUser,
   type Project,
@@ -14,6 +17,12 @@ import {
   type InsertReport,
   type ReportTemplate,
   type InsertReportTemplate,
+  type ShowDocument,
+  type InsertShowDocument,
+  type ShowSchedule,
+  type InsertShowSchedule,
+  type ShowCharacter,
+  type InsertShowCharacter,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -44,14 +53,33 @@ export interface IStorage {
   updateReport(id: number, report: Partial<InsertReport>): Promise<Report>;
   deleteReport(id: number): Promise<void>;
 
-  // Report template operations
-  getReportTemplatesByUserId(userId: string): Promise<ReportTemplate[]>;
-  getPublicReportTemplates(): Promise<ReportTemplate[]>;
-  getDefaultReportTemplates(): Promise<ReportTemplate[]>;
+  // Report template operations (show-specific)
+  getReportTemplatesByProjectId(projectId: number): Promise<ReportTemplate[]>;
   getReportTemplateById(id: number): Promise<ReportTemplate | undefined>;
   createReportTemplate(template: InsertReportTemplate): Promise<ReportTemplate>;
   updateReportTemplate(id: number, template: Partial<InsertReportTemplate>): Promise<ReportTemplate>;
   deleteReportTemplate(id: number): Promise<void>;
+
+  // Show document operations
+  getShowDocumentsByProjectId(projectId: number): Promise<ShowDocument[]>;
+  getShowDocumentById(id: number): Promise<ShowDocument | undefined>;
+  createShowDocument(document: InsertShowDocument): Promise<ShowDocument>;
+  updateShowDocument(id: number, document: Partial<InsertShowDocument>): Promise<ShowDocument>;
+  deleteShowDocument(id: number): Promise<void>;
+
+  // Show schedule operations
+  getShowSchedulesByProjectId(projectId: number): Promise<ShowSchedule[]>;
+  getShowScheduleById(id: number): Promise<ShowSchedule | undefined>;
+  createShowSchedule(schedule: InsertShowSchedule): Promise<ShowSchedule>;
+  updateShowSchedule(id: number, schedule: Partial<InsertShowSchedule>): Promise<ShowSchedule>;
+  deleteShowSchedule(id: number): Promise<void>;
+
+  // Show character operations
+  getShowCharactersByProjectId(projectId: number): Promise<ShowCharacter[]>;
+  getShowCharacterById(id: number): Promise<ShowCharacter | undefined>;
+  createShowCharacter(character: InsertShowCharacter): Promise<ShowCharacter>;
+  updateShowCharacter(id: number, character: Partial<InsertShowCharacter>): Promise<ShowCharacter>;
+  deleteShowCharacter(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -241,6 +269,129 @@ export class DatabaseStorage implements IStorage {
 
   async deleteReportTemplate(id: number): Promise<void> {
     await db.delete(reportTemplates).where(eq(reportTemplates.id, id));
+  }
+
+  // Show document operations
+  async getShowDocumentsByProjectId(projectId: number): Promise<ShowDocument[]> {
+    return await db
+      .select()
+      .from(showDocuments)
+      .where(eq(showDocuments.projectId, projectId))
+      .orderBy(desc(showDocuments.createdAt));
+  }
+
+  async getShowDocumentById(id: number): Promise<ShowDocument | undefined> {
+    const [document] = await db
+      .select()
+      .from(showDocuments)
+      .where(eq(showDocuments.id, id));
+    return document;
+  }
+
+  async createShowDocument(document: InsertShowDocument): Promise<ShowDocument> {
+    const [newDocument] = await db
+      .insert(showDocuments)
+      .values(document)
+      .returning();
+    return newDocument;
+  }
+
+  async updateShowDocument(id: number, document: Partial<InsertShowDocument>): Promise<ShowDocument> {
+    const [updatedDocument] = await db
+      .update(showDocuments)
+      .set({ ...document, updatedAt: new Date() })
+      .where(eq(showDocuments.id, id))
+      .returning();
+    return updatedDocument;
+  }
+
+  async deleteShowDocument(id: number): Promise<void> {
+    await db.delete(showDocuments).where(eq(showDocuments.id, id));
+  }
+
+  // Show schedule operations
+  async getShowSchedulesByProjectId(projectId: number): Promise<ShowSchedule[]> {
+    return await db
+      .select()
+      .from(showSchedules)
+      .where(eq(showSchedules.projectId, projectId))
+      .orderBy(desc(showSchedules.createdAt));
+  }
+
+  async getShowScheduleById(id: number): Promise<ShowSchedule | undefined> {
+    const [schedule] = await db
+      .select()
+      .from(showSchedules)
+      .where(eq(showSchedules.id, id));
+    return schedule;
+  }
+
+  async createShowSchedule(schedule: InsertShowSchedule): Promise<ShowSchedule> {
+    const [newSchedule] = await db
+      .insert(showSchedules)
+      .values(schedule)
+      .returning();
+    return newSchedule;
+  }
+
+  async updateShowSchedule(id: number, schedule: Partial<InsertShowSchedule>): Promise<ShowSchedule> {
+    const [updatedSchedule] = await db
+      .update(showSchedules)
+      .set({ ...schedule, updatedAt: new Date() })
+      .where(eq(showSchedules.id, id))
+      .returning();
+    return updatedSchedule;
+  }
+
+  async deleteShowSchedule(id: number): Promise<void> {
+    await db.delete(showSchedules).where(eq(showSchedules.id, id));
+  }
+
+  // Show character operations
+  async getShowCharactersByProjectId(projectId: number): Promise<ShowCharacter[]> {
+    return await db
+      .select()
+      .from(showCharacters)
+      .where(eq(showCharacters.projectId, projectId))
+      .orderBy(desc(showCharacters.createdAt));
+  }
+
+  async getShowCharacterById(id: number): Promise<ShowCharacter | undefined> {
+    const [character] = await db
+      .select()
+      .from(showCharacters)
+      .where(eq(showCharacters.id, id));
+    return character;
+  }
+
+  async createShowCharacter(character: InsertShowCharacter): Promise<ShowCharacter> {
+    const [newCharacter] = await db
+      .insert(showCharacters)
+      .values(character)
+      .returning();
+    return newCharacter;
+  }
+
+  async updateShowCharacter(id: number, character: Partial<InsertShowCharacter>): Promise<ShowCharacter> {
+    const [updatedCharacter] = await db
+      .update(showCharacters)
+      .set({ ...character, updatedAt: new Date() })
+      .where(eq(showCharacters.id, id))
+      .returning();
+    return updatedCharacter;
+  }
+
+  async deleteShowCharacter(id: number): Promise<void> {
+    await db.delete(showCharacters).where(eq(showCharacters.id, id));
+  }
+
+  // Replace old template methods with show-specific ones
+  async getReportTemplatesByProjectId(projectId: number): Promise<ReportTemplate[]> {
+    return await db
+      .select()
+      .from(reportTemplates)
+      .where(eq(reportTemplates.projectId, projectId))
+      .orderBy(desc(reportTemplates.createdAt));
   }
 }
 

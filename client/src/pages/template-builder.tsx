@@ -66,7 +66,13 @@ export default function TemplateBuilder() {
 
   const mutation = useMutation({
     mutationFn: async (data: TemplateFormData) => {
-      await apiRequest("POST", "/api/templates", {
+      // Get current project from URL or context
+      const projectId = new URLSearchParams(window.location.search).get('projectId');
+      if (!projectId) {
+        throw new Error("Project ID is required");
+      }
+      
+      await apiRequest("POST", `/api/projects/${projectId}/templates`, {
         ...data,
         fields: fields,
       });

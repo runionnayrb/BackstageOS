@@ -6,6 +6,8 @@ Backstage OS is a modern web application designed for theater professionals to m
 
 ## System Architecture
 
+**Show-Centric Design**: Everything is tied to specific shows/projects with no data crossover between productions.
+
 ### Frontend Architecture
 - **Framework**: React 18 with TypeScript
 - **Build Tool**: Vite for fast development and optimized builds
@@ -26,6 +28,7 @@ Backstage OS is a modern web application designed for theater professionals to m
 - **Database**: PostgreSQL (configured for Neon serverless)
 - **Schema Management**: Drizzle Kit for migrations
 - **Connection Pooling**: Neon serverless connection pooling
+- **Data Isolation**: All content tied to specific projects via foreign keys
 
 ## Key Components
 
@@ -44,9 +47,16 @@ Backstage OS is a modern web application designed for theater professionals to m
 ### Database Schema
 Key tables include:
 - `users`: User profiles with authentication data
-- `projects`: Core project/show information
+- `projects`: Core project/show information (shows/productions)
 - `sessions`: Session management for Replit Auth
-- Additional tables for team members and reports (referenced but not fully implemented)
+- `reports`: Show-specific reports (rehearsal, tech, performance, meeting)
+- `report_templates`: Custom templates tied to specific shows
+- `show_documents`: Props lists, costume tracking, scene breakdowns, stage plots
+- `show_schedules`: Rehearsal and performance schedules per show
+- `show_characters`: Character breakdowns with scene appearances and requirements
+- `team_members`: Show-specific team assignments and roles
+
+**Data Isolation**: All content is project-scoped - no cross-contamination between shows.
 
 ### UI Component System
 - **Design System**: Shadcn/UI with "new-york" style variant
@@ -133,8 +143,12 @@ Required environment variables:
 - June 25, 2025: Removed dashboard statistics cards per user feedback - stage managers don't need count metrics
 - June 25, 2025: Implemented advanced report template customization system with dynamic field types
 - June 25, 2025: Fixed template builder button functionality - buttons now work correctly for adding/editing fields
+- June 25, 2025: **MAJOR ARCHITECTURAL CHANGE**: Restructured to show-centric design - all data tied to specific shows
+- June 25, 2025: Added show-specific tables: documents, schedules, characters for complete theater management
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 Dashboard design: Remove statistics/metrics - focus on recent projects and reports only.
+Architecture preference: Show-centric design - all documentation must be tied to specific shows with no cross-contamination between productions.
+Documentation types needed: Reports, props lists, scripts, costume tracking, scene shift plots, line set schedules, character/scene breakdowns, stage plots, ground plans.

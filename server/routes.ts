@@ -277,21 +277,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Report template routes
-  app.get('/api/templates', isAuthenticated, async (req: any, res) => {
+  // Report template routes (show-specific)
+  app.get('/api/projects/:projectId/templates', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const [userTemplates, publicTemplates, defaultTemplates] = await Promise.all([
-        storage.getReportTemplatesByUserId(userId),
-        storage.getPublicReportTemplates(),
-        storage.getDefaultReportTemplates()
-      ]);
+      const projectId = parseInt(req.params.projectId);
+      
+      // Verify project ownership
+      const project = await storage.getProjectById(projectId);
+      if (!project || project.ownerId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
 
-      res.json({
-        userTemplates,
-        publicTemplates,
-        defaultTemplates
-      });
+      const templates = await storage.getReportTemplatesByProjectId(projectId);
+      res.json(templates);
     } catch (error) {
       console.error("Error fetching templates:", error);
       res.status(500).json({ message: "Failed to fetch templates" });

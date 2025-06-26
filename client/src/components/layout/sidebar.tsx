@@ -11,6 +11,7 @@ import {
   FileText,
   Edit3,
   Settings,
+  Calendar,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -53,6 +54,9 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
         { name: "All Reports", href: "/reports", icon: FileText },
         { name: "Report Builder", href: "/report-builder", icon: Edit3 },
         { name: "Templates", href: "/templates", icon: FileText },
+        { name: "Show Documents", href: "/documents", icon: FileText },
+        { name: "Characters", href: "/characters", icon: Users },
+        { name: "Schedules", href: "/schedules", icon: FileText },
       ],
     },
   ];
