@@ -16,6 +16,8 @@ import Reports from "@/pages/reports";
 import ReportBuilder from "@/pages/report-builder";
 import Templates from "@/pages/templates";
 import TemplateBuilder from "@/pages/template-builder";
+import ShowDetail from "@/pages/show-detail";
+import ShowReports from "@/pages/show-reports";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -49,6 +51,8 @@ function Router() {
         <Route path="/report-builder" component={ReportBuilder} />
         <Route path="/templates" component={Templates} />
         <Route path="/template-builder" component={TemplateBuilder} />
+        <Route path="/shows/:id" component={ShowDetail} />
+        <Route path="/shows/:id/reports/:type" component={ShowReports} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

@@ -145,10 +145,14 @@ Required environment variables:
 - June 25, 2025: Fixed template builder button functionality - buttons now work correctly for adding/editing fields
 - June 25, 2025: **MAJOR ARCHITECTURAL CHANGE**: Restructured to show-centric design - all data tied to specific shows
 - June 25, 2025: Added show-specific tables: documents, schedules, characters for complete theater management
+- June 26, 2025: **NAVIGATION REDESIGN**: Replaced sidebar with streamlined show-centric interface
+- June 26, 2025: Implemented click-into-show navigation with organized categories: Reports, Calendar, Script, Cast, Tasks
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 Dashboard design: Remove statistics/metrics - focus on recent projects and reports only.
 Architecture preference: Show-centric design - all documentation must be tied to specific shows with no cross-contamination between productions.
+Navigation preference: Streamlined project-centric interface - click into show to access organized categories instead of sidebar navigation.
+Show organization: Reports (5 types), Calendar (Schedule + Daily Calls with drag-drop), Script, Cast, Tasks (list + board view).
 Documentation types needed: Reports, props lists, scripts, costume tracking, scene shift plots, line set schedules, character/scene breakdowns, stage plots, ground plans.

@@ -86,7 +86,11 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-4">
                 {recentProjects.map((project: any) => (
-                  <div key={project.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div 
+                    key={project.id} 
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                    onClick={() => setLocation(`/shows/${project.id}`)}
+                  >
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                         <span className="text-white text-xs font-medium">
