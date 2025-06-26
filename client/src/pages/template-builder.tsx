@@ -48,13 +48,7 @@ const templateSchema = z.object({
   footer: z.string().optional(),
 });
 
-const PRODUCTION_PHASES = [
-  { value: "prep", label: "Prep" },
-  { value: "rehearsal", label: "Rehearsal" },
-  { value: "tech", label: "Tech" },
-  { value: "previews", label: "Previews" },
-  { value: "performance", label: "Performance" },
-];
+type TemplateFormData = z.infer<typeof templateSchema>;
 
 const REPORT_TYPES = [
   { value: "rehearsal", label: "Rehearsal Report" },
@@ -62,7 +56,14 @@ const REPORT_TYPES = [
   { value: "performance", label: "Performance Report" },
   { value: "meeting", label: "Meeting Notes" },
   { value: "daily", label: "Daily Report" },
-  { value: "custom", label: "Custom Report" },
+];
+
+const PRODUCTION_PHASES = [
+  { value: "prep", label: "Pre-Production" },
+  { value: "rehearsal", label: "Rehearsal" },
+  { value: "tech", label: "Tech Rehearsals" },
+  { value: "previews", label: "Previews" },
+  { value: "performance", label: "Performance" },
 ];
 
 const FIELD_TYPES = [
@@ -76,147 +77,129 @@ const FIELD_TYPES = [
 ];
 
 export default function TemplateBuilder() {
-  const { id: projectId, templateId } = useParams();
+  const { projectId, templateId } = useParams<{ projectId: string; templateId?: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
-  const [isPreviewMode, setIsPreviewMode] = useState(true);
+
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [fields, setFields] = useState<TemplateField[]>([]);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [sampleData, setSampleData] = useState<Record<string, any>>({});
 
+  const form = useForm<TemplateFormData>({
+    resolver: zodResolver(templateSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      type: "",
+      phase: "",
+      header: "{{showName}} - {{reportType}}\n{{date}}",
+      footer: "Prepared by: {{preparedBy}}",
+    },
+  });
+
+  // Fetch project data
+  const { data: project } = useQuery({
+    queryKey: [`/api/projects/${projectId}`],
+    enabled: !!projectId,
+  });
+
+  // Fetch template data if editing
   const { data: template, isLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/templates/${templateId}`],
     enabled: !!templateId,
   });
 
-  const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectId}`],
-  });
-
-  const form = useForm<z.infer<typeof templateSchema>>({
-    resolver: zodResolver(templateSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      type: "rehearsal",
-      phase: "rehearsal",
-      header: "{{showName}} - {{reportType}}\n{{date}}",
-      footer: "Page {{pageNumber}} of {{totalPages}}\nPrepared by: {{preparedBy}}",
-    },
-  });
-
+  // Load template data when available
   useEffect(() => {
     if (template) {
-      const templateData = template as any;
       form.reset({
-        name: templateData.name || "",
-        description: templateData.description || "",
-        type: templateData.type || "rehearsal",
-        phase: templateData.phase || "rehearsal",
-        header: templateData.header || "{{showName}} - {{reportType}}\n{{date}}",
-        footer: templateData.footer || "Page {{pageNumber}} of {{totalPages}}\nPrepared by: {{preparedBy}}",
+        name: template.name || "",
+        description: template.description || "",
+        type: template.type || "",
+        phase: template.phase || "",
+        header: template.header || "{{showName}} - {{reportType}}\n{{date}}",
+        footer: template.footer || "Prepared by: {{preparedBy}}",
       });
-      setFields(templateData.fields || []);
+
+      if (template.fields && Array.isArray(template.fields)) {
+        setFields(template.fields);
+        
+        // Set up sample data
+        const newSampleData: Record<string, any> = {};
+        template.fields.forEach((field: TemplateField) => {
+          newSampleData[field.id] = getSampleValue(field);
+        });
+        setSampleData(newSampleData);
+      }
     }
   }, [template, form]);
 
-  // Generate sample data for preview
-  useEffect(() => {
-    const sample: Record<string, any> = {};
-    fields.forEach(field => {
-      switch (field.type) {
-        case "text":
-          sample[field.id] = "Sample text";
-          break;
-        case "textarea":
-          sample[field.id] = "This is sample content for the text area field.";
-          break;
-        case "number":
-          sample[field.id] = "42";
-          break;
-        case "date":
-          sample[field.id] = new Date().toISOString().split('T')[0];
-          break;
-        case "time":
-          sample[field.id] = "19:30";
-          break;
-        case "select":
-          sample[field.id] = field.options?.[0] || "Option 1";
-          break;
-        case "checkbox":
-          sample[field.id] = true;
-          break;
-      }
-    });
-    setSampleData(sample);
-  }, [fields]);
-
-  const saveMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof templateSchema>) => {
-      const templateData = {
-        ...data,
-        fields: fields.map((field, index) => ({ ...field, order: index })),
-      };
-
-      if (templateId) {
-        return await apiRequest(`/api/projects/${projectId}/templates/${templateId}`, "PATCH", templateData);
-      } else {
-        return await apiRequest(`/api/projects/${projectId}/templates`, "POST", templateData);
-      }
-    },
-    onSuccess: () => {
-      toast({
-        title: "Template saved",
-        description: "Your report template has been saved successfully.",
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
-      setLocation(`/shows/${projectId || ""}/templates`);
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to save template. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onSubmit = (data: z.infer<typeof templateSchema>) => {
-    saveMutation.mutate(data);
+  const getSampleValue = (field: TemplateField) => {
+    switch (field.type) {
+      case "text":
+        return "Sample text";
+      case "textarea":
+        return "This is sample text for a larger text area field.";
+      case "number":
+        return "42";
+      case "date":
+        return "2024-01-15";
+      case "time":
+        return "19:30";
+      case "select":
+        return field.options?.[0] || "Option 1";
+      case "checkbox":
+        return true;
+      default:
+        return "";
+    }
   };
 
   const addField = () => {
     const newField: TemplateField = {
-      id: `field_${Date.now()}`,
+      id: Date.now().toString(),
       label: "New Field",
       type: "text",
       required: false,
+      placeholder: "",
       order: fields.length,
     };
     setFields([...fields, newField]);
-    setEditingField(newField.id);
+    setSampleData(prev => ({ ...prev, [newField.id]: getSampleValue(newField) }));
   };
 
-  const updateField = (fieldId: string, updates: Partial<TemplateField>) => {
+  const updateField = (id: string, updates: Partial<TemplateField>) => {
     setFields(fields.map(field => 
-      field.id === fieldId ? { ...field, ...updates } : field
+      field.id === id ? { ...field, ...updates } : field
     ));
+    
+    if (updates.type) {
+      const field = fields.find(f => f.id === id);
+      if (field) {
+        const newField = { ...field, ...updates };
+        setSampleData(prev => ({ ...prev, [id]: getSampleValue(newField) }));
+      }
+    }
   };
 
-  const removeField = (fieldId: string) => {
-    setFields(fields.filter(field => field.id !== fieldId));
-    setEditingField(null);
+  const removeField = (id: string) => {
+    setFields(fields.filter(field => field.id !== id));
+    setSampleData(prev => {
+      const newData = { ...prev };
+      delete newData[id];
+      return newData;
+    });
   };
 
-  const moveField = (fieldId: string, direction: "up" | "down") => {
-    const index = fields.findIndex(field => field.id === fieldId);
+  const moveField = (id: string, direction: "up" | "down") => {
+    const index = fields.findIndex(field => field.id === id);
     if (index === -1) return;
-
+    
     const newIndex = direction === "up" ? index - 1 : index + 1;
     if (newIndex < 0 || newIndex >= fields.length) return;
-
+    
     const newFields = [...fields];
     [newFields[index], newFields[newIndex]] = [newFields[newIndex], newFields[index]];
     setFields(newFields);
@@ -334,17 +317,13 @@ export default function TemplateBuilder() {
     }
   };
 
-
-
   const processText = (text: string | undefined) => {
     if (!text) return "";
     
     const variables = {
-      showName: (project as any)?.name || "Show Name",
+      showName: (project as any)?.name || "Sample Show",
       reportType: form.watch("type") || "Report",
       date: new Date().toLocaleDateString(),
-      pageNumber: "1",
-      totalPages: "1",
       preparedBy: "Stage Manager",
     };
 
@@ -354,6 +333,47 @@ export default function TemplateBuilder() {
     });
 
     return processed;
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: async (data: TemplateFormData) => {
+      const templateData = {
+        ...data,
+        fields: fields,
+        projectId: Number(projectId),
+      };
+
+      if (templateId) {
+        return await apiRequest(`/api/projects/${projectId}/templates/${templateId}`, {
+          method: "PATCH",
+          body: templateData,
+        });
+      } else {
+        return await apiRequest(`/api/projects/${projectId}/templates`, {
+          method: "POST",
+          body: templateData,
+        });
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: "Template saved",
+        description: "Your template has been saved successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+      setLocation(`/shows/${projectId}/templates`);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to save template. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const onSubmit = (data: TemplateFormData) => {
+    saveMutation.mutate(data);
   };
 
   if (isLoading) {
@@ -410,206 +430,165 @@ export default function TemplateBuilder() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Template Settings Panel */}
-          <div className="lg:col-span-1">
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="space-y-6">
+          {/* Template Configuration - Only in Edit Mode */}
+          {!isPreviewMode && (
             <Card>
-              <CardHeader>
-                <CardTitle>Template Settings</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label>Template Name</Label>
-                  <Input {...form.register("name")} placeholder="Enter template name" />
-                </div>
-
-                <div>
-                  <Label>Description</Label>
-                  <Textarea {...form.register("description")} placeholder="Optional description" />
-                </div>
-
-                <div>
-                  <Label>Report Type</Label>
-                  <Select value={form.watch("type")} onValueChange={(value) => form.setValue("type", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {REPORT_TYPES.map(type => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Production Phase</Label>
-                  <Select value={form.watch("phase")} onValueChange={(value) => form.setValue("phase", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PRODUCTION_PHASES.map(phase => (
-                        <SelectItem key={phase.value} value={phase.value}>
-                          {phase.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Header Template</Label>
-                  <Textarea 
-                    {...form.register("header")} 
-                    placeholder="{{showName}} - {{reportType}}&#10;{{date}}"
-                    className="text-sm"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Use variables: showName, date, reportType
-                  </p>
-                </div>
-
-                <div>
-                  <Label>Footer Template</Label>
-                  <Textarea 
-                    {...form.register("footer")} 
-                    placeholder="Prepared by: {{preparedBy}}"
-                    className="text-sm"
-                  />
-                </div>
-
-                {!isPreviewMode && (
-                  <div className="pt-4">
-                    <Button onClick={addField} className="w-full">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Field
-                    </Button>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-sm">Template Name</Label>
+                    <Input {...form.register("name")} placeholder="Enter template name" className="text-sm" />
                   </div>
-                )}
+                  <div>
+                    <Label className="text-sm">Report Type</Label>
+                    <Select value={form.watch("type")} onValueChange={(value) => form.setValue("type", value)}>
+                      <SelectTrigger className="text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {REPORT_TYPES.map(type => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-sm">Production Phase</Label>
+                    <Select value={form.watch("phase")} onValueChange={(value) => form.setValue("phase", value)}>
+                      <SelectTrigger className="text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PRODUCTION_PHASES.map(phase => (
+                          <SelectItem key={phase.value} value={phase.value}>
+                            {phase.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </CardContent>
             </Card>
-          </div>
+          )}
 
-          {/* Template Preview/Editor */}
-          <div className="lg:col-span-2">
-            <Card className="min-h-[600px]">
-              <CardContent className="p-8">
-                {/* Print-style Template Preview */}
-                <div className="bg-white min-h-[500px] shadow-lg border border-gray-200" style={{ 
-                  width: "8.5in", 
-                  margin: "0 auto",
-                  padding: "1in",
-                  fontFamily: "Arial, sans-serif"
-                }}>
-                  {/* Header */}
-                  <div className="text-center mb-6 pb-4 border-b">
-                    {isPreviewMode ? (
-                      <div className="whitespace-pre-line text-lg font-semibold">
-                        {processText(form.watch("header"))}
-                      </div>
-                    ) : (
-                      <Textarea
-                        {...form.register("header")}
-                        placeholder="{{showName}} - {{reportType}}&#10;{{date}}"
-                        className="text-center text-lg font-semibold border-0 bg-transparent resize-none whitespace-pre-line p-0 focus:ring-0 focus:outline-none"
-                        style={{ minHeight: "auto" }}
-                      />
-                    )}
-                  </div>
+          <Card className="min-h-[600px]">
+            <CardContent className="p-8">
+              {/* Print-style Template Preview */}
+              <div className="bg-white min-h-[500px] shadow-lg border border-gray-200" style={{ 
+                width: "8.5in", 
+                margin: "0 auto",
+                padding: "1in",
+                fontFamily: "Arial, sans-serif"
+              }}>
+                {/* Header */}
+                <div className="text-center mb-6 pb-4 border-b">
+                  {isPreviewMode ? (
+                    <div className="whitespace-pre-line text-lg font-semibold">
+                      {processText(form.watch("header"))}
+                    </div>
+                  ) : (
+                    <Textarea
+                      {...form.register("header")}
+                      placeholder="{{showName}} - {{reportType}}&#10;{{date}}"
+                      className="text-center text-lg font-semibold border-0 bg-transparent resize-none whitespace-pre-line p-0 focus:ring-0 focus:outline-none"
+                      style={{ minHeight: "auto" }}
+                    />
+                  )}
+                </div>
 
-                  {/* Fields */}
-                  <div className="space-y-6">
-                    {fields.map((field, index) => (
-                      <div key={field.id} className="space-y-2 relative group">
-                        <div className="flex items-center justify-between">
-                          <Label className="text-sm font-medium text-gray-700">
-                            {isPreviewMode ? (
-                              field.label
-                            ) : (
-                              <Input
-                                value={field.label}
-                                onChange={(e) => updateField(field.id, { label: e.target.value })}
-                                className="text-sm font-medium border-0 bg-transparent p-0 focus:ring-0 focus:outline-none h-auto"
-                                placeholder="Field label"
-                              />
-                            )}
-                            {field.required && <span className="text-red-500 ml-1">*</span>}
-                          </Label>
-                          
-                          {!isPreviewMode && (
-                            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => moveField(field.id, "up")}
-                                disabled={index === 0}
-                                className="h-6 w-6 p-0"
-                              >
-                                <ChevronUp className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => moveField(field.id, "down")}
-                                disabled={index === fields.length - 1}
-                                className="h-6 w-6 p-0"
-                              >
-                                <ChevronDown className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => removeField(field.id)}
-                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
+                {/* Fields */}
+                <div className="space-y-6">
+                  {fields.map((field, index) => (
+                    <div key={field.id} className="space-y-2 relative group">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium text-gray-700">
+                          {isPreviewMode ? (
+                            field.label
+                          ) : (
+                            <Input
+                              value={field.label}
+                              onChange={(e) => updateField(field.id, { label: e.target.value })}
+                              className="text-sm font-medium border-0 bg-transparent p-0 focus:ring-0 focus:outline-none h-auto"
+                              placeholder="Field label"
+                            />
                           )}
-                        </div>
-                        <div className="mt-1">
-                          {isPreviewMode ? renderFieldPreview(field) : renderFieldEditable(field)}
-                        </div>
+                          {field.required && <span className="text-red-500 ml-1">*</span>}
+                        </Label>
+                        
+                        {!isPreviewMode && (
+                          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => moveField(field.id, "up")}
+                              disabled={index === 0}
+                              className="h-6 w-6 p-0"
+                            >
+                              <ChevronUp className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => moveField(field.id, "down")}
+                              disabled={index === fields.length - 1}
+                              className="h-6 w-6 p-0"
+                            >
+                              <ChevronDown className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => removeField(field.id)}
+                              className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                    ))}
-                    
-                    {!isPreviewMode && (
-                      <div className="text-center pt-4">
-                        <Button
-                          variant="outline"
-                          onClick={addField}
-                          className="w-full border-dashed"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Field
-                        </Button>
+                      <div className="mt-1">
+                        {isPreviewMode ? renderFieldPreview(field) : renderFieldEditable(field)}
                       </div>
-                    )}
-                  </div>
-
-                  {/* Footer */}
-                  <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
-                    {isPreviewMode ? (
-                      <div className="whitespace-pre-line">
-                        {processText(form.watch("footer"))}
-                      </div>
-                    ) : (
-                      <Textarea
-                        {...form.register("footer")}
-                        placeholder="Prepared by: {{preparedBy}}"
-                        className="text-center text-sm text-gray-600 border-0 bg-transparent resize-none whitespace-pre-line p-0 focus:ring-0 focus:outline-none"
-                        style={{ minHeight: "auto" }}
-                      />
-                    )}
-                  </div>
+                    </div>
+                  ))}
+                  
+                  {!isPreviewMode && (
+                    <div className="text-center pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={addField}
+                        className="w-full border-dashed"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Field
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+
+                {/* Footer */}
+                <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
+                  {isPreviewMode ? (
+                    <div className="whitespace-pre-line">
+                      {processText(form.watch("footer"))}
+                    </div>
+                  ) : (
+                    <Textarea
+                      {...form.register("footer")}
+                      placeholder="Prepared by: {{preparedBy}}"
+                      className="text-center text-sm text-gray-600 border-0 bg-transparent resize-none whitespace-pre-line p-0 focus:ring-0 focus:outline-none"
+                      style={{ minHeight: "auto" }}
+                    />
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
