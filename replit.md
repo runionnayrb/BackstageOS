@@ -147,6 +147,7 @@ Required environment variables:
 - June 25, 2025: Added show-specific tables: documents, schedules, characters for complete theater management
 - June 26, 2025: **NAVIGATION REDESIGN**: Replaced sidebar with streamlined show-centric interface
 - June 26, 2025: Implemented click-into-show navigation with organized categories: Reports, Calendar, Script, Cast, Tasks
+- June 26, 2025: Added dual profile type support - interface adapts terminology for freelance vs full-time theater professionals
 
 ## User Preferences
 

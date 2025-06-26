@@ -22,7 +22,7 @@ interface ShowDetailParams {
 
 export default function ShowDetail() {
   const { toast } = useToast();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<ShowDetailParams>();
   const projectId = params.id;
@@ -52,22 +52,27 @@ export default function ShowDetail() {
   if (isLoading || projectsLoading) return <div>Loading...</div>;
   if (!project) return <div>Show not found</div>;
 
+  // Adapt terminology based on profile type
+  const isFreelance = user?.profileType === 'freelance';
+  const projectLabel = isFreelance ? "Project" : "Production";
+  const showLabel = isFreelance ? "Project" : "Show";
+
   const categories = [
     {
       title: "Reports",
-      description: "Show reports and documentation",
+      description: isFreelance ? "Project reports and documentation" : "Show reports and documentation",
       icon: FileText,
       items: [
         { name: "Rehearsal", href: `/shows/${projectId}/reports/rehearsal` },
         { name: "Tech", href: `/shows/${projectId}/reports/tech` },
         { name: "Previews", href: `/shows/${projectId}/reports/previews` },
         { name: "Performance", href: `/shows/${projectId}/reports/performance` },
-        { name: "Production Meetings", href: `/shows/${projectId}/reports/meetings` },
+        { name: isFreelance ? "Client Meetings" : "Production Meetings", href: `/shows/${projectId}/reports/meetings` },
       ],
     },
     {
       title: "Calendar",
-      description: "Schedules and daily calls",
+      description: isFreelance ? "Project schedules and calls" : "Rehearsal schedules and daily calls",
       icon: Calendar,
       items: [
         { name: "Schedule", href: `/shows/${projectId}/calendar/schedule` },
@@ -76,7 +81,7 @@ export default function ShowDetail() {
     },
     {
       title: "Script",
-      description: "Script management and notes",
+      description: isFreelance ? "Script and materials" : "Script management and notes",
       icon: BookOpen,
       items: [
         { name: "View Script", href: `/shows/${projectId}/script` },
@@ -84,16 +89,16 @@ export default function ShowDetail() {
     },
     {
       title: "Cast",
-      description: "Cast and character information",
+      description: isFreelance ? "Team and character information" : "Cast and character information",
       icon: Users,
       items: [
-        { name: "Cast List", href: `/shows/${projectId}/cast` },
+        { name: isFreelance ? "Team List" : "Cast List", href: `/shows/${projectId}/cast` },
         { name: "Characters", href: `/shows/${projectId}/characters` },
       ],
     },
     {
       title: "Tasks",
-      description: "Task management and tracking",
+      description: isFreelance ? "Project task management" : "Production task tracking",
       icon: CheckSquare,
       items: [
         { name: "List View", href: `/shows/${projectId}/tasks/list` },
@@ -113,7 +118,7 @@ export default function ShowDetail() {
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Shows
+            Back to {isFreelance ? "Projects" : "Shows"}
           </Button>
         </div>
 
