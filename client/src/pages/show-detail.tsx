@@ -64,11 +64,7 @@ export default function ShowDetail() {
       description: isFreelance ? "Project reports and documentation" : "Show reports and documentation",
       icon: FileText,
       items: [
-        { name: "Rehearsal", href: `/shows/${projectId}/reports/rehearsal` },
-        { name: "Tech", href: `/shows/${projectId}/reports/tech` },
-        { name: "Previews", href: `/shows/${projectId}/reports/previews` },
-        { name: "Performance", href: `/shows/${projectId}/reports/performance` },
-        { name: isFreelance ? "Client Meetings" : "Production Meetings", href: `/shows/${projectId}/reports/meetings` },
+        { name: "All Reports", href: `/shows/${projectId}/reports` },
       ],
     },
     {
@@ -154,33 +150,33 @@ export default function ShowDetail() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-1">
           {categories.map((category) => {
             const Icon = category.icon;
             return (
-              <Card key={category.title} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Icon className="h-5 w-5" />
-                    {category.title}
-                  </CardTitle>
-                  <CardDescription>{category.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {category.items.map((item) => (
-                      <Button
-                        key={item.name}
-                        variant="ghost"
-                        className="w-full justify-start h-auto p-3"
-                        onClick={() => setLocation(item.href)}
-                      >
-                        {item.name}
-                      </Button>
-                    ))}
+              <div key={category.title} className="border rounded-lg">
+                <div className="p-4 border-b bg-muted/30">
+                  <div className="flex items-center gap-3">
+                    <Icon className="h-5 w-5 text-primary" />
+                    <div>
+                      <h3 className="font-semibold">{category.title}</h3>
+                      <p className="text-sm text-muted-foreground">{category.description}</p>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="divide-y">
+                  {category.items.map((item) => (
+                    <div
+                      key={item.name}
+                      className="p-3 hover:bg-muted/50 transition-colors cursor-pointer flex justify-between items-center"
+                      onClick={() => setLocation(item.href)}
+                    >
+                      <span>{item.name}</span>
+                      <span className="text-muted-foreground">→</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             );
           })}
         </div>

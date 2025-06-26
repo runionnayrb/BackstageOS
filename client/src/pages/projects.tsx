@@ -88,28 +88,27 @@ export default function Projects() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="space-y-1">
           {(projects as any[]).map((project: any) => (
-            <Card 
+            <div 
               key={project.id} 
-              className="hover:shadow-lg transition-shadow cursor-pointer"
+              className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
               onClick={() => setLocation(`/shows/${project.id}`)}
             >
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-3">{project.name}</h3>
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <div>
-                    <span className="font-medium">Venue:</span> {project.venue || "No venue set"}
-                  </div>
-                  <div>
-                    <span className="font-medium">Dates:</span> {formatDateRange(project.prepStartDate, project.closingDate)}
-                  </div>
-                  <div>
-                    <span className="font-medium">Updated:</span> {formatDate(project.updatedAt)}
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold mb-2">{project.name}</h3>
+                  <div className="flex gap-6 text-sm text-muted-foreground">
+                    <span><span className="font-medium">Venue:</span> {project.venue || "No venue set"}</span>
+                    <span><span className="font-medium">Dates:</span> {formatDateRange(project.prepStartDate, project.closingDate)}</span>
+                    <span><span className="font-medium">Updated:</span> {formatDate(project.updatedAt)}</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="text-muted-foreground">
+                  →
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       )}

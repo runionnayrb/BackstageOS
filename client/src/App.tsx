@@ -23,6 +23,7 @@ import PropsTracker from "@/pages/props-tracker";
 import CostumeTracker from "@/pages/costume-tracker";
 import TemplateCustomizer from "@/pages/template-customizer";
 import ShowSettings from "@/pages/show-settings";
+import ShowReportsList from "@/pages/show-reports-list";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -50,6 +51,7 @@ function Router() {
         <Route path="/" component={Projects} />
         <Route path="/create-project" component={CreateProject} />
         <Route path="/shows/:id" component={ShowDetail} />
+        <Route path="/shows/:id/reports" component={ShowReportsList} />
         <Route path="/shows/:id/reports/:type" component={ShowReports} />
         <Route path="/shows/:id/script" component={ScriptEditor} />
         <Route path="/shows/:id/props" component={PropsTracker} />
