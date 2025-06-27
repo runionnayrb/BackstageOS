@@ -80,9 +80,6 @@ export default function ShowReportsList() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold">Reports</h1>
-              <p className="text-muted-foreground mt-2">
-                Select a report type to view or create reports
-              </p>
             </div>
             <Button
               variant="outline"
@@ -100,14 +97,11 @@ export default function ShowReportsList() {
           {reportTypes.map((reportType) => (
             <div
               key={reportType.type}
-              className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+              className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
               onClick={() => setLocation(`/shows/${projectId}/reports/${reportType.type}`)}
             >
               <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-semibold">{reportType.name}</h3>
-                  <p className="text-sm text-muted-foreground">{reportType.description}</p>
-                </div>
+                <h3 className="font-semibold">{reportType.name}</h3>
                 <span className="text-muted-foreground">→</span>
               </div>
             </div>

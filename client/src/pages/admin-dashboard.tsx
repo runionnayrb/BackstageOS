@@ -23,9 +23,6 @@ export default function AdminDashboard() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-            <p className="text-muted-foreground">
-              Manage users, permissions, and beta feature access
-            </p>
           </div>
         </div>
 
@@ -42,31 +39,17 @@ export default function AdminDashboard() {
           </TabsList>
 
           <TabsContent value="users" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>
-                  Manage user accounts, profile types, and beta access levels
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <AdminUsersComponent />
-              </CardContent>
-            </Card>
+            <div>
+              <h2 className="text-xl font-semibold mb-6">User Management</h2>
+              <AdminUsersComponent />
+            </div>
           </TabsContent>
 
           <TabsContent value="features" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Beta Feature Configuration</CardTitle>
-                <CardDescription>
-                  Define which features are available to Limited and Full beta access users
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <BetaFeatureComponent />
-              </CardContent>
-            </Card>
+            <div>
+              <h2 className="text-xl font-semibold mb-6">Beta Feature Configuration</h2>
+              <BetaFeatureComponent />
+            </div>
           </TabsContent>
         </Tabs>
       </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+// Removed Card imports for cleaner interface
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Save } from "lucide-react";
@@ -155,28 +155,18 @@ export default function BetaFeatureComponent() {
 
   return (
     <div className="space-y-6">
-      <div className="text-sm text-muted-foreground">
-        Configure which features are available to Limited and Full beta access users
-      </div>
-
       <div className="space-y-6">
         {categories.map(category => (
-          <Card key={category}>
-            <CardHeader>
-              <CardTitle className="text-lg">{category}</CardTitle>
-              <CardDescription>
-                Configure access levels for {category.toLowerCase()} features
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div key={category}>
+            <h3 className="text-lg font-semibold mb-4">{category}</h3>
+            <div className="space-y-4">
               {settings.features
                 .filter(feature => feature.category === category)
                 .map(feature => (
-                  <div key={feature.id} className="border rounded-lg p-4">
+                  <div key={feature.id} className="p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <h4 className="font-medium">{feature.name}</h4>
-                        <p className="text-sm text-muted-foreground">{feature.description}</p>
                       </div>
                     </div>
                     
@@ -209,8 +199,8 @@ export default function BetaFeatureComponent() {
                     </div>
                   </div>
                 ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
 
