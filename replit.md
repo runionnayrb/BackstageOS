@@ -165,6 +165,7 @@ Required environment variables:
 - June 27, 2025: **NAVIGATION CLEANUP**: Removed Report Templates navigation from show page Settings section - template settings now exclusively accessed through reports workflow for cleaner user experience
 - June 27, 2025: **SHOW SETTINGS BUTTON**: Added Show Settings button to show detail page header for easy access to global show configuration - maintains consistent navigation pattern with template settings
 - June 27, 2025: **SETTINGS NAVIGATION REMOVAL**: Removed Settings section from show page navigation categories - settings now exclusively accessible through header button for cleaner interface
+- June 27, 2025: **STATUS BADGE REMOVAL**: Removed planning status badge from show page header for cleaner, more minimal interface design
 
 ## User Preferences
 

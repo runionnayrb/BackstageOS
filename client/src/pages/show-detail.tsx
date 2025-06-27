@@ -147,9 +147,6 @@ export default function ShowDetail() {
                 <Settings className="h-4 w-4" />
                 Show Settings
               </Button>
-              <Badge variant="secondary" className="text-sm">
-                {project.status}
-              </Badge>
             </div>
           </div>
         </div>
