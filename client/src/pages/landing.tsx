@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, Clock, FileText, Smartphone, Users } from "lucide-react";
+import { FileText, Users, Calendar, Clapperboard, Settings, Shield } from "lucide-react";
 
 export default function Landing() {
   return (
@@ -19,27 +19,39 @@ export default function Landing() {
           <div className="grid sm:grid-cols-2 gap-6 text-sm">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <CheckCircle className="h-4 w-4" />
+                <Clapperboard className="h-4 w-4" />
               </div>
-              <span>Project & Team Management</span>
+              <span>Show-Centric Organization</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <FileText className="h-4 w-4" />
               </div>
-              <span>Report Generation</span>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                <Smartphone className="h-4 w-4" />
-              </div>
-              <span>Mobile Optimized</span>
+              <span>Professional Reports & Templates</span>
             </div>
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
                 <Users className="h-4 w-4" />
               </div>
-              <span>Team Collaboration</span>
+              <span>Team & Cast Management</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <Calendar className="h-4 w-4" />
+              </div>
+              <span>Scheduling & Call Sheets</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <Settings className="h-4 w-4" />
+              </div>
+              <span>Script & Cue Management</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <Shield className="h-4 w-4" />
+              </div>
+              <span>Secure Collaboration</span>
             </div>
           </div>
         </div>
