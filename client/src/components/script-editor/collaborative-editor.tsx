@@ -26,8 +26,11 @@ import {
   Save,
   Wand2,
   FileText,
-  Plus
+  Plus,
+  Clipboard
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface CollaborativeEditorProps {
   content: any;
@@ -84,6 +87,7 @@ export function CollaborativeEditor({
   const [showFooters, setShowFooters] = useState(true);
   const [headerText, setHeaderText] = useState('');
   const [footerText, setFooterText] = useState('');
+  const [showPageSetup, setShowPageSetup] = useState(false);
 
   // Format text selection
   const formatText = useCallback((command: string, value?: string) => {
@@ -546,6 +550,169 @@ export function CollaborativeEditor({
 
       {/* Toolbar */}
       <div className="flex items-center gap-1 p-3 border-b bg-gray-50 dark:bg-gray-800 flex-wrap">
+        {/* Page Setup */}
+        <Dialog open={showPageSetup} onOpenChange={setShowPageSetup}>
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              title="Page Setup"
+            >
+              <Clipboard className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Page Setup</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 py-4">
+              {/* Page Margins */}
+              <div className="space-y-4">
+                <h3 className="font-medium">Margins (inches)</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="margin-top">Top</Label>
+                    <input
+                      id="margin-top"
+                      type="number"
+                      min="0.25"
+                      max="3"
+                      step="0.25"
+                      value={margins.top}
+                      onChange={(e) => setMargins(prev => ({ ...prev, top: parseFloat(e.target.value) }))}
+                      className="w-full px-3 py-1 border rounded text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="margin-bottom">Bottom</Label>
+                    <input
+                      id="margin-bottom"
+                      type="number"
+                      min="0.25"
+                      max="3"
+                      step="0.25"
+                      value={margins.bottom}
+                      onChange={(e) => setMargins(prev => ({ ...prev, bottom: parseFloat(e.target.value) }))}
+                      className="w-full px-3 py-1 border rounded text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="margin-left">Left</Label>
+                    <input
+                      id="margin-left"
+                      type="number"
+                      min="0.25"
+                      max="3"
+                      step="0.25"
+                      value={margins.left}
+                      onChange={(e) => setMargins(prev => ({ ...prev, left: parseFloat(e.target.value) }))}
+                      className="w-full px-3 py-1 border rounded text-sm"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="margin-right">Right</Label>
+                    <input
+                      id="margin-right"
+                      type="number"
+                      min="0.25"
+                      max="3"
+                      step="0.25"
+                      value={margins.right}
+                      onChange={(e) => setMargins(prev => ({ ...prev, right: parseFloat(e.target.value) }))}
+                      className="w-full px-3 py-1 border rounded text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Headers & Footers */}
+              <div className="space-y-4">
+                <h3 className="font-medium">Headers & Footers</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="checkbox" 
+                      id="modal-show-headers"
+                      checked={showHeaders}
+                      onChange={(e) => setShowHeaders(e.target.checked)}
+                      className="rounded"
+                    />
+                    <Label htmlFor="modal-show-headers">Show headers</Label>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="modal-header-text">Header text</Label>
+                    <input 
+                      id="modal-header-text"
+                      type="text"
+                      placeholder="Enter header text (e.g., script title)"
+                      value={headerText}
+                      onChange={(e) => setHeaderText(e.target.value)}
+                      className="w-full px-3 py-1 border rounded text-sm"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="checkbox" 
+                      id="modal-show-footers"
+                      checked={showFooters}
+                      onChange={(e) => setShowFooters(e.target.checked)}
+                      className="rounded"
+                    />
+                    <Label htmlFor="modal-show-footers">Show footers</Label>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="modal-footer-text">Footer text</Label>
+                    <input 
+                      id="modal-footer-text"
+                      type="text"
+                      placeholder="Enter footer text (e.g., production info)"
+                      value={footerText}
+                      onChange={(e) => setFooterText(e.target.value)}
+                      className="w-full px-3 py-1 border rounded text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Page Numbering */}
+              <div className="space-y-4">
+                <h3 className="font-medium">Page Numbering</h3>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant={isPublished ? "default" : "outline"}
+                      onClick={publishScript}
+                      disabled={isPublished}
+                      className="text-sm"
+                    >
+                      {isPublished ? "✓ Published" : "Publish Script"}
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={renumberScript}
+                      className="text-sm"
+                    >
+                      Renumber All Pages
+                    </Button>
+                  </div>
+                  <p className="text-xs text-gray-600">
+                    Publishing locks page numbers. New pages added after publishing get letter suffixes (1A, 1B, etc.).
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button onClick={() => setShowPageSetup(false)}>
+                  Done
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Undo/Redo */}
         <Button
           variant="ghost"
@@ -810,59 +977,7 @@ export function CollaborativeEditor({
           />
         </div>
 
-        {/* Margin Controls */}
-        <div className="flex items-center gap-2 pl-4 border-l">
-          <span className="text-xs font-medium">Margins:</span>
-          <div className="flex items-center gap-1">
-            <label className="text-xs">L:</label>
-            <input
-              type="number"
-              min="0.5"
-              max="2"
-              step="0.25"
-              value={margins.left}
-              onChange={(e) => setMargins(prev => ({ ...prev, left: parseFloat(e.target.value) }))}
-              className="w-12 h-6 text-xs border rounded px-1"
-            />
-          </div>
-          <div className="flex items-center gap-1">
-            <label className="text-xs">R:</label>
-            <input
-              type="number"
-              min="0.5"
-              max="2"
-              step="0.25"
-              value={margins.right}
-              onChange={(e) => setMargins(prev => ({ ...prev, right: parseFloat(e.target.value) }))}
-              className="w-12 h-6 text-xs border rounded px-1"
-            />
-          </div>
-          <div className="flex items-center gap-1">
-            <label className="text-xs">T:</label>
-            <input
-              type="number"
-              min="0.5"
-              max="2"
-              step="0.25"
-              value={margins.top}
-              onChange={(e) => setMargins(prev => ({ ...prev, top: parseFloat(e.target.value) }))}
-              className="w-12 h-6 text-xs border rounded px-1"
-            />
-          </div>
-          <div className="flex items-center gap-1">
-            <label className="text-xs">B:</label>
-            <input
-              type="number"
-              min="0.5"
-              max="2"
-              step="0.25"
-              value={margins.bottom}
-              onChange={(e) => setMargins(prev => ({ ...prev, bottom: parseFloat(e.target.value) }))}
-              className="w-12 h-6 text-xs border rounded px-1"
-            />
-          </div>
-          <span className="text-xs text-gray-500">in</span>
-        </div>
+
       </div>
 
       {/* Editor Container with Sidebar Layout */}
