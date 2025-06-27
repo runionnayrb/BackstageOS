@@ -759,7 +759,9 @@ export function CollaborativeEditor({
               height: '11in',
               fontFamily: 'Courier, monospace',
               fontSize: '12pt',
-              lineHeight: '1.5'
+              lineHeight: '1.5',
+              padding: `${margins.top}in ${margins.right}in ${margins.bottom}in ${margins.left}in`,
+              boxSizing: 'border-box'
             }}>
               <div className="absolute top-2 right-4 text-xs text-gray-400 pointer-events-none">
                 Page 1
@@ -770,15 +772,10 @@ export function CollaborativeEditor({
                 onInput={handleInput}
                 onPaste={handlePaste}
                 onMouseUp={handleTextSelection}
-                className="focus:outline-none text-black overflow-hidden"
+                className="focus:outline-none text-black overflow-hidden h-full"
                 style={{ 
                   whiteSpace: 'pre-wrap',
-                  paddingLeft: `${margins.left}in`,
-                  paddingRight: `${margins.right}in`,
-                  paddingTop: `${margins.top + 0.2}in`, // Extra space for page number
-                  paddingBottom: `${margins.bottom}in`,
-                  height: `calc(11in - ${margins.top + margins.bottom + 0.2}in)`,
-                  boxSizing: 'border-box'
+                  paddingTop: '0.2in' // Extra space for page number
                 }}
                 suppressContentEditableWarning={true}
               />
@@ -790,21 +787,18 @@ export function CollaborativeEditor({
               height: '11in',
               fontFamily: 'Courier, monospace',
               fontSize: '12pt',
-              lineHeight: '1.5'
+              lineHeight: '1.5',
+              padding: `${margins.top}in ${margins.right}in ${margins.bottom}in ${margins.left}in`,
+              boxSizing: 'border-box'
             }}>
               <div className="absolute top-2 right-4 text-xs text-gray-400 pointer-events-none">
                 Page 2
               </div>
               <div 
-                className="text-black overflow-hidden"
+                className="text-black overflow-hidden h-full"
                 style={{ 
                   whiteSpace: 'pre-wrap',
-                  paddingLeft: `${margins.left}in`,
-                  paddingRight: `${margins.right}in`,
-                  paddingTop: `${margins.top + 0.2}in`,
-                  paddingBottom: `${margins.bottom}in`,
-                  height: `calc(11in - ${margins.top + margins.bottom + 0.2}in)`,
-                  boxSizing: 'border-box'
+                  paddingTop: '0.2in'
                 }}
                 id="page-2-content"
               >
@@ -818,21 +812,18 @@ export function CollaborativeEditor({
               height: '11in',
               fontFamily: 'Courier, monospace',
               fontSize: '12pt',
-              lineHeight: '1.5'
+              lineHeight: '1.5',
+              padding: `${margins.top}in ${margins.right}in ${margins.bottom}in ${margins.left}in`,
+              boxSizing: 'border-box'
             }}>
               <div className="absolute top-2 right-4 text-xs text-gray-400 pointer-events-none">
                 Page 3
               </div>
               <div 
-                className="text-black overflow-hidden"
+                className="text-black overflow-hidden h-full"
                 style={{ 
                   whiteSpace: 'pre-wrap',
-                  paddingLeft: `${margins.left}in`,
-                  paddingRight: `${margins.right}in`,
-                  paddingTop: `${margins.top + 0.2}in`,
-                  paddingBottom: `${margins.bottom}in`,
-                  height: `calc(11in - ${margins.top + margins.bottom + 0.2}in)`,
-                  boxSizing: 'border-box'
+                  paddingTop: '0.2in'
                 }}
                 id="page-3-content"
               >
