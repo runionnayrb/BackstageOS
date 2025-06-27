@@ -1,0 +1,67 @@
+Build a script editor feature inside a stage management web app that functions like Google Docs — a real-time, rich text collaborative editor with clean formatting and version control. The interface should feel like a modern word processor but customized for managing theatrical scripts.
+
+Design should be sleek, minimal, and mobile-friendly.
+
+SCRIPT EDITOR FEATURES (like Google Docs)
+1. Rich Text Formatting & Word Processor Features
+
+Full WYSIWYG editor (bold, italics, underline, alignment, font size, highlights, bullet lists, etc.)
+
+Special formatting rules for scripts: character names, dialogue, stage directions, cues
+
+Pagination support and automatic page breaks
+
+Print and export to PDF with exact formatting
+
+Users can add new pages or delete pages
+
+Ability to revert formatting to a clean "original" style layout
+
+2. Collaboration Tools
+
+Track changes with visual highlights (who edited what and when)
+
+Inline commenting with threaded replies
+
+Approval system for comments and sections
+
+Real-time collaborative editing (multiple users working on the same doc)
+
+3. Version Control & History
+
+Auto-save and manual save
+
+Version history with timestamp, editor name, and ability to revert
+
+Publish changes workflow: preview updates before they go live
+
+“Last Updated” tag with name and date of last editor
+
+4. Script Import & Smart Reformatting
+
+Allow users to import a PDF of a script
+
+Automatically convert it into editable rich text formatted to a standard script layout
+
+Minimal manual formatting required after import
+
+SCRIPT CHANGE LOG FEATURES
+1. Automatic Change Log
+
+Automatically track and list changes after a new version is published
+
+Display what was changed, by whom, and when
+
+Option to filter by type (text changes, format changes, additions, deletions)
+
+2. “New Since Last Publish” Log
+
+Show only changes made since the last published version
+
+Visual diffing for quick reference
+
+3. Export & Print Options
+
+Download full or filtered change log as a PDF
+
+Print-friendly views for both script and change log
