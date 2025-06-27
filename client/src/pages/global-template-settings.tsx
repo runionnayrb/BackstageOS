@@ -21,7 +21,20 @@ import {
   Layout,
   Mail,
   Clock,
-  Calendar
+  Calendar,
+  Eye,
+  Edit3,
+  Bold,
+  Italic,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignJustify,
+  Plus,
+  X,
+  Image,
+  Hash,
+  Calendar as CalendarIcon
 } from "lucide-react";
 
 interface GlobalTemplateSettingsParams {
@@ -89,9 +102,43 @@ interface GlobalTemplateSettings {
   dateFormat: "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD" | "Month DD, YYYY" | "DD Month YYYY";
   timeFormat: "12h" | "24h";
   
-  // Default Header & Footer
-  defaultHeader: string;
-  defaultFooter: string;
+  // Default Header & Footer with Rich Formatting
+  defaultHeader: {
+    content: string;
+    formatting: {
+      fontFamily: string;
+      fontSize: string;
+      fontWeight: "normal" | "bold" | "600" | "700";
+      color: string;
+      alignment: "left" | "center" | "right" | "justify";
+      includeLogo: boolean;
+      includeDate: boolean;
+      includePageNumber: boolean;
+      customVariables: Array<{
+        key: string;
+        label: string;
+        defaultValue: string;
+      }>;
+    };
+  };
+  defaultFooter: {
+    content: string;
+    formatting: {
+      fontFamily: string;
+      fontSize: string;
+      fontWeight: "normal" | "bold" | "600" | "700";
+      color: string;
+      alignment: "left" | "center" | "right" | "justify";
+      includeLogo: boolean;
+      includeDate: boolean;
+      includePageNumber: boolean;
+      customVariables: Array<{
+        key: string;
+        label: string;
+        defaultValue: string;
+      }>;
+    };
+  };
   
   // Email Settings
   email: {
@@ -152,8 +199,34 @@ const defaultGlobalSettings: Omit<GlobalTemplateSettings, "id" | "projectId"> = 
   },
   dateFormat: "MM/DD/YYYY",
   timeFormat: "12h",
-  defaultHeader: "{{showName}} - {{reportType}}\nDate: {{date}}\nStage Manager: {{stageManager}}",
-  defaultFooter: "Prepared by: {{preparedBy}}\nNext report: {{nextReportDate}}",
+  defaultHeader: {
+    content: "{{showName}} - {{reportType}}\nDate: {{date}}\nStage Manager: {{stageManager}}",
+    formatting: {
+      fontFamily: "Arial, sans-serif",
+      fontSize: "14px",
+      fontWeight: "bold",
+      color: "#000000",
+      alignment: "center",
+      includeLogo: false,
+      includeDate: true,
+      includePageNumber: false,
+      customVariables: []
+    }
+  },
+  defaultFooter: {
+    content: "Prepared by: {{preparedBy}}\nNext report: {{nextReportDate}}",
+    formatting: {
+      fontFamily: "Arial, sans-serif",
+      fontSize: "10px",
+      fontWeight: "normal",
+      color: "#666666",
+      alignment: "center",
+      includeLogo: false,
+      includeDate: false,
+      includePageNumber: true,
+      customVariables: []
+    }
+  },
   email: {
     distributionLists: {
       to: [],
@@ -177,6 +250,10 @@ export default function GlobalTemplateSettings() {
     projectId: parseInt(projectId!)
   });
 
+  const [isEditingHeader, setIsEditingHeader] = useState(false);
+  const [isEditingFooter, setIsEditingFooter] = useState(false);
+  const [previewMode, setPreviewMode] = useState<'header' | 'footer' | null>(null);
+
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
   });
@@ -187,9 +264,48 @@ export default function GlobalTemplateSettings() {
 
   useEffect(() => {
     if (globalSettings) {
+      // Handle migration from old string format to new object format
+      const migratedSettings = { ...globalSettings };
+      
+      // Migrate header if it's still a string
+      if (typeof globalSettings.defaultHeader === 'string') {
+        migratedSettings.defaultHeader = {
+          content: globalSettings.defaultHeader,
+          formatting: {
+            fontFamily: "Arial, sans-serif",
+            fontSize: "14px",
+            fontWeight: "bold",
+            color: "#000000",
+            alignment: "center",
+            includeLogo: false,
+            includeDate: true,
+            includePageNumber: false,
+            customVariables: []
+          }
+        };
+      }
+      
+      // Migrate footer if it's still a string
+      if (typeof globalSettings.defaultFooter === 'string') {
+        migratedSettings.defaultFooter = {
+          content: globalSettings.defaultFooter,
+          formatting: {
+            fontFamily: "Arial, sans-serif",
+            fontSize: "10px",
+            fontWeight: "normal",
+            color: "#666666",
+            alignment: "center",
+            includeLogo: false,
+            includeDate: false,
+            includePageNumber: true,
+            customVariables: []
+          }
+        };
+      }
+      
       setSettings({
         ...defaultGlobalSettings,
-        ...globalSettings,
+        ...migratedSettings,
         projectId: parseInt(projectId!)
       });
     }
@@ -982,36 +1098,457 @@ export default function GlobalTemplateSettings() {
                 <CardDescription>Set default header and footer templates for new reports</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Default Header Template</Label>
-                  <Textarea
-                    value={settings.defaultHeader}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      defaultHeader: e.target.value
-                    }))}
-                    placeholder="{{showName}} - {{reportType}}&#10;Date: {{date}}&#10;Stage Manager: {{stageManager}}"
-                    className="min-h-[100px]"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Use variables: {`{{showName}}, {{reportType}}, {{date}}, {{stageManager}}, {{venue}}`}
-                  </p>
+                {/* Header Formatting */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-medium">Default Header Template</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPreviewMode(previewMode === 'header' ? null : 'header')}
+                        className="flex items-center gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        {previewMode === 'header' ? 'Hide Preview' : 'Preview'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditingHeader(!isEditingHeader)}
+                        className="flex items-center gap-2"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                        {isEditingHeader ? 'Done' : 'Edit Formatting'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {previewMode === 'header' && (
+                    <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
+                      <div 
+                        className="text-center"
+                        style={{
+                          fontFamily: settings.defaultHeader.formatting.fontFamily,
+                          fontSize: settings.defaultHeader.formatting.fontSize,
+                          fontWeight: settings.defaultHeader.formatting.fontWeight,
+                          color: settings.defaultHeader.formatting.color,
+                          textAlign: settings.defaultHeader.formatting.alignment,
+                        }}
+                      >
+                        {settings.defaultHeader.content.replace(/{{(\w+)}}/g, (match, key) => {
+                          const sampleData: Record<string, string> = {
+                            showName: "Sample Show",
+                            reportType: "Rehearsal Report",
+                            date: new Date().toLocaleDateString(),
+                            stageManager: "John Doe",
+                            venue: "Sample Theater"
+                          };
+                          return sampleData[key] || match;
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Content</Label>
+                      <Textarea
+                        value={settings.defaultHeader.content}
+                        onChange={(e) => setSettings(prev => ({
+                          ...prev,
+                          defaultHeader: {
+                            ...prev.defaultHeader,
+                            content: e.target.value
+                          }
+                        }))}
+                        placeholder="{{showName}} - {{reportType}}&#10;Date: {{date}}&#10;Stage Manager: {{stageManager}}"
+                        className="min-h-[100px]"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Use variables: {`{{showName}}, {{reportType}}, {{date}}, {{stageManager}}, {{venue}}`}
+                      </p>
+                    </div>
+
+                    {isEditingHeader && (
+                      <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Font Family</Label>
+                            <Select
+                              value={settings.defaultHeader.formatting.fontFamily}
+                              onValueChange={(value) => setSettings(prev => ({
+                                ...prev,
+                                defaultHeader: {
+                                  ...prev.defaultHeader,
+                                  formatting: { ...prev.defaultHeader.formatting, fontFamily: value }
+                                }
+                              }))}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Arial, sans-serif">Arial</SelectItem>
+                                <SelectItem value="Times New Roman, serif">Times New Roman</SelectItem>
+                                <SelectItem value="Helvetica, sans-serif">Helvetica</SelectItem>
+                                <SelectItem value="Georgia, serif">Georgia</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Font Size</Label>
+                            <Input
+                              value={settings.defaultHeader.formatting.fontSize}
+                              onChange={(e) => setSettings(prev => ({
+                                ...prev,
+                                defaultHeader: {
+                                  ...prev.defaultHeader,
+                                  formatting: { ...prev.defaultHeader.formatting, fontSize: e.target.value }
+                                }
+                              }))}
+                              placeholder="14px"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Font Weight</Label>
+                            <Select
+                              value={settings.defaultHeader.formatting.fontWeight}
+                              onValueChange={(value: any) => setSettings(prev => ({
+                                ...prev,
+                                defaultHeader: {
+                                  ...prev.defaultHeader,
+                                  formatting: { ...prev.defaultHeader.formatting, fontWeight: value }
+                                }
+                              }))}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="normal">Normal</SelectItem>
+                                <SelectItem value="600">Semi-bold</SelectItem>
+                                <SelectItem value="bold">Bold</SelectItem>
+                                <SelectItem value="700">Extra Bold</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Text Color</Label>
+                            <Input
+                              type="color"
+                              value={settings.defaultHeader.formatting.color}
+                              onChange={(e) => setSettings(prev => ({
+                                ...prev,
+                                defaultHeader: {
+                                  ...prev.defaultHeader,
+                                  formatting: { ...prev.defaultHeader.formatting, color: e.target.value }
+                                }
+                              }))}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Text Alignment</Label>
+                          <div className="flex gap-2">
+                            {[
+                              { value: 'left', icon: AlignLeft },
+                              { value: 'center', icon: AlignCenter },
+                              { value: 'right', icon: AlignRight },
+                              { value: 'justify', icon: AlignJustify }
+                            ].map(({ value, icon: Icon }) => (
+                              <Button
+                                key={value}
+                                variant={settings.defaultHeader.formatting.alignment === value ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setSettings(prev => ({
+                                  ...prev,
+                                  defaultHeader: {
+                                    ...prev.defaultHeader,
+                                    formatting: { ...prev.defaultHeader.formatting, alignment: value as any }
+                                  }
+                                }))}
+                              >
+                                <Icon className="h-4 w-4" />
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={settings.defaultHeader.formatting.includeLogo}
+                              onCheckedChange={(checked) => setSettings(prev => ({
+                                ...prev,
+                                defaultHeader: {
+                                  ...prev.defaultHeader,
+                                  formatting: { ...prev.defaultHeader.formatting, includeLogo: checked }
+                                }
+                              }))}
+                            />
+                            <Label>Include Logo</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={settings.defaultHeader.formatting.includeDate}
+                              onCheckedChange={(checked) => setSettings(prev => ({
+                                ...prev,
+                                defaultHeader: {
+                                  ...prev.defaultHeader,
+                                  formatting: { ...prev.defaultHeader.formatting, includeDate: checked }
+                                }
+                              }))}
+                            />
+                            <Label>Include Date</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={settings.defaultHeader.formatting.includePageNumber}
+                              onCheckedChange={(checked) => setSettings(prev => ({
+                                ...prev,
+                                defaultHeader: {
+                                  ...prev.defaultHeader,
+                                  formatting: { ...prev.defaultHeader.formatting, includePageNumber: checked }
+                                }
+                              }))}
+                            />
+                            <Label>Include Page Number</Label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label>Default Footer Template</Label>
-                  <Textarea
-                    value={settings.defaultFooter}
-                    onChange={(e) => setSettings(prev => ({
-                      ...prev,
-                      defaultFooter: e.target.value
-                    }))}
-                    placeholder="Prepared by: {{preparedBy}}&#10;Next report: {{nextReportDate}}"
-                    className="min-h-[100px]"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Use variables: {`{{preparedBy}}, {{nextReportDate}}, {{contactInfo}}, {{emergencyContact}}`}
-                  </p>
+
+                {/* Footer Formatting */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-medium">Default Footer Template</Label>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPreviewMode(previewMode === 'footer' ? null : 'footer')}
+                        className="flex items-center gap-2"
+                      >
+                        <Eye className="h-4 w-4" />
+                        {previewMode === 'footer' ? 'Hide Preview' : 'Preview'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditingFooter(!isEditingFooter)}
+                        className="flex items-center gap-2"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                        {isEditingFooter ? 'Done' : 'Edit Formatting'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  {previewMode === 'footer' && (
+                    <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
+                      <div 
+                        className="text-center"
+                        style={{
+                          fontFamily: settings.defaultFooter.formatting.fontFamily,
+                          fontSize: settings.defaultFooter.formatting.fontSize,
+                          fontWeight: settings.defaultFooter.formatting.fontWeight,
+                          color: settings.defaultFooter.formatting.color,
+                          textAlign: settings.defaultFooter.formatting.alignment,
+                        }}
+                      >
+                        {settings.defaultFooter.content.replace(/{{(\w+)}}/g, (match, key) => {
+                          const sampleData: Record<string, string> = {
+                            preparedBy: "Jane Smith",
+                            nextReportDate: new Date(Date.now() + 86400000).toLocaleDateString(),
+                            contactInfo: "contact@theater.com",
+                            emergencyContact: "(555) 123-4567"
+                          };
+                          return sampleData[key] || match;
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Content</Label>
+                      <Textarea
+                        value={settings.defaultFooter.content}
+                        onChange={(e) => setSettings(prev => ({
+                          ...prev,
+                          defaultFooter: {
+                            ...prev.defaultFooter,
+                            content: e.target.value
+                          }
+                        }))}
+                        placeholder="Prepared by: {{preparedBy}}&#10;Next report: {{nextReportDate}}"
+                        className="min-h-[100px]"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        Use variables: {`{{preparedBy}}, {{nextReportDate}}, {{contactInfo}}, {{emergencyContact}}`}
+                      </p>
+                    </div>
+
+                    {isEditingFooter && (
+                      <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Font Family</Label>
+                            <Select
+                              value={settings.defaultFooter.formatting.fontFamily}
+                              onValueChange={(value) => setSettings(prev => ({
+                                ...prev,
+                                defaultFooter: {
+                                  ...prev.defaultFooter,
+                                  formatting: { ...prev.defaultFooter.formatting, fontFamily: value }
+                                }
+                              }))}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Arial, sans-serif">Arial</SelectItem>
+                                <SelectItem value="Times New Roman, serif">Times New Roman</SelectItem>
+                                <SelectItem value="Helvetica, sans-serif">Helvetica</SelectItem>
+                                <SelectItem value="Georgia, serif">Georgia</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Font Size</Label>
+                            <Input
+                              value={settings.defaultFooter.formatting.fontSize}
+                              onChange={(e) => setSettings(prev => ({
+                                ...prev,
+                                defaultFooter: {
+                                  ...prev.defaultFooter,
+                                  formatting: { ...prev.defaultFooter.formatting, fontSize: e.target.value }
+                                }
+                              }))}
+                              placeholder="10px"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Font Weight</Label>
+                            <Select
+                              value={settings.defaultFooter.formatting.fontWeight}
+                              onValueChange={(value: any) => setSettings(prev => ({
+                                ...prev,
+                                defaultFooter: {
+                                  ...prev.defaultFooter,
+                                  formatting: { ...prev.defaultFooter.formatting, fontWeight: value }
+                                }
+                              }))}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="normal">Normal</SelectItem>
+                                <SelectItem value="600">Semi-bold</SelectItem>
+                                <SelectItem value="bold">Bold</SelectItem>
+                                <SelectItem value="700">Extra Bold</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Text Color</Label>
+                            <Input
+                              type="color"
+                              value={settings.defaultFooter.formatting.color}
+                              onChange={(e) => setSettings(prev => ({
+                                ...prev,
+                                defaultFooter: {
+                                  ...prev.defaultFooter,
+                                  formatting: { ...prev.defaultFooter.formatting, color: e.target.value }
+                                }
+                              }))}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Text Alignment</Label>
+                          <div className="flex gap-2">
+                            {[
+                              { value: 'left', icon: AlignLeft },
+                              { value: 'center', icon: AlignCenter },
+                              { value: 'right', icon: AlignRight },
+                              { value: 'justify', icon: AlignJustify }
+                            ].map(({ value, icon: Icon }) => (
+                              <Button
+                                key={value}
+                                variant={settings.defaultFooter.formatting.alignment === value ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setSettings(prev => ({
+                                  ...prev,
+                                  defaultFooter: {
+                                    ...prev.defaultFooter,
+                                    formatting: { ...prev.defaultFooter.formatting, alignment: value as any }
+                                  }
+                                }))}
+                              >
+                                <Icon className="h-4 w-4" />
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={settings.defaultFooter.formatting.includeLogo}
+                              onCheckedChange={(checked) => setSettings(prev => ({
+                                ...prev,
+                                defaultFooter: {
+                                  ...prev.defaultFooter,
+                                  formatting: { ...prev.defaultFooter.formatting, includeLogo: checked }
+                                }
+                              }))}
+                            />
+                            <Label>Include Logo</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={settings.defaultFooter.formatting.includeDate}
+                              onCheckedChange={(checked) => setSettings(prev => ({
+                                ...prev,
+                                defaultFooter: {
+                                  ...prev.defaultFooter,
+                                  formatting: { ...prev.defaultFooter.formatting, includeDate: checked }
+                                }
+                              }))}
+                            />
+                            <Label>Include Date</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch
+                              checked={settings.defaultFooter.formatting.includePageNumber}
+                              onCheckedChange={(checked) => setSettings(prev => ({
+                                ...prev,
+                                defaultFooter: {
+                                  ...prev.defaultFooter,
+                                  formatting: { ...prev.defaultFooter.formatting, includePageNumber: checked }
+                                }
+                              }))}
+                            />
+                            <Label>Include Page Number</Label>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
