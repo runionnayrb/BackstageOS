@@ -1,5 +1,6 @@
-import { Bell } from "lucide-react";
+import { Bell, Settings, Users, LogOut, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 
@@ -34,25 +35,49 @@ export default function Header() {
             </Button>
             
             {/* User Menu */}
-            <div className="relative">
-              <Button
-                variant="ghost"
-                className="flex items-center space-x-3 p-2"
-                onClick={() => window.location.href = '/api/logout'}
-              >
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">
-                    {getInitials((user as any)?.firstName, (user as any)?.lastName)}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex items-center space-x-3 p-2"
+                >
+                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">
+                      {getInitials((user as any)?.firstName, (user as any)?.lastName)}
+                    </span>
+                  </div>
+                  <span className="hidden sm:block text-sm font-medium text-gray-700">
+                    {(user as any)?.firstName || (user as any)?.lastName 
+                      ? `${(user as any)?.firstName || ""} ${(user as any)?.lastName || ""}`.trim()
+                      : (user as any)?.email
+                    }
                   </span>
-                </div>
-                <span className="hidden sm:block text-sm font-medium text-gray-700">
-                  {(user as any)?.firstName || (user as any)?.lastName 
-                    ? `${(user as any)?.firstName || ""} ${(user as any)?.lastName || ""}`.trim()
-                    : (user as any)?.email
-                  }
-                </span>
-              </Button>
-            </div>
+                  <ChevronDown className="h-4 w-4 text-gray-500" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => setLocation('/profile')}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  Profile Settings
+                </DropdownMenuItem>
+                
+                {(user as any)?.id === '44106967' && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setLocation('/admin/users')}>
+                      <Users className="mr-2 h-4 w-4" />
+                      User Management
+                    </DropdownMenuItem>
+                  </>
+                )}
+                
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => window.location.href = '/api/logout'}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
