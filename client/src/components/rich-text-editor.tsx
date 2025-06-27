@@ -31,7 +31,8 @@ export function RichTextEditor({
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== content) {
-      editorRef.current.innerHTML = content;
+      // Safely set content without executing any embedded scripts
+      editorRef.current.innerHTML = content || "";
     }
   }, [content]);
 
@@ -333,7 +334,7 @@ export function RichTextEditor({
           lineHeight: 'inherit'
         }}
         data-placeholder={placeholder}
-        dangerouslySetInnerHTML={{ __html: content }}
+        suppressContentEditableWarning={true}
       />
 
       {/* Click outside to close dropdowns */}

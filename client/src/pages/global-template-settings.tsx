@@ -218,9 +218,27 @@ export default function GlobalTemplateSettings() {
 
   const saveSettings = useMutation({
     mutationFn: async (settingsData: GlobalTemplateSettings) => {
-      // Remove id, createdAt, updatedAt for server validation
-      const { id, createdAt, updatedAt, ...dataToSend } = settingsData as any;
-      await apiRequest("POST", `/api/projects/${projectId}/global-template-settings`, dataToSend);
+      // Remove id, createdAt, updatedAt and transform to match schema
+      const { id, createdAt, updatedAt, ...cleanData } = settingsData as any;
+      
+      // Transform the data to match the backend schema structure
+      const transformedData = {
+        projectId: cleanData.projectId,
+        branding: cleanData.branding,
+        pageMargins: cleanData.pageMargins,
+        pageNumbering: cleanData.pageNumbering,
+        fonts: cleanData.fonts,
+        lists: cleanData.lists,
+        dateFormat: cleanData.dateFormat,
+        timeFormat: cleanData.timeFormat,
+        defaultHeader: cleanData.defaultHeader,
+        defaultFooter: cleanData.defaultFooter,
+        email: cleanData.email,
+        productionLogo: cleanData.branding?.productionLogo || null,
+        productionPhoto: cleanData.branding?.productionPhoto || null,
+      };
+      
+      await apiRequest("POST", `/api/projects/${projectId}/global-template-settings`, transformedData);
     },
     onSuccess: () => {
       toast({
@@ -229,11 +247,12 @@ export default function GlobalTemplateSettings() {
       });
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/global-template-settings`] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error("Settings save error:", error);
+      const errorMessage = error?.response?.data?.message || error?.message || "Failed to save settings";
       toast({
         title: "Error",
-        description: "Failed to save settings",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -529,8 +548,10 @@ export default function GlobalTemplateSettings() {
                   <Label className="text-base font-medium">Page Margins</Label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
                     <div className="space-y-2">
-                      <Label>Top</Label>
+                      <Label htmlFor="margin-top">Top</Label>
                       <Input
+                        id="margin-top"
+                        name="margin-top"
                         value={settings.pageMargins.top}
                         onChange={(e) => setSettings(prev => ({
                           ...prev,
@@ -540,8 +561,10 @@ export default function GlobalTemplateSettings() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Bottom</Label>
+                      <Label htmlFor="margin-bottom">Bottom</Label>
                       <Input
+                        id="margin-bottom"
+                        name="margin-bottom"
                         value={settings.pageMargins.bottom}
                         onChange={(e) => setSettings(prev => ({
                           ...prev,
@@ -551,8 +574,10 @@ export default function GlobalTemplateSettings() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Left</Label>
+                      <Label htmlFor="margin-left">Left</Label>
                       <Input
+                        id="margin-left"
+                        name="margin-left"
                         value={settings.pageMargins.left}
                         onChange={(e) => setSettings(prev => ({
                           ...prev,
@@ -562,8 +587,10 @@ export default function GlobalTemplateSettings() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Right</Label>
+                      <Label htmlFor="margin-right">Right</Label>
                       <Input
+                        id="margin-right"
+                        name="margin-right"
                         value={settings.pageMargins.right}
                         onChange={(e) => setSettings(prev => ({
                           ...prev,
@@ -677,8 +704,10 @@ export default function GlobalTemplateSettings() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Size</Label>
+                      <Label htmlFor="heading-size">Size</Label>
                       <Input
+                        id="heading-size"
+                        name="heading-size"
                         value={settings.fonts.heading.size}
                         onChange={(e) => setSettings(prev => ({
                           ...prev,
@@ -714,8 +743,10 @@ export default function GlobalTemplateSettings() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Line Height</Label>
+                      <Label htmlFor="heading-line-height">Line Height</Label>
                       <Input
+                        id="heading-line-height"
+                        name="heading-line-height"
                         value={settings.fonts.heading.lineHeight}
                         onChange={(e) => setSettings(prev => ({
                           ...prev,
@@ -758,8 +789,10 @@ export default function GlobalTemplateSettings() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Size</Label>
+                      <Label htmlFor="body-size">Size</Label>
                       <Input
+                        id="body-size"
+                        name="body-size"
                         value={settings.fonts.body.size}
                         onChange={(e) => setSettings(prev => ({
                           ...prev,
@@ -794,8 +827,10 @@ export default function GlobalTemplateSettings() {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label>Line Height</Label>
+                      <Label htmlFor="body-line-height">Line Height</Label>
                       <Input
+                        id="body-line-height"
+                        name="body-line-height"
                         value={settings.fonts.body.lineHeight}
                         onChange={(e) => setSettings(prev => ({
                           ...prev,
@@ -1193,8 +1228,10 @@ export default function GlobalTemplateSettings() {
                 ))}
 
                 <div className="space-y-2">
-                  <Label>Subject Line Template</Label>
+                  <Label htmlFor="email-subject">Subject Line Template</Label>
                   <Input
+                    id="email-subject"
+                    name="email-subject"
                     value={settings.email.subjectTemplate}
                     onChange={(e) => setSettings(prev => ({
                       ...prev,
@@ -1205,8 +1242,10 @@ export default function GlobalTemplateSettings() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Email Body Template</Label>
+                  <Label htmlFor="email-body">Email Body Template</Label>
                   <Textarea
+                    id="email-body"
+                    name="email-body"
                     value={settings.email.bodyTemplate}
                     onChange={(e) => setSettings(prev => ({
                       ...prev,
@@ -1218,8 +1257,10 @@ export default function GlobalTemplateSettings() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Email Signature</Label>
+                  <Label htmlFor="email-signature">Email Signature</Label>
                   <Textarea
+                    id="email-signature"
+                    name="email-signature"
                     value={settings.email.signature}
                     onChange={(e) => setSettings(prev => ({
                       ...prev,
