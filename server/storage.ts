@@ -178,7 +178,7 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(users).orderBy(desc(users.createdAt));
   }
 
-  async updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[] }): Promise<User> {
+  async updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[]; firstName?: string; lastName?: string; email?: string; password?: string }): Promise<User> {
     const updateData: any = {
       updatedAt: new Date(),
     };
@@ -191,6 +191,18 @@ export class DatabaseStorage implements IStorage {
     }
     if (updates.betaFeatures) {
       updateData.betaFeatures = JSON.stringify(updates.betaFeatures);
+    }
+    if (updates.firstName !== undefined) {
+      updateData.firstName = updates.firstName;
+    }
+    if (updates.lastName !== undefined) {
+      updateData.lastName = updates.lastName;
+    }
+    if (updates.email) {
+      updateData.email = updates.email;
+    }
+    if (updates.password) {
+      updateData.password = updates.password;
     }
 
     const [user] = await db

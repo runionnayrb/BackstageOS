@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import bcrypt from "bcrypt";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
@@ -177,7 +178,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: "Current password is required to change password" });
         }
 
-        const bcrypt = require('bcrypt');
         const isCurrentPasswordValid = await bcrypt.compare(currentPassword, req.user.password);
         if (!isCurrentPasswordValid) {
           return res.status(400).json({ message: "Current password is incorrect" });
@@ -193,7 +193,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Hash new password if provided
       if (newPassword) {
-        const bcrypt = require('bcrypt');
         updateData.password = await bcrypt.hash(newPassword, 10);
       }
 
