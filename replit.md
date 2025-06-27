@@ -224,6 +224,7 @@ Required environment variables:
 - June 27, 2025: **MAJOR AUTHENTICATION CHANGE**: Replaced Replit Auth with custom email/password authentication system using bcrypt password hashing and Passport.js LocalStrategy - users now register and login with email/password credentials instead of OAuth flow.
 - June 27, 2025: **PROFILE SETTINGS IMPLEMENTATION**: Added comprehensive profile management functionality allowing users to update their email, password, first name, and last name. Features secure password verification, email uniqueness validation, and proper bcrypt password hashing for security.
 - June 27, 2025: **ADMIN STATUS ASSIGNMENT SYSTEM**: Implemented complete admin user management functionality with database schema updates, backend API support, and clean user interface. Admin status displays as "- Admin" suffix in username, with enhanced user information showing "Profile Type • Beta Access Level" format for professional appearance.
+- June 27, 2025: **IMPORTANT DATES IMPLEMENTATION**: Added comprehensive Important Dates section to create show form with 7 production milestone date fields: Prep, First Rehearsal, Designer Run, First Tech, First Preview, Opening, and Closing dates. Updated database schema with new date columns, made description field optional, and fixed server validation to properly handle ISO date strings and empty values.
 
 ## User Preferences
 
