@@ -575,15 +575,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
+      const userId = req.user.claims.sub;
       const settingsData = insertGlobalTemplateSettingsSchema.parse({
         ...req.body,
         projectId,
+        createdBy: userId,
       });
 
       const settings = await storage.upsertGlobalTemplateSettings(settingsData);
       res.json(settings);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid input", errors: error.errors });
       }
       console.error("Error saving global template settings:", error);
