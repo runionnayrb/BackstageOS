@@ -164,17 +164,42 @@ export default function TemplateSettings() {
     queryKey: [`/api/projects/${projectId}/settings`],
   });
 
-  // Initialize templates with defaults
+  // Load user-created templates
+  const { data: userTemplates } = useQuery({
+    queryKey: [`/api/projects/${projectId}/templates`],
+  });
+
+  // Initialize templates with defaults and merge with user templates
   useEffect(() => {
     const initialTemplates: Record<string, ProductionTemplate> = {};
+    
+    // Start with default templates
     Object.entries(defaultTemplates).forEach(([phase, template]) => {
       initialTemplates[phase] = {
         ...template,
         id: `${projectId}-${phase}`,
       };
     });
+
+    // Override with user-created templates if they exist
+    if (userTemplates && Array.isArray(userTemplates)) {
+      userTemplates.forEach((userTemplate: any) => {
+        if (userTemplate.phase) {
+          initialTemplates[userTemplate.phase] = {
+            id: userTemplate.id.toString(),
+            phase: userTemplate.phase as any,
+            name: userTemplate.name,
+            description: userTemplate.description || "",
+            header: userTemplate.header || "",
+            footer: userTemplate.footer || "",
+            fields: userTemplate.fields || []
+          };
+        }
+      });
+    }
+    
     setTemplates(initialTemplates);
-  }, [projectId]);
+  }, [projectId, userTemplates]);
 
   const saveTemplate = useMutation({
     mutationFn: async (template: ProductionTemplate) => {
