@@ -108,7 +108,7 @@ export default function ShowReports() {
             {reports.map((report: any) => (
               <div 
                 key={report.id} 
-                className="cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors"
+                className="cursor-pointer hover:bg-gray-50 py-2 px-3 rounded transition-colors"
                 onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/${report.id}`)}
               >
                 <div className="flex items-center justify-between">
