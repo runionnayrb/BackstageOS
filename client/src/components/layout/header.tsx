@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
+import { isAdmin } from "@/lib/admin";
 
 export default function Header() {
   const { user } = useAuth();
@@ -61,7 +62,7 @@ export default function Header() {
                   Profile Settings
                 </DropdownMenuItem>
                 
-                {(user as any)?.id === '44106967' && (
+                {isAdmin(user) && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => setLocation('/admin/users')}>

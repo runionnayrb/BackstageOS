@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit, Save, X, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import AdminGuard from "@/components/admin-guard";
 
 interface User {
   id: string;
@@ -33,7 +34,7 @@ const BETA_FEATURES = [
   { id: 'task-boards', label: 'Task Boards' }
 ];
 
-export default function AdminUsers() {
+function AdminUsersContent() {
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{
     profileType: string;
@@ -302,5 +303,13 @@ export default function AdminUsers() {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function AdminUsers() {
+  return (
+    <AdminGuard>
+      <AdminUsersContent />
+    </AdminGuard>
   );
 }

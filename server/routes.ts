@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
+import { isAdmin } from "./adminUtils";
 import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -52,10 +53,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/beta-users', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const currentUser = await storage.getUser(userId);
       
-      // Only allow access if user is you (the owner) - replace with your actual user ID
-      if (userId !== '44106967') {
+      if (!isAdmin(userId)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -71,8 +70,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       
-      // Only allow access if user is you (the owner)
-      if (userId !== '44106967') {
+      if (!isAdmin(userId)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -95,8 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.claims.sub;
       
-      // Only allow access if user is you (the owner)
-      if (userId !== '44106967') {
+      if (!isAdmin(userId)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -114,8 +111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { targetUserId } = req.params;
       
-      // Only allow access if user is you (the owner)
-      if (userId !== '44106967') {
+      if (!isAdmin(userId)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
@@ -148,8 +144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user.claims.sub;
       const { targetUserId } = req.params;
       
-      // Only allow access if user is you (the owner)
-      if (userId !== '44106967') {
+      if (!isAdmin(userId)) {
         return res.status(403).json({ message: "Admin access required" });
       }
       
