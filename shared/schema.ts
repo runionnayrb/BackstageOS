@@ -138,17 +138,38 @@ export const showCharacters = pgTable("show_characters", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Phase 2: Script management
+// Enhanced Script management with collaboration and version control
 export const scripts = pgTable("scripts", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
   title: varchar("title").notNull(),
-  content: text("content"),
+  content: jsonb("content").notNull(), // Rich text content with formatting
   version: varchar("version").default("1.0"),
+  majorVersion: integer("major_version").default(1),
+  minorVersion: integer("minor_version").default(0),
   totalPages: integer("total_pages").default(1),
+  status: varchar("status").default("draft"), // draft, published, archived
+  isPublished: boolean("is_published").default(false),
+  publishedAt: timestamp("published_at"),
+  publishedBy: integer("published_by").references(() => users.id),
+  lastEditedBy: integer("last_edited_by").references(() => users.id),
+  formatting: jsonb("formatting"), // Document formatting preferences
+  pageSettings: jsonb("page_settings"), // Page size, margins, etc.
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const scriptVersions = pgTable("script_versions", {
+  id: serial("id").primaryKey(),
+  scriptId: integer("script_id").notNull().references(() => scripts.id, { onDelete: "cascade" }),
+  version: varchar("version").notNull(),
+  title: varchar("title").notNull(),
+  content: jsonb("content").notNull(),
+  changes: jsonb("changes"), // Summary of changes made
+  publishedAt: timestamp("published_at").defaultNow(),
+  publishedBy: integer("published_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const scriptCues = pgTable("script_cues", {
@@ -161,6 +182,50 @@ export const scriptCues = pgTable("script_cues", {
   page: integer("page").notNull(),
   act: integer("act"),
   scene: integer("scene"),
+  timing: varchar("timing"), // pre-show, top-of-show, etc.
+  notes: text("notes"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const scriptComments = pgTable("script_comments", {
+  id: serial("id").primaryKey(),
+  scriptId: integer("script_id").notNull().references(() => scripts.id, { onDelete: "cascade" }),
+  parentId: integer("parent_id").references(() => scriptComments.id), // For threaded replies
+  content: text("content").notNull(),
+  position: integer("position"), // Character position in document
+  selectedText: text("selected_text"), // Text that was highlighted when comment was made
+  status: varchar("status").default("open"), // open, resolved, addressed
+  type: varchar("type").default("comment"), // comment, suggestion, approval_request
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  resolvedBy: integer("resolved_by").references(() => users.id),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const scriptCollaborators = pgTable("script_collaborators", {
+  id: serial("id").primaryKey(),
+  scriptId: integer("script_id").notNull().references(() => scripts.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id),
+  permission: varchar("permission").notNull(), // read, comment, edit, admin
+  invitedBy: integer("invited_by").notNull().references(() => users.id),
+  joinedAt: timestamp("joined_at").defaultNow(),
+});
+
+export const scriptChanges = pgTable("script_changes", {
+  id: serial("id").primaryKey(),
+  scriptId: integer("script_id").notNull().references(() => scripts.id, { onDelete: "cascade" }),
+  versionId: integer("version_id").references(() => scriptVersions.id),
+  type: varchar("type").notNull(), // insert, delete, format, move
+  position: integer("position").notNull(),
+  length: integer("length"),
+  oldContent: text("old_content"),
+  newContent: text("new_content"),
+  description: text("description"),
+  isPublished: boolean("is_published").default(false),
+  createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -342,6 +407,103 @@ export const showCharactersRelations = relations(showCharacters, ({ one }) => ({
   }),
 }));
 
+export const scriptsRelations = relations(scripts, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [scripts.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [scripts.createdBy],
+    references: [users.id],
+  }),
+  lastEditor: one(users, {
+    fields: [scripts.lastEditedBy],
+    references: [users.id],
+  }),
+  publisher: one(users, {
+    fields: [scripts.publishedBy],
+    references: [users.id],
+  }),
+  versions: many(scriptVersions),
+  cues: many(scriptCues),
+  comments: many(scriptComments),
+  collaborators: many(scriptCollaborators),
+  changes: many(scriptChanges),
+}));
+
+export const scriptVersionsRelations = relations(scriptVersions, ({ one, many }) => ({
+  script: one(scripts, {
+    fields: [scriptVersions.scriptId],
+    references: [scripts.id],
+  }),
+  publisher: one(users, {
+    fields: [scriptVersions.publishedBy],
+    references: [users.id],
+  }),
+  changes: many(scriptChanges),
+}));
+
+export const scriptCuesRelations = relations(scriptCues, ({ one }) => ({
+  script: one(scripts, {
+    fields: [scriptCues.scriptId],
+    references: [scripts.id],
+  }),
+  creator: one(users, {
+    fields: [scriptCues.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const scriptCommentsRelations = relations(scriptComments, ({ one, many }) => ({
+  script: one(scripts, {
+    fields: [scriptComments.scriptId],
+    references: [scripts.id],
+  }),
+  parent: one(scriptComments, {
+    fields: [scriptComments.parentId],
+    references: [scriptComments.id],
+  }),
+  creator: one(users, {
+    fields: [scriptComments.createdBy],
+    references: [users.id],
+  }),
+  resolver: one(users, {
+    fields: [scriptComments.resolvedBy],
+    references: [users.id],
+  }),
+  replies: many(scriptComments),
+}));
+
+export const scriptCollaboratorsRelations = relations(scriptCollaborators, ({ one }) => ({
+  script: one(scripts, {
+    fields: [scriptCollaborators.scriptId],
+    references: [scripts.id],
+  }),
+  user: one(users, {
+    fields: [scriptCollaborators.userId],
+    references: [users.id],
+  }),
+  inviter: one(users, {
+    fields: [scriptCollaborators.invitedBy],
+    references: [users.id],
+  }),
+}));
+
+export const scriptChangesRelations = relations(scriptChanges, ({ one }) => ({
+  script: one(scripts, {
+    fields: [scriptChanges.scriptId],
+    references: [scripts.id],
+  }),
+  version: one(scriptVersions, {
+    fields: [scriptChanges.versionId],
+    references: [scriptVersions.id],
+  }),
+  creator: one(users, {
+    fields: [scriptChanges.createdBy],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -397,6 +559,39 @@ export const insertShowSettingsSchema = createInsertSchema(showSettings).omit({
   updatedAt: true,
 });
 
+export const insertScriptSchema = createInsertSchema(scripts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScriptVersionSchema = createInsertSchema(scriptVersions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertScriptCueSchema = createInsertSchema(scriptCues).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScriptCommentSchema = createInsertSchema(scriptComments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScriptCollaboratorSchema = createInsertSchema(scriptCollaborators).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertScriptChangeSchema = createInsertSchema(scriptChanges).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertGlobalTemplateSettingsSchema = createInsertSchema(globalTemplateSettings).omit({
   id: true,
   createdAt: true,
@@ -424,3 +619,15 @@ export type ShowSettings = typeof showSettings.$inferSelect;
 export type InsertShowSettings = z.infer<typeof insertShowSettingsSchema>;
 export type GlobalTemplateSettings = typeof globalTemplateSettings.$inferSelect;
 export type InsertGlobalTemplateSettings = z.infer<typeof insertGlobalTemplateSettingsSchema>;
+export type Script = typeof scripts.$inferSelect;
+export type InsertScript = z.infer<typeof insertScriptSchema>;
+export type ScriptVersion = typeof scriptVersions.$inferSelect;
+export type InsertScriptVersion = z.infer<typeof insertScriptVersionSchema>;
+export type ScriptCue = typeof scriptCues.$inferSelect;
+export type InsertScriptCue = z.infer<typeof insertScriptCueSchema>;
+export type ScriptComment = typeof scriptComments.$inferSelect;
+export type InsertScriptComment = z.infer<typeof insertScriptCommentSchema>;
+export type ScriptCollaborator = typeof scriptCollaborators.$inferSelect;
+export type InsertScriptCollaborator = z.infer<typeof insertScriptCollaboratorSchema>;
+export type ScriptChange = typeof scriptChanges.$inferSelect;
+export type InsertScriptChange = z.infer<typeof insertScriptChangeSchema>;
