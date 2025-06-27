@@ -249,8 +249,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Manual validation for project data since we updated the schema
       const projectSchema = z.object({
         name: z.string().min(1, "Project name is required"),
-        description: z.string().optional(),
-        venue: z.string().optional(),
+        description: z.string().optional().or(z.literal("")),
+        venue: z.string().optional().or(z.literal("")),
         prepStartDate: z.date().nullable().optional(),
         firstRehearsalDate: z.date().nullable().optional(),
         designerRunDate: z.date().nullable().optional(),
@@ -258,9 +258,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstPreviewDate: z.date().nullable().optional(),
         openingNight: z.date().nullable().optional(),
         closingDate: z.date().nullable().optional(),
-        season: z.string().optional(),
+        season: z.string().optional().or(z.literal("")),
         ownerId: z.number(),
       });
+
+      console.log("Received project data:", req.body);
 
       const projectData = projectSchema.parse({
         ...req.body,
@@ -271,6 +273,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(project);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Project validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid project data", errors: error.errors });
       }
       console.error("Error creating project:", error);
