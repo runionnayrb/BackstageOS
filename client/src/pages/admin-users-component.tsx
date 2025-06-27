@@ -156,6 +156,10 @@ export default function AdminUsersComponent() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">
+                    {user.profileType ? 
+                      `${user.profileType.charAt(0).toUpperCase() + user.profileType.slice(1)} • ` : 
+                      ''
+                    }
                     {user.betaAccess === 'none' ? 'No Beta Access' :
                      user.betaAccess === 'limited' ? 'Limited Beta Access' :
                      user.betaAccess === 'full' ? 'Full Beta Access' :
