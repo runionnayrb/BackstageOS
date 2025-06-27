@@ -10,8 +10,7 @@ import { Trash2, Edit, Save, X, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import AdminGuard from "@/components/admin-guard";
-import { useAuth } from "@/hooks/useAuth";
-import { isAdmin } from "@/lib/admin";
+import { apiRequest } from "@/lib/queryClient";
 
 interface User {
   id: string;
@@ -49,51 +48,12 @@ function AdminUsersContent() {
   const [, setLocation] = useLocation();
 
   const { data: users, isLoading, error } = useQuery<User[]>({
-    queryKey: ['/api/admin/users'],
-    queryFn: async () => {
-      try {
-        const response = await fetch('/api/admin/users', {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
-        
-        console.log('Admin users response status:', response.status);
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Admin users error response:', errorText);
-          throw new Error(`Failed to fetch users: ${response.status}`);
-        }
-        
-        const text = await response.text();
-        console.log('Admin users response text:', text);
-        
-        if (!text) {
-          throw new Error('Empty response from server');
-        }
-        
-        return JSON.parse(text);
-      } catch (err) {
-        console.error('Admin users fetch error:', err);
-        throw err;
-      }
-    },
-    retry: false
+    queryKey: ['/api/admin/users']
   });
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, updates }: { userId: string; updates: any }) => {
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(updates)
-      });
-      if (!response.ok) {
-        throw new Error('Failed to update user');
-      }
+      const response = await apiRequest('PATCH', `/api/admin/users/${userId}`, updates);
       return response.json();
     },
     onSuccess: () => {

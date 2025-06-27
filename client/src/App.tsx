@@ -28,7 +28,7 @@ import TemplateSettings from "@/pages/template-settings";
 import GlobalTemplateSettings from "@/pages/global-template-settings";
 import NewReport from "@/pages/new-report";
 import ReportViewer from "./pages/report-viewer";
-import AdminUsers from "@/pages/admin-users";
+import AdminUsers from "@/pages/admin-users-clean";
 import NotFound from "@/pages/not-found";
 
 function Router() {
