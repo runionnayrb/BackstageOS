@@ -31,6 +31,9 @@ import NewReport from "@/pages/new-report";
 import ReportViewer from "./pages/report-viewer";
 import AdminDashboard from "@/pages/admin-dashboard";
 import ProfileSettings from "@/pages/profile-settings";
+import Calendar from "@/pages/calendar";
+import PropsAndCostumes from "@/pages/props-costumes";
+import Personnel from "@/pages/personnel";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -67,9 +70,12 @@ function Router() {
         <Route path="/shows/:id/reports/:type/:reportId/edit" component={ReportBuilder} />
         <Route path="/shows/:id/reports/:type/:reportId" component={ReportViewer} />
         <Route path="/shows/:id/reports/:type" component={ShowReports} />
+        <Route path="/shows/:id/calendar" component={Calendar} />
         <Route path="/shows/:id/script" component={ScriptEditor} />
+        <Route path="/shows/:id/props-costumes" component={PropsAndCostumes} />
         <Route path="/shows/:id/props" component={PropsTracker} />
         <Route path="/shows/:id/costumes" component={CostumeTracker} />
+        <Route path="/shows/:id/personnel" component={Personnel} />
         <Route path="/shows/:id/templates/new" component={TemplateBuilder} />
         <Route path="/shows/:id/templates/:templateId/edit" component={TemplateBuilder} />
         <Route path="/shows/:id/templates" component={TemplateSettings} />

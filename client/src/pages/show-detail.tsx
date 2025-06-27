@@ -7,13 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  FileText, 
-  Calendar, 
-  BookOpen, 
-  Users, 
-  CheckSquare,
   ArrowLeft,
-  Plus,
   Settings
 } from "lucide-react";
 
@@ -58,60 +52,32 @@ export default function ShowDetail() {
   const projectLabel = isFreelance ? "Project" : "Production";
   const showLabel = isFreelance ? "Project" : "Show";
 
-  const categories = [
+  const sections = [
     {
       title: "Reports",
       description: isFreelance ? "Project reports and documentation" : "Show reports and documentation",
-      icon: FileText,
-      items: [
-        { name: "All Reports", href: `/shows/${projectId}/reports` },
-      ],
+      href: `/shows/${projectId}/reports`,
     },
     {
       title: "Calendar",
       description: isFreelance ? "Project schedules and calls" : "Rehearsal schedules and daily calls",
-      icon: Calendar,
-      items: [
-        { name: "Schedule", href: `/shows/${projectId}/calendar/schedule` },
-        { name: "Daily Calls", href: `/shows/${projectId}/calendar/calls` },
-      ],
+      href: `/shows/${projectId}/calendar`,
     },
     {
       title: "Script",
       description: isFreelance ? "Script and materials" : "Script management and notes",
-      icon: BookOpen,
-      items: [
-        { name: "Script Editor", href: `/shows/${projectId}/script` },
-      ],
+      href: `/shows/${projectId}/script`,
     },
     {
       title: "Props & Costumes",
       description: isFreelance ? "Project inventory tracking" : "Props and costume management",
-      icon: FileText,
-      items: [
-        { name: "Props Tracker", href: `/shows/${projectId}/props` },
-        { name: "Costume Tracker", href: `/shows/${projectId}/costumes` },
-      ],
+      href: `/shows/${projectId}/props-costumes`,
     },
     {
-      title: "Cast",
+      title: "Personnel",
       description: isFreelance ? "Team and character information" : "Cast and character information",
-      icon: Users,
-      items: [
-        { name: isFreelance ? "Team List" : "Cast List", href: `/shows/${projectId}/cast` },
-        { name: "Characters", href: `/shows/${projectId}/characters` },
-      ],
+      href: `/shows/${projectId}/personnel`,
     },
-    {
-      title: "Tasks",
-      description: isFreelance ? "Project task management" : "Production task tracking",
-      icon: CheckSquare,
-      items: [
-        { name: "List View", href: `/shows/${projectId}/tasks/list` },
-        { name: "Board View", href: `/shows/${projectId}/tasks/board` },
-      ],
-    },
-
   ];
 
   return (
@@ -151,35 +117,22 @@ export default function ShowDetail() {
           </div>
         </div>
 
-        <div className="space-y-1">
-          {categories.map((category) => {
-            const Icon = category.icon;
-            return (
-              <div key={category.title} className="border rounded-lg">
-                <div className="p-4 border-b bg-muted/30">
-                  <div className="flex items-center gap-3">
-                    <Icon className="h-5 w-5 text-primary" />
-                    <div>
-                      <h3 className="font-semibold">{category.title}</h3>
-                      <p className="text-sm text-muted-foreground">{category.description}</p>
-                    </div>
-                  </div>
+        <div className="space-y-3">
+          {sections.map((section) => (
+            <div
+              key={section.title}
+              className="p-6 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+              onClick={() => setLocation(section.href)}
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900">{section.title}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{section.description}</p>
                 </div>
-                <div className="divide-y">
-                  {category.items.map((item) => (
-                    <div
-                      key={item.name}
-                      className="p-3 hover:bg-muted/50 transition-colors cursor-pointer flex justify-between items-center"
-                      onClick={() => setLocation(item.href)}
-                    >
-                      <span>{item.name}</span>
-                      <span className="text-muted-foreground">→</span>
-                    </div>
-                  ))}
-                </div>
+                <span className="text-gray-400 text-lg">→</span>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </div>
