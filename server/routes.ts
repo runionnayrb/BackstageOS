@@ -953,75 +953,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      // Return default feature configuration
-      const defaultFeatures = [
-        {
-          id: 'script-editor',
-          name: 'Script Editor',
-          description: 'Advanced script editing with cue building and visual overlays',
-          category: 'Production Tools',
-          limitedAccess: false,
-          fullAccess: true,
-        },
-        {
-          id: 'props-tracker',
-          name: 'Props Tracker',
-          description: 'Scene/character organization and status tracking for props',
-          category: 'Production Tools',
-          limitedAccess: false,
-          fullAccess: true,
-        },
-        {
-          id: 'costume-tracker',
-          name: 'Costume Tracker',
-          description: 'Quick-change timing and repair tracking for costumes',
-          category: 'Production Tools',
-          limitedAccess: false,
-          fullAccess: true,
-        },
-        {
-          id: 'advanced-templates',
-          name: 'Advanced Templates',
-          description: 'Custom field types and dynamic template configuration',
-          category: 'Reports & Templates',
-          limitedAccess: true,
-          fullAccess: true,
-        },
-        {
-          id: 'team-collaboration',
-          name: 'Team Collaboration',
-          description: 'Enhanced team member permissions and collaboration tools',
-          category: 'Team Management',
-          limitedAccess: false,
-          fullAccess: true,
-        },
-        {
-          id: 'calendar-management',
-          name: 'Calendar Management',
-          description: 'Advanced scheduling and calendar features',
-          category: 'Planning',
-          limitedAccess: true,
-          fullAccess: true,
-        },
-        {
-          id: 'cast-management',
-          name: 'Cast Management',
-          description: 'Character breakdowns and cast tracking tools',
-          category: 'Production Tools',
-          limitedAccess: false,
-          fullAccess: true,
-        },
-        {
-          id: 'task-boards',
-          name: 'Task Boards',
-          description: 'Kanban-style task management and workflow tracking',
-          category: 'Planning',
-          limitedAccess: true,
-          fullAccess: true,
-        }
-      ];
-
-      res.json({ features: defaultFeatures });
+      const { betaSettingsStore } = await import('./betaSettingsStore.ts');
+      const settings = betaSettingsStore.getBetaSettings();
+      res.json(settings);
     } catch (error) {
       console.error("Error fetching beta settings:", error);
       res.status(500).json({ message: "Failed to fetch beta settings" });
@@ -1035,8 +969,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
 
-      // For now, just return success - in a real implementation, 
-      // you'd store this configuration in the database
+      const { betaSettingsStore } = await import('./betaSettingsStore.ts');
+      const updatedSettings = betaSettingsStore.updateBetaSettings({
+        features: req.body.features,
+        updatedBy: parseInt(userId),
+      });
+      
       res.json({ message: "Beta settings updated successfully" });
     } catch (error) {
       console.error("Error updating beta settings:", error);

@@ -10,6 +10,7 @@ import {
   showSettings,
   globalTemplateSettings,
   feedback,
+  betaSettings,
   type User,
   type UpsertUser,
   type Project,
@@ -32,6 +33,8 @@ import {
   type InsertGlobalTemplateSettings,
   type Feedback,
   type InsertFeedback,
+  type BetaSettings,
+  type InsertBetaSettings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ne } from "drizzle-orm";
@@ -119,6 +122,10 @@ export interface IStorage {
   createFeedback(feedback: InsertFeedback): Promise<Feedback>;
   updateFeedback(id: number, feedback: Partial<InsertFeedback>): Promise<Feedback>;
   deleteFeedback(id: number): Promise<void>;
+
+  // Beta settings operations (admin only)
+  getBetaSettings(): Promise<BetaSettings | undefined>;
+  upsertBetaSettings(settings: InsertBetaSettings): Promise<BetaSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -647,6 +654,38 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFeedback(id: number): Promise<void> {
     await db.delete(feedback).where(eq(feedback.id, id));
+  }
+
+  // Beta settings operations (admin only)
+  async getBetaSettings(): Promise<BetaSettings | undefined> {
+    const [settings] = await db.select().from(betaSettings).orderBy(desc(betaSettings.updatedAt)).limit(1);
+    return settings;
+  }
+
+  async upsertBetaSettings(settingsData: InsertBetaSettings): Promise<BetaSettings> {
+    // Check if settings exist
+    const existing = await this.getBetaSettings();
+    
+    if (existing) {
+      // Update existing settings
+      const [updated] = await db
+        .update(betaSettings)
+        .set({
+          features: settingsData.features,
+          updatedBy: settingsData.updatedBy,
+          updatedAt: new Date(),
+        })
+        .where(eq(betaSettings.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new settings
+      const [created] = await db
+        .insert(betaSettings)
+        .values(settingsData)
+        .returning();
+      return created;
+    }
   }
 }
 

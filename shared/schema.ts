@@ -321,6 +321,15 @@ export const globalTemplateSettings = pgTable("global_template_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Beta feature settings (admin-only global configuration)
+export const betaSettings = pgTable("beta_settings", {
+  id: serial("id").primaryKey(),
+  features: jsonb("features").notNull(), // Array of feature configurations
+  updatedBy: integer("updated_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
@@ -637,6 +646,12 @@ export const insertFeedbackSchema = createInsertSchema(feedback).omit({
   updatedAt: true,
 });
 
+export const insertBetaSettingsSchema = createInsertSchema(betaSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type exports
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -672,3 +687,5 @@ export type ScriptChange = typeof scriptChanges.$inferSelect;
 export type InsertScriptChange = z.infer<typeof insertScriptChangeSchema>;
 export type Feedback = typeof feedback.$inferSelect;
 export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
+export type BetaSettings = typeof betaSettings.$inferSelect;
+export type InsertBetaSettings = z.infer<typeof insertBetaSettingsSchema>;
