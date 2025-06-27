@@ -202,6 +202,8 @@ export default function ReportBuilder() {
   const renderTemplateFields = () => {
     if (!selectedTemplate) return null;
 
+    const currentContent = form.watch("content") || {};
+
     const commonFields = (
       <div className="mb-6">
         <div className="text-sm font-semibold text-gray-700 mb-2">Summary</div>
@@ -209,6 +211,7 @@ export default function ReportBuilder() {
           id="summary"
           rows={3}
           placeholder="Brief summary of today's activities..."
+          value={currentContent.summary || ""}
           onChange={(e) => form.setValue("content.summary", e.target.value)}
           className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
         />
@@ -226,6 +229,7 @@ export default function ReportBuilder() {
                 <Input
                   id="startTime"
                   type="time"
+                  value={currentContent.startTime || ""}
                   onChange={(e) => form.setValue("content.startTime", e.target.value)}
                   className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                 />
@@ -235,6 +239,7 @@ export default function ReportBuilder() {
                 <Input
                   id="endTime"
                   type="time"
+                  value={currentContent.endTime || ""}
                   onChange={(e) => form.setValue("content.endTime", e.target.value)}
                   className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                 />
@@ -245,6 +250,7 @@ export default function ReportBuilder() {
               <Input
                 id="scenesRehearsed"
                 placeholder="e.g., Act 1 Scenes 1-3"
+                value={currentContent.scenesRehearsed || ""}
                 onChange={(e) => form.setValue("content.scenesRehearsed", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
@@ -255,6 +261,7 @@ export default function ReportBuilder() {
                 id="notes"
                 rows={4}
                 placeholder="Detailed rehearsal notes..."
+                value={currentContent.notes || ""}
                 onChange={(e) => form.setValue("content.notes", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
@@ -265,6 +272,7 @@ export default function ReportBuilder() {
                 id="nextRehearsal"
                 rows={2}
                 placeholder="Plans for the next rehearsal..."
+                value={currentContent.nextRehearsal || ""}
                 onChange={(e) => form.setValue("content.nextRehearsal", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
@@ -279,7 +287,7 @@ export default function ReportBuilder() {
             <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
                 <div className="text-sm font-semibold text-gray-700 mb-2">Tech Focus</div>
-                <Select onValueChange={(value) => form.setValue("content.techFocus", value)}>
+                <Select value={currentContent.techFocus || ""} onValueChange={(value) => form.setValue("content.techFocus", value)}>
                   <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
                     <SelectValue placeholder="Select focus area" />
                   </SelectTrigger>
@@ -295,7 +303,7 @@ export default function ReportBuilder() {
               </div>
               <div>
                 <div className="text-sm font-semibold text-gray-700 mb-2">Completion Status</div>
-                <Select onValueChange={(value) => form.setValue("content.completionStatus", value)}>
+                <Select value={currentContent.completionStatus || ""} onValueChange={(value) => form.setValue("content.completionStatus", value)}>
                   <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
@@ -314,6 +322,7 @@ export default function ReportBuilder() {
                 id="technicalIssues"
                 rows={3}
                 placeholder="List any technical issues encountered..."
+                value={currentContent.technicalIssues || ""}
                 onChange={(e) => form.setValue("content.technicalIssues", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
@@ -324,6 +333,7 @@ export default function ReportBuilder() {
                 id="nextSessionGoals"
                 rows={2}
                 placeholder="Goals for the next tech session..."
+                value={currentContent.nextSessionGoals || ""}
                 onChange={(e) => form.setValue("content.nextSessionGoals", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
@@ -341,6 +351,7 @@ export default function ReportBuilder() {
                 <Input
                   id="showTime"
                   type="time"
+                  value={currentContent.showTime || ""}
                   onChange={(e) => form.setValue("content.showTime", e.target.value)}
                   className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                 />
@@ -351,6 +362,7 @@ export default function ReportBuilder() {
                   id="houseCount"
                   type="number"
                   placeholder="0"
+                  value={currentContent.houseCount || ""}
                   onChange={(e) => form.setValue("content.houseCount", parseInt(e.target.value))}
                   className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                 />
@@ -361,6 +373,7 @@ export default function ReportBuilder() {
                   id="houseCapacity"
                   type="number"
                   placeholder="0"
+                  value={currentContent.houseCapacity || ""}
                   onChange={(e) => form.setValue("content.houseCapacity", parseInt(e.target.value))}
                   className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                 />
@@ -372,6 +385,7 @@ export default function ReportBuilder() {
                 id="performanceNotes"
                 rows={4}
                 placeholder="Notes about the performance..."
+                value={currentContent.performanceNotes || ""}
                 onChange={(e) => form.setValue("content.performanceNotes", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
@@ -382,6 +396,7 @@ export default function ReportBuilder() {
                 id="issues"
                 rows={3}
                 placeholder="Any issues or incidents during the show..."
+                value={currentContent.issues || ""}
                 onChange={(e) => form.setValue("content.issues", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
@@ -396,7 +411,7 @@ export default function ReportBuilder() {
             <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
                 <div className="text-sm font-semibold text-gray-700 mb-2">Meeting Type</div>
-                <Select onValueChange={(value) => form.setValue("content.meetingType", value)}>
+                <Select value={currentContent.meetingType || ""} onValueChange={(value) => form.setValue("content.meetingType", value)}>
                   <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
                     <SelectValue placeholder="Select meeting type" />
                   </SelectTrigger>
@@ -414,6 +429,7 @@ export default function ReportBuilder() {
                 <Input
                   id="attendees"
                   placeholder="Number of attendees"
+                  value={currentContent.attendees || ""}
                   onChange={(e) => form.setValue("content.attendees", e.target.value)}
                   className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                 />
@@ -425,6 +441,7 @@ export default function ReportBuilder() {
                 id="agendaItems"
                 rows={3}
                 placeholder="Main topics discussed..."
+                value={currentContent.agendaItems || ""}
                 onChange={(e) => form.setValue("content.agendaItems", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
@@ -435,6 +452,7 @@ export default function ReportBuilder() {
                 id="actionItems"
                 rows={3}
                 placeholder="Tasks assigned and deadlines..."
+                value={currentContent.actionItems || ""}
                 onChange={(e) => form.setValue("content.actionItems", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
@@ -444,6 +462,7 @@ export default function ReportBuilder() {
               <Input
                 id="nextMeeting"
                 type="datetime-local"
+                value={currentContent.nextMeeting || ""}
                 onChange={(e) => form.setValue("content.nextMeeting", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
@@ -466,6 +485,8 @@ export default function ReportBuilder() {
   };
 
   const renderCustomFields = (fields: any[]) => {
+    const currentContent = form.watch("content") || {};
+    
     return fields.map((field: any) => {
       const fieldId = `custom-${field.id}`;
       
@@ -481,6 +502,7 @@ export default function ReportBuilder() {
                 id={fieldId}
                 placeholder={field.placeholder || ''}
                 required={field.required}
+                value={currentContent[field.id] || ""}
                 onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
@@ -499,6 +521,7 @@ export default function ReportBuilder() {
                 placeholder={field.placeholder || ''}
                 rows={4}
                 required={field.required}
+                value={currentContent[field.id] || ""}
                 onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
@@ -517,6 +540,7 @@ export default function ReportBuilder() {
                 type="number"
                 placeholder={field.placeholder || '0'}
                 required={field.required}
+                value={currentContent[field.id] || ""}
                 onChange={(e) => form.setValue(`content.${field.id}`, parseInt(e.target.value))}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
@@ -534,6 +558,7 @@ export default function ReportBuilder() {
                 id={fieldId}
                 type="date"
                 required={field.required}
+                value={currentContent[field.id] || ""}
                 onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
@@ -551,6 +576,7 @@ export default function ReportBuilder() {
                 id={fieldId}
                 type="datetime-local"
                 required={field.required}
+                value={currentContent[field.id] || ""}
                 onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
@@ -564,7 +590,7 @@ export default function ReportBuilder() {
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
               </div>
-              <Select onValueChange={(value) => form.setValue(`content.${field.id}`, value)}>
+              <Select value={currentContent[field.id] || ""} onValueChange={(value) => form.setValue(`content.${field.id}`, value)}>
                 <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
                   <SelectValue placeholder={field.placeholder || 'Select an option'} />
                 </SelectTrigger>
@@ -605,39 +631,41 @@ export default function ReportBuilder() {
     <div className="p-6">
       <div className="max-w-4xl">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Report Builder</h2>
-          <p className="text-gray-600">Create and customize production reports</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{isEditMode ? "Edit Report" : "Report Builder"}</h2>
+          <p className="text-gray-600">{isEditMode ? "Modify your production report" : "Create and customize production reports"}</p>
         </div>
 
-        {/* Template Selection */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Template</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {templates.map((template) => {
-                const Icon = template.icon;
-                const isSelected = selectedTemplate === template.id;
-                return (
-                  <button
-                    key={template.id}
-                    onClick={() => handleTemplateSelect(template.id)}
-                    className={`p-4 border-2 rounded-lg text-left transition-colors ${
-                      isSelected 
-                        ? 'border-primary bg-blue-50' 
-                        : 'border-gray-200 hover:border-primary'
-                    }`}
-                  >
-                    <div className={`p-2 ${template.color} rounded-lg w-fit mb-3`}>
-                      <Icon className={`w-6 h-6 ${template.iconColor}`} />
-                    </div>
-                    <h4 className="font-medium text-gray-900">{template.name}</h4>
-                    <p className="text-sm text-gray-500 mt-1">{template.description}</p>
-                  </button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Template Selection - Only show when creating new report */}
+        {!isEditMode && (
+          <Card className="mb-6">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Template</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {templates.map((template) => {
+                  const Icon = template.icon;
+                  const isSelected = selectedTemplate === template.id;
+                  return (
+                    <button
+                      key={template.id}
+                      onClick={() => handleTemplateSelect(template.id)}
+                      className={`p-4 border-2 rounded-lg text-left transition-colors ${
+                        isSelected 
+                          ? 'border-primary bg-blue-50' 
+                          : 'border-gray-200 hover:border-primary'
+                      }`}
+                    >
+                      <div className={`p-2 ${template.color} rounded-lg w-fit mb-3`}>
+                        <Icon className={`w-6 h-6 ${template.iconColor}`} />
+                      </div>
+                      <h4 className="font-medium text-gray-900">{template.name}</h4>
+                      <p className="text-sm text-gray-500 mt-1">{template.description}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Report Form - Document Style */}
         <Card className="min-h-[600px]">
@@ -683,7 +711,7 @@ export default function ReportBuilder() {
                   </Button>
                   <Button 
                     type="submit" 
-                    disabled={mutation.isPending || !selectedTemplate}
+                    disabled={mutation.isPending || (!selectedTemplate && !isEditMode)}
                   >
                     {mutation.isPending ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Report" : "Save Report")}
                   </Button>
