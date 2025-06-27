@@ -20,7 +20,6 @@ import {
   Trash2,
   GripVertical,
   FileText,
-
   Type,
   Calendar,
   Clock,
@@ -98,48 +97,42 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
       { id: "startTime", type: "time", label: "Start Time", required: true, order: 3 },
       { id: "endTime", type: "time", label: "End Time", required: true, order: 4 },
       { id: "cuesRun", type: "textarea", label: "Cues Rehearsed", placeholder: "Light cues 1-25, Sound cues A-M", required: true, order: 5 },
-      { id: "lightingNotes", type: "textarea", label: "Lighting Notes", required: false, order: 6 },
-      { id: "soundNotes", type: "textarea", label: "Sound Notes", required: false, order: 7 },
-      { id: "setChanges", type: "textarea", label: "Set Changes", placeholder: "Scenic shifts, automation", required: false, order: 8 },
-      { id: "issues", type: "textarea", label: "Technical Issues", placeholder: "Equipment problems, timing issues", required: false, order: 9 },
-      { id: "notes", type: "textarea", label: "General Notes", required: false, order: 10 }
+      { id: "technical", type: "textarea", label: "Technical Issues", placeholder: "Equipment problems, delays", required: false, order: 6 },
+      { id: "notes", type: "textarea", label: "General Notes", required: true, order: 7 }
     ]
   },
   previews: {
     phase: "previews",
     name: "Preview Performance Report",
-    description: "Preview performance documentation",
+    description: "Preview performance tracking and notes",
     header: "{{showName}} - Preview Report\nDate: {{date}} | Preview {{previewNumber}}\nStage Manager: {{stageManager}}",
-    footer: "Opening Night: {{openingNight}}\nProducer: {{producer}}",
+    footer: "Next preview: {{nextPreview}}\nAudience: {{audienceCount}}",
     fields: [
       { id: "date", type: "date", label: "Preview Date", required: true, order: 1 },
       { id: "previewNumber", type: "number", label: "Preview #", required: true, order: 2 },
-      { id: "startTime", type: "time", label: "Curtain Time", required: true, order: 3 },
-      { id: "endTime", type: "time", label: "End Time", required: true, order: 4 },
-      { id: "attendance", type: "number", label: "Audience Count", required: false, order: 5 },
-      { id: "performanceNotes", type: "textarea", label: "Performance Notes", placeholder: "Acting, timing, audience response", required: true, order: 6 },
-      { id: "technicalIssues", type: "textarea", label: "Technical Issues", placeholder: "Equipment failures, cue problems", required: false, order: 7 },
-      { id: "audienceResponse", type: "textarea", label: "Audience Response", placeholder: "Reaction, feedback, energy", required: false, order: 8 },
-      { id: "changes", type: "textarea", label: "Notes for Changes", placeholder: "Adjustments for next performance", required: false, order: 9 }
+      { id: "audienceCount", type: "number", label: "Audience Count", required: false, order: 3 },
+      { id: "startTime", type: "time", label: "Start Time", required: true, order: 4 },
+      { id: "runtime", type: "text", label: "Runtime", placeholder: "2h 15min", required: false, order: 5 },
+      { id: "technical", type: "textarea", label: "Technical Notes", required: false, order: 6 },
+      { id: "performance", type: "textarea", label: "Performance Notes", required: true, order: 7 },
+      { id: "audienceResponse", type: "textarea", label: "Audience Response", required: false, order: 8 }
     ]
   },
   performance: {
     phase: "performance",
     name: "Performance Report",
-    description: "Regular performance documentation",
+    description: "Official performance documentation",
     header: "{{showName}} - Performance Report\nDate: {{date}} | Performance {{performanceNumber}}\nStage Manager: {{stageManager}}",
-    footer: "Next performance: {{nextPerformance}}\nBox Office: {{boxOffice}}",
+    footer: "Next performance: {{nextPerformance}}\nBox Office: {{ticketsSold}}/{{capacity}}",
     fields: [
       { id: "date", type: "date", label: "Performance Date", required: true, order: 1 },
       { id: "performanceNumber", type: "number", label: "Performance #", required: true, order: 2 },
-      { id: "curtainTime", type: "time", label: "Curtain Time", required: true, order: 3 },
-      { id: "endTime", type: "time", label: "End Time", required: true, order: 4 },
-      { id: "attendance", type: "number", label: "Audience Count", required: false, order: 5 },
-      { id: "understudies", type: "textarea", label: "Understudy Report", placeholder: "Cast substitutions", required: false, order: 6 },
-      { id: "performanceNotes", type: "textarea", label: "Performance Notes", placeholder: "Show quality, timing, energy", required: true, order: 7 },
-      { id: "technicalIssues", type: "textarea", label: "Technical Issues", placeholder: "Equipment problems, delays", required: false, order: 8 },
-      { id: "incidentReport", type: "textarea", label: "Incident Report", placeholder: "Accidents, emergencies, unusual events", required: false, order: 9 },
-      { id: "companyNotes", type: "textarea", label: "Company Notes", placeholder: "Cast/crew notes, announcements", required: false, order: 10 }
+      { id: "ticketsSold", type: "number", label: "Tickets Sold", required: false, order: 3 },
+      { id: "startTime", type: "time", label: "Actual Start Time", required: true, order: 4 },
+      { id: "runtime", type: "text", label: "Total Runtime", placeholder: "2h 18min", required: false, order: 5 },
+      { id: "technical", type: "textarea", label: "Technical Issues", placeholder: "Equipment problems, delays", required: false, order: 6 },
+      { id: "incidentReport", type: "textarea", label: "Incident Report", placeholder: "Accidents, emergencies, unusual events", required: false, order: 7 },
+      { id: "companyNotes", type: "textarea", label: "Company Notes", placeholder: "Cast/crew notes, announcements", required: false, order: 8 }
     ]
   }
 };
@@ -152,7 +145,6 @@ export default function TemplateSettings() {
   
   const [selectedPhase, setSelectedPhase] = useState<string>("prep");
   const [isEditing, setIsEditing] = useState(false);
-  const [isPreview, setIsPreview] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [templates, setTemplates] = useState<Record<string, ProductionTemplate>>({});
 
@@ -200,28 +192,6 @@ export default function TemplateSettings() {
     
     setTemplates(initialTemplates);
   }, [projectId, userTemplates]);
-
-  const saveTemplate = useMutation({
-    mutationFn: async (template: ProductionTemplate) => {
-      await apiRequest("POST", `/api/projects/${projectId}/templates`, template);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Template Saved",
-        description: "Template configuration saved successfully",
-      });
-      setIsEditing(false);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to save template",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const currentTemplate = templates[selectedPhase];
 
   const addField = () => {
     const newField: TemplateField = {
@@ -286,6 +256,28 @@ export default function TemplateSettings() {
     }
   };
 
+  const saveTemplate = useMutation({
+    mutationFn: async (template: ProductionTemplate) => {
+      await apiRequest("POST", `/api/projects/${projectId}/templates`, template);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Template Saved",
+        description: "Template configuration saved successfully",
+      });
+      setIsEditing(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save template",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const currentTemplate = templates[selectedPhase];
+
   if (!project || !currentTemplate) {
     return (
       <div className="min-h-screen bg-background">
@@ -329,14 +321,6 @@ export default function TemplateSettings() {
               <Plus className="h-4 w-4" />
               Create New Template
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => setIsPreview(!isPreview)}
-              className="flex items-center gap-2"
-            >
-              <Eye className="h-4 w-4" />
-              {isPreview ? "Edit" : "Preview"}
-            </Button>
             {isEditing && (
               <Button
                 onClick={() => saveTemplate.mutate(currentTemplate)}
@@ -361,228 +345,192 @@ export default function TemplateSettings() {
 
           {Object.entries(templates).map(([phase, template]) => (
             <TabsContent key={phase} value={phase} className="space-y-6">
-              {isPreview ? (
-                // Preview Mode
-                <Card>
+              {!isEditing ? (
+                // Preview Mode (Default)
+                <Card className="min-h-[600px]">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
-                      {template.name} - Preview
-                    </CardTitle>
-                    <CardDescription>{template.description}</CardDescription>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <FileText className="h-5 w-5" />
+                          {template.name}
+                        </CardTitle>
+                        <CardDescription>{template.description}</CardDescription>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditing(true)}
+                      >
+                        <Edit3 className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </div>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Header Preview */}
-                    <div className="p-4 bg-muted rounded-lg">
-                      <div className="text-sm font-medium mb-2">Report Header:</div>
-                      <pre className="whitespace-pre-wrap text-sm">{template.header}</pre>
-                    </div>
+                  <CardContent className="p-8">
+                    {/* Document-style Preview */}
+                    <div className="bg-white min-h-[500px] shadow-lg border border-gray-200 mx-auto" style={{ 
+                      width: "8.5in", 
+                      padding: "1in",
+                      fontFamily: "Arial, sans-serif"
+                    }}>
+                      {/* Header */}
+                      <div className="text-center mb-6 pb-4 border-b">
+                        <div className="whitespace-pre-line text-lg font-semibold">
+                          {template.header.replace(/\{\{showName\}\}/g, (project as any)?.name || "Show Name")
+                                         .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
+                                         .replace(/\{\{reportType\}\}/g, template.name)}
+                        </div>
+                      </div>
 
-                    {/* Fields Preview */}
-                    <div className="space-y-4">
-                      {template.fields
-                        .sort((a, b) => a.order - b.order)
-                        .map((field) => (
-                          <div key={field.id} className="space-y-2">
-                            <Label className="flex items-center gap-2">
-                              {field.label}
-                              {field.required && <span className="text-red-500">*</span>}
-                            </Label>
-                            {field.type === "textarea" ? (
-                              <Textarea 
-                                placeholder={field.placeholder} 
-                                className="min-h-[80px]"
-                                disabled 
-                              />
-                            ) : field.type === "select" ? (
-                              <div className="p-2 border rounded-md bg-muted text-muted-foreground">
-                                Select option...
+                      {/* Fields Preview */}
+                      <div className="space-y-6">
+                        {template.fields
+                          .sort((a, b) => a.order - b.order)
+                          .map((field) => (
+                            <div key={field.id} className="space-y-2">
+                              <label className="text-sm font-medium text-gray-700">
+                                {field.label}
+                                {field.required && <span className="text-red-500 ml-1">*</span>}
+                              </label>
+                              <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px]">
+                                {field.placeholder || "Sample content..."}
                               </div>
-                            ) : (
-                              <Input 
-                                type={field.type} 
-                                placeholder={field.placeholder}
-                                disabled 
-                              />
-                            )}
-                          </div>
-                        ))}
-                    </div>
+                            </div>
+                          ))}
+                      </div>
 
-                    {/* Footer Preview */}
-                    <div className="p-4 bg-muted rounded-lg">
-                      <div className="text-sm font-medium mb-2">Report Footer:</div>
-                      <pre className="whitespace-pre-wrap text-sm">{template.footer}</pre>
+                      {/* Footer */}
+                      <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
+                        <div className="whitespace-pre-line">
+                          {template.footer.replace(/\{\{preparedBy\}\}/g, "Stage Manager")}
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               ) : (
                 // Edit Mode
-                <div className="space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <CardTitle className="flex items-center gap-2">
-                            <FileText className="h-5 w-5" />
-                            {template.name}
-                          </CardTitle>
-                          <CardDescription>{template.description}</CardDescription>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setLocation(`/shows/${projectId}/templates/new?phase=${selectedPhase}`)}
-                          >
-                            <Edit3 className="h-4 w-4 mr-2" />
-                            Edit in Builder
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setIsEditing(!isEditing)}
-                          >
-                            <Edit3 className="h-4 w-4 mr-2" />
-                            {isEditing ? "Stop Editing" : "Quick Edit"}
-                          </Button>
-                        </div>
+                <Card className="min-h-[600px]">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="flex items-center gap-2">
+                          <FileText className="h-5 w-5" />
+                          {template.name}
+                        </CardTitle>
+                        <CardDescription>{template.description}</CardDescription>
                       </div>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      {/* Header & Footer Configuration */}
-                      {isEditing && (
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label>Report Header</Label>
-                            <Textarea
-                              value={template.header}
-                              onChange={(e) => setTemplates(prev => ({
-                                ...prev,
-                                [phase]: { ...prev[phase], header: e.target.value }
-                              }))}
-                              placeholder="Template header with variables like {{showName}}, {{date}}"
-                              className="min-h-[100px]"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label>Report Footer</Label>
-                            <Textarea
-                              value={template.footer}
-                              onChange={(e) => setTemplates(prev => ({
-                                ...prev,
-                                [phase]: { ...prev[phase], footer: e.target.value }
-                              }))}
-                              placeholder="Template footer with variables"
-                              className="min-h-[100px]"
-                            />
-                          </div>
-                        </div>
-                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsEditing(false)}
+                      >
+                        <Edit3 className="h-4 w-4 mr-2" />
+                        Done Editing
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-8">
+                    {/* Document-style Edit Mode */}
+                    <div className="bg-white min-h-[500px] shadow-lg border border-gray-200 mx-auto" style={{ 
+                      width: "8.5in", 
+                      padding: "1in",
+                      fontFamily: "Arial, sans-serif"
+                    }}>
+                      {/* Editable Header */}
+                      <div className="text-center mb-6 pb-4 border-b">
+                        <Textarea
+                          value={template.header}
+                          onChange={(e) => setTemplates(prev => ({
+                            ...prev,
+                            [phase]: { ...prev[phase], header: e.target.value }
+                          }))}
+                          className="text-center text-lg font-semibold border-0 bg-transparent resize-none whitespace-pre-line p-0 focus:ring-0 focus:outline-none"
+                          placeholder="{{showName}} - {{reportType}}&#10;{{date}}"
+                        />
+                      </div>
 
-                      {/* Fields Configuration */}
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-lg font-semibold">Report Fields</h3>
-                          {isEditing && (
-                            <Button onClick={addField} size="sm">
-                              <Plus className="h-4 w-4 mr-2" />
-                              Add Field
-                            </Button>
-                          )}
-                        </div>
-
-                        <div className="space-y-3">
-                          {template.fields
-                            .sort((a, b) => a.order - b.order)
-                            .map((field, index) => (
-                              <Card key={field.id} className="p-4">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-3 flex-1">
-                                    {isEditing && (
-                                      <div className="flex flex-col gap-1">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => moveField(field.id, "up")}
-                                          disabled={index === 0}
-                                        >
-                                          ↑
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => moveField(field.id, "down")}
-                                          disabled={index === template.fields.length - 1}
-                                        >
-                                          ↓
-                                        </Button>
-                                      </div>
-                                    )}
-                                    
-                                    <div className="flex-1">
-                                      {editingField === field.id ? (
-                                        <div className="grid md:grid-cols-3 gap-3">
-                                          <Input
-                                            value={field.label}
-                                            onChange={(e) => updateField(field.id, { label: e.target.value })}
-                                            placeholder="Field label"
-                                          />
-                                          <select
-                                            value={field.type}
-                                            onChange={(e) => updateField(field.id, { type: e.target.value as any })}
-                                            className="px-3 py-2 border rounded-md"
-                                          >
-                                            <option value="text">Text</option>
-                                            <option value="textarea">Textarea</option>
-                                            <option value="number">Number</option>
-                                            <option value="date">Date</option>
-                                            <option value="time">Time</option>
-                                            <option value="select">Select</option>
-                                            <option value="checkbox">Checkbox</option>
-                                          </select>
-                                          <Input
-                                            value={field.placeholder || ""}
-                                            onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
-                                            placeholder="Placeholder text"
-                                          />
-                                        </div>
-                                      ) : (
-                                        <div className="flex items-center gap-3">
-                                          <span className="font-medium">{field.label}</span>
-                                          <Badge variant="outline">{field.type}</Badge>
-                                          {field.required && <Badge variant="destructive">Required</Badge>}
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {isEditing && (
-                                    <div className="flex items-center gap-2">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => setEditingField(editingField === field.id ? null : field.id)}
-                                      >
-                                        <Edit3 className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => deleteField(field.id)}
-                                      >
-                                        <Trash2 className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  )}
+                      {/* Editable Fields */}
+                      <div className="space-y-6">
+                        {template.fields
+                          .sort((a, b) => a.order - b.order)
+                          .map((field, index) => (
+                            <div key={field.id} className="space-y-2 relative group">
+                              <div className="flex items-center justify-between">
+                                <Input
+                                  value={field.label}
+                                  onChange={(e) => updateField(field.id, { label: e.target.value })}
+                                  className="text-sm font-medium border-0 bg-transparent p-0 focus:ring-0 focus:outline-none h-auto w-auto flex-1"
+                                  placeholder="Field label"
+                                />
+                                <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => moveField(field.id, "up")}
+                                    disabled={index === 0}
+                                    className="h-6 w-6 p-0"
+                                  >
+                                    ↑
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => moveField(field.id, "down")}
+                                    disabled={index === template.fields.length - 1}
+                                    className="h-6 w-6 p-0"
+                                  >
+                                    ↓
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => deleteField(field.id)}
+                                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
                                 </div>
-                              </Card>
-                            ))}
+                              </div>
+                              <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px]">
+                                <Input
+                                  value={field.placeholder || ""}
+                                  onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
+                                  className="border-0 p-0 h-auto text-sm bg-transparent focus:ring-0 focus:outline-none"
+                                  placeholder="Field placeholder text..."
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        
+                        <div className="text-center pt-4">
+                          <Button
+                            variant="outline"
+                            onClick={addField}
+                            className="w-full border-dashed"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Field
+                          </Button>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
+
+                      {/* Editable Footer */}
+                      <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
+                        <Textarea
+                          value={template.footer}
+                          onChange={(e) => setTemplates(prev => ({
+                            ...prev,
+                            [phase]: { ...prev[phase], footer: e.target.value }
+                          }))}
+                          className="text-center text-sm text-gray-600 border-0 bg-transparent resize-none whitespace-pre-line p-0 focus:ring-0 focus:outline-none"
+                          placeholder="Prepared by: {{preparedBy}}"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </TabsContent>
           ))}
