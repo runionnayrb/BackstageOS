@@ -169,7 +169,7 @@ export default function TemplateSettings() {
     Object.entries(defaultTemplates).forEach(([phase, template]) => {
       initialTemplates[phase] = {
         ...template,
-        id: `${projectId}-${phase}`,
+        id: `default-${phase}`, // Use string ID for defaults (will be created as new)
       };
     });
 
@@ -178,7 +178,7 @@ export default function TemplateSettings() {
       userTemplates.forEach((userTemplate: any) => {
         if (userTemplate.phase) {
           initialTemplates[userTemplate.phase] = {
-            id: userTemplate.id.toString(),
+            id: userTemplate.id.toString(), // Keep actual DB ID for existing templates
             phase: userTemplate.phase as any,
             name: userTemplate.name,
             description: userTemplate.description || "",
@@ -258,7 +258,26 @@ export default function TemplateSettings() {
 
   const saveTemplate = useMutation({
     mutationFn: async (template: ProductionTemplate) => {
-      await apiRequest("POST", `/api/projects/${projectId}/templates`, template);
+      // Check if this is an existing template (has numeric ID) or new template
+      const isExisting = typeof template.id === 'string' && /^\d+$/.test(template.id);
+      
+      const templateData = {
+        name: template.name,
+        description: template.description,
+        type: template.phase, // Use phase as type
+        phase: template.phase,
+        header: template.header,
+        footer: template.footer,
+        fields: template.fields,
+      };
+
+      if (isExisting) {
+        // Update existing template
+        await apiRequest("PATCH", `/api/projects/${projectId}/templates/${template.id}`, templateData);
+      } else {
+        // Create new template - don't include ID for auto-generation
+        await apiRequest("POST", `/api/projects/${projectId}/templates`, templateData);
+      }
     },
     onSuccess: () => {
       toast({
@@ -266,10 +285,13 @@ export default function TemplateSettings() {
         description: "Template configuration saved successfully",
       });
       setIsEditing(false);
+      // Refetch templates to get updated data
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Template save error:", error);
       toast({
-        title: "Error",
+        title: "Error", 
         description: "Failed to save template",
         variant: "destructive",
       });
