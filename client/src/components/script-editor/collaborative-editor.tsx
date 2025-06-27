@@ -68,6 +68,7 @@ export function CollaborativeEditor({
   const [undoStack, setUndoStack] = useState<any[]>([]);
   const [redoStack, setRedoStack] = useState<any[]>([]);
   const [isCollaborating, setIsCollaborating] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   // Format text selection
   const formatText = useCallback((command: string, value?: string) => {
@@ -416,6 +417,19 @@ export function CollaborativeEditor({
           <MessageCircle className="h-4 w-4 mr-1" />
           Comment
         </Button>
+        
+        {/* Toggle Comments Visibility */}
+        {comments.length > 0 && (
+          <Button
+            variant={showComments ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setShowComments(!showComments)}
+            className="h-8 px-3"
+          >
+            <MessageCircle className="h-4 w-4 mr-1" />
+            {showComments ? "Hide" : "Show"} Comments ({comments.length})
+          </Button>
+        )}
       </div>
 
       {/* Editor */}
@@ -444,10 +458,20 @@ export function CollaborativeEditor({
           </div>
         </div>
 
-        {/* Comments sidebar */}
-        {comments.length > 0 && (
+        {/* Comments sidebar - only shown when toggle is enabled */}
+        {comments.length > 0 && showComments && (
           <div className="absolute right-0 top-0 w-80 h-full border-l bg-gray-50 dark:bg-gray-900 p-4 overflow-y-auto">
-            <h3 className="font-semibold mb-4">Comments</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold">Comments</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowComments(false)}
+                className="h-6 w-6 p-0"
+              >
+                ×
+              </Button>
+            </div>
             <div className="space-y-4">
               {comments.map((comment, index) => (
                 <div key={index} className="bg-white dark:bg-gray-800 p-3 rounded-lg border">

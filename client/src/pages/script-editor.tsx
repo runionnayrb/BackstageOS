@@ -320,62 +320,20 @@ export default function ScriptEditor() {
           </TabsContent>
 
           <TabsContent value="comments" className="mt-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Active Comments</h3>
-                {comments.filter(c => c.status !== 'resolved').length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>No active comments</p>
-                    <p className="text-sm">Select text in the editor to add a comment</p>
-                  </div>
-                ) : (
-                  comments.filter(c => c.status !== 'resolved').map((comment, index) => (
-                    <div key={index} className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm">
-                          {comment.author?.[0]?.toUpperCase() || 'U'}
-                        </div>
-                        <div>
-                          <span className="font-medium">{comment.author || 'Anonymous'}</span>
-                          <span className="text-xs text-muted-foreground ml-2">
-                            {comment.timestamp || 'Now'}
-                          </span>
-                        </div>
-                      </div>
-                      {comment.selectedText && (
-                        <div className="text-sm bg-yellow-100 dark:bg-yellow-900 p-2 rounded mb-2 italic">
-                          "{comment.selectedText}"
-                        </div>
-                      )}
-                      <p className="text-sm">{comment.content}</p>
-                    </div>
-                  ))
-                )}
-              </div>
-              
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Resolved Comments</h3>
-                {comments.filter(c => c.status === 'resolved').length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>No resolved comments yet</p>
-                  </div>
-                ) : (
-                  comments.filter(c => c.status === 'resolved').map((comment, index) => (
-                    <div key={index} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border opacity-75">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">
-                          ✓
-                        </div>
-                        <div>
-                          <span className="font-medium">{comment.author || 'Anonymous'}</span>
-                          <span className="text-xs text-muted-foreground ml-2">Resolved</span>
-                        </div>
-                      </div>
-                      <p className="text-sm">{comment.content}</p>
-                    </div>
-                  ))
-                )}
+            <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
+              <div className="text-center py-8">
+                <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                <h3 className="text-lg font-semibold mb-2">Comments are hidden by default</h3>
+                <p className="text-muted-foreground mb-4">
+                  For a cleaner editing experience, comments are not shown by default. 
+                  To view and manage comments, switch to the Editor tab and click "Show Comments" in the toolbar.
+                </p>
+                <Button
+                  onClick={() => setActiveTab("editor")}
+                  className="mt-4"
+                >
+                  Go to Editor
+                </Button>
               </div>
             </div>
           </TabsContent>
