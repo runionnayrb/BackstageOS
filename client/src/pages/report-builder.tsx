@@ -28,6 +28,7 @@ type ReportFormData = z.infer<typeof reportSchema>;
 interface ReportBuilderParams {
   id: string;
   type: string;
+  reportId?: string;
 }
 
 export default function ReportBuilder() {
@@ -40,9 +41,16 @@ export default function ReportBuilder() {
   
   const projectId = parseInt(params.id!);
   const reportType = params.type;
+  const reportId = params.reportId ? parseInt(params.reportId) : null;
+  const isEditMode = !!reportId;
 
   const { data: project } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}`],
+  });
+
+  const { data: existingReport } = useQuery<any>({
+    queryKey: [`/api/projects/${projectId}/reports/${reportId}`],
+    enabled: !!reportId,
   });
 
   const { data: templateData } = useQuery({
@@ -61,35 +69,56 @@ export default function ReportBuilder() {
     },
   });
 
-  // Set form values when project and report type are available
+  // Set form values when project and report type are available, or when editing existing report
   useEffect(() => {
     if (projectId && reportType) {
       form.setValue("projectId", projectId);
       form.setValue("type", reportType);
-      // Auto-select the template based on report type
-      setSelectedTemplate(reportType);
+      
+      if (existingReport && isEditMode) {
+        // Populate form with existing report data
+        form.setValue("title", existingReport.title);
+        form.setValue("date", existingReport.date ? new Date(existingReport.date).toISOString().split('T')[0] : form.getValues("date"));
+        form.setValue("content", existingReport.content || {});
+        setSelectedTemplate(existingReport.type);
+      } else {
+        // Auto-select the template based on report type for new reports
+        setSelectedTemplate(reportType);
+      }
     }
-  }, [projectId, reportType]);
+  }, [projectId, reportType, existingReport, isEditMode]);
 
   const mutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
-      await apiRequest("POST", `/api/projects/${projectId}/reports`, {
-        ...data,
-        date: new Date(data.date),
-      });
+      if (isEditMode && reportId) {
+        await apiRequest("PUT", `/api/projects/${projectId}/reports/${reportId}`, {
+          ...data,
+          date: new Date(data.date),
+        });
+      } else {
+        await apiRequest("POST", `/api/projects/${projectId}/reports`, {
+          ...data,
+          date: new Date(data.date),
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/reports`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/reports/${reportId}`] });
       toast({
-        title: "Report Created",
-        description: "Your report has been created successfully!",
+        title: isEditMode ? "Report Updated" : "Report Created",
+        description: isEditMode ? "Your report has been updated successfully!" : "Your report has been created successfully!",
       });
-      setLocation(`/shows/${projectId}/reports/${reportType}`);
+      if (isEditMode && reportId) {
+        setLocation(`/shows/${projectId}/reports/${reportType}/${reportId}`);
+      } else {
+        setLocation(`/shows/${projectId}/reports/${reportType}`);
+      }
     },
     onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to create report. Please try again.",
+        description: isEditMode ? "Failed to update report. Please try again." : "Failed to create report. Please try again.",
         variant: "destructive",
       });
     },
@@ -656,7 +685,7 @@ export default function ReportBuilder() {
                     type="submit" 
                     disabled={mutation.isPending || !selectedTemplate}
                   >
-                    {mutation.isPending ? "Creating..." : "Save Report"}
+                    {mutation.isPending ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Report" : "Save Report")}
                   </Button>
                 </div>
               </form>
