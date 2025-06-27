@@ -24,6 +24,7 @@ import {
   Users,
   Clock,
   Save,
+  Wand2,
   FileText,
   Plus
 } from "lucide-react";
@@ -196,6 +197,66 @@ export function CollaborativeEditor({
     }
   }, [onChange]);
 
+  // Parse and format script text automatically
+  const parseScriptText = useCallback((text: string) => {
+    // Remove page numbers and headers/footers
+    let cleanText = text
+      // Remove page numbers (various formats)
+      .replace(/^\s*\d+\s*$/gm, '')
+      .replace(/^\s*Page\s+\d+\s*$/gmi, '')
+      .replace(/^\s*-\s*\d+\s*-\s*$/gm, '')
+      // Remove common headers/footers
+      .replace(/^\s*CONTINUED:\s*$/gmi, '')
+      .replace(/^\s*\(CONTINUED\)\s*$/gmi, '')
+      .replace(/^\s*MORE\s*$/gmi, '')
+      .replace(/^\s*\(MORE\)\s*$/gmi, '')
+      // Remove excessive whitespace but preserve intentional line breaks
+      .replace(/\n\s*\n\s*\n/g, '\n\n')
+      .trim();
+
+    // Split into lines for processing
+    const lines = cleanText.split('\n');
+    const formattedLines: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) {
+        formattedLines.push('');
+        continue;
+      }
+
+      // Identify scene headings (ALL CAPS, often starts with INT./EXT./FADE/CUT)
+      if (/^(INT\.|EXT\.|FADE|CUT|SCENE|ACT\s+\d+|SCENE\s+\d+)/.test(line.toUpperCase()) || 
+          (line === line.toUpperCase() && line.length > 3 && !line.includes('(') && !line.includes(')'))) {
+        formattedLines.push(`<div class="script-scene_heading">${line}</div>`);
+      }
+      // Identify character names (ALL CAPS, centered or left-aligned, no parentheses)
+      else if (line === line.toUpperCase() && 
+               line.length > 1 && 
+               line.length < 50 && 
+               !line.includes('(') && 
+               !line.includes(')') &&
+               !line.includes('.') &&
+               /^[A-Z\s]+$/.test(line)) {
+        formattedLines.push(`<div class="script-character">${line}</div>`);
+      }
+      // Identify stage directions (text in parentheses or italics)
+      else if ((line.startsWith('(') && line.endsWith(')')) || 
+               line.toLowerCase().includes('enters') ||
+               line.toLowerCase().includes('exits') ||
+               line.toLowerCase().includes('lights') ||
+               line.toLowerCase().includes('sound')) {
+        formattedLines.push(`<div class="script-stage_direction">${line}</div>`);
+      }
+      // Everything else is dialogue
+      else {
+        formattedLines.push(`<div class="script-dialogue">${line}</div>`);
+      }
+    }
+
+    return formattedLines.join('\n');
+  }, []);
+
   // Handle file import
   const handleFileImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -203,6 +264,41 @@ export function CollaborativeEditor({
       onImport(file);
     }
   }, [onImport]);
+
+  // Handle paste events to auto-format script text
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text');
+    
+    if (pastedText.length > 100) { // Only auto-format large text blocks
+      const formattedText = parseScriptText(pastedText);
+      
+      if (editorRef.current) {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          range.deleteContents();
+          
+          const tempDiv = document.createElement('div');
+          tempDiv.innerHTML = formattedText;
+          
+          while (tempDiv.firstChild) {
+            range.insertNode(tempDiv.firstChild);
+          }
+          
+          range.collapse(false);
+          selection.removeAllRanges();
+          selection.addRange(range);
+          
+          saveToUndoStack();
+          handleContentChange();
+        }
+      }
+    } else {
+      // For small text, just paste normally
+      document.execCommand('insertText', false, pastedText);
+    }
+  }, [parseScriptText, saveToUndoStack, handleContentChange]);
 
   // Apply script-specific formatting
   const applyScriptFormatting = useCallback((type: 'character' | 'dialogue' | 'stage_direction' | 'scene_heading') => {
@@ -458,6 +554,26 @@ export function CollaborativeEditor({
           </SelectContent>
         </Select>
 
+        {/* Auto-format button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            if (editorRef.current) {
+              const currentContent = editorRef.current.innerText;
+              const formattedContent = parseScriptText(currentContent);
+              editorRef.current.innerHTML = formattedContent;
+              saveToUndoStack();
+              handleContentChange();
+            }
+          }}
+          className="h-8 px-3"
+          title="Auto-format the entire script"
+        >
+          <Wand2 className="h-4 w-4 mr-1" />
+          Auto-Format
+        </Button>
+
         <Separator orientation="vertical" className="h-6 mx-1" />
 
         {/* Comments */}
@@ -502,10 +618,15 @@ export function CollaborativeEditor({
                 ref={editorRef}
                 contentEditable
                 onInput={handleInput}
+                onPaste={handlePaste}
                 onMouseUp={handleTextSelection}
-                className="min-h-full focus:outline-none text-black"
+                className="min-h-full focus:outline-none text-black relative"
                 style={{ 
                   whiteSpace: 'pre-wrap',
+                  backgroundImage: 'linear-gradient(to bottom, transparent 9.5in, #e0e0e0 9.5in, #e0e0e0 9.55in, transparent 9.55in)',
+                  backgroundSize: '100% 11in',
+                  backgroundRepeat: 'repeat-y',
+                  paddingBottom: '1in'
                 }}
                 suppressContentEditableWarning={true}
               />
