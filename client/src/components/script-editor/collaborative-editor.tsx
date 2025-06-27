@@ -205,11 +205,20 @@ export function CollaborativeEditor({
       .replace(/^\s*\d+\s*$/gm, '')
       .replace(/^\s*Page\s+\d+\s*$/gmi, '')
       .replace(/^\s*-\s*\d+\s*-\s*$/gm, '')
+      .replace(/^\s*Pg\.\s*\d+\s*$/gmi, '')
+      // Remove author headers with page numbers (like "LORRAINE HANSBERRY Pg. 1")
+      .replace(/^[A-Z\s]+Pg\.\s*\d+\s*$/gmi, '')
+      // Remove spaced-out title headers (like "A R A I S I N I N T H E S U N")
+      .replace(/^[A-Z](\s+[A-Z])+(\s+[A-Z])*\s*$/gm, '')
+      // Remove author names that are spaced out (like "L O R R A I N E H A N S B E R R Y")
+      .replace(/^[A-Z](\s+[A-Z])+(\s+[A-Z])*(\s+Pg\.\s*\d+)?\s*$/gm, '')
       // Remove common headers/footers
       .replace(/^\s*CONTINUED:\s*$/gmi, '')
       .replace(/^\s*\(CONTINUED\)\s*$/gmi, '')
       .replace(/^\s*MORE\s*$/gmi, '')
       .replace(/^\s*\(MORE\)\s*$/gmi, '')
+      .replace(/^\s*CONT'D:\s*$/gmi, '')
+      .replace(/^\s*\(CONT'D\)\s*$/gmi, '')
       // Remove excessive whitespace but preserve intentional line breaks
       .replace(/\n\s*\n\s*\n/g, '\n\n')
       .trim();
@@ -630,22 +639,30 @@ export function CollaborativeEditor({
               fontSize: '12pt',
               lineHeight: '1.5'
             }}>
-              <div
-                ref={editorRef}
-                contentEditable
-                onInput={handleInput}
-                onPaste={handlePaste}
-                onMouseUp={handleTextSelection}
-                className="min-h-full focus:outline-none text-black relative"
-                style={{ 
-                  whiteSpace: 'pre-wrap',
-                  backgroundImage: 'linear-gradient(to bottom, transparent 9.5in, #e0e0e0 9.5in, #e0e0e0 9.55in, transparent 9.55in)',
-                  backgroundSize: '100% 11in',
-                  backgroundRepeat: 'repeat-y',
-                  paddingBottom: '1in'
-                }}
-                suppressContentEditableWarning={true}
-              />
+              <div className="relative">
+                <div
+                  ref={editorRef}
+                  contentEditable
+                  onInput={handleInput}
+                  onPaste={handlePaste}
+                  onMouseUp={handleTextSelection}
+                  className="min-h-full focus:outline-none text-black relative"
+                  style={{ 
+                    whiteSpace: 'pre-wrap',
+                    paddingBottom: '1in'
+                  }}
+                  suppressContentEditableWarning={true}
+                />
+                
+                {/* Page break indicators positioned absolutely */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="page-break-indicator" style={{ top: '9.5in' }}></div>
+                  <div className="page-break-indicator" style={{ top: '20.5in' }}></div>
+                  <div className="page-break-indicator" style={{ top: '31.5in' }}></div>
+                  <div className="page-break-indicator" style={{ top: '42.5in' }}></div>
+                  <div className="page-break-indicator" style={{ top: '53.5in' }}></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
