@@ -151,18 +151,16 @@ export default function AdminUsersComponent() {
               <div className="flex-1">
                 <div className="font-medium">
                   {user.firstName && user.lastName 
-                    ? `${user.firstName} ${user.lastName}` 
-                    : user.email}
+                    ? `${user.firstName} ${user.lastName}${user.isAdmin ? ' - Admin' : ''}` 
+                    : `${user.email}${user.isAdmin ? ' - Admin' : ''}`}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">
-                    {user.betaAccess.charAt(0).toUpperCase() + user.betaAccess.slice(1)}
+                    {user.betaAccess === 'none' ? 'No Beta Access' :
+                     user.betaAccess === 'limited' ? 'Limited Beta Access' :
+                     user.betaAccess === 'full' ? 'Full Beta Access' :
+                     user.betaAccess}
                   </span>
-                  {user.isAdmin && (
-                    <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full">
-                      Admin
-                    </span>
-                  )}
                   {editingUser === user.id ? (
                     <div className="flex gap-2">
                       <Button
