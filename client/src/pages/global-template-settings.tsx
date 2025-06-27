@@ -39,6 +39,13 @@ interface GlobalTemplateSettingsParams {
   id: string;
 }
 
+interface Project {
+  id: number;
+  name: string;
+  description?: string;
+  venue?: string;
+}
+
 interface GlobalTemplateSettings {
   id?: string;
   projectId: number;
@@ -190,7 +197,7 @@ export default function GlobalTemplateSettings() {
 
   const [previewMode, setPreviewMode] = useState<'header' | 'footer' | null>(null);
 
-  const { data: project } = useQuery({
+  const { data: project } = useQuery<Project>({
     queryKey: [`/api/projects/${projectId}`],
   });
 
@@ -1238,11 +1245,15 @@ export default function GlobalTemplateSettings() {
                         lineHeight: settings.fonts.heading.lineHeight
                       }}
                     >
-                      {settings.defaultHeader.content
-                        .replace(/\{\{showName\}\}/g, (project as any)?.name || "Show Name")
-                        .replace(/\{\{reportType\}\}/g, "Sample Report")
-                        .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
-                        .replace(/\{\{stageManager\}\}/g, "Stage Manager")}
+                      <div 
+                        dangerouslySetInnerHTML={{
+                          __html: settings.defaultHeader
+                            .replace(/\{\{showName\}\}/g, (project as any)?.name || "Show Name")
+                            .replace(/\{\{reportType\}\}/g, "Sample Report")
+                            .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
+                            .replace(/\{\{stageManager\}\}/g, "Stage Manager")
+                        }}
+                      />
                     </div>
                   </div>
 
@@ -1301,11 +1312,13 @@ export default function GlobalTemplateSettings() {
 
                   {/* Footer Preview */}
                   <div className="text-center border-t pt-4 text-sm text-gray-600">
-                    <div className="whitespace-pre-line">
-                      {settings.defaultFooter.content
-                        .replace(/\{\{preparedBy\}\}/g, "Stage Manager")
-                        .replace(/\{\{nextReportDate\}\}/g, "Tomorrow")}
-                    </div>
+                    <div 
+                      dangerouslySetInnerHTML={{
+                        __html: settings.defaultFooter
+                          .replace(/\{\{preparedBy\}\}/g, "Stage Manager")
+                          .replace(/\{\{nextReportDate\}\}/g, "Tomorrow")
+                      }}
+                    />
                   </div>
 
                   {/* Page Number Preview */}
