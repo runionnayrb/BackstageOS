@@ -140,21 +140,26 @@
 
 /* Page break indicators for theater scripts */
 .page-break-indicator {
-  border-top: 1px dashed #ccc;
-  margin: 0;
-  padding: 0;
-  height: 1px;
-  width: 100%;
+  margin: 2rem 0;
+  padding: 1rem 0;
+  border-top: 2px solid #333;
+  border-bottom: 1px solid #ddd;
+  background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
   position: relative;
+  page-break-before: always;
 }
 
 .page-break-indicator::after {
-  content: "Page Break";
+  content: "— Page Break —";
   position: absolute;
-  right: 0;
-  top: -0.75em;
-  background: white;
-  padding: 0 0.5em;
-  font-size: 0.75em;
-  color: #999;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-weight: 500;
 }
