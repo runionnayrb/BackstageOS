@@ -13,13 +13,14 @@ declare global {
     interface User {
       id: number;
       email: string;
-      firstName?: string;
-      lastName?: string;
-      profileType?: string;
-      betaAccess: string;
-      betaFeatures?: string;
-      createdAt: Date;
-      updatedAt: Date;
+      firstName?: string | null;
+      lastName?: string | null;
+      profileType?: string | null;
+      betaAccess: string | null;
+      betaFeatures?: unknown;
+      isAdmin?: boolean | null;
+      createdAt: Date | null;
+      updatedAt: Date | null;
     }
   }
 }
@@ -64,7 +65,16 @@ export function setupAuth(app: Express) {
           if (!user || !(await comparePasswords(password, user.password))) {
             return done(null, false, { message: "Invalid email or password" });
           }
-          return done(null, user);
+          // Transform user to match Express.User interface
+          const transformedUser = {
+            ...user,
+            firstName: user.firstName || undefined,
+            lastName: user.lastName || undefined,
+            profileType: user.profileType || undefined,
+            betaAccess: user.betaAccess || "none",
+            isAdmin: user.isAdmin || false,
+          };
+          return done(null, transformedUser);
         } catch (error) {
           return done(error);
         }
@@ -77,7 +87,19 @@ export function setupAuth(app: Express) {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id.toString());
-      done(null, user);
+      if (!user) {
+        return done(null, false);
+      }
+      // Transform user to match Express.User interface
+      const transformedUser = {
+        ...user,
+        firstName: user.firstName || undefined,
+        lastName: user.lastName || undefined,
+        profileType: user.profileType || undefined,
+        betaAccess: user.betaAccess || "none",
+        isAdmin: user.isAdmin || false,
+      };
+      done(null, transformedUser);
     } catch (error) {
       done(error);
     }
@@ -109,9 +131,17 @@ export function setupAuth(app: Express) {
       });
 
       // Log them in automatically
-      req.login(user, (err) => {
+      const transformedUser = {
+        ...user,
+        firstName: user.firstName || undefined,
+        lastName: user.lastName || undefined,
+        profileType: user.profileType || undefined,
+        betaAccess: user.betaAccess || "none",
+        isAdmin: user.isAdmin || false,
+      };
+      req.login(transformedUser, (err) => {
         if (err) return next(err);
-        res.status(201).json(user);
+        res.status(201).json(transformedUser);
       });
     } catch (error) {
       console.error("Registration error:", error);
