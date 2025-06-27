@@ -230,15 +230,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Project not found" });
       }
 
-      console.log("Project ownership check:", {
-        projectOwnerId: project.ownerId,
-        projectOwnerIdType: typeof project.ownerId,
-        userId: req.user.id,
-        userIdType: typeof req.user.id,
-        userIdString: req.user.id.toString(),
-        match: project.ownerId == req.user.id.toString()
-      });
-
       // Check ownership - use loose equality to handle type conversion
       if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
@@ -320,8 +311,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
+      // Check ownership - use loose equality to handle type conversion
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -342,8 +333,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
+      // Check ownership - use loose equality to handle type conversion
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -365,8 +356,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
+      // Check ownership - use loose equality to handle type conversion
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -387,8 +378,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
+      // Check ownership - use loose equality to handle type conversion
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -409,27 +400,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Report routes
-  app.get('/api/projects/:id/reports', isAuthenticated, async (req: any, res) => {
-    try {
-      const projectId = parseInt(req.params.id);
-      const project = await storage.getProjectById(projectId);
-      
-      if (!project) {
-        return res.status(404).json({ message: "Project not found" });
-      }
-
-      // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-
-      const reports = await storage.getReportsByProjectId(projectId);
-      res.json(reports);
-    } catch (error) {
-      console.error("Error fetching reports:", error);
-      res.status(500).json({ message: "Failed to fetch reports" });
-    }
-  });
 
   app.get('/api/reports', isAuthenticated, async (req: any, res) => {
     try {
@@ -501,7 +471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check access (owner or team member)
-      if (project.ownerId !== req.user.id.toString()) {
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -527,7 +497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -560,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check access (owner or team member)
-      if (project.ownerId !== req.user.id.toString()) {
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -595,7 +565,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check access (owner or team member)
-      if (project.ownerId !== req.user.id.toString()) {
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -786,7 +756,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -809,7 +779,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -832,7 +802,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check access (owner or team member)
-      if (project.ownerId !== req.user.id.toString()) {
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -854,7 +824,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -883,7 +853,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -906,7 +876,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -928,7 +898,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
