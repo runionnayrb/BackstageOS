@@ -28,7 +28,7 @@ import TemplateSettings from "@/pages/template-settings";
 import GlobalTemplateSettings from "@/pages/global-template-settings";
 import NewReport from "@/pages/new-report";
 import ReportViewer from "./pages/report-viewer";
-import AdminUsers from "@/pages/admin-users-clean";
+import AdminDashboard from "@/pages/admin-dashboard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -69,7 +69,7 @@ function Router() {
         <Route path="/shows/:id/templates" component={TemplateSettings} />
         <Route path="/shows/:id/global-template-settings" component={GlobalTemplateSettings} />
         <Route path="/shows/:id/settings" component={ShowSettings} />
-        <Route path="/admin/users" component={AdminUsers} />
+        <Route path="/admin" component={AdminDashboard} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

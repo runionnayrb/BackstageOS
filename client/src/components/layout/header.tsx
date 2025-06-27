@@ -65,9 +65,9 @@ export default function Header() {
                 {isAdmin(user) && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setLocation('/admin/users')}>
+                    <DropdownMenuItem onClick={() => setLocation('/admin')}>
                       <Users className="mr-2 h-4 w-4" />
-                      User Management
+                      Admin Dashboard
                     </DropdownMenuItem>
                   </>
                 )}
