@@ -89,7 +89,7 @@ export default function ShowSettings() {
   const isFullTime = user?.profileType === "fulltime";
   const showLabel = isFullTime ? "Show" : "Project";
 
-  const { data: project } = useQuery({
+  const { data: project, isLoading: projectLoading } = useQuery({
     queryKey: ["/api/projects", id],
   });
 
@@ -188,7 +188,7 @@ export default function ShowSettings() {
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to {project?.name || 'Show'}
+            {project?.name ? `Back to ${project.name}` : 'Back to Show'}
           </Button>
         </div>
 
