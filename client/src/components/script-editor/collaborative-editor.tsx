@@ -189,6 +189,13 @@ export function CollaborativeEditor({
     }
   }, []);
 
+  // Initialize content when prop changes
+  useEffect(() => {
+    if (editorRef.current && content !== editorRef.current.innerHTML) {
+      editorRef.current.innerHTML = content || '';
+    }
+  }, [content]);
+
   // Handle input events specifically to preserve cursor position
   const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
     if (editorRef.current) {
@@ -631,58 +638,61 @@ export function CollaborativeEditor({
         <div className="flex-1">
           {/* Page container with realistic document styling */}
           <div className="bg-gray-100 dark:bg-gray-800 p-8 space-y-8">
-            {/* Page 1 */}
-            <div className="bg-white mx-auto shadow-lg" style={{ 
-              width: '8.5in', 
-              height: '11in',
-              padding: '1in',
-              fontFamily: 'Courier, monospace',
-              fontSize: '12pt',
-              lineHeight: '1.5'
-            }}>
+            {/* Continuous editor that spans multiple pages visually */}
+            <div className="relative">
               <div
                 ref={editorRef}
                 contentEditable
                 onInput={handleInput}
                 onPaste={handlePaste}
                 onMouseUp={handleTextSelection}
-                className="h-full focus:outline-none text-black overflow-hidden"
+                className="focus:outline-none text-black"
                 style={{ 
-                  whiteSpace: 'pre-wrap'
+                  whiteSpace: 'pre-wrap',
+                  fontFamily: 'Courier, monospace',
+                  fontSize: '12pt',
+                  lineHeight: '1.5',
+                  minHeight: '33in', // Allow content to span multiple pages
+                  // Create page backgrounds that appear as separate pages
+                  backgroundImage: `
+                    linear-gradient(to bottom, 
+                      white 0in, white 9in, 
+                      transparent 9in, transparent 10in,
+                      white 10in, white 19in,
+                      transparent 19in, transparent 20in,
+                      white 20in, white 29in,
+                      transparent 29in, transparent 30in,
+                      white 30in, white 39in
+                    )
+                  `,
+                  backgroundSize: '8.5in 40in',
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'center',
+                  width: '8.5in',
+                  margin: '0 auto',
+                  padding: '1in',
+                  // Add page shadows
+                  boxShadow: `
+                    0 0 0 1px rgba(0,0,0,0.1),
+                    0 2px 10px rgba(0,0,0,0.1),
+                    0 10in 0 0 rgba(0,0,0,0.1),
+                    0 calc(10in + 2px) 10px rgba(0,0,0,0.1),
+                    0 20in 0 0 rgba(0,0,0,0.1),
+                    0 calc(20in + 2px) 10px rgba(0,0,0,0.1)
+                  `
                 }}
                 suppressContentEditableWarning={true}
               />
-            </div>
-            
-            {/* Additional pages will be generated dynamically based on content */}
-            <div className="bg-white mx-auto shadow-lg" style={{ 
-              width: '8.5in', 
-              height: '11in',
-              padding: '1in',
-              fontFamily: 'Courier, monospace',
-              fontSize: '12pt',
-              lineHeight: '1.5'
-            }}>
-              <div className="h-full text-black overflow-hidden opacity-50">
-                {/* This will be filled with overflow content */}
-                <div className="text-gray-400 text-center mt-20">
-                  Page 2 - Content will flow here automatically
-                </div>
+              
+              {/* Page labels positioned absolutely */}
+              <div className="absolute top-2 right-2 text-xs text-gray-500 pointer-events-none">
+                Page 1
               </div>
-            </div>
-            
-            <div className="bg-white mx-auto shadow-lg" style={{ 
-              width: '8.5in', 
-              height: '11in',
-              padding: '1in',
-              fontFamily: 'Courier, monospace',
-              fontSize: '12pt',
-              lineHeight: '1.5'
-            }}>
-              <div className="h-full text-black overflow-hidden opacity-50">
-                <div className="text-gray-400 text-center mt-20">
-                  Page 3 - Content will flow here automatically
-                </div>
+              <div className="absolute right-2 text-xs text-gray-500 pointer-events-none" style={{ top: 'calc(10in + 8px)' }}>
+                Page 2
+              </div>
+              <div className="absolute right-2 text-xs text-gray-500 pointer-events-none" style={{ top: 'calc(20in + 16px)' }}>
+                Page 3
               </div>
             </div>
           </div>
