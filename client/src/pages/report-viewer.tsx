@@ -1,8 +1,21 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Edit, Download, Share } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { ArrowLeft, Edit, Download, Share, Trash2 } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface ReportViewerParams {
   id: string;
@@ -16,6 +29,9 @@ export default function ReportViewer() {
   const projectId = parseInt(params.id!);
   const reportType = params.type!;
   const reportId = parseInt(params.reportId!);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: project } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}`],
@@ -23,6 +39,27 @@ export default function ReportViewer() {
 
   const { data: report } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}/reports/${reportId}`],
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      await apiRequest("DELETE", `/api/projects/${projectId}/reports/${reportId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/reports`] });
+      toast({
+        title: "Report Deleted",
+        description: "The report has been deleted successfully.",
+      });
+      setLocation(`/shows/${projectId}/reports/${reportType}`);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete report. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   if (!project || !report) {
@@ -86,6 +123,14 @@ export default function ReportViewer() {
               <Edit className="h-4 w-4 mr-2" />
               Edit
             </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
           </div>
         </div>
 
@@ -116,6 +161,31 @@ export default function ReportViewer() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Report</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{report?.title}"? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  deleteMutation.mutate();
+                  setShowDeleteDialog(false);
+                }}
+                disabled={deleteMutation.isPending}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );
