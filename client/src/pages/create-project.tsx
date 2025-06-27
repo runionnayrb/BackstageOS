@@ -19,9 +19,12 @@ const projectSchema = z.object({
   description: z.string().optional(),
   venue: z.string().optional(),
   prepStartDate: z.string().optional(),
-  closingDate: z.string().optional(),
+  firstRehearsalDate: z.string().optional(),
+  designerRunDate: z.string().optional(),
+  firstTechDate: z.string().optional(),
+  firstPreviewDate: z.string().optional(),
   openingNight: z.string().optional(),
-  status: z.string().default("planning"),
+  closingDate: z.string().optional(),
   season: z.string().optional(),
 });
 
@@ -43,9 +46,12 @@ export default function CreateProject() {
       description: "",
       venue: "",
       prepStartDate: "",
-      closingDate: "",
+      firstRehearsalDate: "",
+      designerRunDate: "",
+      firstTechDate: "",
+      firstPreviewDate: "",
       openingNight: "",
-      status: "planning",
+      closingDate: "",
       season: "",
     },
   });
@@ -55,8 +61,12 @@ export default function CreateProject() {
       const projectData = {
         ...data,
         prepStartDate: data.prepStartDate ? new Date(data.prepStartDate) : null,
-        closingDate: data.closingDate ? new Date(data.closingDate) : null,
+        firstRehearsalDate: data.firstRehearsalDate ? new Date(data.firstRehearsalDate) : null,
+        designerRunDate: data.designerRunDate ? new Date(data.designerRunDate) : null,
+        firstTechDate: data.firstTechDate ? new Date(data.firstTechDate) : null,
+        firstPreviewDate: data.firstPreviewDate ? new Date(data.firstPreviewDate) : null,
         openingNight: data.openingNight ? new Date(data.openingNight) : null,
+        closingDate: data.closingDate ? new Date(data.closingDate) : null,
       };
       await apiRequest("POST", "/api/projects", projectData);
     },
@@ -126,33 +136,76 @@ export default function CreateProject() {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="prepStartDate">Prep Start Date</Label>
-                  <Input
-                    id="prepStartDate"
-                    type="date"
-                    {...form.register("prepStartDate")}
-                  />
+              {/* Important Dates Section */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Important Dates</h3>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="prepStartDate">Prep</Label>
+                    <Input
+                      id="prepStartDate"
+                      type="date"
+                      {...form.register("prepStartDate")}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="firstRehearsalDate">First Rehearsal</Label>
+                    <Input
+                      id="firstRehearsalDate"
+                      type="date"
+                      {...form.register("firstRehearsalDate")}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="closingDate">Closing Date</Label>
-                  <Input
-                    id="closingDate"
-                    type="date"
-                    {...form.register("closingDate")}
-                  />
-                </div>
-              </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="openingNight">Opening Night</Label>
-                  <Input
-                    id="openingNight"
-                    type="date"
-                    {...form.register("openingNight")}
-                  />
+                <div className="grid md:grid-cols-2 gap-6 mt-4">
+                  <div>
+                    <Label htmlFor="designerRunDate">Designer Run</Label>
+                    <Input
+                      id="designerRunDate"
+                      type="date"
+                      {...form.register("designerRunDate")}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="firstTechDate">First Tech</Label>
+                    <Input
+                      id="firstTechDate"
+                      type="date"
+                      {...form.register("firstTechDate")}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6 mt-4">
+                  <div>
+                    <Label htmlFor="firstPreviewDate">First Preview</Label>
+                    <Input
+                      id="firstPreviewDate"
+                      type="date"
+                      {...form.register("firstPreviewDate")}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="openingNight">Opening</Label>
+                    <Input
+                      id="openingNight"
+                      type="date"
+                      {...form.register("openingNight")}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6 mt-4">
+                  <div>
+                    <Label htmlFor="closingDate">Closing</Label>
+                    <Input
+                      id="closingDate"
+                      type="date"
+                      {...form.register("closingDate")}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -173,23 +226,6 @@ export default function CreateProject() {
                   </Select>
                 </div>
               )}
-
-              <div>
-                <Label htmlFor="status">{projectSingle} Status</Label>
-                <Select onValueChange={(value) => form.setValue("status", value)} defaultValue="planning">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="planning">Planning</SelectItem>
-                    <SelectItem value="pre-production">Pre-Production</SelectItem>
-                    <SelectItem value="rehearsal">In Rehearsal</SelectItem>
-                    <SelectItem value="tech">Tech Week</SelectItem>
-                    <SelectItem value="performance">Performance</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
               <div className="flex justify-end space-x-4 pt-6">
                 <Button
