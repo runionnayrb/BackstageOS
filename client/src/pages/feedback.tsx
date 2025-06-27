@@ -15,8 +15,9 @@ import { ArrowLeft, Plus, MessageSquare, Bug, Lightbulb, Settings2 } from "lucid
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { isAdmin } from "@/lib/admin";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Feedback as FeedbackType } from "@/../../shared/schema";
 
 const feedbackSchema = z.object({
   type: z.enum(["bug", "feature", "improvement", "other"]),
@@ -97,16 +98,13 @@ export default function FeedbackPage() {
     },
   });
 
-  const { data: feedback = [], isLoading } = useQuery({
+  const { data: feedback = [], isLoading } = useQuery<FeedbackType[]>({
     queryKey: ["/api/feedback"],
     enabled: !!user,
   });
 
   const createFeedbackMutation = useMutation({
-    mutationFn: (data: FeedbackFormData) => apiRequest("/api/feedback", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }),
+    mutationFn: (data: FeedbackFormData) => apiRequest("POST", "/api/feedback", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/feedback"] });
       form.reset();

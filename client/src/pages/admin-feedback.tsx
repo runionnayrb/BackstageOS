@@ -7,8 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Bug, Lightbulb, Settings2, MessageSquare, Eye, Edit, Trash2, User } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Feedback as FeedbackType } from "@/../../shared/schema";
 
 interface Feedback {
   id: number;
@@ -72,16 +73,13 @@ export default function AdminFeedback() {
   const [adminNotes, setAdminNotes] = useState("");
   const [newStatus, setNewStatus] = useState("");
 
-  const { data: feedback = [], isLoading } = useQuery({
+  const { data: feedback = [], isLoading } = useQuery<FeedbackType[]>({
     queryKey: ["/api/feedback"],
   });
 
   const updateFeedbackMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: any }) =>
-      apiRequest(`/api/feedback/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      }),
+      apiRequest("PATCH", `/api/feedback/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/feedback"] });
       setIsEditModalOpen(false);
@@ -102,9 +100,7 @@ export default function AdminFeedback() {
 
   const deleteFeedbackMutation = useMutation({
     mutationFn: (id: number) =>
-      apiRequest(`/api/feedback/${id}`, {
-        method: "DELETE",
-      }),
+      apiRequest("DELETE", `/api/feedback/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/feedback"] });
       toast({
