@@ -31,12 +31,21 @@ import {
   type InsertGlobalTemplateSettings,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, ne } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (required for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  
+  // Beta access operations
+  updateUserBetaAccess(userId: string, betaAccess: string, betaFeatures?: string[]): Promise<User>;
+  getBetaUsers(): Promise<User[]>;
+  
+  // Admin user management operations
+  getAllUsers(): Promise<User[]>;
+  updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[] }): Promise<User>;
+  deleteUser(userId: string): Promise<void>;
 
   // Project operations
   getProjectsByUserId(userId: string): Promise<Project[]>;
@@ -119,6 +128,54 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return user;
+  }
+
+  async updateUserBetaAccess(userId: string, betaAccess: string, betaFeatures?: string[]): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({
+        betaAccess,
+        betaFeatures: betaFeatures ? JSON.stringify(betaFeatures) : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async getBetaUsers(): Promise<User[]> {
+    return db.select().from(users).where(ne(users.betaAccess, 'none')).orderBy(desc(users.createdAt));
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[] }): Promise<User> {
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (updates.profileType) {
+      updateData.profileType = updates.profileType;
+    }
+    if (updates.betaAccess) {
+      updateData.betaAccess = updates.betaAccess;
+    }
+    if (updates.betaFeatures) {
+      updateData.betaFeatures = JSON.stringify(updates.betaFeatures);
+    }
+
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, userId));
   }
 
   // Project operations

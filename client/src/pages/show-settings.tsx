@@ -203,7 +203,7 @@ export default function ShowSettings() {
         </div>
 
       <Tabs defaultValue="team" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className={`grid w-full ${user?.id === '44106967' ? 'grid-cols-6' : 'grid-cols-5'}`}>
           <TabsTrigger value="team" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Team
@@ -224,6 +224,12 @@ export default function ShowSettings() {
             <Calendar className="h-4 w-4" />
             Schedule
           </TabsTrigger>
+          {user?.id === '44106967' && (
+            <TabsTrigger value="admin" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Admin
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="team" className="mt-6">
@@ -673,6 +679,34 @@ export default function ShowSettings() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {user?.id === '44106967' && (
+          <TabsContent value="admin" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Admin Panel</CardTitle>
+                <CardDescription>
+                  Manage all users, permissions, and beta access across the platform.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Button
+                    onClick={() => setLocation('/admin/users')}
+                    className="w-full justify-start"
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Manage All Users
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    Access the full user management interface to add, edit, and remove users,
+                    configure beta access levels, and manage user permissions across all shows.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
       </div>
     </div>

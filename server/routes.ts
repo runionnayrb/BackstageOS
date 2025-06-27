@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -44,6 +45,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating profile type:", error);
       res.status(500).json({ message: "Failed to update profile type" });
+    }
+  });
+
+  // Beta access management routes (admin only)
+  app.get('/api/admin/beta-users', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const currentUser = await storage.getUser(userId);
+      
+      // Only allow access if user is you (the owner) - replace with your actual user ID
+      if (userId !== '44106967') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const betaUsers = await storage.getBetaUsers();
+      res.json(betaUsers);
+    } catch (error) {
+      console.error("Error fetching beta users:", error);
+      res.status(500).json({ message: "Failed to fetch beta users" });
+    }
+  });
+
+  app.post('/api/admin/beta-access', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Only allow access if user is you (the owner)
+      if (userId !== '44106967') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { targetUserId, betaAccess, betaFeatures } = req.body;
+      
+      if (!targetUserId || !['none', 'limited', 'full'].includes(betaAccess)) {
+        return res.status(400).json({ message: "Invalid beta access parameters" });
+      }
+      
+      const updatedUser = await storage.updateUserBetaAccess(targetUserId, betaAccess, betaFeatures);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating beta access:", error);
+      res.status(500).json({ message: "Failed to update beta access" });
+    }
+  });
+
+  // Get all users for admin management
+  app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      
+      // Only allow access if user is you (the owner)
+      if (userId !== '44106967') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Update user profile and permissions
+  app.patch('/api/admin/users/:targetUserId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { targetUserId } = req.params;
+      
+      // Only allow access if user is you (the owner)
+      if (userId !== '44106967') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { profileType, betaAccess, betaFeatures } = req.body;
+      
+      if (profileType && !['freelance', 'fulltime'].includes(profileType)) {
+        return res.status(400).json({ message: "Invalid profile type" });
+      }
+      
+      if (betaAccess && !['none', 'limited', 'full'].includes(betaAccess)) {
+        return res.status(400).json({ message: "Invalid beta access level" });
+      }
+      
+      const updatedUser = await storage.updateUserAdmin(targetUserId, {
+        profileType,
+        betaAccess,
+        betaFeatures
+      });
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  // Delete user (admin only)
+  app.delete('/api/admin/users/:targetUserId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { targetUserId } = req.params;
+      
+      // Only allow access if user is you (the owner)
+      if (userId !== '44106967') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      // Prevent admin from deleting themselves
+      if (targetUserId === userId) {
+        return res.status(400).json({ message: "Cannot delete your own account" });
+      }
+      
+      await storage.deleteUser(targetUserId);
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
     }
   });
 
