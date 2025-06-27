@@ -221,7 +221,7 @@ export const globalTemplateSettings = pgTable("global_template_settings", {
   timeFormat: varchar("time_format").notNull().default("12h"),
   defaultHeader: text("default_header").notNull().default('<div style="text-align: center; font-weight: bold;">{{showName}} - {{reportType}}<br>Date: {{date}}<br>Stage Manager: {{stageManager}}</div>'),
   defaultFooter: text("default_footer").notNull().default('<div style="text-align: center; color: #666666;">Prepared by: {{preparedBy}}<br>Next report: {{nextReportDate}}</div>'),
-  emailSettings: jsonb("email_settings").notNull().default('{"distributionLists":{"to":[],"cc":[],"bcc":[]},"subjectTemplate":"{{showName}} - {{reportType}} - {{date}}","bodyTemplate":"Please find attached the {{reportType}} for {{showName}}.\\n\\nBest regards,\\n{{stageManager}}","signature":""}'),
+  email: jsonb("email_settings").notNull().default('{"distributionLists":{"to":[],"cc":[],"bcc":[]},"subjectTemplate":"{{showName}} - {{reportType}} - {{date}}","bodyTemplate":"Please find attached the {{reportType}} for {{showName}}.\\n\\nBest regards,\\n{{stageManager}}","signature":""}'),
   productionLogo: text("production_logo"), // Base64 encoded image
   productionPhoto: text("production_photo"), // Base64 encoded image
   createdBy: varchar("created_by").notNull().references(() => users.id),

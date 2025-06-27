@@ -198,54 +198,16 @@ export default function GlobalTemplateSettings() {
     queryKey: [`/api/projects/${projectId}/global-template-settings`],
   });
 
+  const showName = project?.name || "Loading...";
+
   useEffect(() => {
     if (globalSettings) {
-      // Handle migration from old string format to new object format
-      const migratedSettings = { ...globalSettings };
-      
-      // Migrate header if it's still a string
-      if (typeof globalSettings.defaultHeader === 'string') {
-        migratedSettings.defaultHeader = {
-          content: globalSettings.defaultHeader,
-          formatting: {
-            fontFamily: "Arial, sans-serif",
-            fontSize: "14px",
-            fontWeight: "bold",
-            color: "#000000",
-            alignment: "center",
-            includeLogo: false,
-            includeDate: true,
-            includePageNumber: false,
-            customVariables: []
-          }
-        };
-      }
-      
-      // Migrate footer if it's still a string
-      if (typeof globalSettings.defaultFooter === 'string') {
-        migratedSettings.defaultFooter = {
-          content: globalSettings.defaultFooter,
-          formatting: {
-            fontFamily: "Arial, sans-serif",
-            fontSize: "10px",
-            fontWeight: "normal",
-            color: "#666666",
-            alignment: "center",
-            includeLogo: false,
-            includeDate: false,
-            includePageNumber: true,
-            customVariables: []
-          }
-        };
-      }
-      
-      setSettings({
-        ...defaultGlobalSettings,
-        ...migratedSettings,
-        projectId: parseInt(projectId!)
-      });
+      setSettings(prev => ({
+        ...prev,
+        ...globalSettings
+      }));
     }
-  }, [globalSettings, projectId]);
+  }, [globalSettings]);
 
   const saveSettings = useMutation({
     mutationFn: async (settingsData: GlobalTemplateSettings) => {
@@ -1084,7 +1046,7 @@ export default function GlobalTemplateSettings() {
                         className="min-h-[120px]"
                       />
                       <p className="text-sm text-muted-foreground">
-                        Use variables: {{showName}}, {{reportType}}, {{date}}, {{stageManager}}, {{venue}}
+                        Use variables: {`{{showName}}, {{reportType}}, {{date}}, {{stageManager}}, {{venue}}`}
                       </p>
                     </div>
 
@@ -1141,7 +1103,7 @@ export default function GlobalTemplateSettings() {
                         className="min-h-[100px]"
                       />
                       <p className="text-sm text-muted-foreground">
-                        Use variables: {{preparedBy}}, {{nextReportDate}}, {{contactInfo}}, {{emergencyContact}}
+                        Use variables: {`{{preparedBy}}, {{nextReportDate}}, {{contactInfo}}, {{emergencyContact}}`}
                       </p>
                     </div>
 
