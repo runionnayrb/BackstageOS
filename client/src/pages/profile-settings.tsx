@@ -10,6 +10,7 @@ import { ArrowLeft, Save, Key, Mail, User, Eye, EyeOff } from "lucide-react";
 import { useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { format } from "date-fns";
 
 export default function ProfileSettings() {
   const { user } = useAuth();
@@ -199,6 +200,18 @@ export default function ProfileSettings() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Password Last Updated Info */}
+                <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Password last updated:
+                  </div>
+                  <div className="text-sm font-medium">
+                    {user?.updatedAt ? format(new Date(user.updatedAt), "MMM dd, yyyy 'at' h:mm a") : "Never"}
+                  </div>
+                </div>
+                
+                <Separator />
+                
                 <div className="space-y-2">
                   <Label htmlFor="currentPassword">Current Password</Label>
                   <div className="relative">
