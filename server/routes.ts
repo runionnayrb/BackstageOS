@@ -251,13 +251,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: z.string().min(1, "Project name is required"),
         description: z.string().optional().or(z.literal("")),
         venue: z.string().optional().or(z.literal("")),
-        prepStartDate: z.date().nullable().optional(),
-        firstRehearsalDate: z.date().nullable().optional(),
-        designerRunDate: z.date().nullable().optional(),
-        firstTechDate: z.date().nullable().optional(),
-        firstPreviewDate: z.date().nullable().optional(),
-        openingNight: z.date().nullable().optional(),
-        closingDate: z.date().nullable().optional(),
+        prepStartDate: z.union([z.string(), z.date(), z.null()]).optional().transform((val) => {
+          if (!val || val === "") return null;
+          return typeof val === "string" ? new Date(val) : val;
+        }),
+        firstRehearsalDate: z.union([z.string(), z.date(), z.null()]).optional().transform((val) => {
+          if (!val || val === "") return null;
+          return typeof val === "string" ? new Date(val) : val;
+        }),
+        designerRunDate: z.union([z.string(), z.date(), z.null()]).optional().transform((val) => {
+          if (!val || val === "") return null;
+          return typeof val === "string" ? new Date(val) : val;
+        }),
+        firstTechDate: z.union([z.string(), z.date(), z.null()]).optional().transform((val) => {
+          if (!val || val === "") return null;
+          return typeof val === "string" ? new Date(val) : val;
+        }),
+        firstPreviewDate: z.union([z.string(), z.date(), z.null()]).optional().transform((val) => {
+          if (!val || val === "") return null;
+          return typeof val === "string" ? new Date(val) : val;
+        }),
+        openingNight: z.union([z.string(), z.date(), z.null()]).optional().transform((val) => {
+          if (!val || val === "") return null;
+          return typeof val === "string" ? new Date(val) : val;
+        }),
+        closingDate: z.union([z.string(), z.date(), z.null()]).optional().transform((val) => {
+          if (!val || val === "") return null;
+          return typeof val === "string" ? new Date(val) : val;
+        }),
         season: z.string().optional().or(z.literal("")),
         ownerId: z.number(),
       });
