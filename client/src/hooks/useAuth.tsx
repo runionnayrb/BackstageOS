@@ -43,6 +43,8 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     retry: false,
+    refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes to keep session alive
+    refetchIntervalInBackground: true,
   });
 
   const loginMutation = useMutation({

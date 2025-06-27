@@ -20,6 +20,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
   setupAuth(app);
 
+  // Session heartbeat to keep sessions alive
+  app.post('/api/session/heartbeat', isAuthenticated, (req: any, res) => {
+    if (req.session && req.user) {
+      req.session.touch();
+      res.json({ 
+        success: true, 
+        user: req.user,
+        sessionExpiry: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000))
+      });
+    } else {
+      res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+  });
+
+  // Session status check
+  app.get('/api/session/status', isAuthenticated, (req: any, res) => {
+    res.json({ 
+      authenticated: true,
+      user: req.user,
+      sessionId: req.sessionID,
+      sessionExpiry: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000))
+    });
+  });
+
   // Profile type selection
   app.post('/api/auth/profile-type', isAuthenticated, async (req: any, res) => {
     try {

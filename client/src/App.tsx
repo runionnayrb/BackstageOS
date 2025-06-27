@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth, AuthProvider } from "@/hooks/useAuth";
+import { useSessionHeartbeat } from "@/hooks/useSessionHeartbeat";
 import AuthPage from "@/pages/auth-page";
 import ProfileSelection from "@/pages/profile-selection";
 import Layout from "@/components/layout/layout";
@@ -35,6 +36,9 @@ import NotFound from "@/pages/not-found";
 function Router() {
   const { user, isLoading } = useAuth();
   const isAuthenticated = !!user;
+  
+  // Keep session alive while user is active
+  useSessionHeartbeat();
 
   if (isLoading) {
     return (

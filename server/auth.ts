@@ -42,17 +42,29 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     store: new PostgresSessionStore({ 
       pool, 
-      createTableIfMissing: true 
+      createTableIfMissing: true,
+      pruneSessionInterval: 60 * 15, // 15 minutes
+      ttl: 30 * 24 * 60 * 60 // 30 days
     }),
     cookie: {
       secure: false, // Set to true in production with HTTPS
       httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     },
   };
 
   app.set("trust proxy", 1);
   app.use(session(sessionSettings));
+  
+  // Session refresh middleware - extends session on each request
+  app.use((req, res, next) => {
+    if (req.session && req.user) {
+      // Reset the session timeout on each request
+      req.session.touch();
+    }
+    next();
+  });
+  
   app.use(passport.initialize());
   app.use(passport.session());
 
