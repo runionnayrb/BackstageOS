@@ -1,16 +1,34 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Type, Palette } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Type, Palette, Hash } from "lucide-react";
 
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
   placeholder?: string;
   className?: string;
+  showPageNumbers?: boolean;
+  pageNumberEnabled?: boolean;
+  pageNumberFormat?: "1" | "1 of X" | "Page 1" | "Page 1 of X";
+  onPageNumberToggle?: (enabled: boolean) => void;
+  onPageNumberFormatChange?: (format: "1" | "1 of X" | "Page 1" | "Page 1 of X") => void;
 }
 
-export function RichTextEditor({ content, onChange, placeholder, className = "" }: RichTextEditorProps) {
+export function RichTextEditor({ 
+  content, 
+  onChange, 
+  placeholder, 
+  className = "",
+  showPageNumbers = false,
+  pageNumberEnabled = false,
+  pageNumberFormat = "1",
+  onPageNumberToggle,
+  onPageNumberFormatChange
+}: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontSize, setShowFontSize] = useState(false);
@@ -250,23 +268,85 @@ export function RichTextEditor({ content, onChange, placeholder, className = "" 
             Stage Manager
           </Button>
         </div>
+
+        {/* Spacer to push page numbers to the right */}
+        <div className="flex-1" />
+
+        {/* Page numbering controls */}
+        {showPageNumbers && (
+          <>
+            <div className="w-px h-6 bg-gray-300 mx-1" />
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={pageNumberEnabled}
+                onCheckedChange={onPageNumberToggle}
+                className="scale-75"
+              />
+              <Hash className="h-4 w-4 text-gray-500" />
+              {pageNumberEnabled && (
+                <Select
+                  value={pageNumberFormat}
+                  onValueChange={onPageNumberFormatChange}
+                >
+                  <SelectTrigger className="w-20 h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1</SelectItem>
+                    <SelectItem value="1 of X">1 of X</SelectItem>
+                    <SelectItem value="Page 1">Page 1</SelectItem>
+                    <SelectItem value="Page 1 of X">Page 1 of X</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Editor */}
-      <div
-        ref={editorRef}
-        contentEditable
-        onInput={handleInput}
-        className="min-h-[120px] p-4 focus:outline-none"
-        style={{ 
-          whiteSpace: 'pre-wrap',
-          fontFamily: 'inherit',
-          fontSize: 'inherit',
-          lineHeight: 'inherit'
-        }}
-        data-placeholder={placeholder}
-        dangerouslySetInnerHTML={{ __html: content }}
-      />
+      <div className="relative">
+        <div
+          ref={editorRef}
+          contentEditable
+          onInput={handleInput}
+          className="min-h-[120px] p-4 focus:outline-none"
+          style={{ 
+            whiteSpace: 'pre-wrap',
+            fontFamily: 'inherit',
+            fontSize: 'inherit',
+            lineHeight: 'inherit'
+          }}
+          data-placeholder={placeholder}
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+        
+        {/* Page number preview overlay */}
+        {showPageNumbers && pageNumberEnabled && (
+          <div className="absolute inset-0 pointer-events-none p-4">
+            <div
+              className="min-h-[120px] text-blue-500 font-medium opacity-75"
+              style={{ 
+                whiteSpace: 'pre-wrap',
+                fontFamily: 'inherit',
+                fontSize: 'inherit',
+                lineHeight: 'inherit'
+              }}
+              dangerouslySetInnerHTML={{
+                __html: content.replace(/{{pageNumber}}/g, () => {
+                  switch (pageNumberFormat) {
+                    case "1": return "1";
+                    case "1 of X": return "1 of 5";
+                    case "Page 1": return "Page 1";
+                    case "Page 1 of X": return "Page 1 of 5";
+                    default: return "1";
+                  }
+                }).replace(/{{totalPages}}/g, "5")
+              }}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Click outside to close dropdowns */}
       {(showColorPicker || showFontSize) && (

@@ -1043,81 +1043,34 @@ export default function GlobalTemplateSettings() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Header Content</Label>
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-gray-50 dark:bg-gray-900">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const currentContent = settings.defaultHeader;
-                              setSettings(prev => ({
-                                ...prev,
-                                defaultHeader: currentContent + ' {{pageNumber}}'
-                              }));
-                            }}
-                            className="text-xs"
-                          >
-                            Page #
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const currentContent = settings.defaultHeader;
-                              setSettings(prev => ({
-                                ...prev,
-                                defaultHeader: currentContent + ' {{pageNumber}} of {{totalPages}}'
-                              }));
-                            }}
-                            className="text-xs"
-                          >
-                            Page # of #
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const currentContent = settings.defaultHeader;
-                              setSettings(prev => ({
-                                ...prev,
-                                defaultHeader: currentContent + ' Page {{pageNumber}}'
-                              }));
-                            }}
-                            className="text-xs"
-                          >
-                            Page #
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const currentContent = settings.defaultHeader;
-                              setSettings(prev => ({
-                                ...prev,
-                                defaultHeader: currentContent + ' Page {{pageNumber}} of {{totalPages}}'
-                              }));
-                            }}
-                            className="text-xs"
-                          >
-                            Page # of #
-                          </Button>
-                        </div>
-                        <RichTextEditor
-                          content={settings.defaultHeader}
-                          onChange={(content) => setSettings(prev => ({
-                            ...prev,
-                            defaultHeader: content
-                          }))}
-                          placeholder="Enter header content with rich formatting..."
-                          className="min-h-[120px]"
-                        />
-                      </div>
+                      <RichTextEditor
+                        content={settings.defaultHeader}
+                        onChange={(content) => setSettings(prev => ({
+                          ...prev,
+                          defaultHeader: content
+                        }))}
+                        placeholder="Enter header content with rich formatting..."
+                        className="min-h-[120px]"
+                        showPageNumbers={true}
+                        pageNumberEnabled={settings.pageNumbering.enabled}
+                        pageNumberFormat={settings.pageNumbering.format}
+                        onPageNumberToggle={(enabled) => setSettings(prev => ({
+                          ...prev,
+                          pageNumbering: {
+                            ...prev.pageNumbering,
+                            enabled
+                          }
+                        }))}
+                        onPageNumberFormatChange={(format) => setSettings(prev => ({
+                          ...prev,
+                          pageNumbering: {
+                            ...prev.pageNumbering,
+                            format: format as "1" | "1 of X" | "Page 1" | "Page 1 of X"
+                          }
+                        }))}
+                      />
                       <p className="text-sm text-muted-foreground">
-                        Use variables: {`{{showName}}, {{reportType}}, {{date}}, {{stageManager}}, {{venue}}`} • Click page number buttons above to add page numbering
+                        Use variables: {`{{showName}}, {{reportType}}, {{date}}, {{stageManager}}, {{venue}}`} • Page numbering controls are on the right side of the toolbar
                       </p>
                     </div>
 
@@ -1164,81 +1117,34 @@ export default function GlobalTemplateSettings() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Footer Content</Label>
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-gray-50 dark:bg-gray-900">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const currentContent = settings.defaultFooter;
-                              setSettings(prev => ({
-                                ...prev,
-                                defaultFooter: currentContent + ' {{pageNumber}}'
-                              }));
-                            }}
-                            className="text-xs"
-                          >
-                            Page #
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const currentContent = settings.defaultFooter;
-                              setSettings(prev => ({
-                                ...prev,
-                                defaultFooter: currentContent + ' {{pageNumber}} of {{totalPages}}'
-                              }));
-                            }}
-                            className="text-xs"
-                          >
-                            Page # of #
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const currentContent = settings.defaultFooter;
-                              setSettings(prev => ({
-                                ...prev,
-                                defaultFooter: currentContent + ' Page {{pageNumber}}'
-                              }));
-                            }}
-                            className="text-xs"
-                          >
-                            Page #
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              const currentContent = settings.defaultFooter;
-                              setSettings(prev => ({
-                                ...prev,
-                                defaultFooter: currentContent + ' Page {{pageNumber}} of {{totalPages}}'
-                              }));
-                            }}
-                            className="text-xs"
-                          >
-                            Page # of #
-                          </Button>
-                        </div>
-                        <RichTextEditor
-                          content={settings.defaultFooter}
-                          onChange={(content) => setSettings(prev => ({
-                            ...prev,
-                            defaultFooter: content
-                          }))}
-                          placeholder="Enter footer content with rich formatting..."
-                          className="min-h-[100px]"
-                        />
-                      </div>
+                      <RichTextEditor
+                        content={settings.defaultFooter}
+                        onChange={(content) => setSettings(prev => ({
+                          ...prev,
+                          defaultFooter: content
+                        }))}
+                        placeholder="Enter footer content with rich formatting..."
+                        className="min-h-[100px]"
+                        showPageNumbers={true}
+                        pageNumberEnabled={settings.pageNumbering.enabled}
+                        pageNumberFormat={settings.pageNumbering.format}
+                        onPageNumberToggle={(enabled) => setSettings(prev => ({
+                          ...prev,
+                          pageNumbering: {
+                            ...prev.pageNumbering,
+                            enabled
+                          }
+                        }))}
+                        onPageNumberFormatChange={(format) => setSettings(prev => ({
+                          ...prev,
+                          pageNumbering: {
+                            ...prev.pageNumbering,
+                            format: format as "1" | "1 of X" | "Page 1" | "Page 1 of X"
+                          }
+                        }))}
+                      />
                       <p className="text-sm text-muted-foreground">
-                        Use variables: {`{{preparedBy}}, {{nextReportDate}}, {{contactInfo}}, {{emergencyContact}}`} • Click page number buttons above to add page numbering
+                        Use variables: {`{{preparedBy}}, {{nextReportDate}}, {{contactInfo}}, {{emergencyContact}}`} • Page numbering controls are on the right side of the toolbar
                       </p>
                     </div>
 
