@@ -76,6 +76,7 @@ export function CollaborativeEditor({
     left: 1,
     right: 1
   });
+  const [pageCount, setPageCount] = useState(1);
 
   // Format text selection
   const formatText = useCallback((command: string, value?: string) => {
@@ -209,22 +210,19 @@ export function CollaborativeEditor({
     if (!editorRef.current) return;
 
     const page1 = editorRef.current;
-    const page2Container = document.getElementById('page-2-content');
-    const page3Container = document.getElementById('page-3-content');
+    const allText = page1.innerText || '';
     
-    if (!page2Container || !page3Container) return;
-
-    // Clear subsequent pages
-    page2Container.innerHTML = '';
-    page3Container.innerHTML = '';
+    // If no content, show only one page
+    if (!allText.trim()) {
+      setPageCount(1);
+      return;
+    }
 
     // Check if page 1 is overflowing
     const page1Height = page1.scrollHeight;
     const page1MaxHeight = page1.clientHeight;
 
     if (page1Height > page1MaxHeight) {
-      // Get all text content
-      const allText = page1.innerText || '';
       const lines = allText.split('\n');
       
       // Estimate how many lines fit per page (rough calculation)
@@ -232,28 +230,25 @@ export function CollaborativeEditor({
       const pageContentHeight = page1MaxHeight - 32; // Account for padding
       const linesPerPage = Math.floor(pageContentHeight / lineHeight);
       
-      // Distribute lines across pages
-      const page1Lines = lines.slice(0, linesPerPage);
-      const page2Lines = lines.slice(linesPerPage, linesPerPage * 2);
-      const page3Lines = lines.slice(linesPerPage * 2);
+      // Calculate how many pages we need
+      const totalPages = Math.ceil(lines.length / linesPerPage);
+      setPageCount(Math.min(totalPages, 10)); // Cap at 10 pages for performance
       
-      // Update page 1 content (preserve HTML formatting)
-      const page1Content = page1Lines.join('\n');
-      if (page1Content !== page1.innerText) {
-        page1.innerHTML = page1Content;
+      // Distribute content to additional pages
+      for (let pageNum = 2; pageNum <= pageCount; pageNum++) {
+        const pageContainer = document.getElementById(`page-${pageNum}-content`);
+        if (pageContainer) {
+          const startLine = (pageNum - 1) * linesPerPage;
+          const endLine = pageNum * linesPerPage;
+          const pageLines = lines.slice(startLine, endLine);
+          pageContainer.innerHTML = pageLines.join('\n');
+        }
       }
-      
-      // Set page 2 content
-      if (page2Lines.length > 0) {
-        page2Container.innerHTML = page2Lines.join('\n');
-      }
-      
-      // Set page 3 content
-      if (page3Lines.length > 0) {
-        page3Container.innerHTML = page3Lines.join('\n');
-      }
+    } else {
+      // Content fits on one page
+      setPageCount(1);
     }
-  }, []);
+  }, [pageCount]);
 
   // Handle input events specifically to preserve cursor position
   const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
@@ -753,83 +748,53 @@ export function CollaborativeEditor({
         <div className="flex-1">
           {/* Page container with realistic document styling */}
           <div className="bg-gray-100 dark:bg-gray-800 p-8 space-y-8">
-            {/* Page 1 */}
-            <div className="bg-white mx-auto shadow-lg relative" style={{ 
-              width: '8.5in', 
-              height: '11in',
-              fontFamily: 'Courier, monospace',
-              fontSize: '12pt',
-              lineHeight: '1.5',
-              padding: `${margins.top}in ${margins.right}in ${margins.bottom}in ${margins.left}in`,
-              boxSizing: 'border-box'
-            }}>
-              <div className="absolute top-2 right-4 text-xs text-gray-400 pointer-events-none">
-                Page 1
-              </div>
-              <div
-                ref={editorRef}
-                contentEditable
-                onInput={handleInput}
-                onPaste={handlePaste}
-                onMouseUp={handleTextSelection}
-                className="focus:outline-none text-black overflow-hidden h-full"
-                style={{ 
-                  whiteSpace: 'pre-wrap',
-                  paddingTop: '0.2in' // Extra space for page number
-                }}
-                suppressContentEditableWarning={true}
-              />
-            </div>
-            
-            {/* Page 2 */}
-            <div className="bg-white mx-auto shadow-lg relative" style={{ 
-              width: '8.5in', 
-              height: '11in',
-              fontFamily: 'Courier, monospace',
-              fontSize: '12pt',
-              lineHeight: '1.5',
-              padding: `${margins.top}in ${margins.right}in ${margins.bottom}in ${margins.left}in`,
-              boxSizing: 'border-box'
-            }}>
-              <div className="absolute top-2 right-4 text-xs text-gray-400 pointer-events-none">
-                Page 2
-              </div>
-              <div 
-                className="text-black overflow-hidden h-full"
-                style={{ 
-                  whiteSpace: 'pre-wrap',
-                  paddingTop: '0.2in'
-                }}
-                id="page-2-content"
-              >
-                {/* Page 2 content will be dynamically populated */}
-              </div>
-            </div>
-            
-            {/* Page 3 */}
-            <div className="bg-white mx-auto shadow-lg relative" style={{ 
-              width: '8.5in', 
-              height: '11in',
-              fontFamily: 'Courier, monospace',
-              fontSize: '12pt',
-              lineHeight: '1.5',
-              padding: `${margins.top}in ${margins.right}in ${margins.bottom}in ${margins.left}in`,
-              boxSizing: 'border-box'
-            }}>
-              <div className="absolute top-2 right-4 text-xs text-gray-400 pointer-events-none">
-                Page 3
-              </div>
-              <div 
-                className="text-black overflow-hidden h-full"
-                style={{ 
-                  whiteSpace: 'pre-wrap',
-                  paddingTop: '0.2in'
-                }}
-                id="page-3-content"
-              >
-                {/* Page 3 content will be dynamically populated */}
-              </div>
-            </div>
+            {/* Dynamic Pages */}
+            {Array.from({ length: pageCount }, (_, index) => {
+              const pageNum = index + 1;
+              const isFirstPage = pageNum === 1;
+              
+              return (
+                <div key={pageNum} className="bg-white mx-auto shadow-lg relative" style={{ 
+                  width: '8.5in', 
+                  height: '11in',
+                  fontFamily: 'Courier, monospace',
+                  fontSize: '12pt',
+                  lineHeight: '1.5',
+                  padding: `${margins.top}in ${margins.right}in ${margins.bottom}in ${margins.left}in`,
+                  boxSizing: 'border-box'
+                }}>
+                  <div className="absolute top-2 right-4 text-xs text-gray-400 pointer-events-none">
+                    Page {pageNum}
+                  </div>
+                  {isFirstPage ? (
+                    <div
+                      ref={editorRef}
+                      contentEditable
+                      onInput={handleInput}
+                      onPaste={handlePaste}
+                      onMouseUp={handleTextSelection}
+                      className="focus:outline-none text-black overflow-hidden h-full"
+                      style={{ 
+                        whiteSpace: 'pre-wrap',
+                        paddingTop: '0.2in'
+                      }}
+                      suppressContentEditableWarning={true}
+                    />
+                  ) : (
+                    <div 
+                      className="text-black overflow-hidden h-full"
+                      style={{ 
+                        whiteSpace: 'pre-wrap',
+                        paddingTop: '0.2in'
+                      }}
+                      id={`page-${pageNum}-content`}
+                    >
+                      {/* Additional page content will be dynamically populated */}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
