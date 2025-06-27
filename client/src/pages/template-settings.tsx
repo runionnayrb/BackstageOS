@@ -436,12 +436,28 @@ export default function TemplateSettings() {
                 <Card className="min-h-[600px]">
                   <CardHeader>
                     <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
                           <FileText className="h-5 w-5" />
-                          {template.name}
-                        </CardTitle>
-                        <CardDescription>{template.description}</CardDescription>
+                          <Input
+                            value={template.name}
+                            onChange={(e) => setTemplates(prev => ({
+                              ...prev,
+                              [phase]: { ...prev[phase], name: e.target.value }
+                            }))}
+                            className="text-xl font-semibold border-0 bg-transparent p-0 focus:ring-0 focus:outline-none h-auto flex-1"
+                            placeholder="Template name"
+                          />
+                        </div>
+                        <Textarea
+                          value={template.description}
+                          onChange={(e) => setTemplates(prev => ({
+                            ...prev,
+                            [phase]: { ...prev[phase], description: e.target.value }
+                          }))}
+                          className="text-sm text-muted-foreground border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none min-h-[40px]"
+                          placeholder="Template description"
+                        />
                       </div>
                       <Button
                         variant="outline"
@@ -480,13 +496,28 @@ export default function TemplateSettings() {
                           .map((field, index) => (
                             <div key={field.id} className="space-y-2 relative group">
                               <div className="flex items-center justify-between">
-                                <Input
-                                  value={field.label}
-                                  onChange={(e) => updateField(field.id, { label: e.target.value })}
-                                  className="text-sm font-medium border-0 bg-transparent p-0 focus:ring-0 focus:outline-none h-auto w-auto flex-1"
-                                  placeholder="Field label"
-                                />
+                                <div className="flex items-center gap-2 flex-1">
+                                  <Input
+                                    value={field.label}
+                                    onChange={(e) => updateField(field.id, { label: e.target.value })}
+                                    className="text-sm font-medium border-0 bg-transparent p-0 focus:ring-0 focus:outline-none h-auto flex-1"
+                                    placeholder="Field label"
+                                  />
+                                  {field.required && <span className="text-red-500 text-sm">*</span>}
+                                  <Badge variant="outline" className="text-xs">
+                                    {field.type}
+                                  </Badge>
+                                </div>
                                 <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => updateField(field.id, { required: !field.required })}
+                                    className={`h-6 w-6 p-0 ${field.required ? 'text-red-500' : 'text-gray-400'}`}
+                                    title="Toggle required"
+                                  >
+                                    *
+                                  </Button>
                                   <Button
                                     size="sm"
                                     variant="ghost"
@@ -515,13 +546,22 @@ export default function TemplateSettings() {
                                   </Button>
                                 </div>
                               </div>
-                              <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px]">
-                                <Input
-                                  value={field.placeholder || ""}
-                                  onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
-                                  className="border-0 p-0 h-auto text-sm bg-transparent focus:ring-0 focus:outline-none"
-                                  placeholder="Field placeholder text..."
-                                />
+                              <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px] relative">
+                                {field.type === "textarea" ? (
+                                  <Textarea
+                                    value={field.placeholder || ""}
+                                    onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
+                                    className="border-0 p-0 h-auto text-sm bg-transparent focus:ring-0 focus:outline-none resize-none min-h-[60px]"
+                                    placeholder="Field placeholder text..."
+                                  />
+                                ) : (
+                                  <Input
+                                    value={field.placeholder || ""}
+                                    onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
+                                    className="border-0 p-0 h-auto text-sm bg-transparent focus:ring-0 focus:outline-none"
+                                    placeholder="Field placeholder text..."
+                                  />
+                                )}
                               </div>
                             </div>
                           ))}
