@@ -82,6 +82,10 @@ export default function TemplateBuilder() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Get phase from URL params if editing an existing template
+  const urlParams = new URLSearchParams(window.location.search);
+  const phaseParam = urlParams.get('phase');
 
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [fields, setFields] = useState<TemplateField[]>([]);
@@ -94,7 +98,7 @@ export default function TemplateBuilder() {
       name: "",
       description: "",
       type: "",
-      phase: "",
+      phase: phaseParam || "",
       header: "{{showName}} - {{reportType}}\n{{date}}",
       footer: "Prepared by: {{preparedBy}}",
     },

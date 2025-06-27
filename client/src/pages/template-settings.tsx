@@ -408,7 +408,7 @@ export default function TemplateSettings() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setLocation(`/shows/${projectId}/templates/phase-${selectedPhase}/edit`)}
+                            onClick={() => setLocation(`/shows/${projectId}/templates/new?phase=${selectedPhase}`)}
                           >
                             <Edit3 className="h-4 w-4 mr-2" />
                             Edit in Builder
