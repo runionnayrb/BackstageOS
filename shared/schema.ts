@@ -282,6 +282,24 @@ export const showSettings = pgTable("show_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// User feedback system
+export const feedback = pgTable("feedback", {
+  id: serial("id").primaryKey(),
+  type: varchar("type").notNull(), // bug, feature, improvement, other
+  priority: varchar("priority").notNull().default("medium"), // low, medium, high, critical
+  title: varchar("title").notNull(),
+  description: text("description").notNull(),
+  category: varchar("category"), // reports, script, props, costumes, admin, etc.
+  status: varchar("status").notNull().default("open"), // open, in_review, in_progress, resolved, closed
+  attachments: jsonb("attachments"), // URLs or file references
+  adminNotes: text("admin_notes"),
+  submittedBy: integer("submitted_by").notNull().references(() => users.id),
+  assignedTo: integer("assigned_to").references(() => users.id),
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Global template settings
 export const globalTemplateSettings = pgTable("global_template_settings", {
   id: serial("id").primaryKey(),
@@ -316,6 +334,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   scripts: many(scripts),
   showSettings: many(showSettings),
   globalTemplateSettings: many(globalTemplateSettings),
+  submittedFeedback: many(feedback, { relationName: "submittedFeedback" }),
+  assignedFeedback: many(feedback, { relationName: "assignedFeedback" }),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -504,6 +524,19 @@ export const scriptChangesRelations = relations(scriptChanges, ({ one }) => ({
   }),
 }));
 
+export const feedbackRelations = relations(feedback, ({ one }) => ({
+  submitter: one(users, {
+    fields: [feedback.submittedBy],
+    references: [users.id],
+    relationName: "submittedFeedback",
+  }),
+  assignee: one(users, {
+    fields: [feedback.assignedTo],
+    references: [users.id],
+    relationName: "assignedFeedback",
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -598,6 +631,12 @@ export const insertGlobalTemplateSettingsSchema = createInsertSchema(globalTempl
   updatedAt: true,
 });
 
+export const insertFeedbackSchema = createInsertSchema(feedback).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type exports
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -631,3 +670,5 @@ export type ScriptCollaborator = typeof scriptCollaborators.$inferSelect;
 export type InsertScriptCollaborator = z.infer<typeof insertScriptCollaboratorSchema>;
 export type ScriptChange = typeof scriptChanges.$inferSelect;
 export type InsertScriptChange = z.infer<typeof insertScriptChangeSchema>;
+export type Feedback = typeof feedback.$inferSelect;
+export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;

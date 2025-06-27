@@ -1,4 +1,4 @@
-import { Bell, Settings, Users, LogOut, ChevronDown } from "lucide-react";
+import { Bell, Settings, Users, LogOut, ChevronDown, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
@@ -29,6 +29,17 @@ export default function Header() {
           </div>
           
           <div className="flex items-center space-x-4">
+            {/* Feedback */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation('/feedback')}
+              className="flex items-center space-x-2"
+            >
+              <MessageSquare className="h-5 w-5" />
+              <span className="hidden sm:inline text-sm">Feedback</span>
+            </Button>
+            
             {/* Notifications */}
             <Button variant="ghost" size="sm" className="relative">
               <Bell className="h-6 w-6" />

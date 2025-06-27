@@ -34,6 +34,7 @@ import ProfileSettings from "@/pages/profile-settings";
 import Calendar from "@/pages/calendar";
 import PropsAndCostumes from "@/pages/props-costumes";
 import Personnel from "@/pages/personnel";
+import FeedbackPage from "@/pages/feedback";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -82,6 +83,7 @@ function Router() {
         <Route path="/shows/:id/global-template-settings" component={GlobalTemplateSettings} />
         <Route path="/shows/:id/settings" component={ShowSettings} />
         <Route path="/profile" component={ProfileSettings} />
+        <Route path="/feedback" component={FeedbackPage} />
         <Route path="/admin" component={AdminDashboard} />
         <Route component={NotFound} />
       </Switch>

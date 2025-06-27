@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Authentication middleware
@@ -1041,6 +1041,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating beta settings:", error);
       res.status(500).json({ message: "Failed to update beta settings" });
+    }
+  });
+
+  // Feedback API routes
+  app.get('/api/feedback', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      // Admins can see all feedback, users see only their own
+      if (isAdmin(userId)) {
+        const allFeedback = await storage.getAllFeedback();
+        res.json(allFeedback);
+      } else {
+        const userFeedback = await storage.getFeedbackByUserId(userId);
+        res.json(userFeedback);
+      }
+    } catch (error) {
+      console.error("Error fetching feedback:", error);
+      res.status(500).json({ message: "Failed to fetch feedback" });
+    }
+  });
+
+  app.post('/api/feedback', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const feedbackData = insertFeedbackSchema.parse({
+        ...req.body,
+        submittedBy: parseInt(userId),
+      });
+
+      const feedback = await storage.createFeedback(feedbackData);
+      res.json(feedback);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid feedback data", errors: error.errors });
+      }
+      console.error("Error creating feedback:", error);
+      res.status(500).json({ message: "Failed to create feedback" });
+    }
+  });
+
+  app.get('/api/feedback/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const feedbackId = parseInt(req.params.id);
+      const userId = req.user.id.toString();
+      const feedback = await storage.getFeedbackById(feedbackId);
+      
+      if (!feedback) {
+        return res.status(404).json({ message: "Feedback not found" });
+      }
+
+      // Users can only view their own feedback, admins can view all
+      if (!isAdmin(userId) && feedback.submittedBy !== parseInt(userId)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      res.json(feedback);
+    } catch (error) {
+      console.error("Error fetching feedback:", error);
+      res.status(500).json({ message: "Failed to fetch feedback" });
+    }
+  });
+
+  app.patch('/api/feedback/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const feedbackId = parseInt(req.params.id);
+      const userId = req.user.id.toString();
+      const feedback = await storage.getFeedbackById(feedbackId);
+      
+      if (!feedback) {
+        return res.status(404).json({ message: "Feedback not found" });
+      }
+
+      // Only admins can update feedback (for status changes, admin notes, etc.)
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const updateData = {
+        ...req.body,
+        ...(req.body.status === 'resolved' && { resolvedAt: new Date() }),
+      };
+
+      const updatedFeedback = await storage.updateFeedback(feedbackId, updateData);
+      res.json(updatedFeedback);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid feedback data", errors: error.errors });
+      }
+      console.error("Error updating feedback:", error);
+      res.status(500).json({ message: "Failed to update feedback" });
+    }
+  });
+
+  app.delete('/api/feedback/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const feedbackId = parseInt(req.params.id);
+      const userId = req.user.id.toString();
+      const feedback = await storage.getFeedbackById(feedbackId);
+      
+      if (!feedback) {
+        return res.status(404).json({ message: "Feedback not found" });
+      }
+
+      // Users can delete their own feedback, admins can delete any
+      if (!isAdmin(userId) && feedback.submittedBy !== parseInt(userId)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteFeedback(feedbackId);
+      res.json({ message: "Feedback deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting feedback:", error);
+      res.status(500).json({ message: "Failed to delete feedback" });
     }
   });
 

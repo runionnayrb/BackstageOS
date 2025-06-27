@@ -9,6 +9,7 @@ import {
   showCharacters,
   showSettings,
   globalTemplateSettings,
+  feedback,
   type User,
   type UpsertUser,
   type Project,
@@ -29,6 +30,8 @@ import {
   type InsertShowSettings,
   type GlobalTemplateSettings,
   type InsertGlobalTemplateSettings,
+  type Feedback,
+  type InsertFeedback,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ne } from "drizzle-orm";
@@ -108,6 +111,14 @@ export interface IStorage {
   getGlobalTemplateSettingsByProjectId(projectId: number): Promise<GlobalTemplateSettings | undefined>;
   upsertGlobalTemplateSettings(settings: InsertGlobalTemplateSettings): Promise<GlobalTemplateSettings>;
   updateGlobalTemplateSettings(projectId: number, settings: Partial<InsertGlobalTemplateSettings>): Promise<GlobalTemplateSettings>;
+
+  // Feedback operations
+  getAllFeedback(): Promise<Feedback[]>;
+  getFeedbackById(id: number): Promise<Feedback | undefined>;
+  getFeedbackByUserId(userId: string): Promise<Feedback[]>;
+  createFeedback(feedback: InsertFeedback): Promise<Feedback>;
+  updateFeedback(id: number, feedback: Partial<InsertFeedback>): Promise<Feedback>;
+  deleteFeedback(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -572,6 +583,70 @@ export class DatabaseStorage implements IStorage {
       .where(eq(globalTemplateSettings.projectId, projectId))
       .returning();
     return settings;
+  }
+
+  // Feedback operations
+  async getAllFeedback(): Promise<Feedback[]> {
+    return await db
+      .select({
+        id: feedback.id,
+        type: feedback.type,
+        priority: feedback.priority,
+        title: feedback.title,
+        description: feedback.description,
+        category: feedback.category,
+        status: feedback.status,
+        attachments: feedback.attachments,
+        adminNotes: feedback.adminNotes,
+        submittedBy: feedback.submittedBy,
+        assignedTo: feedback.assignedTo,
+        resolvedAt: feedback.resolvedAt,
+        createdAt: feedback.createdAt,
+        updatedAt: feedback.updatedAt,
+        submitter: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+        },
+      })
+      .from(feedback)
+      .leftJoin(users, eq(feedback.submittedBy, users.id))
+      .orderBy(desc(feedback.createdAt));
+  }
+
+  async getFeedbackById(id: number): Promise<Feedback | undefined> {
+    const [feedbackItem] = await db.select().from(feedback).where(eq(feedback.id, id));
+    return feedbackItem;
+  }
+
+  async getFeedbackByUserId(userId: string): Promise<Feedback[]> {
+    return await db
+      .select()
+      .from(feedback)
+      .where(eq(feedback.submittedBy, parseInt(userId)))
+      .orderBy(desc(feedback.createdAt));
+  }
+
+  async createFeedback(feedbackData: InsertFeedback): Promise<Feedback> {
+    const [newFeedback] = await db.insert(feedback).values(feedbackData).returning();
+    return newFeedback;
+  }
+
+  async updateFeedback(id: number, feedbackData: Partial<InsertFeedback>): Promise<Feedback> {
+    const [updatedFeedback] = await db
+      .update(feedback)
+      .set({
+        ...feedbackData,
+        updatedAt: new Date(),
+      })
+      .where(eq(feedback.id, id))
+      .returning();
+    return updatedFeedback;
+  }
+
+  async deleteFeedback(id: number): Promise<void> {
+    await db.delete(feedback).where(eq(feedback.id, id));
   }
 }
 
