@@ -41,7 +41,7 @@ export default function ReportBuilder() {
   const projectId = parseInt(params.id!);
   const reportType = params.type;
 
-  const { data: project } = useQuery({
+  const { data: project } = useQuery<any>({
     queryKey: [`/api/projects/${projectId}`],
   });
 
@@ -174,13 +174,14 @@ export default function ReportBuilder() {
     if (!selectedTemplate) return null;
 
     const commonFields = (
-      <div>
-        <Label htmlFor="summary">Summary</Label>
+      <div className="mb-6">
+        <div className="text-sm font-semibold text-gray-700 mb-2">Summary</div>
         <Textarea
           id="summary"
           rows={3}
           placeholder="Brief summary of today's activities..."
           onChange={(e) => form.setValue("content.summary", e.target.value)}
+          className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
         />
       </div>
     );
@@ -190,48 +191,53 @@ export default function ReportBuilder() {
         return (
           <>
             {commonFields}
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
-                <Label htmlFor="startTime">Start Time</Label>
+                <div className="text-sm font-semibold text-gray-700 mb-1">Start Time</div>
                 <Input
                   id="startTime"
                   type="time"
                   onChange={(e) => form.setValue("content.startTime", e.target.value)}
+                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                 />
               </div>
               <div>
-                <Label htmlFor="endTime">End Time</Label>
+                <div className="text-sm font-semibold text-gray-700 mb-1">End Time</div>
                 <Input
                   id="endTime"
                   type="time"
                   onChange={(e) => form.setValue("content.endTime", e.target.value)}
+                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                 />
               </div>
             </div>
-            <div>
-              <Label htmlFor="scenesRehearsed">Scenes Rehearsed</Label>
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Scenes Rehearsed</div>
               <Input
                 id="scenesRehearsed"
                 placeholder="e.g., Act 1 Scenes 1-3"
                 onChange={(e) => form.setValue("content.scenesRehearsed", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
             </div>
-            <div>
-              <Label htmlFor="notes">Notes</Label>
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Notes</div>
               <Textarea
                 id="notes"
                 rows={4}
                 placeholder="Detailed rehearsal notes..."
                 onChange={(e) => form.setValue("content.notes", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
-            <div>
-              <Label htmlFor="nextRehearsal">Next Rehearsal</Label>
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Next Rehearsal</div>
               <Textarea
                 id="nextRehearsal"
                 rows={2}
                 placeholder="Plans for the next rehearsal..."
                 onChange={(e) => form.setValue("content.nextRehearsal", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
           </>
@@ -241,11 +247,11 @@ export default function ReportBuilder() {
         return (
           <>
             {commonFields}
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
-                <Label htmlFor="techFocus">Tech Focus</Label>
+                <div className="text-sm font-semibold text-gray-700 mb-2">Tech Focus</div>
                 <Select onValueChange={(value) => form.setValue("content.techFocus", value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
                     <SelectValue placeholder="Select focus area" />
                   </SelectTrigger>
                   <SelectContent>
@@ -259,9 +265,9 @@ export default function ReportBuilder() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="completionStatus">Completion Status</Label>
+                <div className="text-sm font-semibold text-gray-700 mb-2">Completion Status</div>
                 <Select onValueChange={(value) => form.setValue("content.completionStatus", value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
@@ -273,22 +279,24 @@ export default function ReportBuilder() {
                 </Select>
               </div>
             </div>
-            <div>
-              <Label htmlFor="technicalIssues">Technical Issues</Label>
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Technical Issues</div>
               <Textarea
                 id="technicalIssues"
                 rows={3}
                 placeholder="List any technical issues encountered..."
                 onChange={(e) => form.setValue("content.technicalIssues", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
-            <div>
-              <Label htmlFor="nextSessionGoals">Next Session Goals</Label>
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Next Session Goals</div>
               <Textarea
                 id="nextSessionGoals"
                 rows={2}
                 placeholder="Goals for the next tech session..."
                 onChange={(e) => form.setValue("content.nextSessionGoals", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
           </>
@@ -298,50 +306,55 @@ export default function ReportBuilder() {
         return (
           <>
             {commonFields}
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-3 gap-6 mb-6">
               <div>
-                <Label htmlFor="showTime">Show Time</Label>
+                <div className="text-sm font-semibold text-gray-700 mb-1">Show Time</div>
                 <Input
                   id="showTime"
                   type="time"
                   onChange={(e) => form.setValue("content.showTime", e.target.value)}
+                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                 />
               </div>
               <div>
-                <Label htmlFor="houseCount">House Count</Label>
+                <div className="text-sm font-semibold text-gray-700 mb-1">House Count</div>
                 <Input
                   id="houseCount"
                   type="number"
                   placeholder="0"
                   onChange={(e) => form.setValue("content.houseCount", parseInt(e.target.value))}
+                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                 />
               </div>
               <div>
-                <Label htmlFor="houseCapacity">House Capacity</Label>
+                <div className="text-sm font-semibold text-gray-700 mb-1">House Capacity</div>
                 <Input
                   id="houseCapacity"
                   type="number"
                   placeholder="0"
                   onChange={(e) => form.setValue("content.houseCapacity", parseInt(e.target.value))}
+                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                 />
               </div>
             </div>
-            <div>
-              <Label htmlFor="performanceNotes">Performance Notes</Label>
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Performance Notes</div>
               <Textarea
                 id="performanceNotes"
                 rows={4}
                 placeholder="Notes about the performance..."
                 onChange={(e) => form.setValue("content.performanceNotes", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
-            <div>
-              <Label htmlFor="issues">Issues/Incidents</Label>
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Issues/Incidents</div>
               <Textarea
                 id="issues"
                 rows={3}
                 placeholder="Any issues or incidents during the show..."
                 onChange={(e) => form.setValue("content.issues", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
           </>
@@ -351,11 +364,11 @@ export default function ReportBuilder() {
         return (
           <>
             {commonFields}
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
-                <Label htmlFor="meetingType">Meeting Type</Label>
+                <div className="text-sm font-semibold text-gray-700 mb-2">Meeting Type</div>
                 <Select onValueChange={(value) => form.setValue("content.meetingType", value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
                     <SelectValue placeholder="Select meeting type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -368,38 +381,42 @@ export default function ReportBuilder() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="attendees">Attendees</Label>
+                <div className="text-sm font-semibold text-gray-700 mb-2">Attendees</div>
                 <Input
                   id="attendees"
                   placeholder="Number of attendees"
                   onChange={(e) => form.setValue("content.attendees", e.target.value)}
+                  className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
                 />
               </div>
             </div>
-            <div>
-              <Label htmlFor="agendaItems">Agenda Items</Label>
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Agenda Items</div>
               <Textarea
                 id="agendaItems"
                 rows={3}
                 placeholder="Main topics discussed..."
                 onChange={(e) => form.setValue("content.agendaItems", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
-            <div>
-              <Label htmlFor="actionItems">Action Items</Label>
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Action Items</div>
               <Textarea
                 id="actionItems"
                 rows={3}
                 placeholder="Tasks assigned and deadlines..."
                 onChange={(e) => form.setValue("content.actionItems", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
-            <div>
-              <Label htmlFor="nextMeeting">Next Meeting</Label>
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Next Meeting</div>
               <Input
                 id="nextMeeting"
                 type="datetime-local"
                 onChange={(e) => form.setValue("content.nextMeeting", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
             </div>
           </>
@@ -426,95 +443,100 @@ export default function ReportBuilder() {
       switch (field.type) {
         case 'text':
           return (
-            <div key={field.id}>
-              <Label htmlFor={fieldId}>
+            <div key={field.id} className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
+              </div>
               <Input
                 id={fieldId}
                 placeholder={field.placeholder || ''}
                 required={field.required}
                 onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
             </div>
           );
           
         case 'textarea':
           return (
-            <div key={field.id}>
-              <Label htmlFor={fieldId}>
+            <div key={field.id} className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
+              </div>
               <Textarea
                 id={fieldId}
                 placeholder={field.placeholder || ''}
                 rows={4}
                 required={field.required}
                 onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
           );
           
         case 'number':
           return (
-            <div key={field.id}>
-              <Label htmlFor={fieldId}>
+            <div key={field.id} className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
+              </div>
               <Input
                 id={fieldId}
                 type="number"
                 placeholder={field.placeholder || '0'}
                 required={field.required}
                 onChange={(e) => form.setValue(`content.${field.id}`, parseInt(e.target.value))}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
             </div>
           );
           
         case 'date':
           return (
-            <div key={field.id}>
-              <Label htmlFor={fieldId}>
+            <div key={field.id} className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
+              </div>
               <Input
                 id={fieldId}
                 type="date"
                 required={field.required}
                 onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
             </div>
           );
           
         case 'datetime':
           return (
-            <div key={field.id}>
-              <Label htmlFor={fieldId}>
+            <div key={field.id} className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
+              </div>
               <Input
                 id={fieldId}
                 type="datetime-local"
                 required={field.required}
                 onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
             </div>
           );
           
         case 'select':
           return (
-            <div key={field.id}>
-              <Label htmlFor={fieldId}>
+            <div key={field.id} className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
+              </div>
               <Select onValueChange={(value) => form.setValue(`content.${field.id}`, value)}>
-                <SelectTrigger>
+                <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
                   <SelectValue placeholder={field.placeholder || 'Select an option'} />
                 </SelectTrigger>
                 <SelectContent>
@@ -530,17 +552,17 @@ export default function ReportBuilder() {
           
         case 'checkbox':
           return (
-            <div key={field.id} className="flex items-center space-x-2">
+            <div key={field.id} className="mb-6 flex items-center space-x-2">
               <input
                 id={fieldId}
                 type="checkbox"
                 className="rounded border-gray-300"
                 onChange={(e) => form.setValue(`content.${field.id}`, e.target.checked)}
               />
-              <Label htmlFor={fieldId}>
+              <div className="text-sm font-semibold text-gray-700">
                 {field.label}
                 {field.required && <span className="text-red-500 ml-1">*</span>}
-              </Label>
+              </div>
             </div>
           );
           
@@ -588,84 +610,57 @@ export default function ReportBuilder() {
           </CardContent>
         </Card>
 
-        {/* Report Form */}
-        <Card>
+        {/* Report Form - Document Style */}
+        <Card className="min-h-[600px]">
           <CardContent className="p-8">
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <Label htmlFor="project">Project *</Label>
+            {/* Print-style Document Preview */}
+            <div className="bg-white min-h-[500px] shadow-lg border border-gray-200" style={{ 
+              width: "8.5in", 
+              margin: "0 auto",
+              padding: "1in",
+              fontFamily: "Arial, sans-serif"
+            }}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                {/* Header */}
+                <div className="text-center mb-6 pb-4 border-b">
                   <Input
-                    id="project"
-                    value={project?.name || 'Loading...'}
-                    disabled
-                    className="bg-gray-50"
+                    {...form.register("title")}
+                    placeholder="Report Title"
+                    className="text-center text-lg font-semibold border-0 bg-transparent resize-none p-0 focus:ring-0 focus:outline-none"
                   />
-                </div>
-                <div>
-                  <Label htmlFor="date">Date *</Label>
+                  <div className="text-sm text-gray-600 mt-2">
+                    {project?.name || 'Loading...'} - {new Date(form.watch("date") || new Date()).toLocaleDateString()}
+                  </div>
                   <Input
-                    id="date"
                     type="date"
                     {...form.register("date")}
+                    className="text-center text-sm border-0 bg-transparent p-0 focus:ring-0 focus:outline-none mt-1"
                   />
-                  {form.formState.errors.date && (
-                    <p className="text-sm text-red-600 mt-1">
-                      {form.formState.errors.date.message}
-                    </p>
-                  )}
                 </div>
-              </div>
 
-              <div>
-                <Label htmlFor="title">Report Title *</Label>
-                <Input
-                  id="title"
-                  placeholder="e.g., Rehearsal Report #5"
-                  {...form.register("title")}
-                />
-                {form.formState.errors.title && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {form.formState.errors.title.message}
-                  </p>
-                )}
-              </div>
+                {/* Document Fields */}
+                <div className="space-y-4">
+                  {renderTemplateFields()}
+                </div>
 
-              {/* Dynamic Template Fields */}
-              <div className="space-y-6">
-                {renderTemplateFields()}
-              </div>
-
-              <div className="flex justify-end space-x-4 pt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setLocation("/reports")}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!selectedTemplate}
-                >
-                  Save Draft
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!selectedTemplate}
-                >
-                  Preview PDF
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={mutation.isPending || !selectedTemplate}
-                >
-                  {mutation.isPending ? "Creating..." : "Generate Report"}
-                </Button>
-              </div>
-            </form>
+                {/* Action Buttons - Fixed at bottom */}
+                <div className="fixed bottom-6 right-6 flex space-x-2 bg-white shadow-lg rounded-lg p-4 border">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}`)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={mutation.isPending || !selectedTemplate}
+                  >
+                    {mutation.isPending ? "Creating..." : "Save Report"}
+                  </Button>
+                </div>
+              </form>
+            </div>
           </CardContent>
         </Card>
       </div>
