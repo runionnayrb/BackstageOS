@@ -114,11 +114,8 @@ export default function ShowReports() {
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">
-                      {report.title}
+                      {reportTypeName.slice(0, -1)} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {new Date(report.date || report.createdAt).toLocaleDateString()}
-                    </p>
                   </div>
                 </div>
               </div>
