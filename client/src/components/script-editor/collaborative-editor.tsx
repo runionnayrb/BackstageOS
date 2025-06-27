@@ -274,25 +274,21 @@ export function CollaborativeEditor({
       const formattedText = parseScriptText(pastedText);
       
       if (editorRef.current) {
+        // Save current state for undo
+        saveToUndoStack();
+        
+        // Simply replace the entire content to avoid cursor issues
+        editorRef.current.innerHTML = formattedText;
+        
+        // Place cursor at the end
+        const range = document.createRange();
         const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
-          range.deleteContents();
-          
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = formattedText;
-          
-          while (tempDiv.firstChild) {
-            range.insertNode(tempDiv.firstChild);
-          }
-          
-          range.collapse(false);
-          selection.removeAllRanges();
-          selection.addRange(range);
-          
-          saveToUndoStack();
-          handleContentChange();
-        }
+        range.selectNodeContents(editorRef.current);
+        range.collapse(false);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+        
+        handleContentChange();
       }
     } else {
       // For small text, just paste normally
@@ -335,10 +331,10 @@ export function CollaborativeEditor({
 
   // Initialize editor content only once to avoid cursor issues
   useEffect(() => {
-    if (editorRef.current && content && typeof content === 'string' && !editorRef.current.innerHTML) {
+    if (editorRef.current && content && typeof content === 'string' && editorRef.current.innerHTML.trim() === '') {
       editorRef.current.innerHTML = content;
     }
-  }, []);
+  }, [content]);
 
   return (
     <div className={`border rounded-lg bg-white dark:bg-gray-900 ${className}`}>
