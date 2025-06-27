@@ -320,11 +320,11 @@ export default function TemplateSettings() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation(`/shows/${projectId}/settings`)}
+            onClick={() => setLocation(`/shows/${projectId}`)}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Settings
+            Back to {(project as any)?.name || "Show"}
           </Button>
         </div>
 
