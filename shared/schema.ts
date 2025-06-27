@@ -32,7 +32,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   profileType: varchar("profile_type"), // 'freelance' or 'fulltime'
-  betaAccess: varchar("beta_access").default("none"), // 'none', 'limited', 'full'
+  betaAccess: varchar("beta_access").default("limited"), // 'none', 'limited', 'full'
   betaFeatures: jsonb("beta_features"), // Array of enabled features for beta users
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

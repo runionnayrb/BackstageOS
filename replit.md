@@ -219,6 +219,7 @@ Required environment variables:
 - June 27, 2025: **UNIFIED ADMIN DASHBOARD INTERFACE**: Created comprehensive admin dashboard accessible via header dropdown that consolidates user management and beta feature configuration in tabbed interface. Admins can now manage all users, control beta access levels, and configure which specific features are available to Limited vs Full beta users. Interface includes feature categorization (Production Tools, Reports & Templates, Team Management, Planning) with granular on/off controls for each access level.
 - June 27, 2025: **VERSION TRACKING SYSTEM**: Added clickable version footer on every page displaying "Backstage OS Version X.X.X" that opens comprehensive release notes modal. System tracks all updates chronologically with color-coded release types (Major, Feature, Bugfix, Initial), detailed feature descriptions, and automatic current version highlighting. Provides complete transparency of platform evolution for users and stakeholders.
 - June 27, 2025: **LANDING PAGE MESSAGING UPDATE**: Changed sign-in page text from "Join theater professionals worldwide" to "Join Professional Stage Managers Worldwide" to better target the platform's specific audience of stage management professionals.
+- June 27, 2025: **DEFAULT BETA ACCESS CHANGE**: Updated new user registration to default to "limited" beta access instead of "none" - admins can still upgrade users to "full" access or downgrade to "none" as needed.
 
 ## User Preferences
 
