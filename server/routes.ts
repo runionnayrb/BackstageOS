@@ -255,6 +255,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Project-specific reports routes
+  app.get('/api/projects/:id/reports', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check access (owner or team member)
+      if (project.ownerId !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const reports = await storage.getReportsByProjectId(projectId);
+      res.json(reports);
+    } catch (error) {
+      console.error("Error fetching project reports:", error);
+      res.status(500).json({ message: "Failed to fetch reports" });
+    }
+  });
+
+  app.post('/api/projects/:id/reports', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const userId = req.user.claims.sub;
+      const reportData = insertReportSchema.parse({
+        ...req.body,
+        projectId,
+        createdBy: userId,
+      });
+
+      const report = await storage.createReport(reportData);
+      res.json(report);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid report data", errors: error.errors });
+      }
+      console.error("Error creating project report:", error);
+      res.status(500).json({ message: "Failed to create report" });
+    }
+  });
+
   app.put('/api/reports/:id', isAuthenticated, async (req: any, res) => {
     try {
       const reportId = parseInt(req.params.id);

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -9,13 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, Settings, Star, Users, FileText } from "lucide-react";
+import { Clock, Settings, Star, Users, FileText, ArrowLeft } from "lucide-react";
 
 const reportSchema = z.object({
-  projectId: z.string().min(1, "Project is required"),
+  projectId: z.number(),
   title: z.string().min(1, "Title is required"),
   type: z.string().min(1, "Template type is required"),
   date: z.string().min(1, "Date is required"),
@@ -25,47 +25,66 @@ const reportSchema = z.object({
 
 type ReportFormData = z.infer<typeof reportSchema>;
 
+interface ReportBuilderParams {
+  id: string;
+  type: string;
+}
+
 export default function ReportBuilder() {
   const [, setLocation] = useLocation();
+  const params = useParams<ReportBuilderParams>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [customTemplate, setCustomTemplate] = useState<any>(null);
+  
+  const projectId = parseInt(params.id!);
+  const reportType = params.type;
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ["/api/projects"],
+  const { data: project } = useQuery({
+    queryKey: [`/api/projects/${projectId}`],
   });
 
   const { data: templateData } = useQuery({
-    queryKey: ["/api/templates"],
+    queryKey: [`/api/projects/${projectId}/templates`],
+    enabled: !!projectId,
   });
 
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
     defaultValues: {
-      projectId: "",
+      projectId: projectId,
       title: "",
-      type: "",
+      type: reportType || "",
       date: new Date().toISOString().split('T')[0],
       content: {},
     },
   });
 
+  // Set form values when project and report type are available
+  useEffect(() => {
+    if (projectId && reportType) {
+      form.setValue("projectId", projectId);
+      form.setValue("type", reportType);
+      // Auto-select the template based on report type
+      setSelectedTemplate(reportType);
+    }
+  }, [projectId, reportType]);
+
   const mutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
-      await apiRequest("POST", "/api/reports", {
+      await apiRequest("POST", `/api/projects/${projectId}/reports`, {
         ...data,
-        projectId: parseInt(data.projectId),
         date: new Date(data.date),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/reports"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/reports`] });
       toast({
         title: "Report Created",
         description: "Your report has been created successfully!",
       });
-      setLocation("/reports");
+      setLocation(`/shows/${projectId}/reports/${reportType}`);
     },
     onError: (error) => {
       toast({
@@ -112,11 +131,9 @@ export default function ReportBuilder() {
   ];
 
   // Combine built-in and custom templates
-  const userTemplates = Array.isArray(templateData?.userTemplates) ? templateData.userTemplates : [];
-  const defaultTemplates = Array.isArray(templateData?.defaultTemplates) ? templateData.defaultTemplates : [];
-  const publicTemplates = Array.isArray(templateData?.publicTemplates) ? templateData.publicTemplates : [];
+  const customTemplates = Array.isArray(templateData) ? templateData : [];
   
-  const allCustomTemplates = [...userTemplates, ...defaultTemplates, ...publicTemplates].map((template: any) => ({
+  const allCustomTemplates = customTemplates.map((template: any) => ({
     id: `custom-${template.id}`,
     name: template.name,
     description: template.description || "Custom template",
@@ -578,23 +595,12 @@ export default function ReportBuilder() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="project">Project *</Label>
-                  <Select onValueChange={(value) => form.setValue("projectId", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select project..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {projects.map((project: any) => (
-                        <SelectItem key={project.id} value={project.id.toString()}>
-                          {project.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {form.formState.errors.projectId && (
-                    <p className="text-sm text-red-600 mt-1">
-                      {form.formState.errors.projectId.message}
-                    </p>
-                  )}
+                  <Input
+                    id="project"
+                    value={project?.name || 'Loading...'}
+                    disabled
+                    className="bg-gray-50"
+                  />
                 </div>
                 <div>
                   <Label htmlFor="date">Date *</Label>

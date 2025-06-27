@@ -26,6 +26,7 @@ import ShowSettings from "@/pages/show-settings";
 import ShowReportsList from "@/pages/show-reports-list";
 import TemplateSettings from "@/pages/template-settings";
 import GlobalTemplateSettings from "@/pages/global-template-settings";
+import NewReport from "@/pages/new-report";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -54,6 +55,7 @@ function Router() {
         <Route path="/create-project" component={CreateProject} />
         <Route path="/shows/:id" component={ShowDetail} />
         <Route path="/shows/:id/reports" component={ShowReportsList} />
+        <Route path="/shows/:id/reports/:type/new" component={NewReport} />
         <Route path="/shows/:id/reports/:type" component={ShowReports} />
         <Route path="/shows/:id/script" component={ScriptEditor} />
         <Route path="/shows/:id/props" component={PropsTracker} />
