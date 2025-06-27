@@ -230,8 +230,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
+      console.log("Project ownership check:", {
+        projectOwnerId: project.ownerId,
+        projectOwnerIdType: typeof project.ownerId,
+        userId: req.user.id,
+        userIdType: typeof req.user.id,
+        userIdString: req.user.id.toString(),
+        match: project.ownerId == req.user.id.toString()
+      });
+
+      // Check ownership - use loose equality to handle type conversion
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -468,8 +477,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check access (owner or team member)
-      if (project.ownerId !== req.user.id.toString()) {
+      // Check access (owner or team member) - use loose equality to handle type conversion
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -745,8 +754,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Project not found" });
       }
 
-      // Check ownership
-      if (project.ownerId !== req.user.id.toString()) {
+      // Check ownership - use loose equality to handle type conversion
+      if (project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
