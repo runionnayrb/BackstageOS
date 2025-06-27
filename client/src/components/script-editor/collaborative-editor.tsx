@@ -225,19 +225,29 @@ export function CollaborativeEditor({
         continue;
       }
 
-      // Theater-specific scene headings (ACT, SCENE, or location descriptions)
+      // Play titles and scene headings
       if (/^(ACT\s+[IVX\d]+|SCENE\s+[IVX\d]+|PROLOGUE|EPILOGUE)/.test(line.toUpperCase()) ||
-          /^(SETTING:|PLACE:|TIME:|AT\s+RISE:|LIGHTS\s+UP:|BLACKOUT)/.test(line.toUpperCase())) {
+          /^(SETTING:|PLACE:|TIME:|AT\s+RISE:|LIGHTS\s+UP:|BLACKOUT)/.test(line.toUpperCase()) ||
+          // Play titles (all caps, longer than 10 characters, often centered)
+          (line === line.toUpperCase() && line.length > 10 && /^[A-Z\s]+$/.test(line) && 
+           !line.includes('(') && !line.includes(')') && !line.includes('.') &&
+           !/^(BY\s|THE\s|AND\s|OR\s|OF\s|IN\s|ON\s|AT\s|TO\s|FOR\s|WITH\s|FROM\s)/.test(line))) {
         formattedLines.push(`<div class="script-scene_heading">${line.toUpperCase()}</div>`);
       }
-      // Character names (ALL CAPS, may include parentheticals for theater)
+      // Author names and bylines
+      else if (/^(BY\s|WRITTEN\s+BY|AUTHOR:|PLAYWRIGHT:)/i.test(line) || 
+               /^[A-Z][a-z]+\s+[A-Z][a-z]+$/.test(line.trim())) {
+        formattedLines.push(`<div class="script-author">${line}</div>`);
+      }
+      // Character names (short, all caps, standalone lines)
       else if (line === line.toUpperCase() && 
                line.length > 1 && 
-               line.length < 50 && 
+               line.length < 30 && 
                /^[A-Z\s\(\)\']+$/.test(line) &&
-               !line.includes('.') &&
-               !line.includes(':') &&
-               !/^(LIGHTS|SOUND|MUSIC|END|CURTAIN|BLACKOUT)/.test(line)) {
+               !line.includes('.') && !line.includes(',') &&
+               !/^(LIGHTS|SOUND|MUSIC|END|CURTAIN|BLACKOUT|THE|AND|OR|OF|IN|ON|AT|TO|FOR|WITH|FROM)/.test(line) &&
+               // Must be a standalone short line, not part of a sentence
+               i > 0 && (i === lines.length - 1 || !lines[i + 1] || lines[i + 1].trim() === '')) {
         formattedLines.push(`<div class="script-character">${line}</div>`);
       }
       // Stage directions (parentheses, brackets, or theater-specific actions)
@@ -565,10 +575,11 @@ export function CollaborativeEditor({
           size="sm"
           onClick={() => {
             if (editorRef.current) {
-              const currentContent = editorRef.current.innerText;
+              saveToUndoStack();
+              // Get plain text content, preserving line breaks
+              const currentContent = editorRef.current.innerText || editorRef.current.textContent || '';
               const formattedContent = parseScriptText(currentContent);
               editorRef.current.innerHTML = formattedContent;
-              saveToUndoStack();
               handleContentChange();
             }
           }}
