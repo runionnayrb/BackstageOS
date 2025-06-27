@@ -117,7 +117,6 @@ export default function ShowDetail() {
       icon: Settings,
       items: [
         { name: "General Settings", href: `/shows/${projectId}/settings` },
-        { name: "Report Templates", href: `/shows/${projectId}/templates` },
       ],
     },
   ];
