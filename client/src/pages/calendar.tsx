@@ -68,18 +68,15 @@ export default function Calendar() {
           </p>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-1">
           {sections.map((section) => (
             <div
               key={section.title}
-              className="p-6 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+              className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
               onClick={() => setLocation(section.href)}
             >
               <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900">{section.title}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{section.description}</p>
-                </div>
+                <h3 className="text-lg font-medium text-gray-900">{section.title}</h3>
                 <span className="text-gray-400 text-lg">→</span>
               </div>
             </div>
