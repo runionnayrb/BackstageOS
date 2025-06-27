@@ -193,16 +193,71 @@ export function CollaborativeEditor({
   useEffect(() => {
     if (editorRef.current && content !== editorRef.current.innerHTML) {
       editorRef.current.innerHTML = content || '';
+      // Trigger content distribution after content is set
+      setTimeout(() => distributeContentAcrossPages(), 100);
     }
   }, [content]);
+
+  // Function to distribute content across pages
+  const distributeContentAcrossPages = useCallback(() => {
+    if (!editorRef.current) return;
+
+    const page1 = editorRef.current;
+    const page2Container = document.getElementById('page-2-content');
+    const page3Container = document.getElementById('page-3-content');
+    
+    if (!page2Container || !page3Container) return;
+
+    // Clear subsequent pages
+    page2Container.innerHTML = '';
+    page3Container.innerHTML = '';
+
+    // Check if page 1 is overflowing
+    const page1Height = page1.scrollHeight;
+    const page1MaxHeight = page1.clientHeight;
+
+    if (page1Height > page1MaxHeight) {
+      // Get all text content
+      const allText = page1.innerText || '';
+      const lines = allText.split('\n');
+      
+      // Estimate how many lines fit per page (rough calculation)
+      const lineHeight = 18; // 12pt * 1.5 line height ≈ 18px
+      const pageContentHeight = page1MaxHeight - 32; // Account for padding
+      const linesPerPage = Math.floor(pageContentHeight / lineHeight);
+      
+      // Distribute lines across pages
+      const page1Lines = lines.slice(0, linesPerPage);
+      const page2Lines = lines.slice(linesPerPage, linesPerPage * 2);
+      const page3Lines = lines.slice(linesPerPage * 2);
+      
+      // Update page 1 content (preserve HTML formatting)
+      const page1Content = page1Lines.join('\n');
+      if (page1Content !== page1.innerText) {
+        page1.innerHTML = page1Content;
+      }
+      
+      // Set page 2 content
+      if (page2Lines.length > 0) {
+        page2Container.innerHTML = page2Lines.join('\n');
+      }
+      
+      // Set page 3 content
+      if (page3Lines.length > 0) {
+        page3Container.innerHTML = page3Lines.join('\n');
+      }
+    }
+  }, []);
 
   // Handle input events specifically to preserve cursor position
   const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
     if (editorRef.current) {
       const newContent = editorRef.current.innerHTML;
       onChange(newContent);
+      // Distribute content across pages after a short delay
+      setTimeout(() => distributeContentAcrossPages(), 50);
     }
-  }, [onChange]);
+  }, [onChange, distributeContentAcrossPages]);
 
   // Parse and format script text automatically
   const parseScriptText = useCallback((text: string) => {
@@ -638,61 +693,87 @@ export function CollaborativeEditor({
         <div className="flex-1">
           {/* Page container with realistic document styling */}
           <div className="bg-gray-100 dark:bg-gray-800 p-8 space-y-8">
-            {/* Continuous editor that spans multiple pages visually */}
-            <div className="relative">
+            {/* Page 1 */}
+            <div className="bg-white mx-auto shadow-lg relative" style={{ 
+              width: '8.5in', 
+              height: '11in',
+              fontFamily: 'Courier, monospace',
+              fontSize: '12pt',
+              lineHeight: '1.5'
+            }}>
+              <div className="absolute top-2 right-4 text-xs text-gray-400 pointer-events-none">
+                Page 1
+              </div>
               <div
                 ref={editorRef}
                 contentEditable
                 onInput={handleInput}
                 onPaste={handlePaste}
                 onMouseUp={handleTextSelection}
-                className="focus:outline-none text-black"
+                className="focus:outline-none text-black overflow-hidden"
                 style={{ 
                   whiteSpace: 'pre-wrap',
-                  fontFamily: 'Courier, monospace',
-                  fontSize: '12pt',
-                  lineHeight: '1.5',
-                  minHeight: '33in', // Allow content to span multiple pages
-                  // Create page backgrounds that appear as separate pages
-                  backgroundImage: `
-                    linear-gradient(to bottom, 
-                      white 0in, white 9in, 
-                      transparent 9in, transparent 10in,
-                      white 10in, white 19in,
-                      transparent 19in, transparent 20in,
-                      white 20in, white 29in,
-                      transparent 29in, transparent 30in,
-                      white 30in, white 39in
-                    )
-                  `,
-                  backgroundSize: '8.5in 40in',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'center',
-                  width: '8.5in',
-                  margin: '0 auto',
                   padding: '1in',
-                  // Add page shadows
-                  boxShadow: `
-                    0 0 0 1px rgba(0,0,0,0.1),
-                    0 2px 10px rgba(0,0,0,0.1),
-                    0 10in 0 0 rgba(0,0,0,0.1),
-                    0 calc(10in + 2px) 10px rgba(0,0,0,0.1),
-                    0 20in 0 0 rgba(0,0,0,0.1),
-                    0 calc(20in + 2px) 10px rgba(0,0,0,0.1)
-                  `
+                  paddingTop: '1.2in', // Extra space for page number
+                  paddingBottom: '1in',
+                  height: 'calc(11in - 2.2in)', // Full height minus top/bottom padding
+                  boxSizing: 'border-box'
                 }}
                 suppressContentEditableWarning={true}
               />
-              
-              {/* Page labels positioned absolutely */}
-              <div className="absolute top-2 right-2 text-xs text-gray-500 pointer-events-none">
-                Page 1
-              </div>
-              <div className="absolute right-2 text-xs text-gray-500 pointer-events-none" style={{ top: 'calc(10in + 8px)' }}>
+            </div>
+            
+            {/* Page 2 */}
+            <div className="bg-white mx-auto shadow-lg relative" style={{ 
+              width: '8.5in', 
+              height: '11in',
+              fontFamily: 'Courier, monospace',
+              fontSize: '12pt',
+              lineHeight: '1.5'
+            }}>
+              <div className="absolute top-2 right-4 text-xs text-gray-400 pointer-events-none">
                 Page 2
               </div>
-              <div className="absolute right-2 text-xs text-gray-500 pointer-events-none" style={{ top: 'calc(20in + 16px)' }}>
+              <div 
+                className="text-black overflow-hidden"
+                style={{ 
+                  whiteSpace: 'pre-wrap',
+                  padding: '1in',
+                  paddingTop: '1.2in',
+                  paddingBottom: '1in',
+                  height: 'calc(11in - 2.2in)',
+                  boxSizing: 'border-box'
+                }}
+                id="page-2-content"
+              >
+                {/* Page 2 content will be dynamically populated */}
+              </div>
+            </div>
+            
+            {/* Page 3 */}
+            <div className="bg-white mx-auto shadow-lg relative" style={{ 
+              width: '8.5in', 
+              height: '11in',
+              fontFamily: 'Courier, monospace',
+              fontSize: '12pt',
+              lineHeight: '1.5'
+            }}>
+              <div className="absolute top-2 right-4 text-xs text-gray-400 pointer-events-none">
                 Page 3
+              </div>
+              <div 
+                className="text-black overflow-hidden"
+                style={{ 
+                  whiteSpace: 'pre-wrap',
+                  padding: '1in',
+                  paddingTop: '1.2in',
+                  paddingBottom: '1in',
+                  height: 'calc(11in - 2.2in)',
+                  boxSizing: 'border-box'
+                }}
+                id="page-3-content"
+              >
+                {/* Page 3 content will be dynamically populated */}
               </div>
             </div>
           </div>
