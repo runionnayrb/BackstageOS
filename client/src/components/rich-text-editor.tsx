@@ -300,10 +300,10 @@ export function RichTextEditor({
                   <SelectValue placeholder="Select format" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">{"{{pageNumber}}"}</SelectItem>
-                  <SelectItem value="1 of X">{"{{pageNumber}} of {{totalPages}}"}</SelectItem>
-                  <SelectItem value="Page 1">{"Page {{pageNumber}}"}</SelectItem>
-                  <SelectItem value="Page 1 of X">{"Page {{pageNumber}} of {{totalPages}}"}</SelectItem>
+                  <SelectItem value="1">1</SelectItem>
+                  <SelectItem value="1 of X">1 of X</SelectItem>
+                  <SelectItem value="Page 1">Page 1</SelectItem>
+                  <SelectItem value="Page 1 of X">Page 1 of X</SelectItem>
                 </SelectContent>
               </Select>
               <Button
