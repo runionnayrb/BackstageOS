@@ -1052,15 +1052,7 @@ export default function GlobalTemplateSettings() {
                         placeholder="Enter header content with rich formatting..."
                         className="min-h-[120px]"
                         showPageNumbers={true}
-                        pageNumberEnabled={settings.pageNumbering.enabled}
                         pageNumberFormat={settings.pageNumbering.format}
-                        onPageNumberToggle={(enabled) => setSettings(prev => ({
-                          ...prev,
-                          pageNumbering: {
-                            ...prev.pageNumbering,
-                            enabled
-                          }
-                        }))}
                         onPageNumberFormatChange={(format) => setSettings(prev => ({
                           ...prev,
                           pageNumbering: {
@@ -1070,7 +1062,7 @@ export default function GlobalTemplateSettings() {
                         }))}
                       />
                       <p className="text-sm text-muted-foreground">
-                        Use variables: {`{{showName}}, {{reportType}}, {{date}}, {{stageManager}}, {{venue}}`} • Page numbering controls are on the right side of the toolbar
+                        Use variables: {`{{showName}}, {{reportType}}, {{date}}, {{stageManager}}, {{venue}}`} • Use the page number dropdown and Insert button on the right side of the toolbar
                       </p>
                     </div>
 
@@ -1126,15 +1118,7 @@ export default function GlobalTemplateSettings() {
                         placeholder="Enter footer content with rich formatting..."
                         className="min-h-[100px]"
                         showPageNumbers={true}
-                        pageNumberEnabled={settings.pageNumbering.enabled}
                         pageNumberFormat={settings.pageNumbering.format}
-                        onPageNumberToggle={(enabled) => setSettings(prev => ({
-                          ...prev,
-                          pageNumbering: {
-                            ...prev.pageNumbering,
-                            enabled
-                          }
-                        }))}
                         onPageNumberFormatChange={(format) => setSettings(prev => ({
                           ...prev,
                           pageNumbering: {
@@ -1144,7 +1128,7 @@ export default function GlobalTemplateSettings() {
                         }))}
                       />
                       <p className="text-sm text-muted-foreground">
-                        Use variables: {`{{preparedBy}}, {{nextReportDate}}, {{contactInfo}}, {{emergencyContact}}`} • Page numbering controls are on the right side of the toolbar
+                        Use variables: {`{{preparedBy}}, {{nextReportDate}}, {{contactInfo}}, {{emergencyContact}}`} • Use the page number dropdown and Insert button on the right side of the toolbar
                       </p>
                     </div>
 

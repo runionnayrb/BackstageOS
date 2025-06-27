@@ -12,9 +12,7 @@ interface RichTextEditorProps {
   placeholder?: string;
   className?: string;
   showPageNumbers?: boolean;
-  pageNumberEnabled?: boolean;
   pageNumberFormat?: "1" | "1 of X" | "Page 1" | "Page 1 of X";
-  onPageNumberToggle?: (enabled: boolean) => void;
   onPageNumberFormatChange?: (format: "1" | "1 of X" | "Page 1" | "Page 1 of X") => void;
 }
 
@@ -24,9 +22,7 @@ export function RichTextEditor({
   placeholder, 
   className = "",
   showPageNumbers = false,
-  pageNumberEnabled = false,
   pageNumberFormat = "1",
-  onPageNumberToggle,
   onPageNumberFormatChange
 }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
@@ -53,6 +49,25 @@ export function RichTextEditor({
 
   const insertVariable = (variable: string) => {
     executeCommand('insertText', `{{${variable}}}`);
+  };
+
+  const insertPageNumber = (format: string) => {
+    let pageNumberText = "";
+    switch (format) {
+      case "1":
+        pageNumberText = "{{pageNumber}}";
+        break;
+      case "1 of X":
+        pageNumberText = "{{pageNumber}} of {{totalPages}}";
+        break;
+      case "Page 1":
+        pageNumberText = "Page {{pageNumber}}";
+        break;
+      case "Page 1 of X":
+        pageNumberText = "Page {{pageNumber}} of {{totalPages}}";
+        break;
+    }
+    executeCommand('insertText', ` ${pageNumberText}`);
   };
 
   const formatText = (command: string) => {
@@ -277,76 +292,49 @@ export function RichTextEditor({
           <>
             <div className="w-px h-6 bg-gray-300 mx-1" />
             <div className="flex items-center gap-2">
-              <Switch
-                checked={pageNumberEnabled}
-                onCheckedChange={onPageNumberToggle}
-                className="scale-75"
-              />
-              <Hash className="h-4 w-4 text-gray-500" />
-              {pageNumberEnabled && (
-                <Select
-                  value={pageNumberFormat}
-                  onValueChange={onPageNumberFormatChange}
-                >
-                  <SelectTrigger className="w-20 h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="1">1</SelectItem>
-                    <SelectItem value="1 of X">1 of X</SelectItem>
-                    <SelectItem value="Page 1">Page 1</SelectItem>
-                    <SelectItem value="Page 1 of X">Page 1 of X</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
+              <Select
+                value={pageNumberFormat}
+                onValueChange={onPageNumberFormatChange}
+              >
+                <SelectTrigger className="w-40 h-8 text-xs">
+                  <SelectValue placeholder="Select format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">{{pageNumber}}</SelectItem>
+                  <SelectItem value="1 of X">{{pageNumber}} of {{totalPages}}</SelectItem>
+                  <SelectItem value="Page 1">Page {{pageNumber}}</SelectItem>
+                  <SelectItem value="Page 1 of X">Page {{pageNumber}} of {{totalPages}}</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => insertPageNumber(pageNumberFormat)}
+                className="h-8 text-xs"
+              >
+                Insert
+              </Button>
             </div>
           </>
         )}
       </div>
 
       {/* Editor */}
-      <div className="relative">
-        <div
-          ref={editorRef}
-          contentEditable
-          onInput={handleInput}
-          className="min-h-[120px] p-4 focus:outline-none"
-          style={{ 
-            whiteSpace: 'pre-wrap',
-            fontFamily: 'inherit',
-            fontSize: 'inherit',
-            lineHeight: 'inherit'
-          }}
-          data-placeholder={placeholder}
-          dangerouslySetInnerHTML={{ __html: content }}
-        />
-        
-        {/* Page number preview overlay */}
-        {showPageNumbers && pageNumberEnabled && (
-          <div className="absolute inset-0 pointer-events-none p-4">
-            <div
-              className="min-h-[120px] text-blue-500 font-medium opacity-75"
-              style={{ 
-                whiteSpace: 'pre-wrap',
-                fontFamily: 'inherit',
-                fontSize: 'inherit',
-                lineHeight: 'inherit'
-              }}
-              dangerouslySetInnerHTML={{
-                __html: content.replace(/{{pageNumber}}/g, () => {
-                  switch (pageNumberFormat) {
-                    case "1": return "1";
-                    case "1 of X": return "1 of 5";
-                    case "Page 1": return "Page 1";
-                    case "Page 1 of X": return "Page 1 of 5";
-                    default: return "1";
-                  }
-                }).replace(/{{totalPages}}/g, "5")
-              }}
-            />
-          </div>
-        )}
-      </div>
+      <div
+        ref={editorRef}
+        contentEditable
+        onInput={handleInput}
+        className="min-h-[120px] p-4 focus:outline-none"
+        style={{ 
+          whiteSpace: 'pre-wrap',
+          fontFamily: 'inherit',
+          fontSize: 'inherit',
+          lineHeight: 'inherit'
+        }}
+        data-placeholder={placeholder}
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
 
       {/* Click outside to close dropdowns */}
       {(showColorPicker || showFontSize) && (
