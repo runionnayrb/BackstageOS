@@ -89,12 +89,14 @@ export default function ShowSettings() {
   const isFullTime = user?.profileType === "fulltime";
   const showLabel = isFullTime ? "Show" : "Project";
 
-  const { data: project, isLoading: projectLoading } = useQuery({
-    queryKey: ["/api/projects", id],
+  const { data: project, isLoading: projectLoading, error: projectError } = useQuery({
+    queryKey: [`/api/projects/${id}`],
+    enabled: !!id,
   });
 
   const { data: settings, isLoading } = useQuery({
-    queryKey: ["/api/projects", id, "settings"],
+    queryKey: [`/api/projects/${id}/settings`],
+    enabled: !!id,
   });
 
   const updateSettingsMutation = useMutation({
