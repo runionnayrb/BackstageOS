@@ -1678,7 +1678,7 @@ export default function GlobalTemplateSettings() {
                         lineHeight: settings.fonts.heading.lineHeight
                       }}
                     >
-                      {settings.defaultHeader
+                      {settings.defaultHeader.content
                         .replace(/\{\{showName\}\}/g, (project as any)?.name || "Show Name")
                         .replace(/\{\{reportType\}\}/g, "Sample Report")
                         .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
@@ -1742,7 +1742,7 @@ export default function GlobalTemplateSettings() {
                   {/* Footer Preview */}
                   <div className="text-center border-t pt-4 text-sm text-gray-600">
                     <div className="whitespace-pre-line">
-                      {settings.defaultFooter
+                      {settings.defaultFooter.content
                         .replace(/\{\{preparedBy\}\}/g, "Stage Manager")
                         .replace(/\{\{nextReportDate\}\}/g, "Tomorrow")}
                     </div>
