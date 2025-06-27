@@ -8,6 +8,7 @@ import {
   showSchedules,
   showCharacters,
   showSettings,
+  globalTemplateSettings,
   type User,
   type UpsertUser,
   type Project,
@@ -26,6 +27,8 @@ import {
   type InsertShowCharacter,
   type ShowSettings,
   type InsertShowSettings,
+  type GlobalTemplateSettings,
+  type InsertGlobalTemplateSettings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
@@ -452,6 +455,39 @@ export class DatabaseStorage implements IStorage {
     });
     
     return shareableLink;
+  }
+
+  // Global template settings operations
+  async getGlobalTemplateSettingsByProjectId(projectId: number): Promise<GlobalTemplateSettings | undefined> {
+    const [settings] = await db.select().from(globalTemplateSettings).where(eq(globalTemplateSettings.projectId, projectId));
+    return settings;
+  }
+
+  async upsertGlobalTemplateSettings(settingsData: InsertGlobalTemplateSettings): Promise<GlobalTemplateSettings> {
+    const [settings] = await db
+      .insert(globalTemplateSettings)
+      .values(settingsData)
+      .onConflictDoUpdate({
+        target: globalTemplateSettings.projectId,
+        set: {
+          ...settingsData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return settings;
+  }
+
+  async updateGlobalTemplateSettings(projectId: number, settingsData: Partial<InsertGlobalTemplateSettings>): Promise<GlobalTemplateSettings> {
+    const [settings] = await db
+      .update(globalTemplateSettings)
+      .set({
+        ...settingsData,
+        updatedAt: new Date(),
+      })
+      .where(eq(globalTemplateSettings.projectId, projectId))
+      .returning();
+    return settings;
   }
 }
 

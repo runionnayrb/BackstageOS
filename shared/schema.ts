@@ -219,8 +219,8 @@ export const globalTemplateSettings = pgTable("global_template_settings", {
   lists: jsonb("lists").notNull().default('{"numbered":{"spacing":"6px","indentation":"20px","style":"1."},"bulleted":{"spacing":"6px","indentation":"20px","style":"•"}}'),
   dateFormat: varchar("date_format").notNull().default("MM/DD/YYYY"),
   timeFormat: varchar("time_format").notNull().default("12h"),
-  defaultHeader: jsonb("default_header").notNull().default('{"content":"{{showName}} - {{reportType}}\\nDate: {{date}}\\nStage Manager: {{stageManager}}","formatting":{"fontFamily":"Arial, sans-serif","fontSize":"14px","fontWeight":"bold","color":"#000000","alignment":"center","includeLogo":false,"includeDate":true,"includePageNumber":false,"customVariables":[]}}'),
-  defaultFooter: jsonb("default_footer").notNull().default('{"content":"Prepared by: {{preparedBy}}\\nNext report: {{nextReportDate}}","formatting":{"fontFamily":"Arial, sans-serif","fontSize":"10px","fontWeight":"normal","color":"#666666","alignment":"center","includeLogo":false,"includeDate":false,"includePageNumber":true,"customVariables":[]}}'),
+  defaultHeader: text("default_header").notNull().default('<div style="text-align: center; font-weight: bold;">{{showName}} - {{reportType}}<br>Date: {{date}}<br>Stage Manager: {{stageManager}}</div>'),
+  defaultFooter: text("default_footer").notNull().default('<div style="text-align: center; color: #666666;">Prepared by: {{preparedBy}}<br>Next report: {{nextReportDate}}</div>'),
   emailSettings: jsonb("email_settings").notNull().default('{"distributionLists":{"to":[],"cc":[],"bcc":[]},"subjectTemplate":"{{showName}} - {{reportType}} - {{date}}","bodyTemplate":"Please find attached the {{reportType}} for {{showName}}.\\n\\nBest regards,\\n{{stageManager}}","signature":""}'),
   productionLogo: text("production_logo"), // Base64 encoded image
   productionPhoto: text("production_photo"), // Base64 encoded image

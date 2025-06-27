@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -535,6 +535,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating report template:", error);
       res.status(500).json({ message: "Failed to update template" });
+    }
+  });
+
+  // Global template settings routes
+  app.get('/api/projects/:id/global-template-settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const settings = await storage.getGlobalTemplateSettingsByProjectId(projectId);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching global template settings:", error);
+      res.status(500).json({ message: "Failed to fetch global template settings" });
+    }
+  });
+
+  app.post('/api/projects/:id/global-template-settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId !== req.user.claims.sub) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const settingsData = insertGlobalTemplateSettingsSchema.parse({
+        ...req.body,
+        projectId,
+      });
+
+      const settings = await storage.upsertGlobalTemplateSettings(settingsData);
+      res.json(settings);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
+      console.error("Error saving global template settings:", error);
+      res.status(500).json({ message: "Failed to save global template settings" });
     }
   });
 
