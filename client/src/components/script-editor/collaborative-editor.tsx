@@ -142,6 +142,61 @@ export function CollaborativeEditor({
     }
   }, [onChange]);
 
+  // Save and restore cursor position
+  const saveCursorPosition = useCallback(() => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0 && editorRef.current) {
+      const range = selection.getRangeAt(0);
+      const preSelectionRange = range.cloneRange();
+      preSelectionRange.selectNodeContents(editorRef.current);
+      preSelectionRange.setEnd(range.startContainer, range.startOffset);
+      return preSelectionRange.toString().length;
+    }
+    return 0;
+  }, []);
+
+  const restoreCursorPosition = useCallback((savedPosition: number) => {
+    if (!editorRef.current) return;
+    
+    const selection = window.getSelection();
+    if (!selection) return;
+
+    const textNodes: Text[] = [];
+    const walker = document.createTreeWalker(
+      editorRef.current,
+      NodeFilter.SHOW_TEXT,
+      null,
+      false
+    );
+
+    let node;
+    while (node = walker.nextNode()) {
+      textNodes.push(node as Text);
+    }
+
+    let currentPosition = 0;
+    for (const textNode of textNodes) {
+      const textLength = textNode.textContent?.length || 0;
+      if (currentPosition + textLength >= savedPosition) {
+        const range = document.createRange();
+        range.setStart(textNode, savedPosition - currentPosition);
+        range.setEnd(textNode, savedPosition - currentPosition);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        break;
+      }
+      currentPosition += textLength;
+    }
+  }, []);
+
+  // Handle input events specifically to preserve cursor position
+  const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
+    if (editorRef.current) {
+      const newContent = editorRef.current.innerHTML;
+      onChange(newContent);
+    }
+  }, [onChange]);
+
   // Handle file import
   const handleFileImport = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -183,12 +238,12 @@ export function CollaborativeEditor({
     }
   }, [saveToUndoStack, handleContentChange]);
 
-  // Initialize editor content
+  // Initialize editor content only once to avoid cursor issues
   useEffect(() => {
-    if (editorRef.current && content && typeof content === 'string') {
+    if (editorRef.current && content && typeof content === 'string' && !editorRef.current.innerHTML) {
       editorRef.current.innerHTML = content;
     }
-  }, [content]);
+  }, []);
 
   return (
     <div className={`border rounded-lg bg-white dark:bg-gray-900 ${className}`}>
@@ -447,7 +502,7 @@ export function CollaborativeEditor({
             <div
               ref={editorRef}
               contentEditable
-              onInput={handleContentChange}
+              onInput={handleInput}
               onMouseUp={handleTextSelection}
               className="min-h-full focus:outline-none text-black"
               style={{ 
