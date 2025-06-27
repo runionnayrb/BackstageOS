@@ -165,9 +165,9 @@ function AdminUsersContent() {
                       : user.email}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={user.betaAccess === 'full' ? 'default' : user.betaAccess === 'limited' ? 'secondary' : 'outline'}>
+                    <span className="text-sm text-muted-foreground">
                       {user.betaAccess}
-                    </Badge>
+                    </span>
                     {editingUser === user.id ? (
                       <div className="flex gap-2">
                         <Button size="sm" onClick={saveEdit} disabled={updateUserMutation.isPending}>
