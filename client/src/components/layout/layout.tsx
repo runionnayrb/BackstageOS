@@ -1,4 +1,5 @@
 import Header from "./header";
+import VersionFooter from "../version-footer";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -6,11 +7,12 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
       <Header />
-      <main className="w-full">
+      <main className="flex-1">
         {children}
       </main>
+      <VersionFooter />
     </div>
   );
 }
