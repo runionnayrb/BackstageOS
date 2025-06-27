@@ -165,8 +165,7 @@ export function CollaborativeEditor({
     const walker = document.createTreeWalker(
       editorRef.current,
       NodeFilter.SHOW_TEXT,
-      null,
-      false
+      null
     );
 
     let node;
@@ -487,35 +486,38 @@ export function CollaborativeEditor({
         )}
       </div>
 
-      {/* Editor */}
-      <div className="relative">
-        {/* Page container with realistic document styling */}
-        <div className="bg-gray-100 dark:bg-gray-800 p-8">
-          <div className="bg-white dark:bg-white mx-auto shadow-lg" style={{ 
-            width: '8.5in', 
-            minHeight: '11in',
-            padding: '1in',
-            fontFamily: 'Courier, monospace',
-            fontSize: '12pt',
-            lineHeight: '1.5'
-          }}>
-            <div
-              ref={editorRef}
-              contentEditable
-              onInput={handleInput}
-              onMouseUp={handleTextSelection}
-              className="min-h-full focus:outline-none text-black"
-              style={{ 
-                whiteSpace: 'pre-wrap',
-              }}
-              suppressContentEditableWarning={true}
-            />
+      {/* Editor Container with Sidebar Layout */}
+      <div className="flex">
+        {/* Main Editor Area */}
+        <div className={`flex-1 transition-all duration-300 ${showComments ? 'mr-80' : ''}`}>
+          {/* Page container with realistic document styling */}
+          <div className="bg-gray-100 dark:bg-gray-800 p-8">
+            <div className="bg-white dark:bg-white mx-auto shadow-lg" style={{ 
+              width: '8.5in', 
+              minHeight: '11in',
+              padding: '1in',
+              fontFamily: 'Courier, monospace',
+              fontSize: '12pt',
+              lineHeight: '1.5'
+            }}>
+              <div
+                ref={editorRef}
+                contentEditable
+                onInput={handleInput}
+                onMouseUp={handleTextSelection}
+                className="min-h-full focus:outline-none text-black"
+                style={{ 
+                  whiteSpace: 'pre-wrap',
+                }}
+                suppressContentEditableWarning={true}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Comments sidebar - only shown when toggle is enabled */}
-        {comments.length > 0 && showComments && (
-          <div className="absolute right-0 top-0 w-80 h-full border-l bg-gray-50 dark:bg-gray-900 p-4 overflow-y-auto">
+        {/* Comments Sidebar - Fixed on the right */}
+        {showComments && (
+          <div className="fixed right-0 top-16 w-80 h-[calc(100vh-4rem)] border-l bg-white dark:bg-gray-900 p-4 overflow-y-auto shadow-lg z-50">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold">Comments</h3>
               <Button
