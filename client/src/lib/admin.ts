@@ -1,6 +1,6 @@
 // Admin utility functions for role-based access control
 
-export const ADMIN_USER_ID = '44106967';
+export const ADMIN_USER_ID = 2;
 
 export function isAdmin(user: any): boolean {
   return user?.id === ADMIN_USER_ID;

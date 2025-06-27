@@ -160,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Project routes
   app.get('/api/projects', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       const projects = await storage.getProjectsByUserId(userId);
       res.json(projects);
     } catch (error) {
