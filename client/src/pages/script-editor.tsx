@@ -268,14 +268,10 @@ export default function ScriptEditor() {
       {/* Main Content */}
       <div className="container mx-auto p-6 max-w-7xl">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="editor">Editor</TabsTrigger>
             <TabsTrigger value="versions">Version History</TabsTrigger>
             <TabsTrigger value="changes">Change Log</TabsTrigger>
-            <TabsTrigger value="comments">
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Comments ({comments.length})
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="editor" className="mt-6">
@@ -319,24 +315,7 @@ export default function ScriptEditor() {
             />
           </TabsContent>
 
-          <TabsContent value="comments" className="mt-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
-              <div className="text-center py-8">
-                <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <h3 className="text-lg font-semibold mb-2">Comments are hidden by default</h3>
-                <p className="text-muted-foreground mb-4">
-                  For a cleaner editing experience, comments are not shown by default. 
-                  To view and manage comments, switch to the Editor tab and click "Show Comments" in the toolbar.
-                </p>
-                <Button
-                  onClick={() => setActiveTab("editor")}
-                  className="mt-4"
-                >
-                  Go to Editor
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
+
         </Tabs>
       </div>
 
