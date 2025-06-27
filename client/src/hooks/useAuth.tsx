@@ -11,6 +11,7 @@ import { useToast } from "./use-toast";
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
+  isAuthenticated: boolean;
   error: Error | null;
   loginMutation: UseMutationResult<User, Error, LoginData>;
   logoutMutation: UseMutationResult<void, Error, void>;
@@ -31,7 +32,7 @@ type RegisterData = {
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }): React.JSX.Element {
+export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
   const { toast } = useToast();
   
   const {
@@ -99,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
       value={{
         user: user ?? null,
         isLoading,
+        isAuthenticated: !!user,
         error,
         loginMutation,
         logoutMutation,
