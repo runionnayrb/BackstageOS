@@ -46,7 +46,7 @@ export interface IStorage {
   
   // Admin user management operations
   getAllUsers(): Promise<User[]>;
-  updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[] }): Promise<User>;
+  updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[]; isAdmin?: boolean }): Promise<User>;
   deleteUser(userId: string): Promise<void>;
 
   // Project operations
@@ -178,7 +178,7 @@ export class DatabaseStorage implements IStorage {
     return db.select().from(users).orderBy(desc(users.createdAt));
   }
 
-  async updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[]; firstName?: string; lastName?: string; email?: string; password?: string }): Promise<User> {
+  async updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[]; isAdmin?: boolean; firstName?: string; lastName?: string; email?: string; password?: string }): Promise<User> {
     const updateData: any = {
       updatedAt: new Date(),
     };
@@ -191,6 +191,9 @@ export class DatabaseStorage implements IStorage {
     }
     if (updates.betaFeatures) {
       updateData.betaFeatures = JSON.stringify(updates.betaFeatures);
+    }
+    if (updates.isAdmin !== undefined) {
+      updateData.isAdmin = updates.isAdmin;
     }
     if (updates.firstName !== undefined) {
       updateData.firstName = updates.firstName;

@@ -35,6 +35,7 @@ export const users = pgTable("users", {
   profileType: varchar("profile_type"), // 'freelance' or 'fulltime'
   betaAccess: varchar("beta_access").default("limited"), // 'none', 'limited', 'full'
   betaFeatures: jsonb("beta_features"), // Array of enabled features for beta users
+  isAdmin: boolean("is_admin").default(false), // Admin status for user management access
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

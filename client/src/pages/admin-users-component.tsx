@@ -15,6 +15,7 @@ interface User {
   profileType?: string;
   betaAccess: string;
   betaFeatures?: string[];
+  isAdmin?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -34,10 +35,12 @@ export default function AdminUsersComponent() {
     profileType: string;
     betaAccess: string;
     betaFeatures: string[];
+    isAdmin: boolean;
   }>({
     profileType: '',
     betaAccess: '',
-    betaFeatures: []
+    betaFeatures: [],
+    isAdmin: false
   });
 
   const { data: users = [], isLoading } = useQuery({
@@ -89,7 +92,8 @@ export default function AdminUsersComponent() {
     setEditData({
       profileType: user.profileType || '',
       betaAccess: user.betaAccess,
-      betaFeatures: user.betaFeatures || []
+      betaFeatures: user.betaFeatures || [],
+      isAdmin: user.isAdmin || false
     });
   };
 
@@ -107,7 +111,8 @@ export default function AdminUsersComponent() {
     setEditData({
       profileType: '',
       betaAccess: '',
-      betaFeatures: []
+      betaFeatures: [],
+      isAdmin: false
     });
   };
 
@@ -153,6 +158,11 @@ export default function AdminUsersComponent() {
                   <span className="text-sm text-muted-foreground">
                     {user.betaAccess.charAt(0).toUpperCase() + user.betaAccess.slice(1)}
                   </span>
+                  {user.isAdmin && (
+                    <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 rounded-full">
+                      Admin
+                    </span>
+                  )}
                   {editingUser === user.id ? (
                     <div className="flex gap-2">
                       <Button
@@ -218,6 +228,24 @@ export default function AdminUsersComponent() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="admin-status"
+                      checked={editData.isAdmin}
+                      onCheckedChange={(checked) => 
+                        setEditData(prev => ({ ...prev, isAdmin: checked as boolean }))
+                      }
+                    />
+                    <label htmlFor="admin-status" className="text-sm font-medium">
+                      Administrator Access
+                    </label>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Grants access to user management and system administration features
+                  </p>
                 </div>
 
                 {editData.betaAccess === 'limited' && (
