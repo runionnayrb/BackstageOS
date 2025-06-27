@@ -43,10 +43,13 @@ export default function ShowReports() {
   
   const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId || '0')) : null;
 
-  const { data: reports = [], isLoading: reportsLoading } = useQuery({
-    queryKey: ["/api/projects", projectId, "reports", reportType],
+  const { data: allReports = [], isLoading: reportsLoading } = useQuery({
+    queryKey: [`/api/projects/${projectId}/reports`],
     enabled: !!projectId && isAuthenticated,
   });
+
+  // Filter reports by type
+  const reports = Array.isArray(allReports) ? allReports.filter((report: any) => report.type === reportType) : [];
 
   if (isLoading || projectsLoading) return <div>Loading...</div>;
   if (!project) return <div>Show not found</div>;
