@@ -101,13 +101,7 @@ export default function BetaFeatureComponent() {
 
   const saveMutation = useMutation({
     mutationFn: (data: BetaSettings) => 
-      apiRequest('/api/admin/beta-settings', {
-        method: 'PUT',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }),
+      apiRequest('PUT', '/api/admin/beta-settings', data),
     onSuccess: () => {
       toast({
         title: "Settings saved",

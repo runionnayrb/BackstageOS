@@ -47,10 +47,7 @@ export default function AdminUsersComponent() {
 
   const updateMutation = useMutation({
     mutationFn: ({ userId, updates }: { userId: string; updates: any }) => 
-      apiRequest(`/api/admin/users/${userId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(updates),
-      }),
+      apiRequest('PATCH', `/api/admin/users/${userId}`, updates),
     onSuccess: () => {
       toast({
         title: "User updated",
@@ -70,9 +67,7 @@ export default function AdminUsersComponent() {
 
   const deleteMutation = useMutation({
     mutationFn: (userId: string) => 
-      apiRequest(`/api/admin/users/${userId}`, {
-        method: 'DELETE',
-      }),
+      apiRequest('DELETE', `/api/admin/users/${userId}`),
     onSuccess: () => {
       toast({
         title: "User deleted",

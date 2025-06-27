@@ -34,10 +34,7 @@ export default function BetaFeatureSettings() {
 
   const saveMutation = useMutation({
     mutationFn: (data: BetaSettings) => 
-      apiRequest('/api/admin/beta-settings', {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      }),
+      apiRequest('PUT', '/api/admin/beta-settings', data),
     onSuccess: () => {
       toast({
         title: "Settings saved",
@@ -89,7 +86,7 @@ export default function BetaFeatureSettings() {
     );
   }
 
-  const categories = [...new Set(settings.features.map(f => f.category))];
+  const categories = Array.from(new Set(settings.features.map(f => f.category)));
 
   return (
     <AdminGuard>

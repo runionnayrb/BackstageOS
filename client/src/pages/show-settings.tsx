@@ -101,10 +101,7 @@ export default function ShowSettings() {
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: Partial<ShowSettings>) => {
-      return await apiRequest(`/api/projects/${id}/settings`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest("PATCH", `/api/projects/${id}/settings`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "settings"] });
@@ -124,9 +121,7 @@ export default function ShowSettings() {
 
   const generateShareLinkMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest(`/api/projects/${id}/share-link`, {
-        method: "POST",
-      });
+      return await apiRequest("POST", `/api/projects/${id}/share-link`);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "settings"] });
@@ -138,10 +133,11 @@ export default function ShowSettings() {
   });
 
   const handleSettingsUpdate = (section: string, updates: any) => {
+    const settingsData = settings as any || {};
     const updatedSettings = {
-      ...settings,
+      ...settingsData,
       [section]: {
-        ...settings?.[section],
+        ...(settingsData[section] || {}),
         ...updates,
       },
     };
@@ -149,8 +145,8 @@ export default function ShowSettings() {
   };
 
   const copyShareLink = () => {
-    if (settings?.sharingSettings?.shareableLink) {
-      navigator.clipboard.writeText(settings.sharingSettings.shareableLink);
+    if ((settings as any)?.sharingSettings?.shareableLink) {
+      navigator.clipboard.writeText((settings as any).sharingSettings.shareableLink);
       toast({
         title: "Link Copied",
         description: "Share link copied to clipboard.",
@@ -190,7 +186,7 @@ export default function ShowSettings() {
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            {project?.name ? `Back to ${project.name}` : 'Back to Show'}
+            {(project as any)?.name ? `Back to ${(project as any).name}` : 'Back to Show'}
           </Button>
         </div>
 
@@ -199,7 +195,7 @@ export default function ShowSettings() {
             <Settings className="h-6 w-6" />
             <h1 className="text-3xl font-bold">Show Settings</h1>
           </div>
-          <p className="text-muted-foreground">{project?.name} • Configure settings and permissions</p>
+          <p className="text-muted-foreground">{(project as any)?.name} • Configure settings and permissions</p>
         </div>
 
       <Tabs defaultValue="team" className="w-full">
@@ -243,7 +239,7 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings?.teamMemberSettings?.allowInvitations || false}
+                  checked={(settings as any)?.teamMemberSettings?.allowInvitations || false}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("teamMemberSettings", { allowInvitations: checked })
                   }
@@ -258,7 +254,7 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings?.teamMemberSettings?.requireApproval || false}
+                  checked={(settings as any)?.teamMemberSettings?.requireApproval || false}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("teamMemberSettings", { requireApproval: checked })
                   }
@@ -269,7 +265,7 @@ export default function ShowSettings() {
                 <div className="space-y-2">
                   <Label htmlFor="defaultRole">Default Role</Label>
                   <Select
-                    value={settings?.teamMemberSettings?.defaultRole || "member"}
+                    value={(settings as any)?.teamMemberSettings?.defaultRole || "member"}
                     onValueChange={(value) =>
                       handleSettingsUpdate("teamMemberSettings", { defaultRole: value })
                     }
@@ -293,7 +289,7 @@ export default function ShowSettings() {
                     type="number"
                     min="1"
                     max="100"
-                    value={settings?.teamMemberSettings?.maxMembers || 20}
+                    value={(settings as any)?.teamMemberSettings?.maxMembers || 20}
                     onChange={(e) =>
                       handleSettingsUpdate("teamMemberSettings", { maxMembers: parseInt(e.target.value) })
                     }
@@ -321,7 +317,7 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings?.sharingSettings?.isPublic || false}
+                  checked={(settings as any)?.sharingSettings?.isPublic || false}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("sharingSettings", { isPublic: checked })
                   }
@@ -336,7 +332,7 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings?.sharingSettings?.allowGuestView || false}
+                  checked={(settings as any)?.sharingSettings?.allowGuestView || false}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("sharingSettings", { allowGuestView: checked })
                   }
@@ -347,7 +343,7 @@ export default function ShowSettings() {
                 <Label>Shareable Link</Label>
                 <div className="flex gap-2">
                   <Input
-                    value={settings?.sharingSettings?.shareableLink || "No link generated"}
+                    value={(settings as any)?.sharingSettings?.shareableLink || "No link generated"}
                     readOnly
                     className="font-mono text-sm"
                   />
@@ -371,7 +367,7 @@ export default function ShowSettings() {
                   id="linkPassword"
                   type="password"
                   placeholder="Set a password for the share link"
-                  value={settings?.sharingSettings?.password || ""}
+                  value={(settings as any)?.sharingSettings?.password || ""}
                   onChange={(e) =>
                     handleSettingsUpdate("sharingSettings", { password: e.target.value })
                   }
@@ -398,7 +394,7 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings?.templateSettings?.useDefaultTemplates !== false}
+                  checked={(settings as any)?.templateSettings?.useDefaultTemplates !== false}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("templateSettings", { useDefaultTemplates: checked })
                   }
@@ -413,7 +409,7 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings?.templateSettings?.allowCustomTemplates !== false}
+                  checked={(settings as any)?.templateSettings?.allowCustomTemplates !== false}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("templateSettings", { allowCustomTemplates: checked })
                   }
@@ -428,7 +424,7 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings?.templateSettings?.templateApprovalRequired || false}
+                  checked={(settings as any)?.templateSettings?.templateApprovalRequired || false}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("templateSettings", { templateApprovalRequired: checked })
                   }
@@ -443,7 +439,7 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings?.templateSettings?.sharedTemplateLibrary || false}
+                  checked={(settings as any)?.templateSettings?.sharedTemplateLibrary || false}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("templateSettings", { sharedTemplateLibrary: checked })
                   }
@@ -465,7 +461,7 @@ export default function ShowSettings() {
               <div className="space-y-2">
                 <Label htmlFor="defaultReportType">Default Report Type</Label>
                 <Select
-                  value={settings?.reportSettings?.defaultReportType || "rehearsal"}
+                  value={(settings as any)?.reportSettings?.defaultReportType || "rehearsal"}
                   onValueChange={(value) =>
                     handleSettingsUpdate("reportSettings", { defaultReportType: value })
                   }
@@ -491,7 +487,7 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings?.reportSettings?.requireReview || false}
+                  checked={(settings as any)?.reportSettings?.requireReview || false}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("reportSettings", { requireReview: checked })
                   }
@@ -506,14 +502,14 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings?.reportSettings?.autoArchive || false}
+                  checked={(settings as any)?.reportSettings?.autoArchive || false}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("reportSettings", { autoArchive: checked })
                   }
                 />
               </div>
 
-              {settings?.reportSettings?.autoArchive && (
+              {(settings as any)?.reportSettings?.autoArchive && (
                 <div className="space-y-2">
                   <Label htmlFor="archiveDays">Archive After (Days)</Label>
                   <Input
@@ -521,7 +517,7 @@ export default function ShowSettings() {
                     type="number"
                     min="1"
                     max="365"
-                    value={settings?.reportSettings?.archiveDays || 30}
+                    value={(settings as any)?.reportSettings?.archiveDays || 30}
                     onChange={(e) =>
                       handleSettingsUpdate("reportSettings", { archiveDays: parseInt(e.target.value) })
                     }
@@ -537,7 +533,7 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings?.reportSettings?.notificationsEnabled !== false}
+                  checked={(settings as any)?.reportSettings?.notificationsEnabled !== false}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("reportSettings", { notificationsEnabled: checked })
                   }
@@ -559,7 +555,7 @@ export default function ShowSettings() {
               <div className="space-y-2">
                 <Label htmlFor="timeZone">Time Zone</Label>
                 <Select
-                  value={settings?.scheduleSettings?.timeZone || "America/New_York"}
+                  value={(settings as any)?.scheduleSettings?.timeZone || "America/New_York"}
                   onValueChange={(value) =>
                     handleSettingsUpdate("scheduleSettings", { timeZone: value })
                   }
@@ -585,11 +581,11 @@ export default function ShowSettings() {
                   <Input
                     id="workStart"
                     type="time"
-                    value={settings?.scheduleSettings?.workingHours?.start || "09:00"}
+                    value={(settings as any)?.scheduleSettings?.workingHours?.start || "09:00"}
                     onChange={(e) =>
                       handleSettingsUpdate("scheduleSettings", {
                         workingHours: {
-                          ...settings?.scheduleSettings?.workingHours,
+                          ...(settings as any)?.scheduleSettings?.workingHours,
                           start: e.target.value,
                         },
                       })
@@ -602,11 +598,11 @@ export default function ShowSettings() {
                   <Input
                     id="workEnd"
                     type="time"
-                    value={settings?.scheduleSettings?.workingHours?.end || "18:00"}
+                    value={(settings as any)?.scheduleSettings?.workingHours?.end || "18:00"}
                     onChange={(e) =>
                       handleSettingsUpdate("scheduleSettings", {
                         workingHours: {
-                          ...settings?.scheduleSettings?.workingHours,
+                          ...(settings as any)?.scheduleSettings?.workingHours,
                           end: e.target.value,
                         },
                       })
@@ -623,7 +619,7 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings?.scheduleSettings?.allowConflicts || false}
+                  checked={(settings as any)?.scheduleSettings?.allowConflicts || false}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("scheduleSettings", { allowConflicts: checked })
                   }
@@ -638,11 +634,11 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={settings?.scheduleSettings?.reminderSettings?.enabled !== false}
+                  checked={(settings as any)?.scheduleSettings?.reminderSettings?.enabled !== false}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("scheduleSettings", {
                       reminderSettings: {
-                        ...settings?.scheduleSettings?.reminderSettings,
+                        ...(settings as any)?.scheduleSettings?.reminderSettings,
                         enabled: checked,
                       },
                     })
@@ -650,7 +646,7 @@ export default function ShowSettings() {
                 />
               </div>
 
-              {settings?.scheduleSettings?.reminderSettings?.enabled !== false && (
+              {(settings as any)?.scheduleSettings?.reminderSettings?.enabled !== false && (
                 <div className="space-y-2">
                   <Label htmlFor="reminderMinutes">Reminder Time (Minutes Before)</Label>
                   <Input
@@ -658,11 +654,11 @@ export default function ShowSettings() {
                     type="number"
                     min="5"
                     max="1440"
-                    value={settings?.scheduleSettings?.reminderSettings?.minutesBefore || 30}
+                    value={(settings as any)?.scheduleSettings?.reminderSettings?.minutesBefore || 30}
                     onChange={(e) =>
                       handleSettingsUpdate("scheduleSettings", {
                         reminderSettings: {
-                          ...settings?.scheduleSettings?.reminderSettings,
+                          ...(settings as any)?.scheduleSettings?.reminderSettings,
                           minutesBefore: parseInt(e.target.value),
                         },
                       })

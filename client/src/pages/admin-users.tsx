@@ -72,12 +72,7 @@ function AdminUsersContent() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const response = await fetch(`/api/admin/users/${userId}`, {
-        method: 'DELETE'
-      });
-      if (!response.ok) {
-        throw new Error('Failed to delete user');
-      }
+      const response = await apiRequest('DELETE', `/api/admin/users/${userId}`);
       return response.json();
     },
     onSuccess: () => {
