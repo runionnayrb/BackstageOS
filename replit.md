@@ -220,6 +220,7 @@ Required environment variables:
 - June 27, 2025: **VERSION TRACKING SYSTEM**: Added clickable version footer on every page displaying "Backstage OS Version X.X.X" that opens comprehensive release notes modal. System tracks all updates chronologically with color-coded release types (Major, Feature, Bugfix, Initial), detailed feature descriptions, and automatic current version highlighting. Provides complete transparency of platform evolution for users and stakeholders.
 - June 27, 2025: **LANDING PAGE MESSAGING UPDATE**: Changed sign-in page text from "Join theater professionals worldwide" to "Join Professional Stage Managers Worldwide" to better target the platform's specific audience of stage management professionals.
 - June 27, 2025: **DEFAULT BETA ACCESS CHANGE**: Updated new user registration to default to "limited" beta access instead of "none" - admins can still upgrade users to "full" access or downgrade to "none" as needed.
+- June 27, 2025: **PROFILE SELECTION FIX**: Fixed authentication flow so users only see profile type selection page once during initial setup - existing users with profile types set bypass this screen on subsequent logins.
 
 ## User Preferences
 

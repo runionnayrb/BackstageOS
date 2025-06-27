@@ -46,7 +46,7 @@ function Router() {
     return <Landing />;
   }
 
-  if (!(user as any)?.profileType) {
+  if (!user?.profileType) {
     return <ProfileSelection />;
   }
 
