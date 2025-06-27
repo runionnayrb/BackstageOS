@@ -236,6 +236,7 @@ Required environment variables:
 - June 27, 2025: **ENHANCED HEADER/FOOTER REMOVAL**: Improved script parsing to remove spaced-out headers and footers like "L O R R A I N E H A N S B E R R Y Pg. 1" and "A R A I S I N T H E S U N" that commonly appear in copied script text. Added detection for various page number formats and continuation markers.
 - June 27, 2025: **SEPARATE PAGE LAYOUT**: Redesigned script editor to display as separate white page boxes with spacing between them, mimicking Google Docs/Word print layout. Each page is an individual 8.5" x 11" container with proper margins and shadows for realistic document appearance.
 - June 27, 2025: **AUTOMATIC TEXT FLOW BETWEEN PAGES**: Implemented intelligent content distribution system that automatically flows text from page 1 to page 2 to page 3 when content overflows. System calculates line capacity per page and redistributes content in real-time while maintaining separate visual page containers with proper spacing.
+- June 27, 2025: **ADJUSTABLE SCRIPT MARGINS**: Added dynamic margin controls to script editor toolbar allowing real-time adjustment of Left, Right, Top, and Bottom margins from 0.5" to 2" in quarter-inch increments. All pages automatically apply consistent margin settings for professional script formatting customization.
 
 ## User Preferences
 

@@ -70,6 +70,12 @@ export function CollaborativeEditor({
   const [redoStack, setRedoStack] = useState<any[]>([]);
   const [isCollaborating, setIsCollaborating] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [margins, setMargins] = useState({
+    top: 1,
+    bottom: 1,
+    left: 1,
+    right: 1
+  });
 
   // Format text selection
   const formatText = useCallback((command: string, value?: string) => {
@@ -685,6 +691,60 @@ export function CollaborativeEditor({
           <MessageCircle className="h-4 w-4 mr-1" />
           {showComments ? "Hide" : "Show"} Comments
         </Button>
+        
+        {/* Margin Controls */}
+        <div className="flex items-center gap-2 pl-4 border-l">
+          <span className="text-sm font-medium">Margins:</span>
+          <div className="flex items-center gap-1">
+            <label className="text-xs">L:</label>
+            <input
+              type="number"
+              min="0.5"
+              max="2"
+              step="0.25"
+              value={margins.left}
+              onChange={(e) => setMargins(prev => ({ ...prev, left: parseFloat(e.target.value) }))}
+              className="w-12 h-6 text-xs border rounded px-1"
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <label className="text-xs">R:</label>
+            <input
+              type="number"
+              min="0.5"
+              max="2"
+              step="0.25"
+              value={margins.right}
+              onChange={(e) => setMargins(prev => ({ ...prev, right: parseFloat(e.target.value) }))}
+              className="w-12 h-6 text-xs border rounded px-1"
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <label className="text-xs">T:</label>
+            <input
+              type="number"
+              min="0.5"
+              max="2"
+              step="0.25"
+              value={margins.top}
+              onChange={(e) => setMargins(prev => ({ ...prev, top: parseFloat(e.target.value) }))}
+              className="w-12 h-6 text-xs border rounded px-1"
+            />
+          </div>
+          <div className="flex items-center gap-1">
+            <label className="text-xs">B:</label>
+            <input
+              type="number"
+              min="0.5"
+              max="2"
+              step="0.25"
+              value={margins.bottom}
+              onChange={(e) => setMargins(prev => ({ ...prev, bottom: parseFloat(e.target.value) }))}
+              className="w-12 h-6 text-xs border rounded px-1"
+            />
+          </div>
+          <span className="text-xs text-gray-500">in</span>
+        </div>
       </div>
 
       {/* Editor Container with Sidebar Layout */}
@@ -713,10 +773,11 @@ export function CollaborativeEditor({
                 className="focus:outline-none text-black overflow-hidden"
                 style={{ 
                   whiteSpace: 'pre-wrap',
-                  padding: '1in',
-                  paddingTop: '1.2in', // Extra space for page number
-                  paddingBottom: '1in',
-                  height: 'calc(11in - 2.2in)', // Full height minus top/bottom padding
+                  paddingLeft: `${margins.left}in`,
+                  paddingRight: `${margins.right}in`,
+                  paddingTop: `${margins.top + 0.2}in`, // Extra space for page number
+                  paddingBottom: `${margins.bottom}in`,
+                  height: `calc(11in - ${margins.top + margins.bottom + 0.2}in)`,
                   boxSizing: 'border-box'
                 }}
                 suppressContentEditableWarning={true}
@@ -738,10 +799,11 @@ export function CollaborativeEditor({
                 className="text-black overflow-hidden"
                 style={{ 
                   whiteSpace: 'pre-wrap',
-                  padding: '1in',
-                  paddingTop: '1.2in',
-                  paddingBottom: '1in',
-                  height: 'calc(11in - 2.2in)',
+                  paddingLeft: `${margins.left}in`,
+                  paddingRight: `${margins.right}in`,
+                  paddingTop: `${margins.top + 0.2}in`,
+                  paddingBottom: `${margins.bottom}in`,
+                  height: `calc(11in - ${margins.top + margins.bottom + 0.2}in)`,
                   boxSizing: 'border-box'
                 }}
                 id="page-2-content"
@@ -765,10 +827,11 @@ export function CollaborativeEditor({
                 className="text-black overflow-hidden"
                 style={{ 
                   whiteSpace: 'pre-wrap',
-                  padding: '1in',
-                  paddingTop: '1.2in',
-                  paddingBottom: '1in',
-                  height: 'calc(11in - 2.2in)',
+                  paddingLeft: `${margins.left}in`,
+                  paddingRight: `${margins.right}in`,
+                  paddingTop: `${margins.top + 0.2}in`,
+                  paddingBottom: `${margins.bottom}in`,
+                  height: `calc(11in - ${margins.top + margins.bottom + 0.2}in)`,
                   boxSizing: 'border-box'
                 }}
                 id="page-3-content"
