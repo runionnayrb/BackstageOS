@@ -2,7 +2,50 @@
 
 ## Overview
 
-Backstage OS is a modern web application designed for theater professionals to manage projects, teams, and reports. The platform supports two user types: freelance theater professionals and full-time theater employees, each with tailored workflows. Built as a full-stack application using React, Express, and PostgreSQL, it provides comprehensive stage management capabilities.
+Backstage OS is a comprehensive theater management platform specifically designed for professional stage managers to streamline production workflows. The platform provides show-centric organization with complete data isolation between productions, ensuring no cross-contamination of information. Built as a modern full-stack application using React, Express, and PostgreSQL, it delivers professional-grade stage management tools with an intuitive, document-style interface.
+
+## Current Features
+
+### Core Platform
+- **Show-Centric Organization**: All data tied to specific productions with complete isolation between shows
+- **Professional Authentication**: Secure login system with user profile management (freelance vs full-time)
+- **Responsive Design**: Clean, minimal interface optimized for theater professionals
+- **Version Tracking**: Complete changelog with release notes accessible from any page
+
+### Production Management
+- **Show Overview**: Streamlined show cards displaying name, venue, date range, and last updated
+- **Hierarchical Navigation**: Click-through interface from shows → sections → specific items
+- **Team Member Management**: Invite and manage team members with role-based permissions
+- **Secure Sharing**: Generate secure shareable links for external collaborators
+
+### Report System
+- **Five Report Types**: Rehearsal, tech, performance, meeting, and daily call reports
+- **Custom Templates**: Advanced template builder with drag-drop field reordering
+- **Rich Text Editor**: Google Docs-style interface with page numbering controls
+- **Template Customization**: Phase-specific templates (prep, rehearsal, tech, previews, performance)
+- **Document-Style Interface**: Borderless, clean editing experience
+
+### Advanced Tools
+- **Script Editor**: Cue-building system supporting lighting, sound, video, automation cues
+- **Props Tracker**: Scene/character organization with status tracking and sourcing notes
+- **Costume Tracker**: Quick-change timing, repair tracking, character-based organization
+- **Show Settings**: Comprehensive configuration for sharing, templates, and preferences
+
+### Admin & Beta Features
+- **Admin Dashboard**: Complete user management accessible via header dropdown
+- **Beta Access Control**: Three-tier system (none, limited, full) with granular feature permissions
+- **Feature Rollout**: Controlled deployment of new functionality to beta testers
+
+## Planned Features
+- **Calendar System**: Drag-drop scheduling with daily call sheet generation
+- **Cast Management**: Character breakdowns with scene appearances and requirements
+- **Task Management**: List and board views for production tasks
+- **Show Documents**: Scene shift plots, line set schedules, stage plots, ground plans
+- **Advanced Scheduling**: Rehearsal and performance calendar integration
+- **Mobile Optimization**: Enhanced mobile interface for backstage use
+- **Offline Capabilities**: Critical features available without internet connection
+- **Export Functions**: PDF generation for reports and documents
+- **Integration APIs**: Connect with industry-standard theater software
 
 ## System Architecture
 
@@ -175,6 +218,7 @@ Required environment variables:
 - June 27, 2025: **COMPREHENSIVE BETA ACCESS CONTROL SYSTEM**: Built complete beta testing infrastructure with three-tier access control (none, limited, full) and granular feature permissions. Created secure admin user management interface with centralized admin utility functions, AdminGuard component protection, and proper middleware security for API routes. System enables controlled rollout of new functionality to beta testers while maintaining admin oversight of user permissions and access levels.
 - June 27, 2025: **UNIFIED ADMIN DASHBOARD INTERFACE**: Created comprehensive admin dashboard accessible via header dropdown that consolidates user management and beta feature configuration in tabbed interface. Admins can now manage all users, control beta access levels, and configure which specific features are available to Limited vs Full beta users. Interface includes feature categorization (Production Tools, Reports & Templates, Team Management, Planning) with granular on/off controls for each access level.
 - June 27, 2025: **VERSION TRACKING SYSTEM**: Added clickable version footer on every page displaying "Backstage OS Version X.X.X" that opens comprehensive release notes modal. System tracks all updates chronologically with color-coded release types (Major, Feature, Bugfix, Initial), detailed feature descriptions, and automatic current version highlighting. Provides complete transparency of platform evolution for users and stakeholders.
+- June 27, 2025: **LANDING PAGE MESSAGING UPDATE**: Changed sign-in page text from "Join theater professionals worldwide" to "Join Professional Stage Managers Worldwide" to better target the platform's specific audience of stage management professionals.
 
 ## User Preferences
 
