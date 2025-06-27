@@ -13,7 +13,7 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-// Session storage table (required for session management)
+// Session storage table (required for Replit Auth)
 export const sessions = pgTable(
   "sessions",
   {
@@ -92,7 +92,7 @@ export const reportTemplates = pgTable("report_templates", {
   fields: jsonb("fields").notNull(), // JSON array of field definitions with order, type, etc.
   isDefault: boolean("is_default").default(false),
   isPublic: boolean("is_public").default(false), // Can be shared with other users
-  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -105,7 +105,7 @@ export const showDocuments = pgTable("show_documents", {
   type: varchar("type").notNull(), // props_list, costume_tracking, scene_breakdown, stage_plot, etc.
   content: jsonb("content").notNull(),
   version: integer("version").default(1),
-  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -116,7 +116,7 @@ export const showSchedules = pgTable("show_schedules", {
   name: varchar("name").notNull(),
   type: varchar("type").notNull(), // rehearsal, tech, performance, general
   events: jsonb("events").notNull(), // Array of schedule events
-  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -129,7 +129,7 @@ export const showCharacters = pgTable("show_characters", {
   scenes: jsonb("scenes").notNull().default('[]'), // Array of scene appearances
   costumes: jsonb("costumes").notNull().default('[]'), // Costume requirements
   props: jsonb("props").notNull().default('[]'), // Character props
-  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -142,7 +142,7 @@ export const scripts = pgTable("scripts", {
   content: text("content"),
   version: varchar("version").default("1.0"),
   totalPages: integer("total_pages").default(1),
-  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -174,7 +174,7 @@ export const props = pgTable("props", {
   quantity: integer("quantity").default(1),
   sourcingNotes: text("sourcing_notes"),
   imageUrl: varchar("image_url"),
-  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -192,7 +192,7 @@ export const costumes = pgTable("costumes", {
   quickChangeTime: integer("quick_change_time").default(60), // seconds
   quickChangeNotes: text("quick_change_notes"),
   imageUrl: varchar("image_url"),
-  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -200,36 +200,34 @@ export const costumes = pgTable("costumes", {
 // Phase 2: Show settings
 export const showSettings = pgTable("show_settings", {
   id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  sharingEnabled: boolean("sharing_enabled").default(false),
-  shareLink: varchar("share_link"),
-  shareLinkExpiry: timestamp("share_link_expiry"),
-  templateSettings: jsonb("template_settings"),
-  reportSettings: jsonb("report_settings"),
-  scheduleSettings: jsonb("schedule_settings"),
-  permissions: jsonb("permissions"),
-  createdBy: integer("created_by").notNull().references(() => users.id),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }).unique(),
+  teamMemberSettings: jsonb("team_member_settings").notNull().default('{"allowInvitations":true,"requireApproval":false,"defaultRole":"member","maxMembers":20}'),
+  sharingSettings: jsonb("sharing_settings").notNull().default('{"isPublic":false,"allowGuestView":false,"shareableLink":null,"linkExpiration":null,"password":null}'),
+  templateSettings: jsonb("template_settings").notNull().default('{"useDefaultTemplates":true,"allowCustomTemplates":true,"templateApprovalRequired":false,"sharedTemplateLibrary":false}'),
+  reportSettings: jsonb("report_settings").notNull().default('{"defaultReportType":"rehearsal","requireReview":false,"autoArchive":false,"archiveDays":30,"notificationsEnabled":true}'),
+  scheduleSettings: jsonb("schedule_settings").notNull().default('{"timeZone":"America/New_York","workingHours":{"start":"09:00","end":"18:00"},"allowConflicts":false,"reminderSettings":{"enabled":true,"minutesBefore":30}}'),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Global template settings
+// Global template settings for formatting and branding
 export const globalTemplateSettings = pgTable("global_template_settings", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }).unique(),
-  branding: jsonb("branding"),
-  pageMargins: jsonb("page_margins"),
-  pageNumbering: jsonb("page_numbering"),
-  fonts: jsonb("fonts"),
-  lists: jsonb("lists"),
-  dateFormat: varchar("date_format").default("MM/DD/YYYY"),
-  timeFormat: varchar("time_format").default("12h"),
-  defaultHeader: text("default_header"),
-  defaultFooter: text("default_footer"),
-  emailSettings: jsonb("email_settings"),
-  productionLogo: varchar("production_logo"),
-  productionPhoto: varchar("production_photo"),
-  createdBy: integer("created_by").notNull().references(() => users.id),
+  branding: jsonb("branding").notNull().default('{"logoPosition":"header-left","logoSize":"medium","showProductionPhoto":false,"photoPosition":"header"}'),
+  pageMargins: jsonb("page_margins").notNull().default('{"top":"1in","bottom":"1in","left":"1in","right":"1in"}'),
+  pageNumbering: jsonb("page_numbering").notNull().default('{"enabled":true,"format":"Page 1 of X","position":"bottom-center"}'),
+  fonts: jsonb("fonts").notNull().default('{"heading":{"family":"Arial, sans-serif","size":"18px","weight":"bold","lineHeight":"1.4"},"body":{"family":"Arial, sans-serif","size":"12px","weight":"normal","lineHeight":"1.6"}}'),
+  lists: jsonb("lists").notNull().default('{"numbered":{"spacing":"6px","indentation":"20px","style":"1."},"bulleted":{"spacing":"6px","indentation":"20px","style":"•"}}'),
+  dateFormat: varchar("date_format").notNull().default("MM/DD/YYYY"),
+  timeFormat: varchar("time_format").notNull().default("12h"),
+  defaultHeader: text("default_header").notNull().default('<div style="text-align: center; font-weight: bold;">{{showName}} - {{reportType}}<br>Date: {{date}}<br>Stage Manager: {{stageManager}}</div>'),
+  defaultFooter: text("default_footer").notNull().default('<div style="text-align: center; color: #666666;">Prepared by: {{preparedBy}}<br>Next report: {{nextReportDate}}</div>'),
+  email: jsonb("email_settings").notNull().default('{"distributionLists":{"to":[],"cc":[],"bcc":[]},"subjectTemplate":"{{showName}} - {{reportType}} - {{date}}","bodyTemplate":"Please find attached the {{reportType}} for {{showName}}.\\n\\nBest regards,\\n{{stageManager}}","signature":""}'),
+  productionLogo: text("production_logo"), // Base64 encoded image
+  productionPhoto: text("production_photo"), // Base64 encoded image
+  createdBy: varchar("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -238,15 +236,6 @@ export const globalTemplateSettings = pgTable("global_template_settings", {
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
   reports: many(reports),
-  reportTemplates: many(reportTemplates),
-  showDocuments: many(showDocuments),
-  showSchedules: many(showSchedules),
-  showCharacters: many(showCharacters),
-  props: many(props),
-  costumes: many(costumes),
-  scripts: many(scripts),
-  showSettings: many(showSettings),
-  globalTemplateSettings: many(globalTemplateSettings),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -256,15 +245,6 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   }),
   teamMembers: many(teamMembers),
   reports: many(reports),
-  reportTemplates: many(reportTemplates),
-  showDocuments: many(showDocuments),
-  showSchedules: many(showSchedules),
-  showCharacters: many(showCharacters),
-  props: many(props),
-  costumes: many(costumes),
-  scripts: many(scripts),
-  showSettings: many(showSettings),
-  globalTemplateSettings: many(globalTemplateSettings),
 }));
 
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
@@ -283,24 +263,24 @@ export const reportsRelations = relations(reports, ({ one }) => ({
     fields: [reports.projectId],
     references: [projects.id],
   }),
+  createdByUser: one(users, {
+    fields: [reports.createdBy],
+    references: [users.id],
+  }),
   template: one(reportTemplates, {
     fields: [reports.templateId],
     references: [reportTemplates.id],
   }),
-  creator: one(users, {
-    fields: [reports.createdBy],
-    references: [users.id],
-  }),
 }));
 
 export const reportTemplatesRelations = relations(reportTemplates, ({ one, many }) => ({
+  createdByUser: one(users, {
+    fields: [reportTemplates.createdBy],
+    references: [users.id],
+  }),
   project: one(projects, {
     fields: [reportTemplates.projectId],
     references: [projects.id],
-  }),
-  creator: one(users, {
-    fields: [reportTemplates.createdBy],
-    references: [users.id],
   }),
   reports: many(reports),
 }));
@@ -399,7 +379,7 @@ export const insertGlobalTemplateSettingsSchema = createInsertSchema(globalTempl
   updatedAt: true,
 });
 
-// Type exports
+// Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Project = typeof projects.$inferSelect;

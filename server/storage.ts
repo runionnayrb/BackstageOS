@@ -34,8 +34,10 @@ import { db } from "./db";
 import { eq, and, desc, ne } from "drizzle-orm";
 
 export interface IStorage {
-  // User operations (required for Replit Auth)
+  // User operations (email/password auth)
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: UpsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Beta access operations
@@ -111,16 +113,41 @@ export interface IStorage {
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const [user] = await db.select().from(users).where(eq(users.id, parseInt(id)));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(userData: UpsertUser): Promise<User> {
+    const userWithDates = {
+      ...userData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    const [user] = await db
+      .insert(users)
+      .values(userWithDates)
+      .returning();
     return user;
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
+    const userWithDates = {
+      ...userData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
     const [user] = await db
       .insert(users)
-      .values(userData)
+      .values(userWithDates)
       .onConflictDoUpdate({
-        target: users.id,
+        target: users.email,
         set: {
           ...userData,
           updatedAt: new Date(),
@@ -138,7 +165,7 @@ export class DatabaseStorage implements IStorage {
         betaFeatures: betaFeatures ? JSON.stringify(betaFeatures) : null,
         updatedAt: new Date(),
       })
-      .where(eq(users.id, userId))
+      .where(eq(users.id, Number(userId)))
       .returning();
     return user;
   }
@@ -169,13 +196,13 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .update(users)
       .set(updateData)
-      .where(eq(users.id, userId))
+      .where(eq(users.id, Number(userId)))
       .returning();
     return user;
   }
 
   async deleteUser(userId: string): Promise<void> {
-    await db.delete(users).where(eq(users.id, userId));
+    await db.delete(users).where(eq(users.id, Number(userId)));
   }
 
   // Project operations
@@ -183,7 +210,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(projects)
-      .where(eq(projects.ownerId, userId))
+      .where(eq(projects.ownerId, Number(userId)))
       .orderBy(desc(projects.updatedAt));
   }
 
@@ -258,7 +285,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(reports)
-      .where(eq(reports.createdBy, userId))
+      .where(eq(reports.createdBy, Number(userId)))
       .orderBy(desc(reports.date));
   }
 
@@ -296,7 +323,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(reportTemplates)
-      .where(eq(reportTemplates.createdBy, userId))
+      .where(eq(reportTemplates.createdBy, Number(userId)))
       .orderBy(desc(reportTemplates.createdAt));
   }
 
