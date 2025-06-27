@@ -112,7 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Admin access required" });
       }
       
-      const { profileType, betaAccess, betaFeatures } = req.body;
+      const { profileType, betaAccess, betaFeatures, isAdmin: userAdminStatus } = req.body;
       
       if (profileType && !['freelance', 'fulltime'].includes(profileType)) {
         return res.status(400).json({ message: "Invalid profile type" });
@@ -125,7 +125,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedUser = await storage.updateUserAdmin(targetUserId, {
         profileType,
         betaAccess,
-        betaFeatures
+        betaFeatures,
+        isAdmin: userAdminStatus
       });
       
       res.json(updatedUser);
