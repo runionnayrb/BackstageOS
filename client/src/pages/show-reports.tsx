@@ -104,32 +104,24 @@ export default function ShowReports() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
+          <div className="space-y-4">
             {reports.map((report: any) => (
-              <Card key={report.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{report.title}</CardTitle>
-                    <Badge variant="secondary">
-                      {new Date(report.createdAt).toLocaleDateString()}
-                    </Badge>
+              <div 
+                key={report.id} 
+                className="cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors"
+                onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/${report.id}`)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">
+                      {report.title}
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {new Date(report.date || report.createdAt).toLocaleDateString()}
+                    </p>
                   </div>
-                  {report.description && (
-                    <CardDescription>{report.description}</CardDescription>
-                  )}
-                </CardHeader>
-                <CardContent>
-                  <div className="flex justify-end">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/${report.id}`)}
-                    >
-                      View Report
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         )}

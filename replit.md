@@ -169,6 +169,7 @@ Required environment variables:
 - June 27, 2025: **DYNAMIC BACK BUTTONS**: Fixed Show Settings page to display dynamic show name in back button ("Back to [Show Name]") for better navigation context
 - June 27, 2025: **PAGE NUMBER CONTROLS**: Added page numbering dropdown and insert button to rich text editor toolbar - users can select format and insert page number variables ({{pageNumber}}, {{totalPages}}) as editable text content
 - June 27, 2025: **FORM VALIDATION FIX**: Resolved critical validation errors preventing global template settings from saving - fixed missing createdBy field in backend validation, added proper id/name attributes to form inputs for accessibility compliance, and resolved RichTextEditor JavaScript errors
+- June 27, 2025: **GOOGLE DOCS-LIKE INTERFACE**: Transformed report creation and viewing experience - removed all form boxes and borders from fields, created clean document-style layout with borderless inputs, and implemented clickable report list without card borders for seamless document-like interaction
 
 ## User Preferences
 
