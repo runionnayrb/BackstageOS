@@ -24,7 +24,8 @@ import {
   Calendar,
   Clock,
   User,
-  MapPin
+  MapPin,
+  Settings
 } from "lucide-react";
 
 interface TemplateSettingsParams {
@@ -336,6 +337,14 @@ export default function TemplateSettings() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setLocation(`/shows/${projectId}/global-template-settings`)}
+              className="flex items-center gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              Global Settings
+            </Button>
             <Button
               onClick={() => setLocation(`/shows/${projectId}/templates/new`)}
               className="flex items-center gap-2"

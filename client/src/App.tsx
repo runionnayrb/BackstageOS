@@ -25,6 +25,7 @@ import TemplateCustomizer from "@/pages/template-customizer";
 import ShowSettings from "@/pages/show-settings";
 import ShowReportsList from "@/pages/show-reports-list";
 import TemplateSettings from "@/pages/template-settings";
+import GlobalTemplateSettings from "@/pages/global-template-settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -60,6 +61,7 @@ function Router() {
         <Route path="/shows/:id/templates/new" component={TemplateBuilder} />
         <Route path="/shows/:id/templates/:templateId/edit" component={TemplateBuilder} />
         <Route path="/shows/:id/templates" component={TemplateSettings} />
+        <Route path="/shows/:id/global-template-settings" component={GlobalTemplateSettings} />
         <Route path="/shows/:id/settings" component={ShowSettings} />
         <Route component={NotFound} />
       </Switch>

@@ -89,6 +89,11 @@ export interface IStorage {
   upsertShowSettings(settings: InsertShowSettings): Promise<ShowSettings>;
   updateShowSettings(projectId: number, settings: Partial<InsertShowSettings>): Promise<ShowSettings>;
   generateShareLink(projectId: number): Promise<string>;
+
+  // Global template settings operations
+  getGlobalTemplateSettingsByProjectId(projectId: number): Promise<GlobalTemplateSettings | undefined>;
+  upsertGlobalTemplateSettings(settings: InsertGlobalTemplateSettings): Promise<GlobalTemplateSettings>;
+  updateGlobalTemplateSettings(projectId: number, settings: Partial<InsertGlobalTemplateSettings>): Promise<GlobalTemplateSettings>;
 }
 
 export class DatabaseStorage implements IStorage {

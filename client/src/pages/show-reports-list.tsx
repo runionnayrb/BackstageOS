@@ -1,7 +1,7 @@
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Settings } from "lucide-react";
 
 interface ShowReportsListParams {
   id: string;
@@ -77,10 +77,23 @@ export default function ShowReportsList() {
         </div>
 
         <div className="mb-6">
-          <h1 className="text-3xl font-bold">Reports</h1>
-          <p className="text-muted-foreground mt-2">
-            Select a report type to view or create reports
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold">Reports</h1>
+              <p className="text-muted-foreground mt-2">
+                Select a report type to view or create reports
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setLocation(`/shows/${projectId}/templates`)}
+              className="flex items-center gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              Template Settings
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-1">

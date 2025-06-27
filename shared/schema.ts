@@ -208,6 +208,27 @@ export const showSettings = pgTable("show_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Global template settings for formatting and branding
+export const globalTemplateSettings = pgTable("global_template_settings", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }).unique(),
+  branding: jsonb("branding").notNull().default('{"logoPosition":"header-left","logoSize":"medium","showProductionPhoto":false,"photoPosition":"header"}'),
+  pageMargins: jsonb("page_margins").notNull().default('{"top":"1in","bottom":"1in","left":"1in","right":"1in"}'),
+  pageNumbering: jsonb("page_numbering").notNull().default('{"enabled":true,"format":"Page 1 of X","position":"bottom-center"}'),
+  fonts: jsonb("fonts").notNull().default('{"heading":{"family":"Arial, sans-serif","size":"18px","weight":"bold","lineHeight":"1.4"},"body":{"family":"Arial, sans-serif","size":"12px","weight":"normal","lineHeight":"1.6"}}'),
+  lists: jsonb("lists").notNull().default('{"numbered":{"spacing":"6px","indentation":"20px","style":"1."},"bulleted":{"spacing":"6px","indentation":"20px","style":"•"}}'),
+  dateFormat: varchar("date_format").notNull().default("MM/DD/YYYY"),
+  timeFormat: varchar("time_format").notNull().default("12h"),
+  defaultHeader: text("default_header").notNull().default("{{showName}} - {{reportType}}\nDate: {{date}}\nStage Manager: {{stageManager}}"),
+  defaultFooter: text("default_footer").notNull().default("Prepared by: {{preparedBy}}\nNext report: {{nextReportDate}}"),
+  emailSettings: jsonb("email_settings").notNull().default('{"distributionLists":{"to":[],"cc":[],"bcc":[]},"subjectTemplate":"{{showName}} - {{reportType}} - {{date}}","bodyTemplate":"Please find attached the {{reportType}} for {{showName}}.\\n\\nBest regards,\\n{{stageManager}}","signature":""}'),
+  productionLogo: text("production_logo"), // Base64 encoded image
+  productionPhoto: text("production_photo"), // Base64 encoded image
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
@@ -348,6 +369,12 @@ export const insertShowSettingsSchema = createInsertSchema(showSettings).omit({
   updatedAt: true,
 });
 
+export const insertGlobalTemplateSettingsSchema = createInsertSchema(globalTemplateSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -367,3 +394,5 @@ export type ShowCharacter = typeof showCharacters.$inferSelect;
 export type InsertShowCharacter = z.infer<typeof insertShowCharacterSchema>;
 export type ShowSettings = typeof showSettings.$inferSelect;
 export type InsertShowSettings = z.infer<typeof insertShowSettingsSchema>;
+export type GlobalTemplateSettings = typeof globalTemplateSettings.$inferSelect;
+export type InsertGlobalTemplateSettings = z.infer<typeof insertGlobalTemplateSettingsSchema>;
