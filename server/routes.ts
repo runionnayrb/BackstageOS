@@ -157,6 +157,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User profile routes
+  app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const { firstName, lastName, email, currentPassword, newPassword } = req.body;
+
+      // If email is being changed, check if it's already in use
+      if (email && email !== req.user.email) {
+        const existingUser = await storage.getUserByEmail(email);
+        if (existingUser && existingUser.id !== req.user.id) {
+          return res.status(400).json({ message: "Email already in use by another account" });
+        }
+      }
+
+      // If password is being changed, verify current password
+      if (newPassword) {
+        if (!currentPassword) {
+          return res.status(400).json({ message: "Current password is required to change password" });
+        }
+
+        const bcrypt = require('bcrypt');
+        const isCurrentPasswordValid = await bcrypt.compare(currentPassword, req.user.password);
+        if (!isCurrentPasswordValid) {
+          return res.status(400).json({ message: "Current password is incorrect" });
+        }
+      }
+
+      // Prepare update data
+      const updateData: any = {
+        firstName: firstName || req.user.firstName,
+        lastName: lastName || req.user.lastName,
+        email: email || req.user.email,
+      };
+
+      // Hash new password if provided
+      if (newPassword) {
+        const bcrypt = require('bcrypt');
+        updateData.password = await bcrypt.hash(newPassword, 10);
+      }
+
+      // Update user in database
+      const updatedUser = await storage.updateUserAdmin(userId, updateData);
+
+      // Remove password from response
+      const { password, ...userResponse } = updatedUser;
+      res.json(userResponse);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
   // Project routes
   app.get('/api/projects', isAuthenticated, async (req: any, res) => {
     try {

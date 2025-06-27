@@ -29,6 +29,7 @@ import GlobalTemplateSettings from "@/pages/global-template-settings";
 import NewReport from "@/pages/new-report";
 import ReportViewer from "./pages/report-viewer";
 import AdminDashboard from "@/pages/admin-dashboard";
+import ProfileSettings from "@/pages/profile-settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -70,6 +71,7 @@ function Router() {
         <Route path="/shows/:id/templates" component={TemplateSettings} />
         <Route path="/shows/:id/global-template-settings" component={GlobalTemplateSettings} />
         <Route path="/shows/:id/settings" component={ShowSettings} />
+        <Route path="/profile" component={ProfileSettings} />
         <Route path="/admin" component={AdminDashboard} />
         <Route component={NotFound} />
       </Switch>
