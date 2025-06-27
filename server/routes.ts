@@ -245,9 +245,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/projects', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id.toString();
-      const projectData = insertProjectSchema.parse({
+      
+      // Manual validation for project data since we updated the schema
+      const projectSchema = z.object({
+        name: z.string().min(1, "Project name is required"),
+        description: z.string().optional(),
+        venue: z.string().optional(),
+        prepStartDate: z.date().nullable().optional(),
+        firstRehearsalDate: z.date().nullable().optional(),
+        designerRunDate: z.date().nullable().optional(),
+        firstTechDate: z.date().nullable().optional(),
+        firstPreviewDate: z.date().nullable().optional(),
+        openingNight: z.date().nullable().optional(),
+        closingDate: z.date().nullable().optional(),
+        season: z.string().optional(),
+        ownerId: z.number(),
+      });
+
+      const projectData = projectSchema.parse({
         ...req.body,
-        ownerId: userId,
+        ownerId: parseInt(userId),
       });
 
       const project = await storage.createProject(projectData);
