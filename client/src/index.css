@@ -78,3 +78,75 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Theater Script Formatting Styles */
+.script-scene_heading {
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+  font-size: 1.1em;
+  margin: 1.5em 0 1em 0;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 0.5em;
+  letter-spacing: 0.05em;
+}
+
+.script-character {
+  font-weight: bold;
+  text-align: center;
+  text-transform: uppercase;
+  margin: 1em 0 0.5em 0;
+  font-size: 1em;
+  letter-spacing: 0.02em;
+}
+
+.script-stage_direction {
+  font-style: italic;
+  margin: 0.5em 0;
+  padding-left: 2em;
+  padding-right: 2em;
+  color: #666;
+  font-size: 0.95em;
+}
+
+.script-dialogue {
+  margin: 0.25em 0;
+  padding-left: 1em;
+  padding-right: 3em;
+  line-height: 1.4;
+  font-size: 1em;
+}
+
+.script-song {
+  font-style: italic;
+  font-weight: bold;
+  text-align: center;
+  margin: 1em 0;
+  color: #8B4513;
+  font-size: 1em;
+}
+
+.script-line-break {
+  height: 1em;
+}
+
+/* Page break indicators for theater scripts */
+.page-break-indicator {
+  border-top: 1px dashed #ccc;
+  margin: 0;
+  padding: 0;
+  height: 1px;
+  width: 100%;
+  position: relative;
+}
+
+.page-break-indicator::after {
+  content: "Page Break";
+  position: absolute;
+  right: 0;
+  top: -0.75em;
+  background: white;
+  padding: 0 0.5em;
+  font-size: 0.75em;
+  color: #999;
+}

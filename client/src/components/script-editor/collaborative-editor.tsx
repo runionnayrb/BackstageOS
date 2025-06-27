@@ -225,28 +225,37 @@ export function CollaborativeEditor({
         continue;
       }
 
-      // Identify scene headings (ALL CAPS, often starts with INT./EXT./FADE/CUT)
-      if (/^(INT\.|EXT\.|FADE|CUT|SCENE|ACT\s+\d+|SCENE\s+\d+)/.test(line.toUpperCase()) || 
-          (line === line.toUpperCase() && line.length > 3 && !line.includes('(') && !line.includes(')'))) {
-        formattedLines.push(`<div class="script-scene_heading">${line}</div>`);
+      // Theater-specific scene headings (ACT, SCENE, or location descriptions)
+      if (/^(ACT\s+[IVX\d]+|SCENE\s+[IVX\d]+|PROLOGUE|EPILOGUE)/.test(line.toUpperCase()) ||
+          /^(SETTING:|PLACE:|TIME:|AT\s+RISE:|LIGHTS\s+UP:|BLACKOUT)/.test(line.toUpperCase())) {
+        formattedLines.push(`<div class="script-scene_heading">${line.toUpperCase()}</div>`);
       }
-      // Identify character names (ALL CAPS, centered or left-aligned, no parentheses)
+      // Character names (ALL CAPS, may include parentheticals for theater)
       else if (line === line.toUpperCase() && 
                line.length > 1 && 
                line.length < 50 && 
-               !line.includes('(') && 
-               !line.includes(')') &&
+               /^[A-Z\s\(\)\']+$/.test(line) &&
                !line.includes('.') &&
-               /^[A-Z\s]+$/.test(line)) {
+               !line.includes(':') &&
+               !/^(LIGHTS|SOUND|MUSIC|END|CURTAIN|BLACKOUT)/.test(line)) {
         formattedLines.push(`<div class="script-character">${line}</div>`);
       }
-      // Identify stage directions (text in parentheses or italics)
-      else if ((line.startsWith('(') && line.endsWith(')')) || 
-               line.toLowerCase().includes('enters') ||
-               line.toLowerCase().includes('exits') ||
-               line.toLowerCase().includes('lights') ||
-               line.toLowerCase().includes('sound')) {
+      // Stage directions (parentheses, brackets, or theater-specific actions)
+      else if ((line.startsWith('(') && line.endsWith(')')) ||
+               (line.startsWith('[') && line.endsWith(']')) ||
+               /^(LIGHTS|SOUND|MUSIC|SFX|ENTER|ENTERS|EXIT|EXITS|EXEUNT)/.test(line.toUpperCase()) ||
+               line.toLowerCase().includes('crosses to') ||
+               line.toLowerCase().includes('moves to') ||
+               line.toLowerCase().includes('turns to') ||
+               line.toLowerCase().includes('looks at') ||
+               /\b(upstage|downstage|stage left|stage right|center stage|offstage)\b/i.test(line)) {
         formattedLines.push(`<div class="script-stage_direction">${line}</div>`);
+      }
+      // Song/music cues for musicals
+      else if (line.startsWith('♪') || line.startsWith('♫') ||
+               /^(SONG:|MUSIC:|MUSICAL\s+NUMBER:)/i.test(line) ||
+               (line.includes('♪') || line.includes('♫'))) {
+        formattedLines.push(`<div class="script-song">${line}</div>`);
       }
       // Everything else is dialogue
       else {
