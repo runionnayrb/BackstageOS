@@ -77,6 +77,13 @@ export function CollaborativeEditor({
     right: 1
   });
   const [pageCount, setPageCount] = useState(1);
+  const [pageNumbers, setPageNumbers] = useState<string[]>(['1']);
+  const [isPublished, setIsPublished] = useState(false);
+  const [publishedPageCount, setPublishedPageCount] = useState(1);
+  const [showHeaders, setShowHeaders] = useState(true);
+  const [showFooters, setShowFooters] = useState(true);
+  const [headerText, setHeaderText] = useState('');
+  const [footerText, setFooterText] = useState('');
 
   // Format text selection
   const formatText = useCallback((command: string, value?: string) => {
@@ -205,6 +212,58 @@ export function CollaborativeEditor({
     }
   }, [content]);
 
+  // Generate smart page numbers with letter suffixes for new pages
+  const generatePageNumbers = useCallback((newPageCount: number) => {
+    if (!isPublished) {
+      // Before publishing, use simple numbering
+      return Array.from({ length: newPageCount }, (_, i) => (i + 1).toString());
+    }
+
+    // After publishing, handle insertions with letter suffixes
+    const numbers: string[] = [];
+    
+    if (newPageCount <= publishedPageCount) {
+      // No new pages, use existing numbering
+      for (let i = 1; i <= newPageCount; i++) {
+        numbers.push(i.toString());
+      }
+    } else {
+      // New pages added, use letter suffixes
+      const newPagesCount = newPageCount - publishedPageCount;
+      
+      // Add original published pages
+      for (let i = 1; i <= publishedPageCount; i++) {
+        numbers.push(i.toString());
+      }
+      
+      // Add new pages with letter suffixes after the last published page
+      const lastPage = publishedPageCount;
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      
+      for (let i = 0; i < newPagesCount; i++) {
+        const letterIndex = i % letters.length;
+        const letter = letters[letterIndex];
+        numbers.push(`${lastPage}${letter}`);
+      }
+    }
+    
+    return numbers;
+  }, [isPublished, publishedPageCount]);
+
+  // Function to renumber all pages with fresh numbering
+  const renumberScript = useCallback(() => {
+    const freshNumbers = Array.from({ length: pageCount }, (_, i) => (i + 1).toString());
+    setPageNumbers(freshNumbers);
+    setPublishedPageCount(pageCount);
+    setIsPublished(true);
+  }, [pageCount]);
+
+  // Function to publish script (locks current page numbering)
+  const publishScript = useCallback(() => {
+    setIsPublished(true);
+    setPublishedPageCount(pageCount);
+  }, [pageCount]);
+
   // Function to distribute content across pages
   const distributeContentAcrossPages = useCallback(() => {
     if (!editorRef.current) return;
@@ -215,6 +274,7 @@ export function CollaborativeEditor({
     // If no content, show only one page
     if (!allText.trim()) {
       setPageCount(1);
+      setPageNumbers(['1']);
       return;
     }
 
@@ -232,10 +292,13 @@ export function CollaborativeEditor({
       
       // Calculate how many pages we need
       const totalPages = Math.ceil(lines.length / linesPerPage);
-      setPageCount(Math.min(totalPages, 10)); // Cap at 10 pages for performance
+      const newPageCount = Math.min(totalPages, 10); // Cap at 10 pages for performance
+      
+      setPageCount(newPageCount);
+      setPageNumbers(generatePageNumbers(newPageCount));
       
       // Distribute content to additional pages
-      for (let pageNum = 2; pageNum <= pageCount; pageNum++) {
+      for (let pageNum = 2; pageNum <= newPageCount; pageNum++) {
         const pageContainer = document.getElementById(`page-${pageNum}-content`);
         if (pageContainer) {
           const startLine = (pageNum - 1) * linesPerPage;
@@ -247,8 +310,9 @@ export function CollaborativeEditor({
     } else {
       // Content fits on one page
       setPageCount(1);
+      setPageNumbers(['1']);
     }
-  }, [pageCount]);
+  }, [generatePageNumbers]);
 
   // Handle input events specifically to preserve cursor position
   const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
@@ -687,9 +751,68 @@ export function CollaborativeEditor({
           {showComments ? "Hide" : "Show"} Comments
         </Button>
         
+        {/* Script Controls */}
+        <div className="flex items-center gap-2 pl-4 border-l">
+          <Button 
+            size="sm" 
+            variant={isPublished ? "default" : "outline"}
+            onClick={publishScript}
+            disabled={isPublished}
+            className="h-6 text-xs px-2"
+          >
+            {isPublished ? "Published" : "Publish"}
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={renumberScript}
+            className="h-6 text-xs px-2"
+          >
+            Renumber
+          </Button>
+        </div>
+
+        {/* Header/Footer Controls */}
+        <div className="flex items-center gap-2 pl-4 border-l">
+          <div className="flex items-center gap-1">
+            <input 
+              type="checkbox" 
+              id="show-headers"
+              checked={showHeaders}
+              onChange={(e) => setShowHeaders(e.target.checked)}
+              className="rounded w-3 h-3"
+            />
+            <label htmlFor="show-headers" className="text-xs">H</label>
+          </div>
+          <div className="flex items-center gap-1">
+            <input 
+              type="checkbox" 
+              id="show-footers"
+              checked={showFooters}
+              onChange={(e) => setShowFooters(e.target.checked)}
+              className="rounded w-3 h-3"
+            />
+            <label htmlFor="show-footers" className="text-xs">F</label>
+          </div>
+          <input 
+            type="text"
+            placeholder="Header"
+            value={headerText}
+            onChange={(e) => setHeaderText(e.target.value)}
+            className="w-16 h-6 text-xs border rounded px-1"
+          />
+          <input 
+            type="text"
+            placeholder="Footer"
+            value={footerText}
+            onChange={(e) => setFooterText(e.target.value)}
+            className="w-16 h-6 text-xs border rounded px-1"
+          />
+        </div>
+
         {/* Margin Controls */}
         <div className="flex items-center gap-2 pl-4 border-l">
-          <span className="text-sm font-medium">Margins:</span>
+          <span className="text-xs font-medium">Margins:</span>
           <div className="flex items-center gap-1">
             <label className="text-xs">L:</label>
             <input
@@ -763,9 +886,19 @@ export function CollaborativeEditor({
                   padding: `${margins.top}in ${margins.right}in ${margins.bottom}in ${margins.left}in`,
                   boxSizing: 'border-box'
                 }}>
-                  <div className="absolute top-2 right-4 text-xs text-gray-400 pointer-events-none">
-                    Page {pageNum}
-                  </div>
+                  {/* Header */}
+                  {showHeaders && (headerText || pageNumbers[pageNum - 1]) && (
+                    <div className="absolute top-2 left-0 right-0 text-center text-xs text-gray-600 pointer-events-none">
+                      {headerText} {headerText && pageNumbers[pageNum - 1] ? '- ' : ''}{pageNumbers[pageNum - 1]}
+                    </div>
+                  )}
+                  
+                  {/* Footer */}
+                  {showFooters && (footerText || pageNumbers[pageNum - 1]) && (
+                    <div className="absolute bottom-2 left-0 right-0 text-center text-xs text-gray-600 pointer-events-none">
+                      {footerText} {footerText && pageNumbers[pageNum - 1] ? '- ' : ''}{pageNumbers[pageNum - 1]}
+                    </div>
+                  )}
                   {isFirstPage ? (
                     <div
                       ref={editorRef}
