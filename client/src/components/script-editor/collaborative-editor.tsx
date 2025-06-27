@@ -473,23 +473,21 @@ export function CollaborativeEditor({
         </Button>
         
         {/* Toggle Comments Visibility */}
-        {comments.length > 0 && (
-          <Button
-            variant={showComments ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setShowComments(!showComments)}
-            className="h-8 px-3"
-          >
-            <MessageCircle className="h-4 w-4 mr-1" />
-            {showComments ? "Hide" : "Show"} Comments ({comments.length})
-          </Button>
-        )}
+        <Button
+          variant={showComments ? "default" : "ghost"}
+          size="sm"
+          onClick={() => setShowComments(!showComments)}
+          className="h-8 px-3"
+        >
+          <MessageCircle className="h-4 w-4 mr-1" />
+          {showComments ? "Hide" : "Show"} Comments
+        </Button>
       </div>
 
       {/* Editor Container with Sidebar Layout */}
       <div className="flex">
         {/* Main Editor Area */}
-        <div className={`flex-1 transition-all duration-300 ${showComments ? 'mr-80' : ''}`}>
+        <div className="flex-1">
           {/* Page container with realistic document styling */}
           <div className="bg-gray-100 dark:bg-gray-800 p-8">
             <div className="bg-white dark:bg-white mx-auto shadow-lg" style={{ 
