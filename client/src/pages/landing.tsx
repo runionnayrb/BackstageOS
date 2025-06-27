@@ -49,7 +49,7 @@ export default function Landing() {
           <CardContent className="p-8">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">Get Started</h2>
-              <p className="text-gray-600">Join theater professionals worldwide</p>
+              <p className="text-gray-600">Join Professional Stage Managers Worldwide</p>
             </div>
 
             <div className="space-y-4">
