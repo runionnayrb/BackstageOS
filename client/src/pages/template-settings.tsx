@@ -298,6 +298,13 @@ export default function TemplateSettings() {
           </div>
           <div className="flex gap-2">
             <Button
+              onClick={() => setLocation(`/shows/${projectId}/templates/new`)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Create New Template
+            </Button>
+            <Button
               variant="outline"
               onClick={() => setIsPreview(!isPreview)}
               className="flex items-center gap-2"
@@ -397,14 +404,24 @@ export default function TemplateSettings() {
                           </CardTitle>
                           <CardDescription>{template.description}</CardDescription>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsEditing(!isEditing)}
-                        >
-                          <Edit3 className="h-4 w-4 mr-2" />
-                          {isEditing ? "Stop Editing" : "Edit Template"}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setLocation(`/shows/${projectId}/templates/phase-${selectedPhase}/edit`)}
+                          >
+                            <Edit3 className="h-4 w-4 mr-2" />
+                            Edit in Builder
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setIsEditing(!isEditing)}
+                          >
+                            <Edit3 className="h-4 w-4 mr-2" />
+                            {isEditing ? "Stop Editing" : "Quick Edit"}
+                          </Button>
+                        </div>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-6">

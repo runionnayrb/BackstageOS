@@ -159,6 +159,7 @@ Required environment variables:
 - June 26, 2025: **CONSISTENT TERMINOLOGY**: Changed interface from "Projects" to "Shows" for unified theater-focused language throughout the application
 - June 26, 2025: **HIERARCHICAL NAVIGATION**: Replaced card-based interface with clean list format and hierarchical click-through navigation - click into show, then into sections like Reports, then into specific report types
 - June 26, 2025: **COMPREHENSIVE TEMPLATE CUSTOMIZATION**: Built advanced template settings system for each production phase (prep, rehearsal, tech, previews, performance) with drag-drop field reordering, custom headers/footers, live preview, and field type customization
+- June 27, 2025: **TEMPLATE BUILDER INTERFACE FIX**: Fixed navigation issue where users were seeing old configuration interface instead of clean document interface - added "Edit in Builder" buttons to direct users to proper template builder with clean document layout and in-place editing
 
 ## User Preferences
 

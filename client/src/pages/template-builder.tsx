@@ -116,20 +116,20 @@ export default function TemplateBuilder() {
   useEffect(() => {
     if (template) {
       form.reset({
-        name: template.name || "",
-        description: template.description || "",
-        type: template.type || "",
-        phase: template.phase || "",
-        header: template.header || "{{showName}} - {{reportType}}\n{{date}}",
-        footer: template.footer || "Prepared by: {{preparedBy}}",
+        name: (template as any).name || "",
+        description: (template as any).description || "",
+        type: (template as any).type || "",
+        phase: (template as any).phase || "",
+        header: (template as any).header || "{{showName}} - {{reportType}}\n{{date}}",
+        footer: (template as any).footer || "Prepared by: {{preparedBy}}",
       });
 
-      if (template.fields && Array.isArray(template.fields)) {
-        setFields(template.fields);
+      if ((template as any).fields && Array.isArray((template as any).fields)) {
+        setFields((template as any).fields);
         
         // Set up sample data
         const newSampleData: Record<string, any> = {};
-        template.fields.forEach((field: TemplateField) => {
+        (template as any).fields.forEach((field: TemplateField) => {
           newSampleData[field.id] = getSampleValue(field);
         });
         setSampleData(newSampleData);
@@ -345,15 +345,9 @@ export default function TemplateBuilder() {
       };
 
       if (templateId) {
-        return await apiRequest(`/api/projects/${projectId}/templates/${templateId}`, {
-          method: "PATCH",
-          body: templateData,
-        });
+        return await apiRequest("PATCH", `/api/projects/${projectId}/templates/${templateId}`, templateData);
       } else {
-        return await apiRequest(`/api/projects/${projectId}/templates`, {
-          method: "POST",
-          body: templateData,
-        });
+        return await apiRequest("POST", `/api/projects/${projectId}/templates`, templateData);
       }
     },
     onSuccess: () => {
