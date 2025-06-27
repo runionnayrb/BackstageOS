@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -28,7 +28,8 @@ import {
   Copy,
   Shield,
   Clock,
-  Mail
+  Mail,
+  ArrowLeft
 } from "lucide-react";
 
 interface ShowSettingsParams {
@@ -82,6 +83,7 @@ export default function ShowSettings() {
   const { id } = useParams<ShowSettingsParams>();
   const { user } = useAuth();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
 
   const isFullTime = user?.profileType === "fulltime";
@@ -163,25 +165,40 @@ export default function ShowSettings() {
 
   if (isLoading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+            <div className="h-32 bg-gray-200 rounded"></div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <Settings className="h-6 w-6" />
-          <h1 className="text-3xl font-bold">{showLabel} Settings</h1>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation(`/shows/${id}`)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to {project?.name}
+          </Button>
         </div>
-        <p className="text-muted-foreground">{project?.name} • Configure settings and permissions</p>
-      </div>
+
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <Settings className="h-6 w-6" />
+            <h1 className="text-3xl font-bold">Show Settings</h1>
+          </div>
+          <p className="text-muted-foreground">{project?.name} • Configure settings and permissions</p>
+        </div>
 
       <Tabs defaultValue="team" className="w-full">
         <TabsList className="grid w-full grid-cols-5">
@@ -655,6 +672,7 @@ export default function ShowSettings() {
           </Card>
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }
