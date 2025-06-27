@@ -78,7 +78,7 @@ const FIELD_TYPES = [
 ];
 
 export default function TemplateBuilder() {
-  const { projectId, templateId } = useParams<{ projectId: string; templateId?: string }>();
+  const { id: projectId, templateId } = useParams<{ id: string; templateId?: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
