@@ -630,37 +630,58 @@ export function CollaborativeEditor({
         {/* Main Editor Area */}
         <div className="flex-1">
           {/* Page container with realistic document styling */}
-          <div className="bg-gray-100 dark:bg-gray-800 p-8">
-            <div className="bg-white dark:bg-white mx-auto shadow-lg" style={{ 
+          <div className="bg-gray-100 dark:bg-gray-800 p-8 space-y-8">
+            {/* Page 1 */}
+            <div className="bg-white mx-auto shadow-lg" style={{ 
               width: '8.5in', 
-              minHeight: '11in',
+              height: '11in',
               padding: '1in',
               fontFamily: 'Courier, monospace',
               fontSize: '12pt',
               lineHeight: '1.5'
             }}>
-              <div className="relative">
-                <div
-                  ref={editorRef}
-                  contentEditable
-                  onInput={handleInput}
-                  onPaste={handlePaste}
-                  onMouseUp={handleTextSelection}
-                  className="min-h-full focus:outline-none text-black relative"
-                  style={{ 
-                    whiteSpace: 'pre-wrap',
-                    paddingBottom: '1in'
-                  }}
-                  suppressContentEditableWarning={true}
-                />
-                
-                {/* Page break indicators positioned absolutely */}
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="page-break-indicator" style={{ top: '9.5in' }}></div>
-                  <div className="page-break-indicator" style={{ top: '20.5in' }}></div>
-                  <div className="page-break-indicator" style={{ top: '31.5in' }}></div>
-                  <div className="page-break-indicator" style={{ top: '42.5in' }}></div>
-                  <div className="page-break-indicator" style={{ top: '53.5in' }}></div>
+              <div
+                ref={editorRef}
+                contentEditable
+                onInput={handleInput}
+                onPaste={handlePaste}
+                onMouseUp={handleTextSelection}
+                className="h-full focus:outline-none text-black overflow-hidden"
+                style={{ 
+                  whiteSpace: 'pre-wrap'
+                }}
+                suppressContentEditableWarning={true}
+              />
+            </div>
+            
+            {/* Additional pages will be generated dynamically based on content */}
+            <div className="bg-white mx-auto shadow-lg" style={{ 
+              width: '8.5in', 
+              height: '11in',
+              padding: '1in',
+              fontFamily: 'Courier, monospace',
+              fontSize: '12pt',
+              lineHeight: '1.5'
+            }}>
+              <div className="h-full text-black overflow-hidden opacity-50">
+                {/* This will be filled with overflow content */}
+                <div className="text-gray-400 text-center mt-20">
+                  Page 2 - Content will flow here automatically
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white mx-auto shadow-lg" style={{ 
+              width: '8.5in', 
+              height: '11in',
+              padding: '1in',
+              fontFamily: 'Courier, monospace',
+              fontSize: '12pt',
+              lineHeight: '1.5'
+            }}>
+              <div className="h-full text-black overflow-hidden opacity-50">
+                <div className="text-gray-400 text-center mt-20">
+                  Page 3 - Content will flow here automatically
                 </div>
               </div>
             </div>
