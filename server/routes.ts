@@ -48,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Beta access management routes (admin only)
   app.get('/api/admin/beta-users', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       
       if (!isAdmin(userId)) {
         return res.status(403).json({ message: "Admin access required" });
@@ -64,7 +64,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/admin/beta-access', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       
       if (!isAdmin(userId)) {
         return res.status(403).json({ message: "Admin access required" });
@@ -87,7 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all users for admin management
   app.get('/api/admin/users', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       
       if (!isAdmin(userId)) {
         return res.status(403).json({ message: "Admin access required" });
@@ -104,7 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update user profile and permissions
   app.patch('/api/admin/users/:targetUserId', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       const { targetUserId } = req.params;
       
       if (!isAdmin(userId)) {
@@ -137,7 +137,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete user (admin only)
   app.delete('/api/admin/users/:targetUserId', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       const { targetUserId } = req.params;
       
       if (!isAdmin(userId)) {
@@ -179,7 +179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -192,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/projects', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       const projectData = insertProjectSchema.parse({
         ...req.body,
         ownerId: userId,
@@ -219,7 +219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -241,7 +241,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -264,7 +264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -286,7 +286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -317,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -331,7 +331,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/reports', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       const reports = await storage.getReportsByUserId(userId);
       res.json(reports);
     } catch (error) {
@@ -342,7 +342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/reports', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       const reportData = insertReportSchema.parse({
         ...req.body,
         createdBy: userId,
@@ -376,7 +376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check access (owner or team member)
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -399,7 +399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check access (owner or team member)
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -425,11 +425,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       const reportData = insertReportSchema.parse({
         ...req.body,
         projectId,
@@ -458,7 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check access (owner or team member)
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -493,7 +493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check access (owner or team member)
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -520,7 +520,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (report.createdBy !== req.user.claims.sub) {
+      if (report.createdBy !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -535,7 +535,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Report template routes (show-specific)
   app.get('/api/projects/:projectId/templates', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       const projectId = parseInt(req.params.projectId);
       
       // Verify project ownership
@@ -562,7 +562,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check access (owner, public, or default)
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       if (template.createdBy !== userId && !template.isPublic && !template.isDefault) {
         return res.status(403).json({ message: "Access denied" });
       }
@@ -576,7 +576,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/templates', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       const templateData = insertReportTemplateSchema.parse({
         ...req.body,
         createdBy: userId,
@@ -603,7 +603,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (template.createdBy !== req.user.claims.sub) {
+      if (template.createdBy !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -625,7 +625,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (template.createdBy !== req.user.claims.sub) {
+      if (template.createdBy !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -653,7 +653,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -663,7 +663,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create default settings if none exist
         settings = await storage.upsertShowSettings({
           projectId,
-          createdBy: req.user.claims.sub,
+          createdBy: req.user.id.toString(),
         });
       }
       
@@ -684,7 +684,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -707,7 +707,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
       
@@ -730,7 +730,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check access (owner or team member)
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -752,14 +752,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
       const templateData = {
         ...req.body,
         projectId,
-        createdBy: req.user.claims.sub,
+        createdBy: req.user.id.toString(),
       };
 
       const template = await storage.createReportTemplate(templateData);
@@ -781,7 +781,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -804,7 +804,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
@@ -826,11 +826,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Check ownership
-      if (project.ownerId !== req.user.claims.sub) {
+      if (project.ownerId !== req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       const settingsData = insertGlobalTemplateSettingsSchema.parse({
         ...req.body,
         projectId,
@@ -852,7 +852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Beta feature settings API (admin only)
   app.get('/api/admin/beta-settings', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       if (!isAdmin(userId)) {
         return res.status(403).json({ message: "Admin access required" });
       }
@@ -934,7 +934,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/admin/beta-settings', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id.toString();
       if (!isAdmin(userId)) {
         return res.status(403).json({ message: "Admin access required" });
       }
