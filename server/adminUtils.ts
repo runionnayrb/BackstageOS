@@ -1,5 +1,5 @@
 // Server-side admin utility functions
-export const ADMIN_USER_ID = '44106967';
+export const ADMIN_USER_ID = '2';
 
 export function isAdmin(userId: string): boolean {
   return userId === ADMIN_USER_ID;
