@@ -76,10 +76,10 @@ Backstage OS is a comprehensive theater management platform specifically designe
 ## Key Components
 
 ### Authentication System
-- **Provider**: Replit Auth using OpenID Connect
-- **Session Storage**: PostgreSQL-backed sessions table
+- **Provider**: Custom email/password authentication with bcrypt password hashing
+- **Session Storage**: PostgreSQL-backed sessions table with connect-pg-simple
 - **User Profiles**: Support for freelance vs full-time user types
-- **Middleware**: Custom authentication middleware for protected routes
+- **Middleware**: Passport.js LocalStrategy with custom authentication middleware for protected routes
 
 ### Project Management
 - **Projects Table**: Core entity for tracking shows/projects
@@ -221,6 +221,7 @@ Required environment variables:
 - June 27, 2025: **LANDING PAGE MESSAGING UPDATE**: Changed sign-in page text from "Join theater professionals worldwide" to "Join Professional Stage Managers Worldwide" to better target the platform's specific audience of stage management professionals.
 - June 27, 2025: **DEFAULT BETA ACCESS CHANGE**: Updated new user registration to default to "limited" beta access instead of "none" - admins can still upgrade users to "full" access or downgrade to "none" as needed.
 - June 27, 2025: **PROFILE SELECTION FIX**: Fixed authentication flow so users only see profile type selection page once during initial setup - existing users with profile types set bypass this screen on subsequent logins.
+- June 27, 2025: **MAJOR AUTHENTICATION CHANGE**: Replaced Replit Auth with custom email/password authentication system using bcrypt password hashing and Passport.js LocalStrategy - users now register and login with email/password credentials instead of OAuth flow.
 
 ## User Preferences
 
