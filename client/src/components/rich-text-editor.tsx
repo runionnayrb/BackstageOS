@@ -296,7 +296,7 @@ export function RichTextEditor({
                 value={pageNumberFormat}
                 onValueChange={onPageNumberFormatChange}
               >
-                <SelectTrigger className="w-40 h-8 text-xs">
+                <SelectTrigger className="w-auto h-8 text-xs">
                   <SelectValue placeholder="Select format" />
                 </SelectTrigger>
                 <SelectContent>
