@@ -218,11 +218,9 @@ export default function GlobalTemplateSettings() {
 
   const saveSettings = useMutation({
     mutationFn: async (settingsData: GlobalTemplateSettings) => {
-      if (settingsData.id) {
-        await apiRequest("PATCH", `/api/projects/${projectId}/global-template-settings/${settingsData.id}`, settingsData);
-      } else {
-        await apiRequest("POST", `/api/projects/${projectId}/global-template-settings`, settingsData);
-      }
+      // Remove id, createdAt, updatedAt for server validation
+      const { id, createdAt, updatedAt, ...dataToSend } = settingsData as any;
+      await apiRequest("POST", `/api/projects/${projectId}/global-template-settings`, dataToSend);
     },
     onSuccess: () => {
       toast({
