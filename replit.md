@@ -167,6 +167,7 @@ Required environment variables:
 - June 27, 2025: **SETTINGS NAVIGATION REMOVAL**: Removed Settings section from show page navigation categories - settings now exclusively accessible through header button for cleaner interface
 - June 27, 2025: **STATUS BADGE REMOVAL**: Removed planning status badge from show page header for cleaner, more minimal interface design
 - June 27, 2025: **DYNAMIC BACK BUTTONS**: Fixed Show Settings page to display dynamic show name in back button ("Back to [Show Name]") for better navigation context
+- June 27, 2025: **PAGE NUMBER CONTROLS**: Added page numbering buttons to global template settings rich text editor toolbars for both header and footer sections - users can now easily insert page number variables ({{pageNumber}}, {{totalPages}}) with one-click buttons
 
 ## User Preferences
 

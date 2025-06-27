@@ -1043,17 +1043,81 @@ export default function GlobalTemplateSettings() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Header Content</Label>
-                      <RichTextEditor
-                        content={settings.defaultHeader}
-                        onChange={(content) => setSettings(prev => ({
-                          ...prev,
-                          defaultHeader: content
-                        }))}
-                        placeholder="Enter header content with rich formatting..."
-                        className="min-h-[120px]"
-                      />
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-gray-50 dark:bg-gray-900">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const currentContent = settings.defaultHeader;
+                              setSettings(prev => ({
+                                ...prev,
+                                defaultHeader: currentContent + ' {{pageNumber}}'
+                              }));
+                            }}
+                            className="text-xs"
+                          >
+                            Page #
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const currentContent = settings.defaultHeader;
+                              setSettings(prev => ({
+                                ...prev,
+                                defaultHeader: currentContent + ' {{pageNumber}} of {{totalPages}}'
+                              }));
+                            }}
+                            className="text-xs"
+                          >
+                            Page # of #
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const currentContent = settings.defaultHeader;
+                              setSettings(prev => ({
+                                ...prev,
+                                defaultHeader: currentContent + ' Page {{pageNumber}}'
+                              }));
+                            }}
+                            className="text-xs"
+                          >
+                            Page #
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const currentContent = settings.defaultHeader;
+                              setSettings(prev => ({
+                                ...prev,
+                                defaultHeader: currentContent + ' Page {{pageNumber}} of {{totalPages}}'
+                              }));
+                            }}
+                            className="text-xs"
+                          >
+                            Page # of #
+                          </Button>
+                        </div>
+                        <RichTextEditor
+                          content={settings.defaultHeader}
+                          onChange={(content) => setSettings(prev => ({
+                            ...prev,
+                            defaultHeader: content
+                          }))}
+                          placeholder="Enter header content with rich formatting..."
+                          className="min-h-[120px]"
+                        />
+                      </div>
                       <p className="text-sm text-muted-foreground">
-                        Use variables: {`{{showName}}, {{reportType}}, {{date}}, {{stageManager}}, {{venue}}`}
+                        Use variables: {`{{showName}}, {{reportType}}, {{date}}, {{stageManager}}, {{venue}}`} • Click page number buttons above to add page numbering
                       </p>
                     </div>
 
@@ -1100,17 +1164,81 @@ export default function GlobalTemplateSettings() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Footer Content</Label>
-                      <RichTextEditor
-                        content={settings.defaultFooter}
-                        onChange={(content) => setSettings(prev => ({
-                          ...prev,
-                          defaultFooter: content
-                        }))}
-                        placeholder="Enter footer content with rich formatting..."
-                        className="min-h-[100px]"
-                      />
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap gap-2 p-2 border rounded-md bg-gray-50 dark:bg-gray-900">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const currentContent = settings.defaultFooter;
+                              setSettings(prev => ({
+                                ...prev,
+                                defaultFooter: currentContent + ' {{pageNumber}}'
+                              }));
+                            }}
+                            className="text-xs"
+                          >
+                            Page #
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const currentContent = settings.defaultFooter;
+                              setSettings(prev => ({
+                                ...prev,
+                                defaultFooter: currentContent + ' {{pageNumber}} of {{totalPages}}'
+                              }));
+                            }}
+                            className="text-xs"
+                          >
+                            Page # of #
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const currentContent = settings.defaultFooter;
+                              setSettings(prev => ({
+                                ...prev,
+                                defaultFooter: currentContent + ' Page {{pageNumber}}'
+                              }));
+                            }}
+                            className="text-xs"
+                          >
+                            Page #
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const currentContent = settings.defaultFooter;
+                              setSettings(prev => ({
+                                ...prev,
+                                defaultFooter: currentContent + ' Page {{pageNumber}} of {{totalPages}}'
+                              }));
+                            }}
+                            className="text-xs"
+                          >
+                            Page # of #
+                          </Button>
+                        </div>
+                        <RichTextEditor
+                          content={settings.defaultFooter}
+                          onChange={(content) => setSettings(prev => ({
+                            ...prev,
+                            defaultFooter: content
+                          }))}
+                          placeholder="Enter footer content with rich formatting..."
+                          className="min-h-[100px]"
+                        />
+                      </div>
                       <p className="text-sm text-muted-foreground">
-                        Use variables: {`{{preparedBy}}, {{nextReportDate}}, {{contactInfo}}, {{emergencyContact}}`}
+                        Use variables: {`{{preparedBy}}, {{nextReportDate}}, {{contactInfo}}, {{emergencyContact}}`} • Click page number buttons above to add page numbering
                       </p>
                     </div>
 
