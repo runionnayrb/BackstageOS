@@ -163,6 +163,8 @@ Required environment variables:
 - June 27, 2025: **TEMPLATE SAVING FIX**: Resolved database error preventing template saves - fixed ID handling to work with PostgreSQL constraints and separated create vs update logic
 - June 27, 2025: **REPORTS WORKFLOW INTEGRATION**: Added Template Settings button to Reports page header for easy access to template configuration directly from reports workflow - back button now properly returns to Reports page instead of main show page
 - June 27, 2025: **NAVIGATION CLEANUP**: Removed Report Templates navigation from show page Settings section - template settings now exclusively accessed through reports workflow for cleaner user experience
+- June 27, 2025: **SHOW SETTINGS BUTTON**: Added Show Settings button to show detail page header for easy access to global show configuration - maintains consistent navigation pattern with template settings
+- June 27, 2025: **SETTINGS NAVIGATION REMOVAL**: Removed Settings section from show page navigation categories - settings now exclusively accessible through header button for cleaner interface
 
 ## User Preferences
 

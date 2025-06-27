@@ -111,14 +111,7 @@ export default function ShowDetail() {
         { name: "Board View", href: `/shows/${projectId}/tasks/board` },
       ],
     },
-    {
-      title: "Settings",
-      description: isFreelance ? "Project configuration" : "Show configuration and permissions",
-      icon: Settings,
-      items: [
-        { name: "General Settings", href: `/shows/${projectId}/settings` },
-      ],
-    },
+
   ];
 
   return (
@@ -144,9 +137,20 @@ export default function ShowDetail() {
                 <p className="text-muted-foreground mt-2">{project.description}</p>
               )}
             </div>
-            <Badge variant="secondary" className="text-sm">
-              {project.status}
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLocation(`/shows/${projectId}/settings`)}
+                className="flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                Show Settings
+              </Button>
+              <Badge variant="secondary" className="text-sm">
+                {project.status}
+              </Badge>
+            </div>
           </div>
         </div>
 
