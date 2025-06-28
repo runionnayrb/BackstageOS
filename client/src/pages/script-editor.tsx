@@ -94,7 +94,10 @@ export default function ScriptEditor() {
       setScriptTitle(script.title || "Untitled Script");
       setScriptContent(script.content || "");
       setCollaborators(script.collaborators || []);
-      setComments(scriptComments || []);
+      // Only set comments if they don't exist yet
+      if (comments.length === 0) {
+        setComments(scriptComments || []);
+      }
       setVersions(scriptVersions || []);
       setChanges(scriptChanges || []);
     } else {
@@ -181,7 +184,7 @@ export default function ScriptEditor() {
       // Only set sample comments if no comments exist yet
       setComments(prev => prev.length === 0 ? sampleComments : prev);
     }
-  }, [script, scriptComments, scriptVersions, scriptChanges, scriptTitle, scriptContent, user]);
+  }, [script, user]); // Removed dependencies that were causing comments to reset
 
   // Save script mutation
   const saveScriptMutation = useMutation({
