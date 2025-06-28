@@ -76,12 +76,12 @@ export default function ScriptEditor() {
   const [isContentLoaded, setIsContentLoaded] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Enhanced script data fetching with persistent content management
-  const { data: script, isLoading: scriptLoading } = useQuery({
+  // Enhanced script data fetching with no caching to prevent stale data
+  const { data: script, isLoading: scriptLoading, refetch: refetchScript } = useQuery({
     queryKey: [`/api/projects/${projectId}/script`],
     enabled: !!projectId && !!user,
-    staleTime: 30000, // Keep data fresh for 30 seconds
-    gcTime: 300000, // Cache for 5 minutes
+    staleTime: 0, // Always fresh
+    gcTime: 0, // No caching
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: false,
