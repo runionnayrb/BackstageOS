@@ -456,7 +456,14 @@ export function CollaborativeEditor({
           }
         }
         
-        console.log('Content initialization:', { type, currentContent, fromLocalStorage: !!localStorage.getItem(`script-${type}-${title}`) });
+        console.log('Content initialization:', { 
+          type, 
+          currentContent, 
+          title,
+          lookingForKey: `script-${type}-${title}`,
+          fromLocalStorage: !!localStorage.getItem(`script-${type}-${title}`),
+          allLocalStorageKeys: Object.keys(localStorage).filter(k => k.startsWith('script-'))
+        });
         
         if (currentContent && currentContent.trim()) {
           element.innerHTML = currentContent;
