@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useParams, useLocation } from "wouter";
@@ -85,33 +85,14 @@ export default function ScriptEditor() {
 
   // Track if we've loaded the initial script content
   const [isContentLoaded, setIsContentLoaded] = useState(false);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Initialize component once without dependencies to prevent resets
   useEffect(() => {
     setIsContentLoaded(true);
   }, []);
 
-  // Auto-save effect with debounce - ONLY save if content exists
-  useEffect(() => {
-    if (!isContentLoaded) return; // Don't auto-save until after initial load
-    
-    // CRITICAL: Never save empty content
-    if (!scriptContent || scriptContent.trim().length === 0) {
-      console.log('Skipping auto-save: empty content');
-      return;
-    }
-    
-    const timeoutId = setTimeout(() => {
-      const data = {
-        title: scriptTitle,
-        content: scriptContent,
-      };
-      console.log('Auto-saving:', { title: scriptTitle, contentLength: scriptContent.length });
-      saveScriptMutation.mutate(data);
-    }, 2000); // Auto-save after 2 seconds of inactivity
-
-    return () => clearTimeout(timeoutId);
-  }, [scriptContent, scriptTitle, isContentLoaded]); // Trigger on content or title change
+  // Auto-save is now handled directly in handleContentChange to avoid timing issues
 
   // Auto-save script mutation with content validation
   const saveScriptMutation = useMutation({
@@ -189,7 +170,7 @@ export default function ScriptEditor() {
     },
   });
 
-  // Handler functions with debugging
+  // Handler functions with debugging and direct auto-save
   const handleContentChange = (content: any) => {
     console.log('Content change handler called:', { 
       length: content?.length || 0, 
@@ -199,6 +180,23 @@ export default function ScriptEditor() {
     
     // Always update content, even if empty (user might be clearing content intentionally)
     setScriptContent(content || "");
+    
+    // Trigger auto-save directly with the new content
+    if (isContentLoaded && content && content.trim().length > 0) {
+      // Clear existing timeout to debounce
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+      
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        const data = {
+          title: scriptTitle,
+          content: content,
+        };
+        console.log('Auto-saving from content change:', { title: scriptTitle, contentLength: content.length });
+        saveScriptMutation.mutate(data);
+      }, 2000);
+    }
   };
 
   const handleTitleChange = (title: string) => {
