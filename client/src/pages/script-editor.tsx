@@ -72,10 +72,14 @@ export default function ScriptEditor() {
 
   const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId || '0')) : null;
 
+  // Track if we've loaded the initial script content
+  const [isContentLoaded, setIsContentLoaded] = useState(false);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Enhanced script data fetching - load once only
   const { data: script, isLoading: scriptLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/script`],
-    enabled: !!projectId && !!user && !isContentLoaded,
+    enabled: !!projectId && !!user,
     staleTime: Infinity, // Never consider stale
     gcTime: Infinity, // Never garbage collect
     refetchOnWindowFocus: false,
@@ -88,10 +92,6 @@ export default function ScriptEditor() {
   const scriptVersions: any[] = [];
   const scriptComments: any[] = [];
   const scriptChanges: any[] = [];
-
-  // Track if we've loaded the initial script content
-  const [isContentLoaded, setIsContentLoaded] = useState(false);
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Load script content from server when available
   useEffect(() => {
