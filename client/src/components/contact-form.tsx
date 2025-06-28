@@ -28,15 +28,32 @@ interface ContactFormProps {
   onSuccess: () => void;
 }
 
+// Phone number formatting functions
+const formatPhoneNumber = (value: string): string => {
+  // Remove all non-digits
+  const cleaned = value.replace(/\D/g, '');
+  
+  // Apply formatting based on length
+  if (cleaned.length === 0) return '';
+  if (cleaned.length <= 3) return cleaned;
+  if (cleaned.length <= 6) return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3)}`;
+  return `(${cleaned.slice(0, 3)}) ${cleaned.slice(3, 6)}-${cleaned.slice(6, 10)}`;
+};
+
+const parsePhoneNumber = (formatted: string): string => {
+  // Remove formatting and return just digits
+  return formatted.replace(/\D/g, '');
+};
+
 export function ContactForm({ projectId, category, contact, onClose, onSuccess }: ContactFormProps) {
   const [formData, setFormData] = useState({
     firstName: contact?.firstName || "",
     lastName: contact?.lastName || "",
     email: contact?.email || "",
-    phone: contact?.phone || "",
+    phone: contact?.phone ? formatPhoneNumber(contact.phone) : "",
     role: contact?.role || "",
     notes: contact?.notes || "",
-    emergencyContact: contact?.emergencyContact || "",
+    emergencyContact: contact?.emergencyContact ? formatPhoneNumber(contact.emergencyContact) : "",
   });
 
   const { toast } = useToast();
@@ -95,11 +112,16 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
     },
   });
 
+
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     const data = {
       ...formData,
+      // Store unformatted phone numbers in database
+      phone: parsePhoneNumber(formData.phone),
+      emergencyContact: parsePhoneNumber(formData.emergencyContact),
       category,
     };
 
@@ -117,10 +139,14 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    const { name, value } = e.target;
+    
+    if (name === 'phone' || name === 'emergencyContact') {
+      // Format phone number as user types
+      setFormData(prev => ({ ...prev, [name]: formatPhoneNumber(value) }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
   };
 
   return (
