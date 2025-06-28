@@ -1258,7 +1258,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/extract-pdf-text', isAuthenticated, async (req: any, res) => {
     try {
       const multer = await import('multer');
-      const pdfParse = await import('pdf-parse');
       
       const upload = multer.default({ 
         storage: multer.memoryStorage(),
@@ -1275,7 +1274,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         try {
-          const data = await pdfParse.default(req.file.buffer);
+          // Import pdf-parse with better error handling
+          const pdfParse = require('pdf-parse');
+          
+          // Parse the PDF buffer directly
+          const data = await pdfParse(req.file.buffer);
+          
           let text = data.text || '';
 
           // Clean up common PDF extraction artifacts
@@ -1286,7 +1290,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .replace(/[A-Z\s]{20,}\s+Pg\.\s*\d+/gi, '')
             .replace(/[A-Z\s]{20,}\s+Page\s*\d+/gi, '')
             // Remove spaced-out titles like "L O R R A I N E   H A N S B E R R Y"
-            .replace(/([A-Z]\s){3,}[A-Z]/g, (match) => match.replace(/\s/g, ''))
+            .replace(/([A-Z]\s){3,}[A-Z]/g, (match: string) => match.replace(/\s/g, ''))
             // Clean up line breaks
             .replace(/\n{3,}/g, '\n\n')
             .trim();
@@ -1298,7 +1302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
           }
 
-          res.json({ text, pages: data.numpages });
+          res.json({ text, pages: data.numpages || 1 });
         } catch (parseError) {
           console.error('PDF parsing error:', parseError);
           res.status(500).json({ 
