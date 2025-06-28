@@ -375,79 +375,33 @@ export function CollaborativeEditor({
 
   // Handle input events specifically to preserve cursor position
   const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLDivElement;
+    
+    // Collect content from all pages
+    const allPageContent: string[] = [];
+    
+    // Get content from page 1 (editorRef)
     if (editorRef.current) {
-      const newContent = editorRef.current.innerHTML;
-      onChange(newContent);
-      // Distribute content across pages after a short delay
-      setTimeout(() => {
-        if (!editorRef.current) return;
-
-        const page1 = editorRef.current;
-        const allContent = page1.innerHTML || '';
-        
-        // If no content, show only one page
-        if (!allContent.trim()) {
-          setPageCount(1);
-          setPageNumbers(['1']);
-          return;
-        }
-
-        // Split content into div elements for distribution
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = allContent;
-        const allDivs = Array.from(tempDiv.querySelectorAll('div'));
-        
-        if (allDivs.length === 0) {
-          // No divs found, create from text content
-          const textLines = allContent.split('\n').filter(line => line.trim());
-          const totalLines = textLines.length;
-          const linesPerPage = 35; // Approximate lines that fit per page
-          const newPageCount = Math.ceil(totalLines / linesPerPage);
-          
-          setPageCount(newPageCount);
-          setPageNumbers(Array.from({ length: newPageCount }, (_, i) => (i + 1).toString()));
-          
-          // Distribute text lines across pages
-          for (let pageNum = 1; pageNum <= newPageCount; pageNum++) {
-            const pageContainer = pageNum === 1 ? page1 : document.getElementById(`page-${pageNum}-content`);
-            if (pageContainer) {
-              const startLine = (pageNum - 1) * linesPerPage;
-              const endLine = pageNum * linesPerPage;
-              const pageLines = textLines.slice(startLine, endLine);
-              pageContainer.innerHTML = pageLines.map(line => `<div>${line}</div>`).join('');
-            }
-          }
-        } else {
-          // Distribute div elements across pages
-          const divsPerPage = 35; // Approximate divs that fit per page
-          const totalDivs = allDivs.length;
-          const newPageCount = Math.ceil(totalDivs / divsPerPage);
-          
-          setPageCount(newPageCount);
-          setPageNumbers(Array.from({ length: newPageCount }, (_, i) => (i + 1).toString()));
-          
-          // Clear page 1 first
-          page1.innerHTML = '';
-          
-          // Distribute divs across all pages
-          for (let pageNum = 1; pageNum <= newPageCount; pageNum++) {
-            const pageContainer = pageNum === 1 ? page1 : document.getElementById(`page-${pageNum}-content`);
-            if (pageContainer) {
-              const startDiv = (pageNum - 1) * divsPerPage;
-              const endDiv = Math.min(pageNum * divsPerPage, totalDivs);
-              const pageDivs = allDivs.slice(startDiv, endDiv);
-              
-              // Clone and append each div to the page
-              pageDivs.forEach(div => {
-                const clonedDiv = div.cloneNode(true) as HTMLElement;
-                pageContainer.appendChild(clonedDiv);
-              });
-            }
-          }
-        }
-      }, 50);
+      allPageContent.push(editorRef.current.innerHTML || '');
     }
-  }, [onChange]);
+    
+    // Get content from additional pages
+    for (let i = 2; i <= pageCount; i++) {
+      const pageElement = document.getElementById(`page-${i}-content`);
+      if (pageElement) {
+        allPageContent.push(pageElement.innerHTML || '');
+      }
+    }
+    
+    // Combine all content
+    const combinedContent = allPageContent.join('');
+    
+    // Update the main content
+    onChange(combinedContent);
+    
+    // Don't redistribute content while actively typing - just save the changes
+    // Content distribution should only happen on paste or major content changes
+  }, [onChange, pageCount]);
 
   // Parse and format script text automatically
   const parseScriptText = useCallback((text: string) => {
@@ -569,13 +523,16 @@ export function CollaborativeEditor({
         selection?.addRange(range);
         
         handleContentChange(editorRef.current?.innerHTML || '');
+        
+        // Trigger content distribution after pasting large content
+        setTimeout(() => distributeContentAcrossPages(), 100);
       }
     } else {
       // For small text, just paste normally
       document.execCommand('insertText', false, pastedText);
       handleContentChange(editorRef.current?.innerHTML || '');
     }
-  }, [parseScriptText, saveToUndoStack, handleContentChange]);
+  }, [parseScriptText, saveToUndoStack, handleContentChange, distributeContentAcrossPages]);
 
   // Apply script-specific formatting
   const applyScriptFormatting = useCallback((type: 'character' | 'dialogue' | 'stage_direction' | 'scene_heading') => {
