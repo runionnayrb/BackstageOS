@@ -824,18 +824,79 @@ export default function ContactSheet() {
 
       {/* Print Preview Container */}
       <div className="px-8 print:p-0">
-        <div className="max-w-none mx-auto bg-white shadow-lg print:shadow-none print:max-w-none" 
-             style={{ 
-               width: '8.5in', 
-               minHeight: '11in',
-               marginTop: `${pageMargins.top}in !important`,
-               marginRight: `${pageMargins.right}in !important`,
-               marginLeft: `${pageMargins.left}in !important`,
-               marginBottom: `${pageMargins.bottom}in !important`,
-               boxSizing: 'border-box',
-               border: isPreviewMode ? 'none' : '2px dashed #ff0000'
-             }}
-          >
+        {/* Page boundaries box */}
+        <div 
+          className="max-w-none mx-auto bg-white shadow-lg print:shadow-none print:max-w-none" 
+          style={{ 
+            width: '8.5in', 
+            minHeight: '11in',
+            boxSizing: 'border-box',
+            border: isPreviewMode ? 'none' : '1px solid #e5e5e5',
+            position: 'relative'
+          }}
+        >
+          {/* Debug margin indicators - only in edit mode */}
+          {!isPreviewMode && (
+            <>
+              {/* Top margin indicator */}
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: `${pageMargins.top}in`,
+                  backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                  border: '1px dashed #ff0000',
+                  zIndex: 10,
+                  pointerEvents: 'none'
+                }}
+              />
+              {/* Bottom margin indicator */}
+              <div 
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: `${pageMargins.bottom}in`,
+                  backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                  border: '1px dashed #ff0000',
+                  zIndex: 10,
+                  pointerEvents: 'none'
+                }}
+              />
+              {/* Left margin indicator */}
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  width: `${pageMargins.left}in`,
+                  backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                  border: '1px dashed #ff0000',
+                  zIndex: 10,
+                  pointerEvents: 'none'
+                }}
+              />
+              {/* Right margin indicator */}
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  right: 0,
+                  width: `${pageMargins.right}in`,
+                  backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                  border: '1px dashed #ff0000',
+                  zIndex: 10,
+                  pointerEvents: 'none'
+                }}
+              />
+            </>
+          )}
+
           {/* Dynamic Page Margin CSS */}
           <style>
             {`
@@ -848,22 +909,28 @@ export default function ContactSheet() {
             `}
           </style>
           
-          {/* Page Header */}
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-2">{(project as any)?.name}</h1>
-            <h2 className="text-lg text-gray-600">Contact Sheet</h2>
-            <p className="text-sm text-gray-500 mt-2">
-              Generated on {new Date().toLocaleDateString()}
-            </p>
-          </div>
-
-          {/* Contact Table by Category */}
+          {/* Content area positioned within margins */}
           <div 
-            className="space-y-8 print:space-y-6"
             style={{
-              marginTop: `${headerFooterMargins.header}in`
+              position: 'absolute',
+              top: `${pageMargins.top}in`,
+              right: `${pageMargins.right}in`,
+              bottom: `${pageMargins.bottom}in`,
+              left: `${pageMargins.left}in`,
+              overflow: 'hidden'
             }}
           >
+            {/* Page Header */}
+            <div className="text-center" style={{ marginBottom: `${headerFooterMargins.header}in` }}>
+              <h1 className="text-2xl font-bold mb-2">{(project as any)?.name}</h1>
+              <h2 className="text-lg text-gray-600">Contact Sheet</h2>
+              <p className="text-sm text-gray-500 mt-2">
+                Generated on {new Date().toLocaleDateString()}
+              </p>
+            </div>
+
+            {/* Contact Table by Category */}
+            <div className="space-y-8 print:space-y-6">
               {categories.map(category => {
                 const categoryContacts = contactsByCategory[category.id] || [];
                 
@@ -996,14 +1063,19 @@ export default function ContactSheet() {
               })}
             </div>
 
-          {/* Page Footer */}
-          <div 
-            className="text-center text-xs text-gray-500"
-            style={{
-              marginTop: `${headerFooterMargins.footer}in`
-            }}
-          >
-            Page 1 of 1
+            {/* Page Footer */}
+            <div 
+              className="text-center text-xs text-gray-500"
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                marginBottom: `${headerFooterMargins.footer}in`
+              }}
+            >
+              Page 1 of 1
+            </div>
           </div>
         </div>
       </div>
