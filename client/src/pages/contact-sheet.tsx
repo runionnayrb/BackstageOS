@@ -75,6 +75,8 @@ export default function ContactSheet() {
   const [isResizingHeight, setIsResizingHeight] = useState<'header' | 'row' | null>(null);
   const [resizeStartY, setResizeStartY] = useState(0);
   const [resizeStartHeight, setResizeStartHeight] = useState(0);
+  const [headerAlignment, setHeaderAlignment] = useState<'left' | 'center' | 'right'>('left');
+  const [rowAlignment, setRowAlignment] = useState<'left' | 'center' | 'right'>('left');
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -277,6 +279,14 @@ export default function ContactSheet() {
     };
   }, [isResizing, resizeStartX, resizeStartWidth, isResizingHeight, resizeStartY, resizeStartHeight]);
 
+  const getAlignmentClass = (alignment: 'left' | 'center' | 'right'): string => {
+    switch (alignment) {
+      case 'center': return 'text-center justify-center';
+      case 'right': return 'text-right justify-end';
+      default: return 'text-left justify-start';
+    }
+  };
+
   const formatPhoneNumber = (phone: string | null | undefined): string => {
     if (!phone) return "";
     // Convert to string if needed
@@ -380,6 +390,59 @@ export default function ContactSheet() {
               </Button>
             </div>
           </div>
+          
+          {/* Alignment Controls - Only show in edit mode */}
+          {!isPreviewMode && (
+            <div className="flex items-center gap-6 mt-4 pb-4 border-b">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">Header Alignment:</label>
+                <div className="flex items-center border rounded">
+                  <button
+                    onClick={() => setHeaderAlignment('left')}
+                    className={`px-3 py-1 text-sm ${headerAlignment === 'left' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
+                  >
+                    Left
+                  </button>
+                  <button
+                    onClick={() => setHeaderAlignment('center')}
+                    className={`px-3 py-1 text-sm border-x ${headerAlignment === 'center' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
+                  >
+                    Center
+                  </button>
+                  <button
+                    onClick={() => setHeaderAlignment('right')}
+                    className={`px-3 py-1 text-sm ${headerAlignment === 'right' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
+                  >
+                    Right
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium">Row Alignment:</label>
+                <div className="flex items-center border rounded">
+                  <button
+                    onClick={() => setRowAlignment('left')}
+                    className={`px-3 py-1 text-sm ${rowAlignment === 'left' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
+                  >
+                    Left
+                  </button>
+                  <button
+                    onClick={() => setRowAlignment('center')}
+                    className={`px-3 py-1 text-sm border-x ${rowAlignment === 'center' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
+                  >
+                    Center
+                  </button>
+                  <button
+                    onClick={() => setRowAlignment('right')}
+                    className={`px-3 py-1 text-sm ${rowAlignment === 'right' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
+                  >
+                    Right
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -426,7 +489,7 @@ export default function ContactSheet() {
                         {!isPreviewMode && columns.filter(col => col.visible).map((column, colIndex) => (
                           <div
                             key={column.id}
-                            className="relative font-semibold px-3 print:px-1 border-r border-gray-300 last:border-r-0 print:hidden cursor-grab hover:bg-gray-50 flex items-center"
+                            className={`relative font-semibold px-3 print:px-1 border-r border-gray-300 last:border-r-0 print:hidden cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(headerAlignment)}`}
                             style={{ width: `${column.width}px`, height: `${headerHeight}px` }}
                             draggable
                             onDragStart={(e) => handleColumnDragStart(e, colIndex)}
@@ -454,7 +517,7 @@ export default function ContactSheet() {
                           {columns.filter(col => col.visible).map((column) => (
                             <div
                               key={column.id}
-                              className="font-semibold px-3 border-r border-gray-300 last:border-r-0 flex items-center"
+                              className={`font-semibold px-3 border-r border-gray-300 last:border-r-0 flex items-center ${getAlignmentClass(headerAlignment)}`}
                               style={{ width: `${column.width}px`, height: `${headerHeight}px` }}
                             >
                               {column.label}
@@ -481,7 +544,7 @@ export default function ContactSheet() {
                           {!isPreviewMode && columns.filter(col => col.visible).map((column, cellIndex) => (
                             <div
                               key={column.id}
-                              className="relative px-3 border-r border-gray-300 last:border-r-0 print:hidden overflow-hidden text-ellipsis whitespace-nowrap cursor-grab hover:bg-gray-50 flex items-center"
+                              className={`relative px-3 border-r border-gray-300 last:border-r-0 print:hidden overflow-hidden text-ellipsis whitespace-nowrap cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(rowAlignment)}`}
                               style={{ width: `${column.width}px`, height: `${rowHeight}px` }}
                             >
                               {getCellValue(contact, column.id)}
@@ -501,7 +564,7 @@ export default function ContactSheet() {
                             {columns.filter(col => col.visible).map((column) => (
                               <div
                                 key={column.id}
-                                className="px-3 border-r border-gray-300 last:border-r-0 overflow-hidden text-ellipsis flex items-center"
+                                className={`px-3 border-r border-gray-300 last:border-r-0 overflow-hidden text-ellipsis flex items-center ${getAlignmentClass(rowAlignment)}`}
                                 style={{ 
                                   width: `${column.width}px`,
                                   height: `${rowHeight}px`,
