@@ -837,12 +837,7 @@ export default function ContactSheet() {
              }}
           >
           {/* Page Header */}
-          <div 
-            className="text-center mb-8 print:mb-6"
-            style={{
-              marginTop: `${headerFooterMargins.header}in`
-            }}
-          >
+          <div className="text-center">
             <h1 className="text-2xl font-bold mb-2">{(project as any)?.name}</h1>
             <h2 className="text-lg text-gray-600">Contact Sheet</h2>
             <p className="text-sm text-gray-500 mt-2">
@@ -851,7 +846,12 @@ export default function ContactSheet() {
           </div>
 
           {/* Contact Table by Category */}
-          <div className="space-y-8 print:space-y-6">
+          <div 
+            className="space-y-8 print:space-y-6"
+            style={{
+              marginTop: `${headerFooterMargins.header}in`
+            }}
+          >
               {categories.map(category => {
                 const categoryContacts = contactsByCategory[category.id] || [];
                 
@@ -986,9 +986,9 @@ export default function ContactSheet() {
 
           {/* Page Footer */}
           <div 
-            className="text-center text-xs text-gray-500 mt-8 print:mt-6"
+            className="text-center text-xs text-gray-500"
             style={{
-              marginBottom: `${headerFooterMargins.footer}in`
+              marginTop: `${headerFooterMargins.footer}in`
             }}
           >
             Page 1 of 1
