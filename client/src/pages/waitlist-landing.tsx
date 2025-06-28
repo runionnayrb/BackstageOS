@@ -129,7 +129,7 @@ export default function WaitlistLanding() {
     {
       icon: Shield,
       title: "Secure Collaboration",
-      description: "Professional-grade security with role-based permissions and sharing controls."
+      description: "Professional-grade security with role-based permissions, sharing controls, and integrated team chat for real-time communication."
     },
     {
       icon: FileText,
@@ -140,6 +140,11 @@ export default function WaitlistLanding() {
       icon: Clock,
       title: "Prep",
       description: "Complete pre-production tools including task management, character scene breakdowns, French scene analysis, production meeting reports, and cast on-boarding workflows."
+    },
+    {
+      icon: BarChart3,
+      title: "Document & Version Control",
+      description: "Professional document versioning with change tracking, collaborative commenting, PDF exports, and automated backup systems to preserve your production history."
     }
   ];
 
