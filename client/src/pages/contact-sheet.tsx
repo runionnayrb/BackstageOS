@@ -1054,12 +1054,12 @@ export default function ContactSheet() {
                 />
               ) : (
                 <div 
-                  className="text-center text-lg font-semibold cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors px-2 py-1"
-                  onClick={(e) => handleHeaderFooterClick('header', e)}
+                  className={`text-center text-lg font-semibold ${!isPreviewMode ? 'cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors px-2 py-1' : ''}`}
+                  onClick={!isPreviewMode ? (e) => handleHeaderFooterClick('header', e) : undefined}
                   dangerouslySetInnerHTML={{
-                    __html: headerText && headerText.trim() ? processRichContent(headerText) : '<span class="text-gray-400 italic">Click to edit header</span>'
+                    __html: headerText && headerText.trim() ? processRichContent(headerText) : (!isPreviewMode ? '<span class="text-gray-400 italic">Click to edit header</span>' : '')
                   }}
-                  title="Click to edit header"
+                  title={!isPreviewMode ? "Click to edit header" : undefined}
                 />
               )}
             </div>
@@ -1237,12 +1237,12 @@ export default function ContactSheet() {
                 />
               ) : (
                 <div 
-                  className="text-center text-xs text-gray-500 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors px-2 py-1"
-                  onClick={(e) => handleHeaderFooterClick('footer', e)}
+                  className={`text-center text-xs text-gray-500 ${!isPreviewMode ? 'cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors px-2 py-1' : ''}`}
+                  onClick={!isPreviewMode ? (e) => handleHeaderFooterClick('footer', e) : undefined}
                   dangerouslySetInnerHTML={{
-                    __html: footerText && footerText.trim() ? processRichContent(footerText) : '<span class="text-gray-400 italic">Click to edit footer</span>'
+                    __html: footerText && footerText.trim() ? processRichContent(footerText) : (!isPreviewMode ? '<span class="text-gray-400 italic">Click to edit footer</span>' : '')
                   }}
-                  title="Click to edit footer"
+                  title={!isPreviewMode ? "Click to edit footer" : undefined}
                 />
               )}
             </div>
