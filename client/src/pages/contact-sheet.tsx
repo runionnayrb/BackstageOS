@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, Settings, GripVertical, Printer, Eye, Edit } from "lucide-react";
+import { 
+  ArrowLeft, Settings, GripVertical, Printer, Eye, Edit,
+  Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
+  Palette, Type, Square, Minus, ChevronDown
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
@@ -77,6 +81,28 @@ export default function ContactSheet() {
   const [resizeStartHeight, setResizeStartHeight] = useState(0);
   const [headerAlignment, setHeaderAlignment] = useState<'left' | 'center' | 'right'>('left');
   const [rowAlignment, setRowAlignment] = useState<'left' | 'center' | 'right'>('left');
+  
+  // Header formatting states
+  const [headerBold, setHeaderBold] = useState(false);
+  const [headerItalic, setHeaderItalic] = useState(false);
+  const [headerUnderline, setHeaderUnderline] = useState(false);
+  const [headerTextColor, setHeaderTextColor] = useState('#000000');
+  const [headerBgColor, setHeaderBgColor] = useState('#ffffff');
+  const [headerFontSize, setHeaderFontSize] = useState(14);
+  const [headerFontFamily, setHeaderFontFamily] = useState('system-ui');
+  const [headerBorders, setHeaderBorders] = useState(true);
+  
+  // Row formatting states
+  const [rowBold, setRowBold] = useState(false);
+  const [rowItalic, setRowItalic] = useState(false);
+  const [rowUnderline, setRowUnderline] = useState(false);
+  const [rowTextColor, setRowTextColor] = useState('#000000');
+  const [rowBgColor, setRowBgColor] = useState('#ffffff');
+  const [rowFontSize, setRowFontSize] = useState(12);
+  const [rowFontFamily, setRowFontFamily] = useState('system-ui');
+  const [rowBorders, setRowBorders] = useState(true);
+  
+  const [activeTarget, setActiveTarget] = useState<'header' | 'row'>('header');
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -287,6 +313,37 @@ export default function ContactSheet() {
     }
   };
 
+  const getHeaderStyle = () => ({
+    fontWeight: headerBold ? 'bold' : 'normal',
+    fontStyle: headerItalic ? 'italic' : 'normal',
+    textDecoration: headerUnderline ? 'underline' : 'none',
+    color: headerTextColor,
+    backgroundColor: headerBgColor,
+    fontSize: `${headerFontSize}px`,
+    fontFamily: headerFontFamily,
+  });
+
+  const getRowStyle = () => ({
+    fontWeight: rowBold ? 'bold' : 'normal',
+    fontStyle: rowItalic ? 'italic' : 'normal',
+    textDecoration: rowUnderline ? 'underline' : 'none',
+    color: rowTextColor,
+    backgroundColor: rowBgColor,
+    fontSize: `${rowFontSize}px`,
+    fontFamily: rowFontFamily,
+  });
+
+  const getBorderClass = (borders: boolean) => borders ? 'border-r border-gray-300 last:border-r-0' : '';
+
+  const fontOptions = [
+    { value: 'system-ui', label: 'System' },
+    { value: 'Arial', label: 'Arial' },
+    { value: 'Times', label: 'Times' },
+    { value: 'Georgia', label: 'Georgia' },
+    { value: 'Courier', label: 'Courier' },
+    { value: 'Helvetica', label: 'Helvetica' },
+  ];
+
   const formatPhoneNumber = (phone: string | null | undefined): string => {
     if (!phone) return "";
     // Convert to string if needed
@@ -391,55 +448,150 @@ export default function ContactSheet() {
             </div>
           </div>
           
-          {/* Alignment Controls - Only show in edit mode */}
+          {/* Formatting Toolbar - Only show in edit mode */}
           {!isPreviewMode && (
-            <div className="flex items-center gap-6 mt-4 pb-4 border-b">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium">Header Alignment:</label>
-                <div className="flex items-center border rounded">
+            <div className="mt-4 pb-4 border-b bg-gray-50 rounded-lg p-4">
+              {/* Target Selector */}
+              <div className="flex items-center gap-2 mb-3">
+                <label className="text-sm font-medium">Format:</label>
+                <div className="flex items-center border rounded bg-white">
                   <button
-                    onClick={() => setHeaderAlignment('left')}
-                    className={`px-3 py-1 text-sm ${headerAlignment === 'left' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
+                    onClick={() => setActiveTarget('header')}
+                    className={`px-3 py-1 text-sm ${activeTarget === 'header' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
                   >
-                    Left
+                    Headers
                   </button>
                   <button
-                    onClick={() => setHeaderAlignment('center')}
-                    className={`px-3 py-1 text-sm border-x ${headerAlignment === 'center' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
+                    onClick={() => setActiveTarget('row')}
+                    className={`px-3 py-1 text-sm border-l ${activeTarget === 'row' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
                   >
-                    Center
-                  </button>
-                  <button
-                    onClick={() => setHeaderAlignment('right')}
-                    className={`px-3 py-1 text-sm ${headerAlignment === 'right' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
-                  >
-                    Right
+                    Rows
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium">Row Alignment:</label>
-                <div className="flex items-center border rounded">
+              {/* Formatting Controls */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Text Style Buttons */}
+                <div className="flex items-center border rounded bg-white">
                   <button
-                    onClick={() => setRowAlignment('left')}
-                    className={`px-3 py-1 text-sm ${rowAlignment === 'left' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
+                    onClick={() => activeTarget === 'header' ? setHeaderBold(!headerBold) : setRowBold(!rowBold)}
+                    className={`p-2 hover:bg-gray-100 ${
+                      (activeTarget === 'header' ? headerBold : rowBold) ? 'bg-gray-200' : ''
+                    }`}
+                    title="Bold"
                   >
-                    Left
+                    <Bold className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => setRowAlignment('center')}
-                    className={`px-3 py-1 text-sm border-x ${rowAlignment === 'center' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
+                    onClick={() => activeTarget === 'header' ? setHeaderItalic(!headerItalic) : setRowItalic(!rowItalic)}
+                    className={`p-2 hover:bg-gray-100 border-x ${
+                      (activeTarget === 'header' ? headerItalic : rowItalic) ? 'bg-gray-200' : ''
+                    }`}
+                    title="Italic"
                   >
-                    Center
+                    <Italic className="h-4 w-4" />
                   </button>
                   <button
-                    onClick={() => setRowAlignment('right')}
-                    className={`px-3 py-1 text-sm ${rowAlignment === 'right' ? 'bg-blue-500 text-white' : 'hover:bg-gray-100'}`}
+                    onClick={() => activeTarget === 'header' ? setHeaderUnderline(!headerUnderline) : setRowUnderline(!rowUnderline)}
+                    className={`p-2 hover:bg-gray-100 ${
+                      (activeTarget === 'header' ? headerUnderline : rowUnderline) ? 'bg-gray-200' : ''
+                    }`}
+                    title="Underline"
                   >
-                    Right
+                    <Underline className="h-4 w-4" />
                   </button>
                 </div>
+
+                {/* Text Alignment */}
+                <div className="flex items-center border rounded bg-white">
+                  <button
+                    onClick={() => activeTarget === 'header' ? setHeaderAlignment('left') : setRowAlignment('left')}
+                    className={`p-2 hover:bg-gray-100 ${
+                      (activeTarget === 'header' ? headerAlignment : rowAlignment) === 'left' ? 'bg-gray-200' : ''
+                    }`}
+                    title="Align Left"
+                  >
+                    <AlignLeft className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => activeTarget === 'header' ? setHeaderAlignment('center') : setRowAlignment('center')}
+                    className={`p-2 hover:bg-gray-100 border-x ${
+                      (activeTarget === 'header' ? headerAlignment : rowAlignment) === 'center' ? 'bg-gray-200' : ''
+                    }`}
+                    title="Align Center"
+                  >
+                    <AlignCenter className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => activeTarget === 'header' ? setHeaderAlignment('right') : setRowAlignment('right')}
+                    className={`p-2 hover:bg-gray-100 ${
+                      (activeTarget === 'header' ? headerAlignment : rowAlignment) === 'right' ? 'bg-gray-200' : ''
+                    }`}
+                    title="Align Right"
+                  >
+                    <AlignRight className="h-4 w-4" />
+                  </button>
+                </div>
+
+                {/* Font Size */}
+                <div className="flex items-center gap-1 border rounded bg-white px-2">
+                  <Type className="h-4 w-4 text-gray-500" />
+                  <input
+                    type="number"
+                    min="8"
+                    max="24"
+                    value={activeTarget === 'header' ? headerFontSize : rowFontSize}
+                    onChange={(e) => activeTarget === 'header' ? setHeaderFontSize(Number(e.target.value)) : setRowFontSize(Number(e.target.value))}
+                    className="w-12 text-sm py-1 text-center border-0 outline-none"
+                  />
+                </div>
+
+                {/* Font Family */}
+                <select
+                  value={activeTarget === 'header' ? headerFontFamily : rowFontFamily}
+                  onChange={(e) => activeTarget === 'header' ? setHeaderFontFamily(e.target.value) : setRowFontFamily(e.target.value)}
+                  className="border rounded bg-white px-2 py-1 text-sm outline-none"
+                >
+                  {fontOptions.map(font => (
+                    <option key={font.value} value={font.value}>{font.label}</option>
+                  ))}
+                </select>
+
+                {/* Text Color */}
+                <div className="flex items-center border rounded bg-white">
+                  <input
+                    type="color"
+                    value={activeTarget === 'header' ? headerTextColor : rowTextColor}
+                    onChange={(e) => activeTarget === 'header' ? setHeaderTextColor(e.target.value) : setRowTextColor(e.target.value)}
+                    className="w-8 h-8 border-0 cursor-pointer"
+                    title="Text Color"
+                  />
+                  <Palette className="h-4 w-4 text-gray-500 mx-1" />
+                </div>
+
+                {/* Background Color */}
+                <div className="flex items-center border rounded bg-white">
+                  <input
+                    type="color"
+                    value={activeTarget === 'header' ? headerBgColor : rowBgColor}
+                    onChange={(e) => activeTarget === 'header' ? setHeaderBgColor(e.target.value) : setRowBgColor(e.target.value)}
+                    className="w-8 h-8 border-0 cursor-pointer"
+                    title="Background Color"
+                  />
+                  <Square className="h-4 w-4 text-gray-500 mx-1" />
+                </div>
+
+                {/* Borders Toggle */}
+                <button
+                  onClick={() => activeTarget === 'header' ? setHeaderBorders(!headerBorders) : setRowBorders(!rowBorders)}
+                  className={`p-2 border rounded bg-white hover:bg-gray-100 ${
+                    (activeTarget === 'header' ? headerBorders : rowBorders) ? 'bg-gray-200' : ''
+                  }`}
+                  title="Toggle Borders"
+                >
+                  <Square className="h-4 w-4" />
+                </button>
               </div>
             </div>
           )}
@@ -489,8 +641,12 @@ export default function ContactSheet() {
                         {!isPreviewMode && columns.filter(col => col.visible).map((column, colIndex) => (
                           <div
                             key={column.id}
-                            className={`relative font-semibold px-3 print:px-1 border-r border-gray-300 last:border-r-0 print:hidden cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(headerAlignment)}`}
-                            style={{ width: `${column.width}px`, height: `${headerHeight}px` }}
+                            className={`relative px-3 print:px-1 ${getBorderClass(headerBorders)} print:hidden cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(headerAlignment)}`}
+                            style={{ 
+                              width: `${column.width}px`, 
+                              height: `${headerHeight}px`,
+                              ...getHeaderStyle()
+                            }}
                             draggable
                             onDragStart={(e) => handleColumnDragStart(e, colIndex)}
                             onDragOver={(e) => e.preventDefault()}
@@ -517,8 +673,12 @@ export default function ContactSheet() {
                           {columns.filter(col => col.visible).map((column) => (
                             <div
                               key={column.id}
-                              className={`font-semibold px-3 border-r border-gray-300 last:border-r-0 flex items-center ${getAlignmentClass(headerAlignment)}`}
-                              style={{ width: `${column.width}px`, height: `${headerHeight}px` }}
+                              className={`px-3 ${getBorderClass(headerBorders)} flex items-center ${getAlignmentClass(headerAlignment)}`}
+                              style={{ 
+                                width: `${column.width}px`, 
+                                height: `${headerHeight}px`,
+                                ...getHeaderStyle()
+                              }}
                             >
                               {column.label}
                             </div>
@@ -544,8 +704,12 @@ export default function ContactSheet() {
                           {!isPreviewMode && columns.filter(col => col.visible).map((column, cellIndex) => (
                             <div
                               key={column.id}
-                              className={`relative px-3 border-r border-gray-300 last:border-r-0 print:hidden overflow-hidden text-ellipsis whitespace-nowrap cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(rowAlignment)}`}
-                              style={{ width: `${column.width}px`, height: `${rowHeight}px` }}
+                              className={`relative px-3 ${getBorderClass(rowBorders)} print:hidden overflow-hidden text-ellipsis whitespace-nowrap cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(rowAlignment)}`}
+                              style={{ 
+                                width: `${column.width}px`, 
+                                height: `${rowHeight}px`,
+                                ...getRowStyle()
+                              }}
                             >
                               {getCellValue(contact, column.id)}
                               
@@ -564,12 +728,11 @@ export default function ContactSheet() {
                             {columns.filter(col => col.visible).map((column) => (
                               <div
                                 key={column.id}
-                                className={`px-3 border-r border-gray-300 last:border-r-0 overflow-hidden text-ellipsis flex items-center ${getAlignmentClass(rowAlignment)}`}
+                                className={`px-3 ${getBorderClass(rowBorders)} overflow-hidden text-ellipsis flex items-center ${getAlignmentClass(rowAlignment)}`}
                                 style={{ 
                                   width: `${column.width}px`,
                                   height: `${rowHeight}px`,
-                                  fontSize: isPreviewMode ? '14px' : '11px', 
-                                  lineHeight: isPreviewMode ? '16px' : '14px' 
+                                  ...getRowStyle()
                                 }}
                               >
                                 {getCellValue(contact, column.id)}
