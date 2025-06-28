@@ -1274,14 +1274,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         try {
-          // For PDFs, we'll convert to images and then extract text
-          // This is a simplified approach - for production, you'd want proper OCR
+          // Import pdf-parse and extract text
+          const pdfParse = await import('pdf-parse');
           
-          // For now, provide a helpful message about manual conversion
-          res.status(501).json({ 
-            error: 'PDF text extraction requires manual conversion', 
-            message: 'PDF files often contain scanned images rather than selectable text. Please try copying the text directly from your PDF viewer, or use an online PDF-to-text converter for best results.' 
-          });
+          // Parse the PDF buffer directly
+          const data = await pdfParse.default(req.file.buffer);
+          
+          let text = data.text || '';
+
+          // Clean up common PDF extraction artifacts
+          text = text
+            // Remove excessive whitespace
+            .replace(/\s{3,}/g, '\n\n')
+            // Remove page headers/footers that are spaced out
+            .replace(/[A-Z\s]{20,}\s+Pg\.\s*\d+/gi, '')
+            .replace(/[A-Z\s]{20,}\s+Page\s*\d+/gi, '')
+            // Remove spaced-out titles like "L O R R A I N E   H A N S B E R R Y"
+            .replace(/([A-Z]\s){3,}[A-Z]/g, (match: string) => match.replace(/\s/g, ''))
+            // Clean up line breaks
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+
+          if (!text || text.length < 10) {
+            return res.status(400).json({ 
+              error: 'No readable text found', 
+              message: 'The PDF appears to be empty, image-only, or protected. Try copying the text directly from your PDF viewer.' 
+            });
+          }
+
+          res.json({ text, pages: data.numpages || 1 });
         } catch (parseError) {
           console.error('PDF parsing error:', parseError);
           res.status(500).json({ 
