@@ -1162,7 +1162,7 @@ export default function ContactSheet() {
                     <div 
                       className={`${!isPreviewMode ? 'cursor-grab hover:bg-gray-50 rounded px-2' : ''}`}
                     >
-                      <h3 className="text-lg font-semibold">
+                      <h3 className="text-lg font-semibold m-0 leading-none">
                         {category.title}
                       </h3>
                     </div>
