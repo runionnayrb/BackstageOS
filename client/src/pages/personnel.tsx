@@ -138,6 +138,8 @@ export default function Personnel() {
     setDraggedIndex(null);
   };
 
+
+
   if (!project) {
     return (
       <div className="min-h-screen bg-background">
@@ -186,7 +188,7 @@ export default function Personnel() {
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, index)}
               onDragEnd={handleDragEnd}
-              className={`p-4 transition-colors cursor-pointer border border-transparent group relative ${
+              className={`p-4 transition-colors border border-transparent group relative ${
                 draggedIndex === index 
                   ? 'opacity-50 bg-blue-50 border-blue-200' 
                   : 'hover:bg-gray-50'
