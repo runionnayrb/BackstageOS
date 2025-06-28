@@ -6,7 +6,7 @@ import {
   Palette, Type, Square, Minus, ChevronDown, Grid3X3, Clipboard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -136,7 +136,26 @@ export default function ContactSheet() {
     footer: 0.5
   });
   
+  // Header/Footer editing states
+  const [headerText, setHeaderText] = useState('{{showName}} - Contact Sheet');
+  const [footerText, setFooterText] = useState('Page {{pageNumber}} of {{totalPages}}');
+  const [editingElement, setEditingElement] = useState<{ type: 'header' | 'footer' } | null>(null);
+  const [showToolbar, setShowToolbar] = useState(false);
+  const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
+  const [showVariablesPopover, setShowVariablesPopover] = useState(false);
+  const editingRef = useRef<HTMLDivElement>(null);
+  
   const [activeTarget, setActiveTarget] = useState<'header' | 'row'>('header');
+
+  // Variables available for header/footer
+  const availableVariables = [
+    { label: 'Show Name', value: '{{showName}}' },
+    { label: 'Show Venue', value: '{{showVenue}}' },
+    { label: 'Updated Date', value: '{{updatedDate}}' },
+    { label: 'Page Number', value: '{{pageNumber}}' },
+    { label: 'Total Pages', value: '{{totalPages}}' },
+    { label: 'Generated Date', value: '{{generatedDate}}' }
+  ];
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -151,6 +170,82 @@ export default function ContactSheet() {
     queryKey: [`/api/projects/${projectId}/contacts`],
     enabled: !!projectId,
   });
+
+  // Process rich content and replace variables
+  const processRichContent = useCallback((content: string): string => {
+    if (!content) return '';
+    
+    return content
+      .replace(/\{\{showName\}\}/g, (project as any)?.name || 'Show Name')
+      .replace(/\{\{showVenue\}\}/g, (project as any)?.venue || 'Venue')
+      .replace(/\{\{updatedDate\}\}/g, new Date().toLocaleDateString())
+      .replace(/\{\{pageNumber\}\}/g, '1')
+      .replace(/\{\{totalPages\}\}/g, '1')
+      .replace(/\{\{generatedDate\}\}/g, new Date().toLocaleDateString());
+  }, [project]);
+
+  // Handle click on header/footer for inline editing
+  const handleHeaderFooterClick = useCallback((type: 'header' | 'footer', event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const element = event.currentTarget as HTMLElement;
+    const rect = element.getBoundingClientRect();
+    
+    // Smart positioning: position above for better visibility
+    const toolbarY = rect.top + window.scrollY - 60;
+    
+    const toolbarPos = {
+      x: rect.left + window.scrollX + (rect.width / 2) - 150,
+      y: toolbarY
+    };
+    
+    setToolbarPosition(toolbarPos);
+    setEditingElement({ type });
+    setShowToolbar(true);
+    
+    // Make the element editable and focus it
+    setTimeout(() => {
+      if (editingRef.current) {
+        const element = editingRef.current as HTMLDivElement;
+        element.focus();
+        
+        // Place cursor at end of content
+        const range = document.createRange();
+        const selection = window.getSelection();
+        range.selectNodeContents(element);
+        range.collapse(false);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+    }, 50);
+  }, []);
+
+  // Close inline editor
+  const closeInlineEditor = useCallback(() => {
+    setEditingElement(null);
+    setShowToolbar(false);
+    setShowVariablesPopover(false);
+  }, []);
+
+  // Format text selection
+  const formatText = useCallback((command: string, value?: string) => {
+    document.execCommand(command, false, value);
+  }, []);
+
+  // Insert variable at cursor position
+  const insertVariable = useCallback((variable: string) => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(document.createTextNode(variable));
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+    setShowVariablesPopover(false);
+  }, []);
 
   // Apply saved category order
   useEffect(() => {
@@ -921,12 +1016,44 @@ export default function ContactSheet() {
             }}
           >
             {/* Page Header */}
-            <div className="text-center" style={{ marginBottom: `${headerFooterMargins.header}in` }}>
-              <h1 className="text-2xl font-bold mb-2">{(project as any)?.name}</h1>
-              <h2 className="text-lg text-gray-600">Contact Sheet</h2>
-              <p className="text-sm text-gray-500 mt-2">
-                Generated on {new Date().toLocaleDateString()}
-              </p>
+            <div style={{ marginBottom: `${headerFooterMargins.header}in` }}>
+              {editingElement?.type === 'header' ? (
+                <div
+                  ref={editingRef}
+                  contentEditable
+                  className="text-center text-lg font-semibold bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[24px] cursor-text"
+                  dangerouslySetInnerHTML={{ __html: headerText }}
+                  onInput={(e) => {
+                    const target = e.target as HTMLDivElement;
+                    const content = target.innerHTML;
+                    setHeaderText(content);
+                  }}
+                  onBlur={(e) => {
+                    // Don't close if clicking on toolbar
+                    const relatedTarget = e.relatedTarget as HTMLElement;
+                    if (relatedTarget && relatedTarget.closest('[data-toolbar="true"]')) {
+                      return;
+                    }
+                    setTimeout(() => closeInlineEditor(), 150);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      closeInlineEditor();
+                    }
+                  }}
+                  suppressContentEditableWarning={true}
+                />
+              ) : (
+                <div 
+                  className="text-center text-lg font-semibold cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors px-2 py-1"
+                  onClick={(e) => handleHeaderFooterClick('header', e)}
+                  dangerouslySetInnerHTML={{
+                    __html: headerText && headerText.trim() ? processRichContent(headerText) : '<span class="text-gray-400 italic">Click to edit header</span>'
+                  }}
+                  title="Click to edit header"
+                />
+              )}
             </div>
 
             {/* Contact Table by Category */}
@@ -1065,7 +1192,6 @@ export default function ContactSheet() {
 
             {/* Page Footer */}
             <div 
-              className="text-center text-xs text-gray-500"
               style={{
                 position: 'absolute',
                 bottom: 0,
@@ -1074,7 +1200,43 @@ export default function ContactSheet() {
                 marginBottom: `${headerFooterMargins.footer}in`
               }}
             >
-              Page 1 of 1
+              {editingElement?.type === 'footer' ? (
+                <div
+                  ref={editingRef}
+                  contentEditable
+                  className="text-center text-xs text-gray-500 bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[16px] cursor-text"
+                  dangerouslySetInnerHTML={{ __html: footerText }}
+                  onInput={(e) => {
+                    const target = e.target as HTMLDivElement;
+                    const content = target.innerHTML;
+                    setFooterText(content);
+                  }}
+                  onBlur={(e) => {
+                    // Don't close if clicking on toolbar
+                    const relatedTarget = e.relatedTarget as HTMLElement;
+                    if (relatedTarget && relatedTarget.closest('[data-toolbar="true"]')) {
+                      return;
+                    }
+                    setTimeout(() => closeInlineEditor(), 150);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      closeInlineEditor();
+                    }
+                  }}
+                  suppressContentEditableWarning={true}
+                />
+              ) : (
+                <div 
+                  className="text-center text-xs text-gray-500 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors px-2 py-1"
+                  onClick={(e) => handleHeaderFooterClick('footer', e)}
+                  dangerouslySetInnerHTML={{
+                    __html: footerText && footerText.trim() ? processRichContent(footerText) : '<span class="text-gray-400 italic">Click to edit footer</span>'
+                  }}
+                  title="Click to edit footer"
+                />
+              )}
             </div>
           </div>
         </div>
@@ -1260,6 +1422,116 @@ export default function ContactSheet() {
                 Apply
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notion-Style Formatting Toolbar */}
+      {showToolbar && editingElement && (
+        <div
+          data-toolbar="true"
+          className="fixed z-50 bg-white border rounded-lg shadow-lg p-2 flex items-center gap-1"
+          style={{
+            left: `${toolbarPosition.x}px`,
+            top: `${toolbarPosition.y}px`,
+          }}
+        >
+          {/* Text Formatting */}
+          <div className="flex items-center border-r pr-2 mr-2">
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => formatText('bold')}
+              className="p-1 hover:bg-gray-100 rounded"
+              title="Bold"
+            >
+              <Bold className="h-4 w-4" />
+            </button>
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => formatText('italic')}
+              className="p-1 hover:bg-gray-100 rounded"
+              title="Italic"
+            >
+              <Italic className="h-4 w-4" />
+            </button>
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => formatText('underline')}
+              className="p-1 hover:bg-gray-100 rounded"
+              title="Underline"
+            >
+              <Underline className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Text Alignment */}
+          <div className="flex items-center border-r pr-2 mr-2">
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => formatText('justifyLeft')}
+              className="p-1 hover:bg-gray-100 rounded"
+              title="Align Left"
+            >
+              <AlignLeft className="h-4 w-4" />
+            </button>
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => formatText('justifyCenter')}
+              className="p-1 hover:bg-gray-100 rounded"
+              title="Align Center"
+            >
+              <AlignCenter className="h-4 w-4" />
+            </button>
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => formatText('justifyRight')}
+              className="p-1 hover:bg-gray-100 rounded"
+              title="Align Right"
+            >
+              <AlignRight className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Variables */}
+          <div className="relative">
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => setShowVariablesPopover(!showVariablesPopover)}
+              className="px-3 py-1 text-sm bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100"
+              title="Insert Variables"
+            >
+              Variables
+              <ChevronDown className="h-3 w-3 ml-1 inline" />
+            </button>
+            
+            {showVariablesPopover && (
+              <div className="absolute top-full left-0 mt-1 bg-white border rounded-lg shadow-lg p-2 w-48 z-10">
+                <div className="text-xs font-medium text-gray-600 mb-2">Insert Variable:</div>
+                <div className="space-y-1">
+                  {availableVariables.map((variable) => (
+                    <button
+                      key={variable.value}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => insertVariable(variable.value)}
+                      className="w-full text-left px-2 py-1 text-sm hover:bg-gray-100 rounded"
+                    >
+                      {variable.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Done Button */}
+          <div className="border-l pl-2 ml-2">
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={closeInlineEditor}
+              className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+            >
+              Done
+            </button>
           </div>
         </div>
       )}
