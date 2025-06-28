@@ -787,31 +787,7 @@ export function CollaborativeEditor({
                     </div>
                   </div>
 
-                  {/* Publishing Controls */}
-                  <div className="pt-2 border-t">
-                    <div className="flex gap-2 mb-2">
-                      <Button 
-                        size="sm" 
-                        variant={isPublished ? "default" : "outline"}
-                        onClick={publishScript}
-                        disabled={isPublished}
-                        className="text-sm"
-                      >
-                        {isPublished ? "✓ Published" : "Publish Script"}
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={renumberScript}
-                        className="text-sm"
-                      >
-                        Renumber All Pages
-                      </Button>
-                    </div>
-                    <p className="text-xs text-gray-600">
-                      Publishing locks page numbers. New pages added after publishing get letter suffixes (1A, 1B, etc.).
-                    </p>
-                  </div>
+
                 </div>
               </div>
 
