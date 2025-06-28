@@ -118,6 +118,11 @@ export default function ContactSheet() {
   const [rowBorderColor, setRowBorderColor] = useState('#d1d5db');
   const [rowBorderWidth, setRowBorderWidth] = useState(1);
   
+  // Alternate row colors
+  const [alternateRows, setAlternateRows] = useState(false);
+  const [firstRowColor, setFirstRowColor] = useState('#ffffff');
+  const [secondRowColor, setSecondRowColor] = useState('#f9fafb');
+  
   const [activeTarget, setActiveTarget] = useState<'header' | 'row'>('header');
 
   const { data: project } = useQuery({
@@ -340,16 +345,25 @@ export default function ContactSheet() {
     ...getBorderStyle(headerBorders, headerBorderColor, headerBorderWidth),
   });
 
-  const getRowStyle = () => ({
-    fontWeight: rowBold ? 'bold' : 'normal',
-    fontStyle: rowItalic ? 'italic' : 'normal',
-    textDecoration: rowUnderline ? 'underline' : 'none',
-    color: rowTextColor,
-    backgroundColor: rowBgColor,
-    fontSize: `${rowFontSize}px`,
-    fontFamily: rowFontFamily,
-    ...getBorderStyle(rowBorders, rowBorderColor, rowBorderWidth),
-  });
+  const getRowStyle = (rowIndex?: number) => {
+    let backgroundColor = rowBgColor;
+    
+    // Apply alternate row coloring if enabled and rowIndex is provided
+    if (alternateRows && rowIndex !== undefined) {
+      backgroundColor = rowIndex % 2 === 0 ? firstRowColor : secondRowColor;
+    }
+    
+    return {
+      fontWeight: rowBold ? 'bold' : 'normal',
+      fontStyle: rowItalic ? 'italic' : 'normal',
+      textDecoration: rowUnderline ? 'underline' : 'none',
+      color: rowTextColor,
+      backgroundColor: backgroundColor,
+      fontSize: `${rowFontSize}px`,
+      fontFamily: rowFontFamily,
+      ...getBorderStyle(rowBorders, rowBorderColor, rowBorderWidth),
+    };
+  };
 
   const getBorderStyle = (borders: any, borderColor: string, borderWidth: number) => {
     if (!borders || (!borders.all && !borders.top && !borders.right && !borders.bottom && !borders.left)) {
@@ -730,6 +744,51 @@ export default function ContactSheet() {
                   <span className="text-xs text-gray-500">px</span>
                 </div>
               </div>
+
+              {/* Alternate Row Colors - Only show for rows */}
+              {activeTarget === 'row' && (
+                <div className="border-l pl-3">
+                  <div className="text-xs font-medium text-gray-700 mb-2">Alternate Rows</div>
+                  <div className="flex items-center gap-2">
+                    {/* Toggle */}
+                    <button
+                      onClick={() => setAlternateRows(!alternateRows)}
+                      className={`px-2 py-1 text-xs rounded ${
+                        alternateRows ? 'bg-blue-500 text-white' : 'bg-gray-100'
+                      }`}
+                      title="Toggle Alternate Row Colors"
+                    >
+                      {alternateRows ? 'ON' : 'OFF'}
+                    </button>
+
+                    {/* Color Pickers */}
+                    {alternateRows && (
+                      <>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-gray-500">1st:</span>
+                          <input
+                            type="color"
+                            value={firstRowColor}
+                            onChange={(e) => setFirstRowColor(e.target.value)}
+                            className="w-6 h-6 rounded border cursor-pointer"
+                            title="First Row Color"
+                          />
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-gray-500">2nd:</span>
+                          <input
+                            type="color"
+                            value={secondRowColor}
+                            onChange={(e) => setSecondRowColor(e.target.value)}
+                            className="w-6 h-6 rounded border cursor-pointer"
+                            title="Second Row Color"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -845,7 +904,7 @@ export default function ContactSheet() {
                               style={{ 
                                 width: `${column.width}px`, 
                                 height: `${rowHeight}px`,
-                                ...getRowStyle()
+                                ...getRowStyle(contactIndex)
                               }}
                             >
                               {getCellValue(contact, column.id)}
@@ -869,7 +928,7 @@ export default function ContactSheet() {
                                 style={{ 
                                   width: `${column.width}px`,
                                   height: `${rowHeight}px`,
-                                  ...getRowStyle()
+                                  ...getRowStyle(contactIndex)
                                 }}
                               >
                                 {getCellValue(contact, column.id)}
