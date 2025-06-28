@@ -1038,7 +1038,7 @@ export function CollaborativeEditor({
         {/* Main Editor Area */}
         <div className="flex-1">
           {/* Page container with realistic document styling */}
-          <div className="bg-gray-100 dark:bg-gray-800 p-8 space-y-8">
+          <div className="bg-gray-100 dark:bg-gray-800 px-4 py-8 space-y-8">
             {/* Dynamic Pages */}
             {Array.from({ length: pageCount }, (_, index) => {
               const pageNum = index + 1;
