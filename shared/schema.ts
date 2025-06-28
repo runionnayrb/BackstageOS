@@ -269,7 +269,7 @@ export const costumes = pgTable("costumes", {
 // Phase 2: Show settings
 export const showSettings = pgTable("show_settings", {
   id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }).unique(),
   sharingEnabled: boolean("sharing_enabled").default(false),
   shareLink: varchar("share_link"),
   shareLinkExpiry: timestamp("share_link_expiry"),
