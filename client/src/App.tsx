@@ -100,7 +100,6 @@ function Router() {
     <Layout>
       <Switch>
         <Route path="/" component={Projects} />
-        <Route path="/landing" component={WaitlistLanding} />
         <Route path="/create-project" component={CreateProject} />
         <Route path="/shows/:id" component={ShowDetail} />
         <Route path="/shows/:id/reports" component={ShowReportsList} />
