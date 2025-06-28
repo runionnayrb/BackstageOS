@@ -402,10 +402,10 @@ export function CollaborativeEditor({
     const element = event.currentTarget as HTMLElement;
     const rect = element.getBoundingClientRect();
     
-    // Position toolbar above the element
+    // Position toolbar directly above the text being edited
     setToolbarPosition({
-      x: rect.left + window.scrollX,
-      y: rect.top + window.scrollY - 50
+      x: rect.left + window.scrollX + (rect.width / 2) - 150, // Center the toolbar above the text
+      y: rect.top + window.scrollY - 45 // Position just above the text
     });
     
     setEditingElement({ type, pageNum });
