@@ -431,15 +431,18 @@ export function CollaborativeEditor({
     const element = event.currentTarget as HTMLElement;
     const rect = element.getBoundingClientRect();
     
-    // Smart positioning: always position above for footers to ensure visibility
-    const toolbarY = type === 'header' 
-      ? rect.top + window.scrollY - 60 // Position above headers
-      : rect.top + window.scrollY - 60; // Position above footers too for better visibility
+    // Smart positioning: use viewport coordinates for better positioning
+    // Position well above both headers and footers for better visibility
+    const toolbarY = type === 'footer' 
+      ? rect.top - 80  // Position well above footer in viewport
+      : rect.top - 70; // Position above header in viewport
     
     const toolbarPos = {
-      x: rect.left + window.scrollX + (rect.width / 2) - 150, // Center the toolbar horizontally
-      y: toolbarY
+      x: Math.max(10, Math.min(window.innerWidth - 320, rect.left + (rect.width / 2) - 150)),
+      y: Math.max(10, toolbarY)
     };
+    
+    console.log(`Script editor: Editing ${type}, toolbar position:`, toolbarPos, 'element rect:', rect);
     
     setToolbarPosition(toolbarPos);
     setEditingElement({ type, pageNum });

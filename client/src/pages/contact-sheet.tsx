@@ -203,8 +203,6 @@ export default function ContactSheet() {
       y: Math.max(10, toolbarY)
     };
     
-    console.log(`Editing ${type}, toolbar position:`, toolbarPos, 'element rect:', rect);
-    
     setToolbarPosition(toolbarPos);
     setEditingElement({ type });
     setShowToolbar(true);
@@ -233,7 +231,6 @@ export default function ContactSheet() {
 
   // Close inline editor
   const closeInlineEditor = useCallback(() => {
-    console.log('Closing inline editor');
     setEditingElement(null);
     setShowToolbar(false);
     setShowVariablesPopover(false);
@@ -1437,14 +1434,7 @@ export default function ContactSheet() {
         </div>
       )}
 
-      {/* Debug Info */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-4 right-4 bg-black text-white p-2 text-xs z-[10000]">
-          Toolbar: {showToolbar ? 'YES' : 'NO'} | 
-          Editing: {editingElement?.type || 'NONE'} | 
-          Pos: {toolbarPosition.x},{toolbarPosition.y}
-        </div>
-      )}
+
 
       {/* Notion-Style Formatting Toolbar */}
       {showToolbar && editingElement && (
