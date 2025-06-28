@@ -119,7 +119,7 @@ export default function WaitlistLanding() {
     {
       icon: Calendar,
       title: "Advanced Scheduling",
-      description: "Drag-and-drop calendar with automated call sheet generation."
+      description: "Drag-and-drop calendar with automated call sheet generation, scheduling fittings, and managing availability and conflicts."
     },
     {
       icon: Settings,
