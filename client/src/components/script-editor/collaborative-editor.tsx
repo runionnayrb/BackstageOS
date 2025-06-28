@@ -88,6 +88,12 @@ export function CollaborativeEditor({
   const [showFooters, setShowFooters] = useState(true);
   const [headerText, setHeaderText] = useState('');
   const [footerText, setFooterText] = useState('');
+  const [scriptMetadata, setScriptMetadata] = useState<{
+    headerText?: string;
+    footerText?: string;
+    margins?: any;
+    pageSetup?: any;
+  }>({});
   const [showPageSetup, setShowPageSetup] = useState(false);
   const [pageNumberPosition, setPageNumberPosition] = useState<'header' | 'footer' | 'both'>('header');
   const [pageNumberAlignment, setPageNumberAlignment] = useState<'left' | 'center' | 'right'>('right');
@@ -103,6 +109,21 @@ export function CollaborativeEditor({
   const [showToolbar, setShowToolbar] = useState(false);
   const [showVariablesPopover, setShowVariablesPopover] = useState(false);
   const editingRef = useRef<HTMLInputElement>(null);
+
+  // Load header/footer content from localStorage when component mounts
+  useEffect(() => {
+    const savedHeaderText = localStorage.getItem(`script-header-${title}`);
+    const savedFooterText = localStorage.getItem(`script-footer-${title}`);
+    
+    if (savedHeaderText) {
+      setHeaderText(savedHeaderText);
+      console.log('Loaded header from localStorage:', savedHeaderText);
+    }
+    if (savedFooterText) {
+      setFooterText(savedFooterText);
+      console.log('Loaded footer from localStorage:', savedFooterText);
+    }
+  }, [title]);
 
   // Track content changes
   const handleContentChange = useCallback((newContent: string) => {
@@ -606,17 +627,19 @@ export function CollaborativeEditor({
       
       if (editingElement.type === 'header') {
         setHeaderText(content);
-        console.log('Saved header text:', content);
+        localStorage.setItem(`script-header-${title}`, content);
+        console.log('Saved header text to localStorage:', content);
       } else if (editingElement.type === 'footer') {
         setFooterText(content);
-        console.log('Saved footer text:', content);
+        localStorage.setItem(`script-footer-${title}`, content);
+        console.log('Saved footer text to localStorage:', content);
       }
     }
     
     setEditingElement(null);
     setShowToolbar(false);
     setShowVariablesPopover(false);
-  }, [editingElement]);
+  }, [editingElement, title]);
 
   // Function to renumber all pages with fresh numbering
   const renumberScript = useCallback(() => {
@@ -1451,7 +1474,9 @@ export function CollaborativeEditor({
                           style={{ textAlign: pageNumberAlignment as any }}
                           onInput={(e) => {
                             const target = e.target as HTMLDivElement;
-                            setHeaderText(target.innerHTML);
+                            const content = target.innerHTML;
+                            setHeaderText(content);
+                            localStorage.setItem(`script-header-${title}`, content);
                           }}
                           onBlur={(e) => {
                             // Don't close if clicking on toolbar
@@ -1494,7 +1519,9 @@ export function CollaborativeEditor({
                           style={{ textAlign: pageNumberAlignment as any }}
                           onInput={(e) => {
                             const target = e.target as HTMLDivElement;
-                            setFooterText(target.innerHTML);
+                            const content = target.innerHTML;
+                            setFooterText(content);
+                            localStorage.setItem(`script-footer-${title}`, content);
                           }}
                           onBlur={(e) => {
                             // Don't close if clicking on toolbar
