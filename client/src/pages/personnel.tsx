@@ -54,6 +54,7 @@ export default function Personnel() {
 
   const [categories, setCategories] = useState(defaultCategories);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [isReordering, setIsReordering] = useState(false);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -172,34 +173,46 @@ export default function Personnel() {
           </Button>
         </div>
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Contacts</h1>
-          <p className="text-gray-500 mt-2">
-            Manage contact information by category
-          </p>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Contacts</h1>
+            <p className="text-gray-500 mt-2">
+              Manage contact information by category
+            </p>
+          </div>
+          <Button
+            variant={isReordering ? "default" : "outline"}
+            onClick={() => setIsReordering(!isReordering)}
+            className="flex items-center gap-2"
+          >
+            <GripVertical className="h-4 w-4" />
+            {isReordering ? "Done Reordering" : "Re-order"}
+          </Button>
         </div>
 
         <div className="space-y-1">
           {categories.map((category, index) => (
             <div
               key={category.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, index)}
-              onDragOver={handleDragOver}
-              onDrop={(e) => handleDrop(e, index)}
-              onDragEnd={handleDragEnd}
+              draggable={isReordering}
+              onDragStart={isReordering ? (e) => handleDragStart(e, index) : undefined}
+              onDragOver={isReordering ? handleDragOver : undefined}
+              onDrop={isReordering ? (e) => handleDrop(e, index) : undefined}
+              onDragEnd={isReordering ? handleDragEnd : undefined}
               className={`p-4 transition-colors border border-transparent group relative ${
-                draggedIndex === index 
+                isReordering && draggedIndex === index 
                   ? 'opacity-50 bg-blue-50 border-blue-200' 
                   : 'hover:bg-gray-50'
               }`}
             >
               <div className="flex items-center gap-3">
-                <div className="drag-handle cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity">
-                  <GripVertical className="h-5 w-5 text-gray-400" />
-                </div>
+                {isReordering && (
+                  <div className="drag-handle cursor-grab active:cursor-grabbing">
+                    <GripVertical className="h-5 w-5 text-gray-400" />
+                  </div>
+                )}
                 <div 
-                  className="flex-1 flex justify-between items-center"
+                  className="flex-1 flex justify-between items-center cursor-pointer"
                   onClick={() => setLocation(category.href)}
                 >
                   <h3 className="text-lg font-medium text-gray-900">{category.title}</h3>
