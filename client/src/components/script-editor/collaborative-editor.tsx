@@ -594,7 +594,7 @@ export function CollaborativeEditor({
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center justify-between gap-1 p-3 border-b bg-gray-50 dark:bg-gray-800 flex-wrap">
+      <div className="flex items-center justify-between gap-1 p-3 border-b bg-gray-50 dark:bg-gray-800">
         <div className="flex items-center gap-1">
         {/* Page Setup */}
         <Dialog open={showPageSetup} onOpenChange={setShowPageSetup}>
