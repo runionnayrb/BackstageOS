@@ -1046,8 +1046,9 @@ export function CollaborativeEditor({
               const isFirstPage = pageNum === 1;
               
               return (
-                <div key={pageNum} className="bg-white shadow-lg relative w-full" style={{ 
-                  minHeight: '11in',
+                <div key={pageNum} className="bg-white mx-auto shadow-lg relative" style={{ 
+                  width: '8.5in', 
+                  height: '11in',
                   fontFamily: 'Courier, monospace',
                   fontSize: '12pt',
                   lineHeight: '1.5',
