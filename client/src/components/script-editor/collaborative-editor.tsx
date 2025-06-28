@@ -250,60 +250,72 @@ export function CollaborativeEditor({
       return;
     }
 
-    // Split content into div elements for distribution
+    // Create a temporary div to measure content
     const tempDiv = document.createElement('div');
+    tempDiv.style.cssText = `
+      position: absolute;
+      visibility: hidden;
+      width: 7.5in;
+      padding: ${margins.top}in ${margins.right}in ${margins.bottom}in ${margins.left}in;
+      font-family: ${fontFamily};
+      font-size: ${fontSize}px;
+      line-height: 1.2;
+      white-space: pre-wrap;
+    `;
     tempDiv.innerHTML = allContent;
-    const allDivs = Array.from(tempDiv.querySelectorAll('div'));
+    document.body.appendChild(tempDiv);
+
+    // Calculate how much content fits on one page
+    const pageHeight = 9.5 * 96; // 9.5 inches in pixels (96 DPI)
+    const usableHeight = pageHeight - ((margins.top + margins.bottom) * 96);
     
-    if (allDivs.length === 0) {
-      // No divs found, create from text content
-      const textLines = allContent.split('\n').filter(line => line.trim());
-      const totalLines = textLines.length;
-      const linesPerPage = 35; // Approximate lines that fit per page
-      const newPageCount = Math.ceil(totalLines / linesPerPage);
+    // Split content into div elements
+    const allDivs = Array.from(tempDiv.children) as HTMLElement[];
+    const pages: HTMLElement[][] = [];
+    let currentPage: HTMLElement[] = [];
+    let currentHeight = 0;
+
+    for (const div of allDivs) {
+      const divHeight = div.offsetHeight;
       
-      setPageCount(newPageCount);
-      setPageNumbers(Array.from({ length: newPageCount }, (_, i) => (i + 1).toString()));
-      
-      // Distribute text lines across pages
-      for (let pageNum = 1; pageNum <= newPageCount; pageNum++) {
-        const pageContainer = pageNum === 1 ? page1 : document.getElementById(`page-${pageNum}-content`);
-        if (pageContainer) {
-          const startLine = (pageNum - 1) * linesPerPage;
-          const endLine = pageNum * linesPerPage;
-          const pageLines = textLines.slice(startLine, endLine);
-          pageContainer.innerHTML = pageLines.map(line => `<div>${line}</div>`).join('');
-        }
-      }
-    } else {
-      // Distribute div elements across pages
-      const divsPerPage = 35; // Approximate divs that fit per page
-      const totalDivs = allDivs.length;
-      const newPageCount = Math.ceil(totalDivs / divsPerPage);
-      
-      setPageCount(newPageCount);
-      setPageNumbers(Array.from({ length: newPageCount }, (_, i) => (i + 1).toString()));
-      
-      // Clear page 1 first
-      page1.innerHTML = '';
-      
-      // Distribute divs across all pages
-      for (let pageNum = 1; pageNum <= newPageCount; pageNum++) {
-        const pageContainer = pageNum === 1 ? page1 : document.getElementById(`page-${pageNum}-content`);
-        if (pageContainer) {
-          const startDiv = (pageNum - 1) * divsPerPage;
-          const endDiv = Math.min(pageNum * divsPerPage, totalDivs);
-          const pageDivs = allDivs.slice(startDiv, endDiv);
-          
-          // Clone and append each div to the page
-          pageDivs.forEach(div => {
-            const clonedDiv = div.cloneNode(true) as HTMLElement;
-            pageContainer.appendChild(clonedDiv);
-          });
-        }
+      // If adding this div would exceed page height, start a new page
+      if (currentHeight + divHeight > usableHeight && currentPage.length > 0) {
+        pages.push([...currentPage]);
+        currentPage = [div];
+        currentHeight = divHeight;
+      } else {
+        currentPage.push(div);
+        currentHeight += divHeight;
       }
     }
-  }, []);
+    
+    // Add the last page if it has content
+    if (currentPage.length > 0) {
+      pages.push(currentPage);
+    }
+
+    // Clean up temp div
+    document.body.removeChild(tempDiv);
+
+    // Update page count and numbers
+    const newPageCount = Math.max(1, pages.length);
+    setPageCount(newPageCount);
+    setPageNumbers(Array.from({ length: newPageCount }, (_, i) => (i + 1).toString()));
+
+    // Distribute content to pages
+    for (let pageNum = 1; pageNum <= newPageCount; pageNum++) {
+      const pageContainer = pageNum === 1 ? page1 : document.getElementById(`page-${pageNum}-content`);
+      if (pageContainer) {
+        const pageContent = pages[pageNum - 1] || [];
+        pageContainer.innerHTML = '';
+        
+        pageContent.forEach(div => {
+          const clonedDiv = div.cloneNode(true) as HTMLElement;
+          pageContainer.appendChild(clonedDiv);
+        });
+      }
+    }
+  }, [margins, fontFamily, fontSize]);
 
   // Initialize content when prop changes
   useEffect(() => {
@@ -1053,12 +1065,27 @@ export function CollaborativeEditor({
               const formattedContent = parseScriptText(currentContent);
               editorRef.current.innerHTML = formattedContent;
               handleContentChange(editorRef.current?.innerHTML || '');
+              // Trigger content distribution after formatting
+              setTimeout(() => distributeContentAcrossPages(), 100);
             }
           }}
           className="h-8 w-8 p-0"
           title="Auto-format the entire script"
         >
           <Wand2 className="h-4 w-4" />
+        </Button>
+
+        {/* Reflow Pages button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setTimeout(() => distributeContentAcrossPages(), 50);
+          }}
+          className="h-8 w-8 p-0"
+          title="Redistribute content across pages"
+        >
+          <FileText className="h-4 w-4" />
         </Button>
 
         <Separator orientation="vertical" className="h-6 mx-1" />
