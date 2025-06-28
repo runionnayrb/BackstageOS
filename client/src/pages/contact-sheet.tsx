@@ -192,33 +192,38 @@ export default function ContactSheet() {
     const element = event.currentTarget as HTMLElement;
     const rect = element.getBoundingClientRect();
     
-    // Smart positioning: position above for better visibility
-    const toolbarY = rect.top + window.scrollY - 60;
+    // Smart positioning: always position above for better visibility
+    const toolbarY = rect.top + window.scrollY - 70;
     
     const toolbarPos = {
-      x: rect.left + window.scrollX + (rect.width / 2) - 150,
-      y: toolbarY
+      x: Math.max(10, rect.left + window.scrollX + (rect.width / 2) - 150),
+      y: Math.max(10, toolbarY)
     };
     
     setToolbarPosition(toolbarPos);
     setEditingElement({ type });
     setShowToolbar(true);
     
-    // Make the element editable and focus it
+    // Make the element editable and focus it with retry logic
     setTimeout(() => {
-      if (editingRef.current) {
-        const element = editingRef.current as HTMLDivElement;
-        element.focus();
+      const editableElement = document.querySelector(`[contenteditable="true"]`) as HTMLDivElement;
+      if (editableElement) {
+        editableElement.focus();
         
         // Place cursor at end of content
         const range = document.createRange();
         const selection = window.getSelection();
-        range.selectNodeContents(element);
-        range.collapse(false);
+        if (editableElement.childNodes.length > 0) {
+          range.selectNodeContents(editableElement);
+          range.collapse(false);
+        } else {
+          range.setStart(editableElement, 0);
+          range.setEnd(editableElement, 0);
+        }
         selection?.removeAllRanges();
         selection?.addRange(range);
       }
-    }, 50);
+    }, 100);
   }, []);
 
   // Close inline editor
@@ -1019,7 +1024,7 @@ export default function ContactSheet() {
             <div style={{ marginBottom: `${headerFooterMargins.header}in` }}>
               {editingElement?.type === 'header' ? (
                 <div
-                  ref={editingRef}
+                  ref={editingElement?.type === 'header' ? editingRef : null}
                   contentEditable
                   className="text-center text-lg font-semibold bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[24px] cursor-text"
                   dangerouslySetInnerHTML={{ __html: headerText }}
@@ -1202,7 +1207,7 @@ export default function ContactSheet() {
             >
               {editingElement?.type === 'footer' ? (
                 <div
-                  ref={editingRef}
+                  ref={editingElement?.type === 'footer' ? editingRef : null}
                   contentEditable
                   className="text-center text-xs text-gray-500 bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[16px] cursor-text"
                   dangerouslySetInnerHTML={{ __html: footerText }}
