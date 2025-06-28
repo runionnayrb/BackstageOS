@@ -1,4 +1,4 @@
-import { Bell, Settings, Users, LogOut, ChevronDown, MessageSquare } from "lucide-react";
+import { Settings, Users, LogOut, ChevronDown, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
@@ -40,11 +40,7 @@ export default function Header() {
               <span className="hidden sm:inline text-sm">Feedback</span>
             </Button>
             
-            {/* Notifications */}
-            <Button variant="ghost" size="sm" className="relative">
-              <Bell className="h-6 w-6" />
-              <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-            </Button>
+
             
             {/* User Menu */}
             <DropdownMenu>
@@ -53,11 +49,6 @@ export default function Header() {
                   variant="ghost"
                   className="flex items-center space-x-3 p-2"
                 >
-                  <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                    <span className="text-white text-sm font-medium">
-                      {getInitials((user as any)?.firstName, (user as any)?.lastName)}
-                    </span>
-                  </div>
                   <span className="hidden sm:block text-sm font-medium text-gray-700">
                     {(user as any)?.firstName || (user as any)?.lastName 
                       ? `${(user as any)?.firstName || ""} ${(user as any)?.lastName || ""}`.trim()
