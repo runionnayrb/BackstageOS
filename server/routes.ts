@@ -1139,6 +1139,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const projectId = parseInt(req.params.id);
       const { title, content } = req.body;
       
+      console.log(`Saving script for project ${projectId}:`, {
+        title: title || "No title",
+        contentLength: content ? content.length : 0,
+        contentPreview: content ? content.substring(0, 100) : "No content"
+      });
+      
       const project = await storage.getProjectById(projectId);
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -1155,6 +1161,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!script) {
         // Create new script
+        console.log("Creating new script document");
         script = await storage.createShowDocument({
           projectId,
           name: title || "Untitled Script",
@@ -1165,12 +1172,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } else {
         // Update existing script
+        console.log("Updating existing script, current content length:", script.content ? JSON.stringify(script.content).length : 0);
         script = await storage.updateShowDocument(script.id, {
           name: title || script.name,
           content: content || script.content
         });
       }
 
+      console.log("Script saved successfully, final content length:", script.content ? JSON.stringify(script.content).length : 0);
       res.json(script);
     } catch (error) {
       console.error("Error saving script:", error);

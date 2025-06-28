@@ -23,7 +23,7 @@ import {
   MessageCircle,
   Users,
   Clock,
-  Save,
+
   Wand2,
   FileText,
   Plus,
@@ -42,7 +42,6 @@ interface CollaborativeEditorProps {
   collaborators?: any[];
   comments?: any[];
   onAddComment?: (comment: any) => void;
-  onSave?: () => void;
   onExport?: () => void;
   onImport?: (file: File) => void;
   isLoading?: boolean;
@@ -58,7 +57,6 @@ export function CollaborativeEditor({
   collaborators = [],
   comments = [],
   onAddComment,
-  onSave,
   onExport,
   onImport,
   isLoading = false,
@@ -570,10 +568,6 @@ export function CollaborativeEditor({
           </div>
           
           {/* Action buttons */}
-          <Button variant="outline" size="sm" onClick={onSave} disabled={isLoading} title="Save">
-            <Save className="h-4 w-4" />
-          </Button>
-          
           <Button variant="outline" size="sm" onClick={onExport} title="Export PDF">
             <Download className="h-4 w-4" />
           </Button>

@@ -49,6 +49,8 @@ export default function ScriptEditor() {
   const [showPublishVersionConfirm, setShowPublishVersionConfirm] = useState(false);
   const [selectedVersionType, setSelectedVersionType] = useState<'major' | 'minor'>('minor');
   const [currentVersion, setCurrentVersion] = useState("1.0");
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -180,22 +182,45 @@ export default function ScriptEditor() {
     }
   }, [script, user]); // Removed dependencies that were causing comments to reset
 
-  // Save script mutation
+  // Auto-save effect with debounce
+  useEffect(() => {
+    if (!scriptContent && !scriptTitle) return; // Don't save empty content on initial load
+    
+    const timeoutId = setTimeout(() => {
+      const data = {
+        title: scriptTitle,
+        content: scriptContent,
+      };
+      saveScriptMutation.mutate(data);
+    }, 2000); // Auto-save after 2 seconds of inactivity
+
+    return () => clearTimeout(timeoutId);
+  }, [scriptContent, scriptTitle]); // Trigger on content or title change
+
+  // Auto-save script mutation
   const saveScriptMutation = useMutation({
     mutationFn: async (data: { title: string; content: any; version?: string }) => {
-      await apiRequest("POST", `/api/projects/${projectId}/script`, data);
+      const response = await fetch(`/api/projects/${projectId}/script`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to save script');
+      return await response.json();
+    },
+    onMutate: () => {
+      setIsAutoSaving(true);
     },
     onSuccess: () => {
-      toast({
-        title: "Script saved",
-        description: "Your script has been auto-saved.",
-      });
+      setIsAutoSaving(false);
+      setLastSaved(new Date());
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "script"] });
     },
     onError: () => {
+      setIsAutoSaving(false);
       toast({
-        title: "Save failed",
-        description: "Failed to save script. Please try again.",
+        title: "Auto-save failed",
+        description: "Failed to auto-save script. Your changes may be lost.",
         variant: "destructive",
       });
     },
@@ -243,22 +268,8 @@ export default function ScriptEditor() {
   });
 
   // Handler functions
-  const handleSave = () => {
-    const data = {
-      title: scriptTitle,
-      content: scriptContent,
-    };
-    saveScriptMutation.mutate(data);
-  };
-
   const handleContentChange = (content: any) => {
     setScriptContent(content);
-    // Auto-save after 2 seconds of inactivity
-    setTimeout(() => {
-      if (content === scriptContent) {
-        handleSave();
-      }
-    }, 2000);
   };
 
   const handleTitleChange = (title: string) => {
@@ -371,6 +382,17 @@ export default function ScriptEditor() {
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-muted-foreground" />
                 <span className="font-medium">Script Editor</span>
+                {isAutoSaving && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <div className="animate-spin h-3 w-3 border border-gray-300 border-t-gray-600 rounded-full"></div>
+                    Saving...
+                  </div>
+                )}
+                {lastSaved && !isAutoSaving && (
+                  <div className="text-xs text-muted-foreground">
+                    Saved {lastSaved.toLocaleTimeString()}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -446,7 +468,6 @@ export default function ScriptEditor() {
           collaborators={collaborators}
           comments={comments}
           onAddComment={handleAddComment}
-          onSave={handleSave}
           onExport={handleExport}
           onImport={handleImport}
           isLoading={saveScriptMutation.isPending}
