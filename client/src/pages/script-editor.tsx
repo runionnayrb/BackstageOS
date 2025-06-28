@@ -87,10 +87,23 @@ export default function ScriptEditor() {
   const [isContentLoaded, setIsContentLoaded] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Initialize component once without dependencies to prevent resets
+  // Load script content from server when available
   useEffect(() => {
-    setIsContentLoaded(true);
-  }, []);
+    if (script && typeof script === 'object' && !isContentLoaded) {
+      const scriptData = script as any;
+      console.log('Loading script from server:', { 
+        name: scriptData.name, 
+        contentLength: scriptData.content?.length || 0 
+      });
+      setScriptTitle(scriptData.name || "Untitled Script");
+      setScriptContent(scriptData.content || "");
+      setCurrentVersion(scriptData.version || "1.0");
+      setIsContentLoaded(true);
+    } else if (!script && !scriptLoading && !isContentLoaded) {
+      // No script exists yet, just mark as loaded
+      setIsContentLoaded(true);
+    }
+  }, [script, scriptLoading, isContentLoaded]);
 
   // Auto-save is now handled directly in handleContentChange to avoid timing issues
 
