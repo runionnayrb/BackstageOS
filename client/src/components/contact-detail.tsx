@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Edit, X, Mail, Phone, User, Users, FileText } from "lucide-react";
+import { Edit, X, Mail, Phone, User, FileText } from "lucide-react";
 
 // Phone number formatting function
 const formatPhoneNumber = (value: string): string => {
@@ -34,16 +34,6 @@ interface ContactDetailProps {
 }
 
 export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) {
-  const getCategoryTitle = (cat: string) => {
-    switch (cat) {
-      case 'cast': return 'Cast';
-      case 'crew': return 'Crew';
-      case 'stage_management': return 'Stage Management';
-      case 'creative_team': return 'Creative Team';
-      case 'theater_staff': return 'Theater Staff';
-      default: return cat;
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -71,12 +61,6 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
           )}
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center gap-2 text-sm">
-            <Users className="h-4 w-4 text-gray-500" />
-            <span className="font-medium">Category:</span>
-            <span>{getCategoryTitle(contact.category)}</span>
-          </div>
-
           {contact.email && (
             <div className="flex items-center gap-2 text-sm">
               <Mail className="h-4 w-4 text-gray-500" />
