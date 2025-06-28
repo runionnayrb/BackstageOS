@@ -1395,7 +1395,7 @@ export default function ContactSheet() {
                         {!isPreviewMode && columns.filter(col => col.visible).map((column, colIndex) => (
                           <div
                             key={column.id}
-                            className={`relative px-3 print:px-1 print:hidden cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(headerAlignment)}`}
+                            className={`relative px-1 print:px-1 print:hidden cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(headerAlignment)}`}
                             style={{ 
                               width: `${column.width}px`, 
                               height: `${headerHeight}px`,
@@ -1433,7 +1433,7 @@ export default function ContactSheet() {
                           {columns.filter(col => col.visible).map((column) => (
                             <div
                               key={column.id}
-                              className={`px-3 flex items-center ${getAlignmentClass(headerAlignment)}`}
+                              className={`px-1 flex items-center ${getAlignmentClass(headerAlignment)}`}
                               style={{ 
                                 width: `${column.width}px`, 
                                 height: `${headerHeight}px`,
@@ -1468,7 +1468,7 @@ export default function ContactSheet() {
                           {!isPreviewMode && columns.filter(col => col.visible).map((column, cellIndex) => (
                             <div
                               key={column.id}
-                              className={`relative px-3 print:hidden overflow-hidden text-ellipsis whitespace-nowrap cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(rowAlignment)}`}
+                              className={`relative px-1 print:hidden overflow-hidden text-ellipsis whitespace-nowrap cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(rowAlignment)}`}
                               style={{ 
                                 width: `${column.width}px`, 
                                 height: `${rowHeight}px`,
@@ -1498,7 +1498,7 @@ export default function ContactSheet() {
                             {columns.filter(col => col.visible).map((column) => (
                               <div
                                 key={column.id}
-                                className={`px-3 overflow-hidden text-ellipsis flex items-center ${getAlignmentClass(rowAlignment)}`}
+                                className={`px-1 overflow-hidden text-ellipsis flex items-center ${getAlignmentClass(rowAlignment)}`}
                                 style={{ 
                                   width: `${column.width}px`,
                                   height: `${rowHeight}px`,
