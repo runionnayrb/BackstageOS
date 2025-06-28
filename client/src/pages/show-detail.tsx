@@ -68,7 +68,7 @@ export default function ShowDetail() {
   });
 
   const { data: projectSettings } = useQuery({
-    queryKey: ["/api/projects", projectId, "settings"],
+    queryKey: [`/api/projects/${projectId}/settings`],
     enabled: isAuthenticated && !!projectId,
   });
 
@@ -80,7 +80,7 @@ export default function ShowDetail() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "settings"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
       toast({
         title: "Section order saved",
         description: "Your custom section order has been saved.",
@@ -113,10 +113,8 @@ export default function ShowDetail() {
 
   // Apply saved section order when project settings load
   useEffect(() => {
-    console.log("Project settings updated:", projectSettings);
     if (projectSettings && (projectSettings as any).sectionsOrder) {
       const savedOrder = (projectSettings as any).sectionsOrder;
-      console.log("Found saved section order:", savedOrder);
       const reorderedSections = savedOrder.map((id: string) => 
         defaultSections.find(section => section.id === id)
       ).filter(Boolean);
@@ -125,12 +123,8 @@ export default function ShowDetail() {
       const savedIds = new Set(savedOrder);
       const newSections = defaultSections.filter(section => !savedIds.has(section.id));
       
-      const finalSections = [...reorderedSections, ...newSections];
-      console.log("Applying section order:", finalSections.map(s => s.id));
-      setSections(finalSections);
+      setSections([...reorderedSections, ...newSections]);
     } else {
-      console.log("No saved section order found, using default sections");
-      console.log("Available project settings keys:", projectSettings ? Object.keys(projectSettings) : "none");
       setSections(defaultSections);
     }
   }, [projectSettings]);
