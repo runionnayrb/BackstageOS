@@ -594,11 +594,11 @@ export function CollaborativeEditor({
               <Clipboard className="h-4 w-4" />
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Page Setup</DialogTitle>
             </DialogHeader>
-            <div className="space-y-6 py-4">
+            <div className="space-y-6 py-4 pr-2">
               {/* Page Margins */}
               <div className="space-y-4">
                 <h3 className="font-medium">Margins (inches)</h3>
