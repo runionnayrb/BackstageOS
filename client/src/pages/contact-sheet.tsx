@@ -438,16 +438,19 @@ export default function ContactSheet() {
       } else if (isResizingHeight !== null) {
         e.preventDefault();
         const deltaY = e.clientY - resizeStartY;
-        const newHeight = Math.max(20, resizeStartHeight + deltaY);
         
         if (isResizingHeight === 'header') {
+          const newHeight = Math.max(20, resizeStartHeight + deltaY);
           setHeaderHeight(newHeight);
         } else if (isResizingHeight === 'row') {
+          const newHeight = Math.max(20, resizeStartHeight + deltaY);
           setRowHeight(newHeight);
         } else if (isResizingHeight === 'categorySpacing') {
-          setCategorySpacing(Math.max(0, newHeight));
+          const newHeight = Math.max(0, resizeStartHeight + deltaY);
+          setCategorySpacing(newHeight);
         } else if (isResizingHeight === 'sectionSpacing') {
-          setSectionSpacing(Math.max(0, newHeight));
+          const newHeight = Math.max(0, resizeStartHeight + deltaY);
+          setSectionSpacing(newHeight);
         }
       }
     };
