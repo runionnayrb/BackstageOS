@@ -455,13 +455,28 @@ export function CollaborativeEditor({
     // Apply formatting based on command
     switch (command) {
       case 'bold':
-        newText = `<b>${selectedText}</b>`;
+        // If text is already bold, remove formatting, otherwise add it
+        if (selectedText.startsWith('<b>') && selectedText.endsWith('</b>')) {
+          newText = selectedText.slice(3, -4);
+        } else {
+          newText = `<b>${selectedText}</b>`;
+        }
         break;
       case 'italic':
-        newText = `<i>${selectedText}</i>`;
+        // If text is already italic, remove formatting, otherwise add it
+        if (selectedText.startsWith('<i>') && selectedText.endsWith('</i>')) {
+          newText = selectedText.slice(3, -4);
+        } else {
+          newText = `<i>${selectedText}</i>`;
+        }
         break;
       case 'underline':
-        newText = `<u>${selectedText}</u>`;
+        // If text is already underlined, remove formatting, otherwise add it
+        if (selectedText.startsWith('<u>') && selectedText.endsWith('</u>')) {
+          newText = selectedText.slice(3, -4);
+        } else {
+          newText = `<u>${selectedText}</u>`;
+        }
         break;
       default:
         console.log('Unknown command:', command);
@@ -1621,36 +1636,34 @@ export function CollaborativeEditor({
           
           <div className="w-px h-5 bg-border mx-0.5" />
           
-          {/* Variables Select */}
-          <Select 
-            value="" 
-            onValueChange={(value) => {
-              console.log('Variable selected:', value);
-              if (value && editingRef.current) {
-                console.log('Inserting variable:', value, 'into element:', editingRef.current);
-                insertVariableInline(value);
-              }
-            }}
+          {/* Variables Popover */}
+          <Popover 
+            open={showVariablesPopover} 
             onOpenChange={(open) => {
-              console.log('Select dropdown open state:', open);
+              console.log('Variables popover open state:', open);
+              setShowVariablesPopover(open);
             }}
           >
-            <SelectTrigger 
-              className="h-7 w-16 px-2 text-xs"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log('Variables trigger clicked');
-              }}
-            >
-              <SelectValue placeholder="Vars" />
-            </SelectTrigger>
-            <SelectContent 
-              className="z-[10000]"
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 px-2 text-xs"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Variables button clicked');
+                  setShowVariablesPopover(!showVariablesPopover);
+                }}
+                title="Insert Variables"
+              >
+                Vars
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent 
+              className="w-48 p-2 z-[10001]" 
+              align="start"
+              onOpenAutoFocus={(e) => e.preventDefault()}
               onCloseAutoFocus={(e) => {
                 e.preventDefault();
                 if (editingRef.current) {
@@ -1658,13 +1671,81 @@ export function CollaborativeEditor({
                 }
               }}
             >
-              <SelectItem value="showName">Show Name</SelectItem>
-              <SelectItem value="date">Date</SelectItem>
-              <SelectItem value="stageManager">Stage Manager</SelectItem>
-              <SelectItem value="pageNumber">Page Number</SelectItem>
-              <SelectItem value="totalPages">Total Pages</SelectItem>
-            </SelectContent>
-          </Select>
+              <div className="space-y-1">
+                <div className="text-xs font-medium text-gray-600 mb-2">Insert Variable:</div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start h-8 text-xs"
+                  onClick={() => {
+                    insertVariableInline('showName');
+                    setShowVariablesPopover(false);
+                  }}
+                >
+                  Show Name
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start h-8 text-xs"
+                  onClick={() => {
+                    insertVariableInline('date');
+                    setShowVariablesPopover(false);
+                  }}
+                >
+                  Date
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start h-8 text-xs"
+                  onClick={() => {
+                    insertVariableInline('stageManager');
+                    setShowVariablesPopover(false);
+                  }}
+                >
+                  Stage Manager
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start h-8 text-xs"
+                  onClick={() => {
+                    insertVariableInline('pageNumber');
+                    setShowVariablesPopover(false);
+                  }}
+                >
+                  Page Number
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start h-8 text-xs"
+                  onClick={() => {
+                    insertVariableInline('totalPages');
+                    setShowVariablesPopover(false);
+                  }}
+                >
+                  Total Pages
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+          
+          <div className="w-px h-5 bg-border mx-0.5" />
+          
+          {/* Done Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={() => {
+              closeInlineEditor();
+            }}
+            title="Finish editing"
+          >
+            Done
+          </Button>
         </div>
       )}
     </div>
