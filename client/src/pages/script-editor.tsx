@@ -76,16 +76,15 @@ export default function ScriptEditor() {
   const [isContentLoaded, setIsContentLoaded] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Enhanced script data fetching - load once only
+  // Enhanced script data fetching
   const { data: script, isLoading: scriptLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/script`],
     enabled: !!projectId && !!user,
-    staleTime: Infinity, // Never consider stale
-    gcTime: Infinity, // Never garbage collect
+    staleTime: 0, // Always fresh
+    gcTime: 0, // No caching
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnReconnect: false,
-    retry: false,
   });
 
   // Placeholder data for now - will be connected to backend later
@@ -141,8 +140,8 @@ export default function ScriptEditor() {
     onSuccess: () => {
       setIsAutoSaving(false);
       setLastSaved(new Date());
-      // Don't invalidate the script query to prevent content clearing
-      // queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/script`] });
+      // Force query refetch after successful save
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/script`] });
     },
     onError: () => {
       setIsAutoSaving(false);

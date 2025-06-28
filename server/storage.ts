@@ -396,7 +396,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(showDocuments)
       .where(eq(showDocuments.projectId, projectId))
-      .orderBy(desc(showDocuments.createdAt));
+      .orderBy(desc(showDocuments.updatedAt), desc(showDocuments.createdAt));
   }
 
   async getShowDocumentById(id: number): Promise<ShowDocument | undefined> {
@@ -416,6 +416,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateShowDocument(id: number, document: Partial<InsertShowDocument>): Promise<ShowDocument> {
+    // Add updatedAt timestamp to ensure fresh data
+    const documentWithTimestamp = {
+      ...document,
+      updatedAt: new Date()
+    };
+    
     const [updatedDocument] = await db
       .update(showDocuments)
       .set({ ...document, updatedAt: new Date() })

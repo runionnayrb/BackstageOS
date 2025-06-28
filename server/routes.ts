@@ -1130,22 +1130,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Transform script document to expected format
-      // Handle content that might be stored as JSON string or object
+      // Handle content properly - database stores JSON strings
       let content: string = "";
       if (script.content) {
-        if (typeof script.content === 'string') {
-          // If it's a JSON-encoded string, parse it
-          if (script.content.startsWith('"') && script.content.endsWith('"')) {
-            try {
-              content = JSON.parse(script.content);
-            } catch (e) {
-              content = script.content;
-            }
-          } else {
-            content = script.content;
-          }
-        } else {
-          // If it's already parsed as an object, convert to string
+        // Database stores content as JSON, so parse it properly
+        try {
+          content = JSON.parse(script.content as string);
+        } catch (e) {
+          // If parsing fails, use content as-is
           content = String(script.content);
         }
       }
