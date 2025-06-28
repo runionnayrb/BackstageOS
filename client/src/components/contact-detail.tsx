@@ -24,7 +24,13 @@ interface Contact {
   category: string;
   role?: string;
   notes?: string;
-  emergencyContact?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactEmail?: string;
+  emergencyContactRelationship?: string;
+  allergies?: string;
+  medicalNotes?: string;
+  castTypes?: string[];
 }
 
 interface ContactDetailProps {
@@ -59,51 +65,114 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
             <p className="text-sm text-gray-600">{contact.role}</p>
           )}
         </CardHeader>
-        <CardContent className="space-y-4">
-          {contact.email && (
-            <div className="flex items-center gap-2 text-sm">
-              <Mail className="h-4 w-4 text-gray-500" />
-              <span className="font-medium">Email:</span>
-              <a 
-                href={`mailto:${contact.email}`} 
-                className="text-blue-600 hover:underline"
-              >
-                {contact.email}
-              </a>
+        <CardContent className="space-y-6">
+          {/* Contact Information */}
+          <div className="space-y-3">
+            <h4 className="font-medium text-gray-900">Contact Information</h4>
+            
+            {contact.email && (
+              <div className="flex items-center gap-2 text-sm">
+                <Mail className="h-4 w-4 text-gray-500" />
+                <span className="font-medium">Email:</span>
+                <a 
+                  href={`mailto:${contact.email}`} 
+                  className="text-blue-600 hover:underline"
+                >
+                  {contact.email}
+                </a>
+              </div>
+            )}
+
+            {contact.phone && (
+              <div className="flex items-center gap-2 text-sm">
+                <Phone className="h-4 w-4 text-gray-500" />
+                <span className="font-medium">Phone:</span>
+                <a 
+                  href={`tel:${contact.phone}`} 
+                  className="text-blue-600 hover:underline"
+                >
+                  {formatPhoneNumber(contact.phone)}
+                </a>
+              </div>
+            )}
+
+            {contact.category === 'cast' && contact.castTypes && contact.castTypes.length > 0 && (
+              <div className="flex items-start gap-2 text-sm">
+                <span className="font-medium">Cast Type:</span>
+                <span className="capitalize">{contact.castTypes.join(', ')}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Emergency Contact */}
+          {(contact.emergencyContactName || contact.emergencyContactPhone || contact.emergencyContactEmail) && (
+            <div className="space-y-3 border-t pt-4">
+              <h4 className="font-medium text-gray-900">Emergency Contact</h4>
+              
+              {contact.emergencyContactName && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-medium">Name:</span>
+                  <span>{contact.emergencyContactName}</span>
+                  {contact.emergencyContactRelationship && (
+                    <span className="text-gray-500">({contact.emergencyContactRelationship})</span>
+                  )}
+                </div>
+              )}
+
+              {contact.emergencyContactPhone && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="h-4 w-4 text-gray-500" />
+                  <span className="font-medium">Phone:</span>
+                  <a 
+                    href={`tel:${contact.emergencyContactPhone}`} 
+                    className="text-blue-600 hover:underline"
+                  >
+                    {formatPhoneNumber(contact.emergencyContactPhone)}
+                  </a>
+                </div>
+              )}
+
+              {contact.emergencyContactEmail && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="h-4 w-4 text-gray-500" />
+                  <span className="font-medium">Email:</span>
+                  <a 
+                    href={`mailto:${contact.emergencyContactEmail}`} 
+                    className="text-blue-600 hover:underline"
+                  >
+                    {contact.emergencyContactEmail}
+                  </a>
+                </div>
+              )}
             </div>
           )}
 
-          {contact.phone && (
-            <div className="flex items-center gap-2 text-sm">
-              <Phone className="h-4 w-4 text-gray-500" />
-              <span className="font-medium">Phone:</span>
-              <a 
-                href={`tel:${contact.phone}`} 
-                className="text-blue-600 hover:underline"
-              >
-                {formatPhoneNumber(contact.phone)}
-              </a>
+          {/* Allergies & Medical */}
+          {(contact.allergies || contact.medicalNotes) && (
+            <div className="space-y-3 border-t pt-4">
+              <h4 className="font-medium text-gray-900">Allergies & Dietary Restrictions</h4>
+              
+              {contact.allergies && (
+                <div className="text-sm">
+                  <span className="font-medium">Allergies & Dietary Restrictions:</span>
+                  <p className="mt-1 text-gray-700 whitespace-pre-wrap">{contact.allergies}</p>
+                </div>
+              )}
+
+              {contact.medicalNotes && (
+                <div className="text-sm">
+                  <span className="font-medium">Medical Notes:</span>
+                  <p className="mt-1 text-gray-700 whitespace-pre-wrap">{contact.medicalNotes}</p>
+                </div>
+              )}
             </div>
           )}
 
-          {contact.emergencyContact && (
-            <div className="flex items-start gap-2 text-sm">
-              <Phone className="h-4 w-4 text-gray-500 mt-0.5" />
-              <span className="font-medium">Emergency Contact:</span>
-              <a 
-                href={`tel:${contact.emergencyContact}`} 
-                className="text-blue-600 hover:underline"
-              >
-                {formatPhoneNumber(contact.emergencyContact)}
-              </a>
-            </div>
-          )}
-
+          {/* Notes */}
           {contact.notes && (
-            <div className="flex items-start gap-2 text-sm">
-              <FileText className="h-4 w-4 text-gray-500 mt-0.5" />
-              <span className="font-medium">Notes:</span>
-              <span className="whitespace-pre-wrap">{contact.notes}</span>
+            <div className="space-y-3 border-t pt-4">
+              <h4 className="font-medium text-gray-900">Notes</h4>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">{contact.notes}</p>
             </div>
           )}
         </CardContent>

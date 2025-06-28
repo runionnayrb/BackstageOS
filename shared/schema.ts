@@ -341,7 +341,16 @@ export const contacts = pgTable("contacts", {
   category: varchar("category").notNull(), // cast, crew, stage_management, creative_team, theater_staff
   role: varchar("role"), // specific role within category
   notes: text("notes"),
-  emergency_contact: varchar("emergency_contact"),
+  // Emergency contact information
+  emergencyContactName: varchar("emergency_contact_name"),
+  emergencyContactPhone: varchar("emergency_contact_phone"),
+  emergencyContactEmail: varchar("emergency_contact_email"),
+  emergencyContactRelationship: varchar("emergency_contact_relationship"),
+  // Allergies and medical information
+  allergies: text("allergies"),
+  medicalNotes: text("medical_notes"),
+  // Cast types (for cast category only)
+  castTypes: text("cast_types").array(), // ["principle", "understudy", "swing", "ensemble"]
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -17,7 +19,13 @@ interface Contact {
   category: string;
   role?: string;
   notes?: string;
-  emergencyContact?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactEmail?: string;
+  emergencyContactRelationship?: string;
+  allergies?: string;
+  medicalNotes?: string;
+  castTypes?: string[];
 }
 
 interface ContactFormProps {
@@ -53,7 +61,13 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
     phone: contact?.phone ? formatPhoneNumber(contact.phone) : "",
     role: contact?.role || "",
     notes: contact?.notes || "",
-    emergencyContact: contact?.emergencyContact ? formatPhoneNumber(contact.emergencyContact) : "",
+    emergencyContactName: contact?.emergencyContactName || "",
+    emergencyContactPhone: contact?.emergencyContactPhone ? formatPhoneNumber(contact.emergencyContactPhone) : "",
+    emergencyContactEmail: contact?.emergencyContactEmail || "",
+    emergencyContactRelationship: contact?.emergencyContactRelationship || "",
+    allergies: contact?.allergies || "",
+    medicalNotes: contact?.medicalNotes || "",
+    castTypes: contact?.castTypes || [],
   });
 
   const { toast } = useToast();
@@ -121,7 +135,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
       ...formData,
       // Store unformatted phone numbers in database
       phone: parsePhoneNumber(formData.phone),
-      emergencyContact: parsePhoneNumber(formData.emergencyContact),
+      emergencyContactPhone: parsePhoneNumber(formData.emergencyContactPhone),
       category,
     };
 
@@ -141,12 +155,32 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     
-    if (name === 'phone' || name === 'emergencyContact') {
+    if (name === 'phone' || name === 'emergencyContactPhone') {
       // Format phone number as user types
       setFormData(prev => ({ ...prev, [name]: formatPhoneNumber(value) }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleCastTypeChange = (castType: string, checked: boolean) => {
+    setFormData(prev => {
+      const newCastTypes = checked 
+        ? [...prev.castTypes, castType]
+        : prev.castTypes.filter(type => type !== castType);
+      
+      // If selecting "principle", remove all other types
+      if (castType === 'principle' && checked) {
+        return { ...prev, castTypes: ['principle'] };
+      }
+      
+      // If selecting any other type while "principle" is selected, remove "principle"
+      if (castType !== 'principle' && checked && prev.castTypes.includes('principle')) {
+        return { ...prev, castTypes: [castType] };
+      }
+      
+      return { ...prev, castTypes: newCastTypes };
+    });
   };
 
   return (
@@ -160,85 +194,193 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
         </Button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="firstName">First Name *</Label>
-            <Input
-              id="firstName"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-          <div>
-            <Label htmlFor="lastName">Last Name *</Label>
-            <Input
-              id="lastName"
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
-        </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Contact Information Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Contact Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="firstName">First Name *</Label>
+                <Input
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+              <div>
+                <Label htmlFor="lastName">Last Name *</Label>
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleInputChange}
+                  required
+                />
+              </div>
+            </div>
 
-        <div>
-          <Label htmlFor="role">Role</Label>
-          <Input
-            id="role"
-            name="role"
-            value={formData.role}
-            onChange={handleInputChange}
-            placeholder="e.g., Actor, Director, Sound Engineer"
-          />
-        </div>
+            <div>
+              <Label htmlFor="role">Role</Label>
+              <Input
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                placeholder="e.g., Actor, Director, Sound Engineer"
+              />
+            </div>
 
-        <div>
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleInputChange}
-          />
-        </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                />
+              </div>
+              <div>
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  placeholder="(xxx) xxx-xxxx"
+                />
+              </div>
+            </div>
 
-        <div>
-          <Label htmlFor="phone">Phone</Label>
-          <Input
-            id="phone"
-            name="phone"
-            type="tel"
-            value={formData.phone}
-            onChange={handleInputChange}
-          />
-        </div>
+            {/* Cast Types Section - Only for Cast Category */}
+            {category === 'cast' && (
+              <div>
+                <Label>Cast Type</Label>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {['principle', 'understudy', 'swing', 'ensemble'].map((castType) => (
+                    <div key={castType} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={castType}
+                        checked={formData.castTypes.includes(castType)}
+                        onCheckedChange={(checked) => handleCastTypeChange(castType, checked as boolean)}
+                      />
+                      <Label htmlFor={castType} className="text-sm capitalize">
+                        {castType}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        <div>
-          <Label htmlFor="emergencyContact">Emergency Contact</Label>
-          <Input
-            id="emergencyContact"
-            name="emergencyContact"
-            value={formData.emergencyContact}
-            onChange={handleInputChange}
-            placeholder="Name and phone number"
-          />
-        </div>
+            <div>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                name="notes"
+                value={formData.notes}
+                onChange={handleInputChange}
+                rows={3}
+                placeholder="Additional notes about this contact..."
+              />
+            </div>
+          </CardContent>
+        </Card>
 
-        <div>
-          <Label htmlFor="notes">Notes</Label>
-          <Textarea
-            id="notes"
-            name="notes"
-            value={formData.notes}
-            onChange={handleInputChange}
-            rows={3}
-            placeholder="Additional notes..."
-          />
-        </div>
+        {/* Emergency Contact Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Emergency Contact</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="emergencyContactName">Name</Label>
+                <Input
+                  id="emergencyContactName"
+                  name="emergencyContactName"
+                  value={formData.emergencyContactName}
+                  onChange={handleInputChange}
+                  placeholder="Full name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="emergencyContactRelationship">Relationship</Label>
+                <Input
+                  id="emergencyContactRelationship"
+                  name="emergencyContactRelationship"
+                  value={formData.emergencyContactRelationship}
+                  onChange={handleInputChange}
+                  placeholder="e.g., Spouse, Parent, Friend"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="emergencyContactPhone">Phone</Label>
+                <Input
+                  id="emergencyContactPhone"
+                  name="emergencyContactPhone"
+                  type="tel"
+                  value={formData.emergencyContactPhone}
+                  onChange={handleInputChange}
+                  placeholder="(xxx) xxx-xxxx"
+                />
+              </div>
+              <div>
+                <Label htmlFor="emergencyContactEmail">Email</Label>
+                <Input
+                  id="emergencyContactEmail"
+                  name="emergencyContactEmail"
+                  type="email"
+                  value={formData.emergencyContactEmail}
+                  onChange={handleInputChange}
+                  placeholder="email@example.com"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Allergies & Medical Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Allergies & Dietary Restrictions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="allergies">Allergies & Dietary Restrictions</Label>
+              <Textarea
+                id="allergies"
+                name="allergies"
+                value={formData.allergies}
+                onChange={handleInputChange}
+                rows={3}
+                placeholder="List any known allergies, dietary restrictions, or food preferences (vegan, gluten-free, kosher, etc.)"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="medicalNotes">Medical Notes</Label>
+              <Textarea
+                id="medicalNotes"
+                name="medicalNotes"
+                value={formData.medicalNotes}
+                onChange={handleInputChange}
+                rows={3}
+                placeholder="Any medical conditions, medications, or other health information relevant to the production"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="flex justify-between pt-4">
           <div>
