@@ -536,7 +536,43 @@ export function CollaborativeEditor({
     
     console.log('Selection:', { selectedText });
     
-    // Get the tag name for the command
+    // Handle alignment commands differently than formatting
+    if (command === 'justifyLeft' || command === 'justifyCenter' || command === 'justifyRight') {
+      const currentContent = element.innerHTML;
+      let alignmentStyle: string;
+      
+      switch (command) {
+        case 'justifyLeft':
+          alignmentStyle = 'text-align: left;';
+          break;
+        case 'justifyCenter':
+          alignmentStyle = 'text-align: center;';
+          break;
+        case 'justifyRight':
+          alignmentStyle = 'text-align: right;';
+          break;
+        default:
+          return;
+      }
+      
+      // Remove existing text-align styles and apply new one
+      const textContent = element.textContent || element.innerText || '';
+      const newContent = `<div style="${alignmentStyle}">${textContent}</div>`;
+      
+      element.innerHTML = newContent;
+      console.log('New aligned content:', newContent);
+      
+      if (editingElement.type === 'header') {
+        setHeaderText(newContent);
+      } else if (editingElement.type === 'footer') {
+        setFooterText(newContent);
+      }
+      
+      element.focus();
+      return;
+    }
+
+    // Get the tag name for formatting commands
     let tagName: string;
     switch (command) {
       case 'bold':
@@ -1755,6 +1791,39 @@ export function CollaborativeEditor({
             title="Underline"
           >
             <u>U</u>
+          </Button>
+          
+          <div className="w-px h-5 bg-border mx-0.5" />
+          
+          {/* Alignment buttons */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 text-xs"
+            onClick={() => executeInlineCommand('justifyLeft')}
+            title="Align Left"
+          >
+            <AlignLeft className="h-3 w-3" />
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 text-xs"
+            onClick={() => executeInlineCommand('justifyCenter')}
+            title="Align Center"
+          >
+            <AlignCenter className="h-3 w-3" />
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 text-xs"
+            onClick={() => executeInlineCommand('justifyRight')}
+            title="Align Right"
+          >
+            <AlignRight className="h-3 w-3" />
           </Button>
           
           <div className="w-px h-5 bg-border mx-0.5" />
