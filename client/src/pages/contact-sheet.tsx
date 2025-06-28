@@ -829,12 +829,11 @@ export default function ContactSheet() {
           
           {/* Main Content with all margins */}
           <div 
-            className="print:p-0"
             style={{
-              paddingTop: `${Math.max(pageMargins.top, headerFooterMargins.header)}in`,
-              paddingRight: `${pageMargins.right}in`,
-              paddingLeft: `${pageMargins.left}in`,
-              paddingBottom: `${Math.max(pageMargins.bottom, headerFooterMargins.footer)}in`
+              paddingTop: `${Math.max(pageMargins.top, headerFooterMargins.header)}in !important`,
+              paddingRight: `${pageMargins.right}in !important`,
+              paddingLeft: `${pageMargins.left}in !important`,
+              paddingBottom: `${Math.max(pageMargins.bottom, headerFooterMargins.footer)}in !important`
             }}
           >
             {/* Page Header */}
