@@ -159,14 +159,6 @@ export default function PersonnelCategory() {
                         {contact.role && (
                           <p className="text-sm text-gray-600">{contact.role}</p>
                         )}
-                        {category === 'cast' && (
-                          <p className="text-xs text-gray-500">
-                            {contact.castTypes && contact.castTypes.length > 0 
-                              ? contact.castTypes.join(', ').replace(/^./, (char: string) => char.toUpperCase())
-                              : 'No Cast Assigned'
-                            }
-                          </p>
-                        )}
                       </div>
                       <Button
                         variant="ghost"
