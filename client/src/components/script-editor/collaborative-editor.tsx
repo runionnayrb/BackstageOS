@@ -219,7 +219,17 @@ export function CollaborativeEditor({
       // Trigger content distribution after content is set
       setTimeout(() => distributeContentAcrossPages(), 100);
     }
-  }, [content]);
+  }, [content, distributeContentAcrossPages]);
+
+  // Listen for force distribution events from import
+  useEffect(() => {
+    const handleForceDistribution = () => {
+      setTimeout(() => distributeContentAcrossPages(), 50);
+    };
+
+    window.addEventListener('forceDistribution', handleForceDistribution);
+    return () => window.removeEventListener('forceDistribution', handleForceDistribution);
+  }, [distributeContentAcrossPages]);
 
   // Generate smart page numbers with letter suffixes for new pages
   const generatePageNumbers = useCallback((newPageCount: number) => {
