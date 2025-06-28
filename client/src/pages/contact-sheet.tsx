@@ -91,11 +91,11 @@ export default function ContactSheet() {
   const [headerFontSize, setHeaderFontSize] = useState(14);
   const [headerFontFamily, setHeaderFontFamily] = useState('system-ui');
   const [headerBorders, setHeaderBorders] = useState({
-    all: true,
-    top: true,
-    right: true,
-    bottom: true,
-    left: true
+    all: false,
+    top: false,
+    right: false,
+    bottom: false,
+    left: false
   });
   const [headerBorderColor, setHeaderBorderColor] = useState('#d1d5db');
   const [headerBorderWidth, setHeaderBorderWidth] = useState(1);
@@ -109,11 +109,11 @@ export default function ContactSheet() {
   const [rowFontSize, setRowFontSize] = useState(12);
   const [rowFontFamily, setRowFontFamily] = useState('system-ui');
   const [rowBorders, setRowBorders] = useState({
-    all: true,
-    top: true,
-    right: true,
-    bottom: true,
-    left: true
+    all: false,
+    top: false,
+    right: false,
+    bottom: false,
+    left: false
   });
   const [rowBorderColor, setRowBorderColor] = useState('#d1d5db');
   const [rowBorderWidth, setRowBorderWidth] = useState(1);
