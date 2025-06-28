@@ -192,13 +192,18 @@ export default function ContactSheet() {
     const element = event.currentTarget as HTMLElement;
     const rect = element.getBoundingClientRect();
     
-    // Smart positioning: always position above for better visibility
-    const toolbarY = rect.top + window.scrollY - 70;
+    // Smart positioning: always position above the element for better visibility
+    // For footers, ensure toolbar is well above to avoid clipping
+    const toolbarY = type === 'footer' 
+      ? rect.top + window.scrollY - 80  // Position well above footer
+      : rect.top + window.scrollY - 70; // Position above header
     
     const toolbarPos = {
-      x: Math.max(10, rect.left + window.scrollX + (rect.width / 2) - 150),
+      x: Math.max(10, Math.min(window.innerWidth - 320, rect.left + window.scrollX + (rect.width / 2) - 150)),
       y: Math.max(10, toolbarY)
     };
+    
+    console.log(`Editing ${type}, toolbar position:`, toolbarPos, 'element rect:', rect);
     
     setToolbarPosition(toolbarPos);
     setEditingElement({ type });
@@ -228,6 +233,7 @@ export default function ContactSheet() {
 
   // Close inline editor
   const closeInlineEditor = useCallback(() => {
+    console.log('Closing inline editor');
     setEditingElement(null);
     setShowToolbar(false);
     setShowVariablesPopover(false);
@@ -1431,14 +1437,24 @@ export default function ContactSheet() {
         </div>
       )}
 
+      {/* Debug Info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed top-4 right-4 bg-black text-white p-2 text-xs z-[10000]">
+          Toolbar: {showToolbar ? 'YES' : 'NO'} | 
+          Editing: {editingElement?.type || 'NONE'} | 
+          Pos: {toolbarPosition.x},{toolbarPosition.y}
+        </div>
+      )}
+
       {/* Notion-Style Formatting Toolbar */}
       {showToolbar && editingElement && (
         <div
           data-toolbar="true"
-          className="fixed z-50 bg-white border rounded-lg shadow-lg p-2 flex items-center gap-1"
+          className="fixed z-[9999] bg-white border rounded-lg shadow-xl p-2 flex items-center gap-1"
           style={{
             left: `${toolbarPosition.x}px`,
             top: `${toolbarPosition.y}px`,
+            minWidth: '300px'
           }}
         >
           {/* Text Formatting */}
