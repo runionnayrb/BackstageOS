@@ -931,7 +931,12 @@ export class DatabaseStorage implements IStorage {
     const settings = await db.select().from(showSettings).where(eq(showSettings.projectId, projectId));
     
     if (settings.length > 0 && settings[0].companyListSettings) {
-      return JSON.parse(settings[0].companyListSettings as string);
+      // Check if it's already an object or needs parsing
+      const companyListSettings = settings[0].companyListSettings;
+      if (typeof companyListSettings === 'string') {
+        return JSON.parse(companyListSettings);
+      }
+      return companyListSettings;
     }
     return null;
   }

@@ -62,8 +62,8 @@ export default function CompanyList() {
   ];
 
   const defaultColumns: Column[] = [
-    { id: "fullName", label: "Name", width: 300, visible: true },
-    { id: "role", label: "Position", width: 250, visible: true },
+    { id: "fullName", label: "Name", width: 275, visible: true },
+    { id: "role", label: "Position", width: 275, visible: true },
   ];
 
   const [columns, setColumns] = useState<Column[]>(defaultColumns);
