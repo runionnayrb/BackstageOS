@@ -14,11 +14,11 @@ export default function Reports() {
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedDate, setSelectedDate] = useState<string>("");
 
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ["/api/projects"],
   });
 
-  const { data: reports = [], isLoading } = useQuery({
+  const { data: reports = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/reports"],
   });
 
@@ -99,7 +99,7 @@ export default function Reports() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Projects</SelectItem>
-                  {projects.map((project: any) => (
+                  {(projects as any[]).map((project: any) => (
                     <SelectItem key={project.id} value={project.id.toString()}>
                       {project.name}
                     </SelectItem>
@@ -139,7 +139,7 @@ export default function Reports() {
           <CardTitle>Recent Reports</CardTitle>
         </CardHeader>
         <CardContent>
-          {reports.length === 0 ? (
+          {(reports as any[]).length === 0 ? (
             <div className="text-center py-12">
               <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No reports yet</h3>
@@ -151,7 +151,7 @@ export default function Reports() {
             </div>
           ) : (
             <div className="space-y-8">
-              {reports.map((report: any) => (
+              {(reports as any[]).map((report: any) => (
                 <div key={report.id} className="cursor-pointer hover:opacity-75 transition-opacity">
                   <h3 className="text-xl font-medium text-gray-900">{report.title}</h3>
                   <p className="text-sm text-gray-500 mt-1">

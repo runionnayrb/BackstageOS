@@ -192,7 +192,7 @@ export class DatabaseStorage implements IStorage {
   async createUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values(userData)
+      .values([userData] as any)
       .returning();
     return user;
   }
@@ -200,7 +200,7 @@ export class DatabaseStorage implements IStorage {
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
-      .values(userData)
+      .values([userData] as any)
       .onConflictDoUpdate({
         target: users.email,
         set: userData,
@@ -615,10 +615,8 @@ export class DatabaseStorage implements IStorage {
     const shareableLink = `${process.env.REPLIT_DOMAINS?.split(',')[0] || 'localhost:5000'}/shared/${projectId}/${Math.random().toString(36).substring(2, 15)}`;
     
     await this.updateShowSettings(projectId, {
-      sharingSettings: {
-        shareableLink,
-        linkExpiration: null,
-      } as any,
+      shareLink: shareableLink,
+      shareLinkExpiry: null,
     });
     
     return shareableLink;

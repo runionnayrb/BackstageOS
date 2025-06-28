@@ -169,13 +169,40 @@ export default function ShowSettings() {
     updateSettingsMutation.mutate(updatedSettings);
   };
 
-  const copyShareLink = () => {
+  const copyShareLink = async () => {
     if ((settings as any)?.sharingSettings?.shareableLink) {
-      navigator.clipboard.writeText((settings as any).sharingSettings.shareableLink);
-      toast({
-        title: "Link Copied",
-        description: "Share link copied to clipboard.",
-      });
+      try {
+        // Check if Clipboard API is available
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText((settings as any).sharingSettings.shareableLink);
+          toast({
+            title: "Link Copied",
+            description: "Share link copied to clipboard.",
+          });
+        } else {
+          // Fallback for older browsers or non-secure contexts
+          const textArea = document.createElement("textarea");
+          textArea.value = (settings as any).sharingSettings.shareableLink;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          textArea.style.top = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          document.execCommand('copy');
+          textArea.remove();
+          toast({
+            title: "Link Copied",
+            description: "Share link copied to clipboard.",
+          });
+        }
+      } catch (err) {
+        toast({
+          title: "Copy Failed",
+          description: "Unable to copy link to clipboard. Please copy manually.",
+          variant: "destructive",
+        });
+      }
     }
   };
 

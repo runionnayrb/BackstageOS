@@ -557,7 +557,7 @@ export default function ScriptEditor() {
           onImport={handleImport}
           isLoading={saveScriptMutation.isPending}
           isSaving={isAutoSaving}
-          lastSaved={lastSaved}
+          lastSaved={lastSaved || undefined}
           className="w-full h-full"
         />
       </div>
