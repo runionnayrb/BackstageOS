@@ -224,17 +224,6 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="role">Role</Label>
-              <Input
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleInputChange}
-                placeholder="e.g., Actor, Director, Sound Engineer"
-              />
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="email">Email</Label>
@@ -257,6 +246,17 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   placeholder="(xxx) xxx-xxxx"
                 />
               </div>
+            </div>
+
+            <div>
+              <Label htmlFor="role">Role</Label>
+              <Input
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleInputChange}
+                placeholder="e.g., Actor, Director, Sound Engineer"
+              />
             </div>
 
             {/* Cast Types Section - Only for Cast Category */}
