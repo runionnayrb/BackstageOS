@@ -99,19 +99,18 @@ export default function ShowReports() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-1">
             {reports.map((report: any) => (
               <div 
                 key={report.id} 
-                className="cursor-pointer hover:bg-gray-50 py-2 px-3 rounded transition-colors"
+                className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
                 onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/${report.id}`)}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium text-gray-900 hover:text-blue-600">
-                      {reportTypeName.slice(0, -1)} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
-                    </h3>
-                  </div>
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    {reportTypeName.slice(0, -1)} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
+                  </h3>
+                  <span className="text-gray-400 text-lg">→</span>
                 </div>
               </div>
             ))}

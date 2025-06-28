@@ -150,32 +150,17 @@ export default function Reports() {
               </Button>
             </div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="space-y-1">
               {reports.map((report: any) => (
-                <div key={report.id} className="py-4 flex items-center justify-between hover:bg-gray-50 rounded px-2">
-                  <div className="flex items-center space-x-4">
-                    <div className={`p-2 ${getReportBg(report.type)} rounded-lg`}>
-                      {getReportIcon(report.type)}
-                    </div>
+                <div key={report.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
+                  <div className="flex justify-between items-center">
                     <div>
-                      <p className="font-medium text-gray-900">{report.title}</p>
+                      <h3 className="text-lg font-medium text-gray-900">{report.title}</h3>
                       <p className="text-sm text-gray-500">
                         {formatTitle(report.type)} Report • {formatDate(report.date)}
                       </p>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <Badge 
-                      className={`${getStatusColor(report.status)} text-white`}
-                    >
-                      {formatTitle(report.status)}
-                    </Badge>
-                    <Button variant="ghost" size="sm">
-                      View
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <Download className="w-4 h-4" />
-                    </Button>
+                    <span className="text-gray-400 text-lg">→</span>
                   </div>
                 </div>
               ))}
