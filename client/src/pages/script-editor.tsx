@@ -89,20 +89,14 @@ export default function ScriptEditor() {
   
   // Load script content from server when available
   useEffect(() => {
-    // Reset content loaded flag when script query changes
-    if (scriptLoading) {
-      setIsContentLoaded(false);
-      return;
-    }
-    
-    if (script && typeof script === 'object' && !isContentLoaded) {
+    if (script && typeof script === 'object') {
       const scriptData = script as any;
       console.log('Loading script from server:', { 
         name: scriptData.name, 
         contentLength: scriptData.content?.length || 0 
       });
       
-      // Only update if we haven't loaded content yet
+      // Always update when script data changes
       setScriptTitle(scriptData.name || "Untitled Script");
       setScriptContent(scriptData.content || "");
       setCurrentVersion(scriptData.version || "1.0");
@@ -114,7 +108,7 @@ export default function ScriptEditor() {
       setCurrentVersion("1.0");
       setIsContentLoaded(true);
     }
-  }, [script, scriptLoading, isContentLoaded]);
+  }, [script, scriptLoading]);
 
   // Auto-save is now handled directly in handleContentChange to avoid timing issues
 

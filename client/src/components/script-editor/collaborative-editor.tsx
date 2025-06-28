@@ -319,12 +319,17 @@ export function CollaborativeEditor({
     }
   }, [margins, fontFamily, fontSize]);
 
-  // Initialize content only once to prevent overriding user input
+  // Initialize content when it changes from server
   useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML === '' && content) {
-      editorRef.current.innerHTML = content;
-      // Trigger content distribution after content is set
-      setTimeout(() => distributeContentAcrossPages(), 100);
+    if (editorRef.current && content) {
+      // Only update if content actually changed
+      const currentContent = editorRef.current.innerHTML || editorRef.current.textContent || '';
+      if (currentContent !== content) {
+        editorRef.current.innerHTML = content;
+        setInitialContent(content);
+        // Trigger content distribution after content is set
+        setTimeout(() => distributeContentAcrossPages(), 100);
+      }
     }
   }, [content, distributeContentAcrossPages]);
 
