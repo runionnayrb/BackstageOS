@@ -30,7 +30,7 @@ import {
   Clipboard,
   Check
 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
 interface CollaborativeEditorProps {
@@ -93,6 +93,8 @@ export function CollaborativeEditor({
   const [pageNumberSuffix, setPageNumberSuffix] = useState('');
   const [hasContentChanges, setHasContentChanges] = useState(false);
   const [initialContent, setInitialContent] = useState('');
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+  const [showRenumberConfirm, setShowRenumberConfirm] = useState(false);
 
   // Track content changes
   const handleContentChange = useCallback((newContent: string) => {
@@ -1020,7 +1022,7 @@ export function CollaborativeEditor({
           <Button 
             size="sm" 
             variant={isPublished ? "default" : "outline"}
-            onClick={publishScript}
+            onClick={() => setShowPublishConfirm(true)}
             disabled={!hasContentChanges}
             className="h-8 text-sm px-3"
           >
@@ -1029,7 +1031,7 @@ export function CollaborativeEditor({
           <Button 
             size="sm" 
             variant="outline"
-            onClick={renumberScript}
+            onClick={() => setShowRenumberConfirm(true)}
             disabled={!hasContentChanges}
             className="h-8 text-sm px-3"
           >
@@ -1155,6 +1157,52 @@ export function CollaborativeEditor({
           .border-l, .absolute.right-0 { display: none !important; }
         }
       `}} />
+
+      {/* Publish Pages Confirmation Dialog */}
+      <Dialog open={showPublishConfirm} onOpenChange={setShowPublishConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Publish Pages</DialogTitle>
+            <DialogDescription>
+              This will lock the current page numbering for theater workflow. Once published, new pages will be numbered with letter suffixes (1A, 1B, etc.) to maintain continuity during production.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPublishConfirm(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              publishScript();
+              setShowPublishConfirm(false);
+            }}>
+              Publish Pages
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Renumber Pages Confirmation Dialog */}
+      <Dialog open={showRenumberConfirm} onOpenChange={setShowRenumberConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Renumber Pages</DialogTitle>
+            <DialogDescription>
+              This will reset all page numbers to sequential order (1, 2, 3...) and remove any letter suffixes. This action cannot be undone and may affect production references.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRenumberConfirm(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={() => {
+              renumberScript();
+              setShowRenumberConfirm(false);
+            }}>
+              Renumber Pages
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

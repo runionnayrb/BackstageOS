@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { CollaborativeEditor } from "@/components/script-editor/collaborative-editor";
 import { VersionHistory } from "@/components/script-editor/version-history";
 import { ChangeLog } from "@/components/script-editor/change-log-simple";
@@ -44,6 +44,7 @@ export default function ScriptEditor() {
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showChangeLog, setShowChangeLog] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showPublishVersionConfirm, setShowPublishVersionConfirm] = useState(false);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -391,7 +392,7 @@ export default function ScriptEditor() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handlePublish}
+                onClick={() => setShowPublishVersionConfirm(true)}
                 disabled={isPublishing}
                 title="Publish Version"
               >
@@ -504,6 +505,29 @@ export default function ScriptEditor() {
               className="w-full border-0"
               showHeader={false}
             />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Publish Version Confirmation Dialog */}
+      <Dialog open={showPublishVersionConfirm} onOpenChange={setShowPublishVersionConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Publish Script Version</DialogTitle>
+            <DialogDescription>
+              This will create a new version snapshot of the script that can be shared with the production team. This action will save the current state as a published version.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button variant="outline" onClick={() => setShowPublishVersionConfirm(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              handlePublish();
+              setShowPublishVersionConfirm(false);
+            }}>
+              Publish Version
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
