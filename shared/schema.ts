@@ -764,8 +764,6 @@ export const waitlist = pgTable("waitlist", {
   email: varchar("email").unique().notNull(),
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
-  organization: varchar("organization"),
-  role: varchar("role"), // stage_manager, director, producer, other
   experience: varchar("experience"), // professional, educational, community, student
   howHeard: varchar("how_heard"), // social_media, referral, search, other
   additionalInfo: text("additional_info"),

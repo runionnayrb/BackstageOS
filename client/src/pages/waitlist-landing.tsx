@@ -33,8 +33,6 @@ export default function WaitlistLanding() {
     email: "",
     firstName: "",
     lastName: "",
-    organization: "",
-    role: "",
     experience: "",
     howHeard: "",
     additionalInfo: "",
@@ -396,46 +394,18 @@ export default function WaitlistLanding() {
                 </div>
 
                 <div>
-                  <Label htmlFor="organization">Theater/Organization</Label>
-                  <Input
-                    id="organization"
-                    name="organization"
-                    type="text"
-                    value={formData.organization}
-                    onChange={handleInputChange}
-                    placeholder="Broadway Theater, Regional Theater, University, etc."
-                  />
-                </div>
-
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="role">Primary Role</Label>
-                    <Select onValueChange={(value) => handleSelectChange("role", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="stage_manager">Stage Manager</SelectItem>
-                        <SelectItem value="director">Director</SelectItem>
-                        <SelectItem value="producer">Producer</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="experience">Experience Level</Label>
-                    <Select onValueChange={(value) => handleSelectChange("experience", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select experience" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="professional">Professional</SelectItem>
-                        <SelectItem value="educational">Educational/Academic</SelectItem>
-                        <SelectItem value="community">Community Theater</SelectItem>
-                        <SelectItem value="student">Student</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Label htmlFor="experience">Experience Level</Label>
+                  <Select onValueChange={(value) => handleSelectChange("experience", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select experience" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="professional">Professional</SelectItem>
+                      <SelectItem value="educational">Educational/Academic</SelectItem>
+                      <SelectItem value="community">Community Theater</SelectItem>
+                      <SelectItem value="student">Student</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
