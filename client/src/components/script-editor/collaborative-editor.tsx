@@ -596,11 +596,16 @@ export function CollaborativeEditor({
   const closeInlineEditor = useCallback(() => {
     // Save final content before clearing editing state
     if (editingRef.current && editingElement) {
-      const content = editingRef.current.value;
+      const element = editingRef.current as HTMLDivElement;
+      const content = element.innerHTML;
+      console.log('Closing editor, saving content:', content);
+      
       if (editingElement.type === 'header') {
         setHeaderText(content);
+        console.log('Saved header text:', content);
       } else if (editingElement.type === 'footer') {
         setFooterText(content);
+        console.log('Saved footer text:', content);
       }
     }
     
@@ -1466,7 +1471,7 @@ export function CollaborativeEditor({
                           style={{ textAlign: pageNumberAlignment as any }}
                           onClick={(e) => handleHeaderFooterClick('header', pageNum, e)}
                           dangerouslySetInnerHTML={{
-                            __html: headerText ? processRichContent(headerText, pageNum) : '<span class="text-gray-400 italic">Click to edit header</span>'
+                            __html: headerText && headerText.trim() ? processRichContent(headerText, pageNum) : '<span class="text-gray-400 italic">Click to edit header</span>'
                           }}
                           title="Click to edit header"
                         />
@@ -1509,7 +1514,7 @@ export function CollaborativeEditor({
                           style={{ textAlign: pageNumberAlignment as any }}
                           onClick={(e) => handleHeaderFooterClick('footer', pageNum, e)}
                           dangerouslySetInnerHTML={{
-                            __html: footerText ? processRichContent(footerText, pageNum) : '<span class="text-gray-400 italic">Click to edit footer</span>'
+                            __html: footerText && footerText.trim() ? processRichContent(footerText, pageNum) : '<span class="text-gray-400 italic">Click to edit footer</span>'
                           }}
                           title="Click to edit footer"
                         />
