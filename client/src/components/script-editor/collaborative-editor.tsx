@@ -797,7 +797,7 @@ export function CollaborativeEditor({
                         disabled={isPublished}
                         className="text-xs h-7 px-2"
                       >
-                        {isPublished ? "✓ Published" : "Publish"}
+                        {isPublished ? "✓ Published" : "Publish Pages"}
                       </Button>
                       <Button 
                         size="sm" 
@@ -805,7 +805,7 @@ export function CollaborativeEditor({
                         onClick={renumberScript}
                         className="text-xs h-7 px-2"
                       >
-                        Renumber
+                        Renumber Pages
                       </Button>
                     </div>
                     <p className="text-xs text-gray-500 leading-tight">
