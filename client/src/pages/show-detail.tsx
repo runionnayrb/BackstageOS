@@ -208,8 +208,7 @@ export default function ShowDetail() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+    <div className="container mx-auto p-6">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-4">
             <Button
@@ -280,7 +279,6 @@ export default function ShowDetail() {
             </div>
           ))}
         </div>
-      </div>
     </div>
   );
 }
