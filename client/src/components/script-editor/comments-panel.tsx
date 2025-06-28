@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   Clock, 
@@ -75,10 +75,7 @@ export function CommentsPanel({
     }
   };
 
-  const getAuthorInitials = (author: string) => {
-    if (!author) return 'U';
-    return author.split(' ').map(n => n[0]).join('').toUpperCase();
-  };
+
 
   const toggleThread = (commentId: string) => {
     setCollapsedThreads(prev => {
@@ -137,13 +134,7 @@ export function CommentsPanel({
               return (
                 <Collapsible key={comment.id} open={!isCollapsed} onOpenChange={() => toggleThread(comment.id)}>
                   <div className={`border rounded-lg p-4 ${comment.resolved ? 'opacity-60' : ''}`}>
-                    <div className="flex items-start gap-3">
-                      <Avatar className="h-8 w-8 flex-shrink-0">
-                        <AvatarFallback className="text-xs">
-                          {getAuthorInitials(comment.author)}
-                        </AvatarFallback>
-                      </Avatar>
-                      
+                    <div className="flex items-start">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           {hasReplies && (
@@ -232,12 +223,7 @@ export function CommentsPanel({
                               <div className="ml-6 space-y-3 border-l-2 border-gray-100 pl-4">
                                 {(comment.replies || []).map((reply, replyIndex) => (
                                   <div key={reply.id || `reply-${comment.id}-${replyIndex}`} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                                    <div className="flex items-start gap-2">
-                                      <Avatar className="h-6 w-6 flex-shrink-0">
-                                        <AvatarFallback className="text-xs">
-                                          {getAuthorInitials(reply.author)}
-                                        </AvatarFallback>
-                                      </Avatar>
+                                    <div className="flex items-start">
                                       <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
                                           <span className="font-medium text-xs">{reply.author}</span>
