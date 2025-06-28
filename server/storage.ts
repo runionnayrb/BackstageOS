@@ -12,6 +12,7 @@ import {
   feedback,
   betaSettings,
   contacts,
+  errorLogs,
   type User,
   type UpsertUser,
   type Project,
@@ -38,6 +39,8 @@ import {
   type InsertBetaSettings,
   type Contact,
   type InsertContact,
+  type ErrorLog,
+  type InsertErrorLog,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ne } from "drizzle-orm";
@@ -136,6 +139,11 @@ export interface IStorage {
   createContact(contact: InsertContact): Promise<Contact>;
   updateContact(id: number, contact: Partial<InsertContact>): Promise<Contact>;
   deleteContact(id: number): Promise<void>;
+
+  // Error logging operations
+  createErrorLog(errorLog: InsertErrorLog): Promise<ErrorLog>;
+  getErrorLogs(): Promise<ErrorLog[]>;
+  getErrorLogsByUserId(userId: string): Promise<ErrorLog[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -759,6 +767,33 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(contacts)
       .where(eq(contacts.id, id));
+  }
+
+  // Error logging operations
+  async createErrorLog(errorLogData: InsertErrorLog): Promise<ErrorLog> {
+    const [errorLog] = await db
+      .insert(errorLogs)
+      .values({
+        ...errorLogData,
+        createdAt: new Date(),
+      })
+      .returning();
+    return errorLog;
+  }
+
+  async getErrorLogs(): Promise<ErrorLog[]> {
+    return await db
+      .select()
+      .from(errorLogs)
+      .orderBy(desc(errorLogs.createdAt));
+  }
+
+  async getErrorLogsByUserId(userId: string): Promise<ErrorLog[]> {
+    return await db
+      .select()
+      .from(errorLogs)
+      .where(eq(errorLogs.userId, userId))
+      .orderBy(desc(errorLogs.createdAt));
   }
 }
 

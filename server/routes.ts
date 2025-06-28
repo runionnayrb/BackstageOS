@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertErrorLogSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Authentication middleware
@@ -42,6 +42,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       sessionId: req.sessionID,
       sessionExpiry: new Date(Date.now() + (30 * 24 * 60 * 60 * 1000))
     });
+  });
+
+  // Error logging API (no authentication required to prevent recursive errors)
+  app.post('/api/errors/log', async (req: any, res) => {
+    try {
+      const errorLogData = insertErrorLogSchema.parse(req.body);
+      const errorLog = await storage.createErrorLog(errorLogData);
+      res.status(201).json({ success: true, id: errorLog.id });
+    } catch (error) {
+      // Silently fail to prevent recursive error logging
+      console.error("Failed to log error:", error);
+      res.status(500).json({ success: false });
+    }
+  });
+
+  // Get error logs (admin only)
+  app.get('/api/errors', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const errorLogs = await storage.getErrorLogs();
+      res.json(errorLogs);
+    } catch (error) {
+      console.error("Error fetching error logs:", error);
+      res.status(500).json({ message: "Failed to fetch error logs" });
+    }
   });
 
   // Profile type selection

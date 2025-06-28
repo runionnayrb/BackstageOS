@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { isAdmin } from "@/lib/admin";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useErrorLogging } from "@/hooks/useErrorLogging";
 import { Feedback as FeedbackType } from "@/../../shared/schema";
 
 const feedbackSchema = z.object({
@@ -86,6 +87,7 @@ export default function FeedbackPage() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("submit");
   const [showForm, setShowForm] = useState(false);
+  const { wrapFormSubmission, wrapAsyncAction } = useErrorLogging();
 
   const form = useForm<FeedbackFormData>({
     resolver: zodResolver(feedbackSchema),
@@ -104,7 +106,10 @@ export default function FeedbackPage() {
   });
 
   const createFeedbackMutation = useMutation({
-    mutationFn: (data: FeedbackFormData) => apiRequest("POST", "/api/feedback", data),
+    mutationFn: wrapFormSubmission(
+      (data: FeedbackFormData) => apiRequest("POST", "/api/feedback", data),
+      "Feedback Submission Form"
+    ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/feedback"] });
       form.reset();

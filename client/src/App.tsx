@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth, AuthProvider } from "@/hooks/useAuth";
 import { useSessionHeartbeat } from "@/hooks/useSessionHeartbeat";
+import { errorLogger } from "@/lib/errorLogger";
+import { useEffect } from "react";
 import AuthPage from "@/pages/auth-page";
 import ProfileSelection from "@/pages/profile-selection";
 import Layout from "@/components/layout/layout";
@@ -44,6 +46,24 @@ function Router() {
   
   // Keep session alive while user is active
   useSessionHeartbeat();
+
+  // Initialize error logging
+  useEffect(() => {
+    if (user) {
+      errorLogger.setUserId(user.id.toString());
+    }
+    
+    // Set current page for error logging
+    errorLogger.setCurrentPage(window.location.pathname);
+    
+    // Track page changes
+    const handleRouteChange = () => {
+      errorLogger.setCurrentPage(window.location.pathname);
+    };
+    
+    window.addEventListener('popstate', handleRouteChange);
+    return () => window.removeEventListener('popstate', handleRouteChange);
+  }, [user]);
 
   if (isLoading) {
     return (

@@ -586,6 +586,28 @@ export const contactsRelations = relations(contacts, ({ one }) => ({
   }),
 }));
 
+// Error logs table for automatic error tracking
+export const errorLogs = pgTable("error_logs", {
+  id: serial("id").primaryKey(),
+  errorType: varchar("error_type", { length: 50 }).notNull(),
+  message: text("message").notNull(),
+  page: varchar("page", { length: 255 }).notNull(),
+  userAction: varchar("user_action", { length: 100 }),
+  elementClicked: varchar("element_clicked", { length: 255 }),
+  stackTrace: text("stack_trace"),
+  userAgent: text("user_agent").notNull(),
+  userId: varchar("user_id", { length: 50 }),
+  additionalData: jsonb("additional_data"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const errorLogsRelations = relations(errorLogs, ({ one }) => ({
+  user: one(users, {
+    fields: [errorLogs.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -700,6 +722,11 @@ export const insertContactSchema = createInsertSchema(contacts).omit({
   castTypes: z.array(z.string()).optional(),
 });
 
+export const insertErrorLogSchema = createInsertSchema(errorLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Type exports
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -739,3 +766,5 @@ export type BetaSettings = typeof betaSettings.$inferSelect;
 export type InsertBetaSettings = z.infer<typeof insertBetaSettingsSchema>;
 export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
+export type ErrorLog = typeof errorLogs.$inferSelect;
+export type InsertErrorLog = z.infer<typeof insertErrorLogSchema>;

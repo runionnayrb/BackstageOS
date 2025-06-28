@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Users, Settings, MessageSquare } from "lucide-react";
+import { ArrowLeft, Users, Settings, MessageSquare, AlertTriangle } from "lucide-react";
 import { Link } from "wouter";
 import AdminGuard from "@/components/admin-guard";
 import AdminUsersComponent from "./admin-users-component";
 import BetaFeatureComponent from "./beta-feature-component";
 import AdminFeedback from "./admin-feedback";
+import AdminErrorLogs from "./admin-error-logs";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("users");
@@ -28,7 +29,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               User Management
@@ -40,6 +41,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="feedback" className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
               Feedback
+            </TabsTrigger>
+            <TabsTrigger value="errors" className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
+              Error Logs
             </TabsTrigger>
           </TabsList>
 
@@ -59,6 +64,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="feedback" className="space-y-6">
             <AdminFeedback />
+          </TabsContent>
+
+          <TabsContent value="errors" className="space-y-6">
+            <AdminErrorLogs />
           </TabsContent>
         </Tabs>
       </div>
