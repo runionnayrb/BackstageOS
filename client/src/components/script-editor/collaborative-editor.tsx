@@ -101,6 +101,7 @@ export function CollaborativeEditor({
   const [editingElement, setEditingElement] = useState<{ type: 'header' | 'footer'; pageNum: number } | null>(null);
   const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
   const [showToolbar, setShowToolbar] = useState(false);
+  const [showVariablesPopover, setShowVariablesPopover] = useState(false);
   const editingRef = useRef<HTMLDivElement>(null);
 
   // Track content changes
@@ -436,14 +437,41 @@ export function CollaborativeEditor({
 
   // Insert variable into inline editor
   const insertVariableInline = useCallback((variable: string) => {
-    document.execCommand('insertText', false, `{{${variable}}}`);
     if (editingRef.current) {
+      // Focus the editing element first
+      editingRef.current.focus();
+      
+      // Try modern approach first
+      if (document.execCommand) {
+        document.execCommand('insertText', false, `{{${variable}}}`);
+      } else {
+        // Fallback for browsers that don't support execCommand
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          range.deleteContents();
+          const textNode = document.createTextNode(`{{${variable}}}`);
+          range.insertNode(textNode);
+          range.setStartAfter(textNode);
+          range.setEndAfter(textNode);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        } else {
+          // If no selection, append to end
+          editingRef.current.innerHTML += `{{${variable}}}`;
+        }
+      }
+      
+      // Update the state with new content
       const content = editingRef.current.innerHTML;
       if (editingElement?.type === 'header') {
         setHeaderText(content);
       } else if (editingElement?.type === 'footer') {
         setFooterText(content);
       }
+      
+      // Close the variables popover
+      setShowVariablesPopover(false);
     }
   }, [editingElement]);
 
@@ -451,6 +479,7 @@ export function CollaborativeEditor({
   const closeInlineEditor = useCallback(() => {
     setEditingElement(null);
     setShowToolbar(false);
+    setShowVariablesPopover(false);
     
     // Save final content
     if (editingRef.current) {
@@ -1442,7 +1471,7 @@ export function CollaborativeEditor({
       {/* Floating Formatting Toolbar */}
       {showToolbar && editingElement && (
         <div 
-          className="fixed z-50 bg-white dark:bg-gray-800 border rounded-lg shadow-xl p-2 flex items-center gap-1"
+          className="fixed z-50 bg-white dark:bg-gray-800 border rounded-md shadow-lg px-1 py-1 flex items-center gap-0.5"
           style={{
             left: `${toolbarPosition.x}px`,
             top: `${toolbarPosition.y}px`,
@@ -1452,7 +1481,7 @@ export function CollaborativeEditor({
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0"
+            className="h-7 w-7 p-0 text-xs"
             onClick={() => executeInlineCommand('bold')}
             title="Bold"
           >
@@ -1463,7 +1492,7 @@ export function CollaborativeEditor({
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0"
+            className="h-7 w-7 p-0 text-xs"
             onClick={() => executeInlineCommand('italic')}
             title="Italic"
           >
@@ -1474,28 +1503,28 @@ export function CollaborativeEditor({
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0"
+            className="h-7 w-7 p-0 text-xs"
             onClick={() => executeInlineCommand('underline')}
             title="Underline"
           >
             <u>U</u>
           </Button>
           
-          <div className="w-px h-6 bg-border mx-1" />
+          <div className="w-px h-5 bg-border mx-0.5" />
           
           {/* Variables Popover */}
-          <Popover>
+          <Popover open={showVariablesPopover} onOpenChange={setShowVariablesPopover}>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 px-2">
-                Variables
+              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                Vars
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-48 p-2">
-              <div className="flex flex-col gap-1">
+            <PopoverContent className="w-40 p-1">
+              <div className="flex flex-col gap-0.5">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="justify-start h-8"
+                  className="justify-start h-7 text-xs"
                   onClick={() => insertVariableInline('showName')}
                 >
                   Show Name
@@ -1503,7 +1532,7 @@ export function CollaborativeEditor({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="justify-start h-8"
+                  className="justify-start h-7 text-xs"
                   onClick={() => insertVariableInline('date')}
                 >
                   Date
@@ -1511,7 +1540,7 @@ export function CollaborativeEditor({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="justify-start h-8"
+                  className="justify-start h-7 text-xs"
                   onClick={() => insertVariableInline('stageManager')}
                 >
                   Stage Manager
@@ -1519,7 +1548,7 @@ export function CollaborativeEditor({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="justify-start h-8"
+                  className="justify-start h-7 text-xs"
                   onClick={() => insertVariableInline('pageNumber')}
                 >
                   Page Number
@@ -1527,7 +1556,7 @@ export function CollaborativeEditor({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="justify-start h-8"
+                  className="justify-start h-7 text-xs"
                   onClick={() => insertVariableInline('totalPages')}
                 >
                   Total Pages
@@ -1536,13 +1565,13 @@ export function CollaborativeEditor({
             </PopoverContent>
           </Popover>
           
-          <div className="w-px h-6 bg-border mx-1" />
+          <div className="w-px h-5 bg-border mx-0.5" />
           
           {/* Done */}
           <Button
             variant="default"
             size="sm"
-            className="h-8 px-3"
+            className="h-7 px-2 text-xs"
             onClick={closeInlineEditor}
           >
             Done
