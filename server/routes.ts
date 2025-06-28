@@ -1550,7 +1550,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const updatedContact = await storage.updateContact(contactId, req.body);
+      // Validate the update data using a partial schema (omit required fields for updates)
+      const updateContactSchema = insertContactSchema.partial().omit({
+        projectId: true,
+        createdBy: true,
+      });
+      
+      const validatedData = updateContactSchema.parse(req.body);
+      const updatedContact = await storage.updateContact(contactId, validatedData);
       res.json(updatedContact);
     } catch (error) {
       if (error instanceof z.ZodError) {
