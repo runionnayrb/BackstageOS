@@ -100,7 +100,7 @@ export default function PersonnelCategory() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center gap-4 mb-6">
+        <div className="flex items-center justify-between mb-6">
           <Button
             variant="ghost"
             onClick={() => setLocation(`/shows/${projectId}/contacts`)}
