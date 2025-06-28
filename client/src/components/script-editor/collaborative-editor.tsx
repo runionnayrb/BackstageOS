@@ -112,6 +112,7 @@ export function CollaborativeEditor({
 
   // Load header/footer content from localStorage when component mounts
   useEffect(() => {
+    // Use a more stable key that doesn't depend on potentially changing title
     const savedHeaderText = localStorage.getItem(`script-header-${title}`);
     const savedFooterText = localStorage.getItem(`script-footer-${title}`);
     
@@ -443,7 +444,17 @@ export function CollaborativeEditor({
         
         // If state is empty, try to load from localStorage
         if (!currentContent || !currentContent.trim()) {
-          const savedContent = localStorage.getItem(`script-${type}-${title}`);
+          // Try both potential key formats to handle title changes
+          let savedContent = localStorage.getItem(`script-${type}-${title}`);
+          if (!savedContent && title === "Untitled Script") {
+            // If current title is default, try looking for any script header/footer
+            const allKeys = Object.keys(localStorage).filter(k => k.startsWith(`script-${type}-`));
+            if (allKeys.length > 0) {
+              savedContent = localStorage.getItem(allKeys[0]);
+              console.log(`Found ${type} content with alternate key:`, allKeys[0]);
+            }
+          }
+          
           if (savedContent) {
             currentContent = savedContent;
             // Update state with loaded content
