@@ -417,12 +417,16 @@ export function CollaborativeEditor({
       if (editingRef.current) {
         const element = editingRef.current as HTMLDivElement;
         
-        // Set initial content based on type
+        // Set initial content based on type - use saved content, not element content
         const currentContent = type === 'header' ? headerText : footerText;
-        if (currentContent) {
+        console.log('Content initialization:', { type, currentContent, headerText, footerText });
+        
+        if (currentContent && currentContent.trim()) {
           element.innerHTML = currentContent;
-        } else if (element.textContent?.includes('Click to edit')) {
+          console.log('Set element content to:', currentContent);
+        } else {
           element.innerHTML = '';
+          console.log('Set element content to empty');
         }
         
         element.focus();
