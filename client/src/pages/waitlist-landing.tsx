@@ -256,8 +256,8 @@ export default function WaitlistLanding() {
               Everything You Need for Professional Stage Management
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Backstage OS provides comprehensive tools for every aspect of theater production, 
-              from script management to opening night.
+              Backstage OS provides comprehensive tools for every phase of the production process, 
+              from prep to closing night.
             </p>
           </div>
 
