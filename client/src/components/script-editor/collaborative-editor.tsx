@@ -431,10 +431,14 @@ export function CollaborativeEditor({
     const element = event.currentTarget as HTMLElement;
     const rect = element.getBoundingClientRect();
     
-    // Position toolbar directly above the text being edited
+    // Position toolbar above for headers, below for footers to ensure visibility
+    const toolbarY = type === 'header' 
+      ? rect.top + window.scrollY - 10 // Position above headers
+      : rect.bottom + window.scrollY + 10; // Position below footers
+    
     setToolbarPosition({
-      x: rect.left + window.scrollX + (rect.width / 2) - 150, // Center the toolbar above the text
-      y: rect.top + window.scrollY - 10 // Position 10px above the text
+      x: rect.left + window.scrollX + (rect.width / 2) - 150, // Center the toolbar horizontally
+      y: toolbarY
     });
     
     setEditingElement({ type, pageNum });
@@ -1696,7 +1700,7 @@ export function CollaborativeEditor({
           className="fixed z-[9999] bg-white dark:bg-gray-800 border rounded-md shadow-lg px-1 py-1 flex items-center gap-0.5"
           style={{
             left: `${toolbarPosition.x}px`,
-            top: `${toolbarPosition.y - 60}px`,
+            top: `${toolbarPosition.y}px`,
           }}
           onMouseDown={(e) => {
             e.preventDefault();
