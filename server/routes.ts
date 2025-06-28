@@ -1274,11 +1274,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         try {
-          // Import pdf-parse and extract text
-          const pdfParse = await import('pdf-parse');
+          // Import pdf-parse using require to avoid the test file issue
+          const pdfParse = require('pdf-parse');
           
           // Parse the PDF buffer directly
-          const data = await pdfParse.default(req.file.buffer);
+          const data = await pdfParse(req.file.buffer);
           
           let text = data.text || '';
 
