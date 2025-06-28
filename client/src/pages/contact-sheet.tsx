@@ -829,7 +829,7 @@ export default function ContactSheet() {
                       {categoryContacts.map((contact, contactIndex) => (
                         <div
                           key={contact.id}
-                          className={`flex border-b border-gray-200 print:text-sm print:border-gray-300 ${
+                          className={`flex print:text-sm ${
                             !isPreviewMode ? 'hover:bg-gray-50 print:hover:bg-transparent' : ''
                           }`}
                           draggable={!isPreviewMode}
