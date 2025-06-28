@@ -99,8 +99,10 @@ export function CollaborativeEditor({
 
   // Track content changes
   const handleContentChange = useCallback((newContent: string) => {
-    onChange(newContent);
-    setHasContentChanges(newContent !== initialContent);
+    if (newContent && newContent.trim()) {
+      onChange(newContent);
+      setHasContentChanges(newContent !== initialContent);
+    }
   }, [onChange, initialContent]);
 
   // Format text selection
@@ -385,11 +387,8 @@ export function CollaborativeEditor({
     setInitialContent(editorRef.current?.innerHTML || '');
   }, [pageCount]);
 
-  // Handle input events specifically to preserve cursor position
-  const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLDivElement;
-    
-    // Collect content from all pages
+  // Collect all content from all pages
+  const collectAllContent = useCallback(() => {
     const allPageContent: string[] = [];
     
     // Get content from page 1 (editorRef)
@@ -405,15 +404,17 @@ export function CollaborativeEditor({
       }
     }
     
-    // Combine all content
-    const combinedContent = allPageContent.join('');
-    
-    // Update the main content
-    onChange(combinedContent);
-    
-    // Don't redistribute content while actively typing - just save the changes
-    // Content distribution should only happen on paste or major content changes
-  }, [onChange, pageCount]);
+    return allPageContent.join('');
+  }, [pageCount]);
+
+  // Handle input events with immediate auto-save
+  const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
+    // Immediately collect and save all content
+    const allContent = collectAllContent();
+    if (allContent && allContent.trim().length > 0) {
+      onChange(allContent);
+    }
+  }, [onChange, collectAllContent]);
 
   // Parse and format script text automatically
   const parseScriptText = useCallback((text: string) => {
