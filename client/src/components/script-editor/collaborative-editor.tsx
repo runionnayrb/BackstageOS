@@ -66,6 +66,7 @@ export function CollaborativeEditor({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedText, setSelectedText] = useState("");
   const [fontSize, setFontSize] = useState("14");
+  const [fontFamily, setFontFamily] = useState("system-ui");
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [currentColor, setCurrentColor] = useState("#000000");
   const [undoStack, setUndoStack] = useState<any[]>([]);
@@ -876,6 +877,25 @@ export function CollaborativeEditor({
 
         <Separator orientation="vertical" className="h-6 mx-1" />
 
+        {/* Font family */}
+        <Select value={fontFamily} onValueChange={(value) => {
+          setFontFamily(value);
+          formatText('fontName', value);
+        }}>
+          <SelectTrigger className="w-32 h-8">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="system-ui">Default</SelectItem>
+            <SelectItem value="Courier, monospace">Courier</SelectItem>
+            <SelectItem value="Times, serif">Times</SelectItem>
+            <SelectItem value="Arial, sans-serif">Arial</SelectItem>
+            <SelectItem value="Helvetica, sans-serif">Helvetica</SelectItem>
+            <SelectItem value="Georgia, serif">Georgia</SelectItem>
+            <SelectItem value="Verdana, sans-serif">Verdana</SelectItem>
+          </SelectContent>
+        </Select>
+
         {/* Font size */}
         <Select value={fontSize} onValueChange={(value) => {
           setFontSize(value);
@@ -1049,7 +1069,7 @@ export function CollaborativeEditor({
                 <div key={pageNum} className="bg-white mx-auto shadow-lg relative" style={{ 
                   width: '8.5in', 
                   height: '11in',
-                  fontFamily: 'Courier, monospace',
+                  fontFamily: fontFamily,
                   fontSize: '12pt',
                   lineHeight: '1.5',
                   padding: `${margins.top}in ${margins.right}in ${margins.bottom}in ${margins.left}in`,
