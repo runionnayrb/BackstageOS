@@ -409,11 +409,9 @@ export function CollaborativeEditor({
 
   // Handle input events with immediate auto-save
   const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
-    // Immediately collect and save all content
+    // Immediately collect and save all content, including empty content
     const allContent = collectAllContent();
-    if (allContent && allContent.trim().length > 0) {
-      onChange(allContent);
-    }
+    onChange(allContent || '');
   }, [onChange, collectAllContent]);
 
   // Parse and format script text automatically

@@ -290,12 +290,8 @@ export default function ScriptEditor() {
       type: typeof content
     });
     
-    // Only update if content is not empty or null
-    if (content && content.trim().length > 0) {
-      setScriptContent(content);
-    } else {
-      console.warn('Attempted to set empty content, ignoring');
-    }
+    // Always update content, even if empty (user might be clearing content intentionally)
+    setScriptContent(content || "");
   };
 
   const handleTitleChange = (title: string) => {
