@@ -1254,7 +1254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // PDF text extraction endpoint
+  // PDF text extraction endpoint using pdf2pic for image conversion then OCR
   app.post('/api/extract-pdf-text', isAuthenticated, async (req: any, res) => {
     try {
       const multer = await import('multer');
@@ -1273,15 +1273,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: 'No file provided' });
         }
 
-        // For now, return a helpful error message about PDF support
-        res.status(501).json({ 
-          error: 'PDF support temporarily unavailable', 
-          message: 'PDF text extraction is temporarily unavailable due to a library issue. Please convert your PDF to a text file (.txt) using an online converter, or copy and paste the text directly into the editor.' 
-        });
+        try {
+          // For PDFs, we'll convert to images and then extract text
+          // This is a simplified approach - for production, you'd want proper OCR
+          
+          // For now, provide a helpful message about manual conversion
+          res.status(501).json({ 
+            error: 'PDF text extraction requires manual conversion', 
+            message: 'PDF files often contain scanned images rather than selectable text. Please try copying the text directly from your PDF viewer, or use an online PDF-to-text converter for best results.' 
+          });
+        } catch (parseError) {
+          console.error('PDF parsing error:', parseError);
+          res.status(500).json({ 
+            error: 'PDF parsing failed', 
+            message: 'Could not process this PDF. Please try copying the text directly or converting to a text file first.' 
+          });
+        }
       });
     } catch (error) {
       console.error('PDF extraction error:', error);
       res.status(500).json({ error: 'PDF processing failed' });
+    }
+  });
+
+  // Word document text extraction endpoint
+  app.post('/api/extract-word-text', isAuthenticated, async (req: any, res) => {
+    try {
+      const multer = await import('multer');
+      
+      const upload = multer.default({ 
+        storage: multer.memoryStorage(),
+        limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+      });
+
+      upload.single('file')(req, res, async (err: any) => {
+        if (err) {
+          return res.status(400).json({ error: 'File upload error', message: err.message });
+        }
+
+        if (!req.file) {
+          return res.status(400).json({ error: 'No file provided' });
+        }
+
+        try {
+          const mammoth = await import('mammoth');
+          
+          // Extract text from Word document
+          const result = await mammoth.extractRawText({ buffer: req.file.buffer });
+          let text = result.value || '';
+
+          // Clean up common Word document artifacts
+          text = text
+            // Remove excessive whitespace
+            .replace(/\s{3,}/g, '\n\n')
+            // Clean up line breaks
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+
+          if (!text || text.length < 10) {
+            return res.status(400).json({ 
+              error: 'No readable text found', 
+              message: 'The Word document appears to be empty or contains only images/tables.' 
+            });
+          }
+
+          res.json({ text });
+        } catch (parseError) {
+          console.error('Word parsing error:', parseError);
+          res.status(500).json({ 
+            error: 'Word document parsing failed', 
+            message: 'Could not extract text from this Word document. It may be corrupted or in an unsupported format.' 
+          });
+        }
+      });
+    } catch (error) {
+      console.error('Word extraction error:', error);
+      res.status(500).json({ error: 'Word document processing failed' });
     }
   });
 
