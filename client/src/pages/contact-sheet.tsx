@@ -1073,7 +1073,7 @@ export default function ContactSheet() {
                     onDragOver={!isPreviewMode ? (e) => e.preventDefault() : undefined}
                     onDrop={!isPreviewMode ? (e) => handleCategoryDrop(e, category.id) : undefined}
                   >
-                    <div className={`mb-4 print:mb-3 pb-2 ${!isPreviewMode ? 'cursor-grab hover:bg-gray-50 rounded px-2 py-1' : ''}`}>
+                    <div className={`mb-2 print:mb-1 pb-1 ${!isPreviewMode ? 'cursor-grab hover:bg-gray-50 rounded px-2 py-1' : ''}`}>
                       <h3 className="text-lg font-semibold">
                         {category.title}
                       </h3>
