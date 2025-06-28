@@ -827,25 +827,7 @@ export default function ContactSheet() {
         <div className="max-w-none mx-auto bg-white shadow-lg print:shadow-none print:max-w-none" 
              style={{ width: '8.5in', minHeight: '11in' }}>
           
-          {/* Page Header */}
-          <div 
-            className="print:p-0"
-            style={{
-              marginTop: `${headerFooterMargins.header}in`,
-              paddingLeft: `${pageMargins.left}in`,
-              paddingRight: `${pageMargins.right}in`
-            }}
-          >
-            <div className="text-center mb-8 print:mb-6">
-              <h1 className="text-2xl font-bold mb-2">{(project as any)?.name}</h1>
-              <h2 className="text-lg text-gray-600">Contact Sheet</h2>
-              <p className="text-sm text-gray-500 mt-2">
-                Generated on {new Date().toLocaleDateString()}
-              </p>
-            </div>
-          </div>
-
-          {/* Main Content */}
+          {/* Main Content with all margins */}
           <div 
             className="print:p-0"
             style={{
@@ -855,6 +837,20 @@ export default function ContactSheet() {
               paddingBottom: `${pageMargins.bottom}in`
             }}
           >
+            {/* Page Header */}
+            <div 
+              style={{
+                marginTop: `${headerFooterMargins.header}in`
+              }}
+            >
+              <div className="text-center mb-8 print:mb-6">
+                <h1 className="text-2xl font-bold mb-2">{(project as any)?.name}</h1>
+                <h2 className="text-lg text-gray-600">Contact Sheet</h2>
+                <p className="text-sm text-gray-500 mt-2">
+                  Generated on {new Date().toLocaleDateString()}
+                </p>
+              </div>
+            </div>
 
             {/* Contact Table by Category */}
             <div className="space-y-8 print:space-y-6">
@@ -989,19 +985,16 @@ export default function ContactSheet() {
                 );
               })}
             </div>
-          </div>
 
-          {/* Page Footer */}
-          <div 
-            className="print:p-0"
-            style={{
-              marginBottom: `${headerFooterMargins.footer}in`,
-              paddingLeft: `${pageMargins.left}in`,
-              paddingRight: `${pageMargins.right}in`
-            }}
-          >
-            <div className="text-center text-xs text-gray-500 mt-8 print:mt-6">
-              Page 1 of 1
+            {/* Page Footer */}
+            <div 
+              style={{
+                marginBottom: `${headerFooterMargins.footer}in`
+              }}
+            >
+              <div className="text-center text-xs text-gray-500 mt-8 print:mt-6">
+                Page 1 of 1
+              </div>
             </div>
           </div>
         </div>
