@@ -1077,14 +1077,25 @@ export function CollaborativeEditor({
                 }
               }
               
-              // Combine all content and get as plain text
+              // Combine all content and convert HTML to plain text while preserving line breaks
               const combinedContent = allPageContent.join('');
               const tempDiv = document.createElement('div');
               tempDiv.innerHTML = combinedContent;
-              const plainText = tempDiv.innerText || tempDiv.textContent || '';
+              
+              // Convert HTML to plain text while preserving line structure
+              const htmlElements = tempDiv.querySelectorAll('*');
+              htmlElements.forEach(element => {
+                if (element.tagName === 'DIV' || element.tagName === 'P' || element.tagName === 'BR') {
+                  element.insertAdjacentText('afterend', '\n');
+                }
+              });
+              
+              const plainText = tempDiv.textContent || tempDiv.innerText || '';
+              // Clean up multiple newlines but preserve intentional breaks
+              const cleanedText = plainText.replace(/\n\s*\n\s*\n+/g, '\n\n').trim();
               
               // Format the content
-              const formattedContent = parseScriptText(plainText);
+              const formattedContent = parseScriptText(cleanedText);
               
               // Clear all pages first
               editorRef.current.innerHTML = formattedContent;
