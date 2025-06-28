@@ -58,8 +58,8 @@ export default function ShowDetail() {
     },
   ];
 
-  // State for sections with default value
-  const [sections, setSections] = useState(defaultSections);
+  // State for sections - start empty to prevent flash
+  const [sections, setSections] = useState<typeof defaultSections>([]);
 
   // Data queries - always called in same order
   const { data: projects, isLoading: projectsLoading } = useQuery({
@@ -111,26 +111,28 @@ export default function ShowDetail() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  // Apply saved section order when project settings load
+  // Initialize sections once project settings are loaded or confirmed to not exist
   useEffect(() => {
-    if (projectSettings && (projectSettings as any).sectionsOrder) {
-      const savedOrder = (projectSettings as any).sectionsOrder;
-      const reorderedSections = savedOrder.map((id: string) => 
-        defaultSections.find(section => section.id === id)
-      ).filter(Boolean);
-      
-      // Add any new sections that weren't in the saved order
-      const savedIds = new Set(savedOrder);
-      const newSections = defaultSections.filter(section => !savedIds.has(section.id));
-      
-      setSections([...reorderedSections, ...newSections]);
-    } else {
-      setSections(defaultSections);
+    if (projectSettings !== undefined) {
+      if (projectSettings && (projectSettings as any).sectionsOrder) {
+        const savedOrder = (projectSettings as any).sectionsOrder;
+        const reorderedSections = savedOrder.map((id: string) => 
+          defaultSections.find(section => section.id === id)
+        ).filter(Boolean);
+        
+        // Add any new sections that weren't in the saved order
+        const savedIds = new Set(savedOrder);
+        const newSections = defaultSections.filter(section => !savedIds.has(section.id));
+        
+        setSections([...reorderedSections, ...newSections]);
+      } else {
+        setSections(defaultSections);
+      }
     }
   }, [projectSettings]);
 
   // Early returns after all hooks are called
-  if (isLoading || projectsLoading) {
+  if (isLoading || projectsLoading || sections.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse">
