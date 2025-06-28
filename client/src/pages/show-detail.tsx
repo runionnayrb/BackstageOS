@@ -115,6 +115,7 @@ export default function ShowDetail() {
   useEffect(() => {
     if (projectSettings && (projectSettings as any).sectionsOrder) {
       const savedOrder = (projectSettings as any).sectionsOrder;
+      console.log("Applying saved section order:", savedOrder);
       const reorderedSections = savedOrder.map((id: string) => 
         defaultSections.find(section => section.id === id)
       ).filter(Boolean);
@@ -123,7 +124,12 @@ export default function ShowDetail() {
       const savedIds = new Set(savedOrder);
       const newSections = defaultSections.filter(section => !savedIds.has(section.id));
       
-      setSections([...reorderedSections, ...newSections]);
+      const finalSections = [...reorderedSections, ...newSections];
+      console.log("Setting sections to:", finalSections.map(s => s.id));
+      setSections(finalSections);
+    } else {
+      console.log("No saved section order, using default");
+      setSections(defaultSections);
     }
   }, [projectSettings]);
 
@@ -147,7 +153,7 @@ export default function ShowDetail() {
     return null;
   }
 
-  const project = projects?.find((p: any) => p.id === parseInt(projectId));
+  const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId)) : null;
   
   if (!project) {
     return (
@@ -211,7 +217,7 @@ export default function ShowDetail() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setLocation("/projects")}
+              onClick={() => setLocation("/")}
               className="text-gray-600 hover:text-gray-900"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
