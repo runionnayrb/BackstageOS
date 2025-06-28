@@ -360,7 +360,8 @@ export default function ContactSheet() {
                           {columns.filter(col => col.visible).map((column) => (
                             <div
                               key={column.id}
-                              className="font-semibold py-2 px-3 border-r border-gray-300 last:border-r-0 flex-1"
+                              className="font-semibold py-2 px-3 border-r border-gray-300 last:border-r-0"
+                              style={{ width: `${column.width}px` }}
                             >
                               {column.label}
                             </div>
@@ -398,8 +399,12 @@ export default function ContactSheet() {
                             {columns.filter(col => col.visible).map((column) => (
                               <div
                                 key={column.id}
-                                className="py-1 px-3 border-r border-gray-300 last:border-r-0 flex-1 overflow-hidden text-ellipsis"
-                                style={{ fontSize: isPreviewMode ? '14px' : '11px', lineHeight: isPreviewMode ? '16px' : '14px' }}
+                                className="py-1 px-3 border-r border-gray-300 last:border-r-0 overflow-hidden text-ellipsis"
+                                style={{ 
+                                  width: `${column.width}px`,
+                                  fontSize: isPreviewMode ? '14px' : '11px', 
+                                  lineHeight: isPreviewMode ? '16px' : '14px' 
+                                }}
                               >
                                 {getCellValue(contact, column.id)}
                               </div>
