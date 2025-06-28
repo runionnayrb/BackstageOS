@@ -414,13 +414,12 @@ export default function ScriptEditor() {
         return;
       }
 
-      setScriptContent(content);
+      // Set content and trigger auto-format
+      const formattedContent = content.split('\n').map(line => 
+        line.trim() ? `<div class="script-dialogue">${line}</div>` : '<div><br></div>'
+      ).join('');
       
-      // Force page distribution after content is set
-      setTimeout(() => {
-        const event = new CustomEvent('forceDistribution');
-        window.dispatchEvent(event);
-      }, 100);
+      setScriptContent(formattedContent);
       
       toast({
         title: "Script imported",

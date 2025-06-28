@@ -212,6 +212,84 @@ export function CollaborativeEditor({
     }
   }, []);
 
+
+
+  // Generate smart page numbers with letter suffixes for new pages
+  const generatePageNumbers = useCallback((newPageCount: number) => {
+    if (!isPublished) {
+      // Before publishing, use simple numbering
+      return Array.from({ length: newPageCount }, (_, i) => (i + 1).toString());
+    }
+
+    // After publishing, handle new pages with letter suffixes
+    const numbers = [];
+    for (let i = 1; i <= newPageCount; i++) {
+      if (i <= publishedPageCount) {
+        numbers.push(i.toString());
+      } else {
+        // Add letter suffix for new pages
+        const letterIndex = i - publishedPageCount - 1;
+        const letter = String.fromCharCode(65 + (letterIndex % 26)); // A, B, C, etc.
+        numbers.push(`${publishedPageCount}${letter}`);
+      }
+    }
+    return numbers;
+  }, [isPublished, publishedPageCount]);
+
+  // Function to distribute content across pages
+  const distributeContentAcrossPages = useCallback(() => {
+    if (!editorRef.current) return;
+
+    const page1 = editorRef.current;
+    const allContent = page1.innerHTML || '';
+    
+    // If no content, show only one page
+    if (!allContent.trim()) {
+      setPageCount(1);
+      setPageNumbers(['1']);
+      return;
+    }
+
+    // Check if page 1 is overflowing
+    const page1Height = page1.scrollHeight;
+    const page1MaxHeight = page1.clientHeight;
+
+    if (page1Height > page1MaxHeight) {
+      // Split content by HTML elements (divs) instead of plain text lines
+      const htmlLines = allContent.split(/(<div[^>]*>.*?<\/div>)/g).filter(line => line.trim());
+      
+      // Estimate how many elements fit per page based on average element height
+      const averageElementHeight = 20; // Approximate height per formatted element
+      const pageContentHeight = page1MaxHeight - 32; // Account for padding
+      const elementsPerPage = Math.floor(pageContentHeight / averageElementHeight);
+      
+      // Calculate how many pages we need
+      const totalPages = Math.ceil(htmlLines.length / elementsPerPage);
+      const newPageCount = Math.min(totalPages, 10); // Cap at 10 pages for performance
+      
+      setPageCount(newPageCount);
+      setPageNumbers(Array.from({ length: newPageCount }, (_, i) => (i + 1).toString()));
+      
+      // Clear page 1 and redistribute all content
+      page1.innerHTML = '';
+      
+      // Distribute HTML content to all pages including page 1
+      for (let pageNum = 1; pageNum <= newPageCount; pageNum++) {
+        const pageContainer = pageNum === 1 ? page1 : document.getElementById(`page-${pageNum}-content`);
+        if (pageContainer) {
+          const startElement = (pageNum - 1) * elementsPerPage;
+          const endElement = pageNum * elementsPerPage;
+          const pageElements = htmlLines.slice(startElement, endElement);
+          pageContainer.innerHTML = pageElements.join('');
+        }
+      }
+    } else {
+      // Content fits on one page
+      setPageCount(1);
+      setPageNumbers(['1']);
+    }
+  }, []);
+
   // Initialize content when prop changes
   useEffect(() => {
     if (editorRef.current && content !== editorRef.current.innerHTML) {
@@ -230,44 +308,6 @@ export function CollaborativeEditor({
     window.addEventListener('forceDistribution', handleForceDistribution);
     return () => window.removeEventListener('forceDistribution', handleForceDistribution);
   }, [distributeContentAcrossPages]);
-
-  // Generate smart page numbers with letter suffixes for new pages
-  const generatePageNumbers = useCallback((newPageCount: number) => {
-    if (!isPublished) {
-      // Before publishing, use simple numbering
-      return Array.from({ length: newPageCount }, (_, i) => (i + 1).toString());
-    }
-
-    // After publishing, handle insertions with letter suffixes
-    const numbers: string[] = [];
-    
-    if (newPageCount <= publishedPageCount) {
-      // No new pages, use existing numbering
-      for (let i = 1; i <= newPageCount; i++) {
-        numbers.push(i.toString());
-      }
-    } else {
-      // New pages added, use letter suffixes
-      const newPagesCount = newPageCount - publishedPageCount;
-      
-      // Add original published pages
-      for (let i = 1; i <= publishedPageCount; i++) {
-        numbers.push(i.toString());
-      }
-      
-      // Add new pages with letter suffixes after the last published page
-      const lastPage = publishedPageCount;
-      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      
-      for (let i = 0; i < newPagesCount; i++) {
-        const letterIndex = i % letters.length;
-        const letter = letters[letterIndex];
-        numbers.push(`${lastPage}${letter}`);
-      }
-    }
-    
-    return numbers;
-  }, [isPublished, publishedPageCount]);
 
   // Function to format page numbers based on settings
   const formatPageNumber = useCallback((pageNum: string, currentIndex: number, totalPages: number) => {
@@ -317,62 +357,6 @@ export function CollaborativeEditor({
     setHasContentChanges(false);
     setInitialContent(editorRef.current?.innerHTML || '');
   }, [pageCount]);
-
-
-
-  // Function to distribute content across pages
-  const distributeContentAcrossPages = useCallback(() => {
-    if (!editorRef.current) return;
-
-    const page1 = editorRef.current;
-    const allContent = page1.innerHTML || '';
-    
-    // If no content, show only one page
-    if (!allContent.trim()) {
-      setPageCount(1);
-      setPageNumbers(['1']);
-      return;
-    }
-
-    // Check if page 1 is overflowing
-    const page1Height = page1.scrollHeight;
-    const page1MaxHeight = page1.clientHeight;
-
-    if (page1Height > page1MaxHeight) {
-      // Split content by HTML elements (divs) instead of plain text lines
-      const htmlLines = allContent.split(/(<div[^>]*>.*?<\/div>)/g).filter(line => line.trim());
-      
-      // Estimate how many elements fit per page based on average element height
-      const averageElementHeight = 20; // Approximate height per formatted element
-      const pageContentHeight = page1MaxHeight - 32; // Account for padding
-      const elementsPerPage = Math.floor(pageContentHeight / averageElementHeight);
-      
-      // Calculate how many pages we need
-      const totalPages = Math.ceil(htmlLines.length / elementsPerPage);
-      const newPageCount = Math.min(totalPages, 10); // Cap at 10 pages for performance
-      
-      setPageCount(newPageCount);
-      setPageNumbers(generatePageNumbers(newPageCount));
-      
-      // Clear page 1 and redistribute all content
-      page1.innerHTML = '';
-      
-      // Distribute HTML content to all pages including page 1
-      for (let pageNum = 1; pageNum <= newPageCount; pageNum++) {
-        const pageContainer = pageNum === 1 ? page1 : document.getElementById(`page-${pageNum}-content`);
-        if (pageContainer) {
-          const startElement = (pageNum - 1) * elementsPerPage;
-          const endElement = pageNum * elementsPerPage;
-          const pageElements = htmlLines.slice(startElement, endElement);
-          pageContainer.innerHTML = pageElements.join('');
-        }
-      }
-    } else {
-      // Content fits on one page
-      setPageCount(1);
-      setPageNumbers(['1']);
-    }
-  }, [generatePageNumbers]);
 
   // Handle input events specifically to preserve cursor position
   const handleInput = useCallback((e: React.FormEvent<HTMLDivElement>) => {
