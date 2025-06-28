@@ -29,7 +29,77 @@ export default function ShowDetail() {
   const [isReordering, setIsReordering] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
-  // Redirect to home if not authenticated
+  // Default sections array
+  const defaultSections = [
+    {
+      id: "reports",
+      title: "Reports",
+      href: `/shows/${projectId}/reports`,
+    },
+    {
+      id: "calendar",
+      title: "Calendar",
+      href: `/shows/${projectId}/calendar`,
+    },
+    {
+      id: "script",
+      title: "Script",
+      href: `/shows/${projectId}/script`,
+    },
+    {
+      id: "props-costumes",
+      title: "Props & Costumes",
+      href: `/shows/${projectId}/props`,
+    },
+    {
+      id: "contacts",
+      title: "Contacts",
+      href: `/shows/${projectId}/contacts`,
+    },
+  ];
+
+  // State for sections with default value
+  const [sections, setSections] = useState(defaultSections);
+
+  // Data queries - always called in same order
+  const { data: projects, isLoading: projectsLoading } = useQuery({
+    queryKey: ["/api/projects"],
+    enabled: isAuthenticated,
+  });
+
+  const { data: projectSettings } = useQuery({
+    queryKey: ["/api/projects", projectId, "settings"],
+    enabled: isAuthenticated && !!projectId,
+  });
+
+  // Mutations - always defined in same order
+  const saveSectionOrderMutation = useMutation({
+    mutationFn: async (sectionOrder: string[]) => {
+      return apiRequest(`/api/projects/${projectId}/settings`, {
+        method: "PUT",
+        body: JSON.stringify({
+          sectionsOrder: sectionOrder,
+        }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "settings"] });
+      toast({
+        title: "Section order saved",
+        description: "Your custom section order has been saved.",
+      });
+    },
+    onError: (error) => {
+      console.error("Error saving section order:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save section order. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Effects - always called in same order
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
@@ -44,62 +114,8 @@ export default function ShowDetail() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: projects, isLoading: projectsLoading } = useQuery({
-    queryKey: ["/api/projects"],
-    enabled: isAuthenticated,
-  });
-
-  // Load saved section order from project settings
-  const { data: projectSettings } = useQuery({
-    queryKey: [`/api/projects/${projectId}/settings`],
-    enabled: !!projectId,
-  });
-  
-  const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId || '0')) : null;
-
-  if (isLoading || projectsLoading) return <div>Loading...</div>;
-  if (!project) return <div>Show not found</div>;
-
-  // Adapt terminology based on profile type
-  const isFreelance = user?.profileType === 'freelance';
-  const projectLabel = isFreelance ? "Project" : "Production";
-  const showLabel = isFreelance ? "Project" : "Show";
-
-  const defaultSections = [
-    {
-      id: "reports",
-      title: "Reports",
-      description: isFreelance ? "Project reports and documentation" : "Show reports and documentation",
-      href: `/shows/${projectId}/reports`,
-    },
-    {
-      id: "calendar",
-      title: "Calendar",
-      description: isFreelance ? "Project schedules and calls" : "Rehearsal schedules and daily calls",
-      href: `/shows/${projectId}/calendar`,
-    },
-    {
-      id: "script",
-      title: "Script",
-      description: isFreelance ? "Script and materials" : "Script management and notes",
-      href: `/shows/${projectId}/script`,
-    },
-    {
-      id: "props-costumes",
-      title: "Props & Costumes",
-      description: isFreelance ? "Project inventory tracking" : "Props and costume management",
-      href: `/shows/${projectId}/props-costumes`,
-    },
-    {
-      id: "contacts",
-      title: "Contacts",
-      description: isFreelance ? "Team and character information" : "Cast and character information",
-      href: `/shows/${projectId}/contacts`,
-    },
-  ];
-
-  // Calculate sections based on saved order or use default
-  const sections = (() => {
+  // Apply saved section order when project settings load
+  useEffect(() => {
     if (projectSettings && (projectSettings as any).sectionsOrder) {
       const savedOrder = (projectSettings as any).sectionsOrder;
       const reorderedSections = savedOrder.map((id: string) => 
@@ -110,40 +126,59 @@ export default function ShowDetail() {
       const savedIds = new Set(savedOrder);
       const newSections = defaultSections.filter(section => !savedIds.has(section.id));
       
-      return [...reorderedSections, ...newSections];
+      setSections([...reorderedSections, ...newSections]);
     }
-    return defaultSections;
-  })();
+  }, [projectSettings]);
 
-  // Local state for drag and drop operations only
-  const [localSections, setLocalSections] = useState(sections);
+  // Early returns after all hooks are called
+  if (isLoading || projectsLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded mb-4"></div>
+          <div className="space-y-3">
+            <div className="h-6 bg-gray-200 rounded"></div>
+            <div className="h-6 bg-gray-200 rounded"></div>
+            <div className="h-6 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  // Update local sections when calculated sections change
-  useEffect(() => {
-    setLocalSections(sections);
-  }, [JSON.stringify(sections)]);
+  if (!isAuthenticated) {
+    return null;
+  }
 
-  // Save section order mutation
-  const saveSectionOrderMutation = useMutation({
-    mutationFn: async (sectionOrder: string[]) => {
-      const response = await apiRequest("PATCH", `/api/projects/${projectId}/settings`, {
-        sectionsOrder: sectionOrder
-      });
-      return response.json();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: "Failed to save section order",
-        variant: "destructive",
-      });
-    },
-  });
+  const project = projects?.find((p: any) => p.id === parseInt(projectId));
+  
+  if (!project) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Show Not Found</CardTitle>
+            <CardDescription>The requested show could not be found.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => setLocation("/projects")}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Shows
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Drag and drop handlers
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
     e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -156,7 +191,7 @@ export default function ShowDetail() {
     
     if (draggedIndex === null || draggedIndex === dropIndex) return;
 
-    const newSections = [...localSections];
+    const newSections = [...sections];
     const draggedSection = newSections[draggedIndex];
     
     // Remove dragged item
@@ -165,65 +200,56 @@ export default function ShowDetail() {
     // Insert at new position
     newSections.splice(dropIndex, 0, draggedSection);
     
-    setLocalSections(newSections);
+    setSections(newSections);
     
     // Save the new order
     const sectionOrder = newSections.map(section => section.id);
     saveSectionOrderMutation.mutate(sectionOrder);
   };
 
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-  };
-
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation("/")}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Shows
-          </Button>
-        </div>
-
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation("/projects")}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Shows
+            </Button>
             <div>
-              <h1 className="text-3xl font-bold">{project.name}</h1>
-              {project.description && (
-                <p className="text-muted-foreground mt-2">{project.description}</p>
+              <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
+              {project.venue && (
+                <p className="text-gray-600 mt-1">{project.venue}</p>
               )}
             </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant={isReordering ? "default" : "outline"}
-                size="sm"
-                onClick={() => setIsReordering(!isReordering)}
-                className="flex items-center gap-2"
-              >
-                <GripVertical className="h-4 w-4" />
-                {isReordering ? "Done Reordering" : "Re-order"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLocation(`/shows/${projectId}/settings`)}
-                className="flex items-center gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Show Settings
-              </Button>
-            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsReordering(!isReordering)}
+            >
+              {isReordering ? "Done Reordering" : "Re-order"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm" 
+              onClick={() => setLocation(`/shows/${projectId}/settings`)}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              Show Settings
+            </Button>
           </div>
         </div>
 
         <div className="space-y-1">
-          {localSections.map((section, index) => (
+          {sections.map((section, index) => (
             <div
               key={section.id}
               draggable={isReordering}
