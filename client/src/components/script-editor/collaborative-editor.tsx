@@ -97,6 +97,8 @@ export function CollaborativeEditor({
   const [initialContent, setInitialContent] = useState('');
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
   const [showRenumberConfirm, setShowRenumberConfirm] = useState(false);
+  const [inlineEditMode, setInlineEditMode] = useState<'header' | 'footer' | null>(null);
+  const [inlineEditPosition, setInlineEditPosition] = useState({ x: 0, y: 0 });
 
   // Track content changes
   const handleContentChange = useCallback((newContent: string) => {
@@ -387,6 +389,21 @@ export function CollaborativeEditor({
     
     return processedContent;
   }, [title, pageNumbers, pageCount, formatPageNumber]);
+
+  // Handle double-click on header/footer for inline editing
+  const handleHeaderFooterDoubleClick = useCallback((type: 'header' | 'footer', event: React.MouseEvent) => {
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
+    setInlineEditPosition({
+      x: rect.left + window.scrollX,
+      y: rect.bottom + window.scrollY + 10
+    });
+    setInlineEditMode(type);
+  }, []);
+
+  // Close inline editor
+  const closeInlineEditor = useCallback(() => {
+    setInlineEditMode(null);
+  }, []);
 
   // Function to renumber all pages with fresh numbering
   const renumberScript = useCallback(() => {
@@ -1213,20 +1230,24 @@ export function CollaborativeEditor({
                   {/* Header */}
                   {showHeaders && (
                     <div 
-                      className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 pointer-events-none px-4`}
+                      className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors`}
+                      onDoubleClick={(e) => handleHeaderFooterDoubleClick('header', e)}
                       dangerouslySetInnerHTML={{
-                        __html: processRichContent(headerText, pageNum)
+                        __html: processRichContent(headerText, pageNum) || '<span class="text-gray-400 italic">Double-click to edit header</span>'
                       }}
+                      title="Double-click to edit header"
                     />
                   )}
                   
                   {/* Footer */}
                   {showFooters && (
                     <div 
-                      className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 pointer-events-none px-4`}
+                      className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors`}
+                      onDoubleClick={(e) => handleHeaderFooterDoubleClick('footer', e)}
                       dangerouslySetInnerHTML={{
-                        __html: processRichContent(footerText, pageNum)
+                        __html: processRichContent(footerText, pageNum) || '<span class="text-gray-400 italic">Double-click to edit footer</span>'
                       }}
+                      title="Double-click to edit footer"
                     />
                   )}
                   <div
@@ -1337,6 +1358,71 @@ export function CollaborativeEditor({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Inline Header/Footer Editor Overlay */}
+      {inlineEditMode && (
+        <>
+          {/* Backdrop to close editor when clicking outside */}
+          <div 
+            className="fixed inset-0 z-40 bg-black bg-opacity-20"
+            onClick={closeInlineEditor}
+          />
+          
+          {/* Floating Editor */}
+          <div 
+            className="fixed z-50 bg-white dark:bg-gray-800 border rounded-lg shadow-xl p-4 min-w-[400px] max-w-[600px]"
+            style={{
+              left: `${inlineEditPosition.x}px`,
+              top: `${inlineEditPosition.y}px`,
+              maxHeight: '70vh',
+              overflow: 'auto'
+            }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-medium text-sm">
+                Edit {inlineEditMode === 'header' ? 'Header' : 'Footer'}
+              </h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={closeInlineEditor}
+                className="h-6 w-6 p-0"
+              >
+                ×
+              </Button>
+            </div>
+            
+            <RichTextEditor
+              content={inlineEditMode === 'header' ? headerText : footerText}
+              onChange={(content) => {
+                if (inlineEditMode === 'header') {
+                  setHeaderText(content);
+                } else {
+                  setFooterText(content);
+                }
+              }}
+              placeholder={`Enter ${inlineEditMode} content with rich formatting...`}
+              className="min-h-[120px]"
+              showPageNumbers={true}
+              pageNumberFormat="1"
+              onPageNumberFormatChange={() => {}}
+            />
+            
+            <p className="text-xs text-muted-foreground mt-2">
+              Use variables: {`{{showName}}, {{date}}, {{stageManager}}, {{pageNumber}}, {{totalPages}}`}
+            </p>
+            
+            <div className="flex justify-end gap-2 mt-3">
+              <Button variant="outline" size="sm" onClick={closeInlineEditor}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={closeInlineEditor}>
+                Done
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
