@@ -214,6 +214,18 @@ export default function ContactSheet() {
     };
   }, [isResizing, resizeStartX, resizeStartWidth]);
 
+  const formatPhoneNumber = (phone: string): string => {
+    if (!phone) return "";
+    // Remove all non-digit characters
+    const digits = phone.replace(/\D/g, "");
+    // Format as (xxx) xxx-xxxx if we have 10 digits
+    if (digits.length === 10) {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    }
+    // Return original if not 10 digits
+    return phone;
+  };
+
   const getCellValue = (contact: Contact, columnId: string): string => {
     switch (columnId) {
       case "fullName":
@@ -223,7 +235,7 @@ export default function ContactSheet() {
       case "email":
         return contact.email || "";
       case "phone":
-        return contact.phone || "";
+        return formatPhoneNumber(contact.phone || "");
       default:
         return "";
     }
