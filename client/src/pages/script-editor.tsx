@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CollaborativeEditor } from "@/components/script-editor/collaborative-editor";
 import { VersionHistory } from "@/components/script-editor/version-history";
 import { ChangeLog } from "@/components/script-editor/change-log-simple";
@@ -18,7 +19,8 @@ import {
   Check,
   MessageSquare,
   History,
-  FileClockIcon
+  FileClockIcon,
+  ChevronDown
 } from "lucide-react";
 
 interface ScriptEditorParams {
@@ -45,6 +47,7 @@ export default function ScriptEditor() {
   const [showChangeLog, setShowChangeLog] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showPublishVersionConfirm, setShowPublishVersionConfirm] = useState(false);
+  const [selectedVersionType, setSelectedVersionType] = useState<'major' | 'minor'>('minor');
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -208,8 +211,8 @@ export default function ScriptEditor() {
 
   // Publish script mutation
   const publishScriptMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest("POST", `/api/projects/${projectId}/script/publish`);
+    mutationFn: async (data: { versionType: 'major' | 'minor' }) => {
+      await apiRequest("POST", `/api/projects/${projectId}/script/publish`, data);
     },
     onSuccess: () => {
       toast({
@@ -252,9 +255,9 @@ export default function ScriptEditor() {
     setScriptTitle(title);
   };
 
-  const handlePublish = () => {
+  const handlePublish = (versionType: 'major' | 'minor' = 'minor') => {
     setIsPublishing(true);
-    publishScriptMutation.mutate();
+    publishScriptMutation.mutate({ versionType });
   };
 
   const handleExport = () => {
@@ -389,15 +392,34 @@ export default function ScriptEditor() {
                 <MessageSquare className="h-4 w-4" />
               </Button>
               
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowPublishVersionConfirm(true)}
-                disabled={isPublishing}
-                title="Publish Version"
-              >
-                <Check className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isPublishing}
+                    className="flex items-center gap-2"
+                  >
+                    <Check className="h-4 w-4" />
+                    Publish Version
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => {
+                    setSelectedVersionType('major');
+                    setShowPublishVersionConfirm(true);
+                  }}>
+                    Major Version
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => {
+                    setSelectedVersionType('minor');
+                    setShowPublishVersionConfirm(true);
+                  }}>
+                    Minor Version
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
@@ -513,9 +535,14 @@ export default function ScriptEditor() {
       <Dialog open={showPublishVersionConfirm} onOpenChange={setShowPublishVersionConfirm}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Publish Script Version</DialogTitle>
+            <DialogTitle>Publish {selectedVersionType === 'major' ? 'Major' : 'Minor'} Version</DialogTitle>
             <DialogDescription>
-              This will create a new version snapshot of the script that can be shared with the production team. This action will save the current state as a published version.
+              {selectedVersionType === 'major' 
+                ? 'This will create a new major version (1, 2, 3...) representing significant changes or milestones in the script.'
+                : 'This will create a new minor version (.1, .2, .3...) for incremental updates and revisions.'
+              }
+              <br /><br />
+              This action will save the current state as a published version that can be shared with the production team.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 mt-6">
@@ -523,10 +550,10 @@ export default function ScriptEditor() {
               Cancel
             </Button>
             <Button onClick={() => {
-              handlePublish();
+              handlePublish(selectedVersionType);
               setShowPublishVersionConfirm(false);
             }}>
-              Publish Version
+              Publish {selectedVersionType === 'major' ? 'Major' : 'Minor'} Version
             </Button>
           </div>
         </DialogContent>
