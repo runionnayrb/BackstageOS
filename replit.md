@@ -259,6 +259,7 @@ Required environment variables:
 - June 28, 2025: **BORDERLESS CONTACT DETAIL INTERFACE**: Removed all card borders from contact detail sections for cleaner, more minimal interface design. Contact information now displays with simple section headings and clean spacing without visual clutter from bordered containers, maintaining professional appearance while improving readability.
 - June 28, 2025: **CAST TYPE VALIDATION FIX**: Resolved contact update validation errors by adding missing PUT route for `/api/projects/:id/contacts/:contactId` and fixing cast types schema validation. Enhanced insertContactSchema with explicit cast types array validation to prevent "string did not match expected pattern" errors when saving cast member information.
 - June 28, 2025: **CAST TYPE DISPLAY ENHANCEMENT**: Added cast type visibility throughout contact interface - cast members now display their assigned type (Principle, Understudy, Swing, Ensemble) below their role in both contact lists and detail views. Shows "No Cast Assigned" when cast members haven't been assigned a specific type, providing clear visibility of cast assignments for stage managers.
+- June 28, 2025: **CONTACT LAST UPDATED TIMESTAMP**: Added last updated information under Contact Details header showing when each contact was last modified. Displays date and time in user-friendly format (e.g., "Last updated: Dec 28, 2024, 5:43 PM") to help stage managers track recent changes to contact information.
 
 ## User Preferences
 

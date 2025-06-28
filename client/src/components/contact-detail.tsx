@@ -40,6 +40,8 @@ interface Contact {
   allergies?: string;
   medicalNotes?: string;
   castTypes?: string[];
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 interface ContactDetailProps {
@@ -159,9 +161,22 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">
-          {isEditing ? "Edit Contact" : "Contact Details"}
-        </h2>
+        <div>
+          <h2 className="text-xl font-semibold">
+            {isEditing ? "Edit Contact" : "Contact Details"}
+          </h2>
+          {contact.updatedAt && (
+            <p className="text-sm text-gray-500 mt-1">
+              Last updated: {new Date(contact.updatedAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+            </p>
+          )}
+        </div>
         <div className="flex gap-2">
           {isEditing ? (
             <>

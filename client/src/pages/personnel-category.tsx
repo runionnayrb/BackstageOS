@@ -28,6 +28,8 @@ interface Contact {
   allergies?: string;
   medicalNotes?: string;
   castTypes?: string[];
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
 
 export default function PersonnelCategory() {
