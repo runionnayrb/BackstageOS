@@ -3,7 +3,7 @@ import { useLocation, useParams } from "wouter";
 import { 
   ArrowLeft, Settings, GripVertical, Printer, Eye, Edit,
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
-  Palette, Type, Square, Minus, ChevronDown, Grid3X3
+  Palette, Type, Square, Minus, ChevronDown, Grid3X3, Clipboard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -122,6 +122,19 @@ export default function ContactSheet() {
   const [alternateRows, setAlternateRows] = useState(false);
   const [firstRowColor, setFirstRowColor] = useState('#ffffff');
   const [secondRowColor, setSecondRowColor] = useState('#f9fafb');
+  
+  // Margin settings modal
+  const [showMarginsModal, setShowMarginsModal] = useState(false);
+  const [pageMargins, setPageMargins] = useState({
+    top: 1,
+    right: 1,
+    bottom: 1,
+    left: 1
+  });
+  const [headerFooterMargins, setHeaderFooterMargins] = useState({
+    header: 0.5,
+    footer: 0.5
+  });
   
   const [activeTarget, setActiveTarget] = useState<'header' | 'row'>('header');
 
@@ -555,6 +568,15 @@ export default function ContactSheet() {
 
               {/* Formatting Controls */}
               <div className="flex flex-wrap items-center gap-2">
+                {/* Margins Button */}
+                <button
+                  onClick={() => setShowMarginsModal(true)}
+                  className="p-2 border rounded bg-white hover:bg-gray-100"
+                  title="Page & Margin Settings"
+                >
+                  <Clipboard className="h-4 w-4" />
+                </button>
+
                 {/* Text Style Buttons */}
                 <div className="flex items-center border rounded bg-white">
                   <button
@@ -975,6 +997,163 @@ export default function ContactSheet() {
                 {column.label}
               </label>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Margins Modal */}
+      {showMarginsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96 max-w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Page & Margin Settings</h3>
+              <button
+                onClick={() => setShowMarginsModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {/* Header & Footer Margins */}
+              <div>
+                <h4 className="font-medium mb-3 text-gray-700">Header & Footer Margins</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Header</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max="2"
+                        step="0.25"
+                        value={headerFooterMargins.header}
+                        onChange={(e) => setHeaderFooterMargins(prev => ({
+                          ...prev,
+                          header: Number(e.target.value)
+                        }))}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                      <span className="text-xs text-gray-500">in</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Footer</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max="2"
+                        step="0.25"
+                        value={headerFooterMargins.footer}
+                        onChange={(e) => setHeaderFooterMargins(prev => ({
+                          ...prev,
+                          footer: Number(e.target.value)
+                        }))}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                      <span className="text-xs text-gray-500">in</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Page Margins */}
+              <div>
+                <h4 className="font-medium mb-3 text-gray-700">Page Margins</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Top</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0.5"
+                        max="2"
+                        step="0.25"
+                        value={pageMargins.top}
+                        onChange={(e) => setPageMargins(prev => ({
+                          ...prev,
+                          top: Number(e.target.value)
+                        }))}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                      <span className="text-xs text-gray-500">in</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Right</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0.5"
+                        max="2"
+                        step="0.25"
+                        value={pageMargins.right}
+                        onChange={(e) => setPageMargins(prev => ({
+                          ...prev,
+                          right: Number(e.target.value)
+                        }))}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                      <span className="text-xs text-gray-500">in</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Bottom</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0.5"
+                        max="2"
+                        step="0.25"
+                        value={pageMargins.bottom}
+                        onChange={(e) => setPageMargins(prev => ({
+                          ...prev,
+                          bottom: Number(e.target.value)
+                        }))}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                      <span className="text-xs text-gray-500">in</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-600 mb-1">Left</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0.5"
+                        max="2"
+                        step="0.25"
+                        value={pageMargins.left}
+                        onChange={(e) => setPageMargins(prev => ({
+                          ...prev,
+                          left: Number(e.target.value)
+                        }))}
+                        className="w-full px-2 py-1 border rounded text-sm"
+                      />
+                      <span className="text-xs text-gray-500">in</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+              <button
+                onClick={() => setShowMarginsModal(false)}
+                className="px-4 py-2 text-sm border rounded hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowMarginsModal(false)}
+                className="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Apply
+              </button>
+            </div>
           </div>
         </div>
       )}
