@@ -44,21 +44,7 @@ interface Column {
   visible: boolean;
 }
 
-// Format phone number to (xxx) xxx-xxxx format
-const formatPhoneNumber = (phone: string | undefined): string => {
-  if (!phone) return '';
-  
-  // Remove all non-digit characters
-  const digits = phone.replace(/\D/g, '');
-  
-  // Format as (xxx) xxx-xxxx if we have 10 digits
-  if (digits.length === 10) {
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-  }
-  
-  // Return original if not 10 digits
-  return phone;
-};
+// Company List - displays Name and Position only
 
 export default function CompanyList() {
   const [, setLocation] = useLocation();
@@ -76,10 +62,8 @@ export default function CompanyList() {
   ];
 
   const defaultColumns: Column[] = [
-    { id: "fullName", label: "Name", width: 200, visible: true },
-    { id: "role", label: "Position", width: 150, visible: true },
-    { id: "email", label: "Email", width: 200, visible: true },
-    { id: "phone", label: "Phone", width: 150, visible: true },
+    { id: "fullName", label: "Name", width: 300, visible: true },
+    { id: "role", label: "Position", width: 250, visible: true },
   ];
 
   const [columns, setColumns] = useState<Column[]>(defaultColumns);
@@ -847,28 +831,7 @@ export default function CompanyList() {
     { value: 'Helvetica', label: 'Helvetica' },
   ];
 
-  const formatPhoneNumber = (phone: string | null | undefined): string => {
-    if (!phone) return "";
-    // Convert to string if needed
-    const phoneStr = String(phone).trim();
-    // Remove all non-digit characters
-    const digits = phoneStr.replace(/\D/g, "");
-    
-    // Handle different digit lengths
-    if (digits.length === 0) return "";
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-    if (digits.length <= 10) return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-    
-    // Format 11 digits (remove leading 1 if present)
-    if (digits.length === 11 && digits.startsWith('1')) {
-      const tenDigits = digits.slice(1);
-      return `(${tenDigits.slice(0, 3)}) ${tenDigits.slice(3, 6)}-${tenDigits.slice(6)}`;
-    }
-    
-    // For longer numbers, format the first 10 digits
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
-  };
+  // Company list only displays Name and Position columns
 
   const getCellValue = (contact: Contact, columnId: string): string => {
     switch (columnId) {
@@ -876,10 +839,6 @@ export default function CompanyList() {
         return `${contact.firstName} ${contact.lastName}`;
       case "role":
         return contact.role || "";
-      case "email":
-        return contact.email || "";
-      case "phone":
-        return formatPhoneNumber(contact.phone || "");
       default:
         return "";
     }
@@ -2022,7 +1981,7 @@ export default function CompanyList() {
             <DialogTitle>Publish {selectedVersionType === 'major' ? 'Major' : 'Minor'} Version</DialogTitle>
             <DialogDescription>
               {selectedVersionType === 'major' 
-                ? 'This will create a new major version (1, 2, 3...) representing significant changes or milestones in the contact sheet.'
+                ? 'This will create a new major version (1, 2, 3...) representing significant changes or milestones in the company list.'
                 : 'This will create a new minor version (.1, .2, .3...) for incremental updates and revisions.'
               }
               <br /><br />
