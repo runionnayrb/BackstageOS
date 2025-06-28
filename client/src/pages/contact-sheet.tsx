@@ -1140,8 +1140,7 @@ export default function ContactSheet() {
                       <div
                         className="relative cursor-row-resize hover:bg-blue-100 flex items-center justify-center transition-colors"
                         style={{ 
-                          height: `${sectionSpacing}px`,
-                          minHeight: '16px'
+                          height: `${Math.max(sectionSpacing, 4)}px`
                         }}
                         onMouseDown={(e) => handleSectionSpacingMouseDown(e)}
                         title="Drag to adjust spacing between contact sections"
@@ -1170,8 +1169,7 @@ export default function ContactSheet() {
                       <div
                         className="relative cursor-row-resize hover:bg-purple-100 flex items-center justify-center transition-colors"
                         style={{ 
-                          height: `${categorySpacing}px`,
-                          minHeight: '8px'
+                          height: `${Math.max(categorySpacing, 4)}px`
                         }}
                         onMouseDown={(e) => handleCategorySpacingMouseDown(e)}
                         title="Drag to adjust spacing between title and headers"
