@@ -214,16 +214,23 @@ export default function ContactSheet() {
     };
   }, [isResizing, resizeStartX, resizeStartWidth]);
 
-  const formatPhoneNumber = (phone: string): string => {
+  const formatPhoneNumber = (phone: string | null | undefined): string => {
     if (!phone) return "";
+    // Convert to string if needed
+    const phoneStr = String(phone).trim();
     // Remove all non-digit characters
-    const digits = phone.replace(/\D/g, "");
+    const digits = phoneStr.replace(/\D/g, "");
     // Format as (xxx) xxx-xxxx if we have 10 digits
     if (digits.length === 10) {
       return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
     }
-    // Return original if not 10 digits
-    return phone;
+    // Format 11 digits (remove leading 1 if present)
+    if (digits.length === 11 && digits.startsWith('1')) {
+      const tenDigits = digits.slice(1);
+      return `(${tenDigits.slice(0, 3)}) ${tenDigits.slice(3, 6)}-${tenDigits.slice(6)}`;
+    }
+    // Return original if not standard format
+    return phoneStr;
   };
 
   const getCellValue = (contact: Contact, columnId: string): string => {
