@@ -475,20 +475,18 @@ export default function ScriptEditor() {
                 <ArrowLeft className="h-4 w-4" />
                 Back to {project?.name}
               </Button>
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-muted-foreground" />
-                <span className="font-medium">Script Editor</span>
-                {isAutoSaving && (
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <div className="animate-spin h-3 w-3 border border-gray-300 border-t-gray-600 rounded-full"></div>
-                    Saving...
-                  </div>
-                )}
-                {lastSaved && !isAutoSaving && (
-                  <div className="text-xs text-muted-foreground">
-                    Saved {lastSaved.toLocaleTimeString()}
-                  </div>
-                )}
+              <div>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-medium">Script Editor</span>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-sm text-muted-foreground">Version {currentVersion}</span>
+                  <span className="text-xs text-muted-foreground">•</span>
+                  <span className="text-xs text-muted-foreground">
+                    {isAutoSaving ? "Saving..." : lastSaved ? `Saved ${lastSaved.toLocaleTimeString()}` : "All changes are auto-saved"}
+                  </span>
+                </div>
               </div>
             </div>
 
