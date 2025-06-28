@@ -1160,7 +1160,7 @@ export default function ContactSheet() {
                       onDrop={!isPreviewMode ? (e) => handleCategoryDrop(e, category.id) : undefined}
                     >
                     <div 
-                      className={`${!isPreviewMode ? 'cursor-grab hover:bg-gray-50 rounded px-2 py-1' : ''}`}
+                      className={`${!isPreviewMode ? 'cursor-grab hover:bg-gray-50 rounded px-2' : ''}`}
                     >
                       <h3 className="text-lg font-semibold">
                         {category.title}
@@ -1234,7 +1234,7 @@ export default function ContactSheet() {
                     </div>
 
                     {/* Table Rows */}
-                    <div className="space-y-1 print:space-y-0">
+                    <div className="print:space-y-0">
                       {categoryContacts.map((contact, contactIndex) => (
                         <div
                           key={contact.id}
