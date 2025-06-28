@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { RichTextEditor } from "@/components/rich-text-editor";
 
 interface CollaborativeEditorProps {
   content: any;
@@ -371,6 +372,21 @@ export function CollaborativeEditor({
     
     return formatted;
   }, [pageNumberFormat, pageNumberPrefix, pageNumberSuffix]);
+
+  // Helper function to process rich text content and replace variables
+  const processRichContent = useCallback((content: string, pageNum: number) => {
+    if (!content) return '';
+    
+    // Replace variables with actual values
+    let processedContent = content
+      .replace(/\{\{showName\}\}/g, title || 'Untitled Script')
+      .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
+      .replace(/\{\{stageManager\}\}/g, 'Stage Manager') // Could be passed as prop
+      .replace(/\{\{pageNumber\}\}/g, formatPageNumber(pageNumbers[pageNum - 1] || pageNum.toString(), pageNum - 1, pageCount))
+      .replace(/\{\{totalPages\}\}/g, pageCount.toString());
+    
+    return processedContent;
+  }, [title, pageNumbers, pageCount, formatPageNumber]);
 
   // Function to renumber all pages with fresh numbering
   const renumberScript = useCallback(() => {
@@ -729,15 +745,19 @@ export function CollaborativeEditor({
                     <Label htmlFor="modal-show-headers">Show headers</Label>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="modal-header-text">Header text</Label>
-                    <input 
-                      id="modal-header-text"
-                      type="text"
-                      placeholder="Enter header text (e.g., script title)"
-                      value={headerText}
-                      onChange={(e) => setHeaderText(e.target.value)}
-                      className="w-full px-3 py-1 border rounded text-sm"
+                    <Label htmlFor="modal-header-text">Header content</Label>
+                    <RichTextEditor
+                      content={headerText}
+                      onChange={setHeaderText}
+                      placeholder="Enter header content with rich formatting..."
+                      className="min-h-[100px]"
+                      showPageNumbers={true}
+                      pageNumberFormat="1"
+                      onPageNumberFormatChange={() => {}}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Use variables: {`{{showName}}, {{date}}, {{stageManager}}`} • Use the page number dropdown and Insert button
+                    </p>
                   </div>
                   <div className="flex items-center gap-3">
                     <input 
@@ -750,15 +770,19 @@ export function CollaborativeEditor({
                     <Label htmlFor="modal-show-footers">Show footers</Label>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="modal-footer-text">Footer text</Label>
-                    <input 
-                      id="modal-footer-text"
-                      type="text"
-                      placeholder="Enter footer text (e.g., production info)"
-                      value={footerText}
-                      onChange={(e) => setFooterText(e.target.value)}
-                      className="w-full px-3 py-1 border rounded text-sm"
+                    <Label htmlFor="modal-footer-text">Footer content</Label>
+                    <RichTextEditor
+                      content={footerText}
+                      onChange={setFooterText}
+                      placeholder="Enter footer content with rich formatting..."
+                      className="min-h-[100px]"
+                      showPageNumbers={true}
+                      pageNumberFormat="1"
+                      onPageNumberFormatChange={() => {}}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Use variables: {`{{showName}}, {{date}}, {{stageManager}}`} • Use the page number dropdown and Insert button
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1176,26 +1200,22 @@ export function CollaborativeEditor({
                 }}>
                   {/* Header */}
                   {showHeaders && (
-                    <div className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 pointer-events-none px-4`}>
-                      {headerText && (pageNumberPosition === 'header' || pageNumberPosition === 'both') 
-                        ? `${headerText} - ${formatPageNumber(pageNumbers[pageNum - 1] || pageNum.toString(), pageNum - 1, pageCount)}`
-                        : pageNumberPosition === 'header' || pageNumberPosition === 'both'
-                        ? formatPageNumber(pageNumbers[pageNum - 1] || pageNum.toString(), pageNum - 1, pageCount)
-                        : headerText || ''
-                      }
-                    </div>
+                    <div 
+                      className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 pointer-events-none px-4`}
+                      dangerouslySetInnerHTML={{
+                        __html: processRichContent(headerText, pageNum)
+                      }}
+                    />
                   )}
                   
                   {/* Footer */}
                   {showFooters && (
-                    <div className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 pointer-events-none px-4`}>
-                      {footerText && (pageNumberPosition === 'footer' || pageNumberPosition === 'both') 
-                        ? `${footerText} - ${formatPageNumber(pageNumbers[pageNum - 1] || pageNum.toString(), pageNum - 1, pageCount)}`
-                        : pageNumberPosition === 'footer' || pageNumberPosition === 'both'
-                        ? formatPageNumber(pageNumbers[pageNum - 1] || pageNum.toString(), pageNum - 1, pageCount)
-                        : footerText || ''
-                      }
-                    </div>
+                    <div 
+                      className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 pointer-events-none px-4`}
+                      dangerouslySetInnerHTML={{
+                        __html: processRichContent(footerText, pageNum)
+                      }}
+                    />
                   )}
                   <div
                     ref={isFirstPage ? editorRef : undefined}
