@@ -831,18 +831,14 @@ export default function ContactSheet() {
           <div 
             className="print:p-0"
             style={{
-              paddingTop: `${pageMargins.top}in`,
+              paddingTop: `${Math.max(pageMargins.top, headerFooterMargins.header)}in`,
               paddingRight: `${pageMargins.right}in`,
               paddingLeft: `${pageMargins.left}in`,
-              paddingBottom: `${pageMargins.bottom}in`
+              paddingBottom: `${Math.max(pageMargins.bottom, headerFooterMargins.footer)}in`
             }}
           >
             {/* Page Header */}
-            <div 
-              style={{
-                marginTop: `${headerFooterMargins.header}in`
-              }}
-            >
+            <div>
               <div className="text-center mb-8 print:mb-6">
                 <h1 className="text-2xl font-bold mb-2">{(project as any)?.name}</h1>
                 <h2 className="text-lg text-gray-600">Contact Sheet</h2>
@@ -987,14 +983,8 @@ export default function ContactSheet() {
             </div>
 
             {/* Page Footer */}
-            <div 
-              style={{
-                marginBottom: `${headerFooterMargins.footer}in`
-              }}
-            >
-              <div className="text-center text-xs text-gray-500 mt-8 print:mt-6">
-                Page 1 of 1
-              </div>
+            <div className="text-center text-xs text-gray-500 mt-8 print:mt-6">
+              Page 1 of 1
             </div>
           </div>
         </div>
