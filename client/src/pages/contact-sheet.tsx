@@ -74,7 +74,7 @@ export default function ContactSheet() {
   ];
 
   const defaultColumns: Column[] = [
-    { id: "fullName", label: "Full Name", width: 200, visible: true },
+    { id: "fullName", label: "Name", width: 200, visible: true },
     { id: "role", label: "Position", width: 150, visible: true },
     { id: "email", label: "Email", width: 200, visible: true },
     { id: "phone", label: "Phone", width: 150, visible: true },
@@ -285,7 +285,13 @@ export default function ContactSheet() {
     const settings = localSettings ? JSON.parse(localSettings) : (savedSettings && typeof savedSettings === 'object' ? savedSettings as any : null);
     
     if (settings) {
-      setColumns(settings.columns || defaultColumns);
+      // Update old "Full Name" labels to "Name" for existing saved settings
+      const updatedColumns = (settings.columns || defaultColumns).map((col: Column) => 
+        col.id === 'fullName' && col.label === 'Full Name' 
+          ? { ...col, label: 'Name' }
+          : col
+      );
+      setColumns(updatedColumns);
       setCategories(settings.categories || defaultCategories);
       setContactOrder(settings.contactOrder || {});
       setHeaderHeight(settings.headerHeight || 40);
