@@ -1539,11 +1539,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdBy: true,
       });
       
-      console.log('PUT contact update - received body:', req.body);
       const validatedData = updateContactSchema.parse(req.body);
-      console.log('PUT contact update - validated data:', validatedData);
       const updatedContact = await storage.updateContact(contactId, validatedData);
-      console.log('PUT contact update - updated contact:', updatedContact);
       res.json(updatedContact);
     } catch (error) {
       if (error instanceof z.ZodError) {

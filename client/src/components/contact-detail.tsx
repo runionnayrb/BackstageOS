@@ -73,7 +73,6 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      console.log('Sending contact update data:', data);
       const response = await fetch(`/api/projects/${contact.projectId}/contacts/${contact.id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
@@ -84,11 +83,11 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
       if (!response.ok) {
         throw new Error('Failed to update contact');
       }
-      const result = await response.json();
-      console.log('Received contact update response:', result);
-      return result;
+      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (updatedContact) => {
+      // Update the contact in the parent component
+      Object.assign(contact, updatedContact);
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${contact.projectId}/contacts`] });
       toast({
         title: "Success",
@@ -313,13 +312,10 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                 {contact.category === 'cast' && (
                   <ReadOnlyField 
                     label="Cast Type" 
-                    value={(() => {
-                      console.log('Cast types debug:', contact.castTypes, typeof contact.castTypes);
-                      if (contact.castTypes && contact.castTypes.length > 0) {
-                        return contact.castTypes.join(', ').replace(/^./, (char: string) => char.toUpperCase());
-                      }
-                      return 'No Cast Assigned';
-                    })()} 
+                    value={contact.castTypes && contact.castTypes.length > 0 
+                      ? contact.castTypes.join(', ').replace(/^./, (char: string) => char.toUpperCase())
+                      : 'No Cast Assigned'
+                    } 
                   />
                 )}
               </div>
