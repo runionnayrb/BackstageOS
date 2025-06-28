@@ -1182,7 +1182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/projects/:id/script/publish", isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
-      const { versionType } = req.body;
+      const { versionType, content, title } = req.body;
       
       const project = await storage.getProjectById(projectId);
       if (!project) {
@@ -1202,8 +1202,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create initial script document
         currentScript = await storage.createShowDocument({
           projectId,
-          name: "Untitled Script",
-          content: "",
+          name: title || "Untitled Script",
+          content: content || "",
           type: "script",
           version: "1.0",
           createdBy: req.user.id.toString()
@@ -1226,10 +1226,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         newVersion = `${majorNumber}.${minorNumber + 1}`;
       }
 
-      // Update the script with new version
+      // Update the script with new version AND preserve current content
       const updatedScript = await storage.updateShowDocument(currentScript.id, {
         version: newVersion,
-        updatedAt: new Date()
+        content: content || currentScript.content,
+        name: title || currentScript.name
       });
 
       res.json({ 

@@ -207,7 +207,11 @@ export default function ScriptEditor() {
       const response = await fetch(`/api/projects/${projectId}/script/publish`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          content: scriptContent,
+          title: scriptTitle
+        }),
       });
       if (!response.ok) throw new Error('Failed to publish');
       const result = await response.json();
