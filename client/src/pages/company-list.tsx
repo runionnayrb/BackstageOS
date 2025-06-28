@@ -67,6 +67,11 @@ export default function CompanyList() {
   ];
 
   const [columns, setColumns] = useState<Column[]>(defaultColumns);
+  
+  // Ensure only Name and Position columns are ever displayed
+  useEffect(() => {
+    setColumns(prev => prev.filter(col => col.id === 'fullName' || col.id === 'role'));
+  }, []);
   const [categories, setCategories] = useState(defaultCategories);
   const [contactOrder, setContactOrder] = useState<Record<string, number[]>>({});
   const [draggedColumn, setDraggedColumn] = useState<number | null>(null);
@@ -172,7 +177,7 @@ export default function CompanyList() {
       setIsSaving(true);
       try {
         const contactSheetSettings = {
-          columns,
+          columns: columns.filter(col => col.id === 'fullName' || col.id === 'role'),
           categories,
           contactOrder,
           headerHeight,
@@ -313,7 +318,7 @@ export default function CompanyList() {
     setIsPublishing(true);
     
     const currentSettings = {
-      columns,
+      columns: columns.filter(col => col.id === 'fullName' || col.id === 'role'),
       categories,
       contactOrder,
       headerHeight,
@@ -368,13 +373,15 @@ export default function CompanyList() {
     const settings = localSettings ? JSON.parse(localSettings) : (savedSettings && typeof savedSettings === 'object' ? savedSettings as any : null);
     
     if (settings) {
-      // Update old "Full Name" labels to "Name" for existing saved settings
-      const updatedColumns = (settings.columns || defaultColumns).map((col: Column) => 
-        col.id === 'fullName' && col.label === 'Full Name' 
-          ? { ...col, label: 'Name' }
-          : col
-      );
-      setColumns(updatedColumns);
+      // Filter out email and phone columns, keep only Name and Position
+      const filteredColumns = (settings.columns || defaultColumns)
+        .filter((col: Column) => col.id === 'fullName' || col.id === 'role')
+        .map((col: Column) => 
+          col.id === 'fullName' && col.label === 'Full Name' 
+            ? { ...col, label: 'Name' }
+            : col
+        );
+      setColumns(filteredColumns.length > 0 ? filteredColumns : defaultColumns);
       setCategories(settings.categories || defaultCategories);
       setContactOrder(settings.contactOrder || {});
       setHeaderHeight(settings.headerHeight || 40);
