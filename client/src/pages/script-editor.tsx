@@ -72,10 +72,16 @@ export default function ScriptEditor() {
 
   const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId || '0')) : null;
 
-  // Enhanced script data fetching
+  // Enhanced script data fetching - load once only
   const { data: script, isLoading: scriptLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/script`],
-    enabled: !!projectId && !!user,
+    enabled: !!projectId && !!user && !isContentLoaded,
+    staleTime: Infinity, // Never consider stale
+    gcTime: Infinity, // Never garbage collect
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    retry: false,
   });
 
   // Placeholder data for now - will be connected to backend later
