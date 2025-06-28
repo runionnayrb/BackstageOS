@@ -743,52 +743,52 @@ export default function ContactSheet() {
                   />
                   <span className="text-xs text-gray-500">px</span>
                 </div>
-              </div>
 
-              {/* Alternate Row Colors - Only show for rows */}
-              {activeTarget === 'row' && (
-                <div className="border-l pl-3">
-                  <div className="text-xs font-medium text-gray-700 mb-2">Alternate Rows</div>
-                  <div className="flex items-center gap-2">
-                    {/* Toggle */}
-                    <button
-                      onClick={() => setAlternateRows(!alternateRows)}
-                      className={`px-2 py-1 text-xs rounded ${
-                        alternateRows ? 'bg-blue-500 text-white' : 'bg-gray-100'
-                      }`}
-                      title="Toggle Alternate Row Colors"
-                    >
-                      {alternateRows ? 'ON' : 'OFF'}
-                    </button>
+                {/* Alternate Row Colors - Only show for rows */}
+                {activeTarget === 'row' && (
+                  <div className="border-l pl-3 ml-3">
+                    <div className="text-xs font-medium text-gray-700 mb-1">Alternate Rows</div>
+                    <div className="flex items-center gap-2">
+                      {/* Toggle */}
+                      <button
+                        onClick={() => setAlternateRows(!alternateRows)}
+                        className={`px-2 py-1 text-xs rounded ${
+                          alternateRows ? 'bg-blue-500 text-white' : 'bg-gray-100'
+                        }`}
+                        title="Toggle Alternate Row Colors"
+                      >
+                        {alternateRows ? 'ON' : 'OFF'}
+                      </button>
 
-                    {/* Color Pickers */}
-                    {alternateRows && (
-                      <>
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs text-gray-500">1st:</span>
-                          <input
-                            type="color"
-                            value={firstRowColor}
-                            onChange={(e) => setFirstRowColor(e.target.value)}
-                            className="w-6 h-6 rounded border cursor-pointer"
-                            title="First Row Color"
-                          />
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs text-gray-500">2nd:</span>
-                          <input
-                            type="color"
-                            value={secondRowColor}
-                            onChange={(e) => setSecondRowColor(e.target.value)}
-                            className="w-6 h-6 rounded border cursor-pointer"
-                            title="Second Row Color"
-                          />
-                        </div>
-                      </>
-                    )}
+                      {/* Color Pickers */}
+                      {alternateRows && (
+                        <>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-gray-500">1st:</span>
+                            <input
+                              type="color"
+                              value={firstRowColor}
+                              onChange={(e) => setFirstRowColor(e.target.value)}
+                              className="w-6 h-6 rounded border cursor-pointer"
+                              title="First Row Color"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-gray-500">2nd:</span>
+                            <input
+                              type="color"
+                              value={secondRowColor}
+                              onChange={(e) => setSecondRowColor(e.target.value)}
+                              className="w-6 h-6 rounded border cursor-pointer"
+                              title="Second Row Color"
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </div>
