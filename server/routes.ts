@@ -1100,6 +1100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/projects/:id/script", isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
+      console.log(`GET script request for project ${projectId} by user ${req.user.id}`);
       
       const project = await storage.getProjectById(projectId);
       if (!project) {
@@ -1113,7 +1114,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get script document
       const documents = await storage.getShowDocumentsByProjectId(projectId);
+      console.log(`Found ${documents.length} documents for project ${projectId}`);
       const script = documents.find(doc => doc.type === 'script');
+      console.log(`Script document found:`, script ? { id: script.id, name: script.name, contentType: typeof script.content, hasContent: !!script.content } : 'null');
       
       if (!script) {
         // Return default script data if none exists
@@ -1127,9 +1130,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Transform script document to expected format
+      // Handle content that might be stored as JSON string or object
+      let content: string = "";
+      if (script.content) {
+        if (typeof script.content === 'string') {
+          // If it's a JSON-encoded string, parse it
+          if (script.content.startsWith('"') && script.content.endsWith('"')) {
+            try {
+              content = JSON.parse(script.content);
+            } catch (e) {
+              content = script.content;
+            }
+          } else {
+            content = script.content;
+          }
+        } else {
+          // If it's already parsed as an object, convert to string
+          content = String(script.content);
+        }
+      }
+      
       const scriptData = {
         name: script.name,
-        content: script.content || "",
+        content: content,
         version: script.version || "1.0",
         collaborators: [],
         type: "script"
@@ -1137,8 +1160,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Returning script data:', { 
         name: scriptData.name, 
-        contentLength: scriptData.content?.length || 0,
-        contentPreview: scriptData.content?.substring(0, 50) || "empty"
+        contentLength: content.length,
+        contentPreview: content.substring(0, 50),
+        rawContent: script.content,
+        contentType: typeof script.content
       });
 
       res.json(scriptData);
