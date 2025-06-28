@@ -140,8 +140,8 @@ export default function PersonnelCategory() {
                 {categoryContacts.map((contact: Contact) => (
                   <div
                     key={contact.id}
-                    className={`p-4 border rounded-lg cursor-pointer transition-colors hover:bg-gray-50 ${
-                      selectedContact?.id === contact.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                    className={`p-4 cursor-pointer transition-colors hover:bg-gray-50 ${
+                      selectedContact?.id === contact.id ? 'bg-blue-50' : ''
                     }`}
                     onClick={() => handleContactClick(contact)}
                   >
@@ -152,9 +152,6 @@ export default function PersonnelCategory() {
                         </h3>
                         {contact.role && (
                           <p className="text-sm text-gray-600">{contact.role}</p>
-                        )}
-                        {contact.email && (
-                          <p className="text-sm text-gray-500">{contact.email}</p>
                         )}
                       </div>
                       <Button
