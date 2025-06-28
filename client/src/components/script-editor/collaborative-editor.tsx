@@ -428,6 +428,8 @@ export function CollaborativeEditor({
     event.preventDefault();
     event.stopPropagation();
     
+    console.log('Header/Footer click:', { type, pageNum });
+    
     const element = event.currentTarget as HTMLElement;
     const rect = element.getBoundingClientRect();
     
@@ -436,12 +438,18 @@ export function CollaborativeEditor({
       ? rect.top + window.scrollY - 10 // Position above headers
       : rect.bottom + window.scrollY + 10; // Position below footers
     
-    setToolbarPosition({
+    const toolbarPos = {
       x: rect.left + window.scrollX + (rect.width / 2) - 150, // Center the toolbar horizontally
       y: toolbarY
-    });
+    };
     
+    console.log('Setting toolbar position:', toolbarPos);
+    setToolbarPosition(toolbarPos);
+    
+    console.log('Setting editing element:', { type, pageNum });
     setEditingElement({ type, pageNum });
+    
+    console.log('Setting showToolbar to true');
     setShowToolbar(true);
     
     // Make the element editable and focus it properly
@@ -1531,6 +1539,16 @@ export function CollaborativeEditor({
                   {/* Footer */}
                   {showFooters && (
                     <>
+                      {(() => {
+                        console.log('Footer render check:', { 
+                          showFooters, 
+                          editingElement, 
+                          pageNum, 
+                          footerText,
+                          isEditing: editingElement?.type === 'footer' && editingElement?.pageNum === pageNum 
+                        });
+                        return null;
+                      })()}
                       {editingElement?.type === 'footer' && editingElement?.pageNum === pageNum ? (
                         <div
                           ref={editingRef}
@@ -1575,7 +1593,10 @@ export function CollaborativeEditor({
                             paddingLeft: '4px',
                             paddingRight: '4px'
                           }}
-                          onClick={(e) => handleHeaderFooterClick('footer', pageNum, e)}
+                          onClick={(e) => {
+                            console.log('Footer clicked directly!', { pageNum, footerText });
+                            handleHeaderFooterClick('footer', pageNum, e);
+                          }}
                           dangerouslySetInnerHTML={{
                             __html: footerText && footerText.trim() ? processRichContent(footerText, pageNum) : '<span class="text-gray-400 italic">Click to edit footer</span>'
                           }}
@@ -1694,7 +1715,7 @@ export function CollaborativeEditor({
       </Dialog>
 
       {/* Floating Formatting Toolbar */}
-      {editingElement && (
+      {editingElement && showToolbar && (
         <div 
           data-toolbar="true"
           className="fixed z-[9999] bg-white dark:bg-gray-800 border rounded-md shadow-lg px-1 py-1 flex items-center gap-0.5"
