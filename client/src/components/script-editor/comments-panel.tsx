@@ -68,7 +68,7 @@ export function CommentsPanel({
       onAddComment({
         text: replyText,
         parentId: commentId,
-        replies: []
+        position: 1
       });
       setReplyText("");
       setReplyTo(null);

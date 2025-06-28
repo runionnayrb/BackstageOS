@@ -285,23 +285,31 @@ export default function ScriptEditor() {
       ...comment,
       id: `comment-${Date.now()}`,
       author: currentUserName,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      resolved: false
     };
     
     // If this is a reply (has parentId), add it to the parent's replies array
     if (comment.parentId) {
-      setComments(prev => prev.map(c => {
-        if (c.id === comment.parentId) {
-          return {
-            ...c,
-            replies: [...(c.replies || []), newComment]
-          };
-        }
-        return c;
-      }));
+      console.log('Adding reply to parent:', comment.parentId, newComment);
+      setComments(prev => {
+        const updated = prev.map(c => {
+          if (c.id === comment.parentId) {
+            const updatedComment = {
+              ...c,
+              replies: [...(c.replies || []), newComment]
+            };
+            console.log('Updated parent comment:', updatedComment);
+            return updatedComment;
+          }
+          return c;
+        });
+        console.log('All comments after reply:', updated);
+        return updated;
+      });
     } else {
       // This is a new top-level comment
-      setComments(prev => [...prev, newComment]);
+      setComments(prev => [...prev, { ...newComment, replies: [] }]);
     }
     
     toast({
