@@ -1160,7 +1160,7 @@ export default function ContactSheet() {
                       onDrop={!isPreviewMode ? (e) => handleCategoryDrop(e, category.id) : undefined}
                     >
                     <div 
-                      className={`pb-1 ${!isPreviewMode ? 'cursor-grab hover:bg-gray-50 rounded px-2 py-1' : ''}`}
+                      className={`${!isPreviewMode ? 'cursor-grab hover:bg-gray-50 rounded px-2 py-1' : ''}`}
                     >
                       <h3 className="text-lg font-semibold">
                         {category.title}
@@ -1182,7 +1182,7 @@ export default function ContactSheet() {
                     )}
                     
                     {/* Table Header */}
-                    <div className="border-b-2 border-gray-800 mb-2">
+                    <div className="border-b-2 border-gray-800">
                       <div className="flex print:text-sm">
                         {!isPreviewMode && columns.filter(col => col.visible).map((column, colIndex) => (
                           <div
