@@ -27,7 +27,8 @@ import {
   Wand2,
   FileText,
   Plus,
-  Clipboard
+  Clipboard,
+  Check
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -562,19 +563,16 @@ export function CollaborativeEditor({
           </div>
           
           {/* Action buttons */}
-          <Button variant="outline" size="sm" onClick={onSave} disabled={isLoading}>
-            <Save className="h-4 w-4 mr-2" />
-            Save
+          <Button variant="outline" size="sm" onClick={onSave} disabled={isLoading} title="Save">
+            <Save className="h-4 w-4" />
           </Button>
           
-          <Button variant="outline" size="sm" onClick={onExport}>
-            <Download className="h-4 w-4 mr-2" />
-            Export PDF
+          <Button variant="outline" size="sm" onClick={onExport} title="Export PDF">
+            <Download className="h-4 w-4" />
           </Button>
           
-          <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-            <Upload className="h-4 w-4 mr-2" />
-            Import Script
+          <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} title="Import Script">
+            <Upload className="h-4 w-4" />
           </Button>
           
           <input
@@ -1006,11 +1004,10 @@ export function CollaborativeEditor({
               handleContentChange(editorRef.current?.innerHTML || '');
             }
           }}
-          className="h-8 px-3"
+          className="h-8 w-8 p-0"
           title="Auto-format the entire script"
         >
-          <Wand2 className="h-4 w-4 mr-1" />
-          Auto-Format
+          <Wand2 className="h-4 w-4" />
         </Button>
 
         <Separator orientation="vertical" className="h-6 mx-1" />
@@ -1025,9 +1022,10 @@ export function CollaborativeEditor({
             variant={isPublished ? "default" : "outline"}
             onClick={publishScript}
             disabled={!hasContentChanges}
-            className="h-8 text-sm px-3"
+            className="h-8 px-2"
+            title={isPublished ? "Published" : "Publish Pages"}
           >
-            {isPublished ? "✓ Published" : "Publish Pages"}
+            <Check className="h-4 w-4" />
           </Button>
           <Button 
             size="sm" 
