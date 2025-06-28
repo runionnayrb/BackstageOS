@@ -436,15 +436,58 @@ export function CollaborativeEditor({
 
   // Handle formatting commands for inline editing
   const executeInlineCommand = useCallback((command: string, value?: string) => {
-    document.execCommand(command, false, value);
-    if (editingRef.current) {
-      const content = editingRef.current.innerHTML;
-      if (editingElement?.type === 'header') {
-        setHeaderText(content);
-      } else if (editingElement?.type === 'footer') {
-        setFooterText(content);
-      }
+    console.log('executeInlineCommand called:', command, value);
+    
+    if (!editingRef.current || !editingElement) {
+      console.log('No editing ref or element');
+      return;
     }
+    
+    const input = editingRef.current;
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const selectedText = input.value.substring(start, end);
+    
+    console.log('Selection:', { start, end, selectedText });
+    
+    let newText = selectedText;
+    
+    // Apply formatting based on command
+    switch (command) {
+      case 'bold':
+        newText = `<b>${selectedText}</b>`;
+        break;
+      case 'italic':
+        newText = `<i>${selectedText}</i>`;
+        break;
+      case 'underline':
+        newText = `<u>${selectedText}</u>`;
+        break;
+      default:
+        console.log('Unknown command:', command);
+        return;
+    }
+    
+    // Replace selected text with formatted version
+    const beforeSelection = input.value.substring(0, start);
+    const afterSelection = input.value.substring(end);
+    const newValue = beforeSelection + newText + afterSelection;
+    
+    console.log('New value:', newValue);
+    
+    input.value = newValue;
+    
+    // Update state
+    if (editingElement.type === 'header') {
+      setHeaderText(newValue);
+    } else if (editingElement.type === 'footer') {
+      setFooterText(newValue);
+    }
+    
+    // Set cursor position after the inserted formatting
+    const newCursorPosition = start + newText.length;
+    input.setSelectionRange(newCursorPosition, newCursorPosition);
+    input.focus();
   }, [editingElement]);
 
   // Insert variable into inline editor
@@ -1545,7 +1588,10 @@ export function CollaborativeEditor({
             variant="ghost"
             size="sm"
             className="h-7 w-7 p-0 text-xs"
-            onClick={() => executeInlineCommand('bold')}
+            onClick={() => {
+              console.log('Bold button clicked');
+              executeInlineCommand('bold');
+            }}
             title="Bold"
           >
             <strong>B</strong>
