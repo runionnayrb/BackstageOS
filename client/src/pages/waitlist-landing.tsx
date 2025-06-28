@@ -226,7 +226,7 @@ export default function WaitlistLanding() {
               Backstage OS
             </h1>
             <p className="text-xl lg:text-2xl mb-8 opacity-90 leading-relaxed">
-              The revolutionary stage management platform that's transforming how theater professionals collaborate, organize, and execute productions.
+              The revolutionary stage management platform that's transforming how we collaborate, organize, and execute productions.
             </p>
             <div className="flex items-center justify-center space-x-2 mb-8">
               <Star className="h-5 w-5 text-yellow-400 fill-current" />
