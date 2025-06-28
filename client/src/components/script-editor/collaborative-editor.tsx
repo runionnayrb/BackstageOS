@@ -405,7 +405,7 @@ export function CollaborativeEditor({
     // Position toolbar directly above the text being edited
     setToolbarPosition({
       x: rect.left + window.scrollX + (rect.width / 2) - 150, // Center the toolbar above the text
-      y: rect.top + window.scrollY - 45 // Position just above the text
+      y: rect.top + window.scrollY - 10 // Position 10px above the text
     });
     
     setEditingElement({ type, pageNum });
