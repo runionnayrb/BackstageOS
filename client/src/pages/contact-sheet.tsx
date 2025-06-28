@@ -828,7 +828,15 @@ export default function ContactSheet() {
              style={{ width: '8.5in', minHeight: '11in' }}>
           
           {/* Print Header */}
-          <div className="p-8 print:p-6">
+          <div 
+            className="print:p-0"
+            style={{
+              paddingTop: `${pageMargins.top}in`,
+              paddingRight: `${pageMargins.right}in`,
+              paddingBottom: `${pageMargins.bottom}in`,
+              paddingLeft: `${pageMargins.left}in`
+            }}
+          >
             <div className="text-center mb-8 print:mb-6">
               <h1 className="text-2xl font-bold mb-2">{(project as any)?.name}</h1>
               <h2 className="text-lg text-gray-600">Contact Sheet</h2>
