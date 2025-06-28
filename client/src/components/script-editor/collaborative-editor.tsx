@@ -250,43 +250,58 @@ export function CollaborativeEditor({
       return;
     }
 
-    // Check if page 1 is overflowing
-    const page1Height = page1.scrollHeight;
-    const page1MaxHeight = page1.clientHeight;
-
-    if (page1Height > page1MaxHeight) {
-      // Split content by HTML elements (divs) instead of plain text lines
-      const htmlLines = allContent.split(/(<div[^>]*>.*?<\/div>)/g).filter(line => line.trim());
-      
-      // Estimate how many elements fit per page based on average element height
-      const averageElementHeight = 20; // Approximate height per formatted element
-      const pageContentHeight = page1MaxHeight - 32; // Account for padding
-      const elementsPerPage = Math.floor(pageContentHeight / averageElementHeight);
-      
-      // Calculate how many pages we need
-      const totalPages = Math.ceil(htmlLines.length / elementsPerPage);
-      const newPageCount = Math.min(totalPages, 10); // Cap at 10 pages for performance
+    // Split content into div elements for distribution
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = allContent;
+    const allDivs = Array.from(tempDiv.querySelectorAll('div'));
+    
+    if (allDivs.length === 0) {
+      // No divs found, create from text content
+      const textLines = allContent.split('\n').filter(line => line.trim());
+      const totalLines = textLines.length;
+      const linesPerPage = 35; // Approximate lines that fit per page
+      const newPageCount = Math.ceil(totalLines / linesPerPage);
       
       setPageCount(newPageCount);
       setPageNumbers(Array.from({ length: newPageCount }, (_, i) => (i + 1).toString()));
       
-      // Clear page 1 and redistribute all content
-      page1.innerHTML = '';
-      
-      // Distribute HTML content to all pages including page 1
+      // Distribute text lines across pages
       for (let pageNum = 1; pageNum <= newPageCount; pageNum++) {
         const pageContainer = pageNum === 1 ? page1 : document.getElementById(`page-${pageNum}-content`);
         if (pageContainer) {
-          const startElement = (pageNum - 1) * elementsPerPage;
-          const endElement = pageNum * elementsPerPage;
-          const pageElements = htmlLines.slice(startElement, endElement);
-          pageContainer.innerHTML = pageElements.join('');
+          const startLine = (pageNum - 1) * linesPerPage;
+          const endLine = pageNum * linesPerPage;
+          const pageLines = textLines.slice(startLine, endLine);
+          pageContainer.innerHTML = pageLines.map(line => `<div>${line}</div>`).join('');
         }
       }
     } else {
-      // Content fits on one page
-      setPageCount(1);
-      setPageNumbers(['1']);
+      // Distribute div elements across pages
+      const divsPerPage = 35; // Approximate divs that fit per page
+      const totalDivs = allDivs.length;
+      const newPageCount = Math.ceil(totalDivs / divsPerPage);
+      
+      setPageCount(newPageCount);
+      setPageNumbers(Array.from({ length: newPageCount }, (_, i) => (i + 1).toString()));
+      
+      // Clear page 1 first
+      page1.innerHTML = '';
+      
+      // Distribute divs across all pages
+      for (let pageNum = 1; pageNum <= newPageCount; pageNum++) {
+        const pageContainer = pageNum === 1 ? page1 : document.getElementById(`page-${pageNum}-content`);
+        if (pageContainer) {
+          const startDiv = (pageNum - 1) * divsPerPage;
+          const endDiv = Math.min(pageNum * divsPerPage, totalDivs);
+          const pageDivs = allDivs.slice(startDiv, endDiv);
+          
+          // Clone and append each div to the page
+          pageDivs.forEach(div => {
+            const clonedDiv = div.cloneNode(true) as HTMLElement;
+            pageContainer.appendChild(clonedDiv);
+          });
+        }
+      }
     }
   }, []);
 

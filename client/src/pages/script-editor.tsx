@@ -421,6 +421,12 @@ export default function ScriptEditor() {
       
       setScriptContent(formattedContent);
       
+      // Force content redistribution after a brief delay
+      setTimeout(() => {
+        const event = new CustomEvent('forceDistribution');
+        window.dispatchEvent(event);
+      }, 500);
+      
       toast({
         title: "Script imported",
         description: "Your script has been imported successfully.",
