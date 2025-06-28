@@ -351,28 +351,36 @@ export default function ContactSheet() {
                     {/* Table Header */}
                     <div className="border-b-2 border-gray-800 mb-2">
                       <div className="flex print:text-sm">
-                        {!isPreviewMode && columns.filter(col => col.visible).map((column, colIndex) => (
-                          <div
-                            key={column.id}
-                            className="relative font-semibold py-2 px-2 print:px-1 border-r border-gray-300 last:border-r-0 print:hidden"
-                            style={{ width: `${column.width}px` }}
-                            draggable
-                            onDragStart={(e) => handleColumnDragStart(e, colIndex)}
-                            onDragOver={(e) => e.preventDefault()}
-                            onDrop={(e) => handleColumnDrop(e, colIndex)}
-                          >
-                            <div className="flex items-center gap-2">
-                              <GripVertical className="h-4 w-4 text-gray-400 cursor-grab" />
-                              <span>{column.label}</span>
+                        {!isPreviewMode && (
+                          <>
+                            {/* Empty header cell for drag handle column */}
+                            <div className="font-semibold py-2 px-2 border-r border-gray-300 print:hidden">
+                              {/* Empty space for drag handle column */}
                             </div>
-                            
-                            {/* Resize Handle */}
-                            <div
-                              className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500 hover:opacity-50"
-                              onMouseDown={(e) => handleMouseDown(e, colIndex)}
-                            />
-                          </div>
-                        ))}
+                            {columns.filter(col => col.visible).map((column, colIndex) => (
+                              <div
+                                key={column.id}
+                                className="relative font-semibold py-2 px-2 print:px-1 border-r border-gray-300 last:border-r-0 print:hidden"
+                                style={{ width: `${column.width}px` }}
+                                draggable
+                                onDragStart={(e) => handleColumnDragStart(e, colIndex)}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => handleColumnDrop(e, colIndex)}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <GripVertical className="h-4 w-4 text-gray-400 cursor-grab" />
+                                  <span>{column.label}</span>
+                                </div>
+                                
+                                {/* Resize Handle */}
+                                <div
+                                  className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500 hover:opacity-50"
+                                  onMouseDown={(e) => handleMouseDown(e, colIndex)}
+                                />
+                              </div>
+                            ))}
+                          </>
+                        )}
                         
                         {/* Preview/Print version of headers */}
                         <div className={`${isPreviewMode ? 'flex w-full' : 'hidden print:flex print:w-full'}`}>
@@ -403,15 +411,23 @@ export default function ContactSheet() {
                           onDrop={!isPreviewMode ? (e) => handleContactDrop(e, category.id, contactIndex) : undefined}
                         >
                           {/* Edit mode version */}
-                          {!isPreviewMode && columns.filter(col => col.visible).map((column) => (
-                            <div
-                              key={column.id}
-                              className="py-2 px-2 border-r border-gray-300 last:border-r-0 print:hidden overflow-hidden text-ellipsis whitespace-nowrap"
-                              style={{ width: `${column.width}px` }}
-                            >
-                              {getCellValue(contact, column.id)}
-                            </div>
-                          ))}
+                          {!isPreviewMode && (
+                            <>
+                              {/* Drag handle */}
+                              <div className="flex items-center px-2 py-2 border-r border-gray-300 print:hidden">
+                                <GripVertical className="h-4 w-4 text-gray-400 cursor-grab hover:text-gray-600" />
+                              </div>
+                              {columns.filter(col => col.visible).map((column) => (
+                                <div
+                                  key={column.id}
+                                  className="py-2 px-2 border-r border-gray-300 last:border-r-0 print:hidden overflow-hidden text-ellipsis whitespace-nowrap"
+                                  style={{ width: `${column.width}px` }}
+                                >
+                                  {getCellValue(contact, column.id)}
+                                </div>
+                              ))}
+                            </>
+                          )}
                           
                           {/* Preview/Print version */}
                           <div className={`${isPreviewMode ? 'flex w-full' : 'hidden print:flex print:w-full'}`}>
