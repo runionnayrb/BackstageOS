@@ -695,6 +695,8 @@ export const insertContactSchema = createInsertSchema(contacts).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  castTypes: z.array(z.string()).optional(),
 });
 
 // Type exports

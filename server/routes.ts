@@ -1513,6 +1513,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put('/api/projects/:id/contacts/:contactId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const contactId = parseInt(req.params.contactId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const contact = await storage.getContactById(contactId);
+      if (!contact || contact.projectId !== projectId) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+
+      // Validate the update data using a partial schema (omit required fields for updates)
+      const updateContactSchema = insertContactSchema.partial().omit({
+        projectId: true,
+        createdBy: true,
+      });
+      
+      console.log("PUT contact validation - Request body:", JSON.stringify(req.body, null, 2));
+      const validatedData = updateContactSchema.parse(req.body);
+      console.log("PUT contact validation - Success");
+      const updatedContact = await storage.updateContact(contactId, validatedData);
+      res.json(updatedContact);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error("PUT contact validation - Zod error:", JSON.stringify(error.errors, null, 2));
+        return res.status(400).json({ message: "Invalid contact data", errors: error.errors });
+      }
+      console.error("PUT contact - Error:", error);
+      res.status(500).json({ message: "Failed to update contact" });
+    }
+  });
+
   app.get('/api/contacts/:id', isAuthenticated, async (req: any, res) => {
     try {
       const contactId = parseInt(req.params.id);
