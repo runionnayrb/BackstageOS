@@ -621,28 +621,21 @@ export default function ContactSheet() {
                 variant={isPreviewMode ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsPreviewMode(!isPreviewMode)}
-                className="flex items-center gap-2"
+                title={isPreviewMode ? "Edit Mode" : "Preview"}
               >
                 {isPreviewMode ? (
-                  <>
-                    <Edit className="h-4 w-4" />
-                    Edit Mode
-                  </>
+                  <Edit className="h-4 w-4" />
                 ) : (
-                  <>
-                    <Eye className="h-4 w-4" />
-                    Preview
-                  </>
+                  <Eye className="h-4 w-4" />
                 )}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handlePrint}
-                className="flex items-center gap-2"
+                title="Print Contact Sheet"
               >
                 <Printer className="h-4 w-4" />
-                Print
               </Button>
             </div>
           </div>
