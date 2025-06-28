@@ -306,7 +306,9 @@ export default function ContactSheet() {
     onSuccess: (data: any) => {
       setCurrentVersion(data.version);
       setIsPublishing(false);
+      // Invalidate and refetch current version to ensure UI updates
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-sheet/current-version`] });
+      queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/contact-sheet/current-version`] });
       toast({
         title: "Version published successfully",
         description: `Contact sheet version ${data.version} has been published.`,
