@@ -333,7 +333,7 @@ export default function ContactSheet() {
 
                 return (
                   <div key={category.id} className="break-inside-avoid">
-                    <h3 className="text-lg font-semibold mb-4 print:mb-3 border-b border-gray-300 pb-2">
+                    <h3 className="text-lg font-semibold mb-4 print:mb-3 pb-2">
                       {category.title}
                     </h3>
                     
