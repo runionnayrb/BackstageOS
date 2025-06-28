@@ -67,23 +67,23 @@ export default function ShowReports() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}/reports`)}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Reports
-          </Button>
-        </div>
-
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">{reportTypeName}</h1>
-            <p className="text-muted-foreground">{project.name}</p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation(`/shows/${projectId}/reports`)}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Reports
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">{reportTypeName}</h1>
+              <p className="text-gray-600 mt-1">{project.name}</p>
+            </div>
           </div>
+          
           <Button onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/new`)}>
             <Plus className="h-4 w-4 mr-2" />
             New Report

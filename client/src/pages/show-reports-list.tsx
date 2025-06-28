@@ -59,33 +59,31 @@ export default function ShowReportsList() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation(`/shows/${projectId}`)}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to {(project as any)?.name}
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
+            </div>
+          </div>
+          
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            onClick={() => setLocation(`/shows/${projectId}`)}
+            onClick={() => setLocation(`/shows/${projectId}/templates`)}
             className="flex items-center gap-2"
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back to {(project as any)?.name}
+            <Settings className="h-4 w-4" />
+            Template Settings
           </Button>
-        </div>
-
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold">Reports</h1>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setLocation(`/shows/${projectId}/templates`)}
-              className="flex items-center gap-2"
-            >
-              <Settings className="h-4 w-4" />
-              Template Settings
-            </Button>
-          </div>
         </div>
 
         <div className="space-y-8">

@@ -302,24 +302,23 @@ export default function GlobalTemplateSettings() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}`)}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to {(project as any)?.name || "Show"}
-          </Button>
-        </div>
-
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Global Template Settings</h1>
-            <p className="text-muted-foreground mt-2">
-              Configure default formatting and layout for all report templates
-            </p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation(`/shows/${projectId}`)}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to {(project as any)?.name || "Show"}
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Global Template Settings</h1>
+              <p className="text-gray-600 mt-1">
+                Configure default formatting and layout for all report templates
+              </p>
+            </div>
           </div>
           <Button
             onClick={() => saveSettings.mutate(settings)}

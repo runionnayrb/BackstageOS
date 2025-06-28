@@ -931,18 +931,18 @@ export default function ContactSheet() {
       <div className="bg-background border-b print:hidden">
         <div className="container mx-auto p-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setLocation(`/shows/${projectId}/contacts`)}
-                className="flex items-center gap-2"
+                className="text-gray-600 hover:text-gray-900"
               >
-                <ArrowLeft className="h-4 w-4" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Contacts
               </Button>
               <div>
-                <h1 className="text-2xl font-bold">Contact Sheet - {(project as any)?.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-900">Contact Sheet - {(project as any)?.name}</h1>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-sm text-muted-foreground">Version {currentVersion}</span>
                   <span className="text-xs text-muted-foreground">•</span>

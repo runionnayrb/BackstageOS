@@ -179,20 +179,22 @@ export default function Personnel() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}`)}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to {(project as any)?.name}
-          </Button>
-        </div>
-
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Contacts</h1>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation(`/shows/${projectId}`)}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to {(project as any)?.name}
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
+            </div>
+          </div>
+          
           <div className="flex items-center gap-3">
             {allContacts.length > 0 && (
               <DropdownMenu>

@@ -317,24 +317,23 @@ export default function TemplateSettings() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}/reports`)}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Reports
-          </Button>
-        </div>
-
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Report Templates</h1>
-            <p className="text-muted-foreground mt-2">
-              Customize report templates for each production phase
-            </p>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLocation(`/shows/${projectId}/reports`)}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Reports
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Report Templates</h1>
+              <p className="text-gray-600 mt-1">
+                Customize report templates for each production phase
+              </p>
+            </div>
           </div>
           <div className="flex gap-2">
             <Button
