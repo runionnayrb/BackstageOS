@@ -287,16 +287,86 @@ export default function ScriptEditor() {
   };
 
   const handleImport = (file: File) => {
+    // Validate file type
+    const allowedTypes = [
+      'text/plain',
+      'text/html',
+      'application/rtf',
+      'text/rtf'
+    ];
+    
+    const allowedExtensions = ['.txt', '.rtf', '.html', '.htm'];
+    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+      toast({
+        title: "Unsupported file type",
+        description: "Please upload a text file (.txt), RTF file (.rtf), or HTML file (.html). PDF files are not currently supported.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check file size (limit to 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please upload a file smaller than 10MB.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
-      const content = e.target?.result as string;
-      setScriptContent(content);
+      try {
+        const content = e.target?.result as string;
+        
+        // Basic validation to ensure it's readable text
+        if (!content || content.length === 0) {
+          toast({
+            title: "Empty file",
+            description: "The uploaded file appears to be empty.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        // Check for binary content indicators
+        const binaryIndicators = /[\x00-\x08\x0E-\x1F\x7F-\xFF]/g;
+        const binaryMatches = content.match(binaryIndicators);
+        if (binaryMatches && binaryMatches.length > content.length * 0.1) {
+          toast({
+            title: "Invalid file format",
+            description: "This file appears to contain binary data. Please upload a plain text script file.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        setScriptContent(content);
+        toast({
+          title: "Script imported",
+          description: "Your script has been imported successfully.",
+        });
+      } catch (error) {
+        toast({
+          title: "Import failed",
+          description: "There was an error reading the file. Please try again.",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    reader.onerror = () => {
       toast({
-        title: "Script imported",
-        description: "Your script has been imported successfully.",
+        title: "Import failed",
+        description: "There was an error reading the file. Please try again.",
+        variant: "destructive"
       });
     };
-    reader.readAsText(file);
+    
+    reader.readAsText(file, 'UTF-8');
   };
 
   const handleAddComment = (comment: any) => {
