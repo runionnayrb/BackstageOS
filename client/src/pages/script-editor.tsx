@@ -285,11 +285,25 @@ export default function ScriptEditor() {
       timestamp: new Date().toISOString()
     };
     
-    setComments(prev => [...prev, newComment]);
+    // If this is a reply (has parentId), add it to the parent's replies array
+    if (comment.parentId) {
+      setComments(prev => prev.map(c => {
+        if (c.id === comment.parentId) {
+          return {
+            ...c,
+            replies: [...(c.replies || []), newComment]
+          };
+        }
+        return c;
+      }));
+    } else {
+      // This is a new top-level comment
+      setComments(prev => [...prev, newComment]);
+    }
     
     toast({
-      title: "Comment added",
-      description: "Your comment has been added to the script.",
+      title: comment.parentId ? "Reply added" : "Comment added",
+      description: comment.parentId ? "Your reply has been added." : "Your comment has been added to the script.",
     });
   };
 
