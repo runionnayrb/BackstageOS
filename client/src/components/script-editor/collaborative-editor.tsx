@@ -794,43 +794,55 @@ export function CollaborativeEditor({
                   {/* Position */}
                   <div className="space-y-2">
                     <Label>Position</Label>
-                    <select 
+                    <Select
                       value={pageNumberPosition}
-                      onChange={(e) => setPageNumberPosition(e.target.value as any)}
-                      className="w-full px-3 py-1 border rounded text-sm"
+                      onValueChange={(value) => setPageNumberPosition(value as any)}
                     >
-                      <option value="header">Header only</option>
-                      <option value="footer">Footer only</option>
-                      <option value="both">Both header and footer</option>
-                    </select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select position" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="header">Header only</SelectItem>
+                        <SelectItem value="footer">Footer only</SelectItem>
+                        <SelectItem value="both">Both header and footer</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Alignment */}
                   <div className="space-y-2">
                     <Label>Alignment</Label>
-                    <select 
+                    <Select
                       value={pageNumberAlignment}
-                      onChange={(e) => setPageNumberAlignment(e.target.value as any)}
-                      className="w-full px-3 py-1 border rounded text-sm"
+                      onValueChange={(value) => setPageNumberAlignment(value as any)}
                     >
-                      <option value="left">Left</option>
-                      <option value="center">Center</option>
-                      <option value="right">Right</option>
-                    </select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select alignment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="left">Left</SelectItem>
+                        <SelectItem value="center">Center</SelectItem>
+                        <SelectItem value="right">Right</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Format */}
                   <div className="space-y-2">
                     <Label>Format</Label>
-                    <select 
+                    <Select
                       value={pageNumberFormat}
-                      onChange={(e) => setPageNumberFormat(e.target.value as any)}
-                      className="w-full px-3 py-1 border rounded text-sm"
+                      onValueChange={(value) => setPageNumberFormat(value as any)}
                     >
-                      <option value="number">1, 2, 3...</option>
-                      <option value="page-x">Page 1, Page 2...</option>
-                      <option value="page-x-of-y">Page 1 of 5, Page 2 of 5...</option>
-                    </select>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select format" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="number">1, 2, 3...</SelectItem>
+                        <SelectItem value="page-x">Page 1, Page 2...</SelectItem>
+                        <SelectItem value="page-x-of-y">Page 1 of 5, Page 2 of 5...</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   {/* Prefix and Suffix */}
