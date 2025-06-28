@@ -585,7 +585,7 @@ export default function ContactSheet() {
     const handleMouseMove = (e: MouseEvent) => {
       if (isResizing !== null) {
         const diff = e.clientX - resizeStartX;
-        const proposedWidth = Math.max(100, resizeStartWidth + diff);
+        const proposedWidth = Math.max(50, resizeStartWidth + diff);
         
         // Calculate maximum available width (8.5" page minus margins converted to pixels)
         const pageWidthInches = 8.5;
@@ -599,7 +599,7 @@ export default function ContactSheet() {
           .reduce((sum, col, idx) => idx === isResizing ? sum : sum + col.width, 0);
         
         // Set maximum width to ensure table doesn't exceed page margins
-        const maxAllowedWidth = Math.max(100, availableWidthPixels - otherColumnsWidth);
+        const maxAllowedWidth = Math.max(50, availableWidthPixels - otherColumnsWidth);
         const newWidth = Math.min(proposedWidth, maxAllowedWidth);
         
         setColumns(prev => prev.map((col, idx) => 
