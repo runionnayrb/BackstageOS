@@ -1274,8 +1274,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         try {
-          // Import pdf-parse with better error handling
-          const pdfParse = require('pdf-parse');
+          // Import pdf-parse using ES modules
+          const { default: pdfParse } = await import('pdf-parse');
           
           // Parse the PDF buffer directly
           const data = await pdfParse(req.file.buffer);
