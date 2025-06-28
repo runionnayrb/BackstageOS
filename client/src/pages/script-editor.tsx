@@ -83,20 +83,20 @@ export default function ScriptEditor() {
   const scriptComments: any[] = [];
   const scriptChanges: any[] = [];
 
-  // Initialize script data
+  // Initialize script data only once to prevent overwriting user changes
+  const [hasInitialized, setHasInitialized] = useState(false);
+  
   useEffect(() => {
-    if (script && typeof script === 'object') {
+    if (script && typeof script === 'object' && !hasInitialized) {
       setScriptTitle((script as any).name || "Untitled Script");
       setScriptContent((script as any).content || "");
       setCurrentVersion((script as any).version || "1.0");
       setCollaborators([]);
-      // Only set comments if they don't exist yet
-      if (comments.length === 0) {
-        setComments([]);
-      }
+      setComments([]);
       setVersions([]);
       setChanges([]);
-    } else {
+      setHasInitialized(true);
+    } else if (!script && !hasInitialized) {
       // Create sample version data when no script data exists
       const sampleVersions = [
         {
@@ -184,7 +184,7 @@ export default function ScriptEditor() {
 
   // Auto-save effect with debounce
   useEffect(() => {
-    if (!scriptContent && !scriptTitle) return; // Don't save empty content on initial load
+    if (!hasInitialized) return; // Don't auto-save until after initial load
     
     const timeoutId = setTimeout(() => {
       const data = {
@@ -195,7 +195,7 @@ export default function ScriptEditor() {
     }, 2000); // Auto-save after 2 seconds of inactivity
 
     return () => clearTimeout(timeoutId);
-  }, [scriptContent, scriptTitle]); // Trigger on content or title change
+  }, [scriptContent, scriptTitle, hasInitialized]); // Trigger on content or title change
 
   // Auto-save script mutation
   const saveScriptMutation = useMutation({
