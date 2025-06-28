@@ -135,6 +135,11 @@ export default function WaitlistLanding() {
       icon: FileText,
       title: "Technical Paperwork",
       description: "Comprehensive tracking for props, costumes, scene shift plots, line set schedules, and mic assignments with detailed status monitoring."
+    },
+    {
+      icon: Clock,
+      title: "Prep",
+      description: "Complete pre-production tools including task management, character scene breakdowns, French scene analysis, production meeting reports, and cast on-boarding workflows."
     }
   ];
 
