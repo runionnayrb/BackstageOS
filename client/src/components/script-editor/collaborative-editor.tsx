@@ -38,6 +38,7 @@ interface CollaborativeEditorProps {
   onChange: (content: any) => void;
   title: string;
   onTitleChange: (title: string) => void;
+  version?: string;
   collaborators?: any[];
   comments?: any[];
   onAddComment?: (comment: any) => void;
@@ -53,6 +54,7 @@ export function CollaborativeEditor({
   onChange,
   title,
   onTitleChange,
+  version = "1.0",
   collaborators = [],
   comments = [],
   onAddComment,
@@ -548,6 +550,9 @@ export function CollaborativeEditor({
             placeholder="Script Title"
             className="text-xl font-bold border-none p-0 h-auto focus-visible:ring-0 bg-transparent"
           />
+          <div className="text-sm text-muted-foreground mt-1">
+            Version {version}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           {/* Collaborators */}

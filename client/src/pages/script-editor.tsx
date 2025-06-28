@@ -432,6 +432,7 @@ export default function ScriptEditor() {
           onChange={handleContentChange}
           title={scriptTitle}
           onTitleChange={handleTitleChange}
+          version={script?.version || "1.0"}
           collaborators={collaborators}
           comments={comments}
           onAddComment={handleAddComment}
