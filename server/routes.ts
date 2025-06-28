@@ -1274,13 +1274,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         try {
-          // Import pdf-parse using require to avoid the test file issue
-          const pdfParse = require('pdf-parse');
+          // Import pdfjs-dist for reliable PDF processing
+          const pdfjsLib = await import('pdfjs-dist');
           
-          // Parse the PDF buffer directly
-          const data = await pdfParse(req.file.buffer);
+          // Parse the PDF buffer
+          const loadingTask = pdfjsLib.getDocument(req.file.buffer);
+          const pdf = await loadingTask.promise;
           
-          let text = data.text || '';
+          let text = '';
+          const numPages = pdf.numPages;
+          
+          // Extract text from each page
+          for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const textContent = await page.getTextContent();
+            
+            // Combine text items into readable text
+            const pageText = textContent.items
+              .map((item: any) => item.str)
+              .join(' ');
+            
+            text += pageText + '\n\n';
+          }
 
           // Clean up common PDF extraction artifacts
           text = text
@@ -1302,7 +1317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             });
           }
 
-          res.json({ text, pages: data.numpages || 1 });
+          res.json({ text, pages: numPages });
         } catch (parseError) {
           console.error('PDF parsing error:', parseError);
           res.status(500).json({ 
@@ -1339,9 +1354,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const mammoth = await import('mammoth');
           
-          // Extract text from Word document
-          const result = await mammoth.extractRawText({ buffer: req.file.buffer });
-          let text = result.value || '';
+          // First try HTML conversion which typically gets more complete content
+          const htmlResult = await mammoth.convertToHtml({ buffer: req.file.buffer });
+          
+          // Strip HTML tags to get clean plain text
+          let text = htmlResult.value
+            .replace(/<[^>]*>/g, '\n')  // Replace HTML tags with line breaks
+            .replace(/&nbsp;/g, ' ')    // Replace non-breaking spaces
+            .replace(/&amp;/g, '&')     // Replace HTML entities
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .replace(/\n\s*\n/g, '\n\n') // Clean up excessive line breaks
+            .trim();
+          
+          // If HTML conversion didn't work well, fallback to raw text
+          if (text.length < 50) {
+            const rawResult = await mammoth.extractRawText({ buffer: req.file.buffer });
+            text = rawResult.value || '';
+          }
 
           // Clean up common Word document artifacts
           text = text
