@@ -1158,6 +1158,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contentType: typeof script.content
       });
 
+      // Disable caching to ensure fresh data
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+
       res.json(scriptData);
     } catch (error) {
       console.error("Error fetching script:", error);

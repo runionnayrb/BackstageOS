@@ -392,11 +392,21 @@ export class DatabaseStorage implements IStorage {
 
   // Show document operations
   async getShowDocumentsByProjectId(projectId: number): Promise<ShowDocument[]> {
-    return await db
+    const documents = await db
       .select()
       .from(showDocuments)
       .where(eq(showDocuments.projectId, projectId))
       .orderBy(desc(showDocuments.updatedAt), desc(showDocuments.createdAt));
+    
+    console.log(`Storage: Retrieved ${documents.length} documents for project ${projectId}`);
+    if (documents.length > 0) {
+      const script = documents.find(doc => doc.type === 'script');
+      if (script) {
+        console.log(`Storage: Script document - ID: ${script.id}, content length: ${script.content ? String(script.content).length : 0}, updated: ${script.updatedAt}`);
+      }
+    }
+    
+    return documents;
   }
 
   async getShowDocumentById(id: number): Promise<ShowDocument | undefined> {

@@ -140,7 +140,10 @@ export default function ScriptEditor() {
     onSuccess: () => {
       setIsAutoSaving(false);
       setLastSaved(new Date());
-      // Don't invalidate query to prevent content clearing
+      // Force fresh data retrieval after successful save
+      setTimeout(() => {
+        refetchScript();
+      }, 200);
     },
     onError: () => {
       setIsAutoSaving(false);
