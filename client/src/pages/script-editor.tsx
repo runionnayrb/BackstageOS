@@ -74,7 +74,7 @@ export default function ScriptEditor() {
 
   // Enhanced script data fetching
   const { data: script, isLoading: scriptLoading } = useQuery({
-    queryKey: ["/api/projects", projectId, "script"],
+    queryKey: [`/api/projects/${projectId}/script`],
     enabled: !!projectId && !!user,
   });
 
