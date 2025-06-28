@@ -379,9 +379,75 @@ export function CollaborativeEditor({
       const newContent = editorRef.current.innerHTML;
       onChange(newContent);
       // Distribute content across pages after a short delay
-      setTimeout(() => distributeContentAcrossPages(), 50);
+      setTimeout(() => {
+        if (!editorRef.current) return;
+
+        const page1 = editorRef.current;
+        const allContent = page1.innerHTML || '';
+        
+        // If no content, show only one page
+        if (!allContent.trim()) {
+          setPageCount(1);
+          setPageNumbers(['1']);
+          return;
+        }
+
+        // Split content into div elements for distribution
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = allContent;
+        const allDivs = Array.from(tempDiv.querySelectorAll('div'));
+        
+        if (allDivs.length === 0) {
+          // No divs found, create from text content
+          const textLines = allContent.split('\n').filter(line => line.trim());
+          const totalLines = textLines.length;
+          const linesPerPage = 35; // Approximate lines that fit per page
+          const newPageCount = Math.ceil(totalLines / linesPerPage);
+          
+          setPageCount(newPageCount);
+          setPageNumbers(Array.from({ length: newPageCount }, (_, i) => (i + 1).toString()));
+          
+          // Distribute text lines across pages
+          for (let pageNum = 1; pageNum <= newPageCount; pageNum++) {
+            const pageContainer = pageNum === 1 ? page1 : document.getElementById(`page-${pageNum}-content`);
+            if (pageContainer) {
+              const startLine = (pageNum - 1) * linesPerPage;
+              const endLine = pageNum * linesPerPage;
+              const pageLines = textLines.slice(startLine, endLine);
+              pageContainer.innerHTML = pageLines.map(line => `<div>${line}</div>`).join('');
+            }
+          }
+        } else {
+          // Distribute div elements across pages
+          const divsPerPage = 35; // Approximate divs that fit per page
+          const totalDivs = allDivs.length;
+          const newPageCount = Math.ceil(totalDivs / divsPerPage);
+          
+          setPageCount(newPageCount);
+          setPageNumbers(Array.from({ length: newPageCount }, (_, i) => (i + 1).toString()));
+          
+          // Clear page 1 first
+          page1.innerHTML = '';
+          
+          // Distribute divs across all pages
+          for (let pageNum = 1; pageNum <= newPageCount; pageNum++) {
+            const pageContainer = pageNum === 1 ? page1 : document.getElementById(`page-${pageNum}-content`);
+            if (pageContainer) {
+              const startDiv = (pageNum - 1) * divsPerPage;
+              const endDiv = Math.min(pageNum * divsPerPage, totalDivs);
+              const pageDivs = allDivs.slice(startDiv, endDiv);
+              
+              // Clone and append each div to the page
+              pageDivs.forEach(div => {
+                const clonedDiv = div.cloneNode(true) as HTMLElement;
+                pageContainer.appendChild(clonedDiv);
+              });
+            }
+          }
+        }
+      }, 50);
     }
-  }, [onChange, distributeContentAcrossPages]);
+  }, [onChange]);
 
   // Parse and format script text automatically
   const parseScriptText = useCallback((text: string) => {
@@ -1111,32 +1177,20 @@ export function CollaborativeEditor({
                       }
                     </div>
                   )}
-                  {isFirstPage ? (
-                    <div
-                      ref={editorRef}
-                      contentEditable
-                      onInput={handleInput}
-                      onPaste={handlePaste}
-                      onMouseUp={handleTextSelection}
-                      className="focus:outline-none text-black overflow-hidden h-full"
-                      style={{ 
-                        whiteSpace: 'pre-wrap',
-                        paddingTop: '0.2in'
-                      }}
-                      suppressContentEditableWarning={true}
-                    />
-                  ) : (
-                    <div 
-                      className="text-black overflow-hidden h-full"
-                      style={{ 
-                        whiteSpace: 'pre-wrap',
-                        paddingTop: '0.2in'
-                      }}
-                      id={`page-${pageNum}-content`}
-                    >
-                      {/* Additional page content will be dynamically populated */}
-                    </div>
-                  )}
+                  <div
+                    ref={isFirstPage ? editorRef : undefined}
+                    contentEditable
+                    onInput={handleInput}
+                    onPaste={handlePaste}
+                    onMouseUp={handleTextSelection}
+                    className="focus:outline-none text-black overflow-hidden h-full"
+                    style={{ 
+                      whiteSpace: 'pre-wrap',
+                      paddingTop: '0.2in'
+                    }}
+                    id={isFirstPage ? undefined : `page-${pageNum}-content`}
+                    suppressContentEditableWarning={true}
+                  />
                 </div>
               );
             })}
