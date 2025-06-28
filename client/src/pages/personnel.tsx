@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, GripVertical } from "lucide-react";
+import { ArrowLeft, GripVertical, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -66,13 +66,30 @@ export default function Personnel() {
     enabled: !!projectId,
   });
 
+  // Query all contacts to determine if Create Contact Sheet button should be visible
+  const { data: allContacts = [] } = useQuery<Contact[]>({
+    queryKey: [`/api/projects/${projectId}/contacts`],
+    enabled: !!projectId,
+  });
+
+  interface Contact {
+    id: number;
+    projectId: number;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+    category: string;
+    role?: string;
+  }
+
   // Apply saved category order when project settings load
   useEffect(() => {
-    if (projectSettings?.contactCategoriesOrder) {
-      const savedOrder = projectSettings.contactCategoriesOrder;
+    if (projectSettings && typeof projectSettings === 'object' && 'contactCategoriesOrder' in projectSettings && projectSettings.contactCategoriesOrder) {
+      const savedOrder = projectSettings.contactCategoriesOrder as string[];
       const reorderedCategories = savedOrder.map((id: string) => 
         defaultCategories.find(cat => cat.id === id)
-      ).filter(Boolean);
+      ).filter((cat): cat is typeof defaultCategories[0] => cat !== undefined);
       
       // Add any new categories that weren't in the saved order
       const savedIds = new Set(savedOrder);
@@ -175,14 +192,26 @@ export default function Personnel() {
 
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Contacts</h1>
-          <Button
-            variant={isReordering ? "default" : "outline"}
-            onClick={() => setIsReordering(!isReordering)}
-            className="flex items-center gap-2"
-          >
-            <GripVertical className="h-4 w-4" />
-            {isReordering ? "Done Reordering" : "Re-order"}
-          </Button>
+          <div className="flex items-center gap-3">
+            {allContacts.length > 0 && (
+              <Button
+                variant="outline"
+                onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}
+                className="flex items-center gap-2"
+              >
+                <FileText className="h-4 w-4" />
+                Create Contact Sheet
+              </Button>
+            )}
+            <Button
+              variant={isReordering ? "default" : "outline"}
+              onClick={() => setIsReordering(!isReordering)}
+              className="flex items-center gap-2"
+            >
+              <GripVertical className="h-4 w-4" />
+              {isReordering ? "Done Reordering" : "Re-order"}
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-1">
