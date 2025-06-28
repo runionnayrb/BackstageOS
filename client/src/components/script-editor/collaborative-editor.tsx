@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
 import { 
   Bold, 
   Italic, 
@@ -97,8 +98,10 @@ export function CollaborativeEditor({
   const [initialContent, setInitialContent] = useState('');
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
   const [showRenumberConfirm, setShowRenumberConfirm] = useState(false);
-  const [inlineEditMode, setInlineEditMode] = useState<'header' | 'footer' | null>(null);
-  const [inlineEditPosition, setInlineEditPosition] = useState({ x: 0, y: 0 });
+  const [editingElement, setEditingElement] = useState<{ type: 'header' | 'footer'; pageNum: number } | null>(null);
+  const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
+  const [showToolbar, setShowToolbar] = useState(false);
+  const editingRef = useRef<HTMLDivElement>(null);
 
   // Track content changes
   const handleContentChange = useCallback((newContent: string) => {
@@ -390,20 +393,75 @@ export function CollaborativeEditor({
     return processedContent;
   }, [title, pageNumbers, pageCount, formatPageNumber]);
 
-  // Handle double-click on header/footer for inline editing
-  const handleHeaderFooterDoubleClick = useCallback((type: 'header' | 'footer', event: React.MouseEvent) => {
-    const rect = (event.target as HTMLElement).getBoundingClientRect();
-    setInlineEditPosition({
+  // Handle click on header/footer for inline editing
+  const handleHeaderFooterClick = useCallback((type: 'header' | 'footer', pageNum: number, event: React.MouseEvent) => {
+    const element = event.currentTarget as HTMLElement;
+    const rect = element.getBoundingClientRect();
+    
+    // Position toolbar above the element
+    setToolbarPosition({
       x: rect.left + window.scrollX,
-      y: rect.bottom + window.scrollY + 10
+      y: rect.top + window.scrollY - 50
     });
-    setInlineEditMode(type);
+    
+    setEditingElement({ type, pageNum });
+    setShowToolbar(true);
+    
+    // Make the element editable and focus it
+    setTimeout(() => {
+      if (editingRef.current) {
+        editingRef.current.focus();
+        
+        // Select all text if it's placeholder text
+        const selection = window.getSelection();
+        if (selection && editingRef.current.textContent?.includes('Double-click to edit')) {
+          selection.selectAllChildren(editingRef.current);
+        }
+      }
+    }, 0);
   }, []);
+
+  // Handle formatting commands for inline editing
+  const executeInlineCommand = useCallback((command: string, value?: string) => {
+    document.execCommand(command, false, value);
+    if (editingRef.current) {
+      const content = editingRef.current.innerHTML;
+      if (editingElement?.type === 'header') {
+        setHeaderText(content);
+      } else if (editingElement?.type === 'footer') {
+        setFooterText(content);
+      }
+    }
+  }, [editingElement]);
+
+  // Insert variable into inline editor
+  const insertVariableInline = useCallback((variable: string) => {
+    document.execCommand('insertText', false, `{{${variable}}}`);
+    if (editingRef.current) {
+      const content = editingRef.current.innerHTML;
+      if (editingElement?.type === 'header') {
+        setHeaderText(content);
+      } else if (editingElement?.type === 'footer') {
+        setFooterText(content);
+      }
+    }
+  }, [editingElement]);
 
   // Close inline editor
   const closeInlineEditor = useCallback(() => {
-    setInlineEditMode(null);
-  }, []);
+    setEditingElement(null);
+    setShowToolbar(false);
+    
+    // Save final content
+    if (editingRef.current) {
+      const content = editingRef.current.innerHTML;
+      if (editingElement?.type === 'header') {
+        setHeaderText(content);
+      } else if (editingElement?.type === 'footer') {
+        setFooterText(content);
+      }
+    }
+  }, [editingElement]);
 
   // Function to renumber all pages with fresh numbering
   const renumberScript = useCallback(() => {
@@ -1230,24 +1288,46 @@ export function CollaborativeEditor({
                   {/* Header */}
                   {showHeaders && (
                     <div 
-                      className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors`}
-                      onDoubleClick={(e) => handleHeaderFooterDoubleClick('header', e)}
-                      dangerouslySetInnerHTML={{
-                        __html: processRichContent(headerText, pageNum) || '<span class="text-gray-400 italic">Double-click to edit header</span>'
+                      ref={editingElement?.type === 'header' && editingElement?.pageNum === pageNum ? editingRef : undefined}
+                      className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors ${
+                        editingElement?.type === 'header' && editingElement?.pageNum === pageNum ? 'outline-2 outline-blue-500 outline-dashed' : ''
+                      }`}
+                      contentEditable={editingElement?.type === 'header' && editingElement?.pageNum === pageNum}
+                      onClick={(e) => handleHeaderFooterClick('header', pageNum, e)}
+                      onBlur={closeInlineEditor}
+                      onInput={(e) => {
+                        if (editingElement?.type === 'header') {
+                          setHeaderText((e.target as HTMLElement).innerHTML);
+                        }
                       }}
-                      title="Double-click to edit header"
+                      dangerouslySetInnerHTML={{
+                        __html: processRichContent(headerText, pageNum) || '<span class="text-gray-400 italic">Click to edit header</span>'
+                      }}
+                      title="Click to edit header"
+                      suppressContentEditableWarning={true}
                     />
                   )}
                   
                   {/* Footer */}
                   {showFooters && (
                     <div 
-                      className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors`}
-                      onDoubleClick={(e) => handleHeaderFooterDoubleClick('footer', e)}
-                      dangerouslySetInnerHTML={{
-                        __html: processRichContent(footerText, pageNum) || '<span class="text-gray-400 italic">Double-click to edit footer</span>'
+                      ref={editingElement?.type === 'footer' && editingElement?.pageNum === pageNum ? editingRef : undefined}
+                      className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors ${
+                        editingElement?.type === 'footer' && editingElement?.pageNum === pageNum ? 'outline-2 outline-blue-500 outline-dashed' : ''
+                      }`}
+                      contentEditable={editingElement?.type === 'footer' && editingElement?.pageNum === pageNum}
+                      onClick={(e) => handleHeaderFooterClick('footer', pageNum, e)}
+                      onBlur={closeInlineEditor}
+                      onInput={(e) => {
+                        if (editingElement?.type === 'footer') {
+                          setFooterText((e.target as HTMLElement).innerHTML);
+                        }
                       }}
-                      title="Double-click to edit footer"
+                      dangerouslySetInnerHTML={{
+                        __html: processRichContent(footerText, pageNum) || '<span class="text-gray-400 italic">Click to edit footer</span>'
+                      }}
+                      title="Click to edit footer"
+                      suppressContentEditableWarning={true}
                     />
                   )}
                   <div
@@ -1359,69 +1439,115 @@ export function CollaborativeEditor({
         </DialogContent>
       </Dialog>
 
-      {/* Inline Header/Footer Editor Overlay */}
-      {inlineEditMode && (
-        <>
-          {/* Backdrop to close editor when clicking outside */}
-          <div 
-            className="fixed inset-0 z-40 bg-black bg-opacity-20"
-            onClick={closeInlineEditor}
-          />
-          
-          {/* Floating Editor */}
-          <div 
-            className="fixed z-50 bg-white dark:bg-gray-800 border rounded-lg shadow-xl p-4 min-w-[400px] max-w-[600px]"
-            style={{
-              left: `${inlineEditPosition.x}px`,
-              top: `${inlineEditPosition.y}px`,
-              maxHeight: '70vh',
-              overflow: 'auto'
-            }}
+      {/* Floating Formatting Toolbar */}
+      {showToolbar && editingElement && (
+        <div 
+          className="fixed z-50 bg-white dark:bg-gray-800 border rounded-lg shadow-xl p-2 flex items-center gap-1"
+          style={{
+            left: `${toolbarPosition.x}px`,
+            top: `${toolbarPosition.y}px`,
+          }}
+        >
+          {/* Bold */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={() => executeInlineCommand('bold')}
+            title="Bold"
           >
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-medium text-sm">
-                Edit {inlineEditMode === 'header' ? 'Header' : 'Footer'}
-              </h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={closeInlineEditor}
-                className="h-6 w-6 p-0"
-              >
-                ×
+            <strong>B</strong>
+          </Button>
+          
+          {/* Italic */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={() => executeInlineCommand('italic')}
+            title="Italic"
+          >
+            <em>I</em>
+          </Button>
+          
+          {/* Underline */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={() => executeInlineCommand('underline')}
+            title="Underline"
+          >
+            <u>U</u>
+          </Button>
+          
+          <div className="w-px h-6 bg-border mx-1" />
+          
+          {/* Variables Popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 px-2">
+                Variables
               </Button>
-            </div>
-            
-            <RichTextEditor
-              content={inlineEditMode === 'header' ? headerText : footerText}
-              onChange={(content) => {
-                if (inlineEditMode === 'header') {
-                  setHeaderText(content);
-                } else {
-                  setFooterText(content);
-                }
-              }}
-              placeholder={`Enter ${inlineEditMode} content with rich formatting...`}
-              className="min-h-[120px]"
-              showPageNumbers={true}
-              pageNumberFormat="1"
-              onPageNumberFormatChange={() => {}}
-            />
-            
-            <p className="text-xs text-muted-foreground mt-2">
-              Use variables: {`{{showName}}, {{date}}, {{stageManager}}, {{pageNumber}}, {{totalPages}}`}
-            </p>
-            
-            <div className="flex justify-end gap-2 mt-3">
-              <Button variant="outline" size="sm" onClick={closeInlineEditor}>
-                Cancel
-              </Button>
-              <Button size="sm" onClick={closeInlineEditor}>
-                Done
-              </Button>
-            </div>
-          </div>
-        </>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-2">
+              <div className="flex flex-col gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start h-8"
+                  onClick={() => insertVariableInline('showName')}
+                >
+                  Show Name
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start h-8"
+                  onClick={() => insertVariableInline('date')}
+                >
+                  Date
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start h-8"
+                  onClick={() => insertVariableInline('stageManager')}
+                >
+                  Stage Manager
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start h-8"
+                  onClick={() => insertVariableInline('pageNumber')}
+                >
+                  Page Number
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start h-8"
+                  onClick={() => insertVariableInline('totalPages')}
+                >
+                  Total Pages
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+          
+          <div className="w-px h-6 bg-border mx-1" />
+          
+          {/* Done */}
+          <Button
+            variant="default"
+            size="sm"
+            className="h-8 px-3"
+            onClick={closeInlineEditor}
+          >
+            Done
+          </Button>
+        </div>
       )}
     </div>
   );
