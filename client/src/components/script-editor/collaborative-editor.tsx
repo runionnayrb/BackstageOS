@@ -415,20 +415,40 @@ export function CollaborativeEditor({
     // Make the element editable and focus it properly
     setTimeout(() => {
       if (editingRef.current) {
-        // Clear any existing content if it's placeholder text
-        if (editingRef.current.textContent?.includes('Click to edit')) {
-          editingRef.current.innerHTML = '';
+        const element = editingRef.current as HTMLDivElement;
+        
+        // Set initial content based on type
+        const currentContent = type === 'header' ? headerText : footerText;
+        if (currentContent) {
+          element.innerHTML = currentContent;
+        } else if (element.textContent?.includes('Click to edit')) {
+          element.innerHTML = '';
         }
         
-        editingRef.current.focus();
+        element.focus();
         
         // Set cursor at the end of content
         const selection = window.getSelection();
         if (selection) {
           selection.removeAllRanges();
           const range = document.createRange();
-          range.selectNodeContents(editingRef.current);
-          range.collapse(false); // Collapse to end
+          
+          // If there's content, place cursor at the end
+          if (element.childNodes.length > 0) {
+            const lastNode = element.childNodes[element.childNodes.length - 1];
+            if (lastNode.nodeType === Node.TEXT_NODE) {
+              range.setStart(lastNode, lastNode.textContent?.length || 0);
+              range.setEnd(lastNode, lastNode.textContent?.length || 0);
+            } else {
+              range.setStartAfter(lastNode);
+              range.setEndAfter(lastNode);
+            }
+          } else {
+            // If no content, place cursor at start of element
+            range.setStart(element, 0);
+            range.setEnd(element, 0);
+          }
+          
           selection.addRange(range);
         }
       }
@@ -1420,7 +1440,6 @@ export function CollaborativeEditor({
                           contentEditable
                           className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[16px]`}
                           style={{ textAlign: pageNumberAlignment as any }}
-                          dangerouslySetInnerHTML={{ __html: headerText }}
                           onInput={(e) => {
                             const target = e.target as HTMLDivElement;
                             setHeaderText(target.innerHTML);
@@ -1464,7 +1483,6 @@ export function CollaborativeEditor({
                           contentEditable
                           className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[16px]`}
                           style={{ textAlign: pageNumberAlignment as any }}
-                          dangerouslySetInnerHTML={{ __html: footerText }}
                           onInput={(e) => {
                             const target = e.target as HTMLDivElement;
                             setFooterText(target.innerHTML);
