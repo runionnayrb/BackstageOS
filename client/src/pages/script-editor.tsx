@@ -6,7 +6,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CollaborativeEditor } from "@/components/script-editor/collaborative-editor";
 import { VersionHistory } from "@/components/script-editor/version-history";
@@ -17,7 +16,9 @@ import {
   Users,
   GitBranch,
   MessageSquare,
-  Share
+  Share,
+  History,
+  FileClockIcon
 } from "lucide-react";
 
 interface ScriptEditorParams {
@@ -35,13 +36,14 @@ export default function ScriptEditor() {
   // Enhanced script state for Google Docs-like functionality
   const [scriptContent, setScriptContent] = useState("");
   const [scriptTitle, setScriptTitle] = useState("Untitled Script");
-  const [activeTab, setActiveTab] = useState("editor");
   const [collaborators, setCollaborators] = useState<any[]>([]);
   const [comments, setComments] = useState<any[]>([]);
   const [versions, setVersions] = useState<any[]>([]);
   const [changes, setChanges] = useState<any[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [showChangeLog, setShowChangeLog] = useState(false);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -221,7 +223,7 @@ export default function ScriptEditor() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
       {/* Header */}
       <div className="bg-white dark:bg-gray-800 border-b">
         <div className="container mx-auto px-4 py-3">
@@ -245,6 +247,24 @@ export default function ScriptEditor() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setShowVersionHistory(true)}
+                title="Version History"
+              >
+                <History className="h-4 w-4" />
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowChangeLog(true)}
+                title="Change Log"
+              >
+                <FileClockIcon className="h-4 w-4" />
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowShareDialog(true)}
               >
                 <Share className="h-4 w-4 mr-2" />
@@ -265,58 +285,22 @@ export default function ScriptEditor() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto p-6 max-w-7xl">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="editor">Editor</TabsTrigger>
-            <TabsTrigger value="versions">Version History</TabsTrigger>
-            <TabsTrigger value="changes">Change Log</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="editor" className="mt-6">
-            <CollaborativeEditor
-              content={scriptContent}
-              onChange={handleContentChange}
-              title={scriptTitle}
-              onTitleChange={handleTitleChange}
-              collaborators={collaborators}
-              comments={comments}
-              onAddComment={handleAddComment}
-              onSave={handleSave}
-              onExport={handleExport}
-              onImport={handleImport}
-              isLoading={saveScriptMutation.isPending}
-              className="w-full"
-            />
-          </TabsContent>
-
-          <TabsContent value="versions" className="mt-6">
-            <VersionHistory
-              versions={versions}
-              currentVersion={script?.version || "1.0"}
-              onRevert={handleVersionRevert}
-              onPreview={handleVersionPreview}
-              onPublish={handlePublish}
-              className="w-full"
-            />
-          </TabsContent>
-
-          <TabsContent value="changes" className="mt-6">
-            <ChangeLog
-              changes={changes}
-              onExport={() => {
-                toast({
-                  title: "Exporting changes",
-                  description: "Change log export is not yet implemented.",
-                });
-              }}
-              className="w-full"
-            />
-          </TabsContent>
-
-
-        </Tabs>
+      {/* Main Content - Full Page Editor */}
+      <div className="flex-1">
+        <CollaborativeEditor
+          content={scriptContent}
+          onChange={handleContentChange}
+          title={scriptTitle}
+          onTitleChange={handleTitleChange}
+          collaborators={collaborators}
+          comments={comments}
+          onAddComment={handleAddComment}
+          onSave={handleSave}
+          onExport={handleExport}
+          onImport={handleImport}
+          isLoading={saveScriptMutation.isPending}
+          className="w-full h-full"
+        />
       </div>
 
       {/* Share Dialog */}
@@ -349,6 +333,52 @@ export default function ScriptEditor() {
             <p className="text-sm text-muted-foreground">
               Anyone with this link can view the script. Editing permissions are controlled separately.
             </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Version History Modal */}
+      <Dialog open={showVersionHistory} onOpenChange={setShowVersionHistory}>
+        <DialogContent className="max-w-4xl max-h-[80vh] p-0">
+          <DialogHeader className="p-6 pb-4">
+            <DialogTitle>Version History</DialogTitle>
+            <DialogDescription>
+              View and manage script versions
+            </DialogDescription>
+          </DialogHeader>
+          <div className="px-6 pb-6 overflow-y-auto">
+            <VersionHistory
+              versions={versions}
+              currentVersion={script?.version || "1.0"}
+              onRevert={handleVersionRevert}
+              onPreview={handleVersionPreview}
+              onPublish={handlePublish}
+              className="w-full"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Log Modal */}
+      <Dialog open={showChangeLog} onOpenChange={setShowChangeLog}>
+        <DialogContent className="max-w-4xl max-h-[80vh] p-0">
+          <DialogHeader className="p-6 pb-4">
+            <DialogTitle>Change Log</DialogTitle>
+            <DialogDescription>
+              Track all changes made to the script
+            </DialogDescription>
+          </DialogHeader>
+          <div className="px-6 pb-6 overflow-y-auto">
+            <ChangeLog
+              changes={changes}
+              onExport={() => {
+                toast({
+                  title: "Exporting changes",
+                  description: "Change log export is not yet implemented.",
+                });
+              }}
+              className="w-full"
+            />
           </div>
         </DialogContent>
       </Dialog>
