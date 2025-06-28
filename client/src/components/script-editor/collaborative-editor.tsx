@@ -100,6 +100,12 @@ export function CollaborativeEditor({
   const [pageNumberFormat, setPageNumberFormat] = useState<'number' | 'page-x' | 'page-x-of-y'>('number');
   const [pageNumberPrefix, setPageNumberPrefix] = useState('');
   const [pageNumberSuffix, setPageNumberSuffix] = useState('');
+  const [headerMarginTop, setHeaderMarginTop] = useState('0.5');
+  const [headerMarginLeft, setHeaderMarginLeft] = useState('1');
+  const [headerMarginRight, setHeaderMarginRight] = useState('1');
+  const [footerMarginBottom, setFooterMarginBottom] = useState('0.5');
+  const [footerMarginLeft, setFooterMarginLeft] = useState('1');
+  const [footerMarginRight, setFooterMarginRight] = useState('1');
   const [hasContentChanges, setHasContentChanges] = useState(false);
   const [initialContent, setInitialContent] = useState('');
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
@@ -1118,6 +1124,104 @@ export function CollaborativeEditor({
                 </div>
               </div>
 
+              {/* Header & Footer Margins */}
+              <div className="space-y-4">
+                <h3 className="font-medium">Header & Footer Margins</h3>
+                <div className="space-y-4">
+                  {/* Header Margins */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">Header Margins (inches)</Label>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="header-margin-top" className="text-xs">Top</Label>
+                        <input
+                          id="header-margin-top"
+                          type="number"
+                          min="0.25"
+                          max="2"
+                          step="0.25"
+                          value={headerMarginTop}
+                          onChange={(e) => setHeaderMarginTop(e.target.value)}
+                          className="w-full px-3 py-1 border rounded text-sm"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="header-margin-left" className="text-xs">Left</Label>
+                        <input
+                          id="header-margin-left"
+                          type="number"
+                          min="0.25"
+                          max="3"
+                          step="0.25"
+                          value={headerMarginLeft}
+                          onChange={(e) => setHeaderMarginLeft(e.target.value)}
+                          className="w-full px-3 py-1 border rounded text-sm"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="header-margin-right" className="text-xs">Right</Label>
+                        <input
+                          id="header-margin-right"
+                          type="number"
+                          min="0.25"
+                          max="3"
+                          step="0.25"
+                          value={headerMarginRight}
+                          onChange={(e) => setHeaderMarginRight(e.target.value)}
+                          className="w-full px-3 py-1 border rounded text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer Margins */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">Footer Margins (inches)</Label>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="footer-margin-bottom" className="text-xs">Bottom</Label>
+                        <input
+                          id="footer-margin-bottom"
+                          type="number"
+                          min="0.25"
+                          max="2"
+                          step="0.25"
+                          value={footerMarginBottom}
+                          onChange={(e) => setFooterMarginBottom(e.target.value)}
+                          className="w-full px-3 py-1 border rounded text-sm"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="footer-margin-left" className="text-xs">Left</Label>
+                        <input
+                          id="footer-margin-left"
+                          type="number"
+                          min="0.25"
+                          max="3"
+                          step="0.25"
+                          value={footerMarginLeft}
+                          onChange={(e) => setFooterMarginLeft(e.target.value)}
+                          className="w-full px-3 py-1 border rounded text-sm"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="footer-margin-right" className="text-xs">Right</Label>
+                        <input
+                          id="footer-margin-right"
+                          type="number"
+                          min="0.25"
+                          max="3"
+                          step="0.25"
+                          value={footerMarginRight}
+                          onChange={(e) => setFooterMarginRight(e.target.value)}
+                          className="w-full px-3 py-1 border rounded text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Page Numbering */}
               <div className="space-y-4">
                 <h3 className="font-medium">Page Numbering</h3>
@@ -1548,8 +1652,13 @@ export function CollaborativeEditor({
                         <div
                           ref={editingRef}
                           contentEditable
-                          className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[16px]`}
-                          style={{ textAlign: pageNumberAlignment as any }}
+                          className={`absolute text-xs text-gray-600 bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[16px]`}
+                          style={{ 
+                            textAlign: pageNumberAlignment as any,
+                            top: `${headerMarginTop}in`,
+                            left: `${headerMarginLeft}in`,
+                            right: `${headerMarginRight}in`
+                          }}
                           onInput={(e) => {
                             const target = e.target as HTMLDivElement;
                             const content = target.innerHTML;
@@ -1574,8 +1683,15 @@ export function CollaborativeEditor({
                         />
                       ) : (
                         <div 
-                          className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors`}
-                          style={{ textAlign: pageNumberAlignment as any }}
+                          className={`absolute text-xs text-gray-600 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors`}
+                          style={{ 
+                            textAlign: pageNumberAlignment as any,
+                            top: `${headerMarginTop}in`,
+                            left: `${headerMarginLeft}in`,
+                            right: `${headerMarginRight}in`,
+                            paddingLeft: '4px',
+                            paddingRight: '4px'
+                          }}
                           onClick={(e) => handleHeaderFooterClick('header', pageNum, e)}
                           dangerouslySetInnerHTML={{
                             __html: headerText && headerText.trim() ? processRichContent(headerText, pageNum) : '<span class="text-gray-400 italic">Click to edit header</span>'
@@ -1593,8 +1709,13 @@ export function CollaborativeEditor({
                         <div
                           ref={editingRef}
                           contentEditable
-                          className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[16px]`}
-                          style={{ textAlign: pageNumberAlignment as any }}
+                          className={`absolute text-xs text-gray-600 bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[16px]`}
+                          style={{ 
+                            textAlign: pageNumberAlignment as any,
+                            bottom: `${footerMarginBottom}in`,
+                            left: `${footerMarginLeft}in`,
+                            right: `${footerMarginRight}in`
+                          }}
                           onInput={(e) => {
                             const target = e.target as HTMLDivElement;
                             const content = target.innerHTML;
@@ -1619,8 +1740,15 @@ export function CollaborativeEditor({
                         />
                       ) : (
                         <div 
-                          className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors`}
-                          style={{ textAlign: pageNumberAlignment as any }}
+                          className={`absolute text-xs text-gray-600 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors`}
+                          style={{ 
+                            textAlign: pageNumberAlignment as any,
+                            bottom: `${footerMarginBottom}in`,
+                            left: `${footerMarginLeft}in`,
+                            right: `${footerMarginRight}in`,
+                            paddingLeft: '4px',
+                            paddingRight: '4px'
+                          }}
                           onClick={(e) => handleHeaderFooterClick('footer', pageNum, e)}
                           dangerouslySetInnerHTML={{
                             __html: footerText && footerText.trim() ? processRichContent(footerText, pageNum) : '<span class="text-gray-400 italic">Click to edit footer</span>'
