@@ -1343,7 +1343,14 @@ export function CollaborativeEditor({
                           style={{ textAlign: pageNumberAlignment as any }}
                           value={headerText.replace(/<[^>]*>/g, '')} // Strip HTML for input
                           onChange={(e) => setHeaderText(e.target.value)}
-                          onBlur={closeInlineEditor}
+                          onBlur={(e) => {
+                            // Don't close if clicking on toolbar
+                            const relatedTarget = e.relatedTarget as HTMLElement;
+                            if (relatedTarget && relatedTarget.closest('[data-toolbar="true"]')) {
+                              return;
+                            }
+                            closeInlineEditor();
+                          }}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               e.preventDefault();
@@ -1377,7 +1384,14 @@ export function CollaborativeEditor({
                           style={{ textAlign: pageNumberAlignment as any }}
                           value={footerText.replace(/<[^>]*>/g, '')} // Strip HTML for input
                           onChange={(e) => setFooterText(e.target.value)}
-                          onBlur={closeInlineEditor}
+                          onBlur={(e) => {
+                            // Don't close if clicking on toolbar
+                            const relatedTarget = e.relatedTarget as HTMLElement;
+                            if (relatedTarget && relatedTarget.closest('[data-toolbar="true"]')) {
+                              return;
+                            }
+                            closeInlineEditor();
+                          }}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
                               e.preventDefault();
@@ -1509,12 +1523,21 @@ export function CollaborativeEditor({
       </Dialog>
 
       {/* Floating Formatting Toolbar */}
-      {showToolbar && editingElement && (
+      {editingElement && (
         <div 
-          className="fixed z-50 bg-white dark:bg-gray-800 border rounded-md shadow-lg px-1 py-1 flex items-center gap-0.5"
+          data-toolbar="true"
+          className="fixed z-[9999] bg-white dark:bg-gray-800 border rounded-md shadow-lg px-1 py-1 flex items-center gap-0.5"
           style={{
             left: `${toolbarPosition.x}px`,
-            top: `${toolbarPosition.y}px`,
+            top: `${toolbarPosition.y - 60}px`,
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
           }}
         >
           {/* Bold */}
@@ -1566,7 +1589,7 @@ export function CollaborativeEditor({
             <SelectTrigger className="h-7 w-16 px-2 text-xs">
               <SelectValue placeholder="Vars" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[10000]">
               <SelectItem value="showName">Show Name</SelectItem>
               <SelectItem value="date">Date</SelectItem>
               <SelectItem value="stageManager">Stage Manager</SelectItem>
@@ -1574,18 +1597,6 @@ export function CollaborativeEditor({
               <SelectItem value="totalPages">Total Pages</SelectItem>
             </SelectContent>
           </Select>
-          
-          <div className="w-px h-5 bg-border mx-0.5" />
-          
-          {/* Done */}
-          <Button
-            variant="default"
-            size="sm"
-            className="h-7 px-2 text-xs"
-            onClick={closeInlineEditor}
-          >
-            Done
-          </Button>
         </div>
       )}
     </div>
