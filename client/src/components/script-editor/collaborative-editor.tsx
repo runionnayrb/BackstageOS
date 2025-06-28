@@ -88,6 +88,11 @@ export function CollaborativeEditor({
   const [headerText, setHeaderText] = useState('');
   const [footerText, setFooterText] = useState('');
   const [showPageSetup, setShowPageSetup] = useState(false);
+  const [pageNumberPosition, setPageNumberPosition] = useState<'header' | 'footer' | 'both'>('header');
+  const [pageNumberAlignment, setPageNumberAlignment] = useState<'left' | 'center' | 'right'>('right');
+  const [pageNumberFormat, setPageNumberFormat] = useState<'number' | 'page-x' | 'page-x-of-y'>('number');
+  const [pageNumberPrefix, setPageNumberPrefix] = useState('');
+  const [pageNumberSuffix, setPageNumberSuffix] = useState('');
 
   // Format text selection
   const formatText = useCallback((command: string, value?: string) => {
@@ -253,6 +258,33 @@ export function CollaborativeEditor({
     
     return numbers;
   }, [isPublished, publishedPageCount]);
+
+  // Function to format page numbers based on settings
+  const formatPageNumber = useCallback((pageNum: string, currentIndex: number, totalPages: number) => {
+    let formatted = '';
+    
+    if (pageNumberPrefix) {
+      formatted += pageNumberPrefix + ' ';
+    }
+    
+    switch (pageNumberFormat) {
+      case 'number':
+        formatted += pageNum;
+        break;
+      case 'page-x':
+        formatted += `Page ${pageNum}`;
+        break;
+      case 'page-x-of-y':
+        formatted += `Page ${pageNum} of ${totalPages}`;
+        break;
+    }
+    
+    if (pageNumberSuffix) {
+      formatted += ' ' + pageNumberSuffix;
+    }
+    
+    return formatted;
+  }, [pageNumberFormat, pageNumberPrefix, pageNumberSuffix]);
 
   // Function to renumber all pages with fresh numbering
   const renumberScript = useCallback(() => {
@@ -678,29 +710,108 @@ export function CollaborativeEditor({
               {/* Page Numbering */}
               <div className="space-y-4">
                 <h3 className="font-medium">Page Numbering</h3>
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      variant={isPublished ? "default" : "outline"}
-                      onClick={publishScript}
-                      disabled={isPublished}
-                      className="text-sm"
+                <div className="space-y-4">
+                  {/* Position */}
+                  <div className="space-y-2">
+                    <Label>Position</Label>
+                    <select 
+                      value={pageNumberPosition}
+                      onChange={(e) => setPageNumberPosition(e.target.value as any)}
+                      className="w-full px-3 py-1 border rounded text-sm"
                     >
-                      {isPublished ? "✓ Published" : "Publish Script"}
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={renumberScript}
-                      className="text-sm"
-                    >
-                      Renumber All Pages
-                    </Button>
+                      <option value="header">Header only</option>
+                      <option value="footer">Footer only</option>
+                      <option value="both">Both header and footer</option>
+                    </select>
                   </div>
-                  <p className="text-xs text-gray-600">
-                    Publishing locks page numbers. New pages added after publishing get letter suffixes (1A, 1B, etc.).
-                  </p>
+
+                  {/* Alignment */}
+                  <div className="space-y-2">
+                    <Label>Alignment</Label>
+                    <select 
+                      value={pageNumberAlignment}
+                      onChange={(e) => setPageNumberAlignment(e.target.value as any)}
+                      className="w-full px-3 py-1 border rounded text-sm"
+                    >
+                      <option value="left">Left</option>
+                      <option value="center">Center</option>
+                      <option value="right">Right</option>
+                    </select>
+                  </div>
+
+                  {/* Format */}
+                  <div className="space-y-2">
+                    <Label>Format</Label>
+                    <select 
+                      value={pageNumberFormat}
+                      onChange={(e) => setPageNumberFormat(e.target.value as any)}
+                      className="w-full px-3 py-1 border rounded text-sm"
+                    >
+                      <option value="number">1, 2, 3...</option>
+                      <option value="page-x">Page 1, Page 2...</option>
+                      <option value="page-x-of-y">Page 1 of 5, Page 2 of 5...</option>
+                    </select>
+                  </div>
+
+                  {/* Prefix and Suffix */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="page-prefix">Prefix</Label>
+                      <input 
+                        id="page-prefix"
+                        type="text"
+                        placeholder="e.g. Draft"
+                        value={pageNumberPrefix}
+                        onChange={(e) => setPageNumberPrefix(e.target.value)}
+                        className="w-full px-3 py-1 border rounded text-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="page-suffix">Suffix</Label>
+                      <input 
+                        id="page-suffix"
+                        type="text"
+                        placeholder="e.g. Rev 1"
+                        value={pageNumberSuffix}
+                        onChange={(e) => setPageNumberSuffix(e.target.value)}
+                        className="w-full px-3 py-1 border rounded text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Preview */}
+                  <div className="bg-gray-50 p-3 rounded text-sm">
+                    <Label className="text-xs text-gray-600">Preview:</Label>
+                    <div className="mt-1 font-mono">
+                      {formatPageNumber(pageNumbers[0] || '1', 0, pageCount)}
+                    </div>
+                  </div>
+
+                  {/* Publishing Controls */}
+                  <div className="pt-2 border-t">
+                    <div className="flex gap-2 mb-2">
+                      <Button 
+                        size="sm" 
+                        variant={isPublished ? "default" : "outline"}
+                        onClick={publishScript}
+                        disabled={isPublished}
+                        className="text-sm"
+                      >
+                        {isPublished ? "✓ Published" : "Publish Script"}
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={renumberScript}
+                        className="text-sm"
+                      >
+                        Renumber All Pages
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      Publishing locks page numbers. New pages added after publishing get letter suffixes (1A, 1B, etc.).
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -1002,16 +1113,26 @@ export function CollaborativeEditor({
                   boxSizing: 'border-box'
                 }}>
                   {/* Header */}
-                  {showHeaders && (headerText || pageNumbers[pageNum - 1]) && (
-                    <div className="absolute top-2 left-0 right-0 text-center text-xs text-gray-600 pointer-events-none">
-                      {headerText} {headerText && pageNumbers[pageNum - 1] ? '- ' : ''}{pageNumbers[pageNum - 1]}
+                  {showHeaders && (
+                    <div className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 pointer-events-none px-4`}>
+                      {headerText && (pageNumberPosition === 'header' || pageNumberPosition === 'both') 
+                        ? `${headerText} - ${formatPageNumber(pageNumbers[pageNum - 1] || pageNum.toString(), pageNum - 1, pageCount)}`
+                        : pageNumberPosition === 'header' || pageNumberPosition === 'both'
+                        ? formatPageNumber(pageNumbers[pageNum - 1] || pageNum.toString(), pageNum - 1, pageCount)
+                        : headerText || ''
+                      }
                     </div>
                   )}
                   
                   {/* Footer */}
-                  {showFooters && (footerText || pageNumbers[pageNum - 1]) && (
-                    <div className="absolute bottom-2 left-0 right-0 text-center text-xs text-gray-600 pointer-events-none">
-                      {footerText} {footerText && pageNumbers[pageNum - 1] ? '- ' : ''}{pageNumbers[pageNum - 1]}
+                  {showFooters && (
+                    <div className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 pointer-events-none px-4`}>
+                      {footerText && (pageNumberPosition === 'footer' || pageNumberPosition === 'both') 
+                        ? `${footerText} - ${formatPageNumber(pageNumbers[pageNum - 1] || pageNum.toString(), pageNum - 1, pageCount)}`
+                        : pageNumberPosition === 'footer' || pageNumberPosition === 'both'
+                        ? formatPageNumber(pageNumbers[pageNum - 1] || pageNum.toString(), pageNum - 1, pageCount)
+                        : footerText || ''
+                      }
                     </div>
                   )}
                   {isFirstPage ? (
