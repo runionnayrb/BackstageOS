@@ -315,10 +315,10 @@ export function CollaborativeEditor({
     if (!editorRef.current) return;
 
     const page1 = editorRef.current;
-    const allText = page1.innerText || '';
+    const allContent = page1.innerHTML || '';
     
     // If no content, show only one page
-    if (!allText.trim()) {
+    if (!allContent.trim()) {
       setPageCount(1);
       setPageNumbers(['1']);
       return;
@@ -329,28 +329,32 @@ export function CollaborativeEditor({
     const page1MaxHeight = page1.clientHeight;
 
     if (page1Height > page1MaxHeight) {
-      const lines = allText.split('\n');
+      // Split content by HTML elements (divs) instead of plain text lines
+      const htmlLines = allContent.split(/(<div[^>]*>.*?<\/div>)/g).filter(line => line.trim());
       
-      // Estimate how many lines fit per page (rough calculation)
-      const lineHeight = 18; // 12pt * 1.5 line height ≈ 18px
+      // Estimate how many elements fit per page based on average element height
+      const averageElementHeight = 20; // Approximate height per formatted element
       const pageContentHeight = page1MaxHeight - 32; // Account for padding
-      const linesPerPage = Math.floor(pageContentHeight / lineHeight);
+      const elementsPerPage = Math.floor(pageContentHeight / averageElementHeight);
       
       // Calculate how many pages we need
-      const totalPages = Math.ceil(lines.length / linesPerPage);
+      const totalPages = Math.ceil(htmlLines.length / elementsPerPage);
       const newPageCount = Math.min(totalPages, 10); // Cap at 10 pages for performance
       
       setPageCount(newPageCount);
       setPageNumbers(generatePageNumbers(newPageCount));
       
-      // Distribute content to additional pages
-      for (let pageNum = 2; pageNum <= newPageCount; pageNum++) {
-        const pageContainer = document.getElementById(`page-${pageNum}-content`);
+      // Clear page 1 and redistribute all content
+      page1.innerHTML = '';
+      
+      // Distribute HTML content to all pages including page 1
+      for (let pageNum = 1; pageNum <= newPageCount; pageNum++) {
+        const pageContainer = pageNum === 1 ? page1 : document.getElementById(`page-${pageNum}-content`);
         if (pageContainer) {
-          const startLine = (pageNum - 1) * linesPerPage;
-          const endLine = pageNum * linesPerPage;
-          const pageLines = lines.slice(startLine, endLine);
-          pageContainer.innerHTML = pageLines.join('\n');
+          const startElement = (pageNum - 1) * elementsPerPage;
+          const endElement = pageNum * elementsPerPage;
+          const pageElements = htmlLines.slice(startElement, endElement);
+          pageContainer.innerHTML = pageElements.join('');
         }
       }
     } else {
