@@ -6,7 +6,7 @@ import {
   Palette, Type, Square, Minus, ChevronDown, Grid3X3, Clipboard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -1287,7 +1287,6 @@ export default function ContactSheet() {
                         </div>
                       ))}
                     </div>
-                    </div>
                   </div>
                 );
               })}
@@ -1642,6 +1641,8 @@ export default function ContactSheet() {
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   );
 }
