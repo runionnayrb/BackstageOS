@@ -150,18 +150,13 @@ export default function Reports() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-8">
               {reports.map((report: any) => (
-                <div key={report.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900">{report.title}</h3>
-                      <p className="text-sm text-gray-500">
-                        {formatTitle(report.type)} Report • {formatDate(report.date)}
-                      </p>
-                    </div>
-                    <span className="text-gray-400 text-lg">→</span>
-                  </div>
+                <div key={report.id} className="cursor-pointer hover:opacity-75 transition-opacity">
+                  <h3 className="text-xl font-medium text-gray-900">{report.title}</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {formatTitle(report.type)} Report • {formatDate(report.date)}
+                  </p>
                 </div>
               ))}
             </div>

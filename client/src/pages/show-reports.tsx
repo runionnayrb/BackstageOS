@@ -99,19 +99,16 @@ export default function ShowReports() {
             </p>
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-8">
             {reports.map((report: any) => (
               <div 
                 key={report.id} 
-                className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                className="cursor-pointer hover:opacity-75 transition-opacity"
                 onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/${report.id}`)}
               >
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    {reportTypeName.slice(0, -1)} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
-                  </h3>
-                  <span className="text-gray-400 text-lg">→</span>
-                </div>
+                <h3 className="text-xl font-medium text-gray-900">
+                  {reportTypeName.slice(0, -1)} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
+                </h3>
               </div>
             ))}
           </div>

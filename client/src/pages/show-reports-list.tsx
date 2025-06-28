@@ -88,17 +88,14 @@ export default function ShowReportsList() {
           </div>
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-8">
           {reportTypes.map((reportType) => (
             <div
               key={reportType.type}
-              className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+              className="cursor-pointer hover:opacity-75 transition-opacity"
               onClick={() => setLocation(`/shows/${projectId}/reports/${reportType.type}`)}
             >
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold">{reportType.name}</h3>
-                <span className="text-muted-foreground">→</span>
-              </div>
+              <h3 className="text-xl font-medium text-gray-900">{reportType.name}</h3>
             </div>
           ))}
         </div>
