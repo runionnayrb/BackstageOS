@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Edit, X, Mail, Phone, User, FileText } from "lucide-react";
+import { Edit, X, Mail, Phone, FileText } from "lucide-react";
 
 // Phone number formatting function
 const formatPhoneNumber = (value: string): string => {
@@ -52,8 +52,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
+          <CardTitle>
             {contact.firstName} {contact.lastName}
           </CardTitle>
           {contact.role && (
