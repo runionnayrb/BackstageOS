@@ -102,7 +102,7 @@ export function CollaborativeEditor({
   const [toolbarPosition, setToolbarPosition] = useState({ x: 0, y: 0 });
   const [showToolbar, setShowToolbar] = useState(false);
   const [showVariablesPopover, setShowVariablesPopover] = useState(false);
-  const editingRef = useRef<HTMLDivElement>(null);
+  const editingRef = useRef<HTMLInputElement>(null);
 
   // Track content changes
   const handleContentChange = useCallback((newContent: string) => {
@@ -450,46 +450,28 @@ export function CollaborativeEditor({
   // Insert variable into inline editor
   const insertVariableInline = useCallback((variable: string) => {
     if (editingRef.current) {
+      const input = editingRef.current;
       const variableText = `{{${variable}}}`;
       
-      // Focus the editing element first
-      editingRef.current.focus();
+      // Get current cursor position
+      const cursorPosition = input.selectionStart || 0;
+      const currentValue = input.value || '';
       
-      // Get current cursor position or append to end
-      const selection = window.getSelection();
-      if (selection && selection.rangeCount > 0) {
-        const range = selection.getRangeAt(0);
-        range.deleteContents();
-        const textNode = document.createTextNode(variableText);
-        range.insertNode(textNode);
-        
-        // Move cursor after the inserted text
-        range.setStartAfter(textNode);
-        range.setEndAfter(textNode);
-        selection.removeAllRanges();
-        selection.addRange(range);
-      } else {
-        // If no selection, append to current content
-        const currentContent = editingRef.current.textContent || '';
-        editingRef.current.textContent = currentContent + variableText;
-        
-        // Move cursor to end
-        const newRange = document.createRange();
-        newRange.selectNodeContents(editingRef.current);
-        newRange.collapse(false);
-        if (selection) {
-          selection.removeAllRanges();
-          selection.addRange(newRange);
-        }
-      }
+      // Insert variable at cursor position
+      const newValue = currentValue.slice(0, cursorPosition) + variableText + currentValue.slice(cursorPosition);
       
-      // Update the state with new content
-      const content = editingRef.current.innerHTML;
+      // Update the input value and state
+      input.value = newValue;
       if (editingElement?.type === 'header') {
-        setHeaderText(content);
+        setHeaderText(newValue);
       } else if (editingElement?.type === 'footer') {
-        setFooterText(content);
+        setFooterText(newValue);
       }
+      
+      // Move cursor after the inserted variable
+      const newCursorPosition = cursorPosition + variableText.length;
+      input.setSelectionRange(newCursorPosition, newCursorPosition);
+      input.focus();
     }
   }, [editingElement]);
 
@@ -1334,64 +1316,70 @@ export function CollaborativeEditor({
                 }}>
                   {/* Header */}
                   {showHeaders && (
-                    <div 
-                      ref={editingElement?.type === 'header' && editingElement?.pageNum === pageNum ? editingRef : undefined}
-                      className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors ${
-                        editingElement?.type === 'header' && editingElement?.pageNum === pageNum ? 'outline-2 outline-blue-500 outline-dashed' : ''
-                      }`}
-                      style={{ direction: 'ltr', textAlign: pageNumberAlignment as any }}
-                      contentEditable={editingElement?.type === 'header' && editingElement?.pageNum === pageNum}
-                      onClick={(e) => handleHeaderFooterClick('header', pageNum, e)}
-                      onBlur={closeInlineEditor}
-                      onInput={(e) => {
-                        if (editingElement?.type === 'header') {
-                          const content = (e.target as HTMLElement).innerHTML;
-                          setHeaderText(content);
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        // Prevent issues with cursor positioning
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                        }
-                      }}
-                      dangerouslySetInnerHTML={{
-                        __html: processRichContent(headerText, pageNum) || '<span class="text-gray-400 italic">Click to edit header</span>'
-                      }}
-                      title="Click to edit header"
-                      suppressContentEditableWarning={true}
-                    />
+                    <>
+                      {editingElement?.type === 'header' && editingElement?.pageNum === pageNum ? (
+                        <input
+                          ref={editingRef}
+                          type="text"
+                          className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 bg-transparent border-none outline-2 outline-blue-500 outline-dashed`}
+                          style={{ textAlign: pageNumberAlignment as any }}
+                          value={headerText.replace(/<[^>]*>/g, '')} // Strip HTML for input
+                          onChange={(e) => setHeaderText(e.target.value)}
+                          onBlur={closeInlineEditor}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              closeInlineEditor();
+                            }
+                          }}
+                          autoFocus
+                        />
+                      ) : (
+                        <div 
+                          className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors`}
+                          style={{ textAlign: pageNumberAlignment as any }}
+                          onClick={(e) => handleHeaderFooterClick('header', pageNum, e)}
+                          dangerouslySetInnerHTML={{
+                            __html: processRichContent(headerText, pageNum) || '<span class="text-gray-400 italic">Click to edit header</span>'
+                          }}
+                          title="Click to edit header"
+                        />
+                      )}
+                    </>
                   )}
                   
                   {/* Footer */}
                   {showFooters && (
-                    <div 
-                      ref={editingElement?.type === 'footer' && editingElement?.pageNum === pageNum ? editingRef : undefined}
-                      className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors ${
-                        editingElement?.type === 'footer' && editingElement?.pageNum === pageNum ? 'outline-2 outline-blue-500 outline-dashed' : ''
-                      }`}
-                      style={{ direction: 'ltr', textAlign: pageNumberAlignment as any }}
-                      contentEditable={editingElement?.type === 'footer' && editingElement?.pageNum === pageNum}
-                      onClick={(e) => handleHeaderFooterClick('footer', pageNum, e)}
-                      onBlur={closeInlineEditor}
-                      onInput={(e) => {
-                        if (editingElement?.type === 'footer') {
-                          const content = (e.target as HTMLElement).innerHTML;
-                          setFooterText(content);
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        // Prevent issues with cursor positioning
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                        }
-                      }}
-                      dangerouslySetInnerHTML={{
-                        __html: processRichContent(footerText, pageNum) || '<span class="text-gray-400 italic">Click to edit footer</span>'
-                      }}
-                      title="Click to edit footer"
-                      suppressContentEditableWarning={true}
-                    />
+                    <>
+                      {editingElement?.type === 'footer' && editingElement?.pageNum === pageNum ? (
+                        <input
+                          ref={editingRef}
+                          type="text"
+                          className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 bg-transparent border-none outline-2 outline-blue-500 outline-dashed`}
+                          style={{ textAlign: pageNumberAlignment as any }}
+                          value={footerText.replace(/<[^>]*>/g, '')} // Strip HTML for input
+                          onChange={(e) => setFooterText(e.target.value)}
+                          onBlur={closeInlineEditor}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              closeInlineEditor();
+                            }
+                          }}
+                          autoFocus
+                        />
+                      ) : (
+                        <div 
+                          className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors`}
+                          style={{ textAlign: pageNumberAlignment as any }}
+                          onClick={(e) => handleHeaderFooterClick('footer', pageNum, e)}
+                          dangerouslySetInnerHTML={{
+                            __html: processRichContent(footerText, pageNum) || '<span class="text-gray-400 italic">Click to edit footer</span>'
+                          }}
+                          title="Click to edit footer"
+                        />
+                      )}
+                    </>
                   )}
                   <div
                     ref={isFirstPage ? editorRef : undefined}
@@ -1547,8 +1535,11 @@ export function CollaborativeEditor({
           <div className="w-px h-5 bg-border mx-0.5" />
           
           {/* Variables Select */}
-          <Select onValueChange={(value) => insertVariableInline(value)}>
-            <SelectTrigger className="h-7 w-14 px-2 text-xs">
+          <Select onValueChange={(value) => {
+            console.log('Variable selected:', value);
+            insertVariableInline(value);
+          }}>
+            <SelectTrigger className="h-7 w-16 px-2 text-xs">
               <SelectValue placeholder="Vars" />
             </SelectTrigger>
             <SelectContent>
