@@ -108,7 +108,7 @@ export const showDocuments = pgTable("show_documents", {
   name: varchar("name").notNull(),
   type: varchar("type").notNull(), // props_list, costume_tracking, scene_breakdown, stage_plot, etc.
   content: jsonb("content").notNull(),
-  version: integer("version").default(1),
+  version: varchar("version").default("1.0"),
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

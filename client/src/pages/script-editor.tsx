@@ -75,33 +75,23 @@ export default function ScriptEditor() {
     enabled: !!projectId && !!user,
   });
 
-  const { data: scriptVersions, isLoading: versionsLoading } = useQuery({
-    queryKey: ["/api/projects", projectId, "script", "versions"],
-    enabled: !!projectId && !!user,
-  });
-
-  const { data: scriptComments, isLoading: commentsLoading } = useQuery({
-    queryKey: ["/api/projects", projectId, "script", "comments"],
-    enabled: !!projectId && !!user,
-  });
-
-  const { data: scriptChanges, isLoading: changesLoading } = useQuery({
-    queryKey: ["/api/projects", projectId, "script", "changes"],
-    enabled: !!projectId && !!user,
-  });
+  // Placeholder data for now - will be connected to backend later
+  const scriptVersions: any[] = [];
+  const scriptComments: any[] = [];
+  const scriptChanges: any[] = [];
 
   // Initialize script data
   useEffect(() => {
     if (script) {
-      setScriptTitle(script.title || "Untitled Script");
+      setScriptTitle(script.name || "Untitled Script");
       setScriptContent(script.content || "");
-      setCollaborators(script.collaborators || []);
+      setCollaborators([]);
       // Only set comments if they don't exist yet
       if (comments.length === 0) {
-        setComments(scriptComments || []);
+        setComments([]);
       }
-      setVersions(scriptVersions || []);
-      setChanges(scriptChanges || []);
+      setVersions([]);
+      setChanges([]);
     } else {
       // Create sample version data when no script data exists
       const sampleVersions = [
@@ -212,14 +202,17 @@ export default function ScriptEditor() {
   // Publish script mutation
   const publishScriptMutation = useMutation({
     mutationFn: async (data: { versionType: 'major' | 'minor' }) => {
-      await apiRequest("POST", `/api/projects/${projectId}/script/publish`, data);
+      const response = await apiRequest("POST", `/api/projects/${projectId}/script/publish`, data);
+      return { ...response, versionType: data.versionType };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      const versionTypeText = data.versionType === 'major' ? 'Major' : 'Minor';
       toast({
-        title: "Script published",
-        description: "Your script version has been published.",
+        title: `${versionTypeText} Version Published!`,
+        description: `Your ${versionTypeText.toLowerCase()} version has been successfully published.`,
       });
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "script"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "script", "versions"] });
       setIsPublishing(false);
     },
     onError: () => {

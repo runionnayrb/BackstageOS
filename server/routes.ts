@@ -1096,6 +1096,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get script data endpoint
+  app.get("/api/projects/:id/script", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get script document
+      const documents = await storage.getShowDocumentsByProjectId(projectId);
+      const script = documents.find(doc => doc.type === 'script');
+      
+      if (!script) {
+        // Return default script data if none exists
+        return res.json({
+          title: "Untitled Script",
+          content: "",
+          version: "1.0",
+          collaborators: [],
+          type: "script"
+        });
+      }
+
+      res.json(script);
+    } catch (error) {
+      console.error("Error fetching script:", error);
+      res.status(500).json({ message: "Failed to fetch script" });
+    }
+  });
+
+  // Save script endpoint
+  app.post("/api/projects/:id/script", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { title, content } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get existing script or create new one
+      const documents = await storage.getShowDocumentsByProjectId(projectId);
+      let script = documents.find(doc => doc.type === 'script');
+      
+      if (!script) {
+        // Create new script
+        script = await storage.createShowDocument({
+          projectId,
+          name: title || "Untitled Script",
+          content: content || "",
+          type: "script",
+          version: "1.0",
+          createdBy: req.user.id.toString()
+        });
+      } else {
+        // Update existing script
+        script = await storage.updateShowDocument(script.id, {
+          name: title || script.name,
+          content: content || script.content
+        });
+      }
+
+      res.json(script);
+    } catch (error) {
+      console.error("Error saving script:", error);
+      res.status(500).json({ message: "Failed to save script" });
+    }
+  });
+
+  // Script publishing endpoint
+  app.post("/api/projects/:id/script/publish", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { versionType } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get current script or create one if it doesn't exist
+      let script = await storage.getShowDocumentsByProjectId(projectId);
+      let currentScript = script.find(doc => doc.type === 'script');
+      
+      if (!currentScript) {
+        // Create initial script document
+        currentScript = await storage.createShowDocument({
+          projectId,
+          name: "Untitled Script",
+          content: "",
+          type: "script",
+          version: "1.0",
+          createdBy: req.user.id.toString()
+        });
+      }
+
+      // Calculate new version number
+      const currentVersion = currentScript.version || "1.0";
+      let newVersion: string;
+      
+      if (versionType === 'major') {
+        // Major version: increment the major number (1.x -> 2.0, 2.x -> 3.0)
+        const majorNumber = parseInt(currentVersion.split('.')[0]);
+        newVersion = `${majorNumber + 1}.0`;
+      } else {
+        // Minor version: increment the minor number (1.0 -> 1.1, 1.5 -> 1.6)
+        const parts = currentVersion.split('.');
+        const majorNumber = parseInt(parts[0]);
+        const minorNumber = parts[1] ? parseInt(parts[1]) : 0;
+        newVersion = `${majorNumber}.${minorNumber + 1}`;
+      }
+
+      // Update the script with new version
+      const updatedScript = await storage.updateShowDocument(currentScript.id, {
+        version: newVersion,
+        updatedAt: new Date()
+      });
+
+      res.json({ 
+        message: "Script version published successfully",
+        version: newVersion,
+        versionType,
+        script: updatedScript
+      });
+    } catch (error) {
+      console.error("Error publishing script version:", error);
+      res.status(500).json({ message: "Failed to publish script version" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
