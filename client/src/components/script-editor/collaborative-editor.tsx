@@ -477,19 +477,19 @@ export function CollaborativeEditor({
 
   // Close inline editor
   const closeInlineEditor = useCallback(() => {
-    setEditingElement(null);
-    setShowToolbar(false);
-    setShowVariablesPopover(false);
-    
-    // Save final content
-    if (editingRef.current) {
-      const content = editingRef.current.innerHTML;
-      if (editingElement?.type === 'header') {
+    // Save final content before clearing editing state
+    if (editingRef.current && editingElement) {
+      const content = editingRef.current.value;
+      if (editingElement.type === 'header') {
         setHeaderText(content);
-      } else if (editingElement?.type === 'footer') {
+      } else if (editingElement.type === 'footer') {
         setFooterText(content);
       }
     }
+    
+    setEditingElement(null);
+    setShowToolbar(false);
+    setShowVariablesPopover(false);
   }, [editingElement]);
 
   // Function to renumber all pages with fresh numbering
@@ -1340,7 +1340,7 @@ export function CollaborativeEditor({
                           style={{ textAlign: pageNumberAlignment as any }}
                           onClick={(e) => handleHeaderFooterClick('header', pageNum, e)}
                           dangerouslySetInnerHTML={{
-                            __html: processRichContent(headerText, pageNum) || '<span class="text-gray-400 italic">Click to edit header</span>'
+                            __html: headerText ? processRichContent(headerText, pageNum) : '<span class="text-gray-400 italic">Click to edit header</span>'
                           }}
                           title="Click to edit header"
                         />
@@ -1374,7 +1374,7 @@ export function CollaborativeEditor({
                           style={{ textAlign: pageNumberAlignment as any }}
                           onClick={(e) => handleHeaderFooterClick('footer', pageNum, e)}
                           dangerouslySetInnerHTML={{
-                            __html: processRichContent(footerText, pageNum) || '<span class="text-gray-400 italic">Click to edit footer</span>'
+                            __html: footerText ? processRichContent(footerText, pageNum) : '<span class="text-gray-400 italic">Click to edit footer</span>'
                           }}
                           title="Click to edit footer"
                         />
