@@ -58,8 +58,6 @@ export default function ContactSheet() {
     { id: "role", label: "Position", width: 150, visible: true },
     { id: "email", label: "Email", width: 200, visible: true },
     { id: "phone", label: "Phone", width: 150, visible: true },
-    { id: "emergencyContact", label: "Emergency Contact", width: 200, visible: false },
-    { id: "allergies", label: "Allergies & Dietary", width: 200, visible: false },
   ];
 
   const [columns, setColumns] = useState<Column[]>(defaultColumns);
@@ -226,12 +224,6 @@ export default function ContactSheet() {
         return contact.email || "";
       case "phone":
         return contact.phone || "";
-      case "emergencyContact":
-        return contact.emergencyContactName 
-          ? `${contact.emergencyContactName} (${contact.emergencyContactPhone || 'No phone'})`
-          : "";
-      case "allergies":
-        return contact.allergies || "";
       default:
         return "";
     }
