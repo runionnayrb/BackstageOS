@@ -749,22 +749,28 @@ export default function ContactSheet() {
                   <div className="border-l pl-3 ml-3">
                     <div className="text-xs font-medium text-gray-700 mb-1">Alternate Rows</div>
                     <div className="flex items-center gap-2">
-                      {/* Toggle */}
-                      <button
-                        onClick={() => setAlternateRows(!alternateRows)}
-                        className={`px-2 py-1 text-xs rounded ${
-                          alternateRows ? 'bg-blue-500 text-white' : 'bg-gray-100'
-                        }`}
-                        title="Toggle Alternate Row Colors"
-                      >
-                        {alternateRows ? 'ON' : 'OFF'}
-                      </button>
+                      {/* Toggle Switch */}
+                      <div className="flex flex-col items-center gap-1">
+                        <div 
+                          onClick={() => setAlternateRows(!alternateRows)}
+                          className={`relative inline-flex h-5 w-9 items-center rounded-full cursor-pointer transition-colors ${
+                            alternateRows ? 'bg-blue-500' : 'bg-gray-300'
+                          }`}
+                          title="Toggle Alternate Row Colors"
+                        >
+                          <span
+                            className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                              alternateRows ? 'translate-x-5' : 'translate-x-1'
+                            }`}
+                          />
+                        </div>
+                      </div>
 
                       {/* Color Pickers */}
                       {alternateRows && (
                         <>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-gray-500">1st:</span>
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-xs text-gray-500">1st</span>
                             <input
                               type="color"
                               value={firstRowColor}
@@ -773,8 +779,8 @@ export default function ContactSheet() {
                               title="First Row Color"
                             />
                           </div>
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-gray-500">2nd:</span>
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-xs text-gray-500">2nd</span>
                             <input
                               type="color"
                               value={secondRowColor}
