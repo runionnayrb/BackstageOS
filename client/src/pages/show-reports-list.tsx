@@ -36,11 +36,6 @@ export default function ShowReportsList() {
       type: "meeting",
       name: "Meeting Reports",
       description: "Production meeting minutes and decisions"
-    },
-    {
-      type: "daily",
-      name: "Daily Call Sheets",
-      description: "Daily schedules and call information"
     }
   ];
 

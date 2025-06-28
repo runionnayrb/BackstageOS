@@ -79,8 +79,7 @@ export default function ReportViewer() {
     rehearsal: "Rehearsal Report",
     tech: "Tech Report",
     performance: "Performance Report",
-    meeting: "Meeting Report",
-    daily: "Daily Call Sheet"
+    meeting: "Meeting Report"
   };
 
   const reportTypeName = reportTypeNames[reportType] || "Report";

@@ -503,7 +503,6 @@ export default function ShowSettings() {
                     <SelectItem value="performance">Performance Report</SelectItem>
                     <SelectItem value="tech">Tech Report</SelectItem>
                     <SelectItem value="meeting">Meeting Notes</SelectItem>
-                    <SelectItem value="daily">Daily Report</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

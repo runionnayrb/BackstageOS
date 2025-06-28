@@ -19,7 +19,7 @@ Backstage OS is a comprehensive theater management platform specifically designe
 - **Secure Sharing**: Generate secure shareable links for external collaborators
 
 ### Report System
-- **Five Report Types**: Rehearsal, tech, performance, meeting, and daily call reports
+- **Four Report Types**: Rehearsal, tech, performance, and meeting reports
 - **Custom Templates**: Advanced template builder with drag-drop field reordering
 - **Rich Text Editor**: Google Docs-style interface with page numbering controls
 - **Template Customization**: Phase-specific templates (prep, rehearsal, tech, previews, performance)
@@ -251,6 +251,7 @@ Required environment variables:
 - June 28, 2025: **HEADER/FOOTER FORMATTING TOOLBAR FIX**: Resolved critical issues with inline header/footer editing functionality. Fixed variables dropdown by replacing non-functioning Select component with Popover containing clickable variable buttons. Improved text formatting commands (bold, italic, underline) to properly toggle HTML formatting. Fixed content persistence issue where header/footer text would disappear when clicking outside - implemented localStorage-based persistence with fallback logic to handle title changes. Added real-time saving during editing and proper content loading when clicking back into headers/footers.
 - June 28, 2025: **COMPREHENSIVE PAGE SETUP REORGANIZATION**: Streamlined page setup modal by removing header/footer formatting and page numbering sections, keeping only essential margin controls. Reorganized interface with Header & Footer Margins at top, followed by Page Margins section. Maintains professional print-ready functionality with quarter-inch increments and proper range validation for professional script formatting.
 - June 28, 2025: **FOOTER FORMATTING TOOLBAR FIX**: Fixed critical issue where inline formatting toolbar only appeared for headers but not footers. Implemented smart positioning logic that displays toolbar above headers and below footers for optimal visibility, ensuring both headers and footers have full access to Bold, Italic, Underline, alignment controls, and variable insertion functionality.
+- June 28, 2025: **DAILY CALL REMOVAL**: Removed Daily Call Sheets from the reports system at user request. Simplified report types to focus on core production reports: Rehearsal, Tech, Performance, and Meeting reports. Updated report selection menus, settings dropdowns, and documentation to reflect four-report system.
 
 ## User Preferences
 
