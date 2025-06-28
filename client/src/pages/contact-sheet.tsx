@@ -1408,7 +1408,15 @@ export default function ContactSheet() {
                           >
                             {column.label}
                             
-                            {/* Column Resize Handle */}
+                            {/* Left Column Resize Handle */}
+                            {colIndex > 0 && (
+                              <div
+                                className="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500 hover:opacity-50"
+                                onMouseDown={(e) => handleMouseDown(e, colIndex - 1)}
+                              />
+                            )}
+                            
+                            {/* Right Column Resize Handle */}
                             <div
                               className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500 hover:opacity-50"
                               onMouseDown={(e) => handleMouseDown(e, colIndex)}
