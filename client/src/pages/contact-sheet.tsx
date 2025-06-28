@@ -193,13 +193,13 @@ export default function ContactSheet() {
     const rect = element.getBoundingClientRect();
     
     // Smart positioning: always position above the element for better visibility
-    // For footers, ensure toolbar is well above to avoid clipping
+    // Use viewport coordinates instead of document coordinates for better positioning
     const toolbarY = type === 'footer' 
-      ? rect.top + window.scrollY - 80  // Position well above footer
-      : rect.top + window.scrollY - 70; // Position above header
+      ? rect.top - 80  // Position well above footer in viewport
+      : rect.top - 70; // Position above header in viewport
     
     const toolbarPos = {
-      x: Math.max(10, Math.min(window.innerWidth - 320, rect.left + window.scrollX + (rect.width / 2) - 150)),
+      x: Math.max(10, Math.min(window.innerWidth - 320, rect.left + (rect.width / 2) - 150)),
       y: Math.max(10, toolbarY)
     };
     
@@ -1454,7 +1454,8 @@ export default function ContactSheet() {
           style={{
             left: `${toolbarPosition.x}px`,
             top: `${toolbarPosition.y}px`,
-            minWidth: '300px'
+            minWidth: '300px',
+            position: 'fixed'
           }}
         >
           {/* Text Formatting */}
