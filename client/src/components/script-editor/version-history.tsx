@@ -22,6 +22,7 @@ interface VersionHistoryProps {
   onPreview: (versionId: string) => void;
   onPublish: (versionId: string) => void;
   className?: string;
+  showHeader?: boolean;
 }
 
 export function VersionHistory({
@@ -30,7 +31,8 @@ export function VersionHistory({
   onRevert,
   onPreview,
   onPublish,
-  className = ""
+  className = "",
+  showHeader = true
 }: VersionHistoryProps) {
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
 
@@ -54,18 +56,20 @@ export function VersionHistory({
   };
 
   return (
-    <div className={`border rounded-lg bg-white dark:bg-gray-900 ${className}`}>
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Version History</h3>
-          <Badge variant="outline" className="text-xs">
-            Current: v{currentVersion}
-          </Badge>
+    <div className={`${showHeader ? 'border rounded-lg bg-white dark:bg-gray-900' : ''} ${className}`}>
+      {showHeader && (
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Version History</h3>
+            <Badge variant="outline" className="text-xs">
+              Current: v{currentVersion}
+            </Badge>
+          </div>
         </div>
-      </div>
+      )}
 
-      <ScrollArea className="h-[600px]">
-        <div className="p-4 space-y-4">
+      <ScrollArea className="h-[500px]">
+        <div className={`${showHeader ? 'p-4' : ''} space-y-4`}>
           {versions.map((version, index) => (
             <div
               key={version.id}

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CollaborativeEditor } from "@/components/script-editor/collaborative-editor";
 import { VersionHistory } from "@/components/script-editor/version-history";
-import { ChangeLog } from "@/components/script-editor/change-log";
+import { ChangeLog } from "@/components/script-editor/change-log-simple";
 import { 
   ArrowLeft, 
   FileText, 
@@ -95,8 +95,56 @@ export default function ScriptEditor() {
       setComments(scriptComments || []);
       setVersions(scriptVersions || []);
       setChanges(scriptChanges || []);
+    } else {
+      // Create sample version data when no script data exists
+      const sampleVersions = [
+        {
+          id: "v1",
+          version: "1.0",
+          title: scriptTitle,
+          content: scriptContent,
+          publishedAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          isPublished: true,
+          publishedBy: {
+            firstName: user?.firstName || "Current",
+            lastName: user?.lastName || "User"
+          },
+          changes: [
+            {
+              type: "insert",
+              position: 1,
+              description: "Initial script creation"
+            }
+          ]
+        }
+      ];
+      setVersions(sampleVersions);
+      
+      // Create sample change log data
+      const sampleChanges = [
+        {
+          id: "c1",
+          type: "insert",
+          timestamp: new Date().toISOString(),
+          author: user?.firstName + " " + user?.lastName,
+          description: "Added opening scene dialogue",
+          position: 150,
+          content: "HAMLET: To be, or not to be, that is the question..."
+        },
+        {
+          id: "c2", 
+          type: "format",
+          timestamp: new Date(Date.now() - 300000).toISOString(),
+          author: user?.firstName + " " + user?.lastName,
+          description: "Applied theater script formatting",
+          position: 1,
+          content: "Applied character name centering and stage direction formatting"
+        }
+      ];
+      setChanges(sampleChanges);
     }
-  }, [script, scriptComments, scriptVersions, scriptChanges]);
+  }, [script, scriptComments, scriptVersions, scriptChanges, scriptTitle, scriptContent, user]);
 
   // Save script mutation
   const saveScriptMutation = useMutation({
@@ -341,10 +389,17 @@ export default function ScriptEditor() {
       <Dialog open={showVersionHistory} onOpenChange={setShowVersionHistory}>
         <DialogContent className="max-w-4xl max-h-[80vh] p-0">
           <DialogHeader className="p-6 pb-4">
-            <DialogTitle>Version History</DialogTitle>
-            <DialogDescription>
-              View and manage script versions
-            </DialogDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>Version History</DialogTitle>
+                <DialogDescription>
+                  View and manage script versions
+                </DialogDescription>
+              </div>
+              <Badge variant="outline" className="text-xs">
+                Current: v{script?.version || "1.0"}
+              </Badge>
+            </div>
           </DialogHeader>
           <div className="px-6 pb-6 overflow-y-auto">
             <VersionHistory
@@ -353,7 +408,8 @@ export default function ScriptEditor() {
               onRevert={handleVersionRevert}
               onPreview={handleVersionPreview}
               onPublish={handlePublish}
-              className="w-full"
+              className="w-full border-0"
+              showHeader={false}
             />
           </div>
         </DialogContent>
@@ -377,7 +433,8 @@ export default function ScriptEditor() {
                   description: "Change log export is not yet implemented.",
                 });
               }}
-              className="w-full"
+              className="w-full border-0"
+              showHeader={false}
             />
           </div>
         </DialogContent>

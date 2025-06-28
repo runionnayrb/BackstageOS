@@ -25,13 +25,15 @@ interface ChangeLogProps {
   onExport?: () => void;
   showUnpublishedOnly?: boolean;
   className?: string;
+  showHeader?: boolean;
 }
 
 export function ChangeLog({
   changes,
   onExport,
   showUnpublishedOnly = false,
-  className = ""
+  className = "",
+  showHeader = true
 }: ChangeLogProps) {
   const [filterType, setFilterType] = useState<string>("all");
   const [filterUser, setFilterUser] = useState<string>("all");
@@ -87,21 +89,22 @@ export function ChangeLog({
   };
 
   return (
-    <div className={`border rounded-lg bg-white dark:bg-gray-900 ${className}`}>
-      <div className="p-4 border-b">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">
-            {showUnpublishedOnly ? "Changes Since Last Publish" : "Script Change Log"}
-          </h3>
-          <Button variant="outline" size="sm" onClick={onExport}>
-            <Download className="h-4 w-4 mr-2" />
-            Export Log
-          </Button>
-        </div>
+    <div className={`${showHeader ? 'border rounded-lg bg-white dark:bg-gray-900' : ''} ${className}`}>
+      {showHeader && (
+        <div className="p-4 border-b">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">
+              {showUnpublishedOnly ? "Changes Since Last Publish" : "Script Change Log"}
+            </h3>
+            <Button variant="outline" size="sm" onClick={onExport}>
+              <Download className="h-4 w-4 mr-2" />
+              Export Log
+            </Button>
+          </div>
 
-        {/* Filters */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
+          {/* Filters */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-40">
@@ -141,10 +144,10 @@ export function ChangeLog({
             />
           </div>
         </div>
-      </div>
+      )}
 
       <ScrollArea className="h-[600px]">
-        <div className="p-4">
+        <div className={`${showHeader ? 'p-4' : ''}`}>
           {Object.keys(groupedChanges).length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -253,18 +256,20 @@ export function ChangeLog({
       </ScrollArea>
 
       {/* Summary stats */}
-      <div className="p-4 border-t bg-gray-50 dark:bg-gray-800">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">
-            Showing {filteredChanges.length} of {changes.length} changes
-          </span>
-          {showUnpublishedOnly && (
-            <Badge variant="outline" className="text-xs">
-              {filteredChanges.filter(c => !c.isPublished).length} unpublished
-            </Badge>
-          )}
+      {showHeader && (
+        <div className="p-4 border-t bg-gray-50 dark:bg-gray-800">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">
+              Showing {filteredChanges.length} of {changes.length} changes
+            </span>
+            {showUnpublishedOnly && (
+              <Badge variant="outline" className="text-xs">
+                {filteredChanges.filter(c => !c.isPublished).length} unpublished
+              </Badge>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
