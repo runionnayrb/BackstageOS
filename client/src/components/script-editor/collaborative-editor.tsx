@@ -1555,7 +1555,12 @@ export function CollaborativeEditor({
                             if (relatedTarget && relatedTarget.closest('[data-toolbar="true"]')) {
                               return;
                             }
-                            closeInlineEditor();
+                            // Add delay to prevent immediate closing during initialization
+                            setTimeout(() => {
+                              if (editingElement?.type === 'footer' && editingElement?.pageNum === pageNum) {
+                                closeInlineEditor();
+                              }
+                            }, 150);
                           }}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
