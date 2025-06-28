@@ -433,17 +433,32 @@ export function CollaborativeEditor({
     const element = event.currentTarget as HTMLElement;
     const rect = element.getBoundingClientRect();
     
-    // Position toolbar above for headers, below for footers to ensure visibility
+    // Position toolbar above for headers, above for footers too if they're near bottom of viewport
+    const viewportHeight = window.innerHeight;
+    const elementBottomFromViewportTop = rect.bottom;
+    const spaceBelow = viewportHeight - elementBottomFromViewportTop;
+    
     const toolbarY = type === 'header' 
-      ? rect.top + window.scrollY - 10 // Position above headers
-      : rect.bottom + window.scrollY + 10; // Position below footers
+      ? rect.top + window.scrollY - 60 // Position above headers
+      : spaceBelow < 200 // If less than 200px space below footer (enough for toolbar)
+        ? rect.top + window.scrollY - 60 // Position above footer
+        : rect.bottom + window.scrollY + 10; // Position below footer
     
     const toolbarPos = {
       x: rect.left + window.scrollX + (rect.width / 2) - 150, // Center the toolbar horizontally
       y: toolbarY
     };
     
-    console.log('Setting toolbar position:', toolbarPos);
+    console.log('Positioning debug:', {
+      type,
+      elementRect: rect,
+      viewportHeight,
+      elementBottomFromViewportTop,
+      spaceBelow,
+      willPositionAbove: spaceBelow < 200,
+      calculatedY: toolbarY,
+      finalPosition: toolbarPos
+    });
     setToolbarPosition(toolbarPos);
     
     console.log('Setting editing element:', { type, pageNum });
@@ -1595,6 +1610,8 @@ export function CollaborativeEditor({
                           }}
                           onClick={(e) => {
                             console.log('Footer clicked directly!', { pageNum, footerText });
+                            e.preventDefault();
+                            e.stopPropagation();
                             handleHeaderFooterClick('footer', pageNum, e);
                           }}
                           dangerouslySetInnerHTML={{
