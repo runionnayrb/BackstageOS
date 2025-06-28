@@ -86,103 +86,10 @@ export default function ScriptEditor() {
   // Track if we've loaded the initial script content
   const [isContentLoaded, setIsContentLoaded] = useState(false);
   
+  // Initialize component once without dependencies to prevent resets
   useEffect(() => {
-    // Only load initial content once and never overwrite after that
-    if (script && typeof script === 'object' && !isContentLoaded && !scriptLoading) {
-      const scriptData = script as any;
-      setScriptTitle(scriptData.name || "Untitled Script");
-      setScriptContent(scriptData.content || "");
-      setCurrentVersion(scriptData.version || "1.0");
-      setCollaborators([]);
-      setComments([]);
-      setVersions([]);
-      setChanges([]);
-      setIsContentLoaded(true);
-    } else if (!script && !scriptLoading && !isContentLoaded) {
-      // Create sample version data when no script data exists
-      const sampleVersions = [
-        {
-          id: "v1",
-          version: "1.0",
-          title: scriptTitle,
-          content: scriptContent,
-          publishedAt: new Date().toISOString(),
-          createdAt: new Date().toISOString(),
-          isPublished: true,
-          publishedBy: {
-            firstName: user?.firstName || "Current",
-            lastName: user?.lastName || "User"
-          },
-          changes: [
-            {
-              type: "insert",
-              position: 1,
-              description: "Initial script creation"
-            }
-          ]
-        }
-      ];
-      setVersions(sampleVersions);
-      
-      // Create sample change log data
-      const sampleChanges = [
-        {
-          id: "c1",
-          type: "insert",
-          timestamp: new Date().toISOString(),
-          author: user?.firstName + " " + user?.lastName,
-          description: "Added opening scene dialogue",
-          position: 150,
-          content: "HAMLET: To be, or not to be, that is the question..."
-        },
-        {
-          id: "c2", 
-          type: "format",
-          timestamp: new Date(Date.now() - 300000).toISOString(),
-          author: user?.firstName + " " + user?.lastName,
-          description: "Applied theater script formatting",
-          position: 1,
-          content: "Applied character name centering and stage direction formatting"
-        }
-      ];
-      setChanges(sampleChanges);
-      
-      // Create sample comment data
-      const currentUserName = user?.firstName && user?.lastName 
-        ? `${user.firstName} ${user.lastName}` 
-        : user?.email?.split('@')[0] || "Current User";
-        
-      const sampleComments = [
-        {
-          id: "c1",
-          text: "This opening soliloquy needs more dramatic emphasis. Consider adding stage directions for lighting changes.",
-          author: currentUserName,
-          timestamp: new Date().toISOString(),
-          position: 25,
-          resolved: false,
-          replies: [
-            {
-              id: "r1",
-              text: "Good point. I'll add a spotlight cue here.",
-              author: "Director",
-              timestamp: new Date(Date.now() - 60000).toISOString(),
-              resolved: false
-            }
-          ]
-        },
-        {
-          id: "c2",
-          text: "The stage directions here seem unclear. Should this be stage left or stage right?",
-          author: "Stage Manager",
-          timestamp: new Date(Date.now() - 180000).toISOString(),
-          position: 45,
-          resolved: true
-        }
-      ];
-      // Only set sample comments if no comments exist yet
-      setComments(prev => prev.length === 0 ? sampleComments : prev);
-    }
-  }, [script, user]); // Removed dependencies that were causing comments to reset
+    setIsContentLoaded(true);
+  }, []);
 
   // Auto-save effect with debounce - ONLY save if content exists
   useEffect(() => {

@@ -319,10 +319,10 @@ export function CollaborativeEditor({
     }
   }, [margins, fontFamily, fontSize]);
 
-  // Initialize content when prop changes
+  // Initialize content only once to prevent overriding user input
   useEffect(() => {
-    if (editorRef.current && content !== editorRef.current.innerHTML) {
-      editorRef.current.innerHTML = content || '';
+    if (editorRef.current && editorRef.current.innerHTML === '' && content) {
+      editorRef.current.innerHTML = content;
       // Trigger content distribution after content is set
       setTimeout(() => distributeContentAcrossPages(), 100);
     }
