@@ -147,11 +147,15 @@ export default function ScriptEditor() {
       setChanges(sampleChanges);
       
       // Create sample comment data
+      const currentUserName = user?.firstName && user?.lastName 
+        ? `${user.firstName} ${user.lastName}` 
+        : user?.email?.split('@')[0] || "Current User";
+        
       const sampleComments = [
         {
           id: "c1",
           text: "This opening soliloquy needs more dramatic emphasis. Consider adding stage directions for lighting changes.",
-          author: user?.firstName + " " + user?.lastName || "Current User",
+          author: currentUserName,
           timestamp: new Date().toISOString(),
           position: 25,
           resolved: false,
@@ -174,7 +178,8 @@ export default function ScriptEditor() {
           resolved: true
         }
       ];
-      setComments(sampleComments);
+      // Only set sample comments if no comments exist yet
+      setComments(prev => prev.length === 0 ? sampleComments : prev);
     }
   }, [script, scriptComments, scriptVersions, scriptChanges, scriptTitle, scriptContent, user]);
 
@@ -269,7 +274,23 @@ export default function ScriptEditor() {
   };
 
   const handleAddComment = (comment: any) => {
-    setComments(prev => [...prev, comment]);
+    const currentUserName = user?.firstName && user?.lastName 
+      ? `${user.firstName} ${user.lastName}` 
+      : user?.email?.split('@')[0] || "Current User";
+      
+    const newComment = {
+      ...comment,
+      id: `comment-${Date.now()}`,
+      author: currentUserName,
+      timestamp: new Date().toISOString()
+    };
+    
+    setComments(prev => [...prev, newComment]);
+    
+    toast({
+      title: "Comment added",
+      description: "Your comment has been added to the script.",
+    });
   };
 
   const handleVersionRevert = (versionId: string) => {

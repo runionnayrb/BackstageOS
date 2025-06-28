@@ -25,7 +25,7 @@ interface Comment {
 
 interface CommentsPanelProps {
   comments: Comment[];
-  onAddComment?: (comment: Omit<Comment, 'id' | 'timestamp'>) => void;
+  onAddComment?: (comment: Partial<Comment>) => void;
   onResolveComment?: (commentId: string) => void;
   className?: string;
   showHeader?: boolean;
@@ -43,14 +43,15 @@ export function CommentsPanel({
   const [replyText, setReplyText] = useState("");
 
   const formatTime = (date: string) => {
-    return new Date(date).toLocaleString();
+    if (!date) return 'Now';
+    const parsedDate = new Date(date);
+    return isNaN(parsedDate.getTime()) ? 'Now' : parsedDate.toLocaleString();
   };
 
   const handleAddComment = () => {
     if (newComment.trim() && onAddComment) {
       onAddComment({
         text: newComment,
-        author: "Current User",
         position: 1
       });
       setNewComment("");
@@ -189,8 +190,8 @@ export function CommentsPanel({
                     {/* Show replies */}
                     {comment.replies && comment.replies.length > 0 && (
                       <div className="mt-3 space-y-2">
-                        {comment.replies.map((reply) => (
-                          <div key={reply.id} className="border-l-2 border-gray-200 pl-3">
+                        {comment.replies.map((reply, replyIndex) => (
+                          <div key={reply.id || `reply-${comment.id}-${replyIndex}`} className="border-l-2 border-gray-200 pl-3">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="font-medium text-xs">{reply.author}</span>
                               <div className="flex items-center gap-1 text-xs text-muted-foreground">
