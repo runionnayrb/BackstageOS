@@ -578,13 +578,44 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
   }),
 }));
 
-export const contactsRelations = relations(contacts, ({ one }) => ({
+// Contact availability table for scheduling
+export const contactAvailability = pgTable("contact_availability", {
+  id: serial("id").primaryKey(),
+  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  date: varchar("date", { length: 10 }).notNull(), // YYYY-MM-DD format
+  startTime: varchar("start_time", { length: 8 }).notNull(), // HH:MM:SS format
+  endTime: varchar("end_time", { length: 8 }).notNull(), // HH:MM:SS format
+  availabilityType: varchar("availability_type", { length: 20 }).notNull().default("available"), // 'available', 'unavailable', 'preferred'
+  notes: text("notes"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const contactsRelations = relations(contacts, ({ one, many }) => ({
   project: one(projects, {
     fields: [contacts.projectId],
     references: [projects.id],
   }),
   creator: one(users, {
     fields: [contacts.createdBy],
+    references: [users.id],
+  }),
+  availability: many(contactAvailability),
+}));
+
+export const contactAvailabilityRelations = relations(contactAvailability, ({ one }) => ({
+  contact: one(contacts, {
+    fields: [contactAvailability.contactId],
+    references: [contacts.id],
+  }),
+  project: one(projects, {
+    fields: [contactAvailability.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [contactAvailability.createdBy],
     references: [users.id],
   }),
 }));
@@ -747,6 +778,16 @@ export const insertContactSchema = createInsertSchema(contacts).omit({
 }).extend({
   castTypes: z.array(z.string()).optional(),
 });
+
+export const insertContactAvailabilitySchema = createInsertSchema(contactAvailability).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types
+export type ContactAvailability = typeof contactAvailability.$inferSelect;
+export type InsertContactAvailability = z.infer<typeof insertContactAvailabilitySchema>;
 
 export const insertContactSheetVersionSchema = createInsertSchema(contactSheetVersions).omit({
   id: true,

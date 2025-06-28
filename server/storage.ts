@@ -12,6 +12,7 @@ import {
   feedback,
   betaSettings,
   contacts,
+  contactAvailability,
   contactSheetVersions,
   errorLogs,
   type User,
@@ -40,6 +41,8 @@ import {
   type InsertBetaSettings,
   type Contact,
   type InsertContact,
+  type ContactAvailability,
+  type InsertContactAvailability,
   type ErrorLog,
   type InsertErrorLog,
   waitlist,
@@ -796,6 +799,51 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(contacts)
       .where(eq(contacts.id, id));
+  }
+
+  // Contact availability operations
+  async getContactAvailability(contactId: number, projectId: number): Promise<ContactAvailability[]> {
+    return await db
+      .select()
+      .from(contactAvailability)
+      .where(and(
+        eq(contactAvailability.contactId, contactId),
+        eq(contactAvailability.projectId, projectId)
+      ))
+      .orderBy(contactAvailability.date, contactAvailability.startTime);
+  }
+
+  async createContactAvailability(availability: InsertContactAvailability): Promise<ContactAvailability> {
+    const [newAvailability] = await db
+      .insert(contactAvailability)
+      .values({
+        ...availability,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    return newAvailability;
+  }
+
+  async updateContactAvailability(id: number, availability: Partial<InsertContactAvailability>): Promise<ContactAvailability> {
+    const [updatedAvailability] = await db
+      .update(contactAvailability)
+      .set({ ...availability, updatedAt: new Date() })
+      .where(eq(contactAvailability.id, id))
+      .returning();
+    return updatedAvailability;
+  }
+
+  async deleteContactAvailability(id: number): Promise<void> {
+    await db.delete(contactAvailability).where(eq(contactAvailability.id, id));
+  }
+
+  async getAvailabilityByDateRange(projectId: number, startDate: string, endDate: string): Promise<ContactAvailability[]> {
+    return await db
+      .select()
+      .from(contactAvailability)
+      .where(eq(contactAvailability.projectId, projectId))
+      .orderBy(contactAvailability.date, contactAvailability.startTime);
   }
 
   // Error logging operations

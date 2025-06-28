@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertErrorLogSchema, insertWaitlistSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Authentication middleware
@@ -1127,6 +1127,111 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error saving company list settings:", error);
       res.status(500).json({ message: "Failed to save settings" });
+    }
+  });
+
+  // Contact availability routes
+  app.get("/api/projects/:id/contacts/:contactId/availability", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const contactId = parseInt(req.params.contactId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const availability = await storage.getContactAvailability(contactId, projectId);
+      res.json(availability);
+    } catch (error) {
+      console.error("Error fetching contact availability:", error);
+      res.status(500).json({ message: "Failed to fetch availability" });
+    }
+  });
+
+  app.post("/api/projects/:id/contacts/:contactId/availability", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const contactId = parseInt(req.params.contactId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const availabilityData = insertContactAvailabilitySchema.parse({
+        ...req.body,
+        contactId,
+        projectId,
+        createdBy: req.user.id
+      });
+
+      const availability = await storage.createContactAvailability(availabilityData);
+      res.status(201).json(availability);
+    } catch (error) {
+      console.error("Error creating contact availability:", error);
+      res.status(500).json({ message: "Failed to create availability" });
+    }
+  });
+
+  app.put("/api/projects/:id/contacts/:contactId/availability/:availabilityId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const availabilityId = parseInt(req.params.availabilityId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const availabilityData = insertContactAvailabilitySchema.partial().parse(req.body);
+      const availability = await storage.updateContactAvailability(availabilityId, availabilityData);
+      res.json(availability);
+    } catch (error) {
+      console.error("Error updating contact availability:", error);
+      res.status(500).json({ message: "Failed to update availability" });
+    }
+  });
+
+  app.delete("/api/projects/:id/contacts/:contactId/availability/:availabilityId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const availabilityId = parseInt(req.params.availabilityId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteContactAvailability(availabilityId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting contact availability:", error);
+      res.status(500).json({ message: "Failed to delete availability" });
     }
   });
 
