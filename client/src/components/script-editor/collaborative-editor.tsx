@@ -93,6 +93,14 @@ export function CollaborativeEditor({
   const [pageNumberFormat, setPageNumberFormat] = useState<'number' | 'page-x' | 'page-x-of-y'>('number');
   const [pageNumberPrefix, setPageNumberPrefix] = useState('');
   const [pageNumberSuffix, setPageNumberSuffix] = useState('');
+  const [hasContentChanges, setHasContentChanges] = useState(false);
+  const [initialContent, setInitialContent] = useState('');
+
+  // Track content changes
+  const handleContentChange = useCallback((newContent: string) => {
+    onChange(newContent);
+    setHasContentChanges(newContent !== initialContent);
+  }, [onChange, initialContent]);
 
   // Format text selection
   const formatText = useCallback((command: string, value?: string) => {
@@ -100,9 +108,9 @@ export function CollaborativeEditor({
     if (editorRef.current) {
       const newContent = editorRef.current.innerHTML;
       saveToUndoStack();
-      onChange(newContent);
+      handleContentChange(newContent);
     }
-  }, [onChange]);
+  }, [handleContentChange]);
 
   // Save current state to undo stack
   const saveToUndoStack = useCallback(() => {
@@ -158,13 +166,7 @@ export function CollaborativeEditor({
     }
   }, []);
 
-  // Handle content changes
-  const handleContentChange = useCallback(() => {
-    if (editorRef.current) {
-      const newContent = editorRef.current.innerHTML;
-      onChange(newContent);
-    }
-  }, [onChange]);
+
 
   // Save and restore cursor position
   const saveCursorPosition = useCallback(() => {
@@ -292,13 +294,23 @@ export function CollaborativeEditor({
     setPageNumbers(freshNumbers);
     setPublishedPageCount(pageCount);
     setIsPublished(true);
+    setHasContentChanges(false); // Reset after publishing
   }, [pageCount]);
+  
+  // Check if renumber should be enabled (new pages added beyond published count)
+  const shouldEnableRenumber = useCallback(() => {
+    return isPublished && pageCount > publishedPageCount;
+  }, [isPublished, pageCount, publishedPageCount]);
 
-  // Function to publish script (locks current page numbering)
+  // Function to publish script
   const publishScript = useCallback(() => {
     setIsPublished(true);
     setPublishedPageCount(pageCount);
+    setHasContentChanges(false);
+    setInitialContent(editorRef.current?.innerHTML || '');
   }, [pageCount]);
+
+
 
   // Function to distribute content across pages
   const distributeContentAcrossPages = useCallback(() => {
@@ -479,11 +491,12 @@ export function CollaborativeEditor({
         selection?.removeAllRanges();
         selection?.addRange(range);
         
-        handleContentChange();
+        handleContentChange(editorRef.current?.innerHTML || '');
       }
     } else {
       // For small text, just paste normally
       document.execCommand('insertText', false, pastedText);
+      handleContentChange(editorRef.current?.innerHTML || '');
     }
   }, [parseScriptText, saveToUndoStack, handleContentChange]);
 
@@ -509,14 +522,14 @@ export function CollaborativeEditor({
     try {
       range.surroundContents(span);
       saveToUndoStack();
-      handleContentChange();
+      handleContentChange(editorRef.current?.innerHTML || '');
     } catch (e) {
       // Handle complex selections
       const contents = range.extractContents();
       span.appendChild(contents);
       range.insertNode(span);
       saveToUndoStack();
-      handleContentChange();
+      handleContentChange(editorRef.current?.innerHTML || '');
     }
   }, [saveToUndoStack, handleContentChange]);
 
@@ -581,7 +594,8 @@ export function CollaborativeEditor({
       </div>
 
       {/* Toolbar */}
-      <div className="flex items-center gap-1 p-3 border-b bg-gray-50 dark:bg-gray-800 flex-wrap">
+      <div className="flex items-center justify-between gap-1 p-3 border-b bg-gray-50 dark:bg-gray-800 flex-wrap">
+        <div className="flex items-center gap-1">
         {/* Page Setup */}
         <Dialog open={showPageSetup} onOpenChange={setShowPageSetup}>
           <DialogTrigger asChild>
@@ -995,7 +1009,7 @@ export function CollaborativeEditor({
               const currentContent = editorRef.current.innerText || editorRef.current.textContent || '';
               const formattedContent = parseScriptText(currentContent);
               editorRef.current.innerHTML = formattedContent;
-              handleContentChange();
+              handleContentChange(editorRef.current?.innerHTML || '');
             }
           }}
           className="h-8 px-3"
@@ -1029,67 +1043,29 @@ export function CollaborativeEditor({
           <MessageCircle className="h-4 w-4 mr-1" />
           {showComments ? "Hide" : "Show"} Comments
         </Button>
+        </div>
         
-        {/* Script Controls */}
-        <div className="flex items-center gap-2 pl-4 border-l">
+        {/* Right Side - Script Controls */}
+        <div className="flex items-center gap-2">
           <Button 
             size="sm" 
             variant={isPublished ? "default" : "outline"}
             onClick={publishScript}
-            disabled={isPublished}
-            className="h-6 text-xs px-2"
+            disabled={!hasContentChanges}
+            className="h-8 text-sm px-3"
           >
-            {isPublished ? "Published" : "Publish"}
+            {isPublished ? "✓ Published" : "Publish Pages"}
           </Button>
           <Button 
             size="sm" 
             variant="outline"
             onClick={renumberScript}
-            className="h-6 text-xs px-2"
+            disabled={!hasContentChanges}
+            className="h-8 text-sm px-3"
           >
-            Renumber
+            Renumber Pages
           </Button>
         </div>
-
-        {/* Header/Footer Controls */}
-        <div className="flex items-center gap-2 pl-4 border-l">
-          <div className="flex items-center gap-1">
-            <input 
-              type="checkbox" 
-              id="show-headers"
-              checked={showHeaders}
-              onChange={(e) => setShowHeaders(e.target.checked)}
-              className="rounded w-3 h-3"
-            />
-            <label htmlFor="show-headers" className="text-xs">H</label>
-          </div>
-          <div className="flex items-center gap-1">
-            <input 
-              type="checkbox" 
-              id="show-footers"
-              checked={showFooters}
-              onChange={(e) => setShowFooters(e.target.checked)}
-              className="rounded w-3 h-3"
-            />
-            <label htmlFor="show-footers" className="text-xs">F</label>
-          </div>
-          <input 
-            type="text"
-            placeholder="Header"
-            value={headerText}
-            onChange={(e) => setHeaderText(e.target.value)}
-            className="w-16 h-6 text-xs border rounded px-1"
-          />
-          <input 
-            type="text"
-            placeholder="Footer"
-            value={footerText}
-            onChange={(e) => setFooterText(e.target.value)}
-            className="w-16 h-6 text-xs border rounded px-1"
-          />
-        </div>
-
-
       </div>
 
       {/* Editor Container with Sidebar Layout */}
