@@ -130,6 +130,11 @@ export default function WaitlistLanding() {
       icon: Shield,
       title: "Secure Collaboration",
       description: "Professional-grade security with role-based permissions and sharing controls."
+    },
+    {
+      icon: Clipboard,
+      title: "Technical Paperwork",
+      description: "Comprehensive tracking for props, costumes, scene shift plots, line set schedules, and mic assignments with detailed status monitoring."
     }
   ];
 
