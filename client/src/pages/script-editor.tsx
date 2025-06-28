@@ -184,24 +184,37 @@ export default function ScriptEditor() {
     }
   }, [script, user]); // Removed dependencies that were causing comments to reset
 
-  // Auto-save effect with debounce
+  // Auto-save effect with debounce - ONLY save if content exists
   useEffect(() => {
     if (!isContentLoaded) return; // Don't auto-save until after initial load
+    
+    // CRITICAL: Never save empty content
+    if (!scriptContent || scriptContent.trim().length === 0) {
+      console.log('Skipping auto-save: empty content');
+      return;
+    }
     
     const timeoutId = setTimeout(() => {
       const data = {
         title: scriptTitle,
         content: scriptContent,
       };
+      console.log('Auto-saving:', { title: scriptTitle, contentLength: scriptContent.length });
       saveScriptMutation.mutate(data);
     }, 2000); // Auto-save after 2 seconds of inactivity
 
     return () => clearTimeout(timeoutId);
   }, [scriptContent, scriptTitle, isContentLoaded]); // Trigger on content or title change
 
-  // Auto-save script mutation
+  // Auto-save script mutation with content validation
   const saveScriptMutation = useMutation({
     mutationFn: async (data: { title: string; content: any; version?: string }) => {
+      // CRITICAL: Never save if content is empty
+      if (!data.content || data.content.trim().length === 0) {
+        console.warn('Blocking save mutation with empty content');
+        throw new Error('Cannot save empty content');
+      }
+      
       const response = await fetch(`/api/projects/${projectId}/script`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
