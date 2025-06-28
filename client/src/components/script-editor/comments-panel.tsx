@@ -247,6 +247,40 @@ export function CommentsPanel({
                                           </div>
                                         </div>
                                         <p className="text-sm">{reply.text}</p>
+                                        
+                                        {/* Reply button for nested comments */}
+                                        <div className="flex gap-2 mt-2">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => setReplyTo(replyTo === reply.id ? null : reply.id)}
+                                            className="h-6 px-2 text-xs"
+                                          >
+                                            <Reply className="h-3 w-3 mr-1" />
+                                            Reply
+                                          </Button>
+                                        </div>
+                                        
+                                        {/* Reply input for nested comments */}
+                                        {replyTo === reply.id && (
+                                          <div className="mt-2 p-3 bg-white dark:bg-gray-900 rounded border-l-4 border-blue-200">
+                                            <Textarea
+                                              placeholder="Write a reply..."
+                                              value={replyText}
+                                              onChange={(e) => setReplyText(e.target.value)}
+                                              className="mb-2"
+                                              rows={2}
+                                            />
+                                            <div className="flex gap-2">
+                                              <Button size="sm" onClick={() => handleAddReply(comment.id)} disabled={!replyText.trim()}>
+                                                Reply
+                                              </Button>
+                                              <Button size="sm" variant="outline" onClick={() => setReplyTo(null)}>
+                                                Cancel
+                                              </Button>
+                                            </div>
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
                                   </div>
