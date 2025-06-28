@@ -75,7 +75,7 @@ export default function ShowDetail() {
   // Mutations - always defined in same order
   const saveSectionOrderMutation = useMutation({
     mutationFn: async (sectionOrder: string[]) => {
-      return apiRequest(`/api/projects/${projectId}/settings`, "PUT", {
+      return apiRequest("PUT", `/api/projects/${projectId}/settings`, {
         sectionsOrder: sectionOrder,
       });
     },
