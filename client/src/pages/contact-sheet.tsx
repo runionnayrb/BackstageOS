@@ -65,6 +65,7 @@ export default function ContactSheet() {
   const [contactOrder, setContactOrder] = useState<Record<string, number[]>>({});
   const [draggedColumn, setDraggedColumn] = useState<number | null>(null);
   const [draggedContact, setDraggedContact] = useState<{ categoryId: string; contactIndex: number } | null>(null);
+  const [draggedCategory, setDraggedCategory] = useState<string | null>(null);
   const [isResizing, setIsResizing] = useState<number | null>(null);
   const [resizeStartX, setResizeStartX] = useState(0);
   const [resizeStartWidth, setResizeStartWidth] = useState(0);
@@ -176,6 +177,32 @@ export default function ContactSheet() {
     };
     setContactOrder(newContactOrder);
     setDraggedContact(null);
+  };
+
+  // Handle category drag and drop
+  const handleCategoryDragStart = (e: React.DragEvent, categoryId: string) => {
+    setDraggedCategory(categoryId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleCategoryDrop = (e: React.DragEvent, dropCategoryId: string) => {
+    e.preventDefault();
+    
+    if (!draggedCategory || draggedCategory === dropCategoryId) {
+      setDraggedCategory(null);
+      return;
+    }
+
+    const currentCategories = [...categories];
+    const draggedIndex = currentCategories.findIndex(cat => cat.id === draggedCategory);
+    const dropIndex = currentCategories.findIndex(cat => cat.id === dropCategoryId);
+    
+    const draggedCategoryData = currentCategories[draggedIndex];
+    currentCategories.splice(draggedIndex, 1);
+    currentCategories.splice(dropIndex, 0, draggedCategoryData);
+    
+    setCategories(currentCategories);
+    setDraggedCategory(null);
   };
 
   // Handle column resizing
@@ -343,10 +370,22 @@ export default function ContactSheet() {
                 if (categoryContacts.length === 0) return null;
 
                 return (
-                  <div key={category.id} className="break-inside-avoid">
-                    <h3 className="text-lg font-semibold mb-4 print:mb-3 pb-2">
-                      {category.title}
-                    </h3>
+                  <div 
+                    key={category.id} 
+                    className="break-inside-avoid"
+                    draggable={!isPreviewMode}
+                    onDragStart={!isPreviewMode ? (e) => handleCategoryDragStart(e, category.id) : undefined}
+                    onDragOver={!isPreviewMode ? (e) => e.preventDefault() : undefined}
+                    onDrop={!isPreviewMode ? (e) => handleCategoryDrop(e, category.id) : undefined}
+                  >
+                    <div className={`flex items-center gap-2 mb-4 print:mb-3 pb-2 ${!isPreviewMode ? 'cursor-grab hover:bg-gray-50 rounded px-2 py-1' : ''}`}>
+                      {!isPreviewMode && (
+                        <GripVertical className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                      )}
+                      <h3 className="text-lg font-semibold">
+                        {category.title}
+                      </h3>
+                    </div>
                     
                     {/* Table Header */}
                     <div className="border-b-2 border-gray-800 mb-2">
