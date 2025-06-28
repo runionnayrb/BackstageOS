@@ -15,9 +15,8 @@ import {
   ArrowLeft, 
   FileText, 
   Users,
-  GitBranch,
+  Check,
   MessageSquare,
-  Share,
   History,
   FileClockIcon
 } from "lucide-react";
@@ -42,7 +41,6 @@ export default function ScriptEditor() {
   const [versions, setVersions] = useState<any[]>([]);
   const [changes, setChanges] = useState<any[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [showShareDialog, setShowShareDialog] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showChangeLog, setShowChangeLog] = useState(false);
   const [showComments, setShowComments] = useState(false);
@@ -393,20 +391,11 @@ export default function ScriptEditor() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowShareDialog(true)}
-              >
-                <Share className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
                 onClick={handlePublish}
                 disabled={isPublishing}
+                title="Publish Version"
               >
-                <GitBranch className="h-4 w-4 mr-2" />
-                {isPublishing ? "Publishing..." : "Publish Version"}
+                <Check className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -431,39 +420,7 @@ export default function ScriptEditor() {
         />
       </div>
 
-      {/* Share Dialog */}
-      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Share Script</DialogTitle>
-            <DialogDescription>
-              Generate a shareable link for this script
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-800 rounded">
-              <code className="flex-1 text-sm">
-                {`${window.location.origin}/shared/script/${projectId}`}
-              </code>
-              <Button
-                size="sm"
-                onClick={() => {
-                  navigator.clipboard.writeText(`${window.location.origin}/shared/script/${projectId}`);
-                  toast({
-                    title: "Link copied",
-                    description: "Share link copied to clipboard",
-                  });
-                }}
-              >
-                Copy
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Anyone with this link can view the script. Editing permissions are controlled separately.
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Version History Modal */}
       <Dialog open={showVersionHistory} onOpenChange={setShowVersionHistory}>

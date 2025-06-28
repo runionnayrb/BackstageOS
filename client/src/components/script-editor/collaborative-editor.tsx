@@ -1022,10 +1022,9 @@ export function CollaborativeEditor({
             variant={isPublished ? "default" : "outline"}
             onClick={publishScript}
             disabled={!hasContentChanges}
-            className="h-8 px-2"
-            title={isPublished ? "Published" : "Publish Pages"}
+            className="h-8 text-sm px-3"
           >
-            <Check className="h-4 w-4" />
+            {isPublished ? "✓ Published" : "Publish Pages"}
           </Button>
           <Button 
             size="sm" 
