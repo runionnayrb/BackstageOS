@@ -330,6 +330,23 @@ export const betaSettings = pgTable("beta_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Contacts system
+export const contacts = pgTable("contacts", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  firstName: varchar("first_name").notNull(),
+  lastName: varchar("last_name").notNull(),
+  email: varchar("email"),
+  phone: varchar("phone"),
+  category: varchar("category").notNull(), // cast, crew, stage_management, creative_team, theater_staff
+  role: varchar("role"), // specific role within category
+  notes: text("notes"),
+  emergency_contact: varchar("emergency_contact"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
@@ -343,6 +360,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   scripts: many(scripts),
   showSettings: many(showSettings),
   globalTemplateSettings: many(globalTemplateSettings),
+  contacts: many(contacts),
   submittedFeedback: many(feedback, { relationName: "submittedFeedback" }),
   assignedFeedback: many(feedback, { relationName: "assignedFeedback" }),
 }));
@@ -363,6 +381,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   scripts: many(scripts),
   showSettings: many(showSettings),
   globalTemplateSettings: many(globalTemplateSettings),
+  contacts: many(contacts),
 }));
 
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
@@ -546,6 +565,17 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
   }),
 }));
 
+export const contactsRelations = relations(contacts, ({ one }) => ({
+  project: one(projects, {
+    fields: [contacts.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [contacts.createdBy],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -652,6 +682,12 @@ export const insertBetaSettingsSchema = createInsertSchema(betaSettings).omit({
   updatedAt: true,
 });
 
+export const insertContactSchema = createInsertSchema(contacts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type exports
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -689,3 +725,5 @@ export type Feedback = typeof feedback.$inferSelect;
 export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
 export type BetaSettings = typeof betaSettings.$inferSelect;
 export type InsertBetaSettings = z.infer<typeof insertBetaSettingsSchema>;
+export type Contact = typeof contacts.$inferSelect;
+export type InsertContact = z.infer<typeof insertContactSchema>;

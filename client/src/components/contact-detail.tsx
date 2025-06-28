@@ -1,0 +1,112 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Edit, X, Mail, Phone, User, Users, FileText } from "lucide-react";
+
+interface Contact {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  category: string;
+  role?: string;
+  notes?: string;
+  emergencyContact?: string;
+}
+
+interface ContactDetailProps {
+  contact: Contact;
+  onEdit: () => void;
+  onClose: () => void;
+}
+
+export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) {
+  const getCategoryTitle = (cat: string) => {
+    switch (cat) {
+      case 'cast': return 'Cast';
+      case 'crew': return 'Crew';
+      case 'stage_management': return 'Stage Management';
+      case 'creative_team': return 'Creative Team';
+      case 'theater_staff': return 'Theater Staff';
+      default: return cat;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Contact Details</h2>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={onEdit}>
+            <Edit className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            {contact.firstName} {contact.lastName}
+          </CardTitle>
+          {contact.role && (
+            <p className="text-sm text-gray-600">{contact.role}</p>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2 text-sm">
+            <Users className="h-4 w-4 text-gray-500" />
+            <span className="font-medium">Category:</span>
+            <span>{getCategoryTitle(contact.category)}</span>
+          </div>
+
+          {contact.email && (
+            <div className="flex items-center gap-2 text-sm">
+              <Mail className="h-4 w-4 text-gray-500" />
+              <span className="font-medium">Email:</span>
+              <a 
+                href={`mailto:${contact.email}`} 
+                className="text-blue-600 hover:underline"
+              >
+                {contact.email}
+              </a>
+            </div>
+          )}
+
+          {contact.phone && (
+            <div className="flex items-center gap-2 text-sm">
+              <Phone className="h-4 w-4 text-gray-500" />
+              <span className="font-medium">Phone:</span>
+              <a 
+                href={`tel:${contact.phone}`} 
+                className="text-blue-600 hover:underline"
+              >
+                {contact.phone}
+              </a>
+            </div>
+          )}
+
+          {contact.emergencyContact && (
+            <div className="flex items-start gap-2 text-sm">
+              <Phone className="h-4 w-4 text-gray-500 mt-0.5" />
+              <span className="font-medium">Emergency Contact:</span>
+              <span>{contact.emergencyContact}</span>
+            </div>
+          )}
+
+          {contact.notes && (
+            <div className="flex items-start gap-2 text-sm">
+              <FileText className="h-4 w-4 text-gray-500 mt-0.5" />
+              <span className="font-medium">Notes:</span>
+              <span className="whitespace-pre-wrap">{contact.notes}</span>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

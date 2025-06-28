@@ -74,9 +74,9 @@ export default function ShowDetail() {
       href: `/shows/${projectId}/props-costumes`,
     },
     {
-      title: "Personnel",
+      title: "Contacts",
       description: isFreelance ? "Team and character information" : "Cast and character information",
-      href: `/shows/${projectId}/personnel`,
+      href: `/shows/${projectId}/contacts`,
     },
   ];
 

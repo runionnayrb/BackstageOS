@@ -34,6 +34,7 @@ import ProfileSettings from "@/pages/profile-settings";
 import Calendar from "@/pages/calendar";
 import PropsAndCostumes from "@/pages/props-costumes";
 import Personnel from "@/pages/personnel";
+import PersonnelCategory from "@/pages/personnel-category";
 import FeedbackPage from "@/pages/feedback";
 import NotFound from "@/pages/not-found";
 
@@ -76,7 +77,8 @@ function Router() {
         <Route path="/shows/:id/props-costumes" component={PropsAndCostumes} />
         <Route path="/shows/:id/props" component={PropsTracker} />
         <Route path="/shows/:id/costumes" component={CostumeTracker} />
-        <Route path="/shows/:id/personnel" component={Personnel} />
+        <Route path="/shows/:id/contacts" component={Personnel} />
+        <Route path="/shows/:id/contacts/:category" component={PersonnelCategory} />
         <Route path="/shows/:id/templates/new" component={TemplateBuilder} />
         <Route path="/shows/:id/templates/:templateId/edit" component={TemplateBuilder} />
         <Route path="/shows/:id/templates" component={TemplateSettings} />

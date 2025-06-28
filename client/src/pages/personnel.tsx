@@ -1,7 +1,7 @@
-import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { useLocation, useParams } from "wouter";
 import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
 interface PersonnelParams {
@@ -18,18 +18,31 @@ export default function Personnel() {
     queryKey: [`/api/projects/${projectId}`],
   });
 
-  const isFreelance = user?.profileType === 'freelance';
-
-  const sections = [
+  const categories = [
     {
-      title: isFreelance ? "Team List" : "Cast List",
-      description: isFreelance ? "Team member contact information and roles" : "Cast member contact information and roles",
-      href: `/shows/${projectId}/personnel/list`,
+      title: "Cast",
+      description: "Actors and performers",
+      href: `/shows/${projectId}/contacts/cast`,
     },
     {
-      title: "Characters", 
-      description: "Character breakdowns with scene appearances and requirements",
-      href: `/shows/${projectId}/characters`,
+      title: "Crew",
+      description: "Technical and production crew",
+      href: `/shows/${projectId}/contacts/crew`,
+    },
+    {
+      title: "Stage Management",
+      description: "Stage managers and assistants",
+      href: `/shows/${projectId}/contacts/stage_management`,
+    },
+    {
+      title: "Creative Team",
+      description: "Directors, designers, and creative staff",
+      href: `/shows/${projectId}/contacts/creative_team`,
+    },
+    {
+      title: "Theater Staff",
+      description: "House management and venue staff",
+      href: `/shows/${projectId}/contacts/theater_staff`,
     },
   ];
 
@@ -40,7 +53,7 @@ export default function Personnel() {
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
             <div className="space-y-3">
-              {[...Array(2)].map((_, i) => (
+              {[...Array(5)].map((_, i) => (
                 <div key={i} className="h-16 bg-gray-200 rounded"></div>
               ))}
             </div>
@@ -66,21 +79,21 @@ export default function Personnel() {
         </div>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Personnel</h1>
+          <h1 className="text-3xl font-bold">Contacts</h1>
           <p className="text-gray-500 mt-2">
-            {isFreelance ? "Manage team members and character information" : "Manage cast members and character information"}
+            Manage contact information by category
           </p>
         </div>
 
         <div className="space-y-1">
-          {sections.map((section) => (
+          {categories.map((category) => (
             <div
-              key={section.title}
+              key={category.title}
               className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-              onClick={() => setLocation(section.href)}
+              onClick={() => setLocation(category.href)}
             >
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">{section.title}</h3>
+                <h3 className="text-lg font-medium text-gray-900">{category.title}</h3>
                 <span className="text-gray-400 text-lg">→</span>
               </div>
             </div>

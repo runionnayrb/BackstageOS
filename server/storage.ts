@@ -11,6 +11,7 @@ import {
   globalTemplateSettings,
   feedback,
   betaSettings,
+  contacts,
   type User,
   type UpsertUser,
   type Project,
@@ -35,6 +36,8 @@ import {
   type InsertFeedback,
   type BetaSettings,
   type InsertBetaSettings,
+  type Contact,
+  type InsertContact,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ne } from "drizzle-orm";
@@ -126,6 +129,13 @@ export interface IStorage {
   // Beta settings operations (admin only)
   getBetaSettings(): Promise<BetaSettings | undefined>;
   upsertBetaSettings(settings: InsertBetaSettings): Promise<BetaSettings>;
+
+  // Contacts operations
+  getContactsByProjectId(projectId: number): Promise<Contact[]>;
+  getContactById(id: number): Promise<Contact | undefined>;
+  createContact(contact: InsertContact): Promise<Contact>;
+  updateContact(id: number, contact: Partial<InsertContact>): Promise<Contact>;
+  deleteContact(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -702,6 +712,53 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created;
     }
+  }
+
+  // Contacts operations
+  async getContactsByProjectId(projectId: number): Promise<Contact[]> {
+    return await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.projectId, projectId))
+      .orderBy(contacts.lastName, contacts.firstName);
+  }
+
+  async getContactById(id: number): Promise<Contact | undefined> {
+    const [contact] = await db
+      .select()
+      .from(contacts)
+      .where(eq(contacts.id, id));
+    return contact;
+  }
+
+  async createContact(contactData: InsertContact): Promise<Contact> {
+    const [contact] = await db
+      .insert(contacts)
+      .values({
+        ...contactData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return contact;
+  }
+
+  async updateContact(id: number, contactData: Partial<InsertContact>): Promise<Contact> {
+    const [contact] = await db
+      .update(contacts)
+      .set({
+        ...contactData,
+        updatedAt: new Date(),
+      })
+      .where(eq(contacts.id, id))
+      .returning();
+    return contact;
+  }
+
+  async deleteContact(id: number): Promise<void> {
+    await db
+      .delete(contacts)
+      .where(eq(contacts.id, id));
   }
 }
 
