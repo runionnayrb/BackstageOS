@@ -68,7 +68,7 @@ export default function ContactSheet() {
   const [isResizing, setIsResizing] = useState<number | null>(null);
   const [resizeStartX, setResizeStartX] = useState(0);
   const [resizeStartWidth, setResizeStartWidth] = useState(0);
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [isPreviewMode, setIsPreviewMode] = useState(true);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
