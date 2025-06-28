@@ -396,6 +396,9 @@ export function CollaborativeEditor({
 
   // Handle click on header/footer for inline editing
   const handleHeaderFooterClick = useCallback((type: 'header' | 'footer', pageNum: number, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
     const element = event.currentTarget as HTMLElement;
     const rect = element.getBoundingClientRect();
     
@@ -408,18 +411,27 @@ export function CollaborativeEditor({
     setEditingElement({ type, pageNum });
     setShowToolbar(true);
     
-    // Make the element editable and focus it
+    // Make the element editable and focus it properly
     setTimeout(() => {
       if (editingRef.current) {
+        // Clear any existing content if it's placeholder text
+        if (editingRef.current.textContent?.includes('Click to edit')) {
+          editingRef.current.innerHTML = '';
+        }
+        
         editingRef.current.focus();
         
-        // Select all text if it's placeholder text
+        // Set cursor at the end of content
         const selection = window.getSelection();
-        if (selection && editingRef.current.textContent?.includes('Double-click to edit')) {
-          selection.selectAllChildren(editingRef.current);
+        if (selection) {
+          selection.removeAllRanges();
+          const range = document.createRange();
+          range.selectNodeContents(editingRef.current);
+          range.collapse(false); // Collapse to end
+          selection.addRange(range);
         }
       }
-    }, 0);
+    }, 10);
   }, []);
 
   // Handle formatting commands for inline editing
@@ -438,27 +450,36 @@ export function CollaborativeEditor({
   // Insert variable into inline editor
   const insertVariableInline = useCallback((variable: string) => {
     if (editingRef.current) {
+      const variableText = `{{${variable}}}`;
+      
       // Focus the editing element first
       editingRef.current.focus();
       
-      // Try modern approach first
-      if (document.execCommand) {
-        document.execCommand('insertText', false, `{{${variable}}}`);
+      // Get current cursor position or append to end
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        const textNode = document.createTextNode(variableText);
+        range.insertNode(textNode);
+        
+        // Move cursor after the inserted text
+        range.setStartAfter(textNode);
+        range.setEndAfter(textNode);
+        selection.removeAllRanges();
+        selection.addRange(range);
       } else {
-        // Fallback for browsers that don't support execCommand
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
-          range.deleteContents();
-          const textNode = document.createTextNode(`{{${variable}}}`);
-          range.insertNode(textNode);
-          range.setStartAfter(textNode);
-          range.setEndAfter(textNode);
+        // If no selection, append to current content
+        const currentContent = editingRef.current.textContent || '';
+        editingRef.current.textContent = currentContent + variableText;
+        
+        // Move cursor to end
+        const newRange = document.createRange();
+        newRange.selectNodeContents(editingRef.current);
+        newRange.collapse(false);
+        if (selection) {
           selection.removeAllRanges();
-          selection.addRange(range);
-        } else {
-          // If no selection, append to end
-          editingRef.current.innerHTML += `{{${variable}}}`;
+          selection.addRange(newRange);
         }
       }
       
@@ -469,9 +490,6 @@ export function CollaborativeEditor({
       } else if (editingElement?.type === 'footer') {
         setFooterText(content);
       }
-      
-      // Close the variables popover
-      setShowVariablesPopover(false);
     }
   }, [editingElement]);
 
@@ -1321,12 +1339,20 @@ export function CollaborativeEditor({
                       className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors ${
                         editingElement?.type === 'header' && editingElement?.pageNum === pageNum ? 'outline-2 outline-blue-500 outline-dashed' : ''
                       }`}
+                      style={{ direction: 'ltr', textAlign: pageNumberAlignment as any }}
                       contentEditable={editingElement?.type === 'header' && editingElement?.pageNum === pageNum}
                       onClick={(e) => handleHeaderFooterClick('header', pageNum, e)}
                       onBlur={closeInlineEditor}
                       onInput={(e) => {
                         if (editingElement?.type === 'header') {
-                          setHeaderText((e.target as HTMLElement).innerHTML);
+                          const content = (e.target as HTMLElement).innerHTML;
+                          setHeaderText(content);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Prevent issues with cursor positioning
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
                         }
                       }}
                       dangerouslySetInnerHTML={{
@@ -1344,12 +1370,20 @@ export function CollaborativeEditor({
                       className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 cursor-pointer hover:bg-gray-100 hover:bg-opacity-50 rounded transition-colors ${
                         editingElement?.type === 'footer' && editingElement?.pageNum === pageNum ? 'outline-2 outline-blue-500 outline-dashed' : ''
                       }`}
+                      style={{ direction: 'ltr', textAlign: pageNumberAlignment as any }}
                       contentEditable={editingElement?.type === 'footer' && editingElement?.pageNum === pageNum}
                       onClick={(e) => handleHeaderFooterClick('footer', pageNum, e)}
                       onBlur={closeInlineEditor}
                       onInput={(e) => {
                         if (editingElement?.type === 'footer') {
-                          setFooterText((e.target as HTMLElement).innerHTML);
+                          const content = (e.target as HTMLElement).innerHTML;
+                          setFooterText(content);
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        // Prevent issues with cursor positioning
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
                         }
                       }}
                       dangerouslySetInnerHTML={{
@@ -1512,58 +1546,19 @@ export function CollaborativeEditor({
           
           <div className="w-px h-5 bg-border mx-0.5" />
           
-          {/* Variables Popover */}
-          <Popover open={showVariablesPopover} onOpenChange={setShowVariablesPopover}>
-            <PopoverTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
-                Vars
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-40 p-1">
-              <div className="flex flex-col gap-0.5">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start h-7 text-xs"
-                  onClick={() => insertVariableInline('showName')}
-                >
-                  Show Name
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start h-7 text-xs"
-                  onClick={() => insertVariableInline('date')}
-                >
-                  Date
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start h-7 text-xs"
-                  onClick={() => insertVariableInline('stageManager')}
-                >
-                  Stage Manager
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start h-7 text-xs"
-                  onClick={() => insertVariableInline('pageNumber')}
-                >
-                  Page Number
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start h-7 text-xs"
-                  onClick={() => insertVariableInline('totalPages')}
-                >
-                  Total Pages
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
+          {/* Variables Select */}
+          <Select onValueChange={(value) => insertVariableInline(value)}>
+            <SelectTrigger className="h-7 w-14 px-2 text-xs">
+              <SelectValue placeholder="Vars" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="showName">Show Name</SelectItem>
+              <SelectItem value="date">Date</SelectItem>
+              <SelectItem value="stageManager">Stage Manager</SelectItem>
+              <SelectItem value="pageNumber">Page Number</SelectItem>
+              <SelectItem value="totalPages">Total Pages</SelectItem>
+            </SelectContent>
+          </Select>
           
           <div className="w-px h-5 bg-border mx-0.5" />
           
