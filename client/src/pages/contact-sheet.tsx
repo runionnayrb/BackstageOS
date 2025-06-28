@@ -733,17 +733,21 @@ export default function ContactSheet() {
     const phoneStr = String(phone).trim();
     // Remove all non-digit characters
     const digits = phoneStr.replace(/\D/g, "");
-    // Format as (xxx) xxx-xxxx if we have 10 digits
-    if (digits.length === 10) {
-      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
-    }
+    
+    // Handle different digit lengths
+    if (digits.length === 0) return "";
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    if (digits.length <= 10) return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    
     // Format 11 digits (remove leading 1 if present)
     if (digits.length === 11 && digits.startsWith('1')) {
       const tenDigits = digits.slice(1);
       return `(${tenDigits.slice(0, 3)}) ${tenDigits.slice(3, 6)}-${tenDigits.slice(6)}`;
     }
-    // Return original if not standard format
-    return phoneStr;
+    
+    // For longer numbers, format the first 10 digits
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
   };
 
   const getCellValue = (contact: Contact, columnId: string): string => {
@@ -1359,7 +1363,13 @@ export default function ContactSheet() {
                     
                     {/* Table Header */}
                     <div style={getHeaderBorderStyle()}>
-                      <div className="flex print:text-sm">
+                      <div 
+                        className="flex print:text-sm" 
+                        style={{ 
+                          width: `${columns.filter(col => col.visible).reduce((sum, col) => sum + col.width, 0)}px`,
+                          minWidth: 'fit-content'
+                        }}
+                      >
                         {!isPreviewMode && columns.filter(col => col.visible).map((column, colIndex) => (
                           <div
                             key={column.id}
@@ -1391,7 +1401,13 @@ export default function ContactSheet() {
                         ))}
                         
                         {/* Preview/Print version of headers */}
-                        <div className={`${isPreviewMode ? 'flex w-full' : 'hidden print:flex print:w-full'}`}>
+                        <div 
+                          className={`${isPreviewMode ? 'flex' : 'hidden print:flex'}`}
+                          style={{ 
+                            width: `${columns.filter(col => col.visible).reduce((sum, col) => sum + col.width, 0)}px`,
+                            minWidth: 'fit-content'
+                          }}
+                        >
                           {columns.filter(col => col.visible).map((column) => (
                             <div
                               key={column.id}
@@ -1417,6 +1433,10 @@ export default function ContactSheet() {
                           className={`flex print:text-sm ${
                             !isPreviewMode ? 'hover:bg-gray-50 print:hover:bg-transparent' : ''
                           }`}
+                          style={{ 
+                            width: `${columns.filter(col => col.visible).reduce((sum, col) => sum + col.width, 0)}px`,
+                            minWidth: 'fit-content'
+                          }}
                           draggable={!isPreviewMode}
                           onDragStart={!isPreviewMode ? (e) => handleContactDragStart(e, category.id, contactIndex) : undefined}
                           onDragOver={!isPreviewMode ? (e) => e.preventDefault() : undefined}
@@ -1446,7 +1466,13 @@ export default function ContactSheet() {
                           ))}
                           
                           {/* Preview/Print version */}
-                          <div className={`${isPreviewMode ? 'flex w-full' : 'hidden print:flex print:w-full'}`}>
+                          <div 
+                            className={`${isPreviewMode ? 'flex' : 'hidden print:flex'}`}
+                            style={{ 
+                              width: `${columns.filter(col => col.visible).reduce((sum, col) => sum + col.width, 0)}px`,
+                              minWidth: 'fit-content'
+                            }}
+                          >
                             {columns.filter(col => col.visible).map((column) => (
                               <div
                                 key={column.id}

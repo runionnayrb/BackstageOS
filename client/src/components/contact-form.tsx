@@ -53,6 +53,15 @@ const parsePhoneNumber = (formatted: string): string => {
   return formatted.replace(/\D/g, '');
 };
 
+const validatePhoneNumber = (phone: string): string | null => {
+  if (!phone.trim()) return null; // Optional field
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length < 10) return "Phone number must be at least 10 digits";
+  if (digits.length > 11) return "Phone number cannot exceed 11 digits";
+  if (digits.length === 11 && !digits.startsWith('1')) return "11-digit numbers must start with 1";
+  return null;
+};
+
 export function ContactForm({ projectId, category, contact, onClose, onSuccess }: ContactFormProps) {
   const [formData, setFormData] = useState({
     firstName: contact?.firstName || "",
@@ -69,6 +78,8 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
     medicalNotes: contact?.medicalNotes || "",
     castTypes: contact?.castTypes || [],
   });
+
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -130,6 +141,23 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate phone numbers
+    const errors: Record<string, string> = {};
+    
+    const phoneError = validatePhoneNumber(formData.phone);
+    if (phoneError) errors.phone = phoneError;
+    
+    const emergencyPhoneError = validatePhoneNumber(formData.emergencyContactPhone);
+    if (emergencyPhoneError) errors.emergencyContactPhone = emergencyPhoneError;
+    
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+    
+    // Clear validation errors on successful validation
+    setValidationErrors({});
     
     const data = {
       ...formData,
@@ -244,7 +272,11 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   value={formData.phone}
                   onChange={handleInputChange}
                   placeholder="(xxx) xxx-xxxx"
+                  className={validationErrors.phone ? "border-red-500" : ""}
                 />
+                {validationErrors.phone && (
+                  <p className="text-sm text-red-500 mt-1">{validationErrors.phone}</p>
+                )}
               </div>
             </div>
 
@@ -333,7 +365,11 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                   value={formData.emergencyContactPhone}
                   onChange={handleInputChange}
                   placeholder="(xxx) xxx-xxxx"
+                  className={validationErrors.emergencyContactPhone ? "border-red-500" : ""}
                 />
+                {validationErrors.emergencyContactPhone && (
+                  <p className="text-sm text-red-500 mt-1">{validationErrors.emergencyContactPhone}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="emergencyContactEmail">Email</Label>
