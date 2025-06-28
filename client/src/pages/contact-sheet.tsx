@@ -1312,17 +1312,19 @@ export default function ContactSheet() {
 
                 return (
                   <div key={category.id}>
-                    {/* Section spacing handle before each category (except first) */}
-                    {!isPreviewMode && isNotFirstCategory && (
+                    {/* Section spacing - visible in both edit and preview modes */}
+                    {isNotFirstCategory && (
                       <div
-                        className="relative cursor-row-resize hover:bg-blue-100 flex items-center justify-center transition-colors"
+                        className={`${!isPreviewMode ? 'relative cursor-row-resize hover:bg-blue-100 flex items-center justify-center transition-colors' : ''}`}
                         style={{ 
-                          height: `${Math.max(sectionSpacing, 4)}px`
+                          height: `${Math.max(sectionSpacing, !isPreviewMode ? 4 : 0)}px`
                         }}
-                        onMouseDown={(e) => handleSectionSpacingMouseDown(e)}
-                        title="Drag to adjust spacing between contact sections"
+                        onMouseDown={!isPreviewMode ? (e) => handleSectionSpacingMouseDown(e) : undefined}
+                        title={!isPreviewMode ? "Drag to adjust spacing between contact sections" : undefined}
                       >
-                        <div className="w-full h-0.5 bg-blue-400 opacity-50 hover:opacity-100 transition-opacity" />
+                        {!isPreviewMode && (
+                          <div className="w-full h-0.5 bg-blue-400 opacity-50 hover:opacity-100 transition-opacity" />
+                        )}
                       </div>
                     )}
 
@@ -1341,19 +1343,19 @@ export default function ContactSheet() {
                       </h3>
                     </div>
                     
-                    {/* Category Spacing Drag Handle - Only in edit mode */}
-                    {!isPreviewMode && (
-                      <div
-                        className="relative cursor-row-resize hover:bg-purple-100 flex items-center justify-center transition-colors"
-                        style={{ 
-                          height: `${Math.max(categorySpacing, 4)}px`
-                        }}
-                        onMouseDown={(e) => handleCategorySpacingMouseDown(e)}
-                        title="Drag to adjust spacing between title and headers"
-                      >
+                    {/* Category Spacing - visible in both edit and preview modes */}
+                    <div
+                      className={`${!isPreviewMode ? 'relative cursor-row-resize hover:bg-purple-100 flex items-center justify-center transition-colors' : ''}`}
+                      style={{ 
+                        height: `${Math.max(categorySpacing, !isPreviewMode ? 4 : 0)}px`
+                      }}
+                      onMouseDown={!isPreviewMode ? (e) => handleCategorySpacingMouseDown(e) : undefined}
+                      title={!isPreviewMode ? "Drag to adjust spacing between title and headers" : undefined}
+                    >
+                      {!isPreviewMode && (
                         <div className="w-full h-0.5 bg-purple-400 opacity-50 hover:opacity-100 transition-opacity" />
-                      </div>
-                    )}
+                      )}
+                    </div>
                     
                     {/* Table Header */}
                     <div style={getHeaderBorderStyle()}>
