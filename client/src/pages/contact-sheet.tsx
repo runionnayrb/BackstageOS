@@ -70,6 +70,11 @@ export default function ContactSheet() {
   const [resizeStartX, setResizeStartX] = useState(0);
   const [resizeStartWidth, setResizeStartWidth] = useState(0);
   const [isPreviewMode, setIsPreviewMode] = useState(true);
+  const [headerHeight, setHeaderHeight] = useState(40);
+  const [rowHeight, setRowHeight] = useState(32);
+  const [isResizingHeight, setIsResizingHeight] = useState<'header' | 'row' | null>(null);
+  const [resizeStartY, setResizeStartY] = useState(0);
+  const [resizeStartHeight, setResizeStartHeight] = useState(0);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -214,6 +219,26 @@ export default function ContactSheet() {
     e.preventDefault();
   };
 
+  // Handle header height resizing
+  const handleHeaderHeightMouseDown = (e: React.MouseEvent) => {
+    setIsResizingHeight('header');
+    setResizeStartY(e.clientY);
+    setResizeStartHeight(headerHeight);
+    
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  // Handle row height resizing
+  const handleRowHeightMouseDown = (e: React.MouseEvent) => {
+    setIsResizingHeight('row');
+    setResizeStartY(e.clientY);
+    setResizeStartHeight(rowHeight);
+    
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isResizing !== null) {
@@ -223,14 +248,25 @@ export default function ContactSheet() {
         setColumns(prev => prev.map((col, idx) => 
           idx === isResizing ? { ...col, width: newWidth } : col
         ));
+      } else if (isResizingHeight !== null) {
+        e.preventDefault();
+        const deltaY = e.clientY - resizeStartY;
+        const newHeight = Math.max(20, resizeStartHeight + deltaY);
+        
+        if (isResizingHeight === 'header') {
+          setHeaderHeight(newHeight);
+        } else if (isResizingHeight === 'row') {
+          setRowHeight(newHeight);
+        }
       }
     };
 
     const handleMouseUp = () => {
       setIsResizing(null);
+      setIsResizingHeight(null);
     };
 
-    if (isResizing !== null) {
+    if (isResizing !== null || isResizingHeight !== null) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     }
@@ -239,7 +275,7 @@ export default function ContactSheet() {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isResizing, resizeStartX, resizeStartWidth]);
+  }, [isResizing, resizeStartX, resizeStartWidth, isResizingHeight, resizeStartY, resizeStartHeight]);
 
   const formatPhoneNumber = (phone: string | null | undefined): string => {
     if (!phone) return "";
@@ -390,8 +426,8 @@ export default function ContactSheet() {
                         {!isPreviewMode && columns.filter(col => col.visible).map((column, colIndex) => (
                           <div
                             key={column.id}
-                            className="relative font-semibold py-2 px-3 print:px-1 border-r border-gray-300 last:border-r-0 print:hidden cursor-grab hover:bg-gray-50"
-                            style={{ width: `${column.width}px` }}
+                            className="relative font-semibold px-3 print:px-1 border-r border-gray-300 last:border-r-0 print:hidden cursor-grab hover:bg-gray-50 flex items-center"
+                            style={{ width: `${column.width}px`, height: `${headerHeight}px` }}
                             draggable
                             onDragStart={(e) => handleColumnDragStart(e, colIndex)}
                             onDragOver={(e) => e.preventDefault()}
@@ -399,10 +435,16 @@ export default function ContactSheet() {
                           >
                             {column.label}
                             
-                            {/* Resize Handle */}
+                            {/* Column Resize Handle */}
                             <div
                               className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-500 hover:opacity-50"
                               onMouseDown={(e) => handleMouseDown(e, colIndex)}
+                            />
+                            
+                            {/* Row Height Resize Handle */}
+                            <div
+                              className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize hover:bg-green-500 hover:opacity-50"
+                              onMouseDown={(e) => handleHeaderHeightMouseDown(e)}
                             />
                           </div>
                         ))}
@@ -412,8 +454,8 @@ export default function ContactSheet() {
                           {columns.filter(col => col.visible).map((column) => (
                             <div
                               key={column.id}
-                              className="font-semibold py-2 px-3 border-r border-gray-300 last:border-r-0"
-                              style={{ width: `${column.width}px` }}
+                              className="font-semibold px-3 border-r border-gray-300 last:border-r-0 flex items-center"
+                              style={{ width: `${column.width}px`, height: `${headerHeight}px` }}
                             >
                               {column.label}
                             </div>
@@ -436,13 +478,21 @@ export default function ContactSheet() {
                           onDrop={!isPreviewMode ? (e) => handleContactDrop(e, category.id, contactIndex) : undefined}
                         >
                           {/* Edit mode version */}
-                          {!isPreviewMode && columns.filter(col => col.visible).map((column) => (
+                          {!isPreviewMode && columns.filter(col => col.visible).map((column, cellIndex) => (
                             <div
                               key={column.id}
-                              className="py-2 px-3 border-r border-gray-300 last:border-r-0 print:hidden overflow-hidden text-ellipsis whitespace-nowrap cursor-grab hover:bg-gray-50"
-                              style={{ width: `${column.width}px` }}
+                              className="relative px-3 border-r border-gray-300 last:border-r-0 print:hidden overflow-hidden text-ellipsis whitespace-nowrap cursor-grab hover:bg-gray-50 flex items-center"
+                              style={{ width: `${column.width}px`, height: `${rowHeight}px` }}
                             >
                               {getCellValue(contact, column.id)}
+                              
+                              {/* Row Height Resize Handle - only on first cell */}
+                              {cellIndex === 0 && (
+                                <div
+                                  className="absolute bottom-0 left-0 right-0 h-1 cursor-row-resize hover:bg-orange-500 hover:opacity-50"
+                                  onMouseDown={(e) => handleRowHeightMouseDown(e)}
+                                />
+                              )}
                             </div>
                           ))}
                           
@@ -451,9 +501,10 @@ export default function ContactSheet() {
                             {columns.filter(col => col.visible).map((column) => (
                               <div
                                 key={column.id}
-                                className="py-1 px-3 border-r border-gray-300 last:border-r-0 overflow-hidden text-ellipsis"
+                                className="px-3 border-r border-gray-300 last:border-r-0 overflow-hidden text-ellipsis flex items-center"
                                 style={{ 
                                   width: `${column.width}px`,
+                                  height: `${rowHeight}px`,
                                   fontSize: isPreviewMode ? '14px' : '11px', 
                                   lineHeight: isPreviewMode ? '16px' : '14px' 
                                 }}
