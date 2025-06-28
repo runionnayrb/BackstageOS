@@ -215,13 +215,19 @@ class ErrorLogger {
     if (!this.isLoggingEnabled) return;
 
     try {
+      // Use stored user ID, don't fetch during error logging to avoid circular issues
+      const finalErrorData = {
+        ...errorData,
+        userId: this.userId || errorData.userId
+      };
+
       // Use a separate API endpoint for error logging to avoid circular errors
       await fetch('/api/errors/log', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(errorData),
+        body: JSON.stringify(finalErrorData),
       });
     } catch (error) {
       // Silently fail - don't create recursive error logging

@@ -49,10 +49,6 @@ function Router() {
 
   // Initialize error logging
   useEffect(() => {
-    if (user) {
-      errorLogger.setUserId(user.id.toString());
-    }
-    
     // Set current page for error logging
     errorLogger.setCurrentPage(window.location.pathname);
     
@@ -63,6 +59,13 @@ function Router() {
     
     window.addEventListener('popstate', handleRouteChange);
     return () => window.removeEventListener('popstate', handleRouteChange);
+  }, []);
+
+  // Update user ID when authentication changes
+  useEffect(() => {
+    if (user) {
+      errorLogger.setUserId(user.id.toString());
+    }
   }, [user]);
 
   if (isLoading) {
