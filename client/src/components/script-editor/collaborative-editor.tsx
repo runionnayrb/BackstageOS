@@ -561,12 +561,6 @@ export function CollaborativeEditor({
             </span>
           </div>
           
-          {/* Auto-save indicator */}
-          <div className="flex items-center gap-1">
-            <Clock className="h-4 w-4 text-green-500" />
-            <span className="text-sm text-green-500">Saved</span>
-          </div>
-          
           {/* Action buttons */}
           <Button variant="outline" size="sm" onClick={onExport} title="Export PDF">
             <Download className="h-4 w-4" />
