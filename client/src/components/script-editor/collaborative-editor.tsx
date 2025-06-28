@@ -321,14 +321,19 @@ export function CollaborativeEditor({
 
   // Initialize content when it changes from server
   useEffect(() => {
-    if (editorRef.current && content && !initialContent) {
-      // Only set content on initial load, not on subsequent prop changes
-      editorRef.current.innerHTML = content;
-      setInitialContent(content);
-      // Trigger content distribution after content is set
-      setTimeout(() => distributeContentAcrossPages(), 100);
+    if (editorRef.current && content) {
+      // Always update editor when content prop changes from server
+      const currentEditorContent = editorRef.current.innerHTML || '';
+      if (currentEditorContent !== content) {
+        editorRef.current.innerHTML = content;
+        if (!initialContent) {
+          setInitialContent(content);
+        }
+        // Trigger content distribution after content is set
+        setTimeout(() => distributeContentAcrossPages(), 100);
+      }
     }
-  }, [content, initialContent, distributeContentAcrossPages]);
+  }, [content, distributeContentAcrossPages]);
 
   // Listen for force distribution events from import
   useEffect(() => {

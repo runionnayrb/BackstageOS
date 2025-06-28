@@ -76,12 +76,12 @@ export default function ScriptEditor() {
   const [isContentLoaded, setIsContentLoaded] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Enhanced script data fetching
+  // Enhanced script data fetching with persistent content management
   const { data: script, isLoading: scriptLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/script`],
     enabled: !!projectId && !!user,
-    staleTime: 0, // Always fresh
-    gcTime: 0, // No caching
+    staleTime: 30000, // Keep data fresh for 30 seconds
+    gcTime: 300000, // Cache for 5 minutes
     refetchOnWindowFocus: false,
     refetchOnMount: true,
     refetchOnReconnect: false,
@@ -94,14 +94,14 @@ export default function ScriptEditor() {
   
   // Load script content from server when available
   useEffect(() => {
-    if (script && typeof script === 'object') {
+    if (script && typeof script === 'object' && !isContentLoaded) {
       const scriptData = script as any;
       console.log('Loading script from server:', { 
         name: scriptData.name, 
         contentLength: scriptData.content?.length || 0 
       });
       
-      // Always update when script data changes
+      // Only set content on initial load to prevent clearing during saves
       setScriptTitle(scriptData.name || "Untitled Script");
       setScriptContent(scriptData.content || "");
       setCurrentVersion(scriptData.version || "1.0");
@@ -113,7 +113,7 @@ export default function ScriptEditor() {
       setCurrentVersion("1.0");
       setIsContentLoaded(true);
     }
-  }, [script, scriptLoading]);
+  }, [script, scriptLoading, isContentLoaded]);
 
   // Auto-save is now handled directly in handleContentChange to avoid timing issues
 
@@ -140,8 +140,7 @@ export default function ScriptEditor() {
     onSuccess: () => {
       setIsAutoSaving(false);
       setLastSaved(new Date());
-      // Force query refetch after successful save
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/script`] });
+      // Don't invalidate query to prevent content clearing
     },
     onError: () => {
       setIsAutoSaving(false);
