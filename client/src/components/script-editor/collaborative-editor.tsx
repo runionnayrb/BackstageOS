@@ -438,9 +438,25 @@ export function CollaborativeEditor({
       if (editingRef.current) {
         const element = editingRef.current as HTMLDivElement;
         
-        // Set initial content based on type - use saved content, not element content
-        const currentContent = type === 'header' ? headerText : footerText;
-        console.log('Content initialization:', { type, currentContent, headerText, footerText });
+        // Load content from localStorage if state is empty
+        let currentContent = type === 'header' ? headerText : footerText;
+        
+        // If state is empty, try to load from localStorage
+        if (!currentContent || !currentContent.trim()) {
+          const savedContent = localStorage.getItem(`script-${type}-${title}`);
+          if (savedContent) {
+            currentContent = savedContent;
+            // Update state with loaded content
+            if (type === 'header') {
+              setHeaderText(savedContent);
+            } else {
+              setFooterText(savedContent);
+            }
+            console.log(`Loaded ${type} content from localStorage:`, savedContent);
+          }
+        }
+        
+        console.log('Content initialization:', { type, currentContent, fromLocalStorage: !!localStorage.getItem(`script-${type}-${title}`) });
         
         if (currentContent && currentContent.trim()) {
           element.innerHTML = currentContent;
