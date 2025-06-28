@@ -536,18 +536,17 @@ export function CollaborativeEditor({
     
     console.log('Selection:', { selectedText });
     
-    let formattedElement: HTMLElement;
-    
-    // Apply formatting based on command
+    // Get the tag name for the command
+    let tagName: string;
     switch (command) {
       case 'bold':
-        formattedElement = document.createElement('b');
+        tagName = 'B';
         break;
       case 'italic':
-        formattedElement = document.createElement('i');
+        tagName = 'I';
         break;
       case 'underline':
-        formattedElement = document.createElement('u');
+        tagName = 'U';
         break;
       default:
         console.log('Unknown command:', command);
@@ -555,23 +554,31 @@ export function CollaborativeEditor({
     }
     
     try {
-      // If there's selected text, wrap it
-      if (selectedText) {
-        range.surroundContents(formattedElement);
+      // Simple approach: check if the entire content has the formatting and toggle it
+      const currentContent = element.innerHTML;
+      const isCurrentlyFormatted = currentContent.includes(`<${tagName.toLowerCase()}>`) || 
+                                   currentContent.includes(`<${tagName.toUpperCase()}>`);
+      
+      let newContent: string;
+      
+      if (isCurrentlyFormatted) {
+        // Remove all instances of this formatting
+        console.log('Removing existing formatting:', tagName);
+        newContent = currentContent
+          .replace(new RegExp(`<${tagName.toLowerCase()}>`, 'gi'), '')
+          .replace(new RegExp(`</${tagName.toLowerCase()}>`, 'gi'), '')
+          .replace(new RegExp(`<${tagName.toUpperCase()}>`, 'gi'), '')
+          .replace(new RegExp(`</${tagName.toUpperCase()}>`, 'gi'), '');
       } else {
-        // If no selection, insert empty formatted element at cursor
-        formattedElement.textContent = '';
-        range.insertNode(formattedElement);
-        // Place cursor inside the formatted element
-        const newRange = document.createRange();
-        newRange.setStart(formattedElement, 0);
-        newRange.setEnd(formattedElement, 0);
-        selection.removeAllRanges();
-        selection.addRange(newRange);
+        // Add formatting to the entire content
+        console.log('Adding new formatting:', tagName);
+        // Get just the text content without HTML tags
+        const textContent = element.textContent || element.innerText || '';
+        newContent = `<${tagName.toLowerCase()}>${textContent}</${tagName.toLowerCase()}>`;
       }
       
-      // Update state with new HTML content
-      const newContent = element.innerHTML;
+      // Update the element content
+      element.innerHTML = newContent;
       console.log('New formatted content:', newContent);
       
       if (editingElement.type === 'header') {
@@ -582,16 +589,17 @@ export function CollaborativeEditor({
       
     } catch (error) {
       console.log('Error applying formatting:', error);
-      // Fallback: wrap selection in a new element
-      const contents = range.extractContents();
-      formattedElement.appendChild(contents);
-      range.insertNode(formattedElement);
-      
-      const newContent = element.innerHTML;
-      if (editingElement.type === 'header') {
-        setHeaderText(newContent);
-      } else if (editingElement.type === 'footer') {
-        setFooterText(newContent);
+      // Simple fallback - use document.execCommand if available
+      try {
+        document.execCommand(command, false, undefined);
+        const newContent = element.innerHTML;
+        if (editingElement.type === 'header') {
+          setHeaderText(newContent);
+        } else if (editingElement.type === 'footer') {
+          setFooterText(newContent);
+        }
+      } catch (fallbackError) {
+        console.log('Fallback formatting also failed:', fallbackError);
       }
     }
     
