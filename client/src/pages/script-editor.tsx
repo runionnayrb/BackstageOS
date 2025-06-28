@@ -83,20 +83,22 @@ export default function ScriptEditor() {
   const scriptComments: any[] = [];
   const scriptChanges: any[] = [];
 
-  // Initialize script data only once to prevent overwriting user changes
-  const [hasInitialized, setHasInitialized] = useState(false);
+  // Track if we've loaded the initial script content
+  const [isContentLoaded, setIsContentLoaded] = useState(false);
   
   useEffect(() => {
-    if (script && typeof script === 'object' && !hasInitialized) {
-      setScriptTitle((script as any).name || "Untitled Script");
-      setScriptContent((script as any).content || "");
-      setCurrentVersion((script as any).version || "1.0");
+    // Only load initial content once and never overwrite after that
+    if (script && typeof script === 'object' && !isContentLoaded && !scriptLoading) {
+      const scriptData = script as any;
+      setScriptTitle(scriptData.name || "Untitled Script");
+      setScriptContent(scriptData.content || "");
+      setCurrentVersion(scriptData.version || "1.0");
       setCollaborators([]);
       setComments([]);
       setVersions([]);
       setChanges([]);
-      setHasInitialized(true);
-    } else if (!script && !hasInitialized) {
+      setIsContentLoaded(true);
+    } else if (!script && !scriptLoading && !isContentLoaded) {
       // Create sample version data when no script data exists
       const sampleVersions = [
         {
@@ -184,7 +186,7 @@ export default function ScriptEditor() {
 
   // Auto-save effect with debounce
   useEffect(() => {
-    if (!hasInitialized) return; // Don't auto-save until after initial load
+    if (!isContentLoaded) return; // Don't auto-save until after initial load
     
     const timeoutId = setTimeout(() => {
       const data = {
@@ -195,7 +197,7 @@ export default function ScriptEditor() {
     }, 2000); // Auto-save after 2 seconds of inactivity
 
     return () => clearTimeout(timeoutId);
-  }, [scriptContent, scriptTitle, hasInitialized]); // Trigger on content or title change
+  }, [scriptContent, scriptTitle, isContentLoaded]); // Trigger on content or title change
 
   // Auto-save script mutation
   const saveScriptMutation = useMutation({
@@ -267,9 +269,20 @@ export default function ScriptEditor() {
     },
   });
 
-  // Handler functions
+  // Handler functions with debugging
   const handleContentChange = (content: any) => {
-    setScriptContent(content);
+    console.log('Content change handler called:', { 
+      length: content?.length || 0, 
+      preview: content?.substring(0, 50) || 'empty',
+      type: typeof content
+    });
+    
+    // Only update if content is not empty or null
+    if (content && content.trim().length > 0) {
+      setScriptContent(content);
+    } else {
+      console.warn('Attempted to set empty content, ignoring');
+    }
   };
 
   const handleTitleChange = (title: string) => {
