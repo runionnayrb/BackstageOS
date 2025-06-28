@@ -286,22 +286,25 @@ export default function ScriptEditor() {
     window.print();
   };
 
-  const handleImport = (file: File) => {
-    // Validate file type
+  const handleImport = async (file: File) => {
+    // Validate file type and extensions
     const allowedTypes = [
       'text/plain',
       'text/html',
       'application/rtf',
-      'text/rtf'
+      'text/rtf',
+      'application/pdf',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/msword'
     ];
     
-    const allowedExtensions = ['.txt', '.rtf', '.html', '.htm'];
+    const allowedExtensions = ['.txt', '.rtf', '.html', '.htm', '.pdf', '.docx', '.doc'];
     const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
     
     if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
       toast({
         title: "Unsupported file type",
-        description: "Please upload a text file (.txt), RTF file (.rtf), or HTML file (.html). PDF files are not currently supported.",
+        description: "Please upload a text file (.txt), RTF file (.rtf), HTML file (.html), PDF file (.pdf), or Word document (.docx, .doc).",
         variant: "destructive"
       });
       return;
@@ -317,56 +320,105 @@ export default function ScriptEditor() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const content = e.target?.result as string;
+    try {
+      let content = '';
+
+      if (file.type === 'application/pdf' || fileExtension === '.pdf') {
+        // Handle PDF files
+        toast({
+          title: "Processing PDF",
+          description: "Extracting text from PDF file...",
+        });
+
+        const arrayBuffer = await file.arrayBuffer();
         
-        // Basic validation to ensure it's readable text
-        if (!content || content.length === 0) {
-          toast({
-            title: "Empty file",
-            description: "The uploaded file appears to be empty.",
-            variant: "destructive"
-          });
-          return;
+        // Send to backend for PDF processing
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('/api/extract-pdf-text', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to extract text from PDF');
         }
 
-        // Check for binary content indicators
+        const result = await response.json();
+        content = result.text || '';
+
+      } else if (file.type.includes('word') || fileExtension === '.docx' || fileExtension === '.doc') {
+        // Handle Word documents
+        toast({
+          title: "Processing Word document",
+          description: "Extracting text from Word document...",
+        });
+
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('/api/extract-word-text', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to extract text from Word document');
+        }
+
+        const result = await response.json();
+        content = result.text || '';
+
+      } else {
+        // Handle text-based files
+        const reader = new FileReader();
+        content = await new Promise<string>((resolve, reject) => {
+          reader.onload = (e) => {
+            const result = e.target?.result as string;
+            resolve(result || '');
+          };
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsText(file, 'UTF-8');
+        });
+
+        // Check for binary content indicators in text files
         const binaryIndicators = /[\x00-\x08\x0E-\x1F\x7F-\xFF]/g;
         const binaryMatches = content.match(binaryIndicators);
         if (binaryMatches && binaryMatches.length > content.length * 0.1) {
           toast({
             title: "Invalid file format",
-            description: "This file appears to contain binary data. Please upload a plain text script file.",
+            description: "This file appears to contain binary data. Please upload a valid text file.",
             variant: "destructive"
           });
           return;
         }
+      }
 
-        setScriptContent(content);
+      // Basic validation to ensure we have content
+      if (!content || content.trim().length === 0) {
         toast({
-          title: "Script imported",
-          description: "Your script has been imported successfully.",
-        });
-      } catch (error) {
-        toast({
-          title: "Import failed",
-          description: "There was an error reading the file. Please try again.",
+          title: "Empty file",
+          description: "The uploaded file appears to be empty or contains no extractable text.",
           variant: "destructive"
         });
+        return;
       }
-    };
-    
-    reader.onerror = () => {
+
+      setScriptContent(content);
+      toast({
+        title: "Script imported",
+        description: "Your script has been imported successfully.",
+      });
+
+    } catch (error) {
+      console.error('Import error:', error);
       toast({
         title: "Import failed",
-        description: "There was an error reading the file. Please try again.",
+        description: "There was an error processing the file. Please try again or use a different format.",
         variant: "destructive"
       });
-    };
-    
-    reader.readAsText(file, 'UTF-8');
+    }
   };
 
   const handleAddComment = (comment: any) => {

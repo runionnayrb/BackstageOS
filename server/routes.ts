@@ -1254,6 +1254,79 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // PDF text extraction endpoint
+  app.post('/api/extract-pdf-text', isAuthenticated, async (req: any, res) => {
+    try {
+      const multer = await import('multer');
+      const pdfParse = await import('pdf-parse');
+      
+      const upload = multer.default({ 
+        storage: multer.memoryStorage(),
+        limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+      });
+
+      upload.single('file')(req, res, async (err: any) => {
+        if (err) {
+          return res.status(400).json({ error: 'File upload error', message: err.message });
+        }
+
+        if (!req.file) {
+          return res.status(400).json({ error: 'No file provided' });
+        }
+
+        try {
+          const data = await pdfParse.default(req.file.buffer);
+          let text = data.text || '';
+
+          // Clean up common PDF extraction artifacts
+          text = text
+            // Remove excessive whitespace
+            .replace(/\s{3,}/g, '\n\n')
+            // Remove page headers/footers that are spaced out
+            .replace(/[A-Z\s]{20,}\s+Pg\.\s*\d+/gi, '')
+            .replace(/[A-Z\s]{20,}\s+Page\s*\d+/gi, '')
+            // Remove spaced-out titles like "L O R R A I N E   H A N S B E R R Y"
+            .replace(/([A-Z]\s){3,}[A-Z]/g, (match) => match.replace(/\s/g, ''))
+            // Clean up line breaks
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
+
+          if (!text || text.length < 10) {
+            return res.status(400).json({ 
+              error: 'No readable text found', 
+              message: 'The PDF appears to be empty, image-only, or protected. Try converting it to text first.' 
+            });
+          }
+
+          res.json({ text, pages: data.numpages });
+        } catch (parseError) {
+          console.error('PDF parsing error:', parseError);
+          res.status(500).json({ 
+            error: 'PDF parsing failed', 
+            message: 'Could not extract text from this PDF. It may be password-protected, corrupted, or contain only images.' 
+          });
+        }
+      });
+    } catch (error) {
+      console.error('PDF extraction error:', error);
+      res.status(500).json({ error: 'PDF processing failed' });
+    }
+  });
+
+  // Word document text extraction endpoint (placeholder for future implementation)
+  app.post('/api/extract-word-text', isAuthenticated, async (req: any, res) => {
+    try {
+      // For now, return an error message about Word document support
+      res.status(501).json({ 
+        error: 'Word document support coming soon', 
+        message: 'Word document text extraction is not yet implemented. Please convert your document to PDF or plain text for now.' 
+      });
+    } catch (error) {
+      console.error('Word extraction error:', error);
+      res.status(500).json({ error: 'Word document processing failed' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
