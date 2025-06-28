@@ -149,6 +149,16 @@ export interface IStorage {
   // Contact sheet settings operations
   getContactSheetSettings(projectId: number): Promise<any>;
   saveContactSheetSettings(projectId: number, settings: any): Promise<any>;
+  publishContactSheetVersion(projectId: number, versionType: 'major' | 'minor', settings: any, publishedBy: number): Promise<any>;
+  getContactSheetVersions(projectId: number): Promise<any[]>;
+  getCurrentContactSheetVersion(projectId: number): Promise<string>;
+
+  // Company list settings operations
+  getCompanyListSettings(projectId: number): Promise<any>;
+  saveCompanyListSettings(projectId: number, settings: any): Promise<any>;
+  publishCompanyListVersion(projectId: number, versionType: 'major' | 'minor', settings: any, publishedBy: number): Promise<any>;
+  getCompanyListVersions(projectId: number): Promise<any[]>;
+  getCurrentCompanyListVersion(projectId: number): Promise<string>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -910,6 +920,124 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(contactSheetVersions)
       .where(eq(contactSheetVersions.projectId, projectId))
+      .orderBy(desc(contactSheetVersions.publishedAt))
+      .limit(1);
+
+    return versions.length > 0 ? versions[0].version : "1.0";
+  }
+
+  // Company list settings operations
+  async getCompanyListSettings(projectId: number): Promise<any> {
+    const settings = await db.select().from(showSettings).where(eq(showSettings.projectId, projectId));
+    
+    if (settings.length > 0 && settings[0].companyListSettings) {
+      return JSON.parse(settings[0].companyListSettings as string);
+    }
+    return null;
+  }
+
+  async saveCompanyListSettings(projectId: number, settings: any): Promise<any> {
+    // Check if settings already exist
+    const existingSettings = await db
+      .select()
+      .from(showSettings)
+      .where(eq(showSettings.projectId, projectId));
+
+    if (existingSettings.length > 0) {
+      // Update existing
+      const [updated] = await db
+        .update(showSettings)
+        .set({
+          companyListSettings: settings,
+          updatedAt: new Date(),
+        })
+        .where(eq(showSettings.projectId, projectId))
+        .returning();
+      return updated.companyListSettings;
+    } else {
+      // Create new
+      const [created] = await db
+        .insert(showSettings)
+        .values({
+          projectId,
+          companyListSettings: settings,
+          createdBy: 1, // Default user ID for now
+        })
+        .returning();
+      return created.companyListSettings;
+    }
+  }
+
+  async publishCompanyListVersion(projectId: number, versionType: 'major' | 'minor', settings: any, publishedBy: number): Promise<any> {
+    // Get current latest version for company lists only
+    const latestVersion = await db
+      .select()
+      .from(contactSheetVersions)
+      .where(and(
+        eq(contactSheetVersions.projectId, projectId),
+        eq(contactSheetVersions.type, 'company-list')
+      ))
+      .orderBy(desc(contactSheetVersions.publishedAt))
+      .limit(1);
+
+    let newVersion = "1.0";
+    if (latestVersion.length > 0) {
+      const current = latestVersion[0].version;
+      const [major, minor] = current.split('.').map(Number);
+      
+      if (versionType === 'major') {
+        newVersion = `${major + 1}.0`;
+      } else {
+        newVersion = `${major}.${minor + 1}`;
+      }
+    }
+
+    // Insert new version
+    const [version] = await db
+      .insert(contactSheetVersions)
+      .values({
+        projectId,
+        version: newVersion,
+        versionType,
+        settings: JSON.stringify(settings),
+        publishedBy,
+        publishedAt: new Date(),
+        type: 'company-list' // Distinguish from contact sheet versions
+      })
+      .returning();
+
+    return { version: version.version, versionType };
+  }
+
+  async getCompanyListVersions(projectId: number): Promise<any[]> {
+    return await db
+      .select({
+        id: contactSheetVersions.id,
+        version: contactSheetVersions.version,
+        versionType: contactSheetVersions.versionType,
+        settings: contactSheetVersions.settings,
+        publishedAt: contactSheetVersions.publishedAt,
+        publishedBy: contactSheetVersions.publishedBy,
+        publisherName: users.firstName,
+        publisherLastName: users.lastName
+      })
+      .from(contactSheetVersions)
+      .leftJoin(users, eq(contactSheetVersions.publishedBy, users.id))
+      .where(and(
+        eq(contactSheetVersions.projectId, projectId),
+        eq(contactSheetVersions.type, 'company-list')
+      ))
+      .orderBy(desc(contactSheetVersions.publishedAt));
+  }
+
+  async getCurrentCompanyListVersion(projectId: number): Promise<string> {
+    const versions = await db
+      .select()
+      .from(contactSheetVersions)
+      .where(and(
+        eq(contactSheetVersions.projectId, projectId),
+        eq(contactSheetVersions.type, 'company-list')
+      ))
       .orderBy(desc(contactSheetVersions.publishedAt))
       .limit(1);
 

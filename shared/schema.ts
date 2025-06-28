@@ -280,6 +280,7 @@ export const showSettings = pgTable("show_settings", {
   contactCategoriesOrder: jsonb("contact_categories_order"), // Array of category IDs in custom order
   sectionsOrder: jsonb("sections_order"), // Array of section IDs in custom order for main show page
   contactSheetSettings: jsonb("contact_sheet_settings"), // Contact sheet layout and formatting settings
+  companyListSettings: jsonb("company_list_settings"), // Company list layout and formatting settings
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -594,6 +595,7 @@ export const contactSheetVersions = pgTable("contact_sheet_versions", {
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
   version: varchar("version", { length: 20 }).notNull().default("1.0"),
   versionType: varchar("version_type", { length: 10 }).notNull(), // 'major' or 'minor'
+  type: varchar("type", { length: 20 }).notNull().default("contact-sheet"), // 'contact-sheet' or 'company-list'
   settings: jsonb("settings").notNull(), // Complete contact sheet settings snapshot
   publishedBy: integer("published_by").notNull().references(() => users.id),
   publishedAt: timestamp("published_at").defaultNow().notNull(),

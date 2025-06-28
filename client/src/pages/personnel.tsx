@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, GripVertical, FileText } from "lucide-react";
+import { ArrowLeft, GripVertical, FileText, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
@@ -194,14 +195,23 @@ export default function Personnel() {
           <h1 className="text-3xl font-bold">Contacts</h1>
           <div className="flex items-center gap-3">
             {allContacts.length > 0 && (
-              <Button
-                variant="outline"
-                onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}
-                className="flex items-center gap-2"
-              >
-                <FileText className="h-4 w-4" />
-                Create Contact Sheet
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Create
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
+                    Contact Sheet
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
+                    Company List
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
             <Button
               variant={isReordering ? "default" : "outline"}
