@@ -173,13 +173,8 @@ export default function Personnel() {
           </Button>
         </div>
 
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Contacts</h1>
-            <p className="text-gray-500 mt-2">
-              Manage contact information by category
-            </p>
-          </div>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Contacts</h1>
           <Button
             variant={isReordering ? "default" : "outline"}
             onClick={() => setIsReordering(!isReordering)}
