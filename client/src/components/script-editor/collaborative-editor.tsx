@@ -1053,39 +1053,58 @@ export function CollaborativeEditor({
           </SelectContent>
         </Select>
 
-        {/* Auto-format button */}
+        {/* Auto-format and reflow button */}
         <Button
           variant="ghost"
           size="sm"
           onClick={() => {
             if (editorRef.current) {
               saveToUndoStack();
-              // Get plain text content, preserving line breaks
-              const currentContent = editorRef.current.innerText || editorRef.current.textContent || '';
-              const formattedContent = parseScriptText(currentContent);
+              
+              // Collect all content from all pages first
+              const allPageContent: string[] = [];
+              
+              // Get content from page 1 (editorRef)
+              if (editorRef.current) {
+                allPageContent.push(editorRef.current.innerHTML || '');
+              }
+              
+              // Get content from additional pages
+              for (let i = 2; i <= pageCount; i++) {
+                const pageElement = document.getElementById(`page-${i}-content`);
+                if (pageElement) {
+                  allPageContent.push(pageElement.innerHTML || '');
+                }
+              }
+              
+              // Combine all content and get as plain text
+              const combinedContent = allPageContent.join('');
+              const tempDiv = document.createElement('div');
+              tempDiv.innerHTML = combinedContent;
+              const plainText = tempDiv.innerText || tempDiv.textContent || '';
+              
+              // Format the content
+              const formattedContent = parseScriptText(plainText);
+              
+              // Clear all pages first
               editorRef.current.innerHTML = formattedContent;
-              handleContentChange(editorRef.current?.innerHTML || '');
+              for (let i = 2; i <= pageCount; i++) {
+                const pageElement = document.getElementById(`page-${i}-content`);
+                if (pageElement) {
+                  pageElement.innerHTML = '';
+                }
+              }
+              
+              handleContentChange(formattedContent);
+              
               // Trigger content distribution after formatting
               setTimeout(() => distributeContentAcrossPages(), 100);
             }
           }}
           className="h-8 w-8 p-0"
-          title="Auto-format the entire script"
+          title="Auto-format script and reflow across pages"
         >
           <Wand2 className="h-4 w-4" />
-        </Button>
-
-        {/* Reflow Pages button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setTimeout(() => distributeContentAcrossPages(), 50);
-          }}
-          className="h-8 w-8 p-0"
-          title="Redistribute content across pages"
-        >
-          <FileText className="h-4 w-4" />
         </Button>
 
         <Separator orientation="vertical" className="h-6 mx-1" />
