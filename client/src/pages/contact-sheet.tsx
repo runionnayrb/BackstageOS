@@ -828,35 +828,30 @@ export default function ContactSheet() {
              style={{ 
                width: '8.5in', 
                minHeight: '11in',
+               paddingTop: `${pageMargins.top}in`,
                paddingRight: `${pageMargins.right}in`,
                paddingLeft: `${pageMargins.left}in`,
+               paddingBottom: `${pageMargins.bottom}in`,
                boxSizing: 'border-box',
                border: isPreviewMode ? 'none' : '2px dashed #ff0000'
              }}
           >
-          {/* All Content Container with Top/Bottom Page Margins */}
-          <div
+          {/* Page Header */}
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-2">{(project as any)?.name}</h1>
+            <h2 className="text-lg text-gray-600">Contact Sheet</h2>
+            <p className="text-sm text-gray-500 mt-2">
+              Generated on {new Date().toLocaleDateString()}
+            </p>
+          </div>
+
+          {/* Contact Table by Category */}
+          <div 
+            className="space-y-8 print:space-y-6"
             style={{
-              paddingTop: `${pageMargins.top}in`,
-              paddingBottom: `${pageMargins.bottom}in`
+              marginTop: `${headerFooterMargins.header}in`
             }}
           >
-            {/* Page Header */}
-            <div className="text-center">
-              <h1 className="text-2xl font-bold mb-2">{(project as any)?.name}</h1>
-              <h2 className="text-lg text-gray-600">Contact Sheet</h2>
-              <p className="text-sm text-gray-500 mt-2">
-                Generated on {new Date().toLocaleDateString()}
-              </p>
-            </div>
-
-            {/* Contact Table by Category */}
-            <div 
-              className="space-y-8 print:space-y-6"
-              style={{
-                marginTop: `${headerFooterMargins.header}in`
-              }}
-            >
               {categories.map(category => {
                 const categoryContacts = contactsByCategory[category.id] || [];
                 
@@ -989,15 +984,14 @@ export default function ContactSheet() {
               })}
             </div>
 
-            {/* Page Footer */}
-            <div 
-              className="text-center text-xs text-gray-500"
-              style={{
-                marginTop: `${headerFooterMargins.footer}in`
-              }}
-            >
-              Page 1 of 1
-            </div>
+          {/* Page Footer */}
+          <div 
+            className="text-center text-xs text-gray-500"
+            style={{
+              marginTop: `${headerFooterMargins.footer}in`
+            }}
+          >
+            Page 1 of 1
           </div>
         </div>
       </div>
