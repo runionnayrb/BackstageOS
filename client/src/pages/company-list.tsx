@@ -1498,18 +1498,13 @@ export default function CompanyList() {
                     {/* Table Header */}
                     <div style={getHeaderBorderStyle()}>
                       <div 
-                        className="flex print:text-sm" 
-                        style={{ 
-                          width: `${columns.filter(col => col.visible).reduce((sum, col) => sum + col.width, 0)}px`,
-                          minWidth: 'fit-content'
-                        }}
+                        className="flex print:text-sm w-full" 
                       >
                         {!isPreviewMode && columns.filter(col => col.visible).map((column, colIndex) => (
                           <div
                             key={column.id}
-                            className={`relative px-1 print:px-1 print:hidden cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(headerAlignment)}`}
+                            className={`relative px-1 print:px-1 print:hidden cursor-grab hover:bg-gray-50 flex items-center flex-1 ${getAlignmentClass(headerAlignment)}`}
                             style={{ 
-                              width: `${column.width}px`, 
                               height: `${headerHeight}px`,
                               ...getHeaderStyle()
                             }}
@@ -1537,18 +1532,13 @@ export default function CompanyList() {
                         
                         {/* Preview/Print version of headers */}
                         <div 
-                          className={`${isPreviewMode ? 'flex' : 'hidden print:flex'}`}
-                          style={{ 
-                            width: `${columns.filter(col => col.visible).reduce((sum, col) => sum + col.width, 0)}px`,
-                            minWidth: 'fit-content'
-                          }}
+                          className={`${isPreviewMode ? 'flex' : 'hidden print:flex'} w-full`}
                         >
                           {columns.filter(col => col.visible).map((column) => (
                             <div
                               key={column.id}
-                              className={`px-1 flex items-center ${getAlignmentClass(headerAlignment)}`}
+                              className={`px-1 flex items-center flex-1 ${getAlignmentClass(headerAlignment)}`}
                               style={{ 
-                                width: `${column.width}px`, 
                                 height: `${headerHeight}px`,
                                 ...getHeaderStyle()
                               }}
@@ -1565,13 +1555,9 @@ export default function CompanyList() {
                       {categoryContacts.map((contact, contactIndex) => (
                         <div
                           key={contact.id}
-                          className={`flex print:text-sm ${
+                          className={`flex print:text-sm w-full ${
                             !isPreviewMode ? 'hover:bg-gray-50 print:hover:bg-transparent' : ''
                           }`}
-                          style={{ 
-                            width: `${columns.filter(col => col.visible).reduce((sum, col) => sum + col.width, 0)}px`,
-                            minWidth: 'fit-content'
-                          }}
                           draggable={!isPreviewMode}
                           onDragStart={!isPreviewMode ? (e) => handleContactDragStart(e, category.id, contactIndex) : undefined}
                           onDragOver={!isPreviewMode ? (e) => e.preventDefault() : undefined}
@@ -1581,9 +1567,8 @@ export default function CompanyList() {
                           {!isPreviewMode && columns.filter(col => col.visible).map((column, cellIndex) => (
                             <div
                               key={column.id}
-                              className={`relative px-1 print:hidden overflow-hidden text-ellipsis whitespace-nowrap cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(rowAlignment)}`}
+                              className={`relative px-1 print:hidden overflow-hidden text-ellipsis whitespace-nowrap cursor-grab hover:bg-gray-50 flex items-center flex-1 ${getAlignmentClass(rowAlignment)}`}
                               style={{ 
-                                width: `${column.width}px`, 
                                 height: `${rowHeight}px`,
                                 ...getRowStyle(contactIndex)
                               }}
@@ -1602,18 +1587,13 @@ export default function CompanyList() {
                           
                           {/* Preview/Print version */}
                           <div 
-                            className={`${isPreviewMode ? 'flex' : 'hidden print:flex'}`}
-                            style={{ 
-                              width: `${columns.filter(col => col.visible).reduce((sum, col) => sum + col.width, 0)}px`,
-                              minWidth: 'fit-content'
-                            }}
+                            className={`${isPreviewMode ? 'flex' : 'hidden print:flex'} w-full`}
                           >
                             {columns.filter(col => col.visible).map((column) => (
                               <div
                                 key={column.id}
-                                className={`px-1 overflow-hidden text-ellipsis flex items-center ${getAlignmentClass(rowAlignment)}`}
+                                className={`px-1 overflow-hidden text-ellipsis flex items-center flex-1 ${getAlignmentClass(rowAlignment)}`}
                                 style={{ 
-                                  width: `${column.width}px`,
                                   height: `${rowHeight}px`,
                                   ...getRowStyle(contactIndex)
                                 }}
