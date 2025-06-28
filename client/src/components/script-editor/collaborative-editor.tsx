@@ -48,6 +48,8 @@ interface CollaborativeEditorProps {
   onImport?: (file: File) => void;
   isLoading?: boolean;
   className?: string;
+  isSaving?: boolean;
+  lastSaved?: Date;
 }
 
 export function CollaborativeEditor({
@@ -62,7 +64,9 @@ export function CollaborativeEditor({
   onExport,
   onImport,
   isLoading = false,
-  className = ""
+  className = "",
+  isSaving = false,
+  lastSaved
 }: CollaborativeEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -964,8 +968,12 @@ export function CollaborativeEditor({
             placeholder="Script Title"
             className="text-xl font-bold border-none p-0 h-auto focus-visible:ring-0 bg-transparent"
           />
-          <div className="text-sm text-muted-foreground mt-1">
-            Version {version} - All changes are auto-saved
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-sm text-muted-foreground">Version {version}</span>
+            <span className="text-xs text-muted-foreground">•</span>
+            <span className="text-xs text-muted-foreground">
+              {isSaving ? "Saving..." : lastSaved ? `Saved ${lastSaved.toLocaleTimeString()}` : "All changes are auto-saved"}
+            </span>
           </div>
         </div>
         <div className="flex items-center gap-2">

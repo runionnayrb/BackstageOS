@@ -475,18 +475,9 @@ export default function ScriptEditor() {
                 <ArrowLeft className="h-4 w-4" />
                 Back to {project?.name}
               </Button>
-              <div>
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-muted-foreground" />
-                  <span className="font-medium">Script Editor</span>
-                </div>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm text-muted-foreground">Version {currentVersion}</span>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <span className="text-xs text-muted-foreground">
-                    {isAutoSaving ? "Saving..." : lastSaved ? `Saved ${lastSaved.toLocaleTimeString()}` : "All changes are auto-saved"}
-                  </span>
-                </div>
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-muted-foreground" />
+                <span className="font-medium">Script Editor</span>
               </div>
             </div>
 
@@ -565,6 +556,8 @@ export default function ScriptEditor() {
           onExport={handleExport}
           onImport={handleImport}
           isLoading={saveScriptMutation.isPending}
+          isSaving={isAutoSaving}
+          lastSaved={lastSaved}
           className="w-full h-full"
         />
       </div>
