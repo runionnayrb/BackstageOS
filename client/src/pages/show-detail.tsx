@@ -98,12 +98,10 @@ export default function ShowDetail() {
     },
   ];
 
-  const [sections, setSections] = useState(defaultSections);
-
-  // Apply saved section order when project settings load
-  useEffect(() => {
-    if (projectSettings?.sectionsOrder) {
-      const savedOrder = projectSettings.sectionsOrder;
+  // Calculate sections based on saved order or use default
+  const sections = (() => {
+    if (projectSettings && (projectSettings as any).sectionsOrder) {
+      const savedOrder = (projectSettings as any).sectionsOrder;
       const reorderedSections = savedOrder.map((id: string) => 
         defaultSections.find(section => section.id === id)
       ).filter(Boolean);
@@ -112,9 +110,18 @@ export default function ShowDetail() {
       const savedIds = new Set(savedOrder);
       const newSections = defaultSections.filter(section => !savedIds.has(section.id));
       
-      setSections([...reorderedSections, ...newSections]);
+      return [...reorderedSections, ...newSections];
     }
-  }, [projectSettings]);
+    return defaultSections;
+  })();
+
+  // Local state for drag and drop operations only
+  const [localSections, setLocalSections] = useState(sections);
+
+  // Update local sections when calculated sections change
+  useEffect(() => {
+    setLocalSections(sections);
+  }, [JSON.stringify(sections)]);
 
   // Save section order mutation
   const saveSectionOrderMutation = useMutation({
@@ -149,7 +156,7 @@ export default function ShowDetail() {
     
     if (draggedIndex === null || draggedIndex === dropIndex) return;
 
-    const newSections = [...sections];
+    const newSections = [...localSections];
     const draggedSection = newSections[draggedIndex];
     
     // Remove dragged item
@@ -158,7 +165,7 @@ export default function ShowDetail() {
     // Insert at new position
     newSections.splice(dropIndex, 0, draggedSection);
     
-    setSections(newSections);
+    setLocalSections(newSections);
     
     // Save the new order
     const sectionOrder = newSections.map(section => section.id);
@@ -216,7 +223,7 @@ export default function ShowDetail() {
         </div>
 
         <div className="space-y-1">
-          {sections.map((section, index) => (
+          {localSections.map((section, index) => (
             <div
               key={section.id}
               draggable={isReordering}
