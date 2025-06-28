@@ -124,7 +124,7 @@ export default function WaitlistLanding() {
     {
       icon: Settings,
       title: "Script & Cue Management",
-      description: "Collaborative script editing with real-time cue tracking and version control."
+      description: "Built from the ground up for theatrical scripts with call script building, cue tracking, and collaborative editing designed specifically for stage managers."
     },
     {
       icon: Shield,
@@ -132,7 +132,7 @@ export default function WaitlistLanding() {
       description: "Professional-grade security with role-based permissions and sharing controls."
     },
     {
-      icon: Clipboard,
+      icon: FileText,
       title: "Technical Paperwork",
       description: "Comprehensive tracking for props, costumes, scene shift plots, line set schedules, and mic assignments with detailed status monitoring."
     }
