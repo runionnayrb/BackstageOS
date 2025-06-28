@@ -828,10 +828,10 @@ export default function ContactSheet() {
              style={{ 
                width: '8.5in', 
                minHeight: '11in',
-               paddingTop: `${pageMargins.top}in`,
-               paddingRight: `${pageMargins.right}in`,
-               paddingLeft: `${pageMargins.left}in`,
-               paddingBottom: `${pageMargins.bottom}in`,
+               paddingTop: `${pageMargins.top}in !important`,
+               paddingRight: `${pageMargins.right}in !important`,
+               paddingLeft: `${pageMargins.left}in !important`,
+               paddingBottom: `${pageMargins.bottom}in !important`,
                boxSizing: 'border-box',
                border: isPreviewMode ? 'none' : '2px dashed #ff0000'
              }}
