@@ -178,8 +178,8 @@ export default function ScriptEditor() {
         setCurrentVersion(data.version);
       }
       toast({
-        title: `${versionTypeText} Version Published!`,
-        description: `Your ${versionTypeText.toLowerCase()} version has been successfully published.`,
+        title: `${versionTypeText} Version Published Successfully`,
+        description: `Script version ${data.version} has been published.`,
       });
       // Force refresh the script data to show updated version
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "script"] });

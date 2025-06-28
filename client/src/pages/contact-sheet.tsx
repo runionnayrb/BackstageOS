@@ -310,7 +310,7 @@ export default function ContactSheet() {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-sheet/current-version`] });
       queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/contact-sheet/current-version`] });
       toast({
-        title: "Version published successfully",
+        title: `${data.versionType === 'major' ? 'Major' : 'Minor'} Version Published Successfully`,
         description: `Contact sheet version ${data.version} has been published.`,
       });
     },
