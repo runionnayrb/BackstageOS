@@ -496,7 +496,12 @@ export default function ContactSheet() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div 
+      className="min-h-screen bg-gray-100"
+      style={{
+        paddingTop: `${pageMargins.top}in !important`
+      }}
+    >
       {/* Header - Hidden in print */}
       <div className="bg-background border-b print:hidden">
         <div className="container mx-auto p-6">
@@ -828,7 +833,6 @@ export default function ContactSheet() {
              style={{ 
                width: '8.5in', 
                minHeight: '11in',
-               paddingTop: `${pageMargins.top}in !important`,
                paddingRight: `${pageMargins.right}in !important`,
                paddingLeft: `${pageMargins.left}in !important`,
                paddingBottom: `${pageMargins.bottom}in !important`,
