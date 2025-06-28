@@ -1410,13 +1410,9 @@ export default function ContactSheet() {
                             
                             {/* Column Resize Handle */}
                             <div
-                              className={`absolute right-0 top-0 bottom-0 w-2 cursor-col-resize transition-colors ${
-                                column.id === 'email' 
-                                  ? 'bg-blue-200 hover:bg-blue-500 border-r-2 border-blue-500' 
-                                  : 'bg-transparent hover:bg-blue-500 hover:opacity-75'
-                              }`}
+                              className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize bg-transparent hover:bg-blue-500 hover:opacity-75 transition-colors"
                               onMouseDown={(e) => handleMouseDown(e, colIndex)}
-                              title={`Resize ${column.label} column (drag left to make narrower)`}
+                              title={`Resize ${column.label} column`}
                             />
                             
                             {/* Row Height Resize Handle */}

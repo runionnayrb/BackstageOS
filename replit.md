@@ -282,6 +282,7 @@ Required environment variables:
 - June 28, 2025: **COLUMN OVERFLOW PREVENTION**: Implemented comprehensive page margin constraints for contact sheet tables to prevent columns from extending beyond printable area. Added container overflow limits based on 8.5" page width minus custom margins, and intelligent column resize limits that calculate maximum allowed width using 96 DPI conversion. Column resizing now respects page boundaries for professional document layout compatible with printing requirements.
 - June 28, 2025: **OPTIMIZED COLUMN PADDING AND FLEXIBILITY**: Reduced column padding from px-3 (12px) to px-1 (4px) throughout contact sheet for maximum content density within page margins. Lowered minimum column width from 100px to 50px enabling precise column positioning and layout customization while maintaining professional appearance and readability.
 - June 28, 2025: **SIMPLIFIED COLUMN RESIZING**: Removed dual-side resize handles in favor of single right-side handle per column. Users can now make the email column narrower by dragging its right border left, which moves it closer to the phone column while automatically expanding the position column to maintain proper spacing and layout flow.
+- June 28, 2025: **ENHANCED RESIZE HANDLE VISIBILITY**: Improved column resize handles with 2px width, better hover feedback, and clear tooltips for intuitive resizing. All handles are transparent by default with blue hover state for clean professional appearance while maintaining full resizing functionality.
 
 ## User Preferences
 
