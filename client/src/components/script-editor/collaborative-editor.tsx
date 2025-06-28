@@ -549,7 +549,7 @@ export function CollaborativeEditor({
             className="text-xl font-bold border-none p-0 h-auto focus-visible:ring-0 bg-transparent"
           />
           <div className="text-sm text-muted-foreground mt-1">
-            Version {version}
+            Version {version} - All changes are auto-saved
           </div>
         </div>
         <div className="flex items-center gap-2">
