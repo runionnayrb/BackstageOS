@@ -42,6 +42,9 @@ import {
   type InsertContact,
   type ErrorLog,
   type InsertErrorLog,
+  waitlist,
+  type Waitlist,
+  type InsertWaitlist,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ne } from "drizzle-orm";
@@ -159,6 +162,19 @@ export interface IStorage {
   publishCompanyListVersion(projectId: number, versionType: 'major' | 'minor', settings: any, publishedBy: number): Promise<any>;
   getCompanyListVersions(projectId: number): Promise<any[]>;
   getCurrentCompanyListVersion(projectId: number): Promise<string>;
+
+  // Waitlist operations
+  getWaitlistByEmail(email: string): Promise<Waitlist | undefined>;
+  createWaitlistEntry(waitlist: InsertWaitlist): Promise<Waitlist>;
+  getWaitlistEntries(): Promise<Waitlist[]>;
+  updateWaitlistEntry(id: number, updates: Partial<InsertWaitlist>): Promise<Waitlist>;
+  getWaitlistStats(): Promise<{
+    total: number;
+    pending: number;
+    contacted: number;
+    converted: number;
+    declined: number;
+  }>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1047,6 +1063,57 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     return versions.length > 0 ? versions[0].version : "1.0";
+  }
+
+  // Waitlist operations
+  async getWaitlistByEmail(email: string): Promise<Waitlist | undefined> {
+    const [entry] = await db.select().from(waitlist).where(eq(waitlist.email, email));
+    return entry || undefined;
+  }
+
+  async createWaitlistEntry(waitlistData: InsertWaitlist): Promise<Waitlist> {
+    // Get the next position in the waitlist
+    const countResult = await db.select().from(waitlist);
+    const position = countResult.length + 1;
+
+    const [newEntry] = await db
+      .insert(waitlist)
+      .values({ ...waitlistData, position })
+      .returning();
+    
+    return newEntry;
+  }
+
+  async getWaitlistEntries(): Promise<Waitlist[]> {
+    return await db.select().from(waitlist).orderBy(waitlist.position);
+  }
+
+  async updateWaitlistEntry(id: number, updates: Partial<InsertWaitlist>): Promise<Waitlist> {
+    const [updatedEntry] = await db
+      .update(waitlist)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(waitlist.id, id))
+      .returning();
+    
+    return updatedEntry;
+  }
+
+  async getWaitlistStats(): Promise<{
+    total: number;
+    pending: number;
+    contacted: number;
+    converted: number;
+    declined: number;
+  }> {
+    const entries = await db.select().from(waitlist);
+    
+    return {
+      total: entries.length,
+      pending: entries.filter(e => e.status === 'pending').length,
+      contacted: entries.filter(e => e.status === 'contacted').length,
+      converted: entries.filter(e => e.status === 'converted').length,
+      declined: entries.filter(e => e.status === 'declined').length,
+    };
   }
 }
 

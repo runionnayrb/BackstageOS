@@ -2,13 +2,14 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Users, Settings, MessageSquare, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Users, Settings, MessageSquare, AlertTriangle, ClipboardList } from "lucide-react";
 import { Link } from "wouter";
 import AdminGuard from "@/components/admin-guard";
 import AdminUsersComponent from "./admin-users-component";
 import BetaFeatureComponent from "./beta-feature-component";
 import AdminFeedback from "./admin-feedback";
 import AdminErrorLogs from "./admin-error-logs";
+import WaitlistManagement from "@/components/WaitlistManagement";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("users");
@@ -29,7 +30,7 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               User Management
@@ -37,6 +38,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="features" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Beta Features
+            </TabsTrigger>
+            <TabsTrigger value="waitlist" className="flex items-center gap-2">
+              <ClipboardList className="h-4 w-4" />
+              Waitlist
             </TabsTrigger>
             <TabsTrigger value="feedback" className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
@@ -59,6 +64,13 @@ export default function AdminDashboard() {
             <div>
               <h2 className="text-xl font-semibold mb-6">Beta Feature Configuration</h2>
               <BetaFeatureComponent />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="waitlist" className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold mb-6">Waitlist Management</h2>
+              <WaitlistManagement />
             </div>
           </TabsContent>
 

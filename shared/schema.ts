@@ -758,6 +758,33 @@ export const insertErrorLogSchema = createInsertSchema(errorLogs).omit({
   createdAt: true,
 });
 
+// Waitlist system for landing page
+export const waitlist = pgTable("waitlist", {
+  id: serial("id").primaryKey(),
+  email: varchar("email").unique().notNull(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  organization: varchar("organization"),
+  role: varchar("role"), // stage_manager, director, producer, other
+  experience: varchar("experience"), // professional, educational, community, student
+  howHeard: varchar("how_heard"), // social_media, referral, search, other
+  additionalInfo: text("additional_info"),
+  status: varchar("status").notNull().default("pending"), // pending, contacted, converted, declined
+  position: integer("position"), // Position in waitlist (auto-generated)
+  invitedAt: timestamp("invited_at"),
+  convertedAt: timestamp("converted_at"),
+  notes: text("notes"), // Admin notes
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const insertWaitlistSchema = createInsertSchema(waitlist).omit({
+  id: true,
+  position: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type exports
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -799,3 +826,5 @@ export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
 export type ErrorLog = typeof errorLogs.$inferSelect;
 export type InsertErrorLog = z.infer<typeof insertErrorLogSchema>;
+export type Waitlist = typeof waitlist.$inferSelect;
+export type InsertWaitlist = z.infer<typeof insertWaitlistSchema>;

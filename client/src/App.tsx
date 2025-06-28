@@ -41,10 +41,20 @@ import ContactSheet from "@/pages/contact-sheet";
 import CompanyList from "@/pages/company-list";
 import FeedbackPage from "@/pages/feedback";
 import NotFound from "@/pages/not-found";
+import WaitlistLanding from "@/pages/waitlist-landing";
 
 function Router() {
   const { user, isLoading } = useAuth();
   const isAuthenticated = !!user;
+  
+  // Check if this is the main landing page domain
+  const isMainLandingPage = window.location.hostname === 'backstageos.com' || 
+                           window.location.hostname === 'localhost' && window.location.pathname === '/landing';
+  
+  // If this is the main landing page domain, show waitlist landing
+  if (isMainLandingPage) {
+    return <WaitlistLanding />;
+  }
   
   // Keep session alive while user is active
   useSessionHeartbeat();
@@ -90,6 +100,7 @@ function Router() {
     <Layout>
       <Switch>
         <Route path="/" component={Projects} />
+        <Route path="/landing" component={WaitlistLanding} />
         <Route path="/create-project" component={CreateProject} />
         <Route path="/shows/:id" component={ShowDetail} />
         <Route path="/shows/:id/reports" component={ShowReportsList} />

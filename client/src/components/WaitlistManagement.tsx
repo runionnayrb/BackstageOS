@@ -1,0 +1,443 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { 
+  Users, 
+  TrendingUp, 
+  Clock, 
+  CheckCircle, 
+  XCircle, 
+  Mail,
+  Calendar,
+  Building,
+  User
+} from "lucide-react";
+import { format } from "date-fns";
+
+interface WaitlistEntry {
+  id: number;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  organization: string | null;
+  role: string | null;
+  experience: string | null;
+  howHeard: string | null;
+  additionalInfo: string | null;
+  status: string;
+  position: number | null;
+  invitedAt: Date | null;
+  convertedAt: Date | null;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface WaitlistStats {
+  total: number;
+  pending: number;
+  contacted: number;
+  converted: number;
+  declined: number;
+}
+
+export default function WaitlistManagement() {
+  const [selectedEntry, setSelectedEntry] = useState<WaitlistEntry | null>(null);
+  const [notes, setNotes] = useState("");
+  const [status, setStatus] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: waitlistEntries = [], isLoading } = useQuery<WaitlistEntry[]>({
+    queryKey: ["/api/waitlist"],
+  });
+
+  const { data: stats } = useQuery<WaitlistStats>({
+    queryKey: ["/api/waitlist/stats"],
+  });
+
+  const updateEntryMutation = useMutation({
+    mutationFn: async (data: { id: number; updates: any }) => {
+      const response = await fetch(`/api/waitlist/${data.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data.updates),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update entry");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/waitlist"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/waitlist/stats"] });
+      toast({
+        title: "Entry updated",
+        description: "Waitlist entry has been updated successfully.",
+      });
+      setSelectedEntry(null);
+    },
+    onError: () => {
+      toast({
+        title: "Update failed",
+        description: "Failed to update waitlist entry.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleUpdateEntry = (entry: WaitlistEntry) => {
+    setSelectedEntry(entry);
+    setNotes(entry.notes || "");
+    setStatus(entry.status);
+  };
+
+  const handleSaveUpdate = () => {
+    if (!selectedEntry) return;
+
+    const updates: any = {
+      status,
+      notes,
+    };
+
+    if (status === "contacted" && selectedEntry.status !== "contacted") {
+      updates.invitedAt = new Date().toISOString();
+    }
+
+    if (status === "converted" && selectedEntry.status !== "converted") {
+      updates.convertedAt = new Date().toISOString();
+    }
+
+    updateEntryMutation.mutate({
+      id: selectedEntry.id,
+      updates,
+    });
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants = {
+      pending: "secondary",
+      contacted: "default",
+      converted: "success",
+      declined: "destructive",
+    } as const;
+
+    const colors = {
+      pending: "bg-yellow-100 text-yellow-800",
+      contacted: "bg-blue-100 text-blue-800",
+      converted: "bg-green-100 text-green-800",
+      declined: "bg-red-100 text-red-800",
+    };
+
+    return (
+      <Badge className={colors[status as keyof typeof colors] || "bg-gray-100 text-gray-800"}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    );
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "pending":
+        return <Clock className="h-4 w-4 text-yellow-600" />;
+      case "contacted":
+        return <Mail className="h-4 w-4 text-blue-600" />;
+      case "converted":
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case "declined":
+        return <XCircle className="h-4 w-4 text-red-600" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center p-8">Loading waitlist...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Stats Cards */}
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Users className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="text-sm font-medium">Total</p>
+                  <p className="text-2xl font-bold">{stats.total}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Clock className="h-5 w-5 text-yellow-600" />
+                <div>
+                  <p className="text-sm font-medium">Pending</p>
+                  <p className="text-2xl font-bold">{stats.pending}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <Mail className="h-5 w-5 text-blue-600" />
+                <div>
+                  <p className="text-sm font-medium">Contacted</p>
+                  <p className="text-2xl font-bold">{stats.contacted}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <div>
+                  <p className="text-sm font-medium">Converted</p>
+                  <p className="text-2xl font-bold">{stats.converted}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-2">
+                <XCircle className="h-5 w-5 text-red-600" />
+                <div>
+                  <p className="text-sm font-medium">Declined</p>
+                  <p className="text-2xl font-bold">{stats.declined}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Waitlist Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Waitlist Entries</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12">#</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Organization</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Joined</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {waitlistEntries.map((entry) => (
+                <TableRow key={entry.id}>
+                  <TableCell className="font-medium">
+                    {entry.position}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <User className="h-4 w-4 text-gray-400" />
+                      <span>
+                        {entry.firstName} {entry.lastName}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {entry.email}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      {entry.organization && <Building className="h-4 w-4 text-gray-400" />}
+                      <span>{entry.organization || "—"}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {entry.role ? (
+                      <Badge variant="outline">
+                        {entry.role.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
+                      </Badge>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      {getStatusIcon(entry.status)}
+                      {getStatusBadge(entry.status)}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Calendar className="h-4 w-4 text-gray-400" />
+                      <span className="text-sm">
+                        {format(new Date(entry.createdAt), "MMM d, yyyy")}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleUpdateEntry(entry)}
+                        >
+                          Manage
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>
+                            Manage Waitlist Entry #{entry.position}
+                          </DialogTitle>
+                        </DialogHeader>
+                        {selectedEntry && (
+                          <div className="space-y-6">
+                            {/* Contact Information */}
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <Label>Name</Label>
+                                <p className="text-sm font-medium">
+                                  {selectedEntry.firstName} {selectedEntry.lastName}
+                                </p>
+                              </div>
+                              <div>
+                                <Label>Email</Label>
+                                <p className="text-sm font-mono">
+                                  {selectedEntry.email}
+                                </p>
+                              </div>
+                              <div>
+                                <Label>Organization</Label>
+                                <p className="text-sm">
+                                  {selectedEntry.organization || "Not provided"}
+                                </p>
+                              </div>
+                              <div>
+                                <Label>Role</Label>
+                                <p className="text-sm">
+                                  {selectedEntry.role?.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase()) || "Not provided"}
+                                </p>
+                              </div>
+                              <div>
+                                <Label>Experience</Label>
+                                <p className="text-sm">
+                                  {selectedEntry.experience?.replace(/\b\w/g, l => l.toUpperCase()) || "Not provided"}
+                                </p>
+                              </div>
+                              <div>
+                                <Label>How they heard about us</Label>
+                                <p className="text-sm">
+                                  {selectedEntry.howHeard?.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase()) || "Not provided"}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Additional Info */}
+                            {selectedEntry.additionalInfo && (
+                              <div>
+                                <Label>Additional Information</Label>
+                                <div className="mt-1 p-3 bg-gray-50 rounded-md">
+                                  <p className="text-sm">{selectedEntry.additionalInfo}</p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Status and Notes */}
+                            <div className="space-y-4">
+                              <div>
+                                <Label htmlFor="status">Status</Label>
+                                <Select value={status} onValueChange={setStatus}>
+                                  <SelectTrigger>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="contacted">Contacted</SelectItem>
+                                    <SelectItem value="converted">Converted</SelectItem>
+                                    <SelectItem value="declined">Declined</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div>
+                                <Label htmlFor="notes">Admin Notes</Label>
+                                <Textarea
+                                  id="notes"
+                                  value={notes}
+                                  onChange={(e) => setNotes(e.target.value)}
+                                  placeholder="Add internal notes about this entry..."
+                                  rows={3}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Timestamps */}
+                            <div className="grid grid-cols-2 gap-4 text-sm text-gray-500">
+                              <div>
+                                <Label className="text-xs">Joined</Label>
+                                <p>{format(new Date(selectedEntry.createdAt), "MMM d, yyyy 'at' h:mm a")}</p>
+                              </div>
+                              {selectedEntry.invitedAt && (
+                                <div>
+                                  <Label className="text-xs">Contacted</Label>
+                                  <p>{format(new Date(selectedEntry.invitedAt), "MMM d, yyyy 'at' h:mm a")}</p>
+                                </div>
+                              )}
+                              {selectedEntry.convertedAt && (
+                                <div>
+                                  <Label className="text-xs">Converted</Label>
+                                  <p>{format(new Date(selectedEntry.convertedAt), "MMM d, yyyy 'at' h:mm a")}</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex justify-end space-x-2">
+                              <Button variant="outline" onClick={() => setSelectedEntry(null)}>
+                                Cancel
+                              </Button>
+                              <Button 
+                                onClick={handleSaveUpdate}
+                                disabled={updateEntryMutation.isPending}
+                              >
+                                {updateEntryMutation.isPending ? "Saving..." : "Save Changes"}
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </DialogContent>
+                    </Dialog>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertErrorLogSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertErrorLogSchema, insertWaitlistSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Authentication middleware
@@ -71,6 +71,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching error logs:", error);
       res.status(500).json({ message: "Failed to fetch error logs" });
+    }
+  });
+
+  // Waitlist API endpoints (public)
+  app.post('/api/waitlist', async (req: any, res) => {
+    try {
+      const waitlistData = insertWaitlistSchema.parse(req.body);
+      
+      // Check if email already exists
+      const existingEntry = await storage.getWaitlistByEmail(waitlistData.email);
+      if (existingEntry) {
+        return res.status(409).json({ 
+          message: "Email already on waitlist",
+          position: existingEntry.position 
+        });
+      }
+
+      const waitlistEntry = await storage.createWaitlistEntry(waitlistData);
+      res.status(201).json({ 
+        success: true, 
+        position: waitlistEntry.position,
+        message: "Successfully added to waitlist!" 
+      });
+    } catch (error) {
+      console.error("Error adding to waitlist:", error);
+      res.status(500).json({ message: "Failed to join waitlist" });
+    }
+  });
+
+  // Get waitlist entries (admin only)
+  app.get('/api/waitlist', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const waitlistEntries = await storage.getWaitlistEntries();
+      res.json(waitlistEntries);
+    } catch (error) {
+      console.error("Error fetching waitlist:", error);
+      res.status(500).json({ message: "Failed to fetch waitlist" });
+    }
+  });
+
+  // Update waitlist entry status (admin only)
+  app.put('/api/waitlist/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const entryId = parseInt(req.params.id);
+      const updateData = req.body;
+      
+      const updatedEntry = await storage.updateWaitlistEntry(entryId, updateData);
+      res.json(updatedEntry);
+    } catch (error) {
+      console.error("Error updating waitlist entry:", error);
+      res.status(500).json({ message: "Failed to update waitlist entry" });
+    }
+  });
+
+  // Get waitlist stats (admin only)
+  app.get('/api/waitlist/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const stats = await storage.getWaitlistStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching waitlist stats:", error);
+      res.status(500).json({ message: "Failed to fetch waitlist stats" });
     }
   });
 
