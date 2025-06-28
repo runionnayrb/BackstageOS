@@ -278,6 +278,7 @@ export const showSettings = pgTable("show_settings", {
   scheduleSettings: jsonb("schedule_settings"),
   permissions: jsonb("permissions"),
   contactCategoriesOrder: jsonb("contact_categories_order"), // Array of category IDs in custom order
+  sectionsOrder: jsonb("sections_order"), // Array of section IDs in custom order for main show page
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
