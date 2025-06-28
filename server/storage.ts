@@ -815,8 +815,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async saveContactSheetSettings(projectId: number, settings: any): Promise<any> {
-    const settingsJson = JSON.stringify(settings);
-    
     const existing = await db
       .select()
       .from(showSettings)
@@ -827,23 +825,24 @@ export class DatabaseStorage implements IStorage {
       const [updated] = await db
         .update(showSettings)
         .set({ 
-          contactSheetSettings: settingsJson,
+          contactSheetSettings: settings,
           updatedAt: new Date()
         })
         .where(eq(showSettings.projectId, projectId))
         .returning();
-      return JSON.parse(updated.contactSheetSettings as string);
+      return updated.contactSheetSettings;
     } else {
       const [created] = await db
         .insert(showSettings)
         .values({
           projectId,
-          contactSheetSettings: settingsJson,
+          contactSheetSettings: settings,
+          createdBy: 1, // Default user ID for now
           createdAt: new Date(),
           updatedAt: new Date()
         })
         .returning();
-      return JSON.parse(created.contactSheetSettings as string);
+      return created.contactSheetSettings;
     }
   }
 }

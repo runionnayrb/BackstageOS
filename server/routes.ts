@@ -857,7 +857,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check ownership or team membership
       if (project.ownerId != req.user.id.toString()) {
-        const teamMember = await storage.getTeamMember(projectId, req.user.id);
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }

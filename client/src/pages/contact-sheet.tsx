@@ -218,7 +218,14 @@ export default function ContactSheet() {
           footerText
         };
         
-        // Save to localStorage as fallback
+        try {
+          // Save to database
+          await apiRequest('POST', '/api/projects/' + projectId + '/contact-sheet-settings', contactSheetSettings);
+        } catch (dbError) {
+          console.warn('Database save failed, using localStorage fallback:', dbError);
+        }
+        
+        // Always save to localStorage as backup
         localStorage.setItem(`contact-sheet-settings-${projectId}`, JSON.stringify(contactSheetSettings));
         
         setLastSaved(new Date());
