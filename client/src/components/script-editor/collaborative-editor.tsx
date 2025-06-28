@@ -1631,11 +1631,33 @@ export function CollaborativeEditor({
                 insertVariableInline(value);
               }
             }}
+            onOpenChange={(open) => {
+              console.log('Select dropdown open state:', open);
+            }}
           >
-            <SelectTrigger className="h-7 w-16 px-2 text-xs">
+            <SelectTrigger 
+              className="h-7 w-16 px-2 text-xs"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Variables trigger clicked');
+              }}
+            >
               <SelectValue placeholder="Vars" />
             </SelectTrigger>
-            <SelectContent className="z-[10000]">
+            <SelectContent 
+              className="z-[10000]"
+              onCloseAutoFocus={(e) => {
+                e.preventDefault();
+                if (editingRef.current) {
+                  editingRef.current.focus();
+                }
+              }}
+            >
               <SelectItem value="showName">Show Name</SelectItem>
               <SelectItem value="date">Date</SelectItem>
               <SelectItem value="stageManager">Stage Manager</SelectItem>
