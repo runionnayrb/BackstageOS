@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { CollaborativeEditor } from "@/components/script-editor/collaborative-editor";
 import { VersionHistory } from "@/components/script-editor/version-history";
 import { ChangeLog } from "@/components/script-editor/change-log-simple";
+import { CommentsPanel } from "@/components/script-editor/comments-panel";
 import { 
   ArrowLeft, 
   FileText, 
@@ -44,6 +45,7 @@ export default function ScriptEditor() {
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showChangeLog, setShowChangeLog] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -143,6 +145,36 @@ export default function ScriptEditor() {
         }
       ];
       setChanges(sampleChanges);
+      
+      // Create sample comment data
+      const sampleComments = [
+        {
+          id: "c1",
+          text: "This opening soliloquy needs more dramatic emphasis. Consider adding stage directions for lighting changes.",
+          author: user?.firstName + " " + user?.lastName || "Current User",
+          timestamp: new Date().toISOString(),
+          position: 25,
+          resolved: false,
+          replies: [
+            {
+              id: "r1",
+              text: "Good point. I'll add a spotlight cue here.",
+              author: "Director",
+              timestamp: new Date(Date.now() - 60000).toISOString(),
+              resolved: false
+            }
+          ]
+        },
+        {
+          id: "c2",
+          text: "The stage directions here seem unclear. Should this be stage left or stage right?",
+          author: "Stage Manager",
+          timestamp: new Date(Date.now() - 180000).toISOString(),
+          position: 45,
+          resolved: true
+        }
+      ];
+      setComments(sampleComments);
     }
   }, [script, scriptComments, scriptVersions, scriptChanges, scriptTitle, scriptContent, user]);
 
@@ -313,6 +345,15 @@ export default function ScriptEditor() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setShowComments(true)}
+                title="Comments"
+              >
+                <MessageSquare className="h-4 w-4" />
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowShareDialog(true)}
               >
                 <Share className="h-4 w-4 mr-2" />
@@ -431,6 +472,37 @@ export default function ScriptEditor() {
                 toast({
                   title: "Exporting changes",
                   description: "Change log export is not yet implemented.",
+                });
+              }}
+              className="w-full border-0"
+              showHeader={false}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Comments Modal */}
+      <Dialog open={showComments} onOpenChange={setShowComments}>
+        <DialogContent className="max-w-2xl max-h-[80vh] p-0">
+          <DialogHeader className="p-6 pb-4">
+            <DialogTitle>Script Comments</DialogTitle>
+            <DialogDescription>
+              View and manage comments on the script
+            </DialogDescription>
+          </DialogHeader>
+          <div className="px-6 pb-6 overflow-y-auto">
+            <CommentsPanel
+              comments={comments}
+              onAddComment={handleAddComment}
+              onResolveComment={(commentId) => {
+                setComments(prev => 
+                  prev.map(c => 
+                    c.id === commentId ? { ...c, resolved: true } : c
+                  )
+                );
+                toast({
+                  title: "Comment resolved",
+                  description: "The comment has been marked as resolved.",
                 });
               }}
               className="w-full border-0"

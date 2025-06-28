@@ -64,15 +64,12 @@ export function CollaborativeEditor({
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedText, setSelectedText] = useState("");
-  const [showCommentDialog, setShowCommentDialog] = useState(false);
-  const [commentPosition, setCommentPosition] = useState({ x: 0, y: 0 });
   const [fontSize, setFontSize] = useState("14");
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [currentColor, setCurrentColor] = useState("#000000");
   const [undoStack, setUndoStack] = useState<any[]>([]);
   const [redoStack, setRedoStack] = useState<any[]>([]);
   const [isCollaborating, setIsCollaborating] = useState(false);
-  const [showComments, setShowComments] = useState(false);
   const [margins, setMargins] = useState({
     top: 1,
     bottom: 1,
@@ -155,14 +152,11 @@ export function CollaborativeEditor({
     }
   }, [redoStack, onChange, saveToUndoStack]);
 
-  // Handle text selection for comments
+  // Handle text selection
   const handleTextSelection = useCallback(() => {
     const selection = window.getSelection();
     if (selection && selection.toString().trim()) {
       setSelectedText(selection.toString());
-      const range = selection.getRangeAt(0);
-      const rect = range.getBoundingClientRect();
-      setCommentPosition({ x: rect.right + 10, y: rect.top });
     }
   }, []);
 
@@ -1021,28 +1015,7 @@ export function CollaborativeEditor({
 
         <Separator orientation="vertical" className="h-6 mx-1" />
 
-        {/* Comments */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowCommentDialog(true)}
-          className="h-8 px-3"
-          disabled={!selectedText}
-        >
-          <MessageCircle className="h-4 w-4 mr-1" />
-          Comment
-        </Button>
-        
-        {/* Toggle Comments Visibility */}
-        <Button
-          variant={showComments ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setShowComments(!showComments)}
-          className="h-8 px-3"
-        >
-          <MessageCircle className="h-4 w-4 mr-1" />
-          {showComments ? "Hide" : "Show"} Comments
-        </Button>
+
         </div>
         
         {/* Right Side - Script Controls */}
@@ -1144,51 +1117,7 @@ export function CollaborativeEditor({
           </div>
         </div>
 
-        {/* Comments Sidebar - Fixed on the right */}
-        {showComments && (
-          <div className="fixed right-0 top-16 w-80 h-[calc(100vh-4rem)] border-l bg-white dark:bg-gray-900 p-4 overflow-y-auto shadow-lg z-50">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">Comments</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowComments(false)}
-                className="h-6 w-6 p-0"
-              >
-                ×
-              </Button>
-            </div>
-            <div className="space-y-4">
-              {comments.map((comment, index) => (
-                <div key={index} className="bg-white dark:bg-gray-800 p-3 rounded-lg border">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">
-                      {comment.author?.[0]?.toUpperCase() || 'U'}
-                    </div>
-                    <span className="text-sm font-medium">{comment.author || 'Anonymous'}</span>
-                    <span className="text-xs text-muted-foreground ml-auto">
-                      {comment.timestamp || 'Now'}
-                    </span>
-                  </div>
-                  {comment.selectedText && (
-                    <div className="text-xs bg-yellow-100 dark:bg-yellow-900 p-2 rounded mb-2 italic">
-                      "{comment.selectedText}"
-                    </div>
-                  )}
-                  <p className="text-sm">{comment.content}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Button variant="ghost" size="sm" className="h-6 text-xs">
-                      Reply
-                    </Button>
-                    <Button variant="ghost" size="sm" className="h-6 text-xs">
-                      Resolve
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+
       </div>
 
       {/* Page break indicator */}
