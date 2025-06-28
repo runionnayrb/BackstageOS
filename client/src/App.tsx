@@ -49,7 +49,7 @@ function Router() {
   
   // Check if this is the main landing page domain
   const isMainLandingPage = window.location.hostname === 'backstageos.com' || 
-                           window.location.hostname === 'localhost' && window.location.pathname === '/landing';
+                           (window.location.hostname === 'localhost' && window.location.pathname === '/landing');
   
   // If this is the main landing page domain, show waitlist landing
   if (isMainLandingPage) {
