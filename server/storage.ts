@@ -144,6 +144,10 @@ export interface IStorage {
   createErrorLog(errorLog: InsertErrorLog): Promise<ErrorLog>;
   getErrorLogs(): Promise<ErrorLog[]>;
   getErrorLogsByUserId(userId: string): Promise<ErrorLog[]>;
+
+  // Contact sheet settings operations
+  getContactSheetSettings(projectId: number): Promise<any>;
+  saveContactSheetSettings(projectId: number, settings: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -794,6 +798,53 @@ export class DatabaseStorage implements IStorage {
       .from(errorLogs)
       .where(eq(errorLogs.userId, userId))
       .orderBy(desc(errorLogs.createdAt));
+  }
+
+  // Contact sheet settings operations
+  async getContactSheetSettings(projectId: number): Promise<any> {
+    const settings = await db
+      .select()
+      .from(showSettings)
+      .where(eq(showSettings.projectId, projectId))
+      .limit(1);
+    
+    if (settings.length > 0 && settings[0].contactSheetSettings) {
+      return JSON.parse(settings[0].contactSheetSettings as string);
+    }
+    return null;
+  }
+
+  async saveContactSheetSettings(projectId: number, settings: any): Promise<any> {
+    const settingsJson = JSON.stringify(settings);
+    
+    const existing = await db
+      .select()
+      .from(showSettings)
+      .where(eq(showSettings.projectId, projectId))
+      .limit(1);
+    
+    if (existing.length > 0) {
+      const [updated] = await db
+        .update(showSettings)
+        .set({ 
+          contactSheetSettings: settingsJson,
+          updatedAt: new Date()
+        })
+        .where(eq(showSettings.projectId, projectId))
+        .returning();
+      return JSON.parse(updated.contactSheetSettings as string);
+    } else {
+      const [created] = await db
+        .insert(showSettings)
+        .values({
+          projectId,
+          contactSheetSettings: settingsJson,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      return JSON.parse(created.contactSheetSettings as string);
+    }
   }
 }
 

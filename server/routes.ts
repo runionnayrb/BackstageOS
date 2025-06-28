@@ -845,6 +845,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Contact sheet settings routes
+  app.get("/api/projects/:id/contact-sheet-settings", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMember = await storage.getTeamMember(projectId, req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+      
+      const settings = await storage.getContactSheetSettings(projectId);
+      res.json(settings || {});
+    } catch (error) {
+      console.error("Error fetching contact sheet settings:", error);
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  app.post("/api/projects/:id/contact-sheet-settings", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const settingsData = req.body;
+      const settings = await storage.saveContactSheetSettings(projectId, settingsData);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error saving contact sheet settings:", error);
+      res.status(500).json({ message: "Failed to save settings" });
+    }
+  });
+
   // Report template routes
   app.get("/api/projects/:id/templates", isAuthenticated, async (req: any, res) => {
     try {

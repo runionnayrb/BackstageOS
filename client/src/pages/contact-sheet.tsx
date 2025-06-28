@@ -42,6 +42,22 @@ interface Column {
   visible: boolean;
 }
 
+// Format phone number to (xxx) xxx-xxxx format
+const formatPhoneNumber = (phone: string | undefined): string => {
+  if (!phone) return '';
+  
+  // Remove all non-digit characters
+  const digits = phone.replace(/\D/g, '');
+  
+  // Format as (xxx) xxx-xxxx if we have 10 digits
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+  
+  // Return original if not 10 digits
+  return phone;
+};
+
 export default function ContactSheet() {
   const [, setLocation] = useLocation();
   const params = useParams<ContactSheetParams>();
@@ -148,6 +164,75 @@ export default function ContactSheet() {
   const editingRef = useRef<HTMLDivElement>(null);
   
   const [activeTarget, setActiveTarget] = useState<'header' | 'row'>('header');
+  
+  // Auto-save functionality
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Auto-save function with debouncing
+  const debouncedAutoSave = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    saveTimeoutRef.current = setTimeout(async () => {
+      setIsSaving(true);
+      try {
+        const contactSheetSettings = {
+          columns,
+          categories,
+          contactOrder,
+          headerHeight,
+          rowHeight,
+          categorySpacing,
+          sectionSpacing,
+          headerAlignment,
+          rowAlignment,
+          headerBold,
+          headerItalic,
+          headerUnderline,
+          headerTextColor,
+          headerBgColor,
+          headerFontSize,
+          headerFontFamily,
+          headerBorders,
+          headerBorderColor,
+          headerBorderWidth,
+          rowBold,
+          rowItalic,
+          rowUnderline,
+          rowTextColor,
+          rowBgColor,
+          rowFontSize,
+          rowFontFamily,
+          rowBorders,
+          rowBorderColor,
+          rowBorderWidth,
+          alternateRows,
+          firstRowColor,
+          secondRowColor,
+          pageMargins,
+          headerFooterMargins,
+          headerText,
+          footerText
+        };
+        
+        // Save to localStorage as fallback
+        localStorage.setItem(`contact-sheet-settings-${projectId}`, JSON.stringify(contactSheetSettings));
+        
+        setLastSaved(new Date());
+      } catch (error) {
+        console.error('Failed to auto-save contact sheet settings:', error);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 2000); // 2 second debounce
+  }, [projectId, columns, categories, contactOrder, headerHeight, rowHeight, categorySpacing, sectionSpacing,
+      headerAlignment, rowAlignment, headerBold, headerItalic, headerUnderline, headerTextColor, headerBgColor,
+      headerFontSize, headerFontFamily, headerBorders, headerBorderColor, headerBorderWidth, rowBold, rowItalic,
+      rowUnderline, rowTextColor, rowBgColor, rowFontSize, rowFontFamily, rowBorders, rowBorderColor, rowBorderWidth,
+      alternateRows, firstRowColor, secondRowColor, pageMargins, headerFooterMargins, headerText, footerText]);
 
   // Variables available for header/footer
   const availableVariables = [
@@ -172,6 +257,69 @@ export default function ContactSheet() {
     queryKey: [`/api/projects/${projectId}/contacts`],
     enabled: !!projectId,
   });
+
+  // Load saved contact sheet settings
+  const { data: savedSettings } = useQuery({
+    queryKey: [`/api/projects/${projectId}/contact-sheet-settings`],
+    enabled: !!projectId,
+  });
+
+  // Auto-save trigger - call whenever any setting changes
+  useEffect(() => {
+    if (projectId) {
+      debouncedAutoSave();
+    }
+  }, [debouncedAutoSave, projectId]);
+
+  // Load saved settings when they're available
+  useEffect(() => {
+    // Try localStorage first as fallback
+    const localSettings = localStorage.getItem(`contact-sheet-settings-${projectId}`);
+    const settings = localSettings ? JSON.parse(localSettings) : (savedSettings && typeof savedSettings === 'object' ? savedSettings as any : null);
+    
+    if (settings) {
+      setColumns(settings.columns || defaultColumns);
+      setCategories(settings.categories || defaultCategories);
+      setContactOrder(settings.contactOrder || {});
+      setHeaderHeight(settings.headerHeight || 40);
+      setRowHeight(settings.rowHeight || 32);
+      setCategorySpacing(settings.categorySpacing || 8);
+      setSectionSpacing(settings.sectionSpacing || 32);
+      setHeaderAlignment(settings.headerAlignment || 'left');
+      setRowAlignment(settings.rowAlignment || 'left');
+      setHeaderBold(settings.headerBold || false);
+      setHeaderItalic(settings.headerItalic || false);
+      setHeaderUnderline(settings.headerUnderline || false);
+      setHeaderTextColor(settings.headerTextColor || '#000000');
+      setHeaderBgColor(settings.headerBgColor || '#ffffff');
+      setHeaderFontSize(settings.headerFontSize || 14);
+      setHeaderFontFamily(settings.headerFontFamily || 'system-ui');
+      setHeaderBorders(settings.headerBorders || {
+        all: false, top: false, right: false, bottom: false, left: false // Make header border editable
+      });
+      setHeaderBorderColor(settings.headerBorderColor || '#000000');
+      setHeaderBorderWidth(settings.headerBorderWidth || 2);
+      setRowBold(settings.rowBold || false);
+      setRowItalic(settings.rowItalic || false);
+      setRowUnderline(settings.rowUnderline || false);
+      setRowTextColor(settings.rowTextColor || '#000000');
+      setRowBgColor(settings.rowBgColor || '#ffffff');
+      setRowFontSize(settings.rowFontSize || 12);
+      setRowFontFamily(settings.rowFontFamily || 'system-ui');
+      setRowBorders(settings.rowBorders || {
+        all: false, top: false, right: false, bottom: false, left: false
+      });
+      setRowBorderColor(settings.rowBorderColor || '#d1d5db');
+      setRowBorderWidth(settings.rowBorderWidth || 1);
+      setAlternateRows(settings.alternateRows || false);
+      setFirstRowColor(settings.firstRowColor || '#ffffff');
+      setSecondRowColor(settings.secondRowColor || '#f9fafb');
+      setPageMargins(settings.pageMargins || { top: 1, right: 1, bottom: 1, left: 1 });
+      setHeaderFooterMargins(settings.headerFooterMargins || { header: 0.5, footer: 0.5 });
+      setHeaderText(settings.headerText || '{{showName}} - Contact Sheet');
+      setFooterText(settings.footerText || 'Page {{pageNumber}} of {{totalPages}}');
+    }
+  }, [savedSettings]);
 
   // Process rich content and replace variables
   const processRichContent = useCallback((content: string): string => {
@@ -604,6 +752,25 @@ export default function ContactSheet() {
       default:
         return "";
     }
+  };
+
+  const getHeaderBorderStyle = (): React.CSSProperties => {
+    const style: React.CSSProperties = {};
+    
+    if (headerBorders.all || headerBorders.top) {
+      style.borderTop = `${headerBorderWidth}px solid ${headerBorderColor}`;
+    }
+    if (headerBorders.all || headerBorders.right) {
+      style.borderRight = `${headerBorderWidth}px solid ${headerBorderColor}`;
+    }
+    if (headerBorders.all || headerBorders.bottom) {
+      style.borderBottom = `${headerBorderWidth}px solid ${headerBorderColor}`;
+    }
+    if (headerBorders.all || headerBorders.left) {
+      style.borderLeft = `${headerBorderWidth}px solid ${headerBorderColor}`;
+    }
+    
+    return style;
   };
 
   const handlePrint = () => {
@@ -1182,7 +1349,7 @@ export default function ContactSheet() {
                     )}
                     
                     {/* Table Header */}
-                    <div className="border-b-2 border-gray-800">
+                    <div style={getHeaderBorderStyle()}>
                       <div className="flex print:text-sm">
                         {!isPreviewMode && columns.filter(col => col.visible).map((column, colIndex) => (
                           <div
