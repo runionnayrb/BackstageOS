@@ -449,9 +449,16 @@ export function CollaborativeEditor({
 
   // Insert variable into inline editor
   const insertVariableInline = useCallback((variable: string) => {
-    if (editingRef.current) {
+    console.log('insertVariableInline called with:', variable);
+    console.log('editingRef.current:', editingRef.current);
+    console.log('editingElement:', editingElement);
+    
+    if (editingRef.current && editingElement) {
       const input = editingRef.current;
       const variableText = `{{${variable}}}`;
+      
+      console.log('Current input value:', input.value);
+      console.log('Variable text to insert:', variableText);
       
       // Get current cursor position
       const cursorPosition = input.selectionStart || 0;
@@ -460,18 +467,29 @@ export function CollaborativeEditor({
       // Insert variable at cursor position
       const newValue = currentValue.slice(0, cursorPosition) + variableText + currentValue.slice(cursorPosition);
       
+      console.log('New value after insertion:', newValue);
+      
       // Update the input value and state
       input.value = newValue;
-      if (editingElement?.type === 'header') {
+      
+      // Trigger onChange event to update state
+      const event = new Event('input', { bubbles: true });
+      input.dispatchEvent(event);
+      
+      if (editingElement.type === 'header') {
         setHeaderText(newValue);
-      } else if (editingElement?.type === 'footer') {
+        console.log('Updated header text to:', newValue);
+      } else if (editingElement.type === 'footer') {
         setFooterText(newValue);
+        console.log('Updated footer text to:', newValue);
       }
       
       // Move cursor after the inserted variable
       const newCursorPosition = cursorPosition + variableText.length;
       input.setSelectionRange(newCursorPosition, newCursorPosition);
       input.focus();
+    } else {
+      console.log('Cannot insert variable - missing ref or editing element');
     }
   }, [editingElement]);
 
@@ -1535,10 +1553,16 @@ export function CollaborativeEditor({
           <div className="w-px h-5 bg-border mx-0.5" />
           
           {/* Variables Select */}
-          <Select onValueChange={(value) => {
-            console.log('Variable selected:', value);
-            insertVariableInline(value);
-          }}>
+          <Select 
+            value="" 
+            onValueChange={(value) => {
+              console.log('Variable selected:', value);
+              if (value && editingRef.current) {
+                console.log('Inserting variable:', value, 'into element:', editingRef.current);
+                insertVariableInline(value);
+              }
+            }}
+          >
             <SelectTrigger className="h-7 w-16 px-2 text-xs">
               <SelectValue placeholder="Vars" />
             </SelectTrigger>
