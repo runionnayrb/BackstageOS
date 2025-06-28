@@ -196,11 +196,9 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
       </div>
 
       {/* Contact Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Contact Information</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Contact Information</h3>
+        <div className="space-y-4">
           {isEditing ? (
             <>
               <div className="grid grid-cols-2 gap-4">
@@ -298,15 +296,13 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
               )}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Emergency Contact */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Emergency Contact</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Emergency Contact</h3>
+        <div className="space-y-4">
           {isEditing ? (
             <>
               <div className="grid grid-cols-2 gap-4">
@@ -371,15 +367,13 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
               )}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Allergies & Dietary Restrictions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Allergies & Dietary Restrictions</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Allergies & Dietary Restrictions</h3>
+        <div className="space-y-4">
           {isEditing ? (
             <>
               <div>
@@ -414,15 +408,13 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
               )}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Notes */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Notes</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Notes</h3>
+        <div>
           {isEditing ? (
             <div>
               <Label htmlFor="notes">Additional Notes</Label>
@@ -443,8 +435,8 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
               )}
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
