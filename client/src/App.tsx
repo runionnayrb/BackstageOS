@@ -44,17 +44,17 @@ import NotFound from "@/pages/not-found";
 import WaitlistLanding from "@/pages/waitlist-landing";
 
 function Router() {
-  const { user, isLoading } = useAuth();
-  const isAuthenticated = !!user;
-  
-  // Check if this is the main landing page domain
+  // Check if this is the main landing page domain FIRST
   const isMainLandingPage = window.location.hostname === 'backstageos.com' || 
                            (window.location.hostname === 'localhost' && window.location.pathname === '/landing');
   
-  // If this is the main landing page domain, show waitlist landing
+  // If this is the main landing page domain, show waitlist landing immediately
   if (isMainLandingPage) {
     return <WaitlistLanding />;
   }
+
+  const { user, isLoading } = useAuth();
+  const isAuthenticated = !!user;
   
   // Keep session alive while user is active
   useSessionHeartbeat();
