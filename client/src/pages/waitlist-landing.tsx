@@ -228,14 +228,14 @@ export default function WaitlistLanding() {
             <p className="text-xl lg:text-2xl mb-8 opacity-90 leading-relaxed">
               The revolutionary stage management platform that's transforming how we collaborate, organize, and execute productions.
             </p>
-            <div className="flex items-center justify-center space-x-2 mb-8">
+            <div className="flex justify-center space-x-2 mb-4">
               <Star className="h-5 w-5 text-yellow-400 fill-current" />
               <Star className="h-5 w-5 text-yellow-400 fill-current" />
               <Star className="h-5 w-5 text-yellow-400 fill-current" />
               <Star className="h-5 w-5 text-yellow-400 fill-current" />
               <Star className="h-5 w-5 text-yellow-400 fill-current" />
-              <span className="ml-2 text-lg">Loved by professional stage managers worldwide</span>
             </div>
+            <p className="text-lg mb-8">Loved by professional stage managers worldwide</p>
             <Button 
               size="lg" 
               className="bg-white text-primary hover:bg-gray-100 text-lg px-8 py-4"
