@@ -89,18 +89,29 @@ export default function ScriptEditor() {
   
   // Load script content from server when available
   useEffect(() => {
+    // Reset content loaded flag when script query changes
+    if (scriptLoading) {
+      setIsContentLoaded(false);
+      return;
+    }
+    
     if (script && typeof script === 'object' && !isContentLoaded) {
       const scriptData = script as any;
       console.log('Loading script from server:', { 
         name: scriptData.name, 
         contentLength: scriptData.content?.length || 0 
       });
+      
+      // Only update if we haven't loaded content yet
       setScriptTitle(scriptData.name || "Untitled Script");
       setScriptContent(scriptData.content || "");
       setCurrentVersion(scriptData.version || "1.0");
       setIsContentLoaded(true);
     } else if (!script && !scriptLoading && !isContentLoaded) {
-      // No script exists yet, just mark as loaded
+      // No script exists yet, set defaults and mark as loaded
+      setScriptTitle("Untitled Script");
+      setScriptContent("");
+      setCurrentVersion("1.0");
       setIsContentLoaded(true);
     }
   }, [script, scriptLoading, isContentLoaded]);
@@ -130,7 +141,8 @@ export default function ScriptEditor() {
     onSuccess: () => {
       setIsAutoSaving(false);
       setLastSaved(new Date());
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "script"] });
+      // Don't invalidate the script query to prevent content clearing
+      // queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/script`] });
     },
     onError: () => {
       setIsAutoSaving(false);
