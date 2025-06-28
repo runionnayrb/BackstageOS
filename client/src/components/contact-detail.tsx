@@ -73,6 +73,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('Sending contact update data:', data);
       const response = await fetch(`/api/projects/${contact.projectId}/contacts/${contact.id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
@@ -83,7 +84,9 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
       if (!response.ok) {
         throw new Error('Failed to update contact');
       }
-      return response.json();
+      const result = await response.json();
+      console.log('Received contact update response:', result);
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${contact.projectId}/contacts`] });
@@ -305,16 +308,21 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                 <ReadOnlyField label="Email" value={contact.email} href={contact.email ? `mailto:${contact.email}` : undefined} />
                 <ReadOnlyField label="Phone" value={contact.phone} href={contact.phone ? `tel:${contact.phone}` : undefined} />
               </div>
-              <ReadOnlyField label="Role" value={contact.role} />
-              {contact.category === 'cast' && (
-                <ReadOnlyField 
-                  label="Cast Type" 
-                  value={contact.castTypes && contact.castTypes.length > 0 
-                    ? contact.castTypes.join(', ').replace(/^./, (char: string) => char.toUpperCase())
-                    : 'No Cast Assigned'
-                  } 
-                />
-              )}
+              <div className="grid grid-cols-2 gap-4">
+                <ReadOnlyField label="Role" value={contact.role} />
+                {contact.category === 'cast' && (
+                  <ReadOnlyField 
+                    label="Cast Type" 
+                    value={(() => {
+                      console.log('Cast types debug:', contact.castTypes, typeof contact.castTypes);
+                      if (contact.castTypes && contact.castTypes.length > 0) {
+                        return contact.castTypes.join(', ').replace(/^./, (char: string) => char.toUpperCase());
+                      }
+                      return 'No Cast Assigned';
+                    })()} 
+                  />
+                )}
+              </div>
             </div>
           )}
         </div>

@@ -161,10 +161,13 @@ export default function PersonnelCategory() {
                         )}
                         {category === 'cast' && (
                           <p className="text-xs text-gray-500">
-                            {contact.castTypes && contact.castTypes.length > 0 
-                              ? contact.castTypes.join(', ').replace(/^./, (char: string) => char.toUpperCase())
-                              : 'No Cast Assigned'
-                            }
+                            {(() => {
+                              console.log('Personnel category cast types debug:', contact.castTypes, typeof contact.castTypes);
+                              if (contact.castTypes && contact.castTypes.length > 0) {
+                                return contact.castTypes.join(', ').replace(/^./, (char: string) => char.toUpperCase());
+                              }
+                              return 'No Cast Assigned';
+                            })()}
                           </p>
                         )}
                       </div>
