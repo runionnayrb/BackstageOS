@@ -496,12 +496,7 @@ export default function ContactSheet() {
   }
 
   return (
-    <div 
-      className="min-h-screen bg-gray-100"
-      style={{
-        paddingTop: `${pageMargins.top}in !important`
-      }}
-    >
+    <div className="min-h-screen bg-gray-100">
       {/* Header - Hidden in print */}
       <div className="bg-background border-b print:hidden">
         <div className="container mx-auto p-6">
@@ -833,6 +828,7 @@ export default function ContactSheet() {
              style={{ 
                width: '8.5in', 
                minHeight: '11in',
+               paddingTop: `${pageMargins.top}in !important`,
                paddingRight: `${pageMargins.right}in !important`,
                paddingLeft: `${pageMargins.left}in !important`,
                paddingBottom: `${pageMargins.bottom}in !important`,
@@ -840,6 +836,18 @@ export default function ContactSheet() {
                border: isPreviewMode ? 'none' : '2px dashed #ff0000'
              }}
           >
+          {/* Dynamic Page Margin CSS */}
+          <style>
+            {`
+              @media print {
+                @page {
+                  size: 8.5in 11in;
+                  margin: ${pageMargins.top}in ${pageMargins.right}in ${pageMargins.bottom}in ${pageMargins.left}in !important;
+                }
+              }
+            `}
+          </style>
+          
           {/* Page Header */}
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-2">{(project as any)?.name}</h1>
