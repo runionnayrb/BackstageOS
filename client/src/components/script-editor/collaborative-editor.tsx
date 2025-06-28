@@ -1008,122 +1008,6 @@ export function CollaborativeEditor({
               <DialogTitle>Page Setup</DialogTitle>
             </DialogHeader>
             <div className="space-y-6 py-4 pr-2">
-              {/* Page Margins */}
-              <div className="space-y-4">
-                <h3 className="font-medium">Margins (inches)</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="margin-top">Top</Label>
-                    <input
-                      id="margin-top"
-                      type="number"
-                      min="0.25"
-                      max="3"
-                      step="0.25"
-                      value={margins.top}
-                      onChange={(e) => setMargins(prev => ({ ...prev, top: parseFloat(e.target.value) }))}
-                      className="w-full px-3 py-1 border rounded text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="margin-bottom">Bottom</Label>
-                    <input
-                      id="margin-bottom"
-                      type="number"
-                      min="0.25"
-                      max="3"
-                      step="0.25"
-                      value={margins.bottom}
-                      onChange={(e) => setMargins(prev => ({ ...prev, bottom: parseFloat(e.target.value) }))}
-                      className="w-full px-3 py-1 border rounded text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="margin-left">Left</Label>
-                    <input
-                      id="margin-left"
-                      type="number"
-                      min="0.25"
-                      max="3"
-                      step="0.25"
-                      value={margins.left}
-                      onChange={(e) => setMargins(prev => ({ ...prev, left: parseFloat(e.target.value) }))}
-                      className="w-full px-3 py-1 border rounded text-sm"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="margin-right">Right</Label>
-                    <input
-                      id="margin-right"
-                      type="number"
-                      min="0.25"
-                      max="3"
-                      step="0.25"
-                      value={margins.right}
-                      onChange={(e) => setMargins(prev => ({ ...prev, right: parseFloat(e.target.value) }))}
-                      className="w-full px-3 py-1 border rounded text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Headers & Footers */}
-              <div className="space-y-4">
-                <h3 className="font-medium">Headers & Footers</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <input 
-                      type="checkbox" 
-                      id="modal-show-headers"
-                      checked={showHeaders}
-                      onChange={(e) => setShowHeaders(e.target.checked)}
-                      className="rounded"
-                    />
-                    <Label htmlFor="modal-show-headers">Show headers</Label>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="modal-header-text">Header content</Label>
-                    <RichTextEditor
-                      content={headerText}
-                      onChange={setHeaderText}
-                      placeholder="Enter header content with rich formatting..."
-                      className="min-h-[100px]"
-                      showPageNumbers={true}
-                      pageNumberFormat="1"
-                      onPageNumberFormatChange={() => {}}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Use variables: {`{{showName}}, {{date}}, {{stageManager}}`} • Use the page number dropdown and Insert button
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <input 
-                      type="checkbox" 
-                      id="modal-show-footers"
-                      checked={showFooters}
-                      onChange={(e) => setShowFooters(e.target.checked)}
-                      className="rounded"
-                    />
-                    <Label htmlFor="modal-show-footers">Show footers</Label>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="modal-footer-text">Footer content</Label>
-                    <RichTextEditor
-                      content={footerText}
-                      onChange={setFooterText}
-                      placeholder="Enter footer content with rich formatting..."
-                      className="min-h-[100px]"
-                      showPageNumbers={true}
-                      pageNumberFormat="1"
-                      onPageNumberFormatChange={() => {}}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Use variables: {`{{showName}}, {{date}}, {{stageManager}}`} • Use the page number dropdown and Insert button
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               {/* Header & Footer Margins */}
               <div className="space-y-4">
                 <h3 className="font-medium">Header & Footer Margins</h3>
@@ -1222,124 +1106,62 @@ export function CollaborativeEditor({
                 </div>
               </div>
 
-              {/* Page Numbering */}
+              {/* Page Margins */}
               <div className="space-y-4">
-                <h3 className="font-medium">Page Numbering</h3>
-                <div className="space-y-4">
-                  {/* Position */}
+                <h3 className="font-medium">Page Margins (inches)</h3>
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Position</Label>
-                    <Select
-                      value={pageNumberPosition}
-                      onValueChange={(value) => setPageNumberPosition(value as any)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select position" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="header">Header only</SelectItem>
-                        <SelectItem value="footer">Footer only</SelectItem>
-                        <SelectItem value="both">Both header and footer</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="margin-top">Top</Label>
+                    <input
+                      id="margin-top"
+                      type="number"
+                      min="0.25"
+                      max="3"
+                      step="0.25"
+                      value={margins.top}
+                      onChange={(e) => setMargins(prev => ({ ...prev, top: parseFloat(e.target.value) }))}
+                      className="w-full px-3 py-1 border rounded text-sm"
+                    />
                   </div>
-
-                  {/* Alignment */}
                   <div className="space-y-2">
-                    <Label>Alignment</Label>
-                    <Select
-                      value={pageNumberAlignment}
-                      onValueChange={(value) => setPageNumberAlignment(value as any)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select alignment" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="left">Left</SelectItem>
-                        <SelectItem value="center">Center</SelectItem>
-                        <SelectItem value="right">Right</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="margin-bottom">Bottom</Label>
+                    <input
+                      id="margin-bottom"
+                      type="number"
+                      min="0.25"
+                      max="3"
+                      step="0.25"
+                      value={margins.bottom}
+                      onChange={(e) => setMargins(prev => ({ ...prev, bottom: parseFloat(e.target.value) }))}
+                      className="w-full px-3 py-1 border rounded text-sm"
+                    />
                   </div>
-
-                  {/* Format */}
                   <div className="space-y-2">
-                    <Label>Format</Label>
-                    <Select
-                      value={pageNumberFormat}
-                      onValueChange={(value) => setPageNumberFormat(value as any)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select format" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="number">1, 2, 3...</SelectItem>
-                        <SelectItem value="page-x">Page 1, Page 2...</SelectItem>
-                        <SelectItem value="page-x-of-y">Page 1 of 5, Page 2 of 5...</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="margin-left">Left</Label>
+                    <input
+                      id="margin-left"
+                      type="number"
+                      min="0.25"
+                      max="3"
+                      step="0.25"
+                      value={margins.left}
+                      onChange={(e) => setMargins(prev => ({ ...prev, left: parseFloat(e.target.value) }))}
+                      className="w-full px-3 py-1 border rounded text-sm"
+                    />
                   </div>
-
-                  {/* Prefix and Suffix */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="page-prefix">Prefix</Label>
-                      <input 
-                        id="page-prefix"
-                        type="text"
-                        placeholder="e.g. Draft"
-                        value={pageNumberPrefix}
-                        onChange={(e) => setPageNumberPrefix(e.target.value)}
-                        className="w-full px-3 py-1 border rounded text-sm"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="page-suffix">Suffix</Label>
-                      <input 
-                        id="page-suffix"
-                        type="text"
-                        placeholder="e.g. Rev 1"
-                        value={pageNumberSuffix}
-                        onChange={(e) => setPageNumberSuffix(e.target.value)}
-                        className="w-full px-3 py-1 border rounded text-sm"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="margin-right">Right</Label>
+                    <input
+                      id="margin-right"
+                      type="number"
+                      min="0.25"
+                      max="3"
+                      step="0.25"
+                      value={margins.right}
+                      onChange={(e) => setMargins(prev => ({ ...prev, right: parseFloat(e.target.value) }))}
+                      className="w-full px-3 py-1 border rounded text-sm"
+                    />
                   </div>
-
-                  {/* Preview */}
-                  <div className="bg-gray-50 p-3 rounded text-sm">
-                    <Label className="text-xs text-gray-600">Preview:</Label>
-                    <div className="mt-1 font-mono">
-                      {formatPageNumber(pageNumbers[0] || '1', 0, pageCount)}
-                    </div>
-                  </div>
-
-                  {/* Publishing Controls - Compact */}
-                  <div className="pt-3 border-t">
-                    <div className="flex gap-2 mb-2">
-                      <Button 
-                        size="sm" 
-                        variant={isPublished ? "default" : "outline"}
-                        onClick={publishScript}
-                        disabled={isPublished}
-                        className="text-xs h-7 px-2"
-                      >
-                        {isPublished ? "✓ Published" : "Publish Pages"}
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={renumberScript}
-                        className="text-xs h-7 px-2"
-                      >
-                        Renumber Pages
-                      </Button>
-                    </div>
-                    <p className="text-xs text-gray-500 leading-tight">
-                      Publishing locks page numbers. New pages get letter suffixes (1A, 1B).
-                    </p>
-                  </div>
-
                 </div>
               </div>
 
