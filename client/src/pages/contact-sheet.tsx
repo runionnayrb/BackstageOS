@@ -585,7 +585,22 @@ export default function ContactSheet() {
     const handleMouseMove = (e: MouseEvent) => {
       if (isResizing !== null) {
         const diff = e.clientX - resizeStartX;
-        const newWidth = Math.max(100, resizeStartWidth + diff);
+        const proposedWidth = Math.max(100, resizeStartWidth + diff);
+        
+        // Calculate maximum available width (8.5" page minus margins converted to pixels)
+        const pageWidthInches = 8.5;
+        const marginWidthInches = pageMargins.left + pageMargins.right;
+        const availableWidthInches = pageWidthInches - marginWidthInches;
+        const availableWidthPixels = availableWidthInches * 96; // 96 DPI
+        
+        // Calculate total width of other columns
+        const otherColumnsWidth = columns
+          .filter(col => col.visible)
+          .reduce((sum, col, idx) => idx === isResizing ? sum : sum + col.width, 0);
+        
+        // Set maximum width to ensure table doesn't exceed page margins
+        const maxAllowedWidth = Math.max(100, availableWidthPixels - otherColumnsWidth);
+        const newWidth = Math.min(proposedWidth, maxAllowedWidth);
         
         setColumns(prev => prev.map((col, idx) => 
           idx === isResizing ? { ...col, width: newWidth } : col
@@ -1305,7 +1320,14 @@ export default function ContactSheet() {
             </div>
 
             {/* Contact Table by Category */}
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div 
+              style={{ 
+                display: 'flex', 
+                flexDirection: 'column',
+                maxWidth: `calc(8.5in - ${pageMargins.left}in - ${pageMargins.right}in)`,
+                overflow: 'hidden'
+              }}
+            >
               {categories.map((category, categoryIndex) => {
                 const categoryContacts = contactsByCategory[category.id] || [];
                 
