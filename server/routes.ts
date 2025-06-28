@@ -1273,43 +1273,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: 'No file provided' });
         }
 
-        try {
-          // Import pdf-parse using ES modules
-          const { default: pdfParse } = await import('pdf-parse');
-          
-          // Parse the PDF buffer directly
-          const data = await pdfParse(req.file.buffer);
-          
-          let text = data.text || '';
-
-          // Clean up common PDF extraction artifacts
-          text = text
-            // Remove excessive whitespace
-            .replace(/\s{3,}/g, '\n\n')
-            // Remove page headers/footers that are spaced out
-            .replace(/[A-Z\s]{20,}\s+Pg\.\s*\d+/gi, '')
-            .replace(/[A-Z\s]{20,}\s+Page\s*\d+/gi, '')
-            // Remove spaced-out titles like "L O R R A I N E   H A N S B E R R Y"
-            .replace(/([A-Z]\s){3,}[A-Z]/g, (match: string) => match.replace(/\s/g, ''))
-            // Clean up line breaks
-            .replace(/\n{3,}/g, '\n\n')
-            .trim();
-
-          if (!text || text.length < 10) {
-            return res.status(400).json({ 
-              error: 'No readable text found', 
-              message: 'The PDF appears to be empty, image-only, or protected. Try converting it to text first.' 
-            });
-          }
-
-          res.json({ text, pages: data.numpages || 1 });
-        } catch (parseError) {
-          console.error('PDF parsing error:', parseError);
-          res.status(500).json({ 
-            error: 'PDF parsing failed', 
-            message: 'Could not extract text from this PDF. It may be password-protected, corrupted, or contain only images.' 
-          });
-        }
+        // For now, return a helpful error message about PDF support
+        res.status(501).json({ 
+          error: 'PDF support temporarily unavailable', 
+          message: 'PDF text extraction is temporarily unavailable due to a library issue. Please convert your PDF to a text file (.txt) using an online converter, or copy and paste the text directly into the editor.' 
+        });
       });
     } catch (error) {
       console.error('PDF extraction error:', error);

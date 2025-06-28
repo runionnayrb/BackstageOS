@@ -292,19 +292,36 @@ export default function ScriptEditor() {
       'text/plain',
       'text/html',
       'application/rtf',
-      'text/rtf',
-      'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/msword'
+      'text/rtf'
     ];
     
-    const allowedExtensions = ['.txt', '.rtf', '.html', '.htm', '.pdf', '.docx', '.doc'];
+    const allowedExtensions = ['.txt', '.rtf', '.html', '.htm'];
     const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    
+    // Special handling for PDF files with helpful message
+    if (file.type === 'application/pdf' || fileExtension === '.pdf') {
+      toast({
+        title: "PDF support coming soon",
+        description: "PDF import is temporarily unavailable. Please convert your PDF to a text file (.txt) using an online converter, or copy and paste the text directly into the editor.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Special handling for Word documents
+    if (file.type.includes('word') || fileExtension === '.docx' || fileExtension === '.doc') {
+      toast({
+        title: "Word document support coming soon",
+        description: "Word document import is not yet available. Please save your document as a text file (.txt) or copy and paste the content directly into the editor.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
       toast({
         title: "Unsupported file type",
-        description: "Please upload a text file (.txt), RTF file (.rtf), HTML file (.html), PDF file (.pdf), or Word document (.docx, .doc).",
+        description: "Please upload a text file (.txt), RTF file (.rtf), or HTML file (.html). For PDFs or Word documents, please convert to text format first.",
         variant: "destructive"
       });
       return;
@@ -323,76 +340,27 @@ export default function ScriptEditor() {
     try {
       let content = '';
 
-      if (file.type === 'application/pdf' || fileExtension === '.pdf') {
-        // Handle PDF files
+      // Handle text-based files
+      const reader = new FileReader();
+      content = await new Promise<string>((resolve, reject) => {
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          resolve(result || '');
+        };
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsText(file, 'UTF-8');
+      });
+
+      // Check for binary content indicators in text files
+      const binaryIndicators = /[\x00-\x08\x0E-\x1F\x7F-\xFF]/g;
+      const binaryMatches = content.match(binaryIndicators);
+      if (binaryMatches && binaryMatches.length > content.length * 0.1) {
         toast({
-          title: "Processing PDF",
-          description: "Extracting text from PDF file...",
+          title: "Invalid file format",
+          description: "This file appears to contain binary data. Please upload a valid text file.",
+          variant: "destructive"
         });
-
-        const arrayBuffer = await file.arrayBuffer();
-        
-        // Send to backend for PDF processing
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        const response = await fetch('/api/extract-pdf-text', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to extract text from PDF');
-        }
-
-        const result = await response.json();
-        content = result.text || '';
-
-      } else if (file.type.includes('word') || fileExtension === '.docx' || fileExtension === '.doc') {
-        // Handle Word documents
-        toast({
-          title: "Processing Word document",
-          description: "Extracting text from Word document...",
-        });
-
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        const response = await fetch('/api/extract-word-text', {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to extract text from Word document');
-        }
-
-        const result = await response.json();
-        content = result.text || '';
-
-      } else {
-        // Handle text-based files
-        const reader = new FileReader();
-        content = await new Promise<string>((resolve, reject) => {
-          reader.onload = (e) => {
-            const result = e.target?.result as string;
-            resolve(result || '');
-          };
-          reader.onerror = () => reject(new Error('Failed to read file'));
-          reader.readAsText(file, 'UTF-8');
-        });
-
-        // Check for binary content indicators in text files
-        const binaryIndicators = /[\x00-\x08\x0E-\x1F\x7F-\xFF]/g;
-        const binaryMatches = content.match(binaryIndicators);
-        if (binaryMatches && binaryMatches.length > content.length * 0.1) {
-          toast({
-            title: "Invalid file format",
-            description: "This file appears to contain binary data. Please upload a valid text file.",
-            variant: "destructive"
-          });
-          return;
-        }
+        return;
       }
 
       // Basic validation to ensure we have content
