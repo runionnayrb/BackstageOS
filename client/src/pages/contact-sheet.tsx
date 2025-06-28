@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, Settings, GripVertical, Printer } from "lucide-react";
+import { ArrowLeft, Settings, GripVertical, Printer, Eye, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
@@ -70,6 +70,7 @@ export default function ContactSheet() {
   const [isResizing, setIsResizing] = useState<number | null>(null);
   const [resizeStartX, setResizeStartX] = useState(0);
   const [resizeStartWidth, setResizeStartWidth] = useState(0);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -277,6 +278,24 @@ export default function ContactSheet() {
             </div>
             <div className="flex items-center gap-2">
               <Button
+                variant={isPreviewMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsPreviewMode(!isPreviewMode)}
+                className="flex items-center gap-2"
+              >
+                {isPreviewMode ? (
+                  <>
+                    <Edit className="h-4 w-4" />
+                    Edit Mode
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4" />
+                    Preview
+                  </>
+                )}
+              </Button>
+              <Button
                 variant="outline"
                 size="sm"
                 onClick={handlePrint}
@@ -321,7 +340,7 @@ export default function ContactSheet() {
                     {/* Table Header */}
                     <div className="border-b-2 border-gray-800 mb-2">
                       <div className="flex print:text-sm">
-                        {columns.filter(col => col.visible).map((column, colIndex) => (
+                        {!isPreviewMode && columns.filter(col => col.visible).map((column, colIndex) => (
                           <div
                             key={column.id}
                             className="relative font-semibold py-2 px-2 print:px-1 border-r border-gray-300 last:border-r-0 print:hidden"
@@ -344,8 +363,8 @@ export default function ContactSheet() {
                           </div>
                         ))}
                         
-                        {/* Print version of headers */}
-                        <div className="hidden print:flex print:w-full">
+                        {/* Preview/Print version of headers */}
+                        <div className={`${isPreviewMode ? 'flex w-full' : 'hidden print:flex print:w-full'}`}>
                           {columns.filter(col => col.visible).map((column) => (
                             <div
                               key={column.id}
@@ -363,14 +382,16 @@ export default function ContactSheet() {
                       {categoryContacts.map((contact, contactIndex) => (
                         <div
                           key={contact.id}
-                          className="flex border-b border-gray-200 hover:bg-gray-50 print:hover:bg-transparent print:text-sm print:border-gray-300"
-                          draggable
-                          onDragStart={(e) => handleContactDragStart(e, category.id, contactIndex)}
-                          onDragOver={(e) => e.preventDefault()}
-                          onDrop={(e) => handleContactDrop(e, category.id, contactIndex)}
+                          className={`flex border-b border-gray-200 print:text-sm print:border-gray-300 ${
+                            !isPreviewMode ? 'hover:bg-gray-50 print:hover:bg-transparent' : ''
+                          }`}
+                          draggable={!isPreviewMode}
+                          onDragStart={!isPreviewMode ? (e) => handleContactDragStart(e, category.id, contactIndex) : undefined}
+                          onDragOver={!isPreviewMode ? (e) => e.preventDefault() : undefined}
+                          onDrop={!isPreviewMode ? (e) => handleContactDrop(e, category.id, contactIndex) : undefined}
                         >
-                          {/* Screen version */}
-                          {columns.filter(col => col.visible).map((column) => (
+                          {/* Edit mode version */}
+                          {!isPreviewMode && columns.filter(col => col.visible).map((column) => (
                             <div
                               key={column.id}
                               className="py-2 px-2 border-r border-gray-300 last:border-r-0 print:hidden overflow-hidden text-ellipsis whitespace-nowrap"
@@ -380,13 +401,13 @@ export default function ContactSheet() {
                             </div>
                           ))}
                           
-                          {/* Print version */}
-                          <div className="hidden print:flex print:w-full">
+                          {/* Preview/Print version */}
+                          <div className={`${isPreviewMode ? 'flex w-full' : 'hidden print:flex print:w-full'}`}>
                             {columns.filter(col => col.visible).map((column) => (
                               <div
                                 key={column.id}
                                 className="py-1 px-1 border-r border-gray-300 last:border-r-0 flex-1 overflow-hidden text-ellipsis"
-                                style={{ fontSize: '11px', lineHeight: '14px' }}
+                                style={{ fontSize: isPreviewMode ? '14px' : '11px', lineHeight: isPreviewMode ? '16px' : '14px' }}
                               >
                                 {getCellValue(contact, column.id)}
                               </div>
@@ -403,30 +424,32 @@ export default function ContactSheet() {
         </div>
       </div>
 
-      {/* Column Settings Panel - Hidden in print */}
-      <div className="fixed right-4 top-1/2 transform -translate-y-1/2 bg-white border rounded-lg shadow-lg p-4 print:hidden">
-        <h4 className="font-semibold mb-3 flex items-center gap-2">
-          <Settings className="h-4 w-4" />
-          Columns
-        </h4>
-        <div className="space-y-2">
-          {columns.map((column, index) => (
-            <label key={column.id} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={column.visible}
-                onChange={(e) => {
-                  setColumns(prev => prev.map((col, idx) => 
-                    idx === index ? { ...col, visible: e.target.checked } : col
-                  ));
-                }}
-                className="rounded"
-              />
-              {column.label}
-            </label>
-          ))}
+      {/* Column Settings Panel - Hidden in print and preview mode */}
+      {!isPreviewMode && (
+        <div className="fixed right-4 top-1/2 transform -translate-y-1/2 bg-white border rounded-lg shadow-lg p-4 print:hidden">
+          <h4 className="font-semibold mb-3 flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Columns
+          </h4>
+          <div className="space-y-2">
+            {columns.map((column, index) => (
+              <label key={column.id} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={column.visible}
+                  onChange={(e) => {
+                    setColumns(prev => prev.map((col, idx) => 
+                      idx === index ? { ...col, visible: e.target.checked } : col
+                    ));
+                  }}
+                  className="rounded"
+                />
+                {column.label}
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
