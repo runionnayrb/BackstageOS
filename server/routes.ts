@@ -1118,7 +1118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!script) {
         // Return default script data if none exists
         return res.json({
-          title: "Untitled Script",
+          name: "Untitled Script",
           content: "",
           version: "1.0",
           collaborators: [],
@@ -1126,7 +1126,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      res.json(script);
+      // Transform script document to expected format
+      const scriptData = {
+        name: script.name,
+        content: script.content || "",
+        version: script.version || "1.0",
+        collaborators: [],
+        type: "script"
+      };
+
+      console.log('Returning script data:', { 
+        name: scriptData.name, 
+        contentLength: scriptData.content?.length || 0,
+        contentPreview: scriptData.content?.substring(0, 50) || "empty"
+      });
+
+      res.json(scriptData);
     } catch (error) {
       console.error("Error fetching script:", error);
       res.status(500).json({ message: "Failed to fetch script" });
