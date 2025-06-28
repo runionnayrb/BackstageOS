@@ -383,7 +383,7 @@ export function CollaborativeEditor({
   const processRichContent = useCallback((content: string, pageNum: number) => {
     if (!content) return '';
     
-    // Replace variables with actual values
+    // Replace variables with actual values while preserving HTML formatting
     let processedContent = content
       .replace(/\{\{showName\}\}/g, title || 'Untitled Script')
       .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
@@ -391,6 +391,7 @@ export function CollaborativeEditor({
       .replace(/\{\{pageNumber\}\}/g, formatPageNumber(pageNumbers[pageNum - 1] || pageNum.toString(), pageNum - 1, pageCount))
       .replace(/\{\{totalPages\}\}/g, pageCount.toString());
     
+    // Return the content with HTML formatting preserved
     return processedContent;
   }, [title, pageNumbers, pageCount, formatPageNumber]);
 
@@ -443,66 +444,79 @@ export function CollaborativeEditor({
       return;
     }
     
-    const input = editingRef.current;
-    const start = input.selectionStart || 0;
-    const end = input.selectionEnd || 0;
-    const selectedText = input.value.substring(start, end);
+    const element = editingRef.current as HTMLDivElement;
+    const selection = window.getSelection();
     
-    console.log('Selection:', { start, end, selectedText });
+    if (!selection || selection.rangeCount === 0) {
+      console.log('No text selection found');
+      return;
+    }
     
-    let newText = selectedText;
+    const range = selection.getRangeAt(0);
+    const selectedText = selection.toString();
+    
+    console.log('Selection:', { selectedText });
+    
+    let formattedElement: HTMLElement;
     
     // Apply formatting based on command
     switch (command) {
       case 'bold':
-        // If text is already bold, remove formatting, otherwise add it
-        if (selectedText.startsWith('<b>') && selectedText.endsWith('</b>')) {
-          newText = selectedText.slice(3, -4);
-        } else {
-          newText = `<b>${selectedText}</b>`;
-        }
+        formattedElement = document.createElement('b');
         break;
       case 'italic':
-        // If text is already italic, remove formatting, otherwise add it
-        if (selectedText.startsWith('<i>') && selectedText.endsWith('</i>')) {
-          newText = selectedText.slice(3, -4);
-        } else {
-          newText = `<i>${selectedText}</i>`;
-        }
+        formattedElement = document.createElement('i');
         break;
       case 'underline':
-        // If text is already underlined, remove formatting, otherwise add it
-        if (selectedText.startsWith('<u>') && selectedText.endsWith('</u>')) {
-          newText = selectedText.slice(3, -4);
-        } else {
-          newText = `<u>${selectedText}</u>`;
-        }
+        formattedElement = document.createElement('u');
         break;
       default:
         console.log('Unknown command:', command);
         return;
     }
     
-    // Replace selected text with formatted version
-    const beforeSelection = input.value.substring(0, start);
-    const afterSelection = input.value.substring(end);
-    const newValue = beforeSelection + newText + afterSelection;
-    
-    console.log('New value:', newValue);
-    
-    input.value = newValue;
-    
-    // Update state
-    if (editingElement.type === 'header') {
-      setHeaderText(newValue);
-    } else if (editingElement.type === 'footer') {
-      setFooterText(newValue);
+    try {
+      // If there's selected text, wrap it
+      if (selectedText) {
+        range.surroundContents(formattedElement);
+      } else {
+        // If no selection, insert empty formatted element at cursor
+        formattedElement.textContent = '';
+        range.insertNode(formattedElement);
+        // Place cursor inside the formatted element
+        const newRange = document.createRange();
+        newRange.setStart(formattedElement, 0);
+        newRange.setEnd(formattedElement, 0);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      }
+      
+      // Update state with new HTML content
+      const newContent = element.innerHTML;
+      console.log('New formatted content:', newContent);
+      
+      if (editingElement.type === 'header') {
+        setHeaderText(newContent);
+      } else if (editingElement.type === 'footer') {
+        setFooterText(newContent);
+      }
+      
+    } catch (error) {
+      console.log('Error applying formatting:', error);
+      // Fallback: wrap selection in a new element
+      const contents = range.extractContents();
+      formattedElement.appendChild(contents);
+      range.insertNode(formattedElement);
+      
+      const newContent = element.innerHTML;
+      if (editingElement.type === 'header') {
+        setHeaderText(newContent);
+      } else if (editingElement.type === 'footer') {
+        setFooterText(newContent);
+      }
     }
     
-    // Set cursor position after the inserted formatting
-    const newCursorPosition = start + newText.length;
-    input.setSelectionRange(newCursorPosition, newCursorPosition);
-    input.focus();
+    element.focus();
   }, [editingElement]);
 
   // Insert variable into inline editor
@@ -512,40 +526,47 @@ export function CollaborativeEditor({
     console.log('editingElement:', editingElement);
     
     if (editingRef.current && editingElement) {
-      const input = editingRef.current;
+      const element = editingRef.current as HTMLDivElement;
       const variableText = `{{${variable}}}`;
       
-      console.log('Current input value:', input.value);
       console.log('Variable text to insert:', variableText);
       
-      // Get current cursor position
-      const cursorPosition = input.selectionStart || 0;
-      const currentValue = input.value || '';
+      // Get current selection or cursor position
+      const selection = window.getSelection();
       
-      // Insert variable at cursor position
-      const newValue = currentValue.slice(0, cursorPosition) + variableText + currentValue.slice(cursorPosition);
-      
-      console.log('New value after insertion:', newValue);
-      
-      // Update the input value and state
-      input.value = newValue;
-      
-      // Trigger onChange event to update state
-      const event = new Event('input', { bubbles: true });
-      input.dispatchEvent(event);
-      
-      if (editingElement.type === 'header') {
-        setHeaderText(newValue);
-        console.log('Updated header text to:', newValue);
-      } else if (editingElement.type === 'footer') {
-        setFooterText(newValue);
-        console.log('Updated footer text to:', newValue);
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        
+        // Create text node with variable
+        const textNode = document.createTextNode(variableText);
+        
+        // Insert the variable at cursor position
+        range.deleteContents();
+        range.insertNode(textNode);
+        
+        // Move cursor after the inserted variable
+        range.setStartAfter(textNode);
+        range.setEndAfter(textNode);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      } else {
+        // If no selection, append to the end
+        element.appendChild(document.createTextNode(variableText));
       }
       
-      // Move cursor after the inserted variable
-      const newCursorPosition = cursorPosition + variableText.length;
-      input.setSelectionRange(newCursorPosition, newCursorPosition);
-      input.focus();
+      // Update state with new content
+      const newContent = element.innerHTML;
+      console.log('New content after variable insertion:', newContent);
+      
+      if (editingElement.type === 'header') {
+        setHeaderText(newContent);
+        console.log('Updated header text to:', newContent);
+      } else if (editingElement.type === 'footer') {
+        setFooterText(newContent);
+        console.log('Updated footer text to:', newContent);
+      }
+      
+      element.focus();
     } else {
       console.log('Cannot insert variable - missing ref or editing element');
     }
@@ -1394,13 +1415,16 @@ export function CollaborativeEditor({
                   {showHeaders && (
                     <>
                       {editingElement?.type === 'header' && editingElement?.pageNum === pageNum ? (
-                        <input
+                        <div
                           ref={editingRef}
-                          type="text"
-                          className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 bg-transparent border-none outline-2 outline-blue-500 outline-dashed`}
+                          contentEditable
+                          className={`absolute top-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[16px]`}
                           style={{ textAlign: pageNumberAlignment as any }}
-                          value={headerText.replace(/<[^>]*>/g, '')} // Strip HTML for input
-                          onChange={(e) => setHeaderText(e.target.value)}
+                          dangerouslySetInnerHTML={{ __html: headerText }}
+                          onInput={(e) => {
+                            const target = e.target as HTMLDivElement;
+                            setHeaderText(target.innerHTML);
+                          }}
                           onBlur={(e) => {
                             // Don't close if clicking on toolbar
                             const relatedTarget = e.relatedTarget as HTMLElement;
@@ -1415,7 +1439,7 @@ export function CollaborativeEditor({
                               closeInlineEditor();
                             }
                           }}
-                          autoFocus
+                          suppressContentEditableWarning={true}
                         />
                       ) : (
                         <div 
@@ -1435,13 +1459,16 @@ export function CollaborativeEditor({
                   {showFooters && (
                     <>
                       {editingElement?.type === 'footer' && editingElement?.pageNum === pageNum ? (
-                        <input
+                        <div
                           ref={editingRef}
-                          type="text"
-                          className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 bg-transparent border-none outline-2 outline-blue-500 outline-dashed`}
+                          contentEditable
+                          className={`absolute bottom-2 left-0 right-0 text-${pageNumberAlignment} text-xs text-gray-600 px-4 bg-transparent border-none outline-2 outline-blue-500 outline-dashed focus:outline-dashed min-h-[16px]`}
                           style={{ textAlign: pageNumberAlignment as any }}
-                          value={footerText.replace(/<[^>]*>/g, '')} // Strip HTML for input
-                          onChange={(e) => setFooterText(e.target.value)}
+                          dangerouslySetInnerHTML={{ __html: footerText }}
+                          onInput={(e) => {
+                            const target = e.target as HTMLDivElement;
+                            setFooterText(target.innerHTML);
+                          }}
                           onBlur={(e) => {
                             // Don't close if clicking on toolbar
                             const relatedTarget = e.relatedTarget as HTMLElement;
@@ -1456,7 +1483,7 @@ export function CollaborativeEditor({
                               closeInlineEditor();
                             }
                           }}
-                          autoFocus
+                          suppressContentEditableWarning={true}
                         />
                       ) : (
                         <div 
