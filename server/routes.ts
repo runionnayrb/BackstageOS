@@ -1539,17 +1539,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdBy: true,
       });
       
-      console.log("PUT contact validation - Request body:", JSON.stringify(req.body, null, 2));
       const validatedData = updateContactSchema.parse(req.body);
-      console.log("PUT contact validation - Success");
       const updatedContact = await storage.updateContact(contactId, validatedData);
       res.json(updatedContact);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("PUT contact validation - Zod error:", JSON.stringify(error.errors, null, 2));
         return res.status(400).json({ message: "Invalid contact data", errors: error.errors });
       }
-      console.error("PUT contact - Error:", error);
+      console.error("Error updating contact:", error);
       res.status(500).json({ message: "Failed to update contact" });
     }
   });

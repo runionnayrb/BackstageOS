@@ -291,8 +291,14 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                 <ReadOnlyField label="Phone" value={contact.phone} href={contact.phone ? `tel:${contact.phone}` : undefined} />
               </div>
               <ReadOnlyField label="Role" value={contact.role} />
-              {contact.category === 'cast' && contact.castTypes && contact.castTypes.length > 0 && (
-                <ReadOnlyField label="Cast Type" value={contact.castTypes.join(', ')} />
+              {contact.category === 'cast' && (
+                <ReadOnlyField 
+                  label="Cast Type" 
+                  value={contact.castTypes && contact.castTypes.length > 0 
+                    ? contact.castTypes.join(', ').replace(/^./, (char: string) => char.toUpperCase())
+                    : 'No Cast Assigned'
+                  } 
+                />
               )}
             </div>
           )}

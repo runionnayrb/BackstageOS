@@ -13,6 +13,7 @@ interface PersonnelCategoryParams {
 
 interface Contact {
   id: number;
+  projectId: number;
   firstName: string;
   lastName: string;
   email?: string;
@@ -20,7 +21,13 @@ interface Contact {
   category: string;
   role?: string;
   notes?: string;
-  emergencyContact?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactEmail?: string;
+  emergencyContactRelationship?: string;
+  allergies?: string;
+  medicalNotes?: string;
+  castTypes?: string[];
 }
 
 export default function PersonnelCategory() {
@@ -149,6 +156,14 @@ export default function PersonnelCategory() {
                         </h3>
                         {contact.role && (
                           <p className="text-sm text-gray-600">{contact.role}</p>
+                        )}
+                        {category === 'cast' && (
+                          <p className="text-xs text-gray-500">
+                            {contact.castTypes && contact.castTypes.length > 0 
+                              ? contact.castTypes.join(', ').replace(/^./, (char: string) => char.toUpperCase())
+                              : 'No Cast Assigned'
+                            }
+                          </p>
                         )}
                       </div>
                       <Button
