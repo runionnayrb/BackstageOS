@@ -3,10 +3,11 @@ import { useLocation, useParams } from "wouter";
 import { 
   ArrowLeft, Settings, GripVertical, Printer, Eye, Edit,
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
-  Palette, Type, Square, Minus, ChevronDown, Grid3X3, Clipboard, GitBranch
+  Palette, Type, Square, Minus, ChevronDown, Grid3X3, Clipboard, GitBranch, Check
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -950,32 +951,38 @@ export default function ContactSheet() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedVersionType('major');
-                  setShowPublishVersionConfirm(true);
-                }}
-                disabled={isPublishing}
-                className="flex items-center gap-1"
-              >
-                <GitBranch className="h-3 w-3" />
-                Major
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSelectedVersionType('minor');
-                  setShowPublishVersionConfirm(true);
-                }}
-                disabled={isPublishing}
-                className="flex items-center gap-1"
-              >
-                <GitBranch className="h-3 w-3" />
-                Minor
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={isPublishing}
+                    className="flex items-center gap-1"
+                  >
+                    <Check className="h-3 w-3" />
+                    Publish
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelectedVersionType('major');
+                      setShowPublishVersionConfirm(true);
+                    }}
+                  >
+                    Major Version
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelectedVersionType('minor');
+                      setShowPublishVersionConfirm(true);
+                    }}
+                  >
+                    Minor Version
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <Button
                 variant={isPreviewMode ? "default" : "outline"}
                 size="sm"
