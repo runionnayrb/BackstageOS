@@ -48,6 +48,7 @@ export default function ScriptEditor() {
   const [showComments, setShowComments] = useState(false);
   const [showPublishVersionConfirm, setShowPublishVersionConfirm] = useState(false);
   const [selectedVersionType, setSelectedVersionType] = useState<'major' | 'minor'>('minor');
+  const [currentVersion, setCurrentVersion] = useState("1.0");
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -82,9 +83,10 @@ export default function ScriptEditor() {
 
   // Initialize script data
   useEffect(() => {
-    if (script) {
-      setScriptTitle(script.name || "Untitled Script");
-      setScriptContent(script.content || "");
+    if (script && typeof script === 'object') {
+      setScriptTitle((script as any).name || "Untitled Script");
+      setScriptContent((script as any).content || "");
+      setCurrentVersion((script as any).version || "1.0");
       setCollaborators([]);
       // Only set comments if they don't exist yet
       if (comments.length === 0) {
@@ -202,17 +204,28 @@ export default function ScriptEditor() {
   // Publish script mutation
   const publishScriptMutation = useMutation({
     mutationFn: async (data: { versionType: 'major' | 'minor' }) => {
-      const response = await apiRequest("POST", `/api/projects/${projectId}/script/publish`, data);
-      return { ...response, versionType: data.versionType };
+      const response = await fetch(`/api/projects/${projectId}/script/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to publish');
+      const result = await response.json();
+      return { ...result, versionType: data.versionType };
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       const versionTypeText = data.versionType === 'major' ? 'Major' : 'Minor';
+      // Update the version number immediately
+      if (data.version) {
+        setCurrentVersion(data.version);
+      }
       toast({
         title: `${versionTypeText} Version Published!`,
         description: `Your ${versionTypeText.toLowerCase()} version has been successfully published.`,
       });
+      // Force refresh the script data to show updated version
       queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "script"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "script", "versions"] });
+      queryClient.refetchQueries({ queryKey: ["/api/projects", projectId, "script"] });
       setIsPublishing(false);
     },
     onError: () => {
@@ -425,7 +438,7 @@ export default function ScriptEditor() {
           onChange={handleContentChange}
           title={scriptTitle}
           onTitleChange={handleTitleChange}
-          version={script?.version || "1.0"}
+          version={currentVersion}
           collaborators={collaborators}
           comments={comments}
           onAddComment={handleAddComment}
@@ -451,17 +464,17 @@ export default function ScriptEditor() {
                 </DialogDescription>
               </div>
               <Badge variant="outline" className="text-xs">
-                Current: v{script?.version || "1.0"}
+                Current: v{currentVersion}
               </Badge>
             </div>
           </DialogHeader>
           <div className="px-6 pb-6 overflow-y-auto">
             <VersionHistory
               versions={versions}
-              currentVersion={script?.version || "1.0"}
+              currentVersion={currentVersion}
               onRevert={handleVersionRevert}
               onPreview={handleVersionPreview}
-              onPublish={handlePublish}
+              onPublish={() => {}}
               className="w-full border-0"
               showHeader={false}
             />
