@@ -76,6 +76,8 @@ export default function ContactSheet() {
   const [isPreviewMode, setIsPreviewMode] = useState(true);
   const [headerHeight, setHeaderHeight] = useState(40);
   const [rowHeight, setRowHeight] = useState(32);
+  const [categorySpacing, setCategorySpacing] = useState(8); // Space between category title and table headers (in px)
+  const [sectionSpacing, setSectionSpacing] = useState(32); // Space between contact sections (in px)
   const [isResizingHeight, setIsResizingHeight] = useState<'header' | 'row' | null>(null);
   const [resizeStartY, setResizeStartY] = useState(0);
   const [resizeStartHeight, setResizeStartHeight] = useState(0);
@@ -912,6 +914,46 @@ export default function ContactSheet() {
                     </div>
                   </div>
                 )}
+
+                {/* Spacing Controls */}
+                <div className="border-l pl-3 ml-3">
+                  <div className="text-xs font-medium text-gray-700 mb-1">Spacing</div>
+                  <div className="flex items-center gap-2">
+                    {/* Category to Header Spacing */}
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-xs text-gray-500">Title-Header</span>
+                      <div className="flex items-center gap-1 border rounded bg-white px-2">
+                        <input
+                          type="number"
+                          min="0"
+                          max="50"
+                          value={categorySpacing}
+                          onChange={(e) => setCategorySpacing(Number(e.target.value))}
+                          className="w-12 text-sm py-1 text-center border-0 outline-none"
+                          title="Space between category title and table headers"
+                        />
+                        <span className="text-xs text-gray-500">px</span>
+                      </div>
+                    </div>
+
+                    {/* Section to Section Spacing */}
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-xs text-gray-500">Section</span>
+                      <div className="flex items-center gap-1 border rounded bg-white px-2">
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={sectionSpacing}
+                          onChange={(e) => setSectionSpacing(Number(e.target.value))}
+                          className="w-12 text-sm py-1 text-center border-0 outline-none"
+                          title="Space between contact sections"
+                        />
+                        <span className="text-xs text-gray-500">px</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -1058,7 +1100,7 @@ export default function ContactSheet() {
             </div>
 
             {/* Contact Table by Category */}
-            <div className="space-y-8 print:space-y-6">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: `${sectionSpacing}px` }}>
               {categories.map(category => {
                 const categoryContacts = contactsByCategory[category.id] || [];
                 
@@ -1073,7 +1115,10 @@ export default function ContactSheet() {
                     onDragOver={!isPreviewMode ? (e) => e.preventDefault() : undefined}
                     onDrop={!isPreviewMode ? (e) => handleCategoryDrop(e, category.id) : undefined}
                   >
-                    <div className={`mb-2 print:mb-1 pb-1 ${!isPreviewMode ? 'cursor-grab hover:bg-gray-50 rounded px-2 py-1' : ''}`}>
+                    <div 
+                      className={`pb-1 ${!isPreviewMode ? 'cursor-grab hover:bg-gray-50 rounded px-2 py-1' : ''}`}
+                      style={{ marginBottom: `${categorySpacing}px` }}
+                    >
                       <h3 className="text-lg font-semibold">
                         {category.title}
                       </h3>
