@@ -825,30 +825,28 @@ export default function ContactSheet() {
       {/* Print Preview Container */}
       <div className="p-8 print:p-0">
         <div className="max-w-none mx-auto bg-white shadow-lg print:shadow-none print:max-w-none" 
-             style={{ width: '8.5in', minHeight: '11in' }}>
-          
-          {/* Main Content with all margins */}
-          <div 
-            style={{
-              paddingTop: `${Math.max(pageMargins.top, headerFooterMargins.header)}in !important`,
-              paddingRight: `${pageMargins.right}in !important`,
-              paddingLeft: `${pageMargins.left}in !important`,
-              paddingBottom: `${Math.max(pageMargins.bottom, headerFooterMargins.footer)}in !important`
-            }}
+             style={{ 
+               width: '8.5in', 
+               minHeight: '11in',
+               paddingTop: `${Math.max(pageMargins.top, headerFooterMargins.header)}in`,
+               paddingRight: `${pageMargins.right}in`,
+               paddingLeft: `${pageMargins.left}in`,
+               paddingBottom: `${Math.max(pageMargins.bottom, headerFooterMargins.footer)}in`,
+               boxSizing: 'border-box',
+               border: isPreviewMode ? 'none' : '2px dashed #ff0000'
+             }}
           >
-            {/* Page Header */}
-            <div>
-              <div className="text-center mb-8 print:mb-6">
-                <h1 className="text-2xl font-bold mb-2">{(project as any)?.name}</h1>
-                <h2 className="text-lg text-gray-600">Contact Sheet</h2>
-                <p className="text-sm text-gray-500 mt-2">
-                  Generated on {new Date().toLocaleDateString()}
-                </p>
-              </div>
-            </div>
+          {/* Page Header */}
+          <div className="text-center mb-8 print:mb-6">
+            <h1 className="text-2xl font-bold mb-2">{(project as any)?.name}</h1>
+            <h2 className="text-lg text-gray-600">Contact Sheet</h2>
+            <p className="text-sm text-gray-500 mt-2">
+              Generated on {new Date().toLocaleDateString()}
+            </p>
+          </div>
 
-            {/* Contact Table by Category */}
-            <div className="space-y-8 print:space-y-6">
+          {/* Contact Table by Category */}
+          <div className="space-y-8 print:space-y-6">
               {categories.map(category => {
                 const categoryContacts = contactsByCategory[category.id] || [];
                 
@@ -981,10 +979,9 @@ export default function ContactSheet() {
               })}
             </div>
 
-            {/* Page Footer */}
-            <div className="text-center text-xs text-gray-500 mt-8 print:mt-6">
-              Page 1 of 1
-            </div>
+          {/* Page Footer */}
+          <div className="text-center text-xs text-gray-500 mt-8 print:mt-6">
+            Page 1 of 1
           </div>
         </div>
       </div>
