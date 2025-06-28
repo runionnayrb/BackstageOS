@@ -3,7 +3,7 @@ import { useLocation, useParams } from "wouter";
 import { 
   ArrowLeft, Settings, GripVertical, Printer, Eye, Edit,
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
-  Palette, Type, Square, Minus, ChevronDown
+  Palette, Type, Square, Minus, ChevronDown, Grid3X3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -90,7 +90,15 @@ export default function ContactSheet() {
   const [headerBgColor, setHeaderBgColor] = useState('#ffffff');
   const [headerFontSize, setHeaderFontSize] = useState(14);
   const [headerFontFamily, setHeaderFontFamily] = useState('system-ui');
-  const [headerBorders, setHeaderBorders] = useState(true);
+  const [headerBorders, setHeaderBorders] = useState({
+    all: true,
+    top: true,
+    right: true,
+    bottom: true,
+    left: true
+  });
+  const [headerBorderColor, setHeaderBorderColor] = useState('#d1d5db');
+  const [headerBorderWidth, setHeaderBorderWidth] = useState(1);
   
   // Row formatting states
   const [rowBold, setRowBold] = useState(false);
@@ -100,7 +108,15 @@ export default function ContactSheet() {
   const [rowBgColor, setRowBgColor] = useState('#ffffff');
   const [rowFontSize, setRowFontSize] = useState(12);
   const [rowFontFamily, setRowFontFamily] = useState('system-ui');
-  const [rowBorders, setRowBorders] = useState(true);
+  const [rowBorders, setRowBorders] = useState({
+    all: true,
+    top: true,
+    right: true,
+    bottom: true,
+    left: true
+  });
+  const [rowBorderColor, setRowBorderColor] = useState('#d1d5db');
+  const [rowBorderWidth, setRowBorderWidth] = useState(1);
   
   const [activeTarget, setActiveTarget] = useState<'header' | 'row'>('header');
 
@@ -321,6 +337,7 @@ export default function ContactSheet() {
     backgroundColor: headerBgColor,
     fontSize: `${headerFontSize}px`,
     fontFamily: headerFontFamily,
+    ...getBorderStyle(headerBorders, headerBorderColor, headerBorderWidth),
   });
 
   const getRowStyle = () => ({
@@ -331,9 +348,61 @@ export default function ContactSheet() {
     backgroundColor: rowBgColor,
     fontSize: `${rowFontSize}px`,
     fontFamily: rowFontFamily,
+    ...getBorderStyle(rowBorders, rowBorderColor, rowBorderWidth),
   });
 
-  const getBorderClass = (borders: boolean) => borders ? 'border-r border-gray-300 last:border-r-0' : '';
+  const getBorderStyle = (borders: any, borderColor: string, borderWidth: number) => {
+    if (!borders || (!borders.all && !borders.top && !borders.right && !borders.bottom && !borders.left)) {
+      return {};
+    }
+    
+    return {
+      borderTopWidth: borders.top ? `${borderWidth}px` : '0',
+      borderRightWidth: borders.right ? `${borderWidth}px` : '0',
+      borderBottomWidth: borders.bottom ? `${borderWidth}px` : '0',
+      borderLeftWidth: borders.left ? `${borderWidth}px` : '0',
+      borderStyle: 'solid',
+      borderColor: borderColor,
+    };
+  };
+
+  const toggleBorder = (side: 'all' | 'top' | 'right' | 'bottom' | 'left') => {
+    if (activeTarget === 'header') {
+      if (side === 'all') {
+        const newValue = !headerBorders.all;
+        setHeaderBorders({
+          all: newValue,
+          top: newValue,
+          right: newValue,
+          bottom: newValue,
+          left: newValue
+        });
+      } else {
+        setHeaderBorders(prev => ({
+          ...prev,
+          [side]: !prev[side],
+          all: false // Turn off "all" when individual sides are toggled
+        }));
+      }
+    } else {
+      if (side === 'all') {
+        const newValue = !rowBorders.all;
+        setRowBorders({
+          all: newValue,
+          top: newValue,
+          right: newValue,
+          bottom: newValue,
+          left: newValue
+        });
+      } else {
+        setRowBorders(prev => ({
+          ...prev,
+          [side]: !prev[side],
+          all: false
+        }));
+      }
+    }
+  };
 
   const fontOptions = [
     { value: 'system-ui', label: 'System' },
@@ -534,6 +603,17 @@ export default function ContactSheet() {
                   </button>
                 </div>
 
+                {/* Font Family */}
+                <select
+                  value={activeTarget === 'header' ? headerFontFamily : rowFontFamily}
+                  onChange={(e) => activeTarget === 'header' ? setHeaderFontFamily(e.target.value) : setRowFontFamily(e.target.value)}
+                  className="border rounded bg-white px-2 py-1 text-sm outline-none"
+                >
+                  {fontOptions.map(font => (
+                    <option key={font.value} value={font.value}>{font.label}</option>
+                  ))}
+                </select>
+
                 {/* Font Size */}
                 <div className="flex items-center gap-1 border rounded bg-white px-2">
                   <Type className="h-4 w-4 text-gray-500" />
@@ -546,17 +626,6 @@ export default function ContactSheet() {
                     className="w-12 text-sm py-1 text-center border-0 outline-none"
                   />
                 </div>
-
-                {/* Font Family */}
-                <select
-                  value={activeTarget === 'header' ? headerFontFamily : rowFontFamily}
-                  onChange={(e) => activeTarget === 'header' ? setHeaderFontFamily(e.target.value) : setRowFontFamily(e.target.value)}
-                  className="border rounded bg-white px-2 py-1 text-sm outline-none"
-                >
-                  {fontOptions.map(font => (
-                    <option key={font.value} value={font.value}>{font.label}</option>
-                  ))}
-                </select>
 
                 {/* Text Color */}
                 <div className="flex items-center border rounded bg-white">
@@ -582,16 +651,84 @@ export default function ContactSheet() {
                   <Square className="h-4 w-4 text-gray-500 mx-1" />
                 </div>
 
-                {/* Borders Toggle */}
-                <button
-                  onClick={() => activeTarget === 'header' ? setHeaderBorders(!headerBorders) : setRowBorders(!rowBorders)}
-                  className={`p-2 border rounded bg-white hover:bg-gray-100 ${
-                    (activeTarget === 'header' ? headerBorders : rowBorders) ? 'bg-gray-200' : ''
-                  }`}
-                  title="Toggle Borders"
-                >
-                  <Square className="h-4 w-4" />
-                </button>
+                {/* Border Controls */}
+                <div className="flex items-center gap-1 border rounded bg-white px-2 py-1">
+                  <Grid3X3 className="h-4 w-4 text-gray-500" />
+                  <div className="flex gap-1">
+                    {/* All Borders */}
+                    <button
+                      onClick={() => toggleBorder('all')}
+                      className={`px-2 py-1 text-xs rounded ${
+                        (activeTarget === 'header' ? headerBorders.all : rowBorders.all) ? 'bg-blue-500 text-white' : 'bg-gray-100'
+                      }`}
+                      title="All Borders"
+                    >
+                      All
+                    </button>
+                    {/* Individual Borders */}
+                    <button
+                      onClick={() => toggleBorder('top')}
+                      className={`px-1 py-1 text-xs rounded ${
+                        (activeTarget === 'header' ? headerBorders.top : rowBorders.top) ? 'bg-blue-500 text-white' : 'bg-gray-100'
+                      }`}
+                      title="Top Border"
+                    >
+                      T
+                    </button>
+                    <button
+                      onClick={() => toggleBorder('right')}
+                      className={`px-1 py-1 text-xs rounded ${
+                        (activeTarget === 'header' ? headerBorders.right : rowBorders.right) ? 'bg-blue-500 text-white' : 'bg-gray-100'
+                      }`}
+                      title="Right Border"
+                    >
+                      R
+                    </button>
+                    <button
+                      onClick={() => toggleBorder('bottom')}
+                      className={`px-1 py-1 text-xs rounded ${
+                        (activeTarget === 'header' ? headerBorders.bottom : rowBorders.bottom) ? 'bg-blue-500 text-white' : 'bg-gray-100'
+                      }`}
+                      title="Bottom Border"
+                    >
+                      B
+                    </button>
+                    <button
+                      onClick={() => toggleBorder('left')}
+                      className={`px-1 py-1 text-xs rounded ${
+                        (activeTarget === 'header' ? headerBorders.left : rowBorders.left) ? 'bg-blue-500 text-white' : 'bg-gray-100'
+                      }`}
+                      title="Left Border"
+                    >
+                      L
+                    </button>
+                  </div>
+                </div>
+
+                {/* Border Color */}
+                <div className="flex items-center border rounded bg-white">
+                  <input
+                    type="color"
+                    value={activeTarget === 'header' ? headerBorderColor : rowBorderColor}
+                    onChange={(e) => activeTarget === 'header' ? setHeaderBorderColor(e.target.value) : setRowBorderColor(e.target.value)}
+                    className="w-8 h-8 border-0 cursor-pointer"
+                    title="Border Color"
+                  />
+                  <Minus className="h-4 w-4 text-gray-500 mx-1" />
+                </div>
+
+                {/* Border Width */}
+                <div className="flex items-center gap-1 border rounded bg-white px-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="5"
+                    value={activeTarget === 'header' ? headerBorderWidth : rowBorderWidth}
+                    onChange={(e) => activeTarget === 'header' ? setHeaderBorderWidth(Number(e.target.value)) : setRowBorderWidth(Number(e.target.value))}
+                    className="w-8 text-sm py-1 text-center border-0 outline-none"
+                  />
+                  <span className="text-xs text-gray-500">px</span>
+                </div>
               </div>
             </div>
           )}
@@ -641,7 +778,7 @@ export default function ContactSheet() {
                         {!isPreviewMode && columns.filter(col => col.visible).map((column, colIndex) => (
                           <div
                             key={column.id}
-                            className={`relative px-3 print:px-1 ${getBorderClass(headerBorders)} print:hidden cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(headerAlignment)}`}
+                            className={`relative px-3 print:px-1 print:hidden cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(headerAlignment)}`}
                             style={{ 
                               width: `${column.width}px`, 
                               height: `${headerHeight}px`,
@@ -673,7 +810,7 @@ export default function ContactSheet() {
                           {columns.filter(col => col.visible).map((column) => (
                             <div
                               key={column.id}
-                              className={`px-3 ${getBorderClass(headerBorders)} flex items-center ${getAlignmentClass(headerAlignment)}`}
+                              className={`px-3 flex items-center ${getAlignmentClass(headerAlignment)}`}
                               style={{ 
                                 width: `${column.width}px`, 
                                 height: `${headerHeight}px`,
@@ -704,7 +841,7 @@ export default function ContactSheet() {
                           {!isPreviewMode && columns.filter(col => col.visible).map((column, cellIndex) => (
                             <div
                               key={column.id}
-                              className={`relative px-3 ${getBorderClass(rowBorders)} print:hidden overflow-hidden text-ellipsis whitespace-nowrap cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(rowAlignment)}`}
+                              className={`relative px-3 print:hidden overflow-hidden text-ellipsis whitespace-nowrap cursor-grab hover:bg-gray-50 flex items-center ${getAlignmentClass(rowAlignment)}`}
                               style={{ 
                                 width: `${column.width}px`, 
                                 height: `${rowHeight}px`,
@@ -728,7 +865,7 @@ export default function ContactSheet() {
                             {columns.filter(col => col.visible).map((column) => (
                               <div
                                 key={column.id}
-                                className={`px-3 ${getBorderClass(rowBorders)} overflow-hidden text-ellipsis flex items-center ${getAlignmentClass(rowAlignment)}`}
+                                className={`px-3 overflow-hidden text-ellipsis flex items-center ${getAlignmentClass(rowAlignment)}`}
                                 style={{ 
                                   width: `${column.width}px`,
                                   height: `${rowHeight}px`,
