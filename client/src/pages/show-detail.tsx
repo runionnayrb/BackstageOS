@@ -113,9 +113,10 @@ export default function ShowDetail() {
 
   // Apply saved section order when project settings load
   useEffect(() => {
+    console.log("Project settings updated:", projectSettings);
     if (projectSettings && (projectSettings as any).sectionsOrder) {
       const savedOrder = (projectSettings as any).sectionsOrder;
-      console.log("Applying saved section order:", savedOrder);
+      console.log("Found saved section order:", savedOrder);
       const reorderedSections = savedOrder.map((id: string) => 
         defaultSections.find(section => section.id === id)
       ).filter(Boolean);
@@ -125,10 +126,11 @@ export default function ShowDetail() {
       const newSections = defaultSections.filter(section => !savedIds.has(section.id));
       
       const finalSections = [...reorderedSections, ...newSections];
-      console.log("Setting sections to:", finalSections.map(s => s.id));
+      console.log("Applying section order:", finalSections.map(s => s.id));
       setSections(finalSections);
     } else {
-      console.log("No saved section order, using default");
+      console.log("No saved section order found, using default sections");
+      console.log("Available project settings keys:", projectSettings ? Object.keys(projectSettings) : "none");
       setSections(defaultSections);
     }
   }, [projectSettings]);

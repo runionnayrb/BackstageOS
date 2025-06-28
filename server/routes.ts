@@ -823,6 +823,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/projects/:id/settings", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const settingsData = req.body;
+      const settings = await storage.updateShowSettings(projectId, settingsData);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating show settings:", error);
+      res.status(500).json({ message: "Failed to update settings" });
+    }
+  });
+
   app.post("/api/projects/:id/share-link", isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
