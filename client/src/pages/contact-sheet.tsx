@@ -3,9 +3,10 @@ import { useLocation, useParams } from "wouter";
 import { 
   ArrowLeft, Settings, GripVertical, Printer, Eye, Edit,
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
-  Palette, Type, Square, Minus, ChevronDown, Grid3X3, Clipboard
+  Palette, Type, Square, Minus, ChevronDown, Grid3X3, Clipboard, GitBranch
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -165,6 +166,12 @@ export default function ContactSheet() {
   
   const [activeTarget, setActiveTarget] = useState<'header' | 'row'>('header');
   
+  // Version control state
+  const [currentVersion, setCurrentVersion] = useState("1.0");
+  const [showPublishVersionConfirm, setShowPublishVersionConfirm] = useState(false);
+  const [selectedVersionType, setSelectedVersionType] = useState<'major' | 'minor'>('minor');
+  const [isPublishing, setIsPublishing] = useState(false);
+
   // Auto-save functionality
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -270,6 +277,95 @@ export default function ContactSheet() {
     queryKey: [`/api/projects/${projectId}/contact-sheet-settings`],
     enabled: !!projectId,
   });
+
+  // Load current version
+  const { data: versionData } = useQuery({
+    queryKey: [`/api/projects/${projectId}/contact-sheet/current-version`],
+    enabled: !!projectId,
+  });
+
+  // Update current version when data loads
+  useEffect(() => {
+    if (versionData && (versionData as any).version) {
+      setCurrentVersion((versionData as any).version);
+    }
+  }, [versionData]);
+
+  // Publish version mutation
+  const publishVersionMutation = useMutation({
+    mutationFn: async ({ versionType, settings }: { versionType: 'major' | 'minor', settings: any }) => {
+      const response = await fetch(`/api/projects/${projectId}/contact-sheet/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ versionType, settings })
+      });
+      if (!response.ok) throw new Error('Failed to publish version');
+      return response.json();
+    },
+    onSuccess: (data: any) => {
+      setCurrentVersion(data.version);
+      setIsPublishing(false);
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contact-sheet/current-version`] });
+      toast({
+        title: "Version published successfully",
+        description: `Contact sheet version ${data.version} has been published.`,
+      });
+    },
+    onError: (error: any) => {
+      setIsPublishing(false);
+      toast({
+        title: "Failed to publish version",
+        description: error.message || "An error occurred while publishing the version.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle version publishing
+  const handlePublish = (versionType: 'major' | 'minor') => {
+    setIsPublishing(true);
+    
+    const currentSettings = {
+      columns,
+      categories,
+      contactOrder,
+      headerHeight,
+      rowHeight,
+      categorySpacing,
+      sectionSpacing,
+      headerAlignment,
+      rowAlignment,
+      headerBold,
+      headerItalic,
+      headerUnderline,
+      headerTextColor,
+      headerBgColor,
+      headerFontSize,
+      headerFontFamily,
+      headerBorders,
+      headerBorderColor,
+      headerBorderWidth,
+      rowBold,
+      rowItalic,
+      rowUnderline,
+      rowTextColor,
+      rowBgColor,
+      rowFontSize,
+      rowFontFamily,
+      rowBorders,
+      rowBorderColor,
+      rowBorderWidth,
+      alternateRows,
+      firstRowColor,
+      secondRowColor,
+      pageMargins,
+      headerFooterMargins,
+      headerText,
+      footerText
+    };
+
+    publishVersionMutation.mutate({ versionType, settings: currentSettings });
+  };
 
   // Auto-save trigger - call whenever any setting changes
   useEffect(() => {
@@ -842,9 +938,44 @@ export default function ContactSheet() {
                 <ArrowLeft className="h-4 w-4" />
                 Back to Contacts
               </Button>
-              <h1 className="text-2xl font-bold">Contact Sheet - {(project as any)?.name}</h1>
+              <div>
+                <h1 className="text-2xl font-bold">Contact Sheet - {(project as any)?.name}</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-sm text-muted-foreground">Version {currentVersion}</span>
+                  <span className="text-xs text-muted-foreground">•</span>
+                  <span className="text-xs text-muted-foreground">
+                    {isSaving ? "Saving..." : lastSaved ? `Saved ${lastSaved.toLocaleTimeString()}` : "All changes are auto-saved"}
+                  </span>
+                </div>
+              </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedVersionType('major');
+                  setShowPublishVersionConfirm(true);
+                }}
+                disabled={isPublishing}
+                className="flex items-center gap-1"
+              >
+                <GitBranch className="h-3 w-3" />
+                Major
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedVersionType('minor');
+                  setShowPublishVersionConfirm(true);
+                }}
+                disabled={isPublishing}
+                className="flex items-center gap-1"
+              >
+                <GitBranch className="h-3 w-3" />
+                Minor
+              </Button>
               <Button
                 variant={isPreviewMode ? "default" : "outline"}
                 size="sm"
@@ -1874,6 +2005,37 @@ export default function ContactSheet() {
           </div>
         </div>
       )}
+
+      {/* Publish Version Confirmation Dialog */}
+      <Dialog open={showPublishVersionConfirm} onOpenChange={setShowPublishVersionConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Publish {selectedVersionType === 'major' ? 'Major' : 'Minor'} Version</DialogTitle>
+            <DialogDescription>
+              {selectedVersionType === 'major' 
+                ? 'This will create a new major version (1, 2, 3...) representing significant changes or milestones in the contact sheet.'
+                : 'This will create a new minor version (.1, .2, .3...) for incremental updates and revisions.'
+              }
+              <br /><br />
+              This action will save the current state as a published version that can be shared with the production team.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button variant="outline" onClick={() => setShowPublishVersionConfirm(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                handlePublish(selectedVersionType);
+                setShowPublishVersionConfirm(false);
+              }}
+              disabled={isPublishing}
+            >
+              {isPublishing ? "Publishing..." : `Publish ${selectedVersionType === 'major' ? 'Major' : 'Minor'} Version`}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

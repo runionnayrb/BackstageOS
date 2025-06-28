@@ -588,6 +588,17 @@ export const contactsRelations = relations(contacts, ({ one }) => ({
   }),
 }));
 
+// Contact sheet versions table for version control
+export const contactSheetVersions = pgTable("contact_sheet_versions", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  version: varchar("version", { length: 20 }).notNull().default("1.0"),
+  versionType: varchar("version_type", { length: 10 }).notNull(), // 'major' or 'minor'
+  settings: jsonb("settings").notNull(), // Complete contact sheet settings snapshot
+  publishedBy: integer("published_by").notNull().references(() => users.id),
+  publishedAt: timestamp("published_at").defaultNow().notNull(),
+});
+
 // Error logs table for automatic error tracking
 export const errorLogs = pgTable("error_logs", {
   id: serial("id").primaryKey(),
@@ -602,6 +613,17 @@ export const errorLogs = pgTable("error_logs", {
   additionalData: jsonb("additional_data"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const contactSheetVersionsRelations = relations(contactSheetVersions, ({ one }) => ({
+  project: one(projects, {
+    fields: [contactSheetVersions.projectId],
+    references: [projects.id],
+  }),
+  publisher: one(users, {
+    fields: [contactSheetVersions.publishedBy],
+    references: [users.id],
+  }),
+}));
 
 export const errorLogsRelations = relations(errorLogs, ({ one }) => ({
   user: one(users, {
@@ -722,6 +744,11 @@ export const insertContactSchema = createInsertSchema(contacts).omit({
   updatedAt: true,
 }).extend({
   castTypes: z.array(z.string()).optional(),
+});
+
+export const insertContactSheetVersionSchema = createInsertSchema(contactSheetVersions).omit({
+  id: true,
+  publishedAt: true,
 });
 
 export const insertErrorLogSchema = createInsertSchema(errorLogs).omit({

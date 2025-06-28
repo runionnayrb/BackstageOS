@@ -12,6 +12,7 @@ import {
   feedback,
   betaSettings,
   contacts,
+  contactSheetVersions,
   errorLogs,
   type User,
   type UpsertUser,
@@ -844,6 +845,75 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return created.contactSheetSettings;
     }
+  }
+
+  // Contact sheet version control operations
+  async publishContactSheetVersion(projectId: number, versionType: 'major' | 'minor', settings: any, publishedBy: number): Promise<any> {
+    // Get current version
+    const versions = await db
+      .select()
+      .from(contactSheetVersions)
+      .where(eq(contactSheetVersions.projectId, projectId))
+      .orderBy(desc(contactSheetVersions.publishedAt))
+      .limit(1);
+
+    let newVersion: string;
+    if (versions.length === 0) {
+      newVersion = "1.0";
+    } else {
+      const currentVersion = versions[0].version;
+      if (versionType === 'major') {
+        const majorNumber = parseInt(currentVersion.split('.')[0]);
+        newVersion = `${majorNumber + 1}.0`;
+      } else {
+        const parts = currentVersion.split('.');
+        const majorNumber = parseInt(parts[0]);
+        const minorNumber = parts[1] ? parseInt(parts[1]) : 0;
+        newVersion = `${majorNumber}.${minorNumber + 1}`;
+      }
+    }
+
+    const [published] = await db
+      .insert(contactSheetVersions)
+      .values({
+        projectId,
+        version: newVersion,
+        versionType,
+        settings,
+        publishedBy
+      })
+      .returning();
+
+    return published;
+  }
+
+  async getContactSheetVersions(projectId: number): Promise<any[]> {
+    return await db
+      .select({
+        id: contactSheetVersions.id,
+        version: contactSheetVersions.version,
+        versionType: contactSheetVersions.versionType,
+        settings: contactSheetVersions.settings,
+        publishedAt: contactSheetVersions.publishedAt,
+        publishedBy: contactSheetVersions.publishedBy,
+        publisherName: users.firstName,
+        publisherLastName: users.lastName
+      })
+      .from(contactSheetVersions)
+      .leftJoin(users, eq(contactSheetVersions.publishedBy, users.id))
+      .where(eq(contactSheetVersions.projectId, projectId))
+      .orderBy(desc(contactSheetVersions.publishedAt));
+  }
+
+  async getCurrentContactSheetVersion(projectId: number): Promise<string> {
+    const versions = await db
+      .select()
+      .from(contactSheetVersions)
+      .where(eq(contactSheetVersions.projectId, projectId))
+      .orderBy(desc(contactSheetVersions.publishedAt))
+      .limit(1);
+
+    return versions.length > 0 ? versions[0].version : "1.0";
   }
 }
 

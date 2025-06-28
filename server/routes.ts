@@ -895,6 +895,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Contact sheet version control routes
+  app.post("/api/projects/:id/contact-sheet/publish", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { versionType, settings } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const version = await storage.publishContactSheetVersion(
+        projectId, 
+        versionType, 
+        settings, 
+        req.user.id
+      );
+      
+      res.json(version);
+    } catch (error) {
+      console.error("Error publishing contact sheet version:", error);
+      res.status(500).json({ message: "Failed to publish version" });
+    }
+  });
+
+  app.get("/api/projects/:id/contact-sheet/versions", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const versions = await storage.getContactSheetVersions(projectId);
+      res.json(versions);
+    } catch (error) {
+      console.error("Error fetching contact sheet versions:", error);
+      res.status(500).json({ message: "Failed to fetch versions" });
+    }
+  });
+
+  app.get("/api/projects/:id/contact-sheet/current-version", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const currentVersion = await storage.getCurrentContactSheetVersion(projectId);
+      res.json({ version: currentVersion });
+    } catch (error) {
+      console.error("Error fetching current contact sheet version:", error);
+      res.status(500).json({ message: "Failed to fetch current version" });
+    }
+  });
+
   // Report template routes
   app.get("/api/projects/:id/templates", isAuthenticated, async (req: any, res) => {
     try {
