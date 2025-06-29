@@ -112,8 +112,7 @@ export default function AvailabilityComparison({
     `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
   );
   
-  // Debug log to check contacts
-  console.log('All contacts:', contacts.map(c => `${c.firstName} ${c.lastName}`));
+
 
   // Time formatting
   const formatTime = (minutes: number) => {
