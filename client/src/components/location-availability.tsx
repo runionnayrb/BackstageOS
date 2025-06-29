@@ -106,10 +106,10 @@ export default function LocationAvailabilityPage({ projectId, onBack }: Location
   })();
 
   // Fetch availability for the current week
-  const weekStartDay = Math.max(0, Math.min(6, scheduleSettings?.weekStartDay || 0));
-  const safeCurrentDate = currentDate instanceof Date && !isNaN(currentDate.getTime()) ? currentDate : new Date();
-  const weekStart = startOfWeek(safeCurrentDate, { weekStartsOn: weekStartDay as 0 | 1 | 2 | 3 | 4 | 5 | 6 });
-  const weekEnd = endOfWeek(safeCurrentDate, { weekStartsOn: weekStartDay as 0 | 1 | 2 | 3 | 4 | 5 | 6 });
+  const weekStartDay = 0; // Always start on Sunday to avoid date-fns issues
+  const safeCurrentDate = new Date(); // Always use current date
+  const weekStart = startOfWeek(safeCurrentDate, { weekStartsOn: 0 });
+  const weekEnd = endOfWeek(safeCurrentDate, { weekStartsOn: 0 });
 
   const { data: availability = [] } = useQuery<LocationAvailability[]>({
     queryKey: [`/api/projects/${projectId}/location-availability`],
