@@ -91,9 +91,19 @@ export default function AvailabilityComparison({
     return hours * 60 + minutes;
   };
 
-  // Convert minutes to position from 8 AM
+  // Convert minutes to percentage position for full width
   const minutesToPosition = (minutes: number) => {
     return Math.max(0, minutes - START_MINUTES);
+  };
+
+  // Convert percentage position to minutes
+  const percentToMinutes = (percent: number) => {
+    return START_MINUTES + (percent / 100) * TOTAL_MINUTES;
+  };
+
+  // Convert minutes to percentage for full width positioning
+  const minutesToPercent = (minutes: number) => {
+    return ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
   };
 
   // Generate time labels for the current day
@@ -601,15 +611,11 @@ export default function AvailabilityComparison({
                   >
                     {/* Time Header */}
                     <div className="sticky top-0 bg-white border-b z-10">
-                      <div className="flex" style={{ minWidth: `${TOTAL_MINUTES}px` }}>
+                      <div className="flex w-full">
                         {timeLabels.map((timeLabel) => (
                           <div
                             key={timeLabel.minutes}
-                            className="border-r text-center py-2 text-xs text-gray-500"
-                            style={{
-                              width: `${timeIncrement}px`,
-                              minWidth: `${timeIncrement}px`,
-                            }}
+                            className="border-r text-center py-2 text-xs text-gray-500 flex-1"
                           >
                             {timeIncrement >= 60 || timeLabel.minutes % 60 === 0 ? timeLabel.label : ''}
                           </div>
@@ -625,28 +631,23 @@ export default function AvailabilityComparison({
                         return (
                           <div 
                             key={contact.id} 
-                            className="h-16 border-b relative bg-white cursor-crosshair" 
-                            style={{ minWidth: `${TOTAL_MINUTES}px` }}
+                            className="h-16 border-b relative bg-white cursor-crosshair w-full" 
                             onMouseDown={(e) => handleMouseDown(e, contact.id)}
                           >
                             {/* Time Grid Background */}
-                            {timeLabels.map((timeLabel) => (
-                              <div
-                                key={timeLabel.minutes}
-                                className="absolute border-r border-gray-100 h-full"
-                                style={{
-                                  left: `${timeLabel.position}px`,
-                                  width: '1px',
-                                }}
-                              />
-                            ))}
+                            <div className="flex w-full h-full absolute">
+                              {timeLabels.map((timeLabel) => (
+                                <div
+                                  key={timeLabel.minutes}
+                                  className="border-r border-gray-100 h-full flex-1"
+                                />
+                              ))}
+                            </div>
 
                             {/* Availability Blocks */}
                             {contactAvailability.map((item: ProjectAvailability) => {
                               const startMinutes = timeToMinutes(item.startTime);
                               const endMinutes = timeToMinutes(item.endTime);
-                              const startPos = minutesToPosition(startMinutes);
-                              const width = endMinutes - startMinutes;
 
                               // Check if this item is being dragged or resized
                               const isBeingDragged = draggedItem?.id === item.id;
@@ -655,8 +656,10 @@ export default function AvailabilityComparison({
 
                               const currentStartMinutes = timeToMinutes(currentItem.startTime);
                               const currentEndMinutes = timeToMinutes(currentItem.endTime);
-                              const currentStartPos = minutesToPosition(currentStartMinutes);
-                              const currentWidth = currentEndMinutes - currentStartMinutes;
+                              
+                              // Calculate percentage-based positioning for full width
+                              const startPercent = ((currentStartMinutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                              const widthPercent = ((currentEndMinutes - currentStartMinutes) / TOTAL_MINUTES) * 100;
 
                               return (
                                 <div
@@ -667,8 +670,8 @@ export default function AvailabilityComparison({
                                       : 'bg-blue-500 hover:bg-blue-600'
                                   } ${(isBeingDragged || isBeingResized) ? 'opacity-80 z-20' : 'z-10'}`}
                                   style={{
-                                    left: `${currentStartPos}px`,
-                                    width: `${currentWidth}px`,
+                                    left: `${startPercent}%`,
+                                    width: `${widthPercent}%`,
                                     minWidth: '20px',
                                   }}
                                   onMouseDown={(e) => handleBlockMouseDown(e, item, 'move')}
