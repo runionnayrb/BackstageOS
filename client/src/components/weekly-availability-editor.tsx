@@ -390,18 +390,20 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const mouseX = e.clientX - calendarRect.left;
       const mouseY = e.clientY - calendarRect.top;
       
-      // Calculate actual position within the 1440px calendar content
-      const contentY = mouseY + scrollTop;
-      
       // Calculate new day (accounting for time column + 7 day columns)
       const dayColumnWidth = calendarRect.width / 8;
       const timeColumnWidth = dayColumnWidth;
       const relativeX = mouseX - timeColumnWidth;
       const newDayIndex = Math.max(0, Math.min(6, Math.floor(relativeX / dayColumnWidth)));
       
-      // Calculate new time position - allow free movement, maintain duration
+      // Calculate new time position using drag offset, not absolute coordinates
       const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
-      const rawMinutes = Math.round(contentY);
+      const originalStartMinutes = timeToMinutes(item.startTime);
+      
+      // Calculate how far we've moved from the original drag start point
+      const dragDeltaY = mouseY - currentDragState.offset.y;
+      const newTimePixels = minutesToPosition(originalStartMinutes) + dragDeltaY;
+      const rawMinutes = Math.round(newTimePixels);
       
       // Allow free movement, just ensure it stays within bounds
       const newStartMinutes = Math.max(0, Math.min(1439 - duration, rawMinutes));
