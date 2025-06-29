@@ -580,61 +580,72 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     
     console.log(`Starting resize on ${edge} edge for item:`, item.id);
     
-    setIsResizing({ id: item.id, edge });
-    
     const startMinutes = timeToMinutes(item.startTime);
     const endMinutes = timeToMinutes(item.endTime);
+    
+    // Store resize state in local variables instead of React state
+    let currentPreviewStart = startMinutes;
+    let currentPreviewEnd = endMinutes;
+    
+    setIsResizing({ id: item.id, edge });
     
     const handleMouseMove = (e: MouseEvent) => {
       const scrollTop = scrollContainer.scrollTop;
       const mouseY = e.clientY - calendarRect.top;
-      const newTimePixels = mouseY + scrollTop;
-      const newMinutes = Math.round(newTimePixels / timeIncrement) * timeIncrement; // Snap to increment
+      const absoluteY = mouseY + scrollTop;
       
-      let newStartMinutes = startMinutes;
-      let newEndMinutes = endMinutes;
+      // Convert pixels to minutes (1 pixel = 1 minute)
+      const rawMinutes = Math.round(absoluteY);
+      const newMinutes = Math.round(rawMinutes / timeIncrement) * timeIncrement; // Snap to increment
       
       if (edge === 'start') {
         // Resizing from top - adjust start time
-        newStartMinutes = Math.max(0, Math.min(endMinutes - timeIncrement, newMinutes));
+        currentPreviewStart = Math.max(0, Math.min(endMinutes - timeIncrement, newMinutes));
+        currentPreviewEnd = endMinutes;
       } else {
         // Resizing from bottom - adjust end time, cap at 23:59 (1439 minutes)
-        newEndMinutes = Math.max(startMinutes + timeIncrement, Math.min(1439, newMinutes));
+        currentPreviewStart = startMinutes;
+        currentPreviewEnd = Math.max(startMinutes + timeIncrement, Math.min(1439, newMinutes));
       }
       
       console.log(`Resizing ${edge}:`, {
         mouseY,
+        absoluteY,
+        rawMinutes,
         newMinutes,
-        newStartMinutes,
-        newEndMinutes,
-        duration: newEndMinutes - newStartMinutes
+        currentPreviewStart,
+        currentPreviewEnd,
+        duration: currentPreviewEnd - currentPreviewStart
       });
       
       // Update the visual state immediately
       setIsResizing({ 
         id: item.id, 
         edge,
-        previewStartMinutes: newStartMinutes,
-        previewEndMinutes: newEndMinutes
+        previewStartMinutes: currentPreviewStart,
+        previewEndMinutes: currentPreviewEnd
       } as any);
     };
     
     const handleMouseUp = () => {
-      if (isResizing && (isResizing as any).previewStartMinutes !== undefined) {
-        const { previewStartMinutes, previewEndMinutes } = isResizing as any;
-        
-        console.log('Finalizing resize:', {
-          id: item.id,
-          oldTime: `${item.startTime} - ${item.endTime}`,
-          newTime: `${minutesToTime(previewStartMinutes)} - ${minutesToTime(previewEndMinutes)}`
-        });
-        
+      // Only save if there's actually a change
+      const hasChanged = currentPreviewStart !== startMinutes || currentPreviewEnd !== endMinutes;
+      
+      console.log('Finalizing resize:', {
+        id: item.id,
+        oldTime: `${item.startTime} - ${item.endTime}`,
+        newTime: `${minutesToTime(currentPreviewStart)} - ${minutesToTime(currentPreviewEnd)}`,
+        hasChanged,
+        edge
+      });
+      
+      if (hasChanged) {
         updateMutation.mutate({
           id: item.id,
           data: {
             date: item.date,
-            startTime: minutesToTime(previewStartMinutes),
-            endTime: minutesToTime(previewEndMinutes),
+            startTime: minutesToTime(currentPreviewStart),
+            endTime: minutesToTime(currentPreviewEnd),
             availabilityType: item.availabilityType,
             notes: item.notes || ""
           }
