@@ -105,7 +105,7 @@ export default function ShowSettings() {
       return await apiRequest("PATCH", `/api/projects/${id}/settings`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "settings"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/settings`] });
       toast({
         title: "Settings Updated",
         description: "Your settings have been saved successfully.",

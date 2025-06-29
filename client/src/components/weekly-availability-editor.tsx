@@ -409,19 +409,17 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === item.date);
     const startMinutes = timeToMinutes(item.startTime);
     
-    // Calculate offset from mouse to top-left of block (accounting for scroll)
-    const dayColumnWidth = calendarRect.width / 8; // Time column + 7 day columns
-    const timeColumnWidth = dayColumnWidth;
-    const blockLeft = timeColumnWidth + (dayIndex * dayColumnWidth);
-    const blockTop = minutesToPosition(startMinutes) - scrollContainer.scrollTop;
-    const offsetX = e.clientX - calendarRect.left - blockLeft;
-    const offsetY = e.clientY - calendarRect.top - blockTop;
+    // Calculate drag offset in time units (minutes)
+    const scrollTop = scrollContainer.scrollTop;
+    const mouseY = e.clientY - calendarRect.top;
+    const absoluteMouseTime = mouseY + scrollTop; // Mouse position in calendar time coordinates
+    const blockStartTime = startMinutes; // Block start position in minutes
+    const offsetY = absoluteMouseTime - blockStartTime; // Offset from block start in time units
     
     console.log('Starting drag:', { 
       item: item.id, 
       dayIndex, 
       startMinutes,
-      blockTop,
       offsetY,
       clickPosition: e.clientY - calendarRect.top
     });
@@ -430,7 +428,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       item,
       originalPosition: { dayIndex, startMinutes },
       currentPosition: { dayIndex, startMinutes },
-      offset: { x: offsetX, y: offsetY },
+      offset: { x: 0, y: offsetY },
       isDragging: true
     };
     
@@ -456,17 +454,19 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
       const originalStartMinutes = timeToMinutes(item.startTime);
       
-      // Calculate new position maintaining the click offset within the block
-      const newTimePixels = mouseY + scrollTop - currentDragState.offset.y;
-      const rawMinutes = Math.round(newTimePixels);
+      // Calculate new time position correctly
+      const absoluteMouseTime = mouseY + scrollTop; // Mouse position in calendar pixels
+      const targetTime = absoluteMouseTime - currentDragState.offset.y; // Subtract the click offset
+      const rawMinutes = Math.round(targetTime / timeIncrement) * timeIncrement; // Snap to time increment
       
-      // Allow free movement, just ensure it stays within bounds
+      // Ensure the block stays within valid time bounds
       const newStartMinutes = Math.max(0, Math.min(1439 - duration, rawMinutes));
       
       console.log('Drag move:', {
         mouseY,
         scrollTop,
-        newTimePixels,
+        absoluteMouseTime,
+        targetTime,
         rawMinutes,
         duration,
         maxStart: 1439 - duration,
