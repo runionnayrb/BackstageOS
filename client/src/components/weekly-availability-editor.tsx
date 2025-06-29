@@ -384,9 +384,9 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const calendarRect = calendarRef.current.getBoundingClientRect();
       const scrollTop = scrollContainerRef.current.scrollTop;
       
-      // Calculate mouse position relative to calendar
+      // Calculate mouse position relative to calendar content
       const x = e.clientX - calendarRect.left;
-      const y = e.clientY - calendarRect.top + scrollTop; // Add scroll position for correct vertical calculation
+      const y = (e.clientY - calendarRect.top) + scrollTop; // Mouse position within the 1440px calendar
       
       // Calculate new day (accounting for time column + 7 day columns)
       const timeColumnWidth = calendarRect.width / 8; // Time column takes 1/8 of width
@@ -395,9 +395,9 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const relativeX = x - dayStartX; // X position relative to day columns only
       const newDayIndex = Math.max(0, Math.min(6, Math.floor(relativeX / dayColumnWidth)));
       
-      // Calculate new time position (1 pixel = 1 minute)
+      // Calculate new time position using the existing conversion function
       const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
-      const newStartMinutes = Math.max(0, Math.min(1440 - duration, Math.round(y)));
+      const newStartMinutes = Math.max(0, Math.min(1440 - duration, positionToMinutes(y)));
       
       console.log('Drag move:', {
         mouseY: e.clientY - calendarRect.top,
