@@ -590,7 +590,7 @@ export default function AvailabilityComparison({
                 {/* Contact Names Column */}
                 <div className="w-48 border-r bg-gray-50">
                   <div className="h-12 border-b bg-gray-100 flex items-center px-3">
-                    <span className="font-medium text-sm">Team Members</span>
+                    <span className="font-medium text-sm">Name</span>
                   </div>
                   {contacts.map((contact: any) => (
                     <div key={contact.id} className="h-16 border-b flex items-center px-3">
