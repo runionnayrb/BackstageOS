@@ -14,6 +14,8 @@ import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings } from 
 interface WeeklyScheduleViewProps {
   projectId: number;
   onDateClick: (date: Date) => void;
+  currentDate?: Date;
+  setCurrentDate?: (date: Date) => void;
 }
 
 interface ScheduleEvent {

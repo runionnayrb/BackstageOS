@@ -2,9 +2,10 @@ import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, Eye } from "lucide-react";
+import { ArrowLeft, Calendar, CalendarDays, Clock, ChevronLeft, ChevronRight } from "lucide-react";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
+import MonthlyScheduleView from "@/components/monthly-schedule-view";
 
 interface ScheduleParams {
   id: string;
@@ -14,8 +15,8 @@ export default function Schedule() {
   const [, setLocation] = useLocation();
   const params = useParams<ScheduleParams>();
   const projectId = params.id;
-  const [viewMode, setViewMode] = useState<'weekly' | 'daily'>('weekly');
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [viewMode, setViewMode] = useState<'monthly' | 'weekly' | 'daily'>('weekly');
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -35,8 +36,68 @@ export default function Schedule() {
   }
 
   const handleDateClick = (date: Date) => {
-    setSelectedDate(date);
+    setCurrentDate(date);
     setViewMode('daily');
+  };
+
+  // Navigation functions
+  const goToPrevious = () => {
+    const newDate = new Date(currentDate);
+    if (viewMode === 'monthly') {
+      newDate.setMonth(newDate.getMonth() - 1);
+    } else if (viewMode === 'weekly') {
+      newDate.setDate(newDate.getDate() - 7);
+    } else { // daily
+      newDate.setDate(newDate.getDate() - 1);
+    }
+    setCurrentDate(newDate);
+  };
+
+  const goToNext = () => {
+    const newDate = new Date(currentDate);
+    if (viewMode === 'monthly') {
+      newDate.setMonth(newDate.getMonth() + 1);
+    } else if (viewMode === 'weekly') {
+      newDate.setDate(newDate.getDate() + 7);
+    } else { // daily
+      newDate.setDate(newDate.getDate() + 1);
+    }
+    setCurrentDate(newDate);
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  // Format header text based on current view
+  const getHeaderText = () => {
+    if (viewMode === 'monthly') {
+      return currentDate.toLocaleDateString('en-US', { 
+        month: 'long', 
+        year: 'numeric' 
+      });
+    } else if (viewMode === 'weekly') {
+      // Calculate week range
+      const startOfWeek = new Date(currentDate);
+      const day = startOfWeek.getDay();
+      startOfWeek.setDate(startOfWeek.getDate() - day);
+      
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+      
+      if (startOfWeek.getMonth() === endOfWeek.getMonth()) {
+        return `${startOfWeek.toLocaleDateString('en-US', { month: 'long' })} ${startOfWeek.getDate()}-${endOfWeek.getDate()}, ${startOfWeek.getFullYear()}`;
+      } else {
+        return `${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${endOfWeek.getFullYear()}`;
+      }
+    } else { // daily
+      return currentDate.toLocaleDateString('en-US', { 
+        weekday: 'long',
+        month: 'long', 
+        day: 'numeric',
+        year: 'numeric' 
+      });
+    }
   };
 
   return (
@@ -64,13 +125,22 @@ export default function Schedule() {
           
           <div className="flex items-center gap-2">
             <Button
+              variant={viewMode === 'monthly' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('monthly')}
+              className="flex items-center gap-2"
+            >
+              <Calendar className="h-4 w-4" />
+              Month
+            </Button>
+            <Button
               variant={viewMode === 'weekly' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setViewMode('weekly')}
               className="flex items-center gap-2"
             >
-              <Calendar className="h-4 w-4" />
-              Weekly
+              <CalendarDays className="h-4 w-4" />
+              Week
             </Button>
             <Button
               variant={viewMode === 'daily' ? 'default' : 'outline'}
@@ -78,22 +148,53 @@ export default function Schedule() {
               onClick={() => setViewMode('daily')}
               className="flex items-center gap-2"
             >
-              <Eye className="h-4 w-4" />
-              Daily
+              <Clock className="h-4 w-4" />
+              Day
             </Button>
           </div>
         </div>
 
-        {viewMode === 'weekly' ? (
+        {/* Dynamic Navigation Header */}
+        <div className="mb-6 bg-white rounded-lg shadow-sm p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm" onClick={goToPrevious}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <h2 className="text-lg font-semibold min-w-80 text-center">
+                {getHeaderText()}
+              </h2>
+              <Button variant="outline" size="sm" onClick={goToNext}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={goToToday}>
+                Today
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {viewMode === 'monthly' ? (
+          <MonthlyScheduleView 
+            projectId={parseInt(projectId)} 
+            onDateClick={handleDateClick}
+            currentDate={currentDate}
+            setCurrentDate={setCurrentDate}
+          />
+        ) : viewMode === 'weekly' ? (
           <WeeklyScheduleView 
             projectId={parseInt(projectId)} 
             onDateClick={handleDateClick}
+            currentDate={currentDate}
+            setCurrentDate={setCurrentDate}
           />
         ) : (
           <DailyScheduleView 
             projectId={parseInt(projectId)} 
-            selectedDate={selectedDate}
+            selectedDate={currentDate}
             onBackToWeekly={() => setViewMode('weekly')}
+            currentDate={currentDate}
+            setCurrentDate={setCurrentDate}
           />
         )}
       </div>

@@ -15,6 +15,8 @@ interface DailyScheduleViewProps {
   projectId: number;
   selectedDate: Date;
   onBackToWeekly: () => void;
+  currentDate?: Date;
+  setCurrentDate?: (date: Date) => void;
 }
 
 interface ScheduleEvent {
