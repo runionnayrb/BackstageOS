@@ -417,6 +417,20 @@ export const eventLocations = pgTable("event_locations", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Location availability system
+export const locationAvailability = pgTable("location_availability", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  locationId: integer("location_id").notNull().references(() => eventLocations.id, { onDelete: "cascade" }),
+  date: varchar("date").notNull(), // YYYY-MM-DD format
+  startTime: varchar("start_time").notNull(), // HH:MM format
+  endTime: varchar("end_time").notNull(), // HH:MM format
+  type: varchar("type").notNull(), // 'unavailable' | 'preferred'
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
@@ -685,6 +699,29 @@ export const scheduleEventParticipantsRelations = relations(scheduleEventPartici
   }),
 }));
 
+export const eventLocationsRelations = relations(eventLocations, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [eventLocations.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [eventLocations.createdBy],
+    references: [users.id],
+  }),
+  availability: many(locationAvailability),
+}));
+
+export const locationAvailabilityRelations = relations(locationAvailability, ({ one }) => ({
+  location: one(eventLocations, {
+    fields: [locationAvailability.locationId],
+    references: [eventLocations.id],
+  }),
+  project: one(projects, {
+    fields: [locationAvailability.projectId],
+    references: [projects.id],
+  }),
+}));
+
 // Contact sheet versions table for version control
 export const contactSheetVersions = pgTable("contact_sheet_versions", {
   id: serial("id").primaryKey(),
@@ -730,16 +767,7 @@ export const errorLogsRelations = relations(errorLogs, ({ one }) => ({
   }),
 }));
 
-export const eventLocationsRelations = relations(eventLocations, ({ one }) => ({
-  project: one(projects, {
-    fields: [eventLocations.projectId],
-    references: [projects.id],
-  }),
-  creator: one(users, {
-    fields: [eventLocations.createdBy],
-    references: [users.id],
-  }),
-}));
+
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
@@ -885,8 +913,6 @@ export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
 export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;
 export type ScheduleEventParticipant = typeof scheduleEventParticipants.$inferSelect;
 export type InsertScheduleEventParticipant = z.infer<typeof insertScheduleEventParticipantSchema>;
-export type EventLocation = typeof eventLocations.$inferSelect;
-export type InsertEventLocation = z.infer<typeof insertEventLocationSchema>;
 
 export const insertContactSheetVersionSchema = createInsertSchema(contactSheetVersions).omit({
   id: true,
@@ -919,6 +945,12 @@ export const waitlist = pgTable("waitlist", {
 export const insertWaitlistSchema = createInsertSchema(waitlist).omit({
   id: true,
   position: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertLocationAvailabilitySchema = createInsertSchema(locationAvailability).omit({
+  id: true,
   createdAt: true,
   updatedAt: true,
 });
@@ -966,3 +998,7 @@ export type ErrorLog = typeof errorLogs.$inferSelect;
 export type InsertErrorLog = z.infer<typeof insertErrorLogSchema>;
 export type Waitlist = typeof waitlist.$inferSelect;
 export type InsertWaitlist = z.infer<typeof insertWaitlistSchema>;
+export type EventLocation = typeof eventLocations.$inferSelect;
+export type InsertEventLocation = z.infer<typeof insertEventLocationSchema>;
+export type LocationAvailability = typeof locationAvailability.$inferSelect;
+export type InsertLocationAvailability = z.infer<typeof insertLocationAvailabilitySchema>;

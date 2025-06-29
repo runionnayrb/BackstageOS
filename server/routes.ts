@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertErrorLogSchema, insertWaitlistSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Authentication middleware
@@ -1259,6 +1259,146 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching project availability:", error);
       res.status(500).json({ message: "Failed to fetch availability" });
+    }
+  });
+
+  // Location availability routes
+  app.get("/api/projects/:id/location-availability", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const availability = await storage.getLocationAvailabilityByProjectId(projectId);
+      res.json(availability);
+    } catch (error) {
+      console.error("Error fetching location availability:", error);
+      res.status(500).json({ message: "Failed to fetch location availability" });
+    }
+  });
+
+  app.post("/api/projects/:id/location-availability", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const availabilityData = insertLocationAvailabilitySchema.parse({
+        ...req.body,
+        projectId
+      });
+
+      const availability = await storage.createLocationAvailability(availabilityData);
+      res.json(availability);
+    } catch (error) {
+      console.error("Error creating location availability:", error);
+      res.status(500).json({ message: "Failed to create location availability" });
+    }
+  });
+
+  app.put("/api/projects/:id/location-availability/:availabilityId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const availabilityId = parseInt(req.params.availabilityId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const availabilityData = insertLocationAvailabilitySchema.partial().parse(req.body);
+      const availability = await storage.updateLocationAvailability(availabilityId, availabilityData);
+      res.json(availability);
+    } catch (error) {
+      console.error("Error updating location availability:", error);
+      res.status(500).json({ message: "Failed to update location availability" });
+    }
+  });
+
+  app.delete("/api/projects/:id/location-availability/:availabilityId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const availabilityId = parseInt(req.params.availabilityId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      await storage.deleteLocationAvailability(availabilityId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting location availability:", error);
+      res.status(500).json({ message: "Failed to delete location availability" });
+    }
+  });
+
+  app.delete("/api/projects/:id/location-availability/bulk", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { ids } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      await storage.bulkDeleteLocationAvailability(ids);
+      res.json({ success: true, deletedCount: ids.length });
+    } catch (error) {
+      console.error("Error bulk deleting location availability:", error);
+      res.status(500).json({ message: "Failed to delete location availability" });
     }
   });
 

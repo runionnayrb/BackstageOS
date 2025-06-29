@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft, Users, MapPin } from "lucide-react";
 import AvailabilityComparison from "@/components/availability-comparison";
+import LocationAvailabilityPage from "@/components/location-availability";
 
 interface CalendarParams {
   id: string;
@@ -12,6 +13,7 @@ interface CalendarParams {
 export default function Calendar() {
   const [, setLocation] = useLocation();
   const [showAvailabilityComparison, setShowAvailabilityComparison] = useState(false);
+  const [showLocationAvailability, setShowLocationAvailability] = useState(false);
   const params = useParams<CalendarParams>();
   const projectId = params.id;
 
@@ -59,6 +61,16 @@ export default function Calendar() {
     );
   }
 
+  // Show location availability as full page
+  if (showLocationAvailability) {
+    return (
+      <LocationAvailabilityPage
+        projectId={parseInt(projectId)}
+        onBack={() => setShowLocationAvailability(false)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
@@ -82,13 +94,22 @@ export default function Calendar() {
             </p>
           </div>
           
-          <Button
-            onClick={() => setShowAvailabilityComparison(true)}
-            className="flex items-center gap-2"
-          >
-            <Users className="h-4 w-4" />
-            Availability
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowAvailabilityComparison(true)}
+              className="flex items-center gap-2"
+            >
+              <Users className="h-4 w-4" />
+              Team Availability
+            </Button>
+            <Button
+              onClick={() => setShowLocationAvailability(true)}
+              className="flex items-center gap-2"
+            >
+              <MapPin className="h-4 w-4" />
+              Space Availability
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-1">

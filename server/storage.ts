@@ -16,6 +16,7 @@ import {
   scheduleEvents,
   scheduleEventParticipants,
   eventLocations,
+  locationAvailability,
   contactSheetVersions,
   errorLogs,
   type User,
@@ -52,6 +53,8 @@ import {
   type InsertScheduleEventParticipant,
   type EventLocation,
   type InsertEventLocation,
+  type LocationAvailability,
+  type InsertLocationAvailability,
   type ErrorLog,
   type InsertErrorLog,
   waitlist,
@@ -174,6 +177,14 @@ export interface IStorage {
   publishCompanyListVersion(projectId: number, versionType: 'major' | 'minor', settings: any, publishedBy: number): Promise<any>;
   getCompanyListVersions(projectId: number): Promise<any[]>;
   getCurrentCompanyListVersion(projectId: number): Promise<string>;
+
+  // Location availability operations
+  getLocationAvailabilityByProjectId(projectId: number): Promise<LocationAvailability[]>;
+  getLocationAvailabilityByLocationId(locationId: number): Promise<LocationAvailability[]>;
+  createLocationAvailability(availability: InsertLocationAvailability): Promise<LocationAvailability>;
+  updateLocationAvailability(id: number, availability: Partial<InsertLocationAvailability>): Promise<LocationAvailability>;
+  deleteLocationAvailability(id: number): Promise<void>;
+  bulkDeleteLocationAvailability(ids: number[]): Promise<void>;
 
   // Waitlist operations
   getWaitlistByEmail(email: string): Promise<Waitlist | undefined>;
@@ -1385,6 +1396,64 @@ export class DatabaseStorage implements IStorage {
       converted: entries.filter(e => e.status === 'converted').length,
       declined: entries.filter(e => e.status === 'declined').length,
     };
+  }
+
+  // Location availability operations
+  async getLocationAvailabilityByProjectId(projectId: number): Promise<LocationAvailability[]> {
+    return await db
+      .select()
+      .from(locationAvailability)
+      .where(eq(locationAvailability.projectId, projectId))
+      .orderBy(locationAvailability.date, locationAvailability.startTime);
+  }
+
+  async getLocationAvailabilityByLocationId(locationId: number): Promise<LocationAvailability[]> {
+    return await db
+      .select()
+      .from(locationAvailability)
+      .where(eq(locationAvailability.locationId, locationId))
+      .orderBy(locationAvailability.date, locationAvailability.startTime);
+  }
+
+  async createLocationAvailability(availabilityData: InsertLocationAvailability): Promise<LocationAvailability> {
+    const [availability] = await db
+      .insert(locationAvailability)
+      .values({
+        ...availabilityData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return availability;
+  }
+
+  async updateLocationAvailability(id: number, availabilityData: Partial<InsertLocationAvailability>): Promise<LocationAvailability> {
+    const [availability] = await db
+      .update(locationAvailability)
+      .set({
+        ...availabilityData,
+        updatedAt: new Date(),
+      })
+      .where(eq(locationAvailability.id, id))
+      .returning();
+    return availability;
+  }
+
+  async deleteLocationAvailability(id: number): Promise<void> {
+    await db
+      .delete(locationAvailability)
+      .where(eq(locationAvailability.id, id));
+  }
+
+  async bulkDeleteLocationAvailability(ids: number[]): Promise<void> {
+    if (ids.length === 0) return;
+    
+    // Use a loop for bulk deletion since drizzle doesn't have a direct bulk delete with array
+    for (const id of ids) {
+      await db
+        .delete(locationAvailability)
+        .where(eq(locationAvailability.id, id));
+    }
   }
 }
 
