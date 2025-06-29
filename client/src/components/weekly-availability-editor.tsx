@@ -583,6 +583,11 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     const startMinutes = timeToMinutes(item.startTime);
     const endMinutes = timeToMinutes(item.endTime);
     
+    // Calculate initial mouse position for relative dragging
+    const initialMouseY = e.clientY - calendarRect.top;
+    const initialScrollTop = scrollContainer.scrollTop;
+    const initialAbsoluteY = initialMouseY + initialScrollTop;
+    
     // Store resize state in local variables instead of React state
     let currentPreviewStart = startMinutes;
     let currentPreviewEnd = endMinutes;
@@ -590,31 +595,34 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     setIsResizing({ id: item.id, edge });
     
     const handleMouseMove = (e: MouseEvent) => {
-      const scrollTop = scrollContainer.scrollTop;
-      const mouseY = e.clientY - calendarRect.top;
-      const absoluteY = mouseY + scrollTop;
+      const currentMouseY = e.clientY - calendarRect.top;
+      const currentScrollTop = scrollContainer.scrollTop;
+      const currentAbsoluteY = currentMouseY + currentScrollTop;
       
-      // Convert pixels to minutes (1 pixel = 1 minute)
-      const rawMinutes = Math.round(absoluteY);
-      const newMinutes = Math.round(rawMinutes / timeIncrement) * timeIncrement; // Snap to increment
+      // Calculate how much the mouse has moved from the initial position
+      const deltaY = currentAbsoluteY - initialAbsoluteY;
+      const deltaMinutes = Math.round(deltaY / timeIncrement) * timeIncrement; // Snap to increment
       
       if (edge === 'start') {
-        // Resizing from top - adjust start time
-        currentPreviewStart = Math.max(0, Math.min(endMinutes - timeIncrement, newMinutes));
+        // Resizing from top - adjust start time by the delta
+        const newStartMinutes = startMinutes + deltaMinutes;
+        currentPreviewStart = Math.max(0, Math.min(endMinutes - timeIncrement, newStartMinutes));
         currentPreviewEnd = endMinutes;
       } else {
-        // Resizing from bottom - adjust end time, cap at 23:59 (1439 minutes)
+        // Resizing from bottom - adjust end time by the delta, cap at 23:59 (1439 minutes)
+        const newEndMinutes = endMinutes + deltaMinutes;
         currentPreviewStart = startMinutes;
-        currentPreviewEnd = Math.max(startMinutes + timeIncrement, Math.min(1439, newMinutes));
+        currentPreviewEnd = Math.max(startMinutes + timeIncrement, Math.min(1439, newEndMinutes));
       }
       
       console.log(`Resizing ${edge}:`, {
-        mouseY,
-        absoluteY,
-        rawMinutes,
-        newMinutes,
-        currentPreviewStart,
-        currentPreviewEnd,
+        mouseY: currentMouseY,
+        deltaY,
+        deltaMinutes,
+        originalStart: minutesToTime(startMinutes),
+        originalEnd: minutesToTime(endMinutes),
+        newStart: minutesToTime(currentPreviewStart),
+        newEnd: minutesToTime(currentPreviewEnd),
         duration: currentPreviewEnd - currentPreviewStart
       });
       
