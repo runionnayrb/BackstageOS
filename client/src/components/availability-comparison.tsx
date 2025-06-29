@@ -97,24 +97,23 @@ export default function AvailabilityComparison({
   const scheduleSettings = (showSettings as any)?.scheduleSettings || {};
   const timezone = scheduleSettings.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+  // Fetch all project contacts
+  const { data: allContacts = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/contacts`],
+  });
+
   // Fetch all project availability
   const { data: allAvailability = [], isLoading } = useQuery<ProjectAvailability[]>({
     queryKey: [`/api/projects/${projectId}/availability`],
   });
 
-  // Get unique contacts
-  const contacts = Array.from(
-    new Map(
-      (allAvailability as ProjectAvailability[]).map((item: ProjectAvailability) => [
-        item.contactId,
-        {
-          id: item.contactId,
-          firstName: item.contactFirstName,
-          lastName: item.contactLastName,
-        }
-      ])
-    ).values()
-  ).sort((a: any, b: any) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`));
+  // Use all contacts, not just those with availability
+  const contacts = (allContacts as any[]).sort((a: any, b: any) => 
+    `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
+  );
+  
+  // Debug log to check contacts
+  console.log('All contacts:', contacts.map(c => `${c.firstName} ${c.lastName}`));
 
   // Time formatting
   const formatTime = (minutes: number) => {
