@@ -437,6 +437,11 @@ export default function AvailabilityComparison({
     const startX = e.clientX;
     const startY = e.clientY;
     
+    // Capture the timeline container reference before setting up event listeners
+    const timelineContainer = e.currentTarget.closest('.relative') as HTMLElement;
+    const rect = timelineContainer?.getBoundingClientRect();
+    if (!rect) return;
+    
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const timeDiff = Date.now() - startTime;
       const distance = Math.sqrt(
@@ -448,12 +453,8 @@ export default function AvailabilityComparison({
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUpTemp);
         
-        const timelineContainer = e.currentTarget.closest('.relative') as HTMLElement;
-        const rect = timelineContainer?.getBoundingClientRect();
-        if (!rect) return;
-        
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
+        const x = moveEvent.clientX - rect.left;
+        const y = moveEvent.clientY - rect.top;
         
         setIsDragging(true);
         setDragStart({ x, y });
