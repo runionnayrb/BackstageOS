@@ -180,6 +180,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin account switching endpoints
+  app.post('/api/admin/switch-account', isAuthenticated, async (req: any, res) => {
+    try {
+      const adminUserId = req.user.id.toString();
+      
+      if (!isAdmin(adminUserId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { targetUserId } = req.body;
+      
+      if (!targetUserId) {
+        return res.status(400).json({ message: "Target user ID required" });
+      }
+      
+      const targetUser = await storage.getUser(targetUserId);
+      if (!targetUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Store original admin user in session for switching back
+      req.session.originalAdminId = adminUserId;
+      req.session.isViewingAs = targetUserId;
+      
+      res.json({ 
+        message: "Account switched successfully",
+        viewingAs: targetUser,
+        originalAdmin: adminUserId
+      });
+    } catch (error) {
+      console.error("Error switching account:", error);
+      res.status(500).json({ message: "Failed to switch account" });
+    }
+  });
+
+  app.post('/api/admin/switch-back', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!req.session.originalAdminId) {
+        return res.status(400).json({ message: "No admin switch session found" });
+      }
+      
+      // Clear the switching session
+      delete req.session.isViewingAs;
+      delete req.session.originalAdminId;
+      
+      res.json({ message: "Switched back to admin account" });
+    } catch (error) {
+      console.error("Error switching back:", error);
+      res.status(500).json({ message: "Failed to switch back" });
+    }
+  });
+
+  app.get('/api/admin/switch-status', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId) && !req.session.originalAdminId) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const isViewingAs = req.session.isViewingAs;
+      const originalAdminId = req.session.originalAdminId;
+      
+      if (isViewingAs && originalAdminId) {
+        const viewingUser = await storage.getUser(isViewingAs);
+        res.json({
+          isViewingAs: true,
+          viewingUser,
+          originalAdminId
+        });
+      } else {
+        res.json({
+          isViewingAs: false,
+          viewingUser: null,
+          originalAdminId: null
+        });
+      }
+    } catch (error) {
+      console.error("Error getting switch status:", error);
+      res.status(500).json({ message: "Failed to get switch status" });
+    }
+  });
+
   // Beta access management routes (admin only)
   app.get('/api/admin/beta-users', isAuthenticated, async (req: any, res) => {
     try {
