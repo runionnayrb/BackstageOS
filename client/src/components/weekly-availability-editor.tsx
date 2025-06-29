@@ -167,11 +167,20 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       }
       return JSON.parse(responseText);
     },
-    onSuccess: () => {
+    onSuccess: (newAvailability) => {
       queryClient.invalidateQueries({ 
         queryKey: [`/api/projects/${contact.projectId}/contacts/${contact.id}/availability`] 
       });
       toast({ title: "Availability added successfully" });
+      
+      // Auto-open edit dialog for the newly created block
+      if (newAvailability && newAvailability.id) {
+        setEditingItem({
+          ...newAvailability,
+          notes: newAvailability.notes || "",
+          availabilityType: newAvailability.availabilityType || "unavailable"
+        });
+      }
     },
     onError: (error) => {
       console.error('Create availability error:', error);
