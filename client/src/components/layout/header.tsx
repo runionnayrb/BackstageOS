@@ -31,7 +31,7 @@ export default function Header() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedBetaAccess, setSelectedBetaAccess] = useState<string>("all");
+  const [selectedBetaAccess, setSelectedBetaAccess] = useState<string>("admin");
   const [selectedProfileType, setSelectedProfileType] = useState<string>("all");
 
   // Fetch all users for account switching (admin only)
@@ -107,9 +107,9 @@ export default function Header() {
 
   const handleBetaAccessChange = (betaAccess: string) => {
     setSelectedBetaAccess(betaAccess);
-    const displayValue = betaAccess === "all" ? "all users" : `${betaAccess} beta access`;
+    const displayValue = betaAccess === "admin" ? "admin access" : `${betaAccess} beta access`;
     toast({
-      title: "Beta Access View Changed",
+      title: "Access View Changed",
       description: `Now viewing ${displayValue}`,
     });
   };
@@ -153,13 +153,12 @@ export default function Header() {
                   <Shield className="h-4 w-4 text-gray-500" />
                   <Select value={selectedBetaAccess} onValueChange={handleBetaAccessChange}>
                     <SelectTrigger className="w-32 h-8 text-xs">
-                      <SelectValue placeholder="Beta Level" />
+                      <SelectValue placeholder="Access View" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Users</SelectItem>
-                      <SelectItem value="none">No Beta</SelectItem>
                       <SelectItem value="limited">Limited Beta</SelectItem>
                       <SelectItem value="full">Full Beta</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -260,16 +259,15 @@ export default function Header() {
                     
                     {/* Mobile Beta Access Selector */}
                     <div className="lg:hidden px-2 py-1">
-                      <div className="text-xs text-gray-600 mb-1">Beta Access View:</div>
+                      <div className="text-xs text-gray-600 mb-1">Access View:</div>
                       <Select value={selectedBetaAccess} onValueChange={handleBetaAccessChange}>
                         <SelectTrigger className="w-full h-7 text-xs">
-                          <SelectValue placeholder="All Users" />
+                          <SelectValue placeholder="Access View" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Users</SelectItem>
-                          <SelectItem value="none">No Beta</SelectItem>
                           <SelectItem value="limited">Limited Beta</SelectItem>
                           <SelectItem value="full">Full Beta</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
