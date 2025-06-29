@@ -9,6 +9,8 @@ import { AlertCircle, CheckCircle, Plus, Globe, ArrowLeft, Settings, ExternalLin
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { isAdmin } from "@/lib/admin";
 
 export default function DomainManagement() {
   const [, setLocation] = useLocation();
@@ -16,6 +18,31 @@ export default function DomainManagement() {
   const [newSubdomain, setNewSubdomain] = useState("");
   const [newEmailAlias, setNewEmailAlias] = useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  // Admin access check
+  if (!user || !isAdmin(user)) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card className="max-w-md w-full">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2">
+              <AlertCircle className="h-6 w-6 text-red-600" />
+              Access Denied
+            </CardTitle>
+            <CardDescription>
+              Domain management is restricted to administrators only.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Button onClick={() => setLocation('/')} variant="outline">
+              Return to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Mock data for demonstration - in real implementation this would come from API
   const domains = [

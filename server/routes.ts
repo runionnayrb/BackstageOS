@@ -2804,10 +2804,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ? new GoDaddyService(process.env.GODADDY_API_KEY, process.env.GODADDY_API_SECRET)
     : null;
 
-  // Domain Management Routes
+  // Domain Management Routes (Admin only)
   // Get all domains
   app.get('/api/domains', isAuthenticated, async (req: any, res) => {
     try {
+      // Check if user is admin
+      if (!isAdmin(req.user.id.toString())) {
+        return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+      }
+      
       const domains = await storage.getDomains(req.user.id.toString());
       res.json(domains);
     } catch (error) {
@@ -2819,6 +2824,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new domain
   app.post('/api/domains', isAuthenticated, async (req: any, res) => {
     try {
+      // Check if user is admin
+      if (!isAdmin(req.user.id.toString())) {
+        return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+      }
+      
       const domainData = insertDomainSchema.parse({
         ...req.body,
         createdBy: req.user.id
@@ -2835,6 +2845,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get domain by ID
   app.get('/api/domains/:id', isAuthenticated, async (req: any, res) => {
     try {
+      // Check if user is admin
+      if (!isAdmin(req.user.id.toString())) {
+        return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+      }
+      
       const domain = await storage.getDomain(parseInt(req.params.id), req.user.id);
       if (!domain) {
         return res.status(404).json({ error: 'Domain not found' });
