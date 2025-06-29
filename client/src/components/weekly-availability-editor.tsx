@@ -303,7 +303,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               <Button variant="outline" size="sm" onClick={goToPreviousWeek}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <h3 className="text-lg font-semibold">{formatWeekRange(weekDates)}</h3>
+              <h3 className="text-lg font-semibold w-80 text-center">{formatWeekRange(weekDates)}</h3>
               <Button variant="outline" size="sm" onClick={goToNextWeek}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
