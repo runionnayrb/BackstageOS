@@ -947,56 +947,9 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                               clearTimeout(clickTimeoutRef.current);
                               clickTimeoutRef.current = null;
                             }
-                            // Start resize operation for top edge
+                            
                             console.log('Starting resize from top for item:', item.id);
-                            
-                            if (!calendarRef.current || !scrollContainerRef.current) return;
-                            
-                            const scrollContainer = scrollContainerRef.current;
-                            const calendarRect = calendarRef.current.getBoundingClientRect();
-                            const originalStartMinutes = timeToMinutes(item.startTime);
-                            const originalEndMinutes = timeToMinutes(item.endTime);
-                            
-                            setIsResizing({ id: item.id, edge: 'start' });
-                            
-                            const handleMouseMove = (e: MouseEvent) => {
-                              const scrollTop = scrollContainer.scrollTop;
-                              const mouseY = e.clientY - calendarRect.top;
-                              const newTimePixels = mouseY + scrollTop;
-                              const newMinutes = Math.round(newTimePixels / timeIncrement) * timeIncrement;
-                              const newStartMinutes = Math.max(0, Math.min(originalEndMinutes - timeIncrement, newMinutes));
-                              
-                              setIsResizing({ 
-                                id: item.id, 
-                                edge: 'start',
-                                previewStartMinutes: newStartMinutes,
-                                previewEndMinutes: originalEndMinutes
-                              } as any);
-                            };
-                            
-                            const handleMouseUp = () => {
-                              if (isResizing && (isResizing as any).previewStartMinutes !== undefined) {
-                                const { previewStartMinutes, previewEndMinutes } = isResizing as any;
-                                
-                                updateMutation.mutate({
-                                  id: item.id,
-                                  data: {
-                                    date: item.date,
-                                    startTime: minutesToTime(previewStartMinutes),
-                                    endTime: minutesToTime(previewEndMinutes),
-                                    availabilityType: item.availabilityType,
-                                    notes: item.notes || ""
-                                  }
-                                });
-                              }
-                              
-                              setIsResizing(null);
-                              document.removeEventListener('mousemove', handleMouseMove);
-                              document.removeEventListener('mouseup', handleMouseUp);
-                            };
-                            
-                            document.addEventListener('mousemove', handleMouseMove);
-                            document.addEventListener('mouseup', handleMouseUp);
+                            handleResizeMouseDown(e, item, 'start');
                           }}
                         />
                         
@@ -1009,56 +962,9 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                               clearTimeout(clickTimeoutRef.current);
                               clickTimeoutRef.current = null;
                             }
-                            // Start resize operation for bottom edge
+                            
                             console.log('Starting resize from bottom for item:', item.id);
-                            
-                            if (!calendarRef.current || !scrollContainerRef.current) return;
-                            
-                            const scrollContainer = scrollContainerRef.current;
-                            const calendarRect = calendarRef.current.getBoundingClientRect();
-                            const originalStartMinutes = timeToMinutes(item.startTime);
-                            const originalEndMinutes = timeToMinutes(item.endTime);
-                            
-                            setIsResizing({ id: item.id, edge: 'end' });
-                            
-                            const handleMouseMove = (e: MouseEvent) => {
-                              const scrollTop = scrollContainer.scrollTop;
-                              const mouseY = e.clientY - calendarRect.top;
-                              const newTimePixels = mouseY + scrollTop;
-                              const newMinutes = Math.round(newTimePixels / timeIncrement) * timeIncrement;
-                              const newEndMinutes = Math.max(originalStartMinutes + timeIncrement, Math.min(1439, newMinutes));
-                              
-                              setIsResizing({ 
-                                id: item.id, 
-                                edge: 'end',
-                                previewStartMinutes: originalStartMinutes,
-                                previewEndMinutes: newEndMinutes
-                              } as any);
-                            };
-                            
-                            const handleMouseUp = () => {
-                              if (isResizing && (isResizing as any).previewStartMinutes !== undefined) {
-                                const { previewStartMinutes, previewEndMinutes } = isResizing as any;
-                                
-                                updateMutation.mutate({
-                                  id: item.id,
-                                  data: {
-                                    date: item.date,
-                                    startTime: minutesToTime(previewStartMinutes),
-                                    endTime: minutesToTime(previewEndMinutes),
-                                    availabilityType: item.availabilityType,
-                                    notes: item.notes || ""
-                                  }
-                                });
-                              }
-                              
-                              setIsResizing(null);
-                              document.removeEventListener('mousemove', handleMouseMove);
-                              document.removeEventListener('mouseup', handleMouseUp);
-                            };
-                            
-                            document.addEventListener('mousemove', handleMouseMove);
-                            document.addEventListener('mouseup', handleMouseUp);
+                            handleResizeMouseDown(e, item, 'end');
                           }}
                         />
 
