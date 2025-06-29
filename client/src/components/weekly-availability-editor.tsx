@@ -368,7 +368,14 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     const offsetX = e.clientX - calendarRect.left - blockLeft;
     const offsetY = e.clientY - calendarRect.top - blockTop;
     
-    console.log('Starting drag:', { item: item.id, dayIndex, startMinutes });
+    console.log('Starting drag:', { 
+      item: item.id, 
+      dayIndex, 
+      startMinutes,
+      blockTop,
+      offsetY,
+      clickPosition: e.clientY - calendarRect.top
+    });
     
     let currentDragState = {
       item,
@@ -400,7 +407,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
       const originalStartMinutes = timeToMinutes(item.startTime);
       
-      // Calculate new position so the block follows the mouse cursor precisely
+      // Calculate new position maintaining the click offset within the block
       const newTimePixels = mouseY + scrollTop - currentDragState.offset.y;
       const rawMinutes = Math.round(newTimePixels);
       
