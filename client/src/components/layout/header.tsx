@@ -6,8 +6,17 @@ import { useLocation } from "wouter";
 import { isAdmin } from "@/lib/admin";
 
 export default function Header() {
-  const { user } = useAuth();
+  const { user, logoutMutation } = useAuth();
   const [, setLocation] = useLocation();
+
+  const handleLogout = () => {
+    logoutMutation.mutate(undefined, {
+      onSettled: () => {
+        // Always navigate to auth page after logout attempt
+        setLocation('/');
+      }
+    });
+  };
 
   const getInitials = (firstName?: string, lastName?: string) => {
     if (!firstName && !lastName) return "U";
@@ -75,7 +84,7 @@ export default function Header() {
                 )}
                 
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => window.location.href = '/api/logout'}>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>
