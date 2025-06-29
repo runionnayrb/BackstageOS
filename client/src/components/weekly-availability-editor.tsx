@@ -161,12 +161,13 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   };
 
   const minutesToPosition = (minutes: number): number => {
-    // 24 hours = 1440 minutes, each hour = 60px, so 1440px total height
-    return (minutes / 1440) * 1440;
+    // Calendar height is 600px, 24 hours = 1440 minutes
+    return (minutes / 1440) * 600;
   };
 
   const positionToMinutes = (position: number): number => {
-    return Math.max(0, Math.min(1440, Math.round((position / 1440) * 1440)));
+    // Convert pixel position back to minutes
+    return Math.max(0, Math.min(1440, Math.round((position / 600) * 1440)));
   };
 
   // Navigation functions
@@ -191,8 +192,10 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     if (!calendarRef.current) return;
 
     const rect = calendarRef.current.getBoundingClientRect();
-    const y = e.clientY - rect.top - 60; // Subtract header height
+    const y = e.clientY - rect.top;
     const minutes = positionToMinutes(y);
+    
+    console.log('Mouse click:', { y, minutes, time: minutesToTime(minutes), dayIndex });
 
     // Check if clicking on existing item
     const clickedItem = weekAvailability.find(item => {
@@ -212,7 +215,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       return;
     }
 
-    // Start drag creation - create local variables for the closure
+    // Start drag creation
     let dragState = {
       isActive: true,
       startDay: dayIndex,
@@ -228,7 +231,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       if (!calendarRef.current) return;
 
       const rect = calendarRef.current.getBoundingClientRect();
-      const y = e.clientY - rect.top - 60;
+      const y = e.clientY - rect.top;
       const newMinutes = positionToMinutes(y);
 
       dragState = { ...dragState, currentTime: newMinutes };
@@ -241,15 +244,16 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
         const endTime = Math.max(dragState.startTime, dragState.currentTime);
         
         console.log('Creating availability:', {
-          date: weekDates[dayIndex].toISOString().split('T')[0],
+          date: weekDates[dragState.startDay].toISOString().split('T')[0],
           startTime: minutesToTime(startTime),
           endTime: minutesToTime(endTime),
           duration: endTime - startTime,
-          availabilityType: dragState.availabilityType
+          availabilityType: dragState.availabilityType,
+          dayIndex: dragState.startDay
         });
         
         if (endTime - startTime >= 15) { // Minimum 15 minutes
-          const date = weekDates[dayIndex].toISOString().split('T')[0];
+          const date = weekDates[dragState.startDay].toISOString().split('T')[0];
           createMutation.mutate({
             date,
             startTime: minutesToTime(startTime),
@@ -389,7 +393,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                       <div
                         key={hour}
                         className="absolute text-xs text-gray-600 px-2 -translate-y-1/2"
-                        style={{ top: `${(position / 1440) * 100}%` }}
+                        style={{ top: `${minutesToPosition(hour * 60)}px` }}
                       >
                         {label}
                       </div>
@@ -404,7 +408,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                     <div
                       key={hour}
                       className="absolute w-full border-t border-gray-200"
-                      style={{ top: `${(position / 1440) * 100}%` }}
+                      style={{ top: `${minutesToPosition(hour * 60)}px` }}
                     />
                   ))}
 
@@ -439,8 +443,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                         style={{
                           left: `${(dayIndex / 7) * 100 + 0.5}%`,
                           width: `${100 / 7 - 1}%`,
-                          top: `${(startMinutes / 1440) * 100}%`,
-                          height: `${(duration / 1440) * 100}%`
+                          top: `${minutesToPosition(startMinutes)}px`,
+                          height: `${minutesToPosition(duration)}px`
                         }}
                         onClick={() => setEditingItem({
                           ...item,
@@ -470,8 +474,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                       style={{
                         left: `${(isDragCreating.startDay / 7) * 100 + 0.5}%`,
                         width: `${100 / 7 - 1}%`,
-                        top: `${(Math.min(isDragCreating.startTime, isDragCreating.currentTime) / 1440) * 100}%`,
-                        height: `${(Math.abs(isDragCreating.currentTime - isDragCreating.startTime) / 1440) * 100}%`
+                        top: `${minutesToPosition(Math.min(isDragCreating.startTime, isDragCreating.currentTime))}px`,
+                        height: `${minutesToPosition(Math.abs(isDragCreating.currentTime - isDragCreating.startTime))}px`
                       }}
                     >
                       <div className="p-1 text-white text-xs">
