@@ -20,6 +20,11 @@ import {
   contactSheetVersions,
   errorLogs,
   props,
+  domains,
+  subdomains,
+  emailAliases,
+  pageRoutes,
+  domainSettings,
   type User,
   type UpsertUser,
   type Project,
@@ -63,6 +68,16 @@ import {
   type InsertWaitlist,
   type Prop,
   type InsertProp,
+  type Domain,
+  type InsertDomain,
+  type Subdomain,
+  type InsertSubdomain,
+  type EmailAlias,
+  type InsertEmailAlias,
+  type PageRoute,
+  type InsertPageRoute,
+  type DomainSettings,
+  type InsertDomainSettings,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ne } from "drizzle-orm";
@@ -183,6 +198,35 @@ export interface IStorage {
 
   // Company list settings operations
   getCompanyListSettings(projectId: number): Promise<any>;
+
+  // Domain Management operations
+  getDomains(userId: string): Promise<Domain[]>;
+  getDomain(id: number, userId: string): Promise<Domain | undefined>;
+  createDomain(domain: InsertDomain): Promise<Domain>;
+  updateDomain(id: number, domain: Partial<InsertDomain>, userId: string): Promise<Domain | undefined>;
+  deleteDomain(id: number, userId: string): Promise<boolean>;
+
+  // Subdomain operations
+  getSubdomains(domainId: number, userId: string): Promise<Subdomain[]>;
+  createSubdomain(subdomain: InsertSubdomain): Promise<Subdomain>;
+  updateSubdomain(id: number, subdomain: Partial<InsertSubdomain>, userId: string): Promise<Subdomain | undefined>;
+  deleteSubdomain(id: number, userId: string): Promise<boolean>;
+
+  // Email Alias operations
+  getEmailAliases(domainId: number, userId: string): Promise<EmailAlias[]>;
+  createEmailAlias(alias: InsertEmailAlias): Promise<EmailAlias>;
+  updateEmailAlias(id: number, alias: Partial<InsertEmailAlias>, userId: string): Promise<EmailAlias | undefined>;
+  deleteEmailAlias(id: number, userId: string): Promise<boolean>;
+
+  // Page Route operations
+  getPageRoutes(domainId: number, userId: string): Promise<PageRoute[]>;
+  createPageRoute(route: InsertPageRoute): Promise<PageRoute>;
+  updatePageRoute(id: number, route: Partial<InsertPageRoute>, userId: string): Promise<PageRoute | undefined>;
+  deletePageRoute(id: number, userId: string): Promise<boolean>;
+
+  // Domain Settings operations
+  getDomainSettings(domainId: number, userId: string): Promise<DomainSettings | undefined>;
+  updateDomainSettings(domainId: number, settings: Partial<InsertDomainSettings>, userId: string): Promise<DomainSettings>;
   saveCompanyListSettings(projectId: number, settings: any): Promise<any>;
   publishCompanyListVersion(projectId: number, versionType: 'major' | 'minor', settings: any, publishedBy: number): Promise<any>;
   getCompanyListVersions(projectId: number): Promise<any[]>;
@@ -1510,6 +1554,183 @@ export class DatabaseStorage implements IStorage {
       await db
         .delete(locationAvailability)
         .where(eq(locationAvailability.id, id));
+    }
+  }
+
+  // Domain Management operations
+  async getDomains(userId: string): Promise<Domain[]> {
+    return await db
+      .select()
+      .from(domains)
+      .where(eq(domains.createdBy, parseInt(userId)))
+      .orderBy(desc(domains.createdAt));
+  }
+
+  async getDomain(id: number, userId: string): Promise<Domain | undefined> {
+    const [domain] = await db
+      .select()
+      .from(domains)
+      .where(and(eq(domains.id, id), eq(domains.createdBy, parseInt(userId))));
+    return domain;
+  }
+
+  async createDomain(domain: InsertDomain): Promise<Domain> {
+    const [createdDomain] = await db
+      .insert(domains)
+      .values(domain)
+      .returning();
+    return createdDomain;
+  }
+
+  async updateDomain(id: number, domain: Partial<InsertDomain>, userId: string): Promise<Domain | undefined> {
+    const [updatedDomain] = await db
+      .update(domains)
+      .set({ ...domain, updatedAt: new Date() })
+      .where(and(eq(domains.id, id), eq(domains.createdBy, parseInt(userId))))
+      .returning();
+    return updatedDomain;
+  }
+
+  async deleteDomain(id: number, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(domains)
+      .where(and(eq(domains.id, id), eq(domains.createdBy, parseInt(userId))));
+    return result.rowCount > 0;
+  }
+
+  // Subdomain operations
+  async getSubdomains(domainId: number, userId: string): Promise<Subdomain[]> {
+    return await db
+      .select()
+      .from(subdomains)
+      .where(and(eq(subdomains.domainId, domainId), eq(subdomains.createdBy, parseInt(userId))))
+      .orderBy(desc(subdomains.createdAt));
+  }
+
+  async createSubdomain(subdomain: InsertSubdomain): Promise<Subdomain> {
+    const [createdSubdomain] = await db
+      .insert(subdomains)
+      .values(subdomain)
+      .returning();
+    return createdSubdomain;
+  }
+
+  async updateSubdomain(id: number, subdomain: Partial<InsertSubdomain>, userId: string): Promise<Subdomain | undefined> {
+    const [updatedSubdomain] = await db
+      .update(subdomains)
+      .set({ ...subdomain, updatedAt: new Date() })
+      .where(and(eq(subdomains.id, id), eq(subdomains.createdBy, parseInt(userId))))
+      .returning();
+    return updatedSubdomain;
+  }
+
+  async deleteSubdomain(id: number, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(subdomains)
+      .where(and(eq(subdomains.id, id), eq(subdomains.createdBy, parseInt(userId))));
+    return result.rowCount > 0;
+  }
+
+  // Email Alias operations
+  async getEmailAliases(domainId: number, userId: string): Promise<EmailAlias[]> {
+    return await db
+      .select()
+      .from(emailAliases)
+      .where(and(eq(emailAliases.domainId, domainId), eq(emailAliases.createdBy, parseInt(userId))))
+      .orderBy(desc(emailAliases.createdAt));
+  }
+
+  async createEmailAlias(alias: InsertEmailAlias): Promise<EmailAlias> {
+    const [createdAlias] = await db
+      .insert(emailAliases)
+      .values(alias)
+      .returning();
+    return createdAlias;
+  }
+
+  async updateEmailAlias(id: number, alias: Partial<InsertEmailAlias>, userId: string): Promise<EmailAlias | undefined> {
+    const [updatedAlias] = await db
+      .update(emailAliases)
+      .set({ ...alias, updatedAt: new Date() })
+      .where(and(eq(emailAliases.id, id), eq(emailAliases.createdBy, parseInt(userId))))
+      .returning();
+    return updatedAlias;
+  }
+
+  async deleteEmailAlias(id: number, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(emailAliases)
+      .where(and(eq(emailAliases.id, id), eq(emailAliases.createdBy, parseInt(userId))));
+    return result.rowCount > 0;
+  }
+
+  // Page Route operations
+  async getPageRoutes(domainId: number, userId: string): Promise<PageRoute[]> {
+    return await db
+      .select()
+      .from(pageRoutes)
+      .where(and(eq(pageRoutes.domainId, domainId), eq(pageRoutes.createdBy, parseInt(userId))))
+      .orderBy(desc(pageRoutes.createdAt));
+  }
+
+  async createPageRoute(route: InsertPageRoute): Promise<PageRoute> {
+    const [createdRoute] = await db
+      .insert(pageRoutes)
+      .values(route)
+      .returning();
+    return createdRoute;
+  }
+
+  async updatePageRoute(id: number, route: Partial<InsertPageRoute>, userId: string): Promise<PageRoute | undefined> {
+    const [updatedRoute] = await db
+      .update(pageRoutes)
+      .set({ ...route, updatedAt: new Date() })
+      .where(and(eq(pageRoutes.id, id), eq(pageRoutes.createdBy, parseInt(userId))))
+      .returning();
+    return updatedRoute;
+  }
+
+  async deletePageRoute(id: number, userId: string): Promise<boolean> {
+    const result = await db
+      .delete(pageRoutes)
+      .where(and(eq(pageRoutes.id, id), eq(pageRoutes.createdBy, parseInt(userId))));
+    return result.rowCount > 0;
+  }
+
+  // Domain Settings operations
+  async getDomainSettings(domainId: number, userId: string): Promise<DomainSettings | undefined> {
+    const [settings] = await db
+      .select()
+      .from(domainSettings)
+      .where(and(eq(domainSettings.domainId, domainId), eq(domainSettings.createdBy, parseInt(userId))));
+    return settings;
+  }
+
+  async updateDomainSettings(domainId: number, settings: Partial<InsertDomainSettings>, userId: string): Promise<DomainSettings> {
+    // Try to update existing settings first
+    const [existingSettings] = await db
+      .select()
+      .from(domainSettings)
+      .where(and(eq(domainSettings.domainId, domainId), eq(domainSettings.createdBy, parseInt(userId))));
+
+    if (existingSettings) {
+      const [updatedSettings] = await db
+        .update(domainSettings)
+        .set({ ...settings, updatedAt: new Date() })
+        .where(eq(domainSettings.id, existingSettings.id))
+        .returning();
+      return updatedSettings;
+    } else {
+      // Create new settings if none exist
+      const [newSettings] = await db
+        .insert(domainSettings)
+        .values({
+          domainId,
+          createdBy: parseInt(userId),
+          ...settings
+        })
+        .returning();
+      return newSettings;
     }
   }
 }

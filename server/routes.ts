@@ -5,7 +5,8 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainSchema, insertSubdomainSchema, insertEmailAliasSchema, insertPageRouteSchema, insertDomainSettingsSchema } from "@shared/schema";
+import { CloudflareService, GoDaddyService } from "./services/cloudflareService";
 import { z } from "zod";
 
 // Authentication middleware
@@ -2791,6 +2792,363 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting event location:", error);
       res.status(500).json({ message: "Failed to delete event location" });
+    }
+  });
+
+  // Initialize Cloudflare and GoDaddy services
+  const cloudflareService = process.env.CLOUDFLARE_API_TOKEN 
+    ? new CloudflareService(process.env.CLOUDFLARE_API_TOKEN)
+    : null;
+  
+  const godaddyService = (process.env.GODADDY_API_KEY && process.env.GODADDY_API_SECRET)
+    ? new GoDaddyService(process.env.GODADDY_API_KEY, process.env.GODADDY_API_SECRET)
+    : null;
+
+  // Domain Management Routes
+  // Get all domains
+  app.get('/api/domains', isAuthenticated, async (req: any, res) => {
+    try {
+      const domains = await storage.getDomains(req.user.id);
+      res.json(domains);
+    } catch (error) {
+      console.error('Error fetching domains:', error);
+      res.status(500).json({ error: 'Failed to fetch domains' });
+    }
+  });
+
+  // Create new domain
+  app.post('/api/domains', isAuthenticated, async (req: any, res) => {
+    try {
+      const domainData = insertDomainSchema.parse({
+        ...req.body,
+        createdBy: req.user.id
+      });
+
+      const domain = await storage.createDomain(domainData);
+      res.status(201).json(domain);
+    } catch (error) {
+      console.error('Error creating domain:', error);
+      res.status(500).json({ error: 'Failed to create domain' });
+    }
+  });
+
+  // Get domain by ID
+  app.get('/api/domains/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const domain = await storage.getDomain(parseInt(req.params.id), req.user.id);
+      if (!domain) {
+        return res.status(404).json({ error: 'Domain not found' });
+      }
+      res.json(domain);
+    } catch (error) {
+      console.error('Error fetching domain:', error);
+      res.status(500).json({ error: 'Failed to fetch domain' });
+    }
+  });
+
+  // Update domain
+  app.put('/api/domains/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const domainData = insertDomainSchema.parse({
+        ...req.body,
+        createdBy: req.user.id
+      });
+
+      const domain = await storage.updateDomain(parseInt(req.params.id), domainData, req.user.id);
+      if (!domain) {
+        return res.status(404).json({ error: 'Domain not found' });
+      }
+      res.json(domain);
+    } catch (error) {
+      console.error('Error updating domain:', error);
+      res.status(500).json({ error: 'Failed to update domain' });
+    }
+  });
+
+  // Delete domain
+  app.delete('/api/domains/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const success = await storage.deleteDomain(parseInt(req.params.id), req.user.id);
+      if (!success) {
+        return res.status(404).json({ error: 'Domain not found' });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting domain:', error);
+      res.status(500).json({ error: 'Failed to delete domain' });
+    }
+  });
+
+  // Subdomain Management Routes
+  // Get subdomains for a domain
+  app.get('/api/domains/:domainId/subdomains', isAuthenticated, async (req: any, res) => {
+    try {
+      const subdomains = await storage.getSubdomains(parseInt(req.params.domainId), req.user.id);
+      res.json(subdomains);
+    } catch (error) {
+      console.error('Error fetching subdomains:', error);
+      res.status(500).json({ error: 'Failed to fetch subdomains' });
+    }
+  });
+
+  // Create new subdomain
+  app.post('/api/domains/:domainId/subdomains', isAuthenticated, async (req: any, res) => {
+    try {
+      const subdomainData = insertSubdomainSchema.parse({
+        ...req.body,
+        domainId: parseInt(req.params.domainId),
+        createdBy: req.user.id
+      });
+
+      const subdomain = await storage.createSubdomain(subdomainData);
+      res.status(201).json(subdomain);
+    } catch (error) {
+      console.error('Error creating subdomain:', error);
+      res.status(500).json({ error: 'Failed to create subdomain' });
+    }
+  });
+
+  // Update subdomain
+  app.put('/api/domains/:domainId/subdomains/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const subdomainData = insertSubdomainSchema.parse({
+        ...req.body,
+        domainId: parseInt(req.params.domainId),
+        createdBy: req.user.id
+      });
+
+      const subdomain = await storage.updateSubdomain(parseInt(req.params.id), subdomainData, req.user.id);
+      if (!subdomain) {
+        return res.status(404).json({ error: 'Subdomain not found' });
+      }
+      res.json(subdomain);
+    } catch (error) {
+      console.error('Error updating subdomain:', error);
+      res.status(500).json({ error: 'Failed to update subdomain' });
+    }
+  });
+
+  // Delete subdomain
+  app.delete('/api/domains/:domainId/subdomains/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const success = await storage.deleteSubdomain(parseInt(req.params.id), req.user.id);
+      if (!success) {
+        return res.status(404).json({ error: 'Subdomain not found' });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting subdomain:', error);
+      res.status(500).json({ error: 'Failed to delete subdomain' });
+    }
+  });
+
+  // Email Alias Management Routes
+  // Get email aliases for a domain
+  app.get('/api/domains/:domainId/email-aliases', isAuthenticated, async (req: any, res) => {
+    try {
+      const aliases = await storage.getEmailAliases(parseInt(req.params.domainId), req.user.id);
+      res.json(aliases);
+    } catch (error) {
+      console.error('Error fetching email aliases:', error);
+      res.status(500).json({ error: 'Failed to fetch email aliases' });
+    }
+  });
+
+  // Create new email alias
+  app.post('/api/domains/:domainId/email-aliases', isAuthenticated, async (req: any, res) => {
+    try {
+      const aliasData = insertEmailAliasSchema.parse({
+        ...req.body,
+        domainId: parseInt(req.params.domainId),
+        createdBy: req.user.id
+      });
+
+      const alias = await storage.createEmailAlias(aliasData);
+      res.status(201).json(alias);
+    } catch (error) {
+      console.error('Error creating email alias:', error);
+      res.status(500).json({ error: 'Failed to create email alias' });
+    }
+  });
+
+  // Update email alias
+  app.put('/api/domains/:domainId/email-aliases/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const aliasData = insertEmailAliasSchema.parse({
+        ...req.body,
+        domainId: parseInt(req.params.domainId),
+        createdBy: req.user.id
+      });
+
+      const alias = await storage.updateEmailAlias(parseInt(req.params.id), aliasData, req.user.id);
+      if (!alias) {
+        return res.status(404).json({ error: 'Email alias not found' });
+      }
+      res.json(alias);
+    } catch (error) {
+      console.error('Error updating email alias:', error);
+      res.status(500).json({ error: 'Failed to update email alias' });
+    }
+  });
+
+  // Delete email alias
+  app.delete('/api/domains/:domainId/email-aliases/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const success = await storage.deleteEmailAlias(parseInt(req.params.id), req.user.id);
+      if (!success) {
+        return res.status(404).json({ error: 'Email alias not found' });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting email alias:', error);
+      res.status(500).json({ error: 'Failed to delete email alias' });
+    }
+  });
+
+  // Page Route Management
+  // Get page routes for a domain
+  app.get('/api/domains/:domainId/page-routes', isAuthenticated, async (req: any, res) => {
+    try {
+      const routes = await storage.getPageRoutes(parseInt(req.params.domainId), req.user.id);
+      res.json(routes);
+    } catch (error) {
+      console.error('Error fetching page routes:', error);
+      res.status(500).json({ error: 'Failed to fetch page routes' });
+    }
+  });
+
+  // Create new page route
+  app.post('/api/domains/:domainId/page-routes', isAuthenticated, async (req: any, res) => {
+    try {
+      const routeData = insertPageRouteSchema.parse({
+        ...req.body,
+        domainId: parseInt(req.params.domainId),
+        createdBy: req.user.id
+      });
+
+      const route = await storage.createPageRoute(routeData);
+      res.status(201).json(route);
+    } catch (error) {
+      console.error('Error creating page route:', error);
+      res.status(500).json({ error: 'Failed to create page route' });
+    }
+  });
+
+  // Update page route
+  app.put('/api/domains/:domainId/page-routes/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const routeData = insertPageRouteSchema.parse({
+        ...req.body,
+        domainId: parseInt(req.params.domainId),
+        createdBy: req.user.id
+      });
+
+      const route = await storage.updatePageRoute(parseInt(req.params.id), routeData, req.user.id);
+      if (!route) {
+        return res.status(404).json({ error: 'Page route not found' });
+      }
+      res.json(route);
+    } catch (error) {
+      console.error('Error updating page route:', error);
+      res.status(500).json({ error: 'Failed to update page route' });
+    }
+  });
+
+  // Delete page route
+  app.delete('/api/domains/:domainId/page-routes/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const success = await storage.deletePageRoute(parseInt(req.params.id), req.user.id);
+      if (!success) {
+        return res.status(404).json({ error: 'Page route not found' });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting page route:', error);
+      res.status(500).json({ error: 'Failed to delete page route' });
+    }
+  });
+
+  // Domain Settings Management
+  // Get domain settings
+  app.get('/api/domains/:domainId/settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const settings = await storage.getDomainSettings(parseInt(req.params.domainId), req.user.id);
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching domain settings:', error);
+      res.status(500).json({ error: 'Failed to fetch domain settings' });
+    }
+  });
+
+  // Update domain settings
+  app.put('/api/domains/:domainId/settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const settingsData = insertDomainSettingsSchema.parse({
+        ...req.body,
+        domainId: parseInt(req.params.domainId),
+        createdBy: req.user.id
+      });
+
+      const settings = await storage.updateDomainSettings(parseInt(req.params.domainId), settingsData, req.user.id);
+      res.json(settings);
+    } catch (error) {
+      console.error('Error updating domain settings:', error);
+      res.status(500).json({ error: 'Failed to update domain settings' });
+    }
+  });
+
+  // Cloudflare Integration Routes (require API keys)
+  // Transfer domain to Cloudflare
+  app.post('/api/domains/:id/transfer-to-cloudflare', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!cloudflareService) {
+        return res.status(503).json({ error: 'Cloudflare API token required. Please configure CLOUDFLARE_API_TOKEN environment variable.' });
+      }
+
+      const domain = await storage.getDomain(parseInt(req.params.id), req.user.id);
+      if (!domain) {
+        return res.status(404).json({ error: 'Domain not found' });
+      }
+
+      // Create Cloudflare zone
+      const cfZone = await cloudflareService.createZone(domain.name);
+      
+      // Update domain with Cloudflare zone ID
+      await storage.updateDomain(parseInt(req.params.id), {
+        ...domain,
+        cloudflareZoneId: cfZone.id,
+        transferredToCloudflare: true,
+        dnsProvider: 'cloudflare'
+      }, req.user.id);
+
+      res.json({
+        success: true,
+        nameservers: cfZone.name_servers,
+        zoneId: cfZone.id
+      });
+    } catch (error) {
+      console.error('Error transferring domain to Cloudflare:', error);
+      res.status(500).json({ error: 'Failed to transfer domain to Cloudflare' });
+    }
+  });
+
+  // Check domain status
+  app.get('/api/domains/:id/status', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!cloudflareService) {
+        return res.status(503).json({ error: 'Cloudflare API token required' });
+      }
+
+      const domain = await storage.getDomain(parseInt(req.params.id), req.user.id);
+      if (!domain) {
+        return res.status(404).json({ error: 'Domain not found' });
+      }
+
+      const status = await cloudflareService.checkDomainStatus(domain.name);
+      res.json(status);
+    } catch (error) {
+      console.error('Error checking domain status:', error);
+      res.status(500).json({ error: 'Failed to check domain status' });
     }
   });
 
