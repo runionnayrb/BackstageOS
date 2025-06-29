@@ -103,11 +103,12 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   });
 
   // Extract schedule settings from show settings
-  const scheduleSettings = (showSettings as any)?.scheduleSettings ? 
-    JSON.parse((showSettings as any).scheduleSettings) : 
+  const rawScheduleSettings = (showSettings as any)?.scheduleSettings;
+  const scheduleSettings = rawScheduleSettings ? 
+    (typeof rawScheduleSettings === 'string' ? JSON.parse(rawScheduleSettings) : rawScheduleSettings) : 
     { workingHours: { start: "09:00", end: "18:00" }, timeFormat: "24h", weekStartDay: "sunday", timeZone: "America/New_York" }; // Default fallback
 
-  const workingHours = scheduleSettings.workingHours;
+  const workingHours = scheduleSettings.workingHours || { start: "09:00", end: "18:00" };
   const timeFormat = scheduleSettings.timeFormat || "24h"; // Default to 24-hour format
   const weekStartDay = scheduleSettings.weekStartDay || "sunday"; // Default to Sunday
   const timeZone = scheduleSettings.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone; // Use show timezone or browser default
