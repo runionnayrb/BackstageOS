@@ -82,24 +82,34 @@ export default function LocationAvailabilityPage({ projectId, onBack }: Location
   });
 
   // Get schedule settings with safe access
-  const scheduleSettings = (() => {
-    if (!showSettings || !showSettings.scheduleSettings) {
-      return { weekStartDay: 0, timeFormat: '12' };
+  const scheduleSettings: any = (() => {
+    const settings = showSettings as any;
+    if (!settings || !settings.scheduleSettings) {
+      return { weekStartDay: 0, timeFormat: '12', workStartTime: '09:00', workEndTime: '18:00', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone };
     }
     
     try {
-      return typeof showSettings.scheduleSettings === 'string' ? 
-        JSON.parse(showSettings.scheduleSettings) : 
-        showSettings.scheduleSettings;
+      const parsed = typeof settings.scheduleSettings === 'string' ? 
+        JSON.parse(settings.scheduleSettings) : 
+        settings.scheduleSettings;
+      return {
+        weekStartDay: 0,
+        timeFormat: '12',
+        workStartTime: '09:00',
+        workEndTime: '18:00',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        ...parsed
+      };
     } catch {
-      return { weekStartDay: 0, timeFormat: '12' };
+      return { weekStartDay: 0, timeFormat: '12', workStartTime: '09:00', workEndTime: '18:00', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone };
     }
   })();
 
   // Fetch availability for the current week
-  const weekStartDay = scheduleSettings?.weekStartDay || 0;
-  const weekStart = startOfWeek(currentDate, { weekStartsOn: weekStartDay });
-  const weekEnd = endOfWeek(currentDate, { weekStartsOn: weekStartDay });
+  const weekStartDay = Math.max(0, Math.min(6, scheduleSettings?.weekStartDay || 0));
+  const safeCurrentDate = currentDate instanceof Date && !isNaN(currentDate.getTime()) ? currentDate : new Date();
+  const weekStart = startOfWeek(safeCurrentDate, { weekStartsOn: weekStartDay as 0 | 1 | 2 | 3 | 4 | 5 | 6 });
+  const weekEnd = endOfWeek(safeCurrentDate, { weekStartsOn: weekStartDay as 0 | 1 | 2 | 3 | 4 | 5 | 6 });
 
   const { data: availability = [] } = useQuery<LocationAvailability[]>({
     queryKey: [`/api/projects/${projectId}/location-availability`],
