@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -44,6 +44,8 @@ export default function AvailabilityComparison({
   const [draggedItem, setDraggedItem] = useState<any>(null);
   const [resizingItem, setResizingItem] = useState<any>(null);
   const [resizeMode, setResizeMode] = useState<'top' | 'bottom' | null>(null);
+  const [optimisticUpdates, setOptimisticUpdates] = useState<{ [key: number]: ProjectAvailability }>({});
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get show settings for timezone
   const { data: showSettings } = useQuery({
@@ -108,10 +110,11 @@ export default function AvailabilityComparison({
 
   const timeLabels = generateTimeLabels();
 
-  // Get availability for a specific contact and the current date
+  // Get availability for a specific contact and the current date (with optimistic updates)
   const getContactAvailabilityForDate = (contactId: number) => {
     const dateStr = currentDate.toISOString().split('T')[0];
-    return (allAvailability as ProjectAvailability[]).filter(
+    const effectiveAvailability = getEffectiveAvailability();
+    return effectiveAvailability.filter(
       (item: ProjectAvailability) => item.contactId === contactId && item.date === dateStr
     );
   };
@@ -154,6 +157,29 @@ export default function AvailabilityComparison({
     return contacts[contactIndex]?.id || null;
   };
 
+  // Optimistic update helper
+  const applyOptimisticUpdate = (id: number, updates: Partial<ProjectAvailability>) => {
+    setOptimisticUpdates(prev => ({
+      ...prev,
+      [id]: { ...(allAvailability.find(item => item.id === id) as ProjectAvailability), ...updates }
+    }));
+  };
+
+  const clearOptimisticUpdate = (id: number) => {
+    setOptimisticUpdates(prev => {
+      const newUpdates = { ...prev };
+      delete newUpdates[id];
+      return newUpdates;
+    });
+  };
+
+  // Get effective availability data (with optimistic updates applied)
+  const getEffectiveAvailability = () => {
+    return allAvailability.map(item => 
+      optimisticUpdates[item.id] || item
+    );
+  };
+
   // Mutations for CRUD operations
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -177,6 +203,7 @@ export default function AvailabilityComparison({
         description: error.message,
         variant: "destructive" 
       });
+      setNewBlock(null);
     },
   });
 
@@ -190,13 +217,20 @@ export default function AvailabilityComparison({
       if (!response.ok) throw new Error("Failed to update availability");
       return response.json();
     },
-    onSuccess: () => {
+    onMutate: async ({ id, data }) => {
+      // Optimistic update
+      applyOptimisticUpdate(id, data);
+      return { id };
+    },
+    onSuccess: (result, variables) => {
+      clearOptimisticUpdate(variables.id);
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
       setEditingItem(null);
       setDraggedItem(null);
       setResizingItem(null);
     },
-    onError: (error) => {
+    onError: (error, variables) => {
+      clearOptimisticUpdate(variables.id);
       toast({ 
         title: "Failed to update availability", 
         description: error.message,
@@ -204,6 +238,62 @@ export default function AvailabilityComparison({
       });
     },
   });
+
+  // Debounced update function
+  const debouncedUpdate = useCallback((id: number, data: any) => {
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    
+    updateTimeoutRef.current = setTimeout(() => {
+      updateMutation.mutate({ id, data });
+    }, 300); // 300ms delay
+  }, [updateMutation]);
+
+  const handleMouseUp = () => {
+    if (!isDragging) return;
+    
+    if (newBlock && newBlock.startTime !== newBlock.endTime) {
+      createMutation.mutate(newBlock);
+    } else if (draggedItem) {
+      const updateData = {
+        contactId: draggedItem.contactId,
+        startTime: draggedItem.startTime,
+        endTime: draggedItem.endTime,
+        availabilityType: draggedItem.availabilityType,
+        notes: draggedItem.notes,
+        date: currentDate.toISOString().split('T')[0],
+      };
+      
+      // Apply optimistic update immediately
+      applyOptimisticUpdate(draggedItem.id, updateData);
+      
+      // Debounce the actual API call
+      debouncedUpdate(draggedItem.id, updateData);
+    } else if (resizingItem) {
+      const updateData = {
+        contactId: resizingItem.contactId,
+        startTime: resizingItem.startTime,
+        endTime: resizingItem.endTime,
+        availabilityType: resizingItem.availabilityType,
+        notes: resizingItem.notes,
+        date: currentDate.toISOString().split('T')[0],
+      };
+      
+      // Apply optimistic update immediately
+      applyOptimisticUpdate(resizingItem.id, updateData);
+      
+      // Debounce the actual API call
+      debouncedUpdate(resizingItem.id, updateData);
+    }
+    
+    setIsDragging(false);
+    setDragStart(null);
+    setNewBlock(null);
+    setDraggedItem(null);
+    setResizingItem(null);
+    setResizeMode(null);
+  };
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -340,44 +430,7 @@ export default function AvailabilityComparison({
     }
   };
 
-  const handleMouseUp = () => {
-    if (!isDragging) return;
-    
-    if (newBlock && newBlock.startTime !== newBlock.endTime) {
-      createMutation.mutate(newBlock);
-    } else if (draggedItem) {
-      updateMutation.mutate({
-        id: draggedItem.id,
-        data: {
-          contactId: draggedItem.contactId,
-          startTime: draggedItem.startTime,
-          endTime: draggedItem.endTime,
-          availabilityType: draggedItem.availabilityType,
-          notes: draggedItem.notes,
-          date: currentDate.toISOString().split('T')[0],
-        },
-      });
-    } else if (resizingItem) {
-      updateMutation.mutate({
-        id: resizingItem.id,
-        data: {
-          contactId: resizingItem.contactId,
-          startTime: resizingItem.startTime,
-          endTime: resizingItem.endTime,
-          availabilityType: resizingItem.availabilityType,
-          notes: resizingItem.notes,
-          date: currentDate.toISOString().split('T')[0],
-        },
-      });
-    }
-    
-    setIsDragging(false);
-    setDragStart(null);
-    setNewBlock(null);
-    setDraggedItem(null);
-    setResizingItem(null);
-    setResizeMode(null);
-  };
+
 
   const handleBlockMouseDown = (e: React.MouseEvent, item: ProjectAvailability, mode?: 'move' | 'resize-top' | 'resize-bottom') => {
     e.stopPropagation();
