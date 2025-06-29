@@ -50,16 +50,31 @@ export default function AvailabilityComparison({
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const selectedItemsRef = useRef<Set<number>>(new Set());
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    selectedItemsRef.current = selectedItems;
+  }, [selectedItems]);
 
   // Keyboard event handlers for shift selection and delete
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      console.log('Key pressed:', e.key);
+      
       if (e.key === 'Shift') {
         setIsShiftPressed(true);
       }
-      if (e.key === 'Delete' && selectedItems.size > 0) {
-        console.log('Delete key pressed with', selectedItems.size, 'items selected');
-        setShowBulkDeleteDialog(true);
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        // Use a ref to get current selection or check via state callback
+        setSelectedItems(current => {
+          console.log('Current selection size:', current.size);
+          if (current.size > 0) {
+            console.log('Delete/Backspace key pressed with', current.size, 'items selected');
+            setShowBulkDeleteDialog(true);
+          }
+          return current; // Return unchanged
+        });
       }
     };
 
@@ -69,14 +84,14 @@ export default function AvailabilityComparison({
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
     };
-  }, [selectedItems]);
+  }, []); // Remove dependency to avoid stale closure
 
   // Get show settings for timezone
   const { data: showSettings } = useQuery({
@@ -504,8 +519,8 @@ export default function AvailabilityComparison({
       return;
     }
     
-    // Clear selection when starting normal drag operations
-    if (selectedItems.size > 0) {
+    // Clear selection when starting normal drag operations (but not during Shift+click)
+    if (selectedItems.size > 0 && !e.shiftKey) {
       setSelectedItems(new Set());
     }
     
@@ -669,7 +684,7 @@ export default function AvailabilityComparison({
                   )}
                   {selectedItems.size > 0 && (
                     <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
-                      {selectedItems.size} selected
+                      {selectedItems.size} selected - Press Delete to remove
                     </span>
                   )}
                 </div>
@@ -678,7 +693,11 @@ export default function AvailabilityComparison({
           </div>
 
           {/* Calendar Content */}
-          <div className="flex-1 flex overflow-hidden">
+          <div 
+            className="flex-1 flex overflow-hidden focus:outline-none" 
+            tabIndex={0}
+            onFocus={() => console.log('Calendar focused')}
+          >
             {isLoading ? (
               <div className="flex-1 flex items-center justify-center">
                 <div className="text-center">
@@ -782,16 +801,17 @@ export default function AvailabilityComparison({
                                     if (e.shiftKey) {
                                       e.stopPropagation();
                                       e.preventDefault();
-                                      console.log('Shift+click on block:', item.id);
-                                      if (selectedItems.has(item.id)) {
-                                        const newSelected = new Set(selectedItems);
+                                      console.log('Shift+click on block:', item.id, 'Current selection:', Array.from(selectedItemsRef.current));
+                                      
+                                      const newSelected = new Set(selectedItemsRef.current);
+                                      if (newSelected.has(item.id)) {
                                         newSelected.delete(item.id);
-                                        setSelectedItems(newSelected);
+                                        console.log('Deselected, new selection:', Array.from(newSelected));
                                       } else {
-                                        const newSelected = new Set(selectedItems);
                                         newSelected.add(item.id);
-                                        setSelectedItems(newSelected);
+                                        console.log('Selected, new selection:', Array.from(newSelected));
                                       }
+                                      setSelectedItems(newSelected);
                                     }
                                   }}
                                   onDoubleClick={() => setEditingItem(item)}
