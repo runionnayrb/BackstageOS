@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -44,10 +44,12 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   const [isResizing, setIsResizing] = useState<{ id: number; edge: 'start' | 'end' } | null>(null);
   const [editingItem, setEditingItem] = useState<ContactAvailability & { notes: string; availabilityType: string } | null>(null);
   const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const calendarRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Get week dates
   const getWeekDates = (date: Date) => {
@@ -74,6 +76,12 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     enabled: isOpen,
   });
 
+  // Fetch show settings for working hours
+  const { data: showSettings } = useQuery({
+    queryKey: [`/api/projects/${contact.projectId}/settings`],
+    enabled: isOpen,
+  });
+
   // Filter availability for current week
   const weekAvailability = (availability as ContactAvailability[]).filter((item: ContactAvailability) => {
     const itemDate = new Date(item.date);
@@ -81,6 +89,30 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       weekDate.toISOString().split('T')[0] === item.date
     );
   });
+
+  // Extract working hours from show settings
+  const workingHours = (showSettings as any)?.scheduleSettings ? 
+    JSON.parse((showSettings as any).scheduleSettings).workingHours : 
+    { start: "09:00", end: "18:00" }; // Default fallback
+
+  const startHour = parseInt(workingHours.start.split(':')[0]);
+  const endHour = parseInt(workingHours.end.split(':')[0]);
+  
+  // Calculate initial scroll position to show working hours
+  const initialScrollPosition = Math.max(0, (startHour - 2) * 60); // Start 2 hours before working hours
+
+  // Auto-scroll to working hours when dialog opens
+  useEffect(() => {
+    if (isOpen && scrollContainerRef.current && showSettings) {
+      const scrollToPosition = minutesToPosition(initialScrollPosition);
+      setTimeout(() => {
+        scrollContainerRef.current?.scrollTo({
+          top: scrollToPosition,
+          behavior: 'smooth'
+        });
+      }, 100); // Small delay to ensure dialog is fully rendered
+    }
+  }, [isOpen, showSettings, initialScrollPosition]);
 
   // Mutations
   const createMutation = useMutation({
@@ -162,13 +194,13 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   };
 
   const minutesToPosition = (minutes: number): number => {
-    // Calendar height is 600px, 24 hours = 1440 minutes
-    return (minutes / 1440) * 600;
+    // Calendar height is 1440px for full 24 hours (1 pixel per minute)
+    return minutes;
   };
 
   const positionToMinutes = (position: number): number => {
-    // Convert pixel position back to minutes
-    const minutes = Math.max(0, Math.min(1440, Math.round((position / 600) * 1440)));
+    // Convert pixel position back to minutes (1:1 ratio)
+    const minutes = Math.max(0, Math.min(1440, Math.round(position)));
     // Snap to time increment
     return Math.round(minutes / timeIncrement) * timeIncrement;
   };
@@ -414,8 +446,14 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             </div>
 
             {/* Calendar body */}
-            <div className="relative" style={{ height: '600px' }}>
-              <div className="grid grid-cols-8 h-full">
+            <div 
+              ref={scrollContainerRef}
+              className="relative overflow-y-auto border-t"
+              style={{ height: '400px', maxHeight: '70vh' }}
+              onScroll={(e) => setScrollPosition(e.currentTarget.scrollTop)}
+            >
+              <div className="relative" style={{ height: '1440px' }}> {/* Full 24 hours */}
+                <div className="grid grid-cols-8 h-full">
                 {/* Time column */}
                 <div className="border-r bg-gray-50">
                   <div className="relative h-full">
@@ -433,6 +471,15 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
 
                 {/* Day columns */}
                 <div className="col-span-7 relative" ref={calendarRef}>
+                  {/* Working hours background highlight */}
+                  <div
+                    className="absolute w-full bg-blue-50 opacity-30"
+                    style={{
+                      top: `${minutesToPosition(startHour * 60)}px`,
+                      height: `${minutesToPosition((endHour - startHour) * 60)}px`
+                    }}
+                  />
+
                   {/* Grid lines based on time increment */}
                   {gridLines.map(({ minutes, isHour }) => (
                     <div
@@ -518,6 +565,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                     </div>
                   )}
                 </div>
+              </div>
               </div>
             </div>
           </div>
