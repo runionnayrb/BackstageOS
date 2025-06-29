@@ -764,16 +764,14 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                           console.log('Block mousedown triggered for item:', item.id);
                           handleBlockMouseDown(e, item);
                         }}
-                        onClick={(e) => {
+                        onDoubleClick={(e) => {
                           e.stopPropagation();
-                          console.log('Block clicked, justDragged:', justDragged, 'item:', item.id);
-                          if (!isBeingDragged && justDragged !== item.id) {
-                            setEditingItem({
-                              ...item,
-                              notes: item.notes || '',
-                              availabilityType: item.availabilityType
-                            });
-                          }
+                          console.log('Block double-clicked, item:', item.id);
+                          setEditingItem({
+                            ...item,
+                            notes: item.notes || '',
+                            availabilityType: item.availabilityType
+                          });
                         }}
                       >
                         <div className="p-1 text-white text-xs">
@@ -855,7 +853,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               </div>
             </div>
             <div className="text-xs text-gray-500">
-              Drag to create • Click to edit • Minimum {timeIncrement} minutes
+              Drag to create • Double-click to edit • Minimum {timeIncrement} minutes
             </div>
           </div>
         </div>
