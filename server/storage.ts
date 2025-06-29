@@ -855,6 +855,30 @@ export class DatabaseStorage implements IStorage {
     await db.delete(contactAvailability).where(eq(contactAvailability.id, id));
   }
 
+  // Get all availability for all contacts in a project
+  async getAllProjectAvailability(projectId: number): Promise<(ContactAvailability & { contactFirstName: string; contactLastName: string })[]> {
+    return await db
+      .select({
+        id: contactAvailability.id,
+        contactId: contactAvailability.contactId,
+        projectId: contactAvailability.projectId,
+        date: contactAvailability.date,
+        startTime: contactAvailability.startTime,
+        endTime: contactAvailability.endTime,
+        availabilityType: contactAvailability.availabilityType,
+        notes: contactAvailability.notes,
+        createdBy: contactAvailability.createdBy,
+        createdAt: contactAvailability.createdAt,
+        updatedAt: contactAvailability.updatedAt,
+        contactFirstName: contacts.firstName,
+        contactLastName: contacts.lastName,
+      })
+      .from(contactAvailability)
+      .innerJoin(contacts, eq(contactAvailability.contactId, contacts.id))
+      .where(eq(contactAvailability.projectId, projectId))
+      .orderBy(contacts.firstName, contacts.lastName, contactAvailability.date, contactAvailability.startTime);
+  }
+
   async getAvailabilityByDateRange(projectId: number, startDate: string, endDate: string): Promise<ContactAvailability[]> {
     return await db
       .select()

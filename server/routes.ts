@@ -1235,6 +1235,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all availability for all contacts in a project
+  app.get("/api/projects/:id/availability", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const availability = await storage.getAllProjectAvailability(projectId);
+      res.json(availability);
+    } catch (error) {
+      console.error("Error fetching project availability:", error);
+      res.status(500).json({ message: "Failed to fetch availability" });
+    }
+  });
+
   // Company list version control routes
   app.post("/api/projects/:id/company-list/publish", isAuthenticated, async (req: any, res) => {
     try {

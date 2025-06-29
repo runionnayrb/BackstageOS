@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
+import AvailabilityComparison from "@/components/availability-comparison";
 
 interface CalendarParams {
   id: string;
@@ -9,6 +11,7 @@ interface CalendarParams {
 
 export default function Calendar() {
   const [, setLocation] = useLocation();
+  const [showAvailabilityComparison, setShowAvailabilityComparison] = useState(false);
   const params = useParams<CalendarParams>();
   const projectId = params.id;
 
@@ -61,11 +64,21 @@ export default function Calendar() {
           </Button>
         </div>
 
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Calendar</h1>
-          <p className="text-gray-500 mt-2">
-            Manage rehearsal schedules and daily call sheets
-          </p>
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold">Calendar</h1>
+            <p className="text-gray-500 mt-2">
+              Manage rehearsal schedules and daily call sheets
+            </p>
+          </div>
+          
+          <Button
+            onClick={() => setShowAvailabilityComparison(true)}
+            className="flex items-center gap-2"
+          >
+            <Users className="h-4 w-4" />
+            Compare Team Availability
+          </Button>
         </div>
 
         <div className="space-y-1">
@@ -82,6 +95,13 @@ export default function Calendar() {
             </div>
           ))}
         </div>
+
+        {/* Availability Comparison Modal */}
+        <AvailabilityComparison
+          projectId={parseInt(projectId)}
+          isOpen={showAvailabilityComparison}
+          onClose={() => setShowAvailabilityComparison(false)}
+        />
       </div>
     </div>
   );
