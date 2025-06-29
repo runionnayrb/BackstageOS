@@ -19,6 +19,7 @@ import {
   locationAvailability,
   contactSheetVersions,
   errorLogs,
+  props,
   type User,
   type UpsertUser,
   type Project,
@@ -60,6 +61,8 @@ import {
   waitlist,
   type Waitlist,
   type InsertWaitlist,
+  type Prop,
+  type InsertProp,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ne } from "drizzle-orm";
@@ -158,6 +161,13 @@ export interface IStorage {
   createContact(contact: InsertContact): Promise<Contact>;
   updateContact(id: number, contact: Partial<InsertContact>): Promise<Contact>;
   deleteContact(id: number): Promise<void>;
+
+  // Props operations
+  getPropsByProjectId(projectId: number): Promise<Prop[]>;
+  getPropById(id: number): Promise<Prop | undefined>;
+  createProp(prop: InsertProp): Promise<Prop>;
+  updateProp(id: number, prop: Partial<InsertProp>): Promise<Prop>;
+  deleteProp(id: number): Promise<void>;
 
   // Error logging operations
   createErrorLog(errorLog: InsertErrorLog): Promise<ErrorLog>;
@@ -1345,6 +1355,53 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     return versions.length > 0 ? versions[0].version : "1.0";
+  }
+
+  // Props operations
+  async getPropsByProjectId(projectId: number): Promise<Prop[]> {
+    return await db
+      .select()
+      .from(props)
+      .where(eq(props.projectId, projectId))
+      .orderBy(props.name);
+  }
+
+  async getPropById(id: number): Promise<Prop | undefined> {
+    const [prop] = await db
+      .select()
+      .from(props)
+      .where(eq(props.id, id));
+    return prop || undefined;
+  }
+
+  async createProp(prop: InsertProp): Promise<Prop> {
+    const [newProp] = await db
+      .insert(props)
+      .values({
+        ...prop,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    return newProp;
+  }
+
+  async updateProp(id: number, prop: Partial<InsertProp>): Promise<Prop> {
+    const [updatedProp] = await db
+      .update(props)
+      .set({
+        ...prop,
+        updatedAt: new Date()
+      })
+      .where(eq(props.id, id))
+      .returning();
+    return updatedProp;
+  }
+
+  async deleteProp(id: number): Promise<void> {
+    await db
+      .delete(props)
+      .where(eq(props.id, id));
   }
 
   // Waitlist operations

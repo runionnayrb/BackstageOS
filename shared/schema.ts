@@ -955,6 +955,12 @@ export const insertLocationAvailabilitySchema = createInsertSchema(locationAvail
   updatedAt: true,
 });
 
+export const insertPropsSchema = createInsertSchema(props).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type exports
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -1002,3 +1008,5 @@ export type EventLocation = typeof eventLocations.$inferSelect;
 export type InsertEventLocation = z.infer<typeof insertEventLocationSchema>;
 export type LocationAvailability = typeof locationAvailability.$inferSelect;
 export type InsertLocationAvailability = z.infer<typeof insertLocationAvailabilitySchema>;
+export type Prop = typeof props.$inferSelect;
+export type InsertProp = z.infer<typeof insertPropsSchema>;
