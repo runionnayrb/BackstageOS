@@ -97,6 +97,12 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     enabled: isOpen,
   });
 
+  // Fetch schedule events to show conflicts
+  const { data: scheduleEvents = [] } = useQuery({
+    queryKey: [`/api/projects/${contact.projectId}/schedule-events`],
+    enabled: isOpen,
+  });
+
   // Fetch show settings for working hours
   const { data: showSettings } = useQuery({
     queryKey: [`/api/projects/${contact.projectId}/settings`],
@@ -1002,6 +1008,44 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                           {item.notes && (
                             <div className="opacity-75 truncate">{item.notes}</div>
                           )}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Schedule Events (showing as conflicts) */}
+                  {(scheduleEvents as any[]).map((event: any) => {
+                    // Find which participants match this contact
+                    const isParticipant = event.participants?.some((p: any) => p.contactId === contact.id);
+                    if (!isParticipant) return null;
+
+                    // Find the day index for this event
+                    const eventDayIndex = weekDates.findIndex((date: Date) => 
+                      date.toISOString().split('T')[0] === event.date
+                    );
+                    if (eventDayIndex === -1) return null;
+
+                    const startMinutes = timeToMinutes(event.startTime);
+                    const endMinutes = timeToMinutes(event.endTime);
+
+                    return (
+                      <div
+                        key={`event-${event.id}`}
+                        className="absolute rounded border-2 border-purple-700 bg-purple-600 text-white text-xs pointer-events-none z-30"
+                        style={{
+                          left: `${(eventDayIndex / 7) * 100 + 0.5}%`,
+                          width: `${100 / 7 - 1}%`,
+                          top: `${minutesToPosition(startMinutes)}px`,
+                          height: `${minutesToHeight(endMinutes - startMinutes)}px`,
+                        }}
+                        title={`Scheduled: ${event.title} (${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)})`}
+                      >
+                        <div className="p-1">
+                          <div className="font-medium truncate">{event.title}</div>
+                          <div className="opacity-90 truncate">
+                            {formatTimeDisplay(event.startTime, timeFormat)} - {formatTimeDisplay(event.endTime, timeFormat)}
+                          </div>
+                          <div className="opacity-75 text-xs truncate">{event.type}</div>
                         </div>
                       </div>
                     );

@@ -111,6 +111,11 @@ export default function AvailabilityComparison({
     queryKey: [`/api/projects/${projectId}/availability`],
   });
 
+  // Fetch schedule events to show conflicts
+  const { data: scheduleEvents = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/schedule-events`],
+  });
+
   // Get unique contact categories/types
   const contactTypes = Array.from(new Set((allContacts as any[]).map((contact: any) => contact.category))).filter(Boolean);
   
@@ -195,6 +200,15 @@ export default function AvailabilityComparison({
     return (allAvailability as ProjectAvailability[]).filter(
       (item: ProjectAvailability) => item.contactId === contactId && item.date === dateStr
     );
+  };
+
+  // Get schedule events for a specific contact and the current date
+  const getContactScheduleEventsForDate = (contactId: number) => {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    return (scheduleEvents as any[]).filter((event: any) => {
+      if (event.date !== dateStr) return false;
+      return event.participants?.some((p: any) => p.contactId === contactId);
+    });
   };
 
   // Navigation functions
@@ -937,6 +951,36 @@ export default function AvailabilityComparison({
                                     className="absolute right-0 top-0 bottom-0 w-1 cursor-ew-resize bg-white opacity-0 group-hover:opacity-50"
                                     onMouseDown={(e) => handleBlockMouseDown(e, item, 'resize-bottom')}
                                   />
+                                </div>
+                              );
+                            })}
+
+                            {/* Schedule Events (showing as conflicts) */}
+                            {getContactScheduleEventsForDate(contact.id).map((event: any) => {
+                              const startMinutes = timeToMinutes(event.startTime);
+                              const endMinutes = timeToMinutes(event.endTime);
+                              
+                              // Calculate percentage-based positioning for full width
+                              const startPercent = ((startMinutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                              const widthPercent = ((endMinutes - startMinutes) / TOTAL_MINUTES) * 100;
+
+                              return (
+                                <div
+                                  key={`event-${event.id}`}
+                                  className="absolute text-xs text-white top-1 bottom-1 rounded bg-purple-600 border-2 border-purple-700 z-15 pointer-events-none"
+                                  style={{
+                                    left: `${startPercent}%`,
+                                    width: `${widthPercent}%`,
+                                    minWidth: '20px',
+                                  }}
+                                  title={`Scheduled: ${event.title} (${formatTime(startMinutes)} - ${formatTime(endMinutes)})`}
+                                >
+                                  <div className="px-1 py-0.5 h-full flex flex-col justify-center">
+                                    <div className="font-medium truncate text-xs">{event.title}</div>
+                                    <div className="text-xs opacity-90 truncate">
+                                      {formatTime(startMinutes)} - {formatTime(endMinutes)}
+                                    </div>
+                                  </div>
                                 </div>
                               );
                             })}
