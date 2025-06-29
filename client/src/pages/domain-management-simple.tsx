@@ -63,8 +63,8 @@ export default function DomainManagement() {
       sslEnabled: true,
       pointsToPage: "/landing",
       pageOptions: [
-        { value: "/", label: "Home Page" },
-        { value: "/landing", label: "Landing Page" },
+        { value: "/", label: "App Home (Shows List)" },
+        { value: "/landing", label: "Landing Page (Waitlist)" },
         { value: "/signin", label: "Sign In Page" },
         { value: "/shows", label: "Shows Dashboard" },
         { value: "/admin", label: "Admin Dashboard" }
@@ -84,8 +84,8 @@ export default function DomainManagement() {
       sslEnabled: true,
       proxyEnabled: true,
       pageOptions: [
-        { value: "/", label: "Home Page" },
-        { value: "/landing", label: "Landing Page" },
+        { value: "/", label: "App Home (Shows List)" },
+        { value: "/landing", label: "Landing Page (Waitlist)" },
         { value: "/signin", label: "Sign In Page" },
         { value: "/shows", label: "Shows Dashboard" },
         { value: "/admin", label: "Admin Dashboard" }
@@ -102,8 +102,8 @@ export default function DomainManagement() {
       sslEnabled: true,
       proxyEnabled: true,
       pageOptions: [
-        { value: "/", label: "Home Page" },
-        { value: "/landing", label: "Landing Page" },
+        { value: "/", label: "App Home (Shows List)" },
+        { value: "/landing", label: "Landing Page (Waitlist)" },
         { value: "/signin", label: "Sign In Page" },
         { value: "/shows", label: "Shows Dashboard" },
         { value: "/admin", label: "Admin Dashboard" }
@@ -184,6 +184,23 @@ export default function DomainManagement() {
     });
     setShowSubdomainDialog(false);
     setEditingSubdomain(null);
+  };
+
+  const handleDeleteSubdomain = () => {
+    if (!editingSubdomain) return;
+    
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete ${editingSubdomain.fullDomain}? This action cannot be undone.`
+    );
+    
+    if (confirmDelete) {
+      toast({
+        title: "Subdomain Deleted",
+        description: `${editingSubdomain.fullDomain} has been deleted successfully`
+      });
+      setShowSubdomainDialog(false);
+      setEditingSubdomain(null);
+    }
   };
 
   const handleEditDomain = (domain) => {
@@ -580,13 +597,22 @@ export default function DomainManagement() {
                 </div>
               </div>
             )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowSubdomainDialog(false)}>
-                Cancel
+            <DialogFooter className="flex justify-between">
+              <Button 
+                variant="destructive" 
+                onClick={handleDeleteSubdomain}
+                className="mr-auto"
+              >
+                Delete Subdomain
               </Button>
-              <Button onClick={handleSaveSubdomain}>
-                Save Changes
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setShowSubdomainDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveSubdomain}>
+                  Save Changes
+                </Button>
+              </div>
             </DialogFooter>
           </DialogContent>
         </Dialog>
