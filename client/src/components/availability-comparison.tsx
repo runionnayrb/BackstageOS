@@ -60,20 +60,15 @@ export default function AvailabilityComparison({
   // Keyboard event handlers for shift selection and delete
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      console.log('Key pressed:', e.key);
-      
       if (e.key === 'Shift') {
         setIsShiftPressed(true);
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        // Use a ref to get current selection or check via state callback
         setSelectedItems(current => {
-          console.log('Current selection size:', current.size);
           if (current.size > 0) {
-            console.log('Delete/Backspace key pressed with', current.size, 'items selected');
             setShowBulkDeleteDialog(true);
           }
-          return current; // Return unchanged
+          return current;
         });
       }
     };
@@ -410,6 +405,14 @@ export default function AvailabilityComparison({
     const x = e.clientX - rect.left; // Position relative to the contact row
     const y = e.clientY - rect.top;
     
+    console.log('Mouse down debug:', {
+      clientX: e.clientX,
+      rectLeft: rect.left,
+      relativeX: x,
+      convertedMinutes: positionToMinutes(x),
+      convertedTime: formatTimeFromMinutes(positionToMinutes(x))
+    });
+    
     setIsDragging(true);
     setDragStart({ x, y, contactId });
     e.preventDefault();
@@ -504,17 +507,14 @@ export default function AvailabilityComparison({
     // Handle Shift+click for multi-selection
     if (e.shiftKey && !mode) {
       e.preventDefault();
-      console.log('Shift+click detected on item:', item.id);
       if (selectedItems.has(item.id)) {
         const newSelected = new Set(selectedItems);
         newSelected.delete(item.id);
         setSelectedItems(newSelected);
-        console.log('Deselected item:', item.id, 'New selection:', Array.from(newSelected));
       } else {
         const newSelected = new Set(selectedItems);
         newSelected.add(item.id);
         setSelectedItems(newSelected);
-        console.log('Selected item:', item.id, 'New selection:', Array.from(newSelected));
       }
       return;
     }
@@ -696,7 +696,6 @@ export default function AvailabilityComparison({
           <div 
             className="flex-1 flex overflow-hidden focus:outline-none" 
             tabIndex={0}
-            onFocus={() => console.log('Calendar focused')}
           >
             {isLoading ? (
               <div className="flex-1 flex items-center justify-center">
@@ -801,15 +800,12 @@ export default function AvailabilityComparison({
                                     if (e.shiftKey) {
                                       e.stopPropagation();
                                       e.preventDefault();
-                                      console.log('Shift+click on block:', item.id, 'Current selection:', Array.from(selectedItemsRef.current));
                                       
                                       const newSelected = new Set(selectedItemsRef.current);
                                       if (newSelected.has(item.id)) {
                                         newSelected.delete(item.id);
-                                        console.log('Deselected, new selection:', Array.from(newSelected));
                                       } else {
                                         newSelected.add(item.id);
-                                        console.log('Selected, new selection:', Array.from(newSelected));
                                       }
                                       setSelectedItems(newSelected);
                                     }
