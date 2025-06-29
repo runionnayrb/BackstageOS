@@ -135,6 +135,7 @@ export default function AvailabilityComparison({
 
   // Helper functions for drag operations
   const positionToMinutes = (position: number) => {
+    // Convert pixel position to minutes (1 pixel = 1 minute in our timeline)
     return Math.round(position + START_MINUTES);
   };
 
@@ -164,9 +165,11 @@ export default function AvailabilityComparison({
       if (!response.ok) throw new Error("Failed to create availability");
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newItem) => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
       setNewBlock(null);
+      // Open edit dialog for the newly created item
+      setEditingItem(newItem);
     },
     onError: (error) => {
       toast({ 
@@ -248,7 +251,7 @@ export default function AvailabilityComparison({
     if (e.button !== 0) return; // Only left click
     
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - 192; // Subtract contact names column width
+    const x = e.clientX - rect.left; // Position relative to the contact row
     const y = e.clientY - rect.top;
     
     setIsDragging(true);
@@ -260,7 +263,7 @@ export default function AvailabilityComparison({
     if (!isDragging || !dragStart) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
-    const currentX = e.clientX - rect.left - 192;
+    const currentX = e.clientX - rect.left;
     const currentY = e.clientY - rect.top;
 
     if (draggedItem) {
@@ -302,11 +305,14 @@ export default function AvailabilityComparison({
         endTime: formatTimeFromMinutes(newEndMinutes),
       });
     } else if (!newBlock) {
-      // Creating new block
-      const startX = Math.min(dragStart.x, currentX);
-      const endX = Math.max(dragStart.x, currentX);
-      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(startX)));
-      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(endX))));
+      // Creating new block - use actual click position as starting point
+      const startX = dragStart.x;
+      const endX = currentX;
+      const leftX = Math.min(startX, endX);
+      const rightX = Math.max(startX, endX);
+      
+      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(leftX)));
+      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(rightX))));
       
       setNewBlock({
         contactId: dragStart.contactId,
@@ -317,10 +323,13 @@ export default function AvailabilityComparison({
       });
     } else {
       // Updating new block size
-      const startX = Math.min(dragStart.x, currentX);
-      const endX = Math.max(dragStart.x, currentX);
-      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(startX)));
-      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(endX))));
+      const startX = dragStart.x;
+      const endX = currentX;
+      const leftX = Math.min(startX, endX);
+      const rightX = Math.max(startX, endX);
+      
+      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(leftX)));
+      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(rightX))));
       
       setNewBlock({
         ...newBlock,
