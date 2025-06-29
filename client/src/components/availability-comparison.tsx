@@ -1,12 +1,11 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, ChevronRight, Calendar, Users, Trash2, ArrowLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight, Users, Trash2, ArrowLeft } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import DailyAvailabilityView from "./daily-availability-view";
 
 interface ProjectAvailability {
   id: number;
@@ -36,45 +35,18 @@ export default function AvailabilityComparison({
 }: AvailabilityComparisonProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [currentWeek, setCurrentWeek] = useState(new Date());
-  const [selectedDateForDaily, setSelectedDateForDaily] = useState<Date | null>(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
   const [timeIncrement, setTimeIncrement] = useState(30); // minutes
   const [editingItem, setEditingItem] = useState<any>(null);
 
-  // Get show settings for timezone and week start
+  // Get show settings for timezone
   const { data: showSettings } = useQuery({
     queryKey: [`/api/projects/${projectId}/settings`],
   });
 
-  // Get week dates based on configured week start day
-  const getWeekDates = (date: Date, startDay: string = "sunday") => {
-    const week = [];
-    const startOfWeek = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const currentDay = startOfWeek.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    
-    const weekStartMap: { [key: string]: number } = {
-      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, 
-      thursday: 4, friday: 5, saturday: 6
-    };
-    
-    const targetStartDay = weekStartMap[startDay.toLowerCase()] || 0;
-    const daysToSubtract = (currentDay - targetStartDay + 7) % 7;
-    
-    startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract);
-    
-    for (let i = 0; i < 7; i++) {
-      const day = new Date(startOfWeek);
-      day.setDate(startOfWeek.getDate() + i);
-      week.push(day);
-    }
-    
-    return week;
-  };
-
   // Get timezone from settings
   const scheduleSettings = (showSettings as any)?.scheduleSettings || {};
   const timezone = scheduleSettings.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const weekStartDay = scheduleSettings.weekStartDay || "sunday";
 
   // Fetch all project availability
   const { data: allAvailability = [], isLoading } = useQuery<ProjectAvailability[]>({
@@ -94,9 +66,6 @@ export default function AvailabilityComparison({
       ])
     ).values()
   ).sort((a: any, b: any) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`));
-
-  // Generate week dates
-  const weekDates = getWeekDates(currentWeek, weekStartDay);
 
   // Time formatting
   const formatTime = (minutes: number) => {
@@ -118,34 +87,44 @@ export default function AvailabilityComparison({
     return Math.max(0, minutes - START_MINUTES);
   };
 
-  // Get availability for a specific contact and date
-  const getContactAvailabilityForDate = (contactId: number, date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+  // Generate time labels for the current day
+  const generateTimeLabels = () => {
+    const labels = [];
+    for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += timeIncrement) {
+      labels.push({
+        minutes,
+        label: formatTime(minutes),
+        position: minutes - START_MINUTES,
+      });
+    }
+    return labels;
+  };
+
+  const timeLabels = generateTimeLabels();
+
+  // Get availability for a specific contact and the current date
+  const getContactAvailabilityForDate = (contactId: number) => {
+    const dateStr = currentDate.toISOString().split('T')[0];
     return (allAvailability as ProjectAvailability[]).filter(
       (item: ProjectAvailability) => item.contactId === contactId && item.date === dateStr
     );
   };
 
   // Navigation functions
-  const goToPreviousWeek = () => {
-    const newWeek = new Date(currentWeek);
-    newWeek.setDate(newWeek.getDate() - 7);
-    setCurrentWeek(newWeek);
+  const goToPreviousDay = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() - 1);
+    setCurrentDate(newDate);
   };
 
-  const goToNextWeek = () => {
-    const newWeek = new Date(currentWeek);
-    newWeek.setDate(newWeek.getDate() + 7);
-    setCurrentWeek(newWeek);
+  const goToNextDay = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() + 1);
+    setCurrentDate(newDate);
   };
 
   const goToToday = () => {
-    setCurrentWeek(new Date());
-  };
-
-  // Handle block click to open daily view
-  const handleBlockClick = (date: Date) => {
-    setSelectedDateForDaily(date);
+    setCurrentDate(new Date());
   };
 
   // Mutations for CRUD operations
@@ -228,7 +207,7 @@ export default function AvailabilityComparison({
               </Button>
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                <h1 className="text-xl font-semibold">Team Availability Overview</h1>
+                <h1 className="text-xl font-semibold">Team Availability</h1>
               </div>
             </div>
           </div>
@@ -240,24 +219,24 @@ export default function AvailabilityComparison({
         <div className="h-[calc(100vh-8rem)] flex flex-col">
           <div className="mb-4">
             <p className="text-gray-600">
-              Compare availability across all team members. Click blocks in weekly view for detailed daily view.
+              Compare team availability for the selected day. Times are shown across the top, team members on the left.
             </p>
           </div>
 
           {/* Navigation and Controls */}
           <div className="flex items-center justify-between gap-4 border-b pb-4 mb-4">
             <div className="flex items-center gap-2">
-              <Button onClick={goToPreviousWeek} variant="outline" size="sm">
+              <Button onClick={goToPreviousDay} variant="outline" size="sm">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Button onClick={goToToday} variant="outline" size="sm">
                 Today
               </Button>
-              <Button onClick={goToNextWeek} variant="outline" size="sm">
+              <Button onClick={goToNextDay} variant="outline" size="sm">
                 <ChevronRight className="h-4 w-4" />
               </Button>
               <div className="ml-4 text-sm font-medium">
-                {weekDates[0]?.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - {weekDates[6]?.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
               </div>
             </div>
 
@@ -306,91 +285,87 @@ export default function AvailabilityComparison({
                   ))}
                 </div>
 
-                {/* Calendar Grid */}
+                {/* Time Header and Grid */}
                 <div className="flex-1 overflow-auto">
                   <div className="relative">
                     {/* Time Header */}
                     <div className="sticky top-0 bg-white border-b z-10">
-                      <div className="flex">
-                        {weekDates.map((date: Date, dayIndex: number) => (
-                          <div key={dayIndex} className="flex-1 min-w-0">
-                            <div className="p-2 text-center border-r">
-                              <div className="font-medium">
-                                {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}
-                              </div>
-                            </div>
+                      <div className="flex" style={{ minWidth: `${TOTAL_MINUTES}px` }}>
+                        {timeLabels.map((timeLabel) => (
+                          <div
+                            key={timeLabel.minutes}
+                            className="border-r text-center py-2 text-xs text-gray-500"
+                            style={{
+                              width: `${timeIncrement}px`,
+                              minWidth: `${timeIncrement}px`,
+                            }}
+                          >
+                            {timeIncrement >= 60 || timeLabel.minutes % 60 === 0 ? timeLabel.label : ''}
                           </div>
                         ))}
                       </div>
                     </div>
 
                     {/* Contact Rows */}
-                    <div className="space-y-1">
-                      {contacts.map((contact: any) => (
-                        <div key={contact.id} className="flex border-b">
-                          {weekDates.map((date: Date, dayIndex: number) => {
-                            const dayAvailability = getContactAvailabilityForDate(contact.id, date);
-                            
-                            return (
-                              <div key={dayIndex} className="flex-1 h-16 border-r relative bg-white">
-                                {dayAvailability.map((item: ProjectAvailability) => {
-                                  const startMinutes = timeToMinutes(item.startTime);
-                                  const endMinutes = timeToMinutes(item.endTime);
-                                  const startPos = minutesToPosition(startMinutes);
-                                  const width = endMinutes - startMinutes;
+                    <div>
+                      {contacts.map((contact: any) => {
+                        const contactAvailability = getContactAvailabilityForDate(contact.id);
+                        
+                        return (
+                          <div key={contact.id} className="h-16 border-b relative bg-white" style={{ minWidth: `${TOTAL_MINUTES}px` }}>
+                            {/* Time Grid Background */}
+                            {timeLabels.map((timeLabel) => (
+                              <div
+                                key={timeLabel.minutes}
+                                className="absolute border-r border-gray-100 h-full"
+                                style={{
+                                  left: `${timeLabel.position}px`,
+                                  width: '1px',
+                                }}
+                              />
+                            ))}
 
-                                  return (
-                                    <div
-                                      key={item.id}
-                                      className={`absolute cursor-pointer rounded text-xs px-2 py-1 text-white ${
-                                        item.availabilityType === 'unavailable'
-                                          ? 'bg-red-500 hover:bg-red-600'
-                                          : 'bg-blue-500 hover:bg-blue-600'
-                                      }`}
-                                      style={{
-                                        left: `${(startPos / TOTAL_MINUTES) * 100}%`,
-                                        width: `${(width / TOTAL_MINUTES) * 100}%`,
-                                        height: '36px',
-                                        minWidth: '20px',
-                                      }}
-                                      onClick={() => {
-                                        handleBlockClick(date);
-                                      }}
-                                      title={`${item.availabilityType === 'unavailable' ? 'Unavailable' : 'Preferred'}: ${formatTime(startMinutes)} - ${formatTime(endMinutes)}${item.notes ? `\n${item.notes}` : ''}`}
-                                    >
-                                      <div className="font-medium truncate">
-                                        {item.availabilityType === 'unavailable' ? 'Out' : 'Pref'}
-                                      </div>
-                                      <div className="text-xs opacity-90 truncate">
-                                        {formatTime(startMinutes)}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ))}
+                            {/* Availability Blocks */}
+                            {contactAvailability.map((item: ProjectAvailability) => {
+                              const startMinutes = timeToMinutes(item.startTime);
+                              const endMinutes = timeToMinutes(item.endTime);
+                              const startPos = minutesToPosition(startMinutes);
+                              const width = endMinutes - startMinutes;
+
+                              return (
+                                <div
+                                  key={item.id}
+                                  className={`absolute cursor-pointer rounded text-xs px-2 py-1 text-white top-2 bottom-2 ${
+                                    item.availabilityType === 'unavailable'
+                                      ? 'bg-red-500 hover:bg-red-600'
+                                      : 'bg-blue-500 hover:bg-blue-600'
+                                  }`}
+                                  style={{
+                                    left: `${startPos}px`,
+                                    width: `${width}px`,
+                                    minWidth: '20px',
+                                  }}
+                                  onClick={() => setEditingItem(item)}
+                                  title={`${item.availabilityType === 'unavailable' ? 'Unavailable' : 'Preferred'}: ${formatTime(startMinutes)} - ${formatTime(endMinutes)}${item.notes ? `\n${item.notes}` : ''}`}
+                                >
+                                  <div className="font-medium truncate">
+                                    {item.availabilityType === 'unavailable' ? 'Out' : 'Pref'}
+                                  </div>
+                                  <div className="text-xs opacity-90 truncate">
+                                    {formatTime(startMinutes)}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
               </>
             )}
           </div>
-
-          {/* Daily Availability View */}
-          {selectedDateForDaily && (
-            <DailyAvailabilityView
-              projectId={projectId}
-              selectedDate={selectedDateForDaily}
-              isOpen={!!selectedDateForDaily}
-              onClose={() => setSelectedDateForDaily(null)}
-            />
-          )}
 
           {/* Edit Dialog */}
           {editingItem && (
