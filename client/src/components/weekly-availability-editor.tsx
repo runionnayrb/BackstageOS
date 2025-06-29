@@ -251,8 +251,10 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   };
 
   const minutesToTime = (minutes: number): string => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
+    // Cap at 23:59 (1439 minutes) to prevent 24:00 display
+    const cappedMinutes = Math.min(minutes, 1439);
+    const hours = Math.floor(cappedMinutes / 60);
+    const mins = cappedMinutes % 60;
     
     if (timeFormat === "12h") {
       const period = hours >= 12 ? "PM" : "AM";
@@ -445,11 +447,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const mouseX = e.clientX - calendarRect.left;
       const mouseY = e.clientY - calendarRect.top;
       
-      // Calculate new day (accounting for time column + 7 day columns)
-      const dayColumnWidth = calendarRect.width / 8;
-      const timeColumnWidth = dayColumnWidth;
-      const relativeX = mouseX - timeColumnWidth;
-      const newDayIndex = Math.max(0, Math.min(6, Math.floor(relativeX / dayColumnWidth)));
+      // Keep the block in the same day during drag - don't allow day changes
+      const newDayIndex = currentDragState.originalPosition.dayIndex;
       
       // Calculate new time position using drag offset, not absolute coordinates
       const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
@@ -571,7 +570,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
         // Resizing from top - adjust start time
         newStartMinutes = Math.max(0, Math.min(endMinutes - timeIncrement, newMinutes));
       } else {
-        // Resizing from bottom - adjust end time  
+        // Resizing from bottom - adjust end time, cap at 23:59 (1439 minutes)
         newEndMinutes = Math.max(startMinutes + timeIncrement, Math.min(1439, newMinutes));
       }
       
