@@ -271,6 +271,12 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     return Math.max(0, minutes - START_MINUTES);
   };
 
+  const minutesToHeight = (durationMinutes: number): number => {
+    // For height calculations, we don't need to subtract START_MINUTES
+    // Just return the duration directly as pixels (1 minute = 1 pixel)
+    return durationMinutes;
+  };
+
   const positionToMinutes = (position: number): number => {
     // Convert pixel position back to minutes, adding START_MINUTES offset
     const minutes = Math.max(START_MINUTES, Math.min(END_MINUTES - 1, Math.round(position + START_MINUTES)));
@@ -928,7 +934,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                           left: `${(displayDayIndex / 7) * 100 + 0.5}%`,
                           width: `${100 / 7 - 1}%`,
                           top: `${minutesToPosition(displayStartMinutes)}px`,
-                          height: `${minutesToPosition(displayEndMinutes - displayStartMinutes)}px`,
+                          height: `${minutesToHeight(displayEndMinutes - displayStartMinutes)}px`,
                           transform: isBeingDragged || isBeingResized ? 'scale(1.02)' : 'none'
                         }}
                         onMouseDown={(e) => {
@@ -1015,7 +1021,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                         left: `${(isDragCreating.startDay / 7) * 100 + 0.5}%`,
                         width: `${100 / 7 - 1}%`,
                         top: `${minutesToPosition(Math.min(isDragCreating.startTime, isDragCreating.currentTime))}px`,
-                        height: `${minutesToPosition(Math.abs(isDragCreating.currentTime - isDragCreating.startTime))}px`
+                        height: `${minutesToHeight(Math.abs(isDragCreating.currentTime - isDragCreating.startTime))}px`
                       }}
                     >
                       <div className="p-1 text-white text-xs">
