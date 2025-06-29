@@ -123,20 +123,36 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   });
   
   // Calculate initial scroll position to show working hours
-  const initialScrollPosition = Math.max(0, (startHour - 2) * 60); // Start 2 hours before working hours
+  // Show working hours in the center of the 400px viewport
+  const viewportHeight = 400; // Calendar container height
+  const initialScrollPosition = Math.max(0, (startHour * 60) - (viewportHeight / 2)); // Center working hours in viewport
 
   // Auto-scroll to working hours when dialog opens
   useEffect(() => {
     if (isOpen && scrollContainerRef.current && showSettings) {
       const scrollToPosition = minutesToPosition(initialScrollPosition);
-      setTimeout(() => {
-        scrollContainerRef.current?.scrollTo({
-          top: scrollToPosition,
-          behavior: 'smooth'
-        });
-      }, 100); // Small delay to ensure dialog is fully rendered
+      console.log('Auto-scrolling to working hours:', {
+        startHour,
+        initialScrollPosition,
+        scrollToPosition,
+        workingHours
+      });
+      
+      // Multiple attempts to ensure scroll works
+      const scrollAttempts = [50, 150, 300];
+      
+      scrollAttempts.forEach(delay => {
+        setTimeout(() => {
+          if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+              top: scrollToPosition,
+              behavior: delay === 50 ? 'auto' : 'smooth'
+            });
+          }
+        }, delay);
+      });
     }
-  }, [isOpen, showSettings, initialScrollPosition]);
+  }, [isOpen, showSettings, initialScrollPosition, startHour, workingHours]);
 
   // Mutations
   const createMutation = useMutation({
