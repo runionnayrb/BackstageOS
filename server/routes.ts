@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertErrorLogSchema, insertWaitlistSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Authentication middleware
@@ -2155,6 +2155,217 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting contact:", error);
       res.status(500).json({ message: "Failed to delete contact" });
+    }
+  });
+
+  // Schedule Events Routes
+  app.get('/api/projects/:id/schedule-events', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const events = await storage.getScheduleEventsByProjectId(projectId);
+      res.json(events);
+    } catch (error) {
+      console.error("Error fetching schedule events:", error);
+      res.status(500).json({ message: "Failed to fetch schedule events" });
+    }
+  });
+
+  app.post('/api/projects/:id/schedule-events', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const eventData = insertScheduleEventSchema.parse({
+        ...req.body,
+        projectId,
+        createdBy: req.user.id.toString(),
+      });
+
+      const event = await storage.createScheduleEvent(eventData);
+      
+      // Handle participants if provided
+      if (req.body.participants && Array.isArray(req.body.participants)) {
+        for (const participantId of req.body.participants) {
+          await storage.addEventParticipant({
+            eventId: event.id,
+            contactId: participantId,
+            isRequired: true,
+            status: 'pending',
+          });
+        }
+      }
+
+      // Return event with participants
+      const eventWithParticipants = await storage.getScheduleEventById(event.id);
+      res.status(201).json(eventWithParticipants);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid event data", errors: error.errors });
+      }
+      console.error("Error creating schedule event:", error);
+      res.status(500).json({ message: "Failed to create schedule event" });
+    }
+  });
+
+  app.get('/api/schedule-events/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const event = await storage.getScheduleEventById(eventId);
+      
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      // Check project access
+      const project = await storage.getProjectById(event.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(event.projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      res.json(event);
+    } catch (error) {
+      console.error("Error fetching schedule event:", error);
+      res.status(500).json({ message: "Failed to fetch schedule event" });
+    }
+  });
+
+  app.patch('/api/schedule-events/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const event = await storage.getScheduleEventById(eventId);
+      
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      // Check project ownership
+      const project = await storage.getProjectById(event.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updateEventSchema = insertScheduleEventSchema.partial().omit({
+        projectId: true,
+        createdBy: true,
+      });
+      
+      const validatedData = updateEventSchema.parse(req.body);
+      const updatedEvent = await storage.updateScheduleEvent(eventId, validatedData);
+      
+      // Handle participants update if provided
+      if (req.body.participants && Array.isArray(req.body.participants)) {
+        // Remove existing participants
+        await storage.removeAllEventParticipants(eventId);
+        
+        // Add new participants
+        for (const participantId of req.body.participants) {
+          await storage.addEventParticipant({
+            eventId: eventId,
+            contactId: participantId,
+            isRequired: true,
+            status: 'pending',
+          });
+        }
+      }
+
+      // Return updated event with participants
+      const eventWithParticipants = await storage.getScheduleEventById(eventId);
+      res.json(eventWithParticipants);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid event data", errors: error.errors });
+      }
+      console.error("Error updating schedule event:", error);
+      res.status(500).json({ message: "Failed to update schedule event" });
+    }
+  });
+
+  app.delete('/api/schedule-events/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const event = await storage.getScheduleEventById(eventId);
+      
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      // Check project ownership
+      const project = await storage.getProjectById(event.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteScheduleEvent(eventId);
+      res.json({ message: "Event deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting schedule event:", error);
+      res.status(500).json({ message: "Failed to delete schedule event" });
+    }
+  });
+
+  // Event participants routes
+  app.patch('/api/schedule-events/:eventId/participants/:participantId', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.eventId);
+      const participantId = parseInt(req.params.participantId);
+      
+      const event = await storage.getScheduleEventById(eventId);
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      // Check project access
+      const project = await storage.getProjectById(event.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(event.projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const updateParticipantSchema = insertScheduleEventParticipantSchema.partial().omit({
+        eventId: true,
+        contactId: true,
+      });
+      
+      const validatedData = updateParticipantSchema.parse(req.body);
+      const updatedParticipant = await storage.updateEventParticipant(eventId, participantId, validatedData);
+      res.json(updatedParticipant);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid participant data", errors: error.errors });
+      }
+      console.error("Error updating event participant:", error);
+      res.status(500).json({ message: "Failed to update participant" });
     }
   });
 

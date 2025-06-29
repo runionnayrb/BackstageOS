@@ -34,6 +34,7 @@ import ReportViewer from "./pages/report-viewer";
 import AdminDashboard from "@/pages/admin-dashboard";
 import ProfileSettings from "@/pages/profile-settings";
 import Calendar from "@/pages/calendar";
+import Schedule from "@/pages/schedule";
 import PropsAndCostumes from "@/pages/props-costumes";
 import Personnel from "@/pages/personnel";
 import PersonnelCategory from "@/pages/personnel-category";
@@ -117,6 +118,7 @@ function Router() {
         <Route path="/shows/:id/reports/:type/:reportId" component={ReportViewer} />
         <Route path="/shows/:id/reports/:type" component={ShowReports} />
         <Route path="/shows/:id/calendar" component={Calendar} />
+        <Route path="/shows/:id/calendar/schedule" component={Schedule} />
         <Route path="/shows/:id/script" component={ScriptEditor} />
         <Route path="/shows/:id/props-costumes" component={PropsAndCostumes} />
         <Route path="/shows/:id/props" component={PropsTracker} />

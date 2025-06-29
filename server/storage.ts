@@ -13,6 +13,8 @@ import {
   betaSettings,
   contacts,
   contactAvailability,
+  scheduleEvents,
+  scheduleEventParticipants,
   contactSheetVersions,
   errorLogs,
   type User,
@@ -43,6 +45,10 @@ import {
   type InsertContact,
   type ContactAvailability,
   type InsertContactAvailability,
+  type ScheduleEvent,
+  type InsertScheduleEvent,
+  type ScheduleEventParticipant,
+  type InsertScheduleEventParticipant,
   type ErrorLog,
   type InsertErrorLog,
   waitlist,
@@ -1027,6 +1033,142 @@ export class DatabaseStorage implements IStorage {
       .limit(1);
 
     return versions.length > 0 ? versions[0].version : "1.0";
+  }
+
+  // Schedule events operations
+  async getScheduleEventsByProjectId(projectId: number): Promise<(ScheduleEvent & { participants: (ScheduleEventParticipant & { contactFirstName: string; contactLastName: string })[] })[]> {
+    const events = await db
+      .select()
+      .from(scheduleEvents)
+      .where(eq(scheduleEvents.projectId, projectId))
+      .orderBy(scheduleEvents.date, scheduleEvents.startTime);
+
+    // Get participants for each event
+    const eventsWithParticipants = await Promise.all(
+      events.map(async (event) => {
+        const participants = await db
+          .select({
+            id: scheduleEventParticipants.id,
+            eventId: scheduleEventParticipants.eventId,
+            contactId: scheduleEventParticipants.contactId,
+            isRequired: scheduleEventParticipants.isRequired,
+            status: scheduleEventParticipants.status,
+            notes: scheduleEventParticipants.notes,
+            createdAt: scheduleEventParticipants.createdAt,
+            contactFirstName: contacts.firstName,
+            contactLastName: contacts.lastName,
+          })
+          .from(scheduleEventParticipants)
+          .innerJoin(contacts, eq(scheduleEventParticipants.contactId, contacts.id))
+          .where(eq(scheduleEventParticipants.eventId, event.id));
+
+        return { ...event, participants };
+      })
+    );
+
+    return eventsWithParticipants;
+  }
+
+  async getScheduleEventById(id: number): Promise<(ScheduleEvent & { participants: (ScheduleEventParticipant & { contactFirstName: string; contactLastName: string })[] }) | null> {
+    const [event] = await db
+      .select()
+      .from(scheduleEvents)
+      .where(eq(scheduleEvents.id, id));
+
+    if (!event) return null;
+
+    const participants = await db
+      .select({
+        id: scheduleEventParticipants.id,
+        eventId: scheduleEventParticipants.eventId,
+        contactId: scheduleEventParticipants.contactId,
+        isRequired: scheduleEventParticipants.isRequired,
+        status: scheduleEventParticipants.status,
+        notes: scheduleEventParticipants.notes,
+        createdAt: scheduleEventParticipants.createdAt,
+        contactFirstName: contacts.firstName,
+        contactLastName: contacts.lastName,
+      })
+      .from(scheduleEventParticipants)
+      .innerJoin(contacts, eq(scheduleEventParticipants.contactId, contacts.id))
+      .where(eq(scheduleEventParticipants.eventId, id));
+
+    return { ...event, participants };
+  }
+
+  async createScheduleEvent(eventData: InsertScheduleEvent): Promise<ScheduleEvent> {
+    const [event] = await db
+      .insert(scheduleEvents)
+      .values({
+        ...eventData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return event;
+  }
+
+  async updateScheduleEvent(id: number, eventData: Partial<InsertScheduleEvent>): Promise<ScheduleEvent> {
+    const [event] = await db
+      .update(scheduleEvents)
+      .set({
+        ...eventData,
+        updatedAt: new Date(),
+      })
+      .where(eq(scheduleEvents.id, id))
+      .returning();
+    return event;
+  }
+
+  async deleteScheduleEvent(id: number): Promise<void> {
+    // Delete participants first due to foreign key constraints
+    await db
+      .delete(scheduleEventParticipants)
+      .where(eq(scheduleEventParticipants.eventId, id));
+    
+    // Delete the event
+    await db
+      .delete(scheduleEvents)
+      .where(eq(scheduleEvents.id, id));
+  }
+
+  // Event participants operations
+  async addEventParticipant(participantData: InsertScheduleEventParticipant): Promise<ScheduleEventParticipant> {
+    const [participant] = await db
+      .insert(scheduleEventParticipants)
+      .values({
+        ...participantData,
+        createdAt: new Date(),
+      })
+      .returning();
+    return participant;
+  }
+
+  async updateEventParticipant(eventId: number, contactId: number, participantData: Partial<InsertScheduleEventParticipant>): Promise<ScheduleEventParticipant> {
+    const [participant] = await db
+      .update(scheduleEventParticipants)
+      .set(participantData)
+      .where(and(
+        eq(scheduleEventParticipants.eventId, eventId),
+        eq(scheduleEventParticipants.contactId, contactId)
+      ))
+      .returning();
+    return participant;
+  }
+
+  async removeEventParticipant(eventId: number, contactId: number): Promise<void> {
+    await db
+      .delete(scheduleEventParticipants)
+      .where(and(
+        eq(scheduleEventParticipants.eventId, eventId),
+        eq(scheduleEventParticipants.contactId, contactId)
+      ));
+  }
+
+  async removeAllEventParticipants(eventId: number): Promise<void> {
+    await db
+      .delete(scheduleEventParticipants)
+      .where(eq(scheduleEventParticipants.eventId, eventId));
   }
 
   // Company list settings operations

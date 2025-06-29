@@ -360,6 +360,49 @@ export const contacts = pgTable("contacts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Contact availability system
+export const contactAvailability = pgTable("contact_availability", {
+  id: serial("id").primaryKey(),
+  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  date: varchar("date").notNull(), // YYYY-MM-DD format
+  startTime: varchar("start_time").notNull(), // HH:MM format
+  endTime: varchar("end_time").notNull(), // HH:MM format
+  availabilityType: varchar("availability_type").notNull(), // 'unavailable' | 'preferred'
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schedule events system
+export const scheduleEvents = pgTable("schedule_events", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  date: varchar("date").notNull(), // YYYY-MM-DD format
+  startTime: varchar("start_time").notNull(), // HH:MM format
+  endTime: varchar("end_time").notNull(), // HH:MM format
+  type: varchar("type").notNull().default("rehearsal"), // rehearsal, performance, meeting, tech, other
+  location: varchar("location"),
+  notes: text("notes"),
+  isAllDay: boolean("is_all_day").default(false),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schedule event participants (many-to-many relationship)
+export const scheduleEventParticipants = pgTable("schedule_event_participants", {
+  id: serial("id").primaryKey(),
+  eventId: integer("event_id").notNull().references(() => scheduleEvents.id, { onDelete: "cascade" }),
+  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  isRequired: boolean("is_required").default(true),
+  status: varchar("status").default("pending"), // pending, confirmed, declined
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
@@ -578,20 +621,7 @@ export const feedbackRelations = relations(feedback, ({ one }) => ({
   }),
 }));
 
-// Contact availability table for scheduling
-export const contactAvailability = pgTable("contact_availability", {
-  id: serial("id").primaryKey(),
-  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
-  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  date: varchar("date", { length: 10 }).notNull(), // YYYY-MM-DD format
-  startTime: varchar("start_time", { length: 8 }).notNull(), // HH:MM:SS format
-  endTime: varchar("end_time", { length: 8 }).notNull(), // HH:MM:SS format
-  availabilityType: varchar("availability_type", { length: 20 }).notNull().default("unavailable"), // 'unavailable', 'preferred'
-  notes: text("notes"),
-  createdBy: integer("created_by").notNull().references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+
 
 export const contactsRelations = relations(contacts, ({ one, many }) => ({
   project: one(projects, {
@@ -603,6 +633,7 @@ export const contactsRelations = relations(contacts, ({ one, many }) => ({
     references: [users.id],
   }),
   availability: many(contactAvailability),
+  eventParticipants: many(scheduleEventParticipants),
 }));
 
 export const contactAvailabilityRelations = relations(contactAvailability, ({ one }) => ({
@@ -614,9 +645,28 @@ export const contactAvailabilityRelations = relations(contactAvailability, ({ on
     fields: [contactAvailability.projectId],
     references: [projects.id],
   }),
+}));
+
+export const scheduleEventsRelations = relations(scheduleEvents, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [scheduleEvents.projectId],
+    references: [projects.id],
+  }),
   creator: one(users, {
-    fields: [contactAvailability.createdBy],
+    fields: [scheduleEvents.createdBy],
     references: [users.id],
+  }),
+  participants: many(scheduleEventParticipants),
+}));
+
+export const scheduleEventParticipantsRelations = relations(scheduleEventParticipants, ({ one }) => ({
+  event: one(scheduleEvents, {
+    fields: [scheduleEventParticipants.eventId],
+    references: [scheduleEvents.id],
+  }),
+  contact: one(contacts, {
+    fields: [scheduleEventParticipants.contactId],
+    references: [contacts.id],
   }),
 }));
 
@@ -785,9 +835,24 @@ export const insertContactAvailabilitySchema = createInsertSchema(contactAvailab
   updatedAt: true,
 });
 
+export const insertScheduleEventSchema = createInsertSchema(scheduleEvents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleEventParticipantSchema = createInsertSchema(scheduleEventParticipants).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type ContactAvailability = typeof contactAvailability.$inferSelect;
 export type InsertContactAvailability = z.infer<typeof insertContactAvailabilitySchema>;
+export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
+export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;
+export type ScheduleEventParticipant = typeof scheduleEventParticipants.$inferSelect;
+export type InsertScheduleEventParticipant = z.infer<typeof insertScheduleEventParticipantSchema>;
 
 export const insertContactSheetVersionSchema = createInsertSchema(contactSheetVersions).omit({
   id: true,
