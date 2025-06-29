@@ -44,6 +44,7 @@ import FeedbackPage from "@/pages/feedback";
 import NotFound from "@/pages/not-found";
 import WaitlistLanding from "@/pages/waitlist-landing";
 import DomainManagement from "@/pages/domain-management";
+import DomainSetup from "@/pages/domain-setup";
 
 function Router() {
   // Check if this is the main landing page domain FIRST
@@ -136,6 +137,7 @@ function Router() {
         <Route path="/profile" component={ProfileSettings} />
         <Route path="/feedback" component={FeedbackPage} />
         <Route path="/domain-management" component={DomainManagement} />
+        <Route path="/domain-setup" component={DomainSetup} />
         <Route path="/admin" component={AdminDashboard} />
         <Route component={NotFound} />
       </Switch>
