@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, Bug, Wifi, Monitor, MousePointer, FileText, Eye, Calendar, Search } from "lucide-react";
+import { AlertTriangle, Bug, Wifi, Monitor, MousePointer, FileText, Eye, Calendar, Search, Play, Pause } from "lucide-react";
 import { ErrorLog } from "@/../../shared/schema";
+import { errorLogger } from "@/lib/errorLogger";
 
 const errorTypeIcons = {
   javascript_error: Bug,
@@ -33,10 +34,40 @@ export default function AdminErrorLogs() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [selectedError, setSelectedError] = useState<ErrorLog | null>(null);
+  const [isLoggingEnabled, setIsLoggingEnabled] = useState(true);
 
   const { data: errorLogs = [], isLoading } = useQuery<ErrorLog[]>({
     queryKey: ["/api/errors"],
   });
+
+  // Initialize logging state from localStorage
+  useEffect(() => {
+    const savedState = localStorage.getItem('errorLoggingEnabled');
+    if (savedState !== null) {
+      const enabled = JSON.parse(savedState);
+      setIsLoggingEnabled(enabled);
+      if (enabled) {
+        errorLogger.enable();
+      } else {
+        errorLogger.disable();
+      }
+    } else {
+      // Check current state from errorLogger
+      setIsLoggingEnabled(errorLogger.isEnabled());
+    }
+  }, []);
+
+  const toggleLogging = () => {
+    const newState = !isLoggingEnabled;
+    setIsLoggingEnabled(newState);
+    localStorage.setItem('errorLoggingEnabled', JSON.stringify(newState));
+    
+    if (newState) {
+      errorLogger.enable();
+    } else {
+      errorLogger.disable();
+    }
+  };
 
   // Filter error logs based on search and type filter
   const filteredErrorLogs = errorLogs.filter(log => {
@@ -86,7 +117,30 @@ export default function AdminErrorLogs() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold mb-6">Error Logs</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold">Error Logs</h2>
+          <Button
+            onClick={toggleLogging}
+            variant={isLoggingEnabled ? "default" : "outline"}
+            className={`flex items-center gap-2 ${
+              isLoggingEnabled 
+                ? "bg-green-600 hover:bg-green-700" 
+                : "border-red-500 text-red-600 hover:bg-red-50"
+            }`}
+          >
+            {isLoggingEnabled ? (
+              <>
+                <Pause className="h-4 w-4" />
+                Pause Logging
+              </>
+            ) : (
+              <>
+                <Play className="h-4 w-4" />
+                Resume Logging
+              </>
+            )}
+          </Button>
+        </div>
         
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -141,6 +195,13 @@ export default function AdminErrorLogs() {
             <CardTitle>Recent Errors ({filteredErrorLogs.length})</CardTitle>
             <CardDescription>
               Automatic error logging captures JavaScript errors, network failures, and user interaction issues
+              <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                isLoggingEnabled 
+                  ? "bg-green-100 text-green-800" 
+                  : "bg-red-100 text-red-800"
+              }`}>
+                {isLoggingEnabled ? "● Live" : "● Paused"}
+              </span>
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -264,14 +325,12 @@ export default function AdminErrorLogs() {
                                       </div>
                                     </div>
 
-                                    {errorLog.additionalData && (
-                                      <div>
-                                        <h4 className="font-medium mb-2">Additional Data</h4>
-                                        <div className="bg-gray-50 p-3 rounded text-xs font-mono max-h-32 overflow-y-auto">
-                                          <pre>{JSON.stringify(errorLog.additionalData, null, 2)}</pre>
-                                        </div>
+                                    <div>
+                                      <h4 className="font-medium mb-2">Additional Data</h4>
+                                      <div className="bg-gray-50 p-3 rounded text-xs font-mono max-h-32 overflow-y-auto">
+                                        <pre>{errorLog.additionalData ? String(JSON.stringify(errorLog.additionalData, null, 2)) : 'No additional data'}</pre>
                                       </div>
-                                    )}
+                                    </div>
                                   </div>
                                 </ScrollArea>
                               </DialogContent>

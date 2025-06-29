@@ -47,6 +47,10 @@ class ErrorLogger {
     this.isLoggingEnabled = false;
   }
 
+  public isEnabled(): boolean {
+    return this.isLoggingEnabled;
+  }
+
   private setupGlobalErrorHandlers() {
     // Catch JavaScript errors
     window.addEventListener('error', (event) => {
