@@ -84,19 +84,34 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   // Mutations
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
+      console.log('Sending availability data:', data);
       const response = await fetch(`/api/projects/${contact.projectId}/contacts/${contact.id}/availability`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to create availability");
-      return response.json();
+      
+      const responseText = await response.text();
+      console.log('Response status:', response.status, 'Response text:', responseText);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to create availability: ${response.status} ${responseText}`);
+      }
+      return JSON.parse(responseText);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
         queryKey: [`/api/projects/${contact.projectId}/contacts/${contact.id}/availability`] 
       });
       toast({ title: "Availability added successfully" });
+    },
+    onError: (error) => {
+      console.error('Create availability error:', error);
+      toast({ 
+        title: "Failed to add availability", 
+        description: error.message,
+        variant: "destructive" 
+      });
     },
   });
 
@@ -176,7 +191,6 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     if (!calendarRef.current) return;
 
     const rect = calendarRef.current.getBoundingClientRect();
-    const dayWidth = rect.width / 7;
     const y = e.clientY - rect.top - 60; // Subtract header height
     const minutes = positionToMinutes(y);
 
@@ -198,33 +212,41 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       return;
     }
 
-    // Start drag creation
-    setIsDragCreating({
+    // Start drag creation - create local variables for the closure
+    let dragState = {
       isActive: true,
       startDay: dayIndex,
       startTime: minutes,
       currentDay: dayIndex,
       currentTime: minutes,
-      availabilityType: 'unavailable'
-    });
+      availabilityType: 'unavailable' as const
+    };
+
+    setIsDragCreating(dragState);
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!calendarRef.current || !isDragCreating?.isActive) return;
+      if (!calendarRef.current) return;
 
       const rect = calendarRef.current.getBoundingClientRect();
       const y = e.clientY - rect.top - 60;
       const newMinutes = positionToMinutes(y);
 
-      setIsDragCreating(prev => prev ? {
-        ...prev,
-        currentTime: newMinutes
-      } : null);
+      dragState = { ...dragState, currentTime: newMinutes };
+      setIsDragCreating(dragState);
     };
 
     const handleMouseUp = () => {
-      if (isDragCreating?.isActive) {
-        const startTime = Math.min(isDragCreating.startTime, isDragCreating.currentTime);
-        const endTime = Math.max(isDragCreating.startTime, isDragCreating.currentTime);
+      if (dragState.isActive) {
+        const startTime = Math.min(dragState.startTime, dragState.currentTime);
+        const endTime = Math.max(dragState.startTime, dragState.currentTime);
+        
+        console.log('Creating availability:', {
+          date: weekDates[dayIndex].toISOString().split('T')[0],
+          startTime: minutesToTime(startTime),
+          endTime: minutesToTime(endTime),
+          duration: endTime - startTime,
+          availabilityType: dragState.availabilityType
+        });
         
         if (endTime - startTime >= 15) { // Minimum 15 minutes
           const date = weekDates[dayIndex].toISOString().split('T')[0];
@@ -232,9 +254,11 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             date,
             startTime: minutesToTime(startTime),
             endTime: minutesToTime(endTime),
-            availabilityType: isDragCreating.availabilityType,
+            availabilityType: dragState.availabilityType,
             notes: ""
           });
+        } else {
+          console.log('Block too small:', endTime - startTime, 'minutes');
         }
       }
       
@@ -245,7 +269,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [isDragCreating, weekAvailability, weekDates, createMutation]);
+  }, [weekAvailability, weekDates, createMutation]);
 
   // Generate time labels (every 2 hours)
   const timeLabels = [];
