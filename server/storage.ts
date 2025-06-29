@@ -609,23 +609,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateShowSettings(projectId: number, settingsData: Partial<InsertShowSettings>): Promise<ShowSettings> {
-    // Properly handle timestamp fields
-    const cleanedData = { ...settingsData };
+    // Create update object with only safe, non-timestamp fields
+    const updateData: any = {};
     
-    // Handle timestamp fields properly - explicitly allow null values
-    if ('shareLinkExpiry' in cleanedData) {
-      // shareLinkExpiry can be null or a Date object
-      if (cleanedData.shareLinkExpiry !== null && !(cleanedData.shareLinkExpiry instanceof Date)) {
-        delete cleanedData.shareLinkExpiry; // Remove if it's not null or Date
+    // Copy only JSONB and simple fields (no timestamp fields)
+    const safeFields = ['scheduleSettings', 'templateSettings', 'reportSettings', 'permissions', 
+                       'contactCategoriesOrder', 'sectionsOrder', 'contactSheetSettings', 
+                       'companyListSettings', 'sharingEnabled', 'shareLink'];
+    
+    for (const field of safeFields) {
+      if (field in settingsData) {
+        updateData[field] = settingsData[field as keyof typeof settingsData];
       }
     }
 
     const [settings] = await db
       .update(showSettings)
-      .set({
-        ...cleanedData,
-        updatedAt: new Date(),
-      })
+      .set(updateData)
       .where(eq(showSettings.projectId, projectId))
       .returning();
     return settings;
