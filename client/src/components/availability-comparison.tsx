@@ -188,10 +188,14 @@ export default function AvailabilityComparison({
 
   // Helper functions for drag operations
   const positionToMinutes = (position: number, containerWidth: number) => {
-    // Convert pixel position to minutes using percentage-based calculation
-    const positionPercent = (position / containerWidth) * 100;
-    const minutes = START_MINUTES + (positionPercent / 100) * TOTAL_MINUTES;
-    return Math.round(minutes);
+    // Each time segment gets equal width in the flex layout
+    const numSegments = timeLabels.length;
+    const segmentWidth = containerWidth / numSegments;
+    const segmentIndex = Math.floor(position / segmentWidth);
+    
+    // Convert segment index to minutes
+    const minutes = START_MINUTES + (segmentIndex * timeIncrement);
+    return Math.max(START_MINUTES, Math.min(END_MINUTES, minutes));
   };
 
   const snapToIncrement = (minutes: number) => {
@@ -403,15 +407,25 @@ export default function AvailabilityComparison({
   const handleMouseDown = (e: React.MouseEvent, contactId: number) => {
     if (e.button !== 0) return; // Only left click
     
+    // Get the timeline container (parent div that contains the time grid)
+    const timelineContainer = e.currentTarget.parentElement;
+    const timelineRect = timelineContainer?.getBoundingClientRect();
+    
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left; // Position relative to the contact row
     const y = e.clientY - rect.top;
     
+    const numSegments = timeLabels.length;
+    const segmentWidth = rect.width / numSegments;
+    const segmentIndex = Math.floor(x / segmentWidth);
+    
     console.log('Mouse down debug:', {
       clientX: e.clientX,
-      rectLeft: rect.left,
       relativeX: x,
       containerWidth: rect.width,
+      numSegments,
+      segmentWidth,
+      segmentIndex,
       convertedMinutes: positionToMinutes(x, rect.width),
       convertedTime: formatTimeFromMinutes(positionToMinutes(x, rect.width))
     });
