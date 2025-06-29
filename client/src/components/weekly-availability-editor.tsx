@@ -412,10 +412,13 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
         contentY,
         rawMinutes,
         duration,
-        maxStart: 1440 - duration,
+        maxStart: 1439 - duration,
         newStartMinutes,
         time: minutesToTime(newStartMinutes),
-        endTime: minutesToTime(newStartMinutes + duration)
+        endTime: minutesToTime(newStartMinutes + duration),
+        originalStart: timeToMinutes(item.startTime),
+        isMovingUp: rawMinutes < timeToMinutes(item.startTime),
+        constraintApplied: rawMinutes !== newStartMinutes
       });
       
       currentDragState = {
