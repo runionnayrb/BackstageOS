@@ -521,6 +521,87 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     document.addEventListener('mouseup', handleMouseUp);
   }, [weekDates, updateMutation]);
 
+  // Handle resizing existing blocks
+  const handleResizeMouseDown = useCallback((e: React.MouseEvent, item: ContactAvailability, edge: 'start' | 'end') => {
+    e.stopPropagation();
+    
+    if (!calendarRef.current || !scrollContainerRef.current) return;
+    
+    const scrollContainer = scrollContainerRef.current;
+    const calendarRect = calendarRef.current.getBoundingClientRect();
+    
+    console.log(`Starting resize on ${edge} edge for item:`, item.id);
+    
+    setIsResizing({ id: item.id, edge });
+    
+    const startMinutes = timeToMinutes(item.startTime);
+    const endMinutes = timeToMinutes(item.endTime);
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      const scrollTop = scrollContainer.scrollTop;
+      const mouseY = e.clientY - calendarRect.top;
+      const newTimePixels = mouseY + scrollTop;
+      const newMinutes = Math.round(newTimePixels / timeIncrement) * timeIncrement; // Snap to increment
+      
+      let newStartMinutes = startMinutes;
+      let newEndMinutes = endMinutes;
+      
+      if (edge === 'start') {
+        // Resizing from top - adjust start time
+        newStartMinutes = Math.max(0, Math.min(endMinutes - timeIncrement, newMinutes));
+      } else {
+        // Resizing from bottom - adjust end time  
+        newEndMinutes = Math.max(startMinutes + timeIncrement, Math.min(1439, newMinutes));
+      }
+      
+      console.log(`Resizing ${edge}:`, {
+        mouseY,
+        newMinutes,
+        newStartMinutes,
+        newEndMinutes,
+        duration: newEndMinutes - newStartMinutes
+      });
+      
+      // Update the visual state immediately
+      setIsResizing({ 
+        id: item.id, 
+        edge,
+        previewStartMinutes: newStartMinutes,
+        previewEndMinutes: newEndMinutes
+      } as any);
+    };
+    
+    const handleMouseUp = () => {
+      if (isResizing && (isResizing as any).previewStartMinutes !== undefined) {
+        const { previewStartMinutes, previewEndMinutes } = isResizing as any;
+        
+        console.log('Finalizing resize:', {
+          id: item.id,
+          oldTime: `${item.startTime} - ${item.endTime}`,
+          newTime: `${minutesToTime(previewStartMinutes)} - ${minutesToTime(previewEndMinutes)}`
+        });
+        
+        updateMutation.mutate({
+          id: item.id,
+          data: {
+            date: item.date,
+            startTime: minutesToTime(previewStartMinutes),
+            endTime: minutesToTime(previewEndMinutes),
+            availabilityType: item.availabilityType,
+            notes: item.notes || ""
+          }
+        } as any);
+      }
+      
+      setIsResizing(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [timeIncrement, updateMutation, isResizing]);
+
   // Generate time labels (every 2 hours) using show's time format
   const timeLabels = [];
   for (let hour = 0; hour < 24; hour += 2) {
@@ -689,7 +770,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                     {timeLabels.map(({ hour, label, position }) => (
                       <div
                         key={hour}
-                        className="absolute text-xs text-gray-600 px-2 -translate-y-1/2"
+                        className={`absolute text-xs text-gray-600 px-2 ${hour === 0 ? 'translate-y-0' : '-translate-y-1/2'}`}
                         style={{ top: `${minutesToPosition(hour * 60)}px` }}
                       >
                         {label}
@@ -742,13 +823,23 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                     const endMinutes = timeToMinutes(item.endTime);
                     const duration = endMinutes - startMinutes;
                     
-                    // Check if this item is being dragged
+                    // Check if this item is being dragged or resized
                     const isBeingDragged = draggedItem?.item.id === item.id;
+                    const isBeingResized = isResizing?.id === item.id;
                     
-                    // Use current position if being dragged, otherwise original position
-                    const displayDayIndex = isBeingDragged ? draggedItem.currentPosition.dayIndex : dayIndex;
-                    const displayStartMinutes = isBeingDragged ? draggedItem.currentPosition.startMinutes : startMinutes;
-                    const displayEndMinutes = displayStartMinutes + duration;
+                    // Use current position if being dragged or resized, otherwise original position
+                    let displayDayIndex = dayIndex;
+                    let displayStartMinutes = startMinutes;
+                    let displayEndMinutes = endMinutes;
+                    
+                    if (isBeingDragged) {
+                      displayDayIndex = draggedItem.currentPosition.dayIndex;
+                      displayStartMinutes = draggedItem.currentPosition.startMinutes;
+                      displayEndMinutes = displayStartMinutes + duration;
+                    } else if (isBeingResized && (isResizing as any).previewStartMinutes !== undefined) {
+                      displayStartMinutes = (isResizing as any).previewStartMinutes;
+                      displayEndMinutes = (isResizing as any).previewEndMinutes;
+                    }
                     
                     return (
                       <div
@@ -758,8 +849,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                           left: `${(displayDayIndex / 7) * 100 + 0.5}%`,
                           width: `${100 / 7 - 1}%`,
                           top: `${minutesToPosition(displayStartMinutes)}px`,
-                          height: `${minutesToPosition(duration)}px`,
-                          transform: isBeingDragged ? 'scale(1.02)' : 'none'
+                          height: `${minutesToPosition(displayEndMinutes - displayStartMinutes)}px`,
+                          transform: isBeingDragged || isBeingResized ? 'scale(1.02)' : 'none'
                         }}
                         onMouseDown={(e) => {
                           console.log('Block mousedown triggered for item:', item.id);
@@ -792,6 +883,130 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                           });
                         }}
                       >
+                        {/* Top resize handle */}
+                        <div
+                          className="absolute top-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-white hover:bg-opacity-20 transition-colors"
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            if (clickTimeoutRef.current) {
+                              clearTimeout(clickTimeoutRef.current);
+                              clickTimeoutRef.current = null;
+                            }
+                            // Start resize operation for top edge
+                            console.log('Starting resize from top for item:', item.id);
+                            
+                            if (!calendarRef.current || !scrollContainerRef.current) return;
+                            
+                            const scrollContainer = scrollContainerRef.current;
+                            const calendarRect = calendarRef.current.getBoundingClientRect();
+                            const originalStartMinutes = timeToMinutes(item.startTime);
+                            const originalEndMinutes = timeToMinutes(item.endTime);
+                            
+                            setIsResizing({ id: item.id, edge: 'start' });
+                            
+                            const handleMouseMove = (e: MouseEvent) => {
+                              const scrollTop = scrollContainer.scrollTop;
+                              const mouseY = e.clientY - calendarRect.top;
+                              const newTimePixels = mouseY + scrollTop;
+                              const newMinutes = Math.round(newTimePixels / timeIncrement) * timeIncrement;
+                              const newStartMinutes = Math.max(0, Math.min(originalEndMinutes - timeIncrement, newMinutes));
+                              
+                              setIsResizing({ 
+                                id: item.id, 
+                                edge: 'start',
+                                previewStartMinutes: newStartMinutes,
+                                previewEndMinutes: originalEndMinutes
+                              } as any);
+                            };
+                            
+                            const handleMouseUp = () => {
+                              if (isResizing && (isResizing as any).previewStartMinutes !== undefined) {
+                                const { previewStartMinutes, previewEndMinutes } = isResizing as any;
+                                
+                                updateMutation.mutate({
+                                  id: item.id,
+                                  data: {
+                                    date: item.date,
+                                    startTime: minutesToTime(previewStartMinutes),
+                                    endTime: minutesToTime(previewEndMinutes),
+                                    availabilityType: item.availabilityType,
+                                    notes: item.notes || ""
+                                  }
+                                });
+                              }
+                              
+                              setIsResizing(null);
+                              document.removeEventListener('mousemove', handleMouseMove);
+                              document.removeEventListener('mouseup', handleMouseUp);
+                            };
+                            
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                          }}
+                        />
+                        
+                        {/* Bottom resize handle */}
+                        <div
+                          className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-white hover:bg-opacity-20 transition-colors"
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            if (clickTimeoutRef.current) {
+                              clearTimeout(clickTimeoutRef.current);
+                              clickTimeoutRef.current = null;
+                            }
+                            // Start resize operation for bottom edge
+                            console.log('Starting resize from bottom for item:', item.id);
+                            
+                            if (!calendarRef.current || !scrollContainerRef.current) return;
+                            
+                            const scrollContainer = scrollContainerRef.current;
+                            const calendarRect = calendarRef.current.getBoundingClientRect();
+                            const originalStartMinutes = timeToMinutes(item.startTime);
+                            const originalEndMinutes = timeToMinutes(item.endTime);
+                            
+                            setIsResizing({ id: item.id, edge: 'end' });
+                            
+                            const handleMouseMove = (e: MouseEvent) => {
+                              const scrollTop = scrollContainer.scrollTop;
+                              const mouseY = e.clientY - calendarRect.top;
+                              const newTimePixels = mouseY + scrollTop;
+                              const newMinutes = Math.round(newTimePixels / timeIncrement) * timeIncrement;
+                              const newEndMinutes = Math.max(originalStartMinutes + timeIncrement, Math.min(1439, newMinutes));
+                              
+                              setIsResizing({ 
+                                id: item.id, 
+                                edge: 'end',
+                                previewStartMinutes: originalStartMinutes,
+                                previewEndMinutes: newEndMinutes
+                              } as any);
+                            };
+                            
+                            const handleMouseUp = () => {
+                              if (isResizing && (isResizing as any).previewStartMinutes !== undefined) {
+                                const { previewStartMinutes, previewEndMinutes } = isResizing as any;
+                                
+                                updateMutation.mutate({
+                                  id: item.id,
+                                  data: {
+                                    date: item.date,
+                                    startTime: minutesToTime(previewStartMinutes),
+                                    endTime: minutesToTime(previewEndMinutes),
+                                    availabilityType: item.availabilityType,
+                                    notes: item.notes || ""
+                                  }
+                                });
+                              }
+                              
+                              setIsResizing(null);
+                              document.removeEventListener('mousemove', handleMouseMove);
+                              document.removeEventListener('mouseup', handleMouseUp);
+                            };
+                            
+                            document.addEventListener('mousemove', handleMouseMove);
+                            document.addEventListener('mouseup', handleMouseUp);
+                          }}
+                        />
+
                         <div className="p-1 text-white text-xs">
                           <div className="font-medium">
                             {minutesToTime(displayStartMinutes)} - {minutesToTime(displayEndMinutes)}
@@ -871,7 +1086,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               </div>
             </div>
             <div className="text-xs text-gray-500">
-              Drag to create • Double-click to edit • Minimum {timeIncrement} minutes
+              Drag to create • Double-click to edit • Drag edges to resize • Minimum {timeIncrement} minutes
             </div>
           </div>
         </div>
