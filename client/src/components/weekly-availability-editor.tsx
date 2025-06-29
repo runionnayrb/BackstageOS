@@ -90,11 +90,13 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     );
   });
 
-  // Extract working hours from show settings
-  const workingHours = (showSettings as any)?.scheduleSettings ? 
-    JSON.parse((showSettings as any).scheduleSettings).workingHours : 
-    { start: "09:00", end: "18:00" }; // Default fallback
+  // Extract schedule settings from show settings
+  const scheduleSettings = (showSettings as any)?.scheduleSettings ? 
+    JSON.parse((showSettings as any).scheduleSettings) : 
+    { workingHours: { start: "09:00", end: "18:00" }, timeFormat: "24h" }; // Default fallback
 
+  const workingHours = scheduleSettings.workingHours;
+  const timeFormat = scheduleSettings.timeFormat || "24h"; // Default to 24-hour format
   const startHour = parseInt(workingHours.start.split(':')[0]);
   const endHour = parseInt(workingHours.end.split(':')[0]);
   
@@ -190,7 +192,14 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   const minutesToTime = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    
+    if (timeFormat === "12h") {
+      const period = hours >= 12 ? "PM" : "AM";
+      const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+      return `${displayHours}:${mins.toString().padStart(2, '0')} ${period}`;
+    } else {
+      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    }
   };
 
   const minutesToPosition = (minutes: number): number => {
@@ -310,24 +319,23 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     document.addEventListener('mouseup', handleMouseUp);
   }, [weekAvailability, weekDates, createMutation]);
 
-  // Generate time labels (every 2 hours)
+  // Generate time labels (every 2 hours) using show's time format
   const timeLabels = [];
   for (let hour = 0; hour < 24; hour += 2) {
     timeLabels.push({
       hour,
-      label: `${hour.toString().padStart(2, '0')}:00`,
+      label: minutesToTime(hour * 60),
       position: (hour * 60 / 1440) * 1440 // Convert to pixel position
     });
   }
 
-  // Generate grid lines based on time increment
+  // Generate grid lines based on time increment using show's time format
   const gridLines = [];
   for (let minutes = 0; minutes < 1440; minutes += timeIncrement) {
-    const hour = Math.floor(minutes / 60);
     const min = minutes % 60;
     gridLines.push({
       minutes,
-      label: `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`,
+      label: minutesToTime(minutes),
       isHour: min === 0
     });
   }
@@ -586,7 +594,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               </div>
             </div>
             <div className="text-xs text-gray-500">
-              Drag to create • Click to edit • Minimum 15 minutes
+              Drag to create • Click to edit • Minimum {timeIncrement} minutes
             </div>
           </div>
         </div>
