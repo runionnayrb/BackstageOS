@@ -609,10 +609,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateShowSettings(projectId: number, settingsData: Partial<InsertShowSettings>): Promise<ShowSettings> {
+    // Filter out any invalid date values and ensure proper date handling
+    const cleanedData = { ...settingsData };
+    
+    // Remove any fields that might contain invalid date values
+    Object.keys(cleanedData).forEach(key => {
+      const value = cleanedData[key as keyof typeof cleanedData];
+      // If it's supposed to be a date but isn't a valid Date object, skip it
+      if (value && typeof value === 'object' && !(value instanceof Date) && !Array.isArray(value) && typeof value !== 'string') {
+        delete cleanedData[key as keyof typeof cleanedData];
+      }
+    });
+
     const [settings] = await db
       .update(showSettings)
       .set({
-        ...settingsData,
+        ...cleanedData,
         updatedAt: new Date(),
       })
       .where(eq(showSettings.projectId, projectId))

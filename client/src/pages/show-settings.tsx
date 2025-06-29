@@ -159,14 +159,33 @@ export default function ShowSettings() {
 
   const handleSettingsUpdate = (section: string, updates: any) => {
     const settingsData = settings as any || {};
-    const updatedSettings = {
-      ...settingsData,
-      [section]: {
-        ...(settingsData[section] || {}),
+    
+    // Handle scheduleSettings specially since it's stored as JSON string
+    if (section === 'scheduleSettings') {
+      const currentScheduleSettings = typeof settingsData.scheduleSettings === 'string' 
+        ? JSON.parse(settingsData.scheduleSettings) 
+        : (settingsData.scheduleSettings || {});
+      
+      const updatedScheduleSettings = {
+        ...currentScheduleSettings,
         ...updates,
-      },
-    };
-    updateSettingsMutation.mutate(updatedSettings);
+      };
+      
+      const updatedSettings = {
+        ...settingsData,
+        scheduleSettings: JSON.stringify(updatedScheduleSettings),
+      };
+      updateSettingsMutation.mutate(updatedSettings);
+    } else {
+      const updatedSettings = {
+        ...settingsData,
+        [section]: {
+          ...(settingsData[section] || {}),
+          ...updates,
+        },
+      };
+      updateSettingsMutation.mutate(updatedSettings);
+    }
   };
 
   const copyShareLink = async () => {
@@ -613,11 +632,21 @@ export default function ShowSettings() {
                   <Input
                     id="workStart"
                     type="time"
-                    value={(settings as any)?.scheduleSettings?.workingHours?.start || "09:00"}
+                    value={(() => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? JSON.parse((settings as any).scheduleSettings) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      return scheduleSettings?.workingHours?.start || "09:00";
+                    })()}
                     onChange={(e) =>
                       handleSettingsUpdate("scheduleSettings", {
                         workingHours: {
-                          ...(settings as any)?.scheduleSettings?.workingHours,
+                          ...(() => {
+                            const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                              ? JSON.parse((settings as any).scheduleSettings) 
+                              : ((settings as any)?.scheduleSettings || {});
+                            return scheduleSettings?.workingHours || {};
+                          })(),
                           start: e.target.value,
                         },
                       })
@@ -630,11 +659,21 @@ export default function ShowSettings() {
                   <Input
                     id="workEnd"
                     type="time"
-                    value={(settings as any)?.scheduleSettings?.workingHours?.end || "18:00"}
+                    value={(() => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? JSON.parse((settings as any).scheduleSettings) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      return scheduleSettings?.workingHours?.end || "18:00";
+                    })()}
                     onChange={(e) =>
                       handleSettingsUpdate("scheduleSettings", {
                         workingHours: {
-                          ...(settings as any)?.scheduleSettings?.workingHours,
+                          ...(() => {
+                            const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                              ? JSON.parse((settings as any).scheduleSettings) 
+                              : ((settings as any)?.scheduleSettings || {});
+                            return scheduleSettings?.workingHours || {};
+                          })(),
                           end: e.target.value,
                         },
                       })
@@ -645,7 +684,12 @@ export default function ShowSettings() {
                 <div className="space-y-2">
                   <Label htmlFor="timeZone">Time Zone</Label>
                   <Select
-                    value={(settings as any)?.scheduleSettings?.timeZone || "America/New_York"}
+                    value={(() => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? JSON.parse((settings as any).scheduleSettings) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      return scheduleSettings?.timeZone || "America/New_York";
+                    })()}
                     onValueChange={(value) =>
                       handleSettingsUpdate("scheduleSettings", { timeZone: value })
                     }
@@ -668,7 +712,12 @@ export default function ShowSettings() {
                 <div className="space-y-2">
                   <Label htmlFor="weekStart">Week Start</Label>
                   <Select
-                    value={(settings as any)?.scheduleSettings?.weekStartDay || "sunday"}
+                    value={(() => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? JSON.parse((settings as any).scheduleSettings) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      return scheduleSettings?.weekStartDay || "sunday";
+                    })()}
                     onValueChange={(value) =>
                       handleSettingsUpdate("scheduleSettings", { weekStartDay: value })
                     }
@@ -697,7 +746,12 @@ export default function ShowSettings() {
                   </p>
                 </div>
                 <Switch
-                  checked={(settings as any)?.scheduleSettings?.allowConflicts || false}
+                  checked={(() => {
+                    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                      ? JSON.parse((settings as any).scheduleSettings) 
+                      : ((settings as any)?.scheduleSettings || {});
+                    return scheduleSettings?.allowConflicts || false;
+                  })()}
                   onCheckedChange={(checked) =>
                     handleSettingsUpdate("scheduleSettings", { allowConflicts: checked })
                   }

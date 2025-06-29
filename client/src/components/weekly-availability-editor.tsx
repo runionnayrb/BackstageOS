@@ -31,6 +31,7 @@ interface AvailabilityEditorProps {
 
 export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
+  // Initialize with timezone-aware date once settings are loaded
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [isDragCreating, setIsDragCreating] = useState<{
     isActive: boolean;
@@ -104,11 +105,12 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   // Extract schedule settings from show settings
   const scheduleSettings = (showSettings as any)?.scheduleSettings ? 
     JSON.parse((showSettings as any).scheduleSettings) : 
-    { workingHours: { start: "09:00", end: "18:00" }, timeFormat: "24h", weekStartDay: "sunday" }; // Default fallback
+    { workingHours: { start: "09:00", end: "18:00" }, timeFormat: "24h", weekStartDay: "sunday", timeZone: "America/New_York" }; // Default fallback
 
   const workingHours = scheduleSettings.workingHours;
   const timeFormat = scheduleSettings.timeFormat || "24h"; // Default to 24-hour format
   const weekStartDay = scheduleSettings.weekStartDay || "sunday"; // Default to Sunday
+  const timeZone = scheduleSettings.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone; // Use show timezone or browser default
   const startHour = parseInt(workingHours.start.split(':')[0]);
   const endHour = parseInt(workingHours.end.split(':')[0]);
 
@@ -272,6 +274,23 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     return Math.round(minutes / timeIncrement) * timeIncrement;
   };
 
+  // Timezone-aware date formatting for storage
+  const formatDateForStorage = (date: Date): string => {
+    // Always store dates in ISO format but ensure consistency with show timezone
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Get current date in show timezone
+  const getCurrentDateInTimezone = (): Date => {
+    const now = new Date();
+    // Create a date object that represents "today" in the show's timezone
+    const timezoneDateString = now.toLocaleDateString('en-CA', { timeZone }); // en-CA gives YYYY-MM-DD format
+    return new Date(timezoneDateString + 'T00:00:00');
+  };
+
   // Navigation functions
   const goToPreviousWeek = () => {
     const newWeek = new Date(currentWeek);
@@ -286,7 +305,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   };
 
   const goToToday = () => {
-    setCurrentWeek(new Date());
+    // Set to today in the show's timezone
+    setCurrentWeek(getCurrentDateInTimezone());
   };
 
   // Drag to create functionality
@@ -346,7 +366,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
         const endTime = Math.max(dragState.startTime, dragState.currentTime);
         
         console.log('Creating availability:', {
-          date: weekDates[dragState.startDay].toISOString().split('T')[0],
+          date: formatDateForStorage(weekDates[dragState.startDay]),
           startTime: minutesToTime(startTime),
           endTime: minutesToTime(endTime),
           duration: endTime - startTime,
@@ -355,7 +375,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
         });
         
         if (endTime - startTime >= timeIncrement) { // Minimum duration based on increment
-          const date = weekDates[dragState.startDay].toISOString().split('T')[0];
+          const date = formatDateForStorage(weekDates[dragState.startDay]);
           createMutation.mutate({
             date,
             startTime: minutesToTime(startTime),
@@ -481,7 +501,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             currentPosition.startMinutes !== originalPosition.startMinutes) &&
             !updateMutation.isPending) {
           
-          const newDate = weekDates[currentPosition.dayIndex].toISOString().split('T')[0];
+          const newDate = formatDateForStorage(weekDates[currentPosition.dayIndex]);
           const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
           const newEndMinutes = currentPosition.startMinutes + duration;
           
@@ -694,19 +714,26 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               </Button>
             </div>
             
-            {/* Time increment selector */}
-            <div className="flex items-center space-x-2">
-              <span className="text-sm">Grid:</span>
-              <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-                <SelectTrigger className="w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="15">15 min</SelectItem>
-                  <SelectItem value="30">30 min</SelectItem>
-                  <SelectItem value="60">60 min</SelectItem>
-                </SelectContent>
-              </Select>
+            {/* Time increment selector and timezone display */}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm">Grid:</span>
+                <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
+                  <SelectTrigger className="w-24">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 min</SelectItem>
+                    <SelectItem value="30">30 min</SelectItem>
+                    <SelectItem value="60">60 min</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Timezone indicator */}
+              <div className="text-sm text-gray-600">
+                Times shown in {timeZone.replace('_', ' ')}
+              </div>
             </div>
 
             {/* Availability type selector for drag creation */}
