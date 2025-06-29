@@ -626,7 +626,7 @@ export default function ShowSettings() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-5 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="workStart">Work Start Time</Label>
                   <Input
@@ -733,6 +733,29 @@ export default function ShowSettings() {
                       <SelectItem value="thursday">Thursday</SelectItem>
                       <SelectItem value="friday">Friday</SelectItem>
                       <SelectItem value="saturday">Saturday</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="timeFormat">Time Format</Label>
+                  <Select
+                    value={(() => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? JSON.parse((settings as any).scheduleSettings) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      return scheduleSettings?.timeFormat || "12";
+                    })()}
+                    onValueChange={(value) =>
+                      handleSettingsUpdate("scheduleSettings", { timeFormat: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="12">12-Hour (AM/PM)</SelectItem>
+                      <SelectItem value="24">24-Hour</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

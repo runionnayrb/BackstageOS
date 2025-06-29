@@ -8,6 +8,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { ChevronLeft, ChevronRight, Users, Trash2, ArrowLeft, Calendar, Filter } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings } from "@/lib/timeUtils";
 
 interface ProjectAvailability {
   id: number;
@@ -91,14 +92,14 @@ export default function AvailabilityComparison({
     };
   }, []); // Remove dependency to avoid stale closure
 
-  // Get show settings for timezone
+  // Get show settings for timezone and time format
   const { data: showSettings } = useQuery({
     queryKey: [`/api/projects/${projectId}/settings`],
   });
 
-  // Get timezone from settings
-  const scheduleSettings = (showSettings as any)?.scheduleSettings || {};
-  const timezone = scheduleSettings.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  // Parse schedule settings with time format preference
+  const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
+  const { timeFormat, timezone } = scheduleSettings;
 
   // Fetch all project contacts
   const { data: allContacts = [] } = useQuery({
@@ -147,13 +148,9 @@ export default function AvailabilityComparison({
   
 
 
-  // Time formatting
+  // Time formatting using show settings preference
   const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
-    return `${displayHours}:${mins.toString().padStart(2, '0')} ${ampm}`;
+    return formatTimeFromMinutes(minutes, timeFormat);
   };
 
   // Convert time string to minutes since start of day

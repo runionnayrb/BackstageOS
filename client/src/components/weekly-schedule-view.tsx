@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, Plus, Clock, Users } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings } from "@/lib/timeUtils";
 
 interface WeeklyScheduleViewProps {
   projectId: number;
@@ -77,12 +78,9 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
     queryKey: [`/api/projects/${projectId}/settings`],
   });
 
-  // Get timezone and week start from settings
-  const scheduleSettings = (showSettings as any)?.scheduleSettings || {};
-  const timezone = scheduleSettings.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const weekStartDay = scheduleSettings.weekStartDay || 'sunday';
-  const workStartTime = scheduleSettings.workStartTime || '09:00';
-  const workEndTime = scheduleSettings.workEndTime || '18:00';
+  // Parse schedule settings with time format preference
+  const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
+  const { timeFormat, timezone, weekStartDay, workStartTime, workEndTime } = scheduleSettings;
 
   // Fetch schedule events
   const { data: events = [], isLoading } = useQuery<ScheduleEvent[]>({
@@ -322,6 +320,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
             {Array.from({ length: 17 }, (_, i) => {
               const hour = START_HOUR + i;
               const position = (i / 16) * 960;
+              const timeString = `${hour.toString().padStart(2, '0')}:00`;
+              const formattedTime = formatTimeDisplay(timeString, timeFormat);
               return (
                 <div
                   key={hour}
@@ -329,7 +329,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
                   style={{ top: `${position}px` }}
                 >
                   <div className="absolute left-0 w-16 p-2 text-xs text-gray-500 bg-white border-r">
-                    {hour === 24 ? '12:00 AM' : hour > 12 ? `${hour - 12}:00 PM` : hour === 12 ? '12:00 PM' : `${hour}:00 AM`}
+                    {formattedTime}
                   </div>
                 </div>
               );

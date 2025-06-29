@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings } from "@/lib/timeUtils";
 
 interface Contact {
   id: number;
@@ -102,16 +103,11 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     enabled: isOpen,
   });
 
-  // Extract schedule settings from show settings
-  const rawScheduleSettings = (showSettings as any)?.scheduleSettings;
-  const scheduleSettings = rawScheduleSettings ? 
-    (typeof rawScheduleSettings === 'string' ? JSON.parse(rawScheduleSettings) : rawScheduleSettings) : 
-    { workingHours: { start: "09:00", end: "18:00" }, timeFormat: "24h", weekStartDay: "sunday", timeZone: "America/New_York" }; // Default fallback
-
-  const workingHours = scheduleSettings.workingHours || { start: "09:00", end: "18:00" };
-  const timeFormat = scheduleSettings.timeFormat || "24h"; // Default to 24-hour format
-  const weekStartDay = scheduleSettings.weekStartDay || "sunday"; // Default to Sunday
-  const timeZone = scheduleSettings.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone; // Use show timezone or browser default
+  // Parse schedule settings with time format preference
+  const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
+  const { timeFormat, timezone: timeZone, weekStartDay, workStartTime, workEndTime } = scheduleSettings;
+  
+  const workingHours = { start: workStartTime, end: workEndTime };
   const startHour = parseInt(workingHours.start.split(':')[0]);
   const endHour = parseInt(workingHours.end.split(':')[0]);
 
@@ -260,18 +256,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   };
 
   const minutesToTime = (minutes: number): string => {
-    // Cap at 23:59 (1439 minutes) to prevent 24:00 display
-    const cappedMinutes = Math.min(minutes, 1439);
-    const hours = Math.floor(cappedMinutes / 60);
-    const mins = cappedMinutes % 60;
-    
-    if (timeFormat === "12h") {
-      const period = hours >= 12 ? "PM" : "AM";
-      const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-      return `${displayHours}:${mins.toString().padStart(2, '0')} ${period}`;
-    } else {
-      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-    }
+    return formatTimeFromMinutes(minutes, timeFormat);
   };
 
   const minutesToPosition = (minutes: number): number => {
