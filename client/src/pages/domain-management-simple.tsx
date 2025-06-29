@@ -22,8 +22,10 @@ export default function DomainManagement() {
   const [newEmailAlias, setNewEmailAlias] = useState("");
   const [editingSubdomain, setEditingSubdomain] = useState(null);
   const [editingEmailAlias, setEditingEmailAlias] = useState(null);
+  const [editingDomain, setEditingDomain] = useState(null);
   const [showSubdomainDialog, setShowSubdomainDialog] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [showDomainDialog, setShowDomainDialog] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -58,7 +60,15 @@ export default function DomainManagement() {
       name: "backstageos.com",
       status: "active",
       cloudflareEnabled: true,
-      sslEnabled: true
+      sslEnabled: true,
+      pointsToPage: "/landing",
+      pageOptions: [
+        { value: "/", label: "Home Page" },
+        { value: "/landing", label: "Landing Page" },
+        { value: "/signin", label: "Sign In Page" },
+        { value: "/shows", label: "Shows Dashboard" },
+        { value: "/admin", label: "Admin Dashboard" }
+      ]
     }
   ];
 
@@ -69,9 +79,17 @@ export default function DomainManagement() {
       fullDomain: "join.backstageos.com", 
       status: "active",
       pointsTo: "replit.app",
+      pointsToPage: "/landing",
       recordType: "CNAME",
       sslEnabled: true,
-      proxyEnabled: true
+      proxyEnabled: true,
+      pageOptions: [
+        { value: "/", label: "Home Page" },
+        { value: "/landing", label: "Landing Page" },
+        { value: "/signin", label: "Sign In Page" },
+        { value: "/shows", label: "Shows Dashboard" },
+        { value: "/admin", label: "Admin Dashboard" }
+      ]
     },
     { 
       id: 2, 
@@ -79,9 +97,17 @@ export default function DomainManagement() {
       fullDomain: "beta.backstageos.com", 
       status: "active",
       pointsTo: "replit.app",
+      pointsToPage: "/signin",
       recordType: "CNAME",
       sslEnabled: true,
-      proxyEnabled: true
+      proxyEnabled: true,
+      pageOptions: [
+        { value: "/", label: "Home Page" },
+        { value: "/landing", label: "Landing Page" },
+        { value: "/signin", label: "Sign In Page" },
+        { value: "/shows", label: "Shows Dashboard" },
+        { value: "/admin", label: "Admin Dashboard" }
+      ]
     }
   ];
 
@@ -160,6 +186,22 @@ export default function DomainManagement() {
     setEditingSubdomain(null);
   };
 
+  const handleEditDomain = (domain) => {
+    setEditingDomain(domain);
+    setShowDomainDialog(true);
+  };
+
+  const handleSaveDomain = () => {
+    if (!editingDomain) return;
+    
+    toast({
+      title: "Domain Updated",
+      description: `${editingDomain.name} routing has been updated successfully`
+    });
+    setShowDomainDialog(false);
+    setEditingDomain(null);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6 max-w-6xl">
@@ -205,7 +247,9 @@ export default function DomainManagement() {
                       <Globe className="h-5 w-5 text-blue-600" />
                       <div>
                         <div className="font-semibold">{domain.name}</div>
-                        <div className="text-sm text-muted-foreground">Primary domain</div>
+                        <div className="text-sm text-muted-foreground">
+                          Points to {domain.pointsToPage} • Primary domain
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -219,6 +263,9 @@ export default function DomainManagement() {
                       <Badge variant="outline">
                         Cloudflare
                       </Badge>
+                      <Button variant="ghost" size="sm" onClick={() => handleEditDomain(domain)}>
+                        <Settings className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -314,7 +361,9 @@ export default function DomainManagement() {
                   <div key={subdomain.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
                       <div className="font-semibold">{subdomain.fullDomain}</div>
-                      <div className="text-sm text-muted-foreground">Active subdomain</div>
+                      <div className="text-sm text-muted-foreground">
+                        Points to {subdomain.pointsToPage} • Active subdomain
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>
@@ -491,6 +540,21 @@ export default function DomainManagement() {
                   />
                 </div>
 
+                <div>
+                  <label className="text-sm font-medium">Page Route</label>
+                  <select 
+                    className="w-full p-2 border rounded"
+                    value={editingSubdomain.pointsToPage}
+                    onChange={(e) => setEditingSubdomain({...editingSubdomain, pointsToPage: e.target.value})}
+                  >
+                    {editingSubdomain.pageOptions?.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -629,6 +693,64 @@ export default function DomainManagement() {
                 Cancel
               </Button>
               <Button onClick={handleSaveEmailAlias}>
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Domain Edit Dialog */}
+        <Dialog open={showDomainDialog} onOpenChange={setShowDomainDialog}>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle>Domain Routing Settings</DialogTitle>
+              <DialogDescription>
+                Configure where your domain points to when visitors access it
+              </DialogDescription>
+            </DialogHeader>
+            {editingDomain && (
+              <div className="space-y-6">
+                <div>
+                  <label className="text-sm font-medium">Domain</label>
+                  <Input 
+                    value={editingDomain.name} 
+                    disabled
+                    className="bg-gray-50"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Page Route</label>
+                  <select 
+                    className="w-full p-2 border rounded"
+                    value={editingDomain.pointsToPage}
+                    onChange={(e) => setEditingDomain({...editingDomain, pointsToPage: e.target.value})}
+                  >
+                    {editingDomain.pageOptions?.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    Choose which page visitors see when they visit {editingDomain.name}
+                  </div>
+                </div>
+
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="text-sm">
+                    <strong>Current Configuration:</strong>
+                    <br />
+                    {editingDomain.name} → {editingDomain.pointsToPage}
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowDomainDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveDomain}>
                 Save Changes
               </Button>
             </DialogFooter>
