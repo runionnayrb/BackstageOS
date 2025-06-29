@@ -8,7 +8,7 @@ import { isAdmin } from "@/lib/admin";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface SwitchStatus {
   isViewingAs: boolean;
@@ -32,7 +32,8 @@ export default function Header() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedBetaAccess, setSelectedBetaAccess] = useState<string>("admin");
-  const [selectedProfileType, setSelectedProfileType] = useState<string>("all");
+  const [selectedProfileType, setSelectedProfileType] = useState<string>("freelance");
+  const [defaultUserId, setDefaultUserId] = useState<string>("");
 
   // Fetch all users for account switching (admin only)
   const { data: allUsers = [] } = useQuery({
@@ -40,6 +41,19 @@ export default function Header() {
     enabled: isAdmin(user),
     select: (data: any[]) => data || [],
   });
+
+  // Set default user ID to Bryan Runion when users are loaded
+  useEffect(() => {
+    if (allUsers.length > 0 && !defaultUserId) {
+      const bryanRunion = allUsers.find((u: User) => 
+        u.email === "runion.bryan@gmail.com" || 
+        (u.firstName === "Bryan" && u.lastName === "Runion")
+      );
+      if (bryanRunion) {
+        setDefaultUserId(bryanRunion.id.toString());
+      }
+    }
+  }, [allUsers, defaultUserId]);
 
   // Fetch current switch status
   const { data: switchStatus } = useQuery<SwitchStatus>({
@@ -186,7 +200,9 @@ export default function Header() {
                       <SelectValue placeholder={
                         switchStatus?.isViewingAs 
                           ? `Viewing as ${switchStatus?.viewingUser?.firstName || switchStatus?.viewingUser?.email}`
-                          : "Switch Account"
+                          : defaultUserId 
+                            ? `Bryan Runion`
+                            : "Switch Account"
                       } />
                     </SelectTrigger>
                     <SelectContent>
@@ -295,7 +311,9 @@ export default function Header() {
                           <SelectValue placeholder={
                             switchStatus?.isViewingAs 
                               ? `Viewing as ${switchStatus?.viewingUser?.firstName || switchStatus?.viewingUser?.email}`
-                              : "Select User"
+                              : defaultUserId 
+                                ? `Bryan Runion`
+                                : "Select User"
                           } />
                         </SelectTrigger>
                         <SelectContent>
