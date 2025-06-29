@@ -384,13 +384,28 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const calendarRect = calendarRef.current.getBoundingClientRect();
       const scrollTop = scrollContainerRef.current.scrollTop;
       
-      // Adjust for scroll position
-      const x = e.clientX - calendarRect.left - offsetX;
-      const y = e.clientY - calendarRect.top - offsetY + scrollTop;
+      // Calculate mouse position relative to calendar
+      const x = e.clientX - calendarRect.left;
+      const y = e.clientY - calendarRect.top + scrollTop; // Add scroll position for correct vertical calculation
       
-      // Calculate new day and time
-      const newDayIndex = Math.max(0, Math.min(6, Math.floor((x / calendarRect.width) * 7)));
-      const newStartMinutes = Math.max(0, Math.min(1440 - (timeToMinutes(item.endTime) - timeToMinutes(item.startTime)), positionToMinutes(y)));
+      // Calculate new day (accounting for time column + 7 day columns)
+      const timeColumnWidth = calendarRect.width / 8; // Time column takes 1/8 of width
+      const dayColumnWidth = calendarRect.width / 8; // Each day column takes 1/8 of width
+      const dayStartX = timeColumnWidth; // Days start after time column
+      const relativeX = x - dayStartX; // X position relative to day columns only
+      const newDayIndex = Math.max(0, Math.min(6, Math.floor(relativeX / dayColumnWidth)));
+      
+      // Calculate new time position (1 pixel = 1 minute)
+      const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
+      const newStartMinutes = Math.max(0, Math.min(1440 - duration, Math.round(y)));
+      
+      console.log('Drag move:', {
+        mouseY: e.clientY - calendarRect.top,
+        scrollTop,
+        calculatedY: y,
+        newStartMinutes,
+        time: minutesToTime(newStartMinutes)
+      });
       
       currentDragState = {
         ...currentDragState,
@@ -736,6 +751,28 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                           {minutesToTime(Math.max(isDragCreating.startTime, isDragCreating.currentTime))}
                         </div>
                         <div className="capitalize">{isDragCreating.availabilityType}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dragged item preview */}
+                  {draggedItem && (
+                    <div
+                      className={`absolute rounded border-2 border-blue-500 border-dashed opacity-70 ${getAvailabilityColor(draggedItem.item.availabilityType)}`}
+                      style={{
+                        left: `${(draggedItem.currentPosition.dayIndex / 7) * 100 + 0.5}%`,
+                        width: `${100 / 7 - 1}%`,
+                        top: `${minutesToPosition(draggedItem.currentPosition.startMinutes)}px`,
+                        height: `${minutesToPosition(timeToMinutes(draggedItem.item.endTime) - timeToMinutes(draggedItem.item.startTime))}px`,
+                        zIndex: 1000
+                      }}
+                    >
+                      <div className="p-1 text-white text-xs">
+                        <div className="font-medium">
+                          {minutesToTime(draggedItem.currentPosition.startMinutes)} - 
+                          {minutesToTime(draggedItem.currentPosition.startMinutes + (timeToMinutes(draggedItem.item.endTime) - timeToMinutes(draggedItem.item.startTime)))}
+                        </div>
+                        <div className="capitalize">{draggedItem.item.availabilityType}</div>
                       </div>
                     </div>
                   )}
