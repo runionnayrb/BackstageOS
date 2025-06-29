@@ -43,6 +43,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   const [draggedItem, setDraggedItem] = useState<ContactAvailability | null>(null);
   const [isResizing, setIsResizing] = useState<{ id: number; edge: 'start' | 'end' } | null>(null);
   const [editingItem, setEditingItem] = useState<ContactAvailability & { notes: string; availabilityType: string } | null>(null);
+  const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -167,7 +168,9 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
 
   const positionToMinutes = (position: number): number => {
     // Convert pixel position back to minutes
-    return Math.max(0, Math.min(1440, Math.round((position / 600) * 1440)));
+    const minutes = Math.max(0, Math.min(1440, Math.round((position / 600) * 1440)));
+    // Snap to time increment
+    return Math.round(minutes / timeIncrement) * timeIncrement;
   };
 
   // Navigation functions
@@ -252,7 +255,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
           dayIndex: dragState.startDay
         });
         
-        if (endTime - startTime >= 15) { // Minimum 15 minutes
+        if (endTime - startTime >= timeIncrement) { // Minimum duration based on increment
           const date = weekDates[dragState.startDay].toISOString().split('T')[0];
           createMutation.mutate({
             date,
@@ -282,6 +285,18 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       hour,
       label: `${hour.toString().padStart(2, '0')}:00`,
       position: (hour * 60 / 1440) * 1440 // Convert to pixel position
+    });
+  }
+
+  // Generate grid lines based on time increment
+  const gridLines = [];
+  for (let minutes = 0; minutes < 1440; minutes += timeIncrement) {
+    const hour = Math.floor(minutes / 60);
+    const min = minutes % 60;
+    gridLines.push({
+      minutes,
+      label: `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`,
+      isHour: min === 0
     });
   }
 
@@ -344,6 +359,21 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               </Button>
             </div>
             
+            {/* Time increment selector */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm">Grid:</span>
+              <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
+                <SelectTrigger className="w-24">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="15">15 min</SelectItem>
+                  <SelectItem value="30">30 min</SelectItem>
+                  <SelectItem value="60">60 min</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Availability type selector for drag creation */}
             <div className="flex items-center space-x-2">
               <span className="text-sm">Create as:</span>
@@ -403,12 +433,12 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
 
                 {/* Day columns */}
                 <div className="col-span-7 relative" ref={calendarRef}>
-                  {/* Hour grid lines */}
-                  {timeLabels.map(({ hour, position }) => (
+                  {/* Grid lines based on time increment */}
+                  {gridLines.map(({ minutes, isHour }) => (
                     <div
-                      key={hour}
-                      className="absolute w-full border-t border-gray-200"
-                      style={{ top: `${minutesToPosition(hour * 60)}px` }}
+                      key={minutes}
+                      className={`absolute w-full border-t ${isHour ? 'border-gray-300' : 'border-gray-100'}`}
+                      style={{ top: `${minutesToPosition(minutes)}px` }}
                     />
                   ))}
 
