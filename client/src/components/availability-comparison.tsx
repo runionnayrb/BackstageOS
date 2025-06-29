@@ -38,6 +38,12 @@ export default function AvailabilityComparison({
   const [currentDate, setCurrentDate] = useState(new Date());
   const [timeIncrement, setTimeIncrement] = useState(30); // minutes
   const [editingItem, setEditingItem] = useState<any>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number; contactId?: number } | null>(null);
+  const [newBlock, setNewBlock] = useState<any>(null);
+  const [draggedItem, setDraggedItem] = useState<any>(null);
+  const [resizingItem, setResizingItem] = useState<any>(null);
+  const [resizeMode, setResizeMode] = useState<'top' | 'bottom' | null>(null);
 
   // Get show settings for timezone
   const { data: showSettings } = useQuery({
@@ -127,7 +133,50 @@ export default function AvailabilityComparison({
     setCurrentDate(new Date());
   };
 
+  // Helper functions for drag operations
+  const positionToMinutes = (position: number) => {
+    return Math.round(position + START_MINUTES);
+  };
+
+  const snapToIncrement = (minutes: number) => {
+    return Math.round(minutes / timeIncrement) * timeIncrement;
+  };
+
+  const formatTimeFromMinutes = (totalMinutes: number) => {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
+
+  const getContactIdFromY = (y: number) => {
+    const contactIndex = Math.floor((y - 48) / 64); // 48px header + 64px per row
+    return contacts[contactIndex]?.id || null;
+  };
+
   // Mutations for CRUD operations
+  const createMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch(`/api/projects/${projectId}/contacts/${data.contactId}/availability`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to create availability");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
+      setNewBlock(null);
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Failed to create availability", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    },
+  });
+
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
       const response = await fetch(`/api/projects/${projectId}/contacts/${data.contactId}/availability/${id}`, {
@@ -140,8 +189,9 @@ export default function AvailabilityComparison({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
-      toast({ title: "Availability updated successfully" });
       setEditingItem(null);
+      setDraggedItem(null);
+      setResizingItem(null);
     },
     onError: (error) => {
       toast({ 
@@ -164,7 +214,6 @@ export default function AvailabilityComparison({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
-      toast({ title: "Availability deleted successfully" });
       setEditingItem(null);
     },
     onError: (error) => {
@@ -192,6 +241,160 @@ export default function AvailabilityComparison({
   const handleDelete = () => {
     if (!editingItem) return;
     deleteMutation.mutate(editingItem.id);
+  };
+
+  // Drag event handlers
+  const handleMouseDown = (e: React.MouseEvent, contactId: number) => {
+    if (e.button !== 0) return; // Only left click
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - 192; // Subtract contact names column width
+    const y = e.clientY - rect.top;
+    
+    setIsDragging(true);
+    setDragStart({ x, y, contactId });
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !dragStart) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const currentX = e.clientX - rect.left - 192;
+    const currentY = e.clientY - rect.top;
+
+    if (draggedItem) {
+      // Moving existing item
+      const deltaX = currentX - dragStart.x;
+      const startMinutes = timeToMinutes(draggedItem.originalStartTime);
+      const endMinutes = timeToMinutes(draggedItem.originalEndTime);
+      const duration = endMinutes - startMinutes;
+      
+      const newStartMinutes = snapToIncrement(Math.max(START_MINUTES, Math.min(END_MINUTES - duration, startMinutes + deltaX)));
+      const newEndMinutes = newStartMinutes + duration;
+      
+      const newContactId = getContactIdFromY(currentY);
+      
+      setDraggedItem({
+        ...draggedItem,
+        startTime: formatTimeFromMinutes(newStartMinutes),
+        endTime: formatTimeFromMinutes(newEndMinutes),
+        contactId: newContactId || draggedItem.contactId,
+      });
+    } else if (resizingItem) {
+      // Resizing existing item
+      const deltaX = currentX - dragStart.x;
+      const startMinutes = timeToMinutes(resizingItem.originalStartTime);
+      const endMinutes = timeToMinutes(resizingItem.originalEndTime);
+      
+      let newStartMinutes = startMinutes;
+      let newEndMinutes = endMinutes;
+      
+      if (resizeMode === 'top') {
+        newStartMinutes = snapToIncrement(Math.max(START_MINUTES, Math.min(endMinutes - timeIncrement, startMinutes + deltaX)));
+      } else if (resizeMode === 'bottom') {
+        newEndMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, endMinutes + deltaX)));
+      }
+      
+      setResizingItem({
+        ...resizingItem,
+        startTime: formatTimeFromMinutes(newStartMinutes),
+        endTime: formatTimeFromMinutes(newEndMinutes),
+      });
+    } else if (!newBlock) {
+      // Creating new block
+      const startX = Math.min(dragStart.x, currentX);
+      const endX = Math.max(dragStart.x, currentX);
+      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(startX)));
+      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(endX))));
+      
+      setNewBlock({
+        contactId: dragStart.contactId,
+        startTime: formatTimeFromMinutes(startMinutes),
+        endTime: formatTimeFromMinutes(endMinutes),
+        availabilityType: 'unavailable',
+        date: currentDate.toISOString().split('T')[0],
+      });
+    } else {
+      // Updating new block size
+      const startX = Math.min(dragStart.x, currentX);
+      const endX = Math.max(dragStart.x, currentX);
+      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(startX)));
+      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(endX))));
+      
+      setNewBlock({
+        ...newBlock,
+        startTime: formatTimeFromMinutes(startMinutes),
+        endTime: formatTimeFromMinutes(endMinutes),
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (!isDragging) return;
+    
+    if (newBlock && newBlock.startTime !== newBlock.endTime) {
+      createMutation.mutate(newBlock);
+    } else if (draggedItem) {
+      updateMutation.mutate({
+        id: draggedItem.id,
+        data: {
+          contactId: draggedItem.contactId,
+          startTime: draggedItem.startTime,
+          endTime: draggedItem.endTime,
+          availabilityType: draggedItem.availabilityType,
+          notes: draggedItem.notes,
+          date: currentDate.toISOString().split('T')[0],
+        },
+      });
+    } else if (resizingItem) {
+      updateMutation.mutate({
+        id: resizingItem.id,
+        data: {
+          contactId: resizingItem.contactId,
+          startTime: resizingItem.startTime,
+          endTime: resizingItem.endTime,
+          availabilityType: resizingItem.availabilityType,
+          notes: resizingItem.notes,
+          date: currentDate.toISOString().split('T')[0],
+        },
+      });
+    }
+    
+    setIsDragging(false);
+    setDragStart(null);
+    setNewBlock(null);
+    setDraggedItem(null);
+    setResizingItem(null);
+    setResizeMode(null);
+  };
+
+  const handleBlockMouseDown = (e: React.MouseEvent, item: ProjectAvailability, mode?: 'move' | 'resize-top' | 'resize-bottom') => {
+    e.stopPropagation();
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    setIsDragging(true);
+    setDragStart({ x, y });
+    
+    if (mode === 'resize-top' || mode === 'resize-bottom') {
+      setResizingItem({
+        ...item,
+        originalStartTime: item.startTime,
+        originalEndTime: item.endTime,
+      });
+      setResizeMode(mode === 'resize-top' ? 'top' : 'bottom');
+    } else {
+      setDraggedItem({
+        ...item,
+        originalStartTime: item.startTime,
+        originalEndTime: item.endTime,
+      });
+    }
+    
+    e.preventDefault();
   };
 
   return (
@@ -287,7 +490,12 @@ export default function AvailabilityComparison({
 
                 {/* Time Header and Grid */}
                 <div className="flex-1 overflow-auto">
-                  <div className="relative">
+                  <div 
+                    className="relative select-none"
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                  >
                     {/* Time Header */}
                     <div className="sticky top-0 bg-white border-b z-10">
                       <div className="flex" style={{ minWidth: `${TOTAL_MINUTES}px` }}>
@@ -308,11 +516,16 @@ export default function AvailabilityComparison({
 
                     {/* Contact Rows */}
                     <div>
-                      {contacts.map((contact: any) => {
+                      {contacts.map((contact: any, contactIndex: number) => {
                         const contactAvailability = getContactAvailabilityForDate(contact.id);
                         
                         return (
-                          <div key={contact.id} className="h-16 border-b relative bg-white" style={{ minWidth: `${TOTAL_MINUTES}px` }}>
+                          <div 
+                            key={contact.id} 
+                            className="h-16 border-b relative bg-white cursor-crosshair" 
+                            style={{ minWidth: `${TOTAL_MINUTES}px` }}
+                            onMouseDown={(e) => handleMouseDown(e, contact.id)}
+                          >
                             {/* Time Grid Background */}
                             {timeLabels.map((timeLabel) => (
                               <div
@@ -332,31 +545,76 @@ export default function AvailabilityComparison({
                               const startPos = minutesToPosition(startMinutes);
                               const width = endMinutes - startMinutes;
 
+                              // Check if this item is being dragged or resized
+                              const isBeingDragged = draggedItem?.id === item.id;
+                              const isBeingResized = resizingItem?.id === item.id;
+                              const currentItem = isBeingDragged ? draggedItem : isBeingResized ? resizingItem : item;
+
+                              const currentStartMinutes = timeToMinutes(currentItem.startTime);
+                              const currentEndMinutes = timeToMinutes(currentItem.endTime);
+                              const currentStartPos = minutesToPosition(currentStartMinutes);
+                              const currentWidth = currentEndMinutes - currentStartMinutes;
+
                               return (
                                 <div
                                   key={item.id}
-                                  className={`absolute cursor-pointer rounded text-xs px-2 py-1 text-white top-2 bottom-2 ${
-                                    item.availabilityType === 'unavailable'
+                                  className={`absolute text-xs text-white top-2 bottom-2 rounded group ${
+                                    currentItem.availabilityType === 'unavailable'
                                       ? 'bg-red-500 hover:bg-red-600'
                                       : 'bg-blue-500 hover:bg-blue-600'
-                                  }`}
+                                  } ${(isBeingDragged || isBeingResized) ? 'opacity-80 z-20' : 'z-10'}`}
                                   style={{
-                                    left: `${startPos}px`,
-                                    width: `${width}px`,
+                                    left: `${currentStartPos}px`,
+                                    width: `${currentWidth}px`,
                                     minWidth: '20px',
                                   }}
-                                  onClick={() => setEditingItem(item)}
-                                  title={`${item.availabilityType === 'unavailable' ? 'Unavailable' : 'Preferred'}: ${formatTime(startMinutes)} - ${formatTime(endMinutes)}${item.notes ? `\n${item.notes}` : ''}`}
+                                  onMouseDown={(e) => handleBlockMouseDown(e, item, 'move')}
+                                  onDoubleClick={() => setEditingItem(item)}
+                                  title={`${currentItem.availabilityType === 'unavailable' ? 'Unavailable' : 'Preferred'}: ${formatTime(currentStartMinutes)} - ${formatTime(currentEndMinutes)}${currentItem.notes ? `\n${currentItem.notes}` : ''}`}
                                 >
-                                  <div className="font-medium truncate">
-                                    {item.availabilityType === 'unavailable' ? 'Out' : 'Pref'}
+                                  {/* Left resize handle */}
+                                  <div
+                                    className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize bg-white opacity-0 group-hover:opacity-50"
+                                    onMouseDown={(e) => handleBlockMouseDown(e, item, 'resize-top')}
+                                  />
+                                  
+                                  {/* Content */}
+                                  <div className="px-2 py-1 cursor-move h-full flex flex-col justify-center">
+                                    <div className="font-medium truncate">
+                                      {currentItem.availabilityType === 'unavailable' ? 'Out' : 'Pref'}
+                                    </div>
+                                    <div className="text-xs opacity-90 truncate">
+                                      {formatTime(currentStartMinutes)}
+                                    </div>
                                   </div>
-                                  <div className="text-xs opacity-90 truncate">
-                                    {formatTime(startMinutes)}
-                                  </div>
+
+                                  {/* Right resize handle */}
+                                  <div
+                                    className="absolute right-0 top-0 bottom-0 w-1 cursor-ew-resize bg-white opacity-0 group-hover:opacity-50"
+                                    onMouseDown={(e) => handleBlockMouseDown(e, item, 'resize-bottom')}
+                                  />
                                 </div>
                               );
                             })}
+
+                            {/* New block preview */}
+                            {newBlock && newBlock.contactId === contact.id && (
+                              <div
+                                className="absolute text-xs text-white top-2 bottom-2 rounded bg-gray-500 opacity-60 z-20"
+                                style={{
+                                  left: `${minutesToPosition(timeToMinutes(newBlock.startTime))}px`,
+                                  width: `${timeToMinutes(newBlock.endTime) - timeToMinutes(newBlock.startTime)}px`,
+                                  minWidth: '20px',
+                                }}
+                              >
+                                <div className="px-2 py-1 h-full flex flex-col justify-center">
+                                  <div className="font-medium truncate">New</div>
+                                  <div className="text-xs opacity-90 truncate">
+                                    {formatTime(timeToMinutes(newBlock.startTime))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
