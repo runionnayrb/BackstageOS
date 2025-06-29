@@ -189,11 +189,17 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       if (!response.ok) throw new Error("Failed to update availability");
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: [`/api/projects/${contact.projectId}/contacts/${contact.id}/availability`] 
-      });
-      toast({ title: "Availability updated successfully" });
+    onSuccess: (data, variables) => {
+      // Use optimistic update instead of invalidating queries for faster response
+      queryClient.setQueryData(
+        [`/api/projects/${contact.projectId}/contacts/${contact.id}/availability`],
+        (oldData: any) => {
+          if (!oldData) return oldData;
+          return oldData.map((item: any) => 
+            item.id === variables.id ? { ...item, ...variables.data } : item
+          );
+        }
+      );
     },
   });
 
