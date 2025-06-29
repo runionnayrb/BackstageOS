@@ -46,16 +46,15 @@ import WaitlistLanding from "@/pages/waitlist-landing";
 function Router() {
   // Check if this is the main landing page domain FIRST
   const hostname = window.location.hostname;
-  const isMainLandingPage = hostname.includes('join.backstageos.com') || 
-                           hostname === 'join.backstageos.com' ||
-                           (hostname === 'localhost' && window.location.pathname === '/landing');
+  const isJoinDomain = hostname.includes('join.backstageos.com') || hostname === 'join.backstageos.com';
   
   // Debug logging for domain routing
-  console.log('Domain routing check:', { hostname, isMainLandingPage });
+  console.log('Domain routing check:', { hostname, isJoinDomain });
   
-  // If this is the main landing page domain, show waitlist landing immediately
-  if (isMainLandingPage) {
-    return <WaitlistLanding />;
+  // If this is the join domain, redirect to /landing
+  if (isJoinDomain && window.location.pathname !== '/landing') {
+    window.location.pathname = '/landing';
+    return null;
   }
 
   const { user, isLoading } = useAuth();
@@ -99,6 +98,11 @@ function Router() {
 
   if (!user?.profileType) {
     return <ProfileSelection />;
+  }
+
+  // Handle landing page route separately (no layout needed)
+  if (window.location.pathname === '/landing') {
+    return <WaitlistLanding />;
   }
 
   return (
