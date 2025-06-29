@@ -39,10 +39,7 @@ export default function DomainManagement() {
 
   // Create domain mutation
   const createDomainMutation = useMutation({
-    mutationFn: (data: DomainFormData) => apiRequest('/api/domains', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
+    mutationFn: (data: DomainFormData) => apiRequest('/api/domains', 'POST', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/domains'] });
       setShowCreateDialog(false);

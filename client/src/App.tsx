@@ -43,7 +43,7 @@ import CompanyList from "@/pages/company-list";
 import FeedbackPage from "@/pages/feedback";
 import NotFound from "@/pages/not-found";
 import WaitlistLanding from "@/pages/waitlist-landing";
-import DomainManagement from "@/pages/domain-management";
+import DomainManagement from "@/pages/domain-management-simple";
 import DomainSetup from "@/pages/domain-setup";
 
 function Router() {

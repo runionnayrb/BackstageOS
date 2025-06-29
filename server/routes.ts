@@ -2808,7 +2808,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all domains
   app.get('/api/domains', isAuthenticated, async (req: any, res) => {
     try {
-      const domains = await storage.getDomains(req.user.id);
+      const domains = await storage.getDomains(req.user.id.toString());
       res.json(domains);
     } catch (error) {
       console.error('Error fetching domains:', error);
