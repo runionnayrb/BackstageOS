@@ -187,9 +187,11 @@ export default function AvailabilityComparison({
   };
 
   // Helper functions for drag operations
-  const positionToMinutes = (position: number) => {
-    // Convert pixel position to minutes (1 pixel = 1 minute in our timeline)
-    return Math.round(position + START_MINUTES);
+  const positionToMinutes = (position: number, containerWidth: number) => {
+    // Convert pixel position to minutes using percentage-based calculation
+    const positionPercent = (position / containerWidth) * 100;
+    const minutes = START_MINUTES + (positionPercent / 100) * TOTAL_MINUTES;
+    return Math.round(minutes);
   };
 
   const snapToIncrement = (minutes: number) => {
@@ -409,8 +411,9 @@ export default function AvailabilityComparison({
       clientX: e.clientX,
       rectLeft: rect.left,
       relativeX: x,
-      convertedMinutes: positionToMinutes(x),
-      convertedTime: formatTimeFromMinutes(positionToMinutes(x))
+      containerWidth: rect.width,
+      convertedMinutes: positionToMinutes(x, rect.width),
+      convertedTime: formatTimeFromMinutes(positionToMinutes(x, rect.width))
     });
     
     setIsDragging(true);
@@ -424,6 +427,7 @@ export default function AvailabilityComparison({
     const rect = e.currentTarget.getBoundingClientRect();
     const currentX = e.clientX - rect.left;
     const currentY = e.clientY - rect.top;
+    const containerWidth = rect.width;
 
     if (draggedItem) {
       // Moving existing item - use relative position from original click
@@ -471,8 +475,8 @@ export default function AvailabilityComparison({
       const leftX = Math.min(startX, endX);
       const rightX = Math.max(startX, endX);
       
-      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(leftX)));
-      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(rightX))));
+      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(leftX, containerWidth)));
+      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(rightX, containerWidth))));
       
       setNewBlock({
         contactId: dragStart.contactId,
@@ -488,8 +492,8 @@ export default function AvailabilityComparison({
       const leftX = Math.min(startX, endX);
       const rightX = Math.max(startX, endX);
       
-      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(leftX)));
-      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(rightX))));
+      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(leftX, containerWidth)));
+      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(rightX, containerWidth))));
       
       setNewBlock({
         ...newBlock,
