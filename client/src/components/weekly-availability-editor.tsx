@@ -450,10 +450,13 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const mouseY = e.clientY - calendarRect.top;
       
       // Calculate which day column the mouse is over
-      // The calendar has 8 columns (1 time + 7 days), so we need to account for the time column
       const dayColumnWidth = calendarRect.width / 7; // Each day column width
       const newDayIndex = Math.floor(mouseX / dayColumnWidth);
       const clampedDayIndex = Math.max(0, Math.min(6, newDayIndex));
+      
+      // If we're just dragging vertically (not horizontally), keep the original day
+      const isVerticalDrag = Math.abs(mouseX - (currentDragState.originalPosition.dayIndex * dayColumnWidth + dayColumnWidth / 2)) < dayColumnWidth / 4;
+      const finalDayIndex = isVerticalDrag ? currentDragState.originalPosition.dayIndex : clampedDayIndex;
       
       console.log('Day calculation:', {
         mouseX,
@@ -461,7 +464,10 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
         dayColumnWidth,
         calculatedDayIndex: newDayIndex,
         clampedDayIndex,
-        originalDay: currentDragState.originalPosition.dayIndex
+        originalDay: currentDragState.originalPosition.dayIndex,
+        isVerticalDrag,
+        finalDayIndex,
+        originalMouseX: currentDragState.originalPosition.dayIndex * dayColumnWidth + dayColumnWidth / 2
       });
       
       // Calculate new time position using drag offset, not absolute coordinates
@@ -494,7 +500,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       
       currentDragState = {
         ...currentDragState,
-        currentPosition: { dayIndex: clampedDayIndex, startMinutes: newStartMinutes }
+        currentPosition: { dayIndex: finalDayIndex, startMinutes: newStartMinutes }
       };
       
       setDraggedItem({ ...currentDragState });
@@ -529,7 +535,10 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             dayChanged: currentPosition.dayIndex !== originalPosition.dayIndex,
             weekDatesDebug: weekDates.map((d, i) => ({ index: i, date: formatDateForStorage(d) })),
             selectedDayIndex: currentPosition.dayIndex,
-            selectedDate: weekDates[currentPosition.dayIndex]
+            selectedDateObject: weekDates[currentPosition.dayIndex],
+            selectedDateFormatted: formatDateForStorage(weekDates[currentPosition.dayIndex]),
+            originalDayIndex: originalPosition.dayIndex,
+            currentDayIndex: currentPosition.dayIndex
           });
           
           // Update UI immediately for instant feedback
