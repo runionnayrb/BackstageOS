@@ -411,31 +411,67 @@ export default function AvailabilityComparison({
   const handleBlockMouseDown = (e: React.MouseEvent, item: ProjectAvailability, mode?: 'move' | 'resize-top' | 'resize-bottom') => {
     e.stopPropagation();
     
-    // Get position relative to the entire timeline container, not just the block
-    const timelineContainer = e.currentTarget.closest('.relative') as HTMLElement;
-    const rect = timelineContainer?.getBoundingClientRect();
-    if (!rect) return;
-    
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    setIsDragging(true);
-    setDragStart({ x, y });
-    
+    // For resize handles, start dragging immediately
     if (mode === 'resize-top' || mode === 'resize-bottom') {
+      const timelineContainer = e.currentTarget.closest('.relative') as HTMLElement;
+      const rect = timelineContainer?.getBoundingClientRect();
+      if (!rect) return;
+      
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      setIsDragging(true);
+      setDragStart({ x, y });
       setResizingItem({
         ...item,
         originalStartTime: item.startTime,
         originalEndTime: item.endTime,
       });
       setResizeMode(mode === 'resize-top' ? 'top' : 'bottom');
-    } else {
-      setDraggedItem({
-        ...item,
-        originalStartTime: item.startTime,
-        originalEndTime: item.endTime,
-      });
+      e.preventDefault();
+      return;
     }
+    
+    // For move operations, add delay to allow double-click
+    const startTime = Date.now();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const timeDiff = Date.now() - startTime;
+      const distance = Math.sqrt(
+        Math.pow(moveEvent.clientX - startX, 2) + Math.pow(moveEvent.clientY - startY, 2)
+      );
+      
+      // Only start dragging if moved more than 3px or held for more than 150ms
+      if (distance > 3 || timeDiff > 150) {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUpTemp);
+        
+        const timelineContainer = e.currentTarget.closest('.relative') as HTMLElement;
+        const rect = timelineContainer?.getBoundingClientRect();
+        if (!rect) return;
+        
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        setIsDragging(true);
+        setDragStart({ x, y });
+        setDraggedItem({
+          ...item,
+          originalStartTime: item.startTime,
+          originalEndTime: item.endTime,
+        });
+      }
+    };
+    
+    const handleMouseUpTemp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUpTemp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUpTemp);
     
     e.preventDefault();
   };
