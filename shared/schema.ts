@@ -586,7 +586,7 @@ export const contactAvailability = pgTable("contact_availability", {
   date: varchar("date", { length: 10 }).notNull(), // YYYY-MM-DD format
   startTime: varchar("start_time", { length: 8 }).notNull(), // HH:MM:SS format
   endTime: varchar("end_time", { length: 8 }).notNull(), // HH:MM:SS format
-  availabilityType: varchar("availability_type", { length: 20 }).notNull().default("available"), // 'available', 'unavailable', 'preferred'
+  availabilityType: varchar("availability_type", { length: 20 }).notNull().default("unavailable"), // 'unavailable', 'preferred'
   notes: text("notes"),
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),

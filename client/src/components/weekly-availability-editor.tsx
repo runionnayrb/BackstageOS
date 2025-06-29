@@ -21,7 +21,7 @@ interface ContactAvailability {
   date: string;
   startTime: string;
   endTime: string;
-  availabilityType: 'available' | 'unavailable' | 'preferred';
+  availabilityType: 'unavailable' | 'preferred';
   notes?: string;
 }
 
@@ -38,7 +38,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     startTime: number;
     currentDay: number;
     currentTime: number;
-    availabilityType: 'available' | 'unavailable' | 'preferred';
+    availabilityType: 'unavailable' | 'preferred';
   } | null>(null);
   const [draggedItem, setDraggedItem] = useState<ContactAvailability | null>(null);
   const [isResizing, setIsResizing] = useState<{ id: number; edge: 'start' | 'end' } | null>(null);
@@ -205,7 +205,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       startTime: minutes,
       currentDay: dayIndex,
       currentTime: minutes,
-      availabilityType: 'available'
+      availabilityType: 'unavailable'
     });
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -259,7 +259,6 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
 
   const getAvailabilityColor = (type: string) => {
     switch (type) {
-      case 'available': return 'bg-green-500 hover:bg-green-600 border-green-600';
       case 'unavailable': return 'bg-red-500 hover:bg-red-600 border-red-600';
       case 'preferred': return 'bg-blue-500 hover:bg-blue-600 border-blue-600';
       default: return 'bg-gray-500 hover:bg-gray-600 border-gray-600';
@@ -317,7 +316,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             <div className="flex items-center space-x-2">
               <span className="text-sm">Create as:</span>
               <Select 
-                value={isDragCreating?.availabilityType || 'available'} 
+                value={isDragCreating?.availabilityType || 'unavailable'} 
                 onValueChange={(value) => {
                   if (isDragCreating) {
                     setIsDragCreating(prev => prev ? { ...prev, availabilityType: value as any } : null);
@@ -328,7 +327,6 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="available">Available</SelectItem>
                   <SelectItem value="unavailable">Unavailable</SelectItem>
                   <SelectItem value="preferred">Preferred</SelectItem>
                 </SelectContent>
@@ -466,16 +464,15 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6 text-sm">
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded"></div>
-                <span>Available</span>
-              </div>
-              <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-red-500 rounded"></div>
                 <span>Unavailable</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-blue-500 rounded"></div>
                 <span>Preferred</span>
+              </div>
+              <div className="text-xs text-gray-500 ml-4">
+                Empty time slots = Available for scheduling
               </div>
             </div>
             <div className="text-xs text-gray-500">
@@ -496,13 +493,12 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                   <label className="text-sm font-medium">Type</label>
                   <Select 
                     value={editingItem.availabilityType} 
-                    onValueChange={(value) => setEditingItem(prev => prev ? { ...prev, availabilityType: value as 'available' | 'unavailable' | 'preferred' } : null)}
+                    onValueChange={(value) => setEditingItem(prev => prev ? { ...prev, availabilityType: value as 'unavailable' | 'preferred' } : null)}
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="available">Available</SelectItem>
                       <SelectItem value="unavailable">Unavailable</SelectItem>
                       <SelectItem value="preferred">Preferred</SelectItem>
                     </SelectContent>
