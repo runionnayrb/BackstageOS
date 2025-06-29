@@ -47,6 +47,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     offset: { x: number; y: number };
     isDragging: boolean;
   } | null>(null);
+  const [justDragged, setJustDragged] = useState<number | null>(null);
   const [isResizing, setIsResizing] = useState<{ id: number; edge: 'start' | 'end' } | null>(null);
   const [editingItem, setEditingItem] = useState<ContactAvailability & { notes: string; availabilityType: string } | null>(null);
   const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
@@ -129,8 +130,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   });
   
   // Calculate initial scroll position to show working hours
-  // Show working hours in the center of the 400px viewport
-  const viewportHeight = 400; // Calendar container height
+  // Show working hours in the center of the 500px viewport
+  const viewportHeight = 500; // Calendar container height
   const initialScrollPosition = Math.max(0, (startHour * 60) - (viewportHeight / 2)); // Center working hours in viewport
 
   // Auto-scroll to working hours when dialog opens
@@ -365,48 +366,65 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
 
   // Handle dragging existing blocks
   const handleBlockMouseDown = useCallback((e: React.MouseEvent, item: ContactAvailability) => {
-    e.stopPropagation(); // Prevent calendar drag creation
+    e.preventDefault();
+    e.stopPropagation();
     
-    if (!calendarRef.current) return;
+    if (!calendarRef.current || !scrollContainerRef.current) return;
     
-    const rect = calendarRef.current.getBoundingClientRect();
+    const calendarRect = calendarRef.current.getBoundingClientRect();
+    const scrollContainer = scrollContainerRef.current;
     const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === item.date);
     const startMinutes = timeToMinutes(item.startTime);
     
     // Calculate offset from mouse to top-left of block
-    const blockLeft = (dayIndex / 7) * rect.width;
+    const blockLeft = (dayIndex / 7) * calendarRect.width;
     const blockTop = minutesToPosition(startMinutes);
-    const offsetX = e.clientX - rect.left - blockLeft;
-    const offsetY = e.clientY - rect.top - blockTop;
+    const offsetX = e.clientX - calendarRect.left - blockLeft;
+    const offsetY = e.clientY - calendarRect.top - blockTop;
     
-    setDraggedItem({
+    console.log('Starting drag:', { item: item.id, dayIndex, startMinutes });
+    
+    let currentDragState = {
       item,
       originalPosition: { dayIndex, startMinutes },
       currentPosition: { dayIndex, startMinutes },
       offset: { x: offsetX, y: offsetY },
       isDragging: true
-    });
+    };
+    
+    setDraggedItem(currentDragState);
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!calendarRef.current || !draggedItem) return;
+      if (!calendarRef.current || !scrollContainerRef.current) return;
       
-      const rect = calendarRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left - draggedItem.offset.x;
-      const y = e.clientY - rect.top - draggedItem.offset.y;
+      const calendarRect = calendarRef.current.getBoundingClientRect();
+      const scrollTop = scrollContainerRef.current.scrollTop;
+      
+      // Adjust for scroll position
+      const x = e.clientX - calendarRect.left - offsetX;
+      const y = e.clientY - calendarRect.top - offsetY + scrollTop;
       
       // Calculate new day and time
-      const newDayIndex = Math.max(0, Math.min(6, Math.floor((x / rect.width) * 7)));
-      const newStartMinutes = Math.max(0, Math.min(1440 - timeToMinutes(item.endTime) + timeToMinutes(item.startTime), positionToMinutes(y)));
+      const newDayIndex = Math.max(0, Math.min(6, Math.floor((x / calendarRect.width) * 7)));
+      const newStartMinutes = Math.max(0, Math.min(1440 - (timeToMinutes(item.endTime) - timeToMinutes(item.startTime)), positionToMinutes(y)));
       
-      setDraggedItem(prev => prev ? {
-        ...prev,
+      currentDragState = {
+        ...currentDragState,
         currentPosition: { dayIndex: newDayIndex, startMinutes: newStartMinutes }
-      } : null);
+      };
+      
+      setDraggedItem({ ...currentDragState });
     };
 
     const handleMouseUp = () => {
-      if (draggedItem && draggedItem.isDragging) {
-        const { currentPosition, originalPosition, item } = draggedItem;
+      console.log('Ending drag:', currentDragState);
+      
+      if (currentDragState.isDragging) {
+        const { currentPosition, originalPosition, item } = currentDragState;
+        
+        // Set flag to prevent click event
+        setJustDragged(item.id);
+        setTimeout(() => setJustDragged(null), 100); // Clear flag after 100ms
         
         // Only update if position changed
         if (currentPosition.dayIndex !== originalPosition.dayIndex || 
@@ -415,6 +433,14 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
           const newDate = weekDates[currentPosition.dayIndex].toISOString().split('T')[0];
           const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
           const newEndMinutes = currentPosition.startMinutes + duration;
+          
+          console.log('Updating availability position:', {
+            id: item.id,
+            oldDate: item.date,
+            newDate,
+            oldTime: `${item.startTime} - ${item.endTime}`,
+            newTime: `${minutesToTime(currentPosition.startMinutes)} - ${minutesToTime(newEndMinutes)}`
+          });
           
           updateMutation.mutate({
             id: item.id,
@@ -436,7 +462,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [weekDates, draggedItem, updateMutation]);
+  }, [weekDates, updateMutation]);
 
   // Generate time labels (every 2 hours) using show's time format
   const timeLabels = [];
@@ -492,7 +518,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
           Manage Availability
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-6xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>
             Weekly Availability - {contact.firstName} {contact.lastName}
@@ -576,8 +602,12 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             <div 
               ref={scrollContainerRef}
               className="relative overflow-y-auto border-t"
-              style={{ height: '400px', maxHeight: '70vh' }}
-              onScroll={(e) => setScrollPosition(e.currentTarget.scrollTop)}
+              style={{ height: '500px', maxHeight: '60vh' }}
+              onScroll={(e) => {
+                const scrollTop = e.currentTarget.scrollTop;
+                setScrollPosition(scrollTop);
+                console.log('Scroll position:', scrollTop, 'of max:', 1440 - 500);
+              }}
             >
               <div className="relative" style={{ height: '1440px' }}> {/* Full 24 hours */}
                 <div className="grid grid-cols-8 h-full">
@@ -659,10 +689,14 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                           height: `${minutesToPosition(duration)}px`,
                           transform: isBeingDragged ? 'scale(1.02)' : 'none'
                         }}
-                        onMouseDown={(e) => handleBlockMouseDown(e, item)}
+                        onMouseDown={(e) => {
+                          console.log('Block mousedown triggered for item:', item.id);
+                          handleBlockMouseDown(e, item);
+                        }}
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (!isBeingDragged) {
+                          console.log('Block clicked, justDragged:', justDragged, 'item:', item.id);
+                          if (!isBeingDragged && justDragged !== item.id) {
                             setEditingItem({
                               ...item,
                               notes: item.notes || '',
