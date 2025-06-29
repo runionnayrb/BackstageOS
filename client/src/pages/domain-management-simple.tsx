@@ -5,18 +5,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, CheckCircle, Plus, Globe, ArrowLeft, Settings, ExternalLink } from "lucide-react";
+import { AlertCircle, CheckCircle, Plus, Globe, ArrowLeft, Settings, ExternalLink, Edit2, Save, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { isAdmin } from "@/lib/admin";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 export default function DomainManagement() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
   const [newSubdomain, setNewSubdomain] = useState("");
   const [newEmailAlias, setNewEmailAlias] = useState("");
+  const [editingSubdomain, setEditingSubdomain] = useState(null);
+  const [editingEmailAlias, setEditingEmailAlias] = useState(null);
+  const [showSubdomainDialog, setShowSubdomainDialog] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -56,13 +63,49 @@ export default function DomainManagement() {
   ];
 
   const subdomains = [
-    { id: 1, name: "join", fullDomain: "join.backstageos.com", status: "active" },
-    { id: 2, name: "beta", fullDomain: "beta.backstageos.com", status: "active" }
+    { 
+      id: 1, 
+      name: "join", 
+      fullDomain: "join.backstageos.com", 
+      status: "active",
+      pointsTo: "replit.app",
+      recordType: "CNAME",
+      sslEnabled: true,
+      proxyEnabled: true
+    },
+    { 
+      id: 2, 
+      name: "beta", 
+      fullDomain: "beta.backstageos.com", 
+      status: "active",
+      pointsTo: "replit.app",
+      recordType: "CNAME",
+      sslEnabled: true,
+      proxyEnabled: true
+    }
   ];
 
   const emailAliases = [
-    { id: 1, alias: "support@backstageos.com", forwarding: "runion.bryan@gmail.com" },
-    { id: 2, alias: "hello@backstageos.com", forwarding: "runion.bryan@gmail.com" }
+    { 
+      id: 1, 
+      alias: "support@backstageos.com", 
+      forwarding: "runion.bryan@gmail.com",
+      status: "active",
+      description: "Customer support inquiries",
+      spamFilter: true,
+      autoReply: false,
+      catchAll: false
+    },
+    { 
+      id: 2, 
+      alias: "hello@backstageos.com", 
+      forwarding: "runion.bryan@gmail.com",
+      status: "active",
+      description: "General contact and inquiries",
+      spamFilter: true,
+      autoReply: true,
+      catchAll: false
+    }
   ];
 
   const handleCreateSubdomain = () => {
@@ -83,6 +126,38 @@ export default function DomainManagement() {
       description: `${newEmailAlias}@backstageos.com has been created successfully`
     });
     setNewEmailAlias("");
+  };
+
+  const handleEditEmailAlias = (alias) => {
+    setEditingEmailAlias(alias);
+    setShowEmailDialog(true);
+  };
+
+  const handleSaveEmailAlias = () => {
+    if (!editingEmailAlias) return;
+    
+    toast({
+      title: "Email Alias Updated",
+      description: `${editingEmailAlias.alias} settings have been updated successfully`
+    });
+    setShowEmailDialog(false);
+    setEditingEmailAlias(null);
+  };
+
+  const handleEditSubdomain = (subdomain) => {
+    setEditingSubdomain(subdomain);
+    setShowSubdomainDialog(true);
+  };
+
+  const handleSaveSubdomain = () => {
+    if (!editingSubdomain) return;
+    
+    toast({
+      title: "Subdomain Updated",
+      description: `${editingSubdomain.fullDomain} settings have been updated successfully`
+    });
+    setShowSubdomainDialog(false);
+    setEditingSubdomain(null);
   };
 
   return (
@@ -134,7 +209,7 @@ export default function DomainManagement() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary">
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
                         <CheckCircle className="h-3 w-3 mr-1" />
                         Active
                       </Badge>
@@ -173,7 +248,7 @@ export default function DomainManagement() {
                   </div>
                   <div className="flex justify-between">
                     <span>SSL Status</span>
-                    <Badge variant="secondary">Active</Badge>
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -242,7 +317,10 @@ export default function DomainManagement() {
                       <div className="text-sm text-muted-foreground">Active subdomain</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary">Active</Badge>
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>
+                      <Button variant="ghost" size="sm" onClick={() => handleEditSubdomain(subdomain)}>
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
                       <Button variant="ghost" size="sm">
                         <ExternalLink className="h-4 w-4" />
                       </Button>
@@ -305,7 +383,12 @@ export default function DomainManagement() {
                         Forwards to {alias.forwarding}
                       </div>
                     </div>
-                    <Badge variant="secondary">Active</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>
+                      <Button variant="ghost" size="sm" onClick={() => handleEditEmailAlias(alias)}>
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </CardContent>
@@ -327,7 +410,7 @@ export default function DomainManagement() {
                       <div className="font-semibold">SSL Certificate</div>
                       <div className="text-sm text-muted-foreground">Automatic HTTPS encryption</div>
                     </div>
-                    <Badge variant="secondary">
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Active
                     </Badge>
@@ -338,7 +421,7 @@ export default function DomainManagement() {
                       <div className="font-semibold">HTTPS Redirect</div>
                       <div className="text-sm text-muted-foreground">Automatically redirect HTTP to HTTPS</div>
                     </div>
-                    <Badge variant="secondary">
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Enabled
                     </Badge>
@@ -349,7 +432,7 @@ export default function DomainManagement() {
                       <div className="font-semibold">DDoS Protection</div>
                       <div className="text-sm text-muted-foreground">Cloudflare security features</div>
                     </div>
-                    <Badge variant="secondary">
+                    <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Active
                     </Badge>
@@ -366,6 +449,191 @@ export default function DomainManagement() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Subdomain Edit Dialog */}
+        <Dialog open={showSubdomainDialog} onOpenChange={setShowSubdomainDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Edit Subdomain</DialogTitle>
+              <DialogDescription>
+                Configure subdomain settings and where it points to
+              </DialogDescription>
+            </DialogHeader>
+            {editingSubdomain && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Subdomain</label>
+                    <Input 
+                      value={editingSubdomain.name} 
+                      onChange={(e) => setEditingSubdomain({...editingSubdomain, name: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Record Type</label>
+                    <select 
+                      className="w-full p-2 border rounded"
+                      value={editingSubdomain.recordType}
+                      onChange={(e) => setEditingSubdomain({...editingSubdomain, recordType: e.target.value})}
+                    >
+                      <option value="CNAME">CNAME</option>
+                      <option value="A">A Record</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Points To</label>
+                  <Input 
+                    value={editingSubdomain.pointsTo} 
+                    onChange={(e) => setEditingSubdomain({...editingSubdomain, pointsTo: e.target.value})}
+                    placeholder="example.com or 192.168.1.1"
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">SSL Certificate</div>
+                      <div className="text-sm text-muted-foreground">Enable HTTPS encryption</div>
+                    </div>
+                    <Switch 
+                      checked={editingSubdomain.sslEnabled}
+                      onCheckedChange={(checked) => setEditingSubdomain({...editingSubdomain, sslEnabled: checked})}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">Cloudflare Proxy</div>
+                      <div className="text-sm text-muted-foreground">Enable DDoS protection and performance optimization</div>
+                    </div>
+                    <Switch 
+                      checked={editingSubdomain.proxyEnabled}
+                      onCheckedChange={(checked) => setEditingSubdomain({...editingSubdomain, proxyEnabled: checked})}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowSubdomainDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveSubdomain}>
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Email Alias Edit Dialog */}
+        <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Edit Email Alias</DialogTitle>
+              <DialogDescription>
+                Configure email alias settings and forwarding options
+              </DialogDescription>
+            </DialogHeader>
+            {editingEmailAlias && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Email Alias</label>
+                    <Input 
+                      value={editingEmailAlias.alias} 
+                      onChange={(e) => setEditingEmailAlias({...editingEmailAlias, alias: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Status</label>
+                    <select 
+                      className="w-full p-2 border rounded"
+                      value={editingEmailAlias.status}
+                      onChange={(e) => setEditingEmailAlias({...editingEmailAlias, status: e.target.value})}
+                    >
+                      <option value="active">Active</option>
+                      <option value="disabled">Disabled</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Forward To</label>
+                  <Input 
+                    value={editingEmailAlias.forwarding} 
+                    onChange={(e) => setEditingEmailAlias({...editingEmailAlias, forwarding: e.target.value})}
+                    placeholder="destination@email.com"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Description</label>
+                  <Input 
+                    value={editingEmailAlias.description} 
+                    onChange={(e) => setEditingEmailAlias({...editingEmailAlias, description: e.target.value})}
+                    placeholder="Brief description of this alias purpose"
+                  />
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">Spam Filter</div>
+                      <div className="text-sm text-muted-foreground">Enable spam detection and filtering</div>
+                    </div>
+                    <Switch 
+                      checked={editingEmailAlias.spamFilter}
+                      onCheckedChange={(checked) => setEditingEmailAlias({...editingEmailAlias, spamFilter: checked})}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">Auto Reply</div>
+                      <div className="text-sm text-muted-foreground">Send automatic response to incoming emails</div>
+                    </div>
+                    <Switch 
+                      checked={editingEmailAlias.autoReply}
+                      onCheckedChange={(checked) => setEditingEmailAlias({...editingEmailAlias, autoReply: checked})}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium">Catch All</div>
+                      <div className="text-sm text-muted-foreground">Receive emails sent to non-existent addresses</div>
+                    </div>
+                    <Switch 
+                      checked={editingEmailAlias.catchAll}
+                      onCheckedChange={(checked) => setEditingEmailAlias({...editingEmailAlias, catchAll: checked})}
+                    />
+                  </div>
+                </div>
+
+                {editingEmailAlias.autoReply && (
+                  <div>
+                    <label className="text-sm font-medium">Auto Reply Message</label>
+                    <textarea 
+                      className="w-full p-2 border rounded mt-1"
+                      rows={3}
+                      placeholder="Thank you for your email. We'll get back to you soon."
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowEmailDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveEmailAlias}>
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
