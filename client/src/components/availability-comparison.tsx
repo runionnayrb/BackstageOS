@@ -557,6 +557,9 @@ export default function AvailabilityComparison({
             </div>
 
             <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">
+                {timezone}
+              </span>
               <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value))}>
                 <SelectTrigger className="w-20">
                   <SelectValue />
@@ -567,9 +570,6 @@ export default function AvailabilityComparison({
                   <SelectItem value="60">60m</SelectItem>
                 </SelectContent>
               </Select>
-              <span className="text-sm text-gray-500">
-                {timezone}
-              </span>
             </div>
           </div>
 
