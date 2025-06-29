@@ -268,14 +268,18 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   const formatWeekRange = (dates: Date[]) => {
     const start = dates[0];
     const end = dates[6];
-    const startMonth = start.toLocaleDateString('en-US', { month: 'short' });
-    const endMonth = end.toLocaleDateString('en-US', { month: 'short' });
+    const startFormatted = start.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+    const endFormatted = end.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
     
-    if (startMonth === endMonth) {
-      return `${startMonth} ${start.getDate()}-${end.getDate()}, ${start.getFullYear()}`;
-    } else {
-      return `${startMonth} ${start.getDate()} - ${endMonth} ${end.getDate()}, ${start.getFullYear()}`;
-    }
+    return `${startFormatted} - ${endFormatted}`;
   };
 
   return (
