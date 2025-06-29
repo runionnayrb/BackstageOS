@@ -1,12 +1,11 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, ChevronRight, Calendar, Users, Trash2 } from "lucide-react";
+import { Calendar, Trash2, ArrowLeft } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import DailyAvailabilityView from "./daily-availability-view";
 
 interface ProjectAvailability {
   id: number;
@@ -21,8 +20,9 @@ interface ProjectAvailability {
   contactLastName: string;
 }
 
-interface AvailabilityComparisonProps {
+interface DailyAvailabilityViewProps {
   projectId: number;
+  selectedDate: Date;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -31,55 +31,26 @@ const START_MINUTES = 8 * 60; // 8:00 AM in minutes
 const END_MINUTES = 24 * 60; // Midnight in minutes
 const TOTAL_MINUTES = END_MINUTES - START_MINUTES; // 16 hours
 
-export default function AvailabilityComparison({
+export default function DailyAvailabilityView({
   projectId,
+  selectedDate,
   isOpen,
   onClose,
-}: AvailabilityComparisonProps) {
+}: DailyAvailabilityViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
-  const [selectedDateForDaily, setSelectedDateForDaily] = useState<Date | null>(null);
   const [timeIncrement, setTimeIncrement] = useState(30); // minutes
   const [editingItem, setEditingItem] = useState<any>(null);
 
-  // Get show settings for timezone and week start
+  // Get show settings for timezone
   const { data: showSettings } = useQuery({
     queryKey: [`/api/projects/${projectId}/settings`],
     enabled: isOpen,
   });
 
-  // Get week dates based on configured week start day
-  const getWeekDates = (date: Date, startDay: string = "sunday") => {
-    const week = [];
-    const startOfWeek = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const currentDay = startOfWeek.getDay(); // 0 = Sunday, 1 = Monday, etc.
-    
-    const weekStartMap: { [key: string]: number } = {
-      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, 
-      thursday: 4, friday: 5, saturday: 6
-    };
-    
-    const configuredStartDay = weekStartMap[startDay] || 0;
-    
-    let daysToSubtract = currentDay - configuredStartDay;
-    if (daysToSubtract < 0) {
-      daysToSubtract += 7;
-    }
-    
-    startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract);
-    
-    for (let i = 0; i < 7; i++) {
-      const weekDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i);
-      week.push(weekDate);
-    }
-    return week;
-  };
-
   // Get timezone from settings
   const scheduleSettings = (showSettings as any)?.scheduleSettings || {};
   const timezone = scheduleSettings.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const weekStartDay = scheduleSettings.weekStartDay || "sunday";
 
   // Fetch all project availability
   const { data: allAvailability = [], isLoading } = useQuery<ProjectAvailability[]>({
@@ -101,27 +72,6 @@ export default function AvailabilityComparison({
     ).values()
   ).sort((a: any, b: any) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`));
 
-  // Current display dates - always show weekly view
-  const weekDates = getWeekDates(currentWeek, weekStartDay);
-
-  // Navigation functions
-  const goToPreviousWeek = () => {
-    const newWeek = new Date(currentWeek);
-    newWeek.setDate(newWeek.getDate() - 7);
-    setCurrentWeek(newWeek);
-  };
-
-  const goToNextWeek = () => {
-    const newWeek = new Date(currentWeek);
-    newWeek.setDate(newWeek.getDate() + 7);
-    setCurrentWeek(newWeek);
-  };
-
-  const goToToday = () => {
-    const today = new Date();
-    setCurrentWeek(today);
-  };
-
   // Time formatting
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -135,11 +85,6 @@ export default function AvailabilityComparison({
   const timeToMinutes = (timeStr: string) => {
     const [hours, minutes] = timeStr.split(':').map(Number);
     return hours * 60 + minutes;
-  };
-
-  // Convert minutes to height in calendar
-  const minutesToHeight = (minutes: number) => {
-    return minutes; // 1 pixel per minute
   };
 
   // Convert minutes to position from 8 AM
@@ -162,17 +107,12 @@ export default function AvailabilityComparison({
 
   const timeLabels = generateTimeLabels();
 
-  // Get availability for a specific contact and date
-  const getContactAvailabilityForDate = (contactId: number, date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+  // Get availability for a specific contact and the selected date
+  const getContactAvailabilityForDate = (contactId: number) => {
+    const dateStr = selectedDate.toISOString().split('T')[0];
     return (allAvailability as ProjectAvailability[]).filter(
       (item: ProjectAvailability) => item.contactId === contactId && item.date === dateStr
     );
-  };
-
-  // Show daily view when clicking on a time block
-  const handleBlockClick = (date: Date) => {
-    setSelectedDateForDaily(date);
   };
 
   // Mutations for CRUD operations
@@ -246,35 +186,25 @@ export default function AvailabilityComparison({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl h-[90vh] flex flex-col">
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Team Availability Overview
+            <Calendar className="h-5 w-5" />
+            Daily Availability - {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </DialogTitle>
           <DialogDescription>
-            Compare availability across all team members. Click blocks in weekly view for detailed daily view.
+            Detailed view of team availability for the selected day. Click on blocks to edit.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Navigation and Controls */}
+        {/* Controls */}
         <div className="flex items-center justify-between gap-4 border-b pb-4">
-          <div className="flex items-center gap-2">
-            <Button onClick={goToPreviousWeek} variant="outline" size="sm">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button onClick={goToToday} variant="outline" size="sm">
-              Today
-            </Button>
-            <Button onClick={goToNextWeek} variant="outline" size="sm">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+          <Button onClick={onClose} variant="outline" size="sm" className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Weekly View
+          </Button>
 
           <div className="text-center">
-            <h3 className="font-medium">
-              {`${weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekDates[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`}
-            </h3>
             <p className="text-sm text-gray-500">
               {timezone}
             </p>
@@ -305,136 +235,100 @@ export default function AvailabilityComparison({
             </div>
           ) : (
             <>
-              {/* Contact Names Sidebar */}
-              <div className="w-48 border-r bg-gray-50 overflow-y-auto">
-                <div className="p-4">
-                  <h4 className="font-medium text-sm text-gray-600 mb-3">
-                    Team Members ({contacts.length})
-                  </h4>
-                  <div className="space-y-2">
-                    {contacts.map((contact: any) => (
-                      <div
-                        key={contact.id}
-                        className="p-2 text-sm bg-white rounded border"
-                      >
-                        {contact.firstName} {contact.lastName}
-                      </div>
-                    ))}
-                  </div>
+              {/* Time Labels */}
+              <div className="w-20 border-r bg-gray-50">
+                <div className="h-12 border-b"></div> {/* Header spacer */}
+                <div className="relative" style={{ height: `${TOTAL_MINUTES}px` }}>
+                  {timeLabels.map((timeLabel) => (
+                    <div
+                      key={timeLabel.minutes}
+                      className="absolute text-xs text-gray-500 pr-2 text-right w-full"
+                      style={{
+                        top: `${timeLabel.position}px`,
+                        transform: 'translateY(-50%)',
+                      }}
+                    >
+                      {timeIncrement >= 60 || timeLabel.minutes % 60 === 0 ? timeLabel.label : ''}
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Calendar Grid */}
+              {/* Contact Columns */}
               <div className="flex-1 overflow-auto">
-                <div className="relative">
-                  {/* Time Header */}
-                  <div className="sticky top-0 bg-white border-b z-10">
-                    <div className="flex">
-                      {weekDates.map((date: Date, dayIndex: number) => (
-                        <div key={dayIndex} className="flex-1 min-w-0">
-                          <div className="p-2 text-center border-r">
-                            <div className="font-medium">
-                              {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}
-                            </div>
-                          </div>
-                          
-                          {/* Time Grid Headers */}
-                          <div className="flex text-xs text-gray-500 border-b">
-                            {timeLabels.map((timeLabel, timeIndex) => (
-                              <div
-                                key={timeIndex}
-                                className="flex-1 p-1 text-center border-r"
-                                style={{ minWidth: `${timeIncrement}px` }}
-                              >
-                                {timeIncrement >= 60 || timeIndex % 2 === 0 ? timeLabel.label : ''}
-                              </div>
-                            ))}
+                <div className="flex">
+                  {contacts.map((contact: any) => {
+                    const contactAvailability = getContactAvailabilityForDate(contact.id);
+                    
+                    return (
+                      <div key={contact.id} className="flex-1 min-w-48 border-r">
+                        {/* Contact Header */}
+                        <div className="h-12 p-2 border-b bg-gray-50 text-center">
+                          <div className="text-sm font-medium truncate">
+                            {contact.firstName} {contact.lastName}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
 
-                  {/* Contact Rows */}
-                  <div className="space-y-1">
-                    {contacts.map((contact: any) => (
-                      <div key={contact.id} className="flex border-b">
-                        {weekDates.map((date: Date, dayIndex: number) => {
-                          const dayAvailability = getContactAvailabilityForDate(contact.id, date);
-                          
-                          return (
-                            <div key={dayIndex} className="flex-1 relative border-r" style={{ height: '48px' }}>
-                              {/* Time Grid Background */}
-                              <div className="absolute inset-0 flex">
-                                {timeLabels.map((timeLabel, timeIndex) => (
-                                  <div
-                                    key={timeIndex}
-                                    className="flex-1 border-r border-gray-100"
-                                    style={{ minWidth: `${timeIncrement}px` }}
-                                  />
-                                ))}
-                              </div>
+                        {/* Availability Column */}
+                        <div className="relative" style={{ height: `${TOTAL_MINUTES}px` }}>
+                          {/* Time Grid Background */}
+                          {timeLabels.map((timeLabel) => (
+                            <div
+                              key={timeLabel.minutes}
+                              className="absolute w-full border-b border-gray-100"
+                              style={{
+                                top: `${timeLabel.position}px`,
+                                height: '1px',
+                              }}
+                            />
+                          ))}
 
-                              {/* Availability Blocks */}
-                              {dayAvailability.map((item: ProjectAvailability) => {
-                                const startMinutes = timeToMinutes(item.startTime);
-                                const endMinutes = timeToMinutes(item.endTime);
-                                const startPos = minutesToPosition(startMinutes);
-                                const duration = endMinutes - startMinutes;
-                                const width = (duration / timeIncrement) * timeIncrement;
+                          {/* Availability Blocks */}
+                          {contactAvailability.map((item: ProjectAvailability) => {
+                            const startMinutes = timeToMinutes(item.startTime);
+                            const endMinutes = timeToMinutes(item.endTime);
+                            const startPos = minutesToPosition(startMinutes);
+                            const duration = endMinutes - startMinutes;
 
-                                return (
-                                  <div
-                                    key={item.id}
-                                    className={`absolute top-1 cursor-pointer rounded text-xs px-1 text-white ${
-                                      item.availabilityType === 'unavailable'
-                                        ? 'bg-red-500 hover:bg-red-600'
-                                        : 'bg-blue-500 hover:bg-blue-600'
-                                    }`}
-                                    style={{
-                                      left: `${(startPos / TOTAL_MINUTES) * 100}%`,
-                                      width: `${(width / TOTAL_MINUTES) * 100}%`,
-                                      height: '36px',
-                                      minWidth: '20px',
-                                    }}
-                                    onClick={() => {
-                                      handleBlockClick(date);
-                                    }}
-                                    title={`${item.availabilityType === 'unavailable' ? 'Unavailable' : 'Preferred'}: ${formatTime(startMinutes)} - ${formatTime(endMinutes)}${item.notes ? `\n${item.notes}` : ''}`}
-                                  >
-                                    <div className="truncate">
-                                      {item.availabilityType === 'unavailable' ? 'Unavail' : 'Pref'}
-                                    </div>
-                                    <div className="text-xs opacity-75">
-                                      {formatTime(startMinutes).split(' ')[0]}
-                                    </div>
+                            return (
+                              <div
+                                key={item.id}
+                                className={`absolute left-1 right-1 cursor-pointer rounded text-xs px-2 py-1 text-white ${
+                                  item.availabilityType === 'unavailable'
+                                    ? 'bg-red-500 hover:bg-red-600'
+                                    : 'bg-blue-500 hover:bg-blue-600'
+                                }`}
+                                style={{
+                                  top: `${startPos}px`,
+                                  height: `${duration}px`,
+                                  minHeight: '20px',
+                                }}
+                                onClick={() => setEditingItem(item)}
+                                title={`${item.availabilityType === 'unavailable' ? 'Unavailable' : 'Preferred'}: ${formatTime(startMinutes)} - ${formatTime(endMinutes)}${item.notes ? `\n${item.notes}` : ''}`}
+                              >
+                                <div className="font-medium">
+                                  {item.availabilityType === 'unavailable' ? 'Unavailable' : 'Preferred'}
+                                </div>
+                                <div className="text-xs opacity-90">
+                                  {formatTime(startMinutes)} - {formatTime(endMinutes)}
+                                </div>
+                                {item.notes && (
+                                  <div className="text-xs opacity-75 mt-1 truncate">
+                                    {item.notes}
                                   </div>
-                                );
-                              })}
-                            </div>
-                          );
-                        })}
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
             </>
           )}
         </div>
-
-        {/* Daily Availability View */}
-        {selectedDateForDaily && (
-          <DailyAvailabilityView
-            projectId={projectId}
-            selectedDate={selectedDateForDaily}
-            isOpen={!!selectedDateForDaily}
-            onClose={() => setSelectedDateForDaily(null)}
-          />
-        )}
 
         {/* Edit Dialog */}
         {editingItem && (
