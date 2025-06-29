@@ -134,17 +134,16 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   const viewportHeight = 500; // Calendar container height
   const initialScrollPosition = Math.max(0, (startHour * 60) - (viewportHeight / 2)); // Center working hours in viewport
 
-  // Auto-scroll to working hours when dialog opens
-  useEffect(() => {
-    if (isOpen && scrollContainerRef.current && showSettings) {
-      // Single scroll attempt to prevent bouncing
-      setTimeout(() => {
-        if (scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTop = initialScrollPosition;
-        }
-      }, 100);
-    }
-  }, [isOpen, showSettings, initialScrollPosition, startHour, workingHours]);
+  // Disabled auto-scroll to prevent bouncing issues
+  // useEffect(() => {
+  //   if (isOpen && scrollContainerRef.current && showSettings) {
+  //     setTimeout(() => {
+  //       if (scrollContainerRef.current) {
+  //         scrollContainerRef.current.scrollTop = initialScrollPosition;
+  //       }
+  //     }, 100);
+  //   }
+  // }, [isOpen, showSettings, initialScrollPosition]);
 
   // Mutations
   const createMutation = useMutation({
@@ -527,6 +526,18 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               <Button variant="outline" size="sm" onClick={goToToday}>
                 Today
               </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => {
+                  if (scrollContainerRef.current) {
+                    const workingHoursPosition = startHour * 60; // 9 AM = 540 minutes
+                    scrollContainerRef.current.scrollTop = workingHoursPosition;
+                  }
+                }}
+              >
+                Working Hours
+              </Button>
             </div>
             
             {/* Time increment selector */}
@@ -586,19 +597,18 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             {/* Calendar body */}
             <div 
               ref={scrollContainerRef}
-              className="relative overflow-y-scroll border-t"
+              className="border-t"
               style={{ 
-                height: '500px', 
-                maxHeight: '60vh',
-                scrollBehavior: 'auto',
-                overscrollBehavior: 'contain'
+                height: '500px',
+                overflowY: 'scroll',
+                position: 'relative'
               }}
               onScroll={(e) => {
                 const scrollTop = e.currentTarget.scrollTop;
                 setScrollPosition(scrollTop);
               }}
             >
-              <div className="relative" style={{ height: '1440px' }}> {/* Full 24 hours */}
+              <div style={{ height: '1440px', position: 'relative' }}> {/* Full 24 hours */}
                 <div className="grid grid-cols-8 h-full">
                 {/* Time column */}
                 <div className="border-r bg-gray-50">
