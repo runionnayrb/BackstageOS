@@ -496,12 +496,12 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
         setJustDragged(item.id);
         setTimeout(() => setJustDragged(null), 100); // Clear flag after 100ms
         
-        // Only update if position changed and mutation isn't already pending
-        if ((currentPosition.dayIndex !== originalPosition.dayIndex || 
-            currentPosition.startMinutes !== originalPosition.startMinutes) &&
+        // Only update if time position changed (not day) and mutation isn't already pending
+        if (currentPosition.startMinutes !== originalPosition.startMinutes &&
             !updateMutation.isPending) {
           
-          const newDate = formatDateForStorage(weekDates[currentPosition.dayIndex]);
+          // Keep the same date - don't allow day changes during drag
+          const newDate = item.date;
           const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
           const newEndMinutes = currentPosition.startMinutes + duration;
           
