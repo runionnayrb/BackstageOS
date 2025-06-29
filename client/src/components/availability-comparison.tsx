@@ -184,62 +184,27 @@ export default function AvailabilityComparison({
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      const response = await fetch(`/api/projects/${projectId}/contacts/${data.contactId}/availability/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error("Failed to update availability");
-      return response.json();
-    },
-    onMutate: async ({ id, data }) => {
-      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-      await queryClient.cancelQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
-      
-      // Snapshot the previous value
-      const previousData = queryClient.getQueryData([`/api/projects/${projectId}/availability`]);
-      
-      // Optimistically update to the new value
-      queryClient.setQueryData([`/api/projects/${projectId}/availability`], (old: any) => {
-        return old?.map((item: any) => 
-          item.id === id ? { ...item, ...data } : item
-        ) || [];
-      });
-      
-      return { previousData, id };
-    },
-    onSuccess: (result, variables, context) => {
-      setEditingItem(null);
-      setDraggedItem(null);
-      setResizingItem(null);
-    },
-    onError: (error, variables, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
-      queryClient.setQueryData([`/api/projects/${projectId}/availability`], context?.previousData);
-      toast({ 
-        title: "Failed to update availability", 
-        description: error.message,
-        variant: "destructive" 
-      });
-    },
-    onSettled: () => {
-      // Always refetch after error or success to ensure we have the latest data
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
-    },
-  });
 
-  // Debounced update function
-  const debouncedUpdate = useCallback((id: number, data: any) => {
+
+  // Silent background update function
+  const silentUpdate = useCallback((id: number, data: any) => {
     if (updateTimeoutRef.current) {
       clearTimeout(updateTimeoutRef.current);
     }
     
     updateTimeoutRef.current = setTimeout(() => {
-      updateMutation.mutate({ id, data });
-    }, 300); // 300ms delay
-  }, [updateMutation]);
+      // Silent API call without affecting UI
+      fetch(`/api/projects/${projectId}/contacts/${data.contactId}/availability/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }).catch(error => {
+        console.error("Background update failed:", error);
+        // Revert optimistic update on error
+        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
+      });
+    }, 500); // Longer delay for background operations
+  }, [projectId, queryClient]);
 
   const handleMouseUp = () => {
     if (!isDragging) return;
@@ -256,8 +221,15 @@ export default function AvailabilityComparison({
         date: currentDate.toISOString().split('T')[0],
       };
       
-      // Use React Query's optimistic update instead of local state
-      debouncedUpdate(draggedItem.id, updateData);
+      // Immediately update the query cache for instant visual feedback
+      queryClient.setQueryData([`/api/projects/${projectId}/availability`], (old: any) => {
+        return old?.map((item: any) => 
+          item.id === draggedItem.id ? { ...item, ...updateData } : item
+        ) || [];
+      });
+      
+      // Run database update silently in background
+      silentUpdate(draggedItem.id, updateData);
     } else if (resizingItem) {
       const updateData = {
         contactId: resizingItem.contactId,
@@ -268,8 +240,15 @@ export default function AvailabilityComparison({
         date: currentDate.toISOString().split('T')[0],
       };
       
-      // Use React Query's optimistic update instead of local state
-      debouncedUpdate(resizingItem.id, updateData);
+      // Immediately update the query cache for instant visual feedback
+      queryClient.setQueryData([`/api/projects/${projectId}/availability`], (old: any) => {
+        return old?.map((item: any) => 
+          item.id === resizingItem.id ? { ...item, ...updateData } : item
+        ) || [];
+      });
+      
+      // Run database update silently in background
+      silentUpdate(resizingItem.id, updateData);
     }
     
     setIsDragging(false);
