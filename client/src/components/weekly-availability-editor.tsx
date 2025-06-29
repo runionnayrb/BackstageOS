@@ -137,27 +137,12 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   // Auto-scroll to working hours when dialog opens
   useEffect(() => {
     if (isOpen && scrollContainerRef.current && showSettings) {
-      const scrollToPosition = minutesToPosition(initialScrollPosition);
-      console.log('Auto-scrolling to working hours:', {
-        startHour,
-        initialScrollPosition,
-        scrollToPosition,
-        workingHours
-      });
-      
-      // Multiple attempts to ensure scroll works
-      const scrollAttempts = [50, 150, 300];
-      
-      scrollAttempts.forEach(delay => {
-        setTimeout(() => {
-          if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollTo({
-              top: scrollToPosition,
-              behavior: delay === 50 ? 'auto' : 'smooth'
-            });
-          }
-        }, delay);
-      });
+      // Single scroll attempt to prevent bouncing
+      setTimeout(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = initialScrollPosition;
+        }
+      }, 100);
     }
   }, [isOpen, showSettings, initialScrollPosition, startHour, workingHours]);
 
@@ -601,12 +586,16 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             {/* Calendar body */}
             <div 
               ref={scrollContainerRef}
-              className="relative overflow-y-auto border-t"
-              style={{ height: '500px', maxHeight: '60vh' }}
+              className="relative overflow-y-scroll border-t"
+              style={{ 
+                height: '500px', 
+                maxHeight: '60vh',
+                scrollBehavior: 'auto',
+                overscrollBehavior: 'contain'
+              }}
               onScroll={(e) => {
                 const scrollTop = e.currentTarget.scrollTop;
                 setScrollPosition(scrollTop);
-                console.log('Scroll position:', scrollTop, 'of max:', 1440 - 500);
               }}
             >
               <div className="relative" style={{ height: '1440px' }}> {/* Full 24 hours */}
