@@ -49,6 +49,16 @@ export default function Calendar() {
     );
   }
 
+  // Show availability comparison as full page
+  if (showAvailabilityComparison) {
+    return (
+      <AvailabilityComparison
+        projectId={parseInt(projectId)}
+        onBack={() => setShowAvailabilityComparison(false)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
@@ -95,13 +105,6 @@ export default function Calendar() {
             </div>
           ))}
         </div>
-
-        {/* Availability Comparison Modal */}
-        <AvailabilityComparison
-          projectId={parseInt(projectId)}
-          isOpen={showAvailabilityComparison}
-          onClose={() => setShowAvailabilityComparison(false)}
-        />
       </div>
     </div>
   );
