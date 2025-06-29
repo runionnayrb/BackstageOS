@@ -449,9 +449,20 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const mouseX = e.clientX - calendarRect.left;
       const mouseY = e.clientY - calendarRect.top;
       
-      // Allow moving blocks between days
-      const newDayIndex = Math.floor((mouseX / calendarRect.width) * 7);
+      // Calculate which day column the mouse is over
+      // The calendar has 8 columns (1 time + 7 days), so we need to account for the time column
+      const dayColumnWidth = calendarRect.width / 7; // Each day column width
+      const newDayIndex = Math.floor(mouseX / dayColumnWidth);
       const clampedDayIndex = Math.max(0, Math.min(6, newDayIndex));
+      
+      console.log('Day calculation:', {
+        mouseX,
+        calendarWidth: calendarRect.width,
+        dayColumnWidth,
+        calculatedDayIndex: newDayIndex,
+        clampedDayIndex,
+        originalDay: currentDragState.originalPosition.dayIndex
+      });
       
       // Calculate new time position using drag offset, not absolute coordinates
       const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
@@ -515,7 +526,10 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             newDate,
             oldTime: `${item.startTime} - ${item.endTime}`,
             newTime: `${minutesToTime(currentPosition.startMinutes)} - ${minutesToTime(newEndMinutes)}`,
-            dayChanged: currentPosition.dayIndex !== originalPosition.dayIndex
+            dayChanged: currentPosition.dayIndex !== originalPosition.dayIndex,
+            weekDatesDebug: weekDates.map((d, i) => ({ index: i, date: formatDateForStorage(d) })),
+            selectedDayIndex: currentPosition.dayIndex,
+            selectedDate: weekDates[currentPosition.dayIndex]
           });
           
           // Update UI immediately for instant feedback
