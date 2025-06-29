@@ -3,7 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronLeft, ChevronRight, Users, Trash2, ArrowLeft } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { ChevronLeft, ChevronRight, Users, Trash2, ArrowLeft, Calendar } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
@@ -481,7 +483,7 @@ export default function AvailabilityComparison({
     <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="border-b bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-6">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <Button onClick={onBack} variant="ghost" size="sm" className="flex items-center gap-2">
@@ -498,8 +500,8 @@ export default function AvailabilityComparison({
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="h-[calc(100vh-8rem)] flex flex-col">
+      <div className="px-6 py-6">
+        <div className="h-[calc(100vh-6rem)] flex flex-col">
           <div className="mb-4">
             <p className="text-gray-600">
               Compare team availability for the selected day. Times are shown across the top, team members on the left.
@@ -518,8 +520,29 @@ export default function AvailabilityComparison({
               <Button onClick={goToNextDay} variant="outline" size="sm">
                 <ChevronRight className="h-4 w-4" />
               </Button>
-              <div className="ml-4 text-sm font-medium">
-                {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              <div className="ml-4 flex items-center gap-2">
+                <div className="text-sm font-medium">
+                  {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                </div>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <Calendar className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={currentDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          setCurrentDate(date);
+                        }
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
