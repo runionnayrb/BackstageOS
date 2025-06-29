@@ -45,7 +45,7 @@ import WaitlistLanding from "@/pages/waitlist-landing";
 
 function Router() {
   // Check if this is the main landing page domain FIRST
-  const isMainLandingPage = window.location.hostname === 'backstageos.com' || 
+  const isMainLandingPage = window.location.hostname === 'join.backstageos.com' || 
                            (window.location.hostname === 'localhost' && window.location.pathname === '/landing');
   
   // If this is the main landing page domain, show waitlist landing immediately

@@ -402,8 +402,16 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       // Calculate new time position - allow free movement, maintain duration
       const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
       const rawMinutes = Math.round(contentY);
-      // Clamp to valid range (0 to 1440 minus duration to prevent overflow)
-      const newStartMinutes = Math.max(0, Math.min(1440 - duration, rawMinutes));
+      
+      // For blocks extending to midnight, allow upward movement by removing upper constraint
+      let newStartMinutes;
+      if (timeToMinutes(item.endTime) === 1440) { // Ends at midnight
+        // Allow movement to any earlier time (no upper limit for upward movement)
+        newStartMinutes = Math.max(0, rawMinutes);
+      } else {
+        // Normal constraint for other blocks
+        newStartMinutes = Math.max(0, Math.min(1440 - duration, rawMinutes));
+      }
       
       console.log('Drag move:', {
         mouseY,
