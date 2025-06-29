@@ -63,7 +63,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   // Get week dates based on configured week start day
   const getWeekDates = (date: Date, startDay: string = "sunday") => {
     const week = [];
-    const startOfWeek = new Date(date);
+    // Create date in local timezone to avoid UTC conversion issues
+    const startOfWeek = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const currentDay = startOfWeek.getDay(); // 0 = Sunday, 1 = Monday, etc.
     
     // Map week start day string to number
@@ -83,8 +84,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract);
     
     for (let i = 0; i < 7; i++) {
-      const weekDate = new Date(startOfWeek);
-      weekDate.setDate(startOfWeek.getDate() + i);
+      const weekDate = new Date(startOfWeek.getFullYear(), startOfWeek.getMonth(), startOfWeek.getDate() + i);
       week.push(weekDate);
     }
     return week;
@@ -279,7 +279,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
 
   // Timezone-aware date formatting for storage
   const formatDateForStorage = (date: Date): string => {
-    // Always store dates in ISO format but ensure consistency with show timezone
+    // Format date in local timezone to avoid UTC conversion issues
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
