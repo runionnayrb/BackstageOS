@@ -154,25 +154,7 @@ export default function Schedule() {
           </div>
         </div>
 
-        {/* Dynamic Navigation Header */}
-        <div className="mb-6 bg-white rounded-lg shadow-sm p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" onClick={goToPrevious}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <h2 className="text-lg font-semibold min-w-80 text-center">
-                {getHeaderText()}
-              </h2>
-              <Button variant="outline" size="sm" onClick={goToNext}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={goToToday}>
-                Today
-              </Button>
-            </div>
-          </div>
-        </div>
+
 
         {viewMode === 'monthly' ? (
           <MonthlyScheduleView 
