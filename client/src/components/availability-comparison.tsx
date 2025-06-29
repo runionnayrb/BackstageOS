@@ -267,12 +267,13 @@ export default function AvailabilityComparison({
     const currentY = e.clientY - rect.top;
 
     if (draggedItem) {
-      // Moving existing item
+      // Moving existing item - use relative position from original click
       const deltaX = currentX - dragStart.x;
       const startMinutes = timeToMinutes(draggedItem.originalStartTime);
       const endMinutes = timeToMinutes(draggedItem.originalEndTime);
       const duration = endMinutes - startMinutes;
       
+      // Apply delta movement to original position (not absolute positioning)
       const newStartMinutes = snapToIncrement(Math.max(START_MINUTES, Math.min(END_MINUTES - duration, startMinutes + deltaX)));
       const newEndMinutes = newStartMinutes + duration;
       
@@ -381,7 +382,11 @@ export default function AvailabilityComparison({
   const handleBlockMouseDown = (e: React.MouseEvent, item: ProjectAvailability, mode?: 'move' | 'resize-top' | 'resize-bottom') => {
     e.stopPropagation();
     
-    const rect = e.currentTarget.getBoundingClientRect();
+    // Get position relative to the entire timeline container, not just the block
+    const timelineContainer = e.currentTarget.closest('.relative') as HTMLElement;
+    const rect = timelineContainer?.getBoundingClientRect();
+    if (!rect) return;
+    
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
