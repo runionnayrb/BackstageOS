@@ -44,7 +44,6 @@ export default function AvailabilityComparison({
   const [draggedItem, setDraggedItem] = useState<any>(null);
   const [resizingItem, setResizingItem] = useState<any>(null);
   const [resizeMode, setResizeMode] = useState<'top' | 'bottom' | null>(null);
-  const [optimisticUpdates, setOptimisticUpdates] = useState<{ [key: number]: ProjectAvailability }>({});
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get show settings for timezone
@@ -110,11 +109,10 @@ export default function AvailabilityComparison({
 
   const timeLabels = generateTimeLabels();
 
-  // Get availability for a specific contact and the current date (with optimistic updates)
+  // Get availability for a specific contact and the current date
   const getContactAvailabilityForDate = (contactId: number) => {
     const dateStr = currentDate.toISOString().split('T')[0];
-    const effectiveAvailability = getEffectiveAvailability();
-    return effectiveAvailability.filter(
+    return (allAvailability as ProjectAvailability[]).filter(
       (item: ProjectAvailability) => item.contactId === contactId && item.date === dateStr
     );
   };
@@ -157,28 +155,7 @@ export default function AvailabilityComparison({
     return contacts[contactIndex]?.id || null;
   };
 
-  // Optimistic update helper
-  const applyOptimisticUpdate = (id: number, updates: Partial<ProjectAvailability>) => {
-    setOptimisticUpdates(prev => ({
-      ...prev,
-      [id]: { ...(allAvailability.find(item => item.id === id) as ProjectAvailability), ...updates }
-    }));
-  };
 
-  const clearOptimisticUpdate = (id: number) => {
-    setOptimisticUpdates(prev => {
-      const newUpdates = { ...prev };
-      delete newUpdates[id];
-      return newUpdates;
-    });
-  };
-
-  // Get effective availability data (with optimistic updates applied)
-  const getEffectiveAvailability = () => {
-    return allAvailability.map(item => 
-      optimisticUpdates[item.id] || item
-    );
-  };
 
   // Mutations for CRUD operations
   const createMutation = useMutation({
@@ -218,24 +195,38 @@ export default function AvailabilityComparison({
       return response.json();
     },
     onMutate: async ({ id, data }) => {
-      // Optimistic update
-      applyOptimisticUpdate(id, data);
-      return { id };
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
+      
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData([`/api/projects/${projectId}/availability`]);
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData([`/api/projects/${projectId}/availability`], (old: any) => {
+        return old?.map((item: any) => 
+          item.id === id ? { ...item, ...data } : item
+        ) || [];
+      });
+      
+      return { previousData, id };
     },
-    onSuccess: (result, variables) => {
-      clearOptimisticUpdate(variables.id);
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
+    onSuccess: (result, variables, context) => {
       setEditingItem(null);
       setDraggedItem(null);
       setResizingItem(null);
     },
-    onError: (error, variables) => {
-      clearOptimisticUpdate(variables.id);
+    onError: (error, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      queryClient.setQueryData([`/api/projects/${projectId}/availability`], context?.previousData);
       toast({ 
         title: "Failed to update availability", 
         description: error.message,
         variant: "destructive" 
       });
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure we have the latest data
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
     },
   });
 
@@ -265,10 +256,7 @@ export default function AvailabilityComparison({
         date: currentDate.toISOString().split('T')[0],
       };
       
-      // Apply optimistic update immediately
-      applyOptimisticUpdate(draggedItem.id, updateData);
-      
-      // Debounce the actual API call
+      // Use React Query's optimistic update instead of local state
       debouncedUpdate(draggedItem.id, updateData);
     } else if (resizingItem) {
       const updateData = {
@@ -280,10 +268,7 @@ export default function AvailabilityComparison({
         date: currentDate.toISOString().split('T')[0],
       };
       
-      // Apply optimistic update immediately
-      applyOptimisticUpdate(resizingItem.id, updateData);
-      
-      // Debounce the actual API call
+      // Use React Query's optimistic update instead of local state
       debouncedUpdate(resizingItem.id, updateData);
     }
     
