@@ -285,14 +285,26 @@ export default function AvailabilityComparison({
   const handleSaveEdit = () => {
     if (!editingItem) return;
     
-    updateMutation.mutate({
-      id: editingItem.id,
-      data: {
-        contactId: editingItem.contactId,
-        availabilityType: editingItem.availabilityType,
-        notes: editingItem.notes,
-      },
+    const updateData = {
+      contactId: editingItem.contactId,
+      startTime: editingItem.startTime,
+      endTime: editingItem.endTime,
+      availabilityType: editingItem.availabilityType,
+      notes: editingItem.notes,
+      date: currentDate.toISOString().split('T')[0],
+    };
+    
+    // Immediately update the query cache for instant visual feedback
+    queryClient.setQueryData([`/api/projects/${projectId}/availability`], (old: any) => {
+      return old?.map((item: any) => 
+        item.id === editingItem.id ? { ...item, ...updateData } : item
+      ) || [];
     });
+    
+    // Run database update silently in background
+    silentUpdate(editingItem.id, updateData);
+    
+    setEditingItem(null);
   };
 
   const handleDelete = () => {
@@ -710,7 +722,6 @@ export default function AvailabilityComparison({
                       </Button>
                       <Button
                         onClick={handleSaveEdit}
-                        disabled={updateMutation.isPending}
                       >
                         Save Changes
                       </Button>
