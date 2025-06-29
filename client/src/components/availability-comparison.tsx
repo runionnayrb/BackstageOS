@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -46,7 +46,36 @@ export default function AvailabilityComparison({
   const [draggedItem, setDraggedItem] = useState<any>(null);
   const [resizingItem, setResizingItem] = useState<any>(null);
   const [resizeMode, setResizeMode] = useState<'top' | 'bottom' | null>(null);
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Keyboard event handlers for shift selection and delete
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true);
+      }
+      if (e.key === 'Delete' && selectedItems.size > 0) {
+        setShowBulkDeleteDialog(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [selectedItems]);
 
   // Get show settings for timezone
   const { data: showSettings } = useQuery({
@@ -294,6 +323,39 @@ export default function AvailabilityComparison({
     },
   });
 
+  // Bulk delete mutation
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      const items = (allAvailability as ProjectAvailability[]).filter((a: ProjectAvailability) => ids.includes(a.id));
+      
+      await Promise.all(items.map(item => 
+        fetch(`/api/projects/${projectId}/contacts/${item.contactId}/availability/${item.id}`, {
+          method: 'DELETE'
+        }).then(response => {
+          if (!response.ok) throw new Error(`Failed to delete availability ${item.id}`);
+        })
+      ));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
+      setSelectedItems(new Set());
+      setShowBulkDeleteDialog(false);
+      toast({ title: `${selectedItems.size} availability blocks deleted successfully` });
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Failed to delete availability blocks", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    }
+  });
+
+  const handleBulkDelete = () => {
+    const selectedIds = Array.from(selectedItems);
+    bulkDeleteMutation.mutate(selectedIds);
+  };
+
   const handleSaveEdit = () => {
     if (!editingItem) return;
     
@@ -422,6 +484,25 @@ export default function AvailabilityComparison({
 
   const handleBlockMouseDown = (e: React.MouseEvent, item: ProjectAvailability, mode?: 'move' | 'resize-top' | 'resize-bottom') => {
     e.stopPropagation();
+    
+    // Handle Shift+click for multi-selection
+    if (e.shiftKey && !mode) {
+      if (selectedItems.has(item.id)) {
+        const newSelected = new Set(selectedItems);
+        newSelected.delete(item.id);
+        setSelectedItems(newSelected);
+      } else {
+        const newSelected = new Set(selectedItems);
+        newSelected.add(item.id);
+        setSelectedItems(newSelected);
+      }
+      return;
+    }
+    
+    // Clear selection when starting normal drag operations
+    if (selectedItems.size > 0) {
+      setSelectedItems(new Set());
+    }
     
     // For resize handles, start dragging immediately
     if (mode === 'resize-top' || mode === 'resize-bottom') {
@@ -556,20 +637,38 @@ export default function AvailabilityComparison({
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">
-                {timezone}
-              </span>
-              <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value))}>
-                <SelectTrigger className="w-20">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="15">15m</SelectItem>
-                  <SelectItem value="30">30m</SelectItem>
-                  <SelectItem value="60">60m</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">
+                  {timezone}
+                </span>
+                <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value))}>
+                  <SelectTrigger className="w-20">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15m</SelectItem>
+                    <SelectItem value="30">30m</SelectItem>
+                    <SelectItem value="60">60m</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* Multi-select indicators */}
+              {(isShiftPressed || selectedItems.size > 0) && (
+                <div className="flex items-center gap-2 text-sm">
+                  {isShiftPressed && (
+                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
+                      Multi-select mode
+                    </span>
+                  )}
+                  {selectedItems.size > 0 && (
+                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
+                      {selectedItems.size} selected
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -665,7 +764,9 @@ export default function AvailabilityComparison({
                                     currentItem.availabilityType === 'unavailable'
                                       ? 'bg-red-500 hover:bg-red-600'
                                       : 'bg-blue-500 hover:bg-blue-600'
-                                  } ${(isBeingDragged || isBeingResized) ? 'opacity-80 z-20' : 'z-10'}`}
+                                  } ${(isBeingDragged || isBeingResized) ? 'opacity-80 z-20' : 'z-10'} ${
+                                    selectedItems.has(item.id) ? 'ring-2 ring-yellow-400 ring-opacity-80' : ''
+                                  } ${isShiftPressed ? 'cursor-pointer' : ''}`}
                                   style={{
                                     left: `${startPercent}%`,
                                     width: `${widthPercent}%`,
@@ -682,7 +783,7 @@ export default function AvailabilityComparison({
                                   />
                                   
                                   {/* Content */}
-                                  <div className="px-2 py-1 cursor-move h-full flex flex-col justify-center">
+                                  <div className={`px-2 py-1 h-full flex flex-col justify-center ${isShiftPressed ? 'cursor-pointer' : 'cursor-move'}`}>
                                     <div className="font-medium truncate">
                                       {currentItem.availabilityType === 'unavailable' ? 'Out' : 'Pref'}
                                     </div>
@@ -787,6 +888,36 @@ export default function AvailabilityComparison({
                       </Button>
                     </div>
                   </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          {/* Bulk Delete Confirmation Dialog */}
+          {showBulkDeleteDialog && (
+            <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Selected Availability Blocks</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete {selectedItems.size} selected availability block{selectedItems.size !== 1 ? 's' : ''}? This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowBulkDeleteDialog(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleBulkDelete}
+                    disabled={bulkDeleteMutation.isPending}
+                  >
+                    {bulkDeleteMutation.isPending ? "Deleting..." : "Delete"}
+                  </Button>
                 </div>
               </DialogContent>
             </Dialog>
