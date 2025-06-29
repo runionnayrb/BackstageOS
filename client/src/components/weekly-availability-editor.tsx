@@ -266,13 +266,14 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   };
 
   const minutesToPosition = (minutes: number): number => {
-    // Calendar height is 1440px for full 24 hours (1 pixel per minute)
-    return minutes;
+    // Calendar now shows 8 AM to midnight (16 hours = 960 pixels)
+    // Offset by START_MINUTES to position relative to 8 AM
+    return Math.max(0, minutes - START_MINUTES);
   };
 
   const positionToMinutes = (position: number): number => {
-    // Convert pixel position back to minutes (1:1 ratio)
-    const minutes = Math.max(0, Math.min(1439, Math.round(position))); // Cap at 23:59 instead of 24:00
+    // Convert pixel position back to minutes, adding START_MINUTES offset
+    const minutes = Math.max(START_MINUTES, Math.min(END_MINUTES - 1, Math.round(position + START_MINUTES)));
     // Snap to time increment
     return Math.round(minutes / timeIncrement) * timeIncrement;
   };
@@ -606,13 +607,13 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       if (edge === 'start') {
         // Resizing from top - adjust start time by the delta
         const newStartMinutes = startMinutes + deltaMinutes;
-        currentPreviewStart = Math.max(0, Math.min(endMinutes - timeIncrement, newStartMinutes));
+        currentPreviewStart = Math.max(START_MINUTES, Math.min(endMinutes - timeIncrement, newStartMinutes));
         currentPreviewEnd = endMinutes;
       } else {
-        // Resizing from bottom - adjust end time by the delta, cap at 23:59 (1439 minutes)
+        // Resizing from bottom - adjust end time by the delta, cap at END_MINUTES
         const newEndMinutes = endMinutes + deltaMinutes;
         currentPreviewStart = startMinutes;
-        currentPreviewEnd = Math.max(startMinutes + timeIncrement, Math.min(1439, newEndMinutes));
+        currentPreviewEnd = Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES - 1, newEndMinutes));
       }
       
       console.log(`Resizing ${edge}:`, {
@@ -669,9 +670,11 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     document.addEventListener('mouseup', handleMouseUp);
   }, [timeIncrement, updateMutation, isResizing]);
 
-  // Generate time labels (every 2 hours) using show's time format
+  // Generate time labels (every 2 hours) starting from 8 AM using show's time format
+  const START_HOUR = 8; // 8 AM
+  const END_HOUR = 24; // Midnight
   const timeLabels = [];
-  for (let hour = 0; hour < 24; hour += 2) {
+  for (let hour = START_HOUR; hour < END_HOUR; hour += 2) {
     timeLabels.push({
       hour,
       label: minutesToTime(hour * 60),
@@ -679,9 +682,11 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     });
   }
 
-  // Generate grid lines based on time increment using show's time format
+  // Generate grid lines based on time increment starting from 8 AM using show's time format
+  const START_MINUTES = START_HOUR * 60; // 8 AM = 480 minutes
+  const END_MINUTES = END_HOUR * 60; // Midnight = 1440 minutes
   const gridLines = [];
-  for (let minutes = 0; minutes < 1440; minutes += timeIncrement) {
+  for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += timeIncrement) {
     const min = minutes % 60;
     gridLines.push({
       minutes,
@@ -836,7 +841,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                 setScrollPosition(scrollTop);
               }}
             >
-              <div style={{ height: '1440px', position: 'relative' }}> {/* Full 24 hours */}
+              <div style={{ height: '960px', position: 'relative' }}> {/* 8 AM to midnight (16 hours) */}
                 <div className="grid grid-cols-8 h-full">
                 {/* Time column */}
                 <div className="border-r bg-gray-50">
@@ -844,7 +849,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                     {timeLabels.map(({ hour, label, position }) => (
                       <div
                         key={hour}
-                        className={`absolute text-xs text-gray-600 px-2 ${hour === 0 ? 'translate-y-0' : '-translate-y-1/2'}`}
+                        className={`absolute text-xs text-gray-600 px-2 ${hour === START_HOUR ? 'translate-y-0' : '-translate-y-1/2'}`}
                         style={{ top: `${minutesToPosition(hour * 60)}px` }}
                       >
                         {label}
