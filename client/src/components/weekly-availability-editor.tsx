@@ -360,9 +360,11 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === item.date);
     const startMinutes = timeToMinutes(item.startTime);
     
-    // Calculate offset from mouse to top-left of block
-    const blockLeft = (dayIndex / 7) * calendarRect.width;
-    const blockTop = minutesToPosition(startMinutes);
+    // Calculate offset from mouse to top-left of block (accounting for scroll)
+    const dayColumnWidth = calendarRect.width / 8; // Time column + 7 day columns
+    const timeColumnWidth = dayColumnWidth;
+    const blockLeft = timeColumnWidth + (dayIndex * dayColumnWidth);
+    const blockTop = minutesToPosition(startMinutes) - scrollContainer.scrollTop;
     const offsetX = e.clientX - calendarRect.left - blockLeft;
     const offsetY = e.clientY - calendarRect.top - blockTop;
     
@@ -384,25 +386,29 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const calendarRect = calendarRef.current.getBoundingClientRect();
       const scrollTop = scrollContainerRef.current.scrollTop;
       
-      // Calculate mouse position relative to calendar content
-      const x = e.clientX - calendarRect.left;
-      const y = (e.clientY - calendarRect.top) + scrollTop; // Mouse position within the 1440px calendar
+      // Calculate mouse position relative to the visible calendar viewport
+      const mouseX = e.clientX - calendarRect.left;
+      const mouseY = e.clientY - calendarRect.top;
+      
+      // Calculate actual position within the 1440px calendar content
+      const contentY = mouseY + scrollTop;
       
       // Calculate new day (accounting for time column + 7 day columns)
-      const timeColumnWidth = calendarRect.width / 8; // Time column takes 1/8 of width
-      const dayColumnWidth = calendarRect.width / 8; // Each day column takes 1/8 of width
-      const dayStartX = timeColumnWidth; // Days start after time column
-      const relativeX = x - dayStartX; // X position relative to day columns only
+      const dayColumnWidth = calendarRect.width / 8;
+      const timeColumnWidth = dayColumnWidth;
+      const relativeX = mouseX - timeColumnWidth;
       const newDayIndex = Math.max(0, Math.min(6, Math.floor(relativeX / dayColumnWidth)));
       
-      // Calculate new time position using the existing conversion function
+      // Calculate new time position - direct pixel to minute conversion
       const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
-      const newStartMinutes = Math.max(0, Math.min(1440 - duration, positionToMinutes(y)));
+      const rawMinutes = Math.round(contentY);
+      const newStartMinutes = Math.max(0, Math.min(1440 - duration, rawMinutes));
       
       console.log('Drag move:', {
-        mouseY: e.clientY - calendarRect.top,
+        mouseY,
         scrollTop,
-        calculatedY: y,
+        contentY,
+        rawMinutes,
         newStartMinutes,
         time: minutesToTime(newStartMinutes)
       });
