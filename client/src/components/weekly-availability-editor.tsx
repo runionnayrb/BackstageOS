@@ -52,7 +52,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Get week dates based on configured week start day
-  const getWeekDates = (date: Date) => {
+  const getWeekDates = (date: Date, startDay: string = "sunday") => {
     const week = [];
     const startOfWeek = new Date(date);
     const currentDay = startOfWeek.getDay(); // 0 = Sunday, 1 = Monday, etc.
@@ -63,7 +63,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       thursday: 4, friday: 5, saturday: 6
     };
     
-    const configuredStartDay = weekStartMap[weekStartDay] || 0;
+    const configuredStartDay = weekStartMap[startDay] || 0;
     
     // Calculate days to subtract to get to the configured start day
     let daysToSubtract = currentDay - configuredStartDay;
@@ -81,9 +81,6 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     return week;
   };
 
-  const weekDates = getWeekDates(currentWeek);
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
   // Fetch availability data
   const { data: availability = [], isLoading } = useQuery({
     queryKey: [`/api/projects/${contact.projectId}/contacts/${contact.id}/availability`],
@@ -96,24 +93,34 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     enabled: isOpen,
   });
 
-  // Filter availability for current week
-  const weekAvailability = (availability as ContactAvailability[]).filter((item: ContactAvailability) => {
-    const itemDate = new Date(item.date);
-    return weekDates.some(weekDate => 
-      weekDate.toISOString().split('T')[0] === item.date
-    );
-  });
-
   // Extract schedule settings from show settings
   const scheduleSettings = (showSettings as any)?.scheduleSettings ? 
     JSON.parse((showSettings as any).scheduleSettings) : 
-    { workingHours: { start: "09:00", end: "18:00" }, timeFormat: "24h" }; // Default fallback
+    { workingHours: { start: "09:00", end: "18:00" }, timeFormat: "24h", weekStartDay: "sunday" }; // Default fallback
 
   const workingHours = scheduleSettings.workingHours;
   const timeFormat = scheduleSettings.timeFormat || "24h"; // Default to 24-hour format
   const weekStartDay = scheduleSettings.weekStartDay || "sunday"; // Default to Sunday
   const startHour = parseInt(workingHours.start.split(':')[0]);
   const endHour = parseInt(workingHours.end.split(':')[0]);
+
+  // Calculate week dates and day names based on the configured start day
+  const weekDates = getWeekDates(currentWeek, weekStartDay);
+  const baseDayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weekStartMap: { [key: string]: number } = {
+    sunday: 0, monday: 1, tuesday: 2, wednesday: 3, 
+    thursday: 4, friday: 5, saturday: 6
+  };
+  const startDayIndex = weekStartMap[weekStartDay] || 0;
+  const dayNames = [...baseDayNames.slice(startDayIndex), ...baseDayNames.slice(0, startDayIndex)];
+
+  // Filter availability for current week
+  const weekAvailability = (availability as ContactAvailability[]).filter((item: ContactAvailability) => {
+    const itemDate = new Date(item.date);
+    return weekDates.some((weekDate: Date) => 
+      weekDate.toISOString().split('T')[0] === item.date
+    );
+  });
   
   // Calculate initial scroll position to show working hours
   const initialScrollPosition = Math.max(0, (startHour - 2) * 60); // Start 2 hours before working hours
@@ -258,7 +265,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
 
     // Check if clicking on existing item
     const clickedItem = weekAvailability.find(item => {
-      const itemDay = weekDates.findIndex(date => date.toISOString().split('T')[0] === item.date);
+      const itemDay = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === item.date);
       const itemStart = timeToMinutes(item.startTime);
       const itemEnd = timeToMinutes(item.endTime);
       return itemDay === dayIndex && minutes >= itemStart && minutes <= itemEnd;
@@ -456,7 +463,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             {/* Day headers */}
             <div className="grid grid-cols-8 bg-gray-50 border-b">
               <div className="p-3 text-xs font-medium text-gray-500 border-r">Time</div>
-              {weekDates.map((date, index) => (
+              {weekDates.map((date: Date, index: number) => (
                 <div key={index} className="p-3 text-center border-r last:border-r-0">
                   <div className="text-xs font-medium text-gray-500">
                     {dayNames[index]}
@@ -513,7 +520,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                   ))}
 
                   {/* Day columns background */}
-                  {weekDates.map((_, dayIndex) => (
+                  {weekDates.map((_: Date, dayIndex: number) => (
                     <div
                       key={dayIndex}
                       className="absolute h-full border-r border-gray-200 cursor-crosshair"
@@ -527,7 +534,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
 
                   {/* Existing availability blocks */}
                   {weekAvailability.map((item: ContactAvailability) => {
-                    const dayIndex = weekDates.findIndex(date => 
+                    const dayIndex = weekDates.findIndex((date: Date) => 
                       date.toISOString().split('T')[0] === item.date
                     );
                     if (dayIndex === -1) return null;
