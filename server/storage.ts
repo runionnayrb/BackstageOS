@@ -609,17 +609,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateShowSettings(projectId: number, settingsData: Partial<InsertShowSettings>): Promise<ShowSettings> {
-    // Filter out any invalid date values and ensure proper date handling
+    // Properly handle timestamp fields
     const cleanedData = { ...settingsData };
     
-    // Remove any fields that might contain invalid date values
-    Object.keys(cleanedData).forEach(key => {
-      const value = cleanedData[key as keyof typeof cleanedData];
-      // If it's supposed to be a date but isn't a valid Date object, skip it
-      if (value && typeof value === 'object' && !(value instanceof Date) && !Array.isArray(value) && typeof value !== 'string') {
-        delete cleanedData[key as keyof typeof cleanedData];
+    // Handle timestamp fields properly - explicitly allow null values
+    if ('shareLinkExpiry' in cleanedData) {
+      // shareLinkExpiry can be null or a Date object
+      if (cleanedData.shareLinkExpiry !== null && !(cleanedData.shareLinkExpiry instanceof Date)) {
+        delete cleanedData.shareLinkExpiry; // Remove if it's not null or Date
       }
-    });
+    }
 
     const [settings] = await db
       .update(showSettings)
