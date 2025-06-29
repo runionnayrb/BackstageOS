@@ -374,7 +374,9 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
           endTime: minutesToTime(endTime),
           duration: endTime - startTime,
           availabilityType: dragState.availabilityType,
-          dayIndex: dragState.startDay
+          dayIndex: dragState.startDay,
+          weekDate: weekDates[dragState.startDay],
+          weekDatesDebug: weekDates.map(d => ({ date: d, formatted: formatDateForStorage(d) }))
         });
         
         if (endTime - startTime >= timeIncrement) { // Minimum duration based on increment
@@ -447,8 +449,9 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const mouseX = e.clientX - calendarRect.left;
       const mouseY = e.clientY - calendarRect.top;
       
-      // Keep the block in the same day during drag - don't allow day changes
-      const newDayIndex = currentDragState.originalPosition.dayIndex;
+      // Allow moving blocks between days
+      const newDayIndex = Math.floor((mouseX / calendarRect.width) * 7);
+      const clampedDayIndex = Math.max(0, Math.min(6, newDayIndex));
       
       // Calculate new time position using drag offset, not absolute coordinates
       const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
@@ -480,7 +483,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       
       currentDragState = {
         ...currentDragState,
-        currentPosition: { dayIndex: newDayIndex, startMinutes: newStartMinutes }
+        currentPosition: { dayIndex: clampedDayIndex, startMinutes: newStartMinutes }
       };
       
       setDraggedItem({ ...currentDragState });
@@ -496,12 +499,13 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
         setJustDragged(item.id);
         setTimeout(() => setJustDragged(null), 100); // Clear flag after 100ms
         
-        // Only update if time position changed (not day) and mutation isn't already pending
-        if (currentPosition.startMinutes !== originalPosition.startMinutes &&
+        // Update if time position or day changed and mutation isn't already pending
+        if ((currentPosition.startMinutes !== originalPosition.startMinutes || 
+             currentPosition.dayIndex !== originalPosition.dayIndex) &&
             !updateMutation.isPending) {
           
-          // Keep the same date - don't allow day changes during drag
-          const newDate = item.date;
+          // Calculate new date based on day index
+          const newDate = formatDateForStorage(weekDates[currentPosition.dayIndex]);
           const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
           const newEndMinutes = currentPosition.startMinutes + duration;
           
@@ -510,7 +514,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             oldDate: item.date,
             newDate,
             oldTime: `${item.startTime} - ${item.endTime}`,
-            newTime: `${minutesToTime(currentPosition.startMinutes)} - ${minutesToTime(newEndMinutes)}`
+            newTime: `${minutesToTime(currentPosition.startMinutes)} - ${minutesToTime(newEndMinutes)}`,
+            dayChanged: currentPosition.dayIndex !== originalPosition.dayIndex
           });
           
           // Update UI immediately for instant feedback
