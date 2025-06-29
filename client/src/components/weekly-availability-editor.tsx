@@ -411,15 +411,15 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       console.log('Drag move:', {
         mouseY,
         scrollTop,
-        contentY,
+        newTimePixels,
         rawMinutes,
         duration,
         maxStart: 1439 - duration,
         newStartMinutes,
         time: minutesToTime(newStartMinutes),
         endTime: minutesToTime(newStartMinutes + duration),
-        originalStart: timeToMinutes(item.startTime),
-        isMovingUp: rawMinutes < timeToMinutes(item.startTime),
+        originalStart: originalStartMinutes,
+        isMovingUp: rawMinutes < originalStartMinutes,
         constraintApplied: rawMinutes !== newStartMinutes
       });
       
