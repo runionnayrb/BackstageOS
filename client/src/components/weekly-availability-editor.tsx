@@ -400,9 +400,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
       const originalStartMinutes = timeToMinutes(item.startTime);
       
-      // Calculate how far we've moved from the original drag start point
-      const dragDeltaY = mouseY - currentDragState.offset.y;
-      const newTimePixels = minutesToPosition(originalStartMinutes) + dragDeltaY;
+      // Calculate new position so the block follows the mouse cursor precisely
+      const newTimePixels = mouseY + scrollTop - currentDragState.offset.y;
       const rawMinutes = Math.round(newTimePixels);
       
       // Allow free movement, just ensure it stays within bounds
