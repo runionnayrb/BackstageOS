@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Calendar } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -48,6 +48,17 @@ interface Contact {
   role?: string;
 }
 
+// Event type colors
+const getEventColor = (type: string) => {
+  switch (type) {
+    case 'rehearsal': return 'bg-blue-500';
+    case 'performance': return 'bg-red-500';
+    case 'tech': return 'bg-purple-500';
+    case 'meeting': return 'bg-green-500';
+    default: return 'bg-gray-500';
+  }
+};
+
 const eventTypeColors = {
   rehearsal: 'bg-blue-500',
   performance: 'bg-red-500',
@@ -69,6 +80,7 @@ export default function MonthlyScheduleView({
     date?: string;
   }>({ isOpen: false });
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
+  const [showAllDayEvents, setShowAllDayEvents] = useState(true);
 
   // Get show settings
   const { data: showSettings } = useQuery({
@@ -195,6 +207,29 @@ export default function MonthlyScheduleView({
 
   return (
     <div className="space-y-4">
+      {/* Toolbar */}
+      <div className="flex justify-end">
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant={showAllDayEvents ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowAllDayEvents(!showAllDayEvents)}
+            className="flex items-center gap-2"
+          >
+            <Calendar className="h-4 w-4" />
+            All Day
+          </Button>
+          
+          <Button 
+            onClick={() => setCreateEventDialog({ isOpen: true })}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Event
+          </Button>
+        </div>
+      </div>
+
       {/* Calendar Grid */}
       <div className="border rounded-lg overflow-hidden bg-white">
         {/* Day headers */}
@@ -227,13 +262,20 @@ export default function MonthlyScheduleView({
                 
                 {/* Events for this day */}
                 <div className="space-y-1">
-                  {dayEvents.slice(0, 3).map((event) => (
+                  {dayEvents
+                    .filter(event => showAllDayEvents || !event.isAllDay)
+                    .slice(0, 3)
+                    .map((event) => (
                     <div
                       key={event.id}
                       className={`text-xs px-1 py-0.5 rounded text-white truncate ${
                         eventTypeColors[event.type as keyof typeof eventTypeColors]
                       }`}
-                      title={`${event.title} (${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)})`}
+                      title={`${event.title} (${event.isAllDay ? 'All Day' : `${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)}`})`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingEvent(event);
+                      }}
                     >
                       {event.isAllDay ? event.title : `${formatTimeDisplay(event.startTime, timeFormat)} ${event.title}`}
                     </div>

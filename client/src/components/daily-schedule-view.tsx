@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, ChevronRight, Plus, Clock, Users, ArrowLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, Users, ArrowLeft, Calendar } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -55,6 +55,17 @@ const START_MINUTES = START_HOUR * 60;
 const END_MINUTES = END_HOUR * 60;
 const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
 
+// Event type colors
+const getEventColor = (type: string) => {
+  switch (type) {
+    case 'rehearsal': return 'bg-blue-500';
+    case 'performance': return 'bg-red-500';
+    case 'tech': return 'bg-purple-500';
+    case 'meeting': return 'bg-green-500';
+    default: return 'bg-gray-500';
+  }
+};
+
 export default function DailyScheduleView({ projectId, selectedDate, onBackToWeekly }: DailyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -72,6 +83,7 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
     currentTime: number;
   } | null>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
+  const [showAllDayEvents, setShowAllDayEvents] = useState(true);
 
   // Get show settings
   const { data: showSettings } = useQuery({
@@ -332,6 +344,16 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
           </Select>
           
           <Button 
+            variant={showAllDayEvents ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowAllDayEvents(!showAllDayEvents)}
+            className="flex items-center gap-2"
+          >
+            <Calendar className="h-4 w-4" />
+            All Day
+          </Button>
+          
+          <Button 
             onClick={() => setCreateEventDialog({ isOpen: true })}
             className="flex items-center gap-2"
           >
@@ -341,8 +363,8 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
         </div>
       </div>
 
-      {/* All-day events section */}
-      {dayEvents.filter(e => e.isAllDay).length > 0 && (
+      {/* All-day events section - conditionally rendered */}
+      {showAllDayEvents && dayEvents.filter(e => e.isAllDay).length > 0 && (
         <div className="bg-gray-50 border rounded-lg p-4">
           <h4 className="text-sm font-medium text-gray-700 mb-2">All Day Events</h4>
           <div className="space-y-2">
@@ -351,18 +373,19 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
               .map((event) => (
                 <div
                   key={event.id}
-                  className="bg-purple-100 border border-purple-300 rounded px-3 py-2 cursor-pointer hover:bg-purple-200 transition-colors flex items-center justify-between"
+                  className={`
+                    text-xs p-2 mb-1 rounded text-white cursor-pointer
+                    ${getEventColor(event.type)}
+                  `}
                   onClick={() => setEditingEvent(event)}
                 >
-                  <div>
-                    <div className="font-medium text-purple-800">{event.title}</div>
-                    {event.description && (
-                      <div className="text-sm text-purple-600">{event.description}</div>
-                    )}
-                  </div>
+                  <div className="font-medium">{event.title}</div>
+                  {event.description && (
+                    <div className="text-xs opacity-75">{event.description}</div>
+                  )}
                   {event.participants.length > 0 && (
-                    <div className="flex items-center gap-1 text-purple-600">
-                      <Users className="h-4 w-4" />
+                    <div className="flex items-center gap-1 text-xs opacity-75 mt-1">
+                      <Users className="h-3 w-3" />
                       {event.participants.length}
                     </div>
                   )}

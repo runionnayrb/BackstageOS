@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, ChevronRight, Plus, Clock, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, Users, Calendar } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -54,6 +54,17 @@ const START_MINUTES = START_HOUR * 60;
 const END_MINUTES = END_HOUR * 60;
 const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
 
+// Event type colors
+const getEventColor = (type: string) => {
+  switch (type) {
+    case 'rehearsal': return 'bg-blue-500';
+    case 'performance': return 'bg-red-500';
+    case 'tech': return 'bg-purple-500';
+    case 'meeting': return 'bg-green-500';
+    default: return 'bg-gray-500';
+  }
+};
+
 export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -74,6 +85,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
     endTime?: string;
   }>({ isOpen: false });
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [showAllDayEvents, setShowAllDayEvents] = useState(true);
 
   // Get show settings for timezone and work hours
   const { data: showSettings } = useQuery({
@@ -281,6 +293,16 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
           </Select>
           
           <Button 
+            variant={showAllDayEvents ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowAllDayEvents(!showAllDayEvents)}
+            className="flex items-center gap-2"
+          >
+            <Calendar className="h-4 w-4" />
+            All Day
+          </Button>
+          
+          <Button 
             onClick={() => setCreateEventDialog({ isOpen: true })}
             className="flex items-center gap-2"
           >
@@ -310,6 +332,36 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
             </div>
           ))}
         </div>
+
+        {/* All-day events section - conditionally rendered */}
+        {showAllDayEvents && (
+          <div className="grid grid-cols-8 border-b bg-gray-25">
+            <div className="p-2 text-xs font-medium text-gray-600 border-r bg-gray-50">All Day</div>
+            {weekDates.map((date, dayIndex) => {
+              const dateStr = date.toISOString().split('T')[0];
+              const allDayEvents = events?.filter(event => 
+                event.date === dateStr && event.isAllDay
+              ) || [];
+              
+              return (
+                <div key={dayIndex} className="p-1 border-r last:border-r-0 min-h-[40px]">
+                  {allDayEvents.map(event => (
+                    <div
+                      key={event.id}
+                      className={`
+                        text-xs p-1 mb-1 rounded text-white cursor-pointer
+                        ${getEventColor(event.type)}
+                      `}
+                      onClick={() => setEditingEvent(event)}
+                    >
+                      <div className="font-medium truncate">{event.title}</div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Time grid */}
         <div 
@@ -357,24 +409,10 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
                   height: '960px',
                 }}
               >
-                {/* Events for this day */}
+                {/* Events for this day - only timed events, not all-day */}
                 {events
-                  .filter(event => event.date === date.toISOString().split('T')[0])
+                  .filter(event => event.date === date.toISOString().split('T')[0] && !event.isAllDay)
                   .map((event) => {
-                    if (event.isAllDay) {
-                      return (
-                        <div
-                          key={event.id}
-                          className="absolute left-1 right-1 bg-purple-100 border border-purple-300 rounded px-2 py-1 cursor-pointer hover:bg-purple-200 transition-colors"
-                          style={{ top: '4px', height: '24px' }}
-                          onClick={() => setEditingEvent(event)}
-                        >
-                          <div className="text-xs font-medium text-purple-800 truncate">
-                            {event.title}
-                          </div>
-                        </div>
-                      );
-                    }
 
                     const startMinutes = timeToMinutes(event.startTime);
                     const endMinutes = timeToMinutes(event.endTime);
