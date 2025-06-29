@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
+import LocationSelect from "@/components/location-select";
 
 interface MonthlyScheduleViewProps {
   projectId: number;
@@ -419,14 +420,11 @@ function EventForm({
         <Label htmlFor="isAllDay">All Day Event</Label>
       </div>
 
-      <div>
-        <Label htmlFor="location">Location</Label>
-        <Input
-          id="location"
-          value={formData.location}
-          onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-        />
-      </div>
+      <LocationSelect
+        projectId={projectId}
+        value={formData.location}
+        onValueChange={(value) => setFormData({ ...formData, location: value })}
+      />
 
       <div>
         <Label htmlFor="description">Description</Label>

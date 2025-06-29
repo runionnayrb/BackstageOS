@@ -15,6 +15,7 @@ import {
   contactAvailability,
   scheduleEvents,
   scheduleEventParticipants,
+  eventLocations,
   contactSheetVersions,
   errorLogs,
   type User,
@@ -49,6 +50,8 @@ import {
   type InsertScheduleEvent,
   type ScheduleEventParticipant,
   type InsertScheduleEventParticipant,
+  type EventLocation,
+  type InsertEventLocation,
   type ErrorLog,
   type InsertErrorLog,
   waitlist,
@@ -1169,6 +1172,45 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(scheduleEventParticipants)
       .where(eq(scheduleEventParticipants.eventId, eventId));
+  }
+
+  // Event locations operations
+  async getEventLocationsByProjectId(projectId: number): Promise<EventLocation[]> {
+    return await db
+      .select()
+      .from(eventLocations)
+      .where(eq(eventLocations.projectId, projectId))
+      .orderBy(eventLocations.name);
+  }
+
+  async createEventLocation(locationData: InsertEventLocation): Promise<EventLocation> {
+    const [location] = await db
+      .insert(eventLocations)
+      .values({
+        ...locationData,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .returning();
+    return location;
+  }
+
+  async updateEventLocation(id: number, locationData: Partial<InsertEventLocation>): Promise<EventLocation> {
+    const [location] = await db
+      .update(eventLocations)
+      .set({
+        ...locationData,
+        updatedAt: new Date(),
+      })
+      .where(eq(eventLocations.id, id))
+      .returning();
+    return location;
+  }
+
+  async deleteEventLocation(id: number): Promise<void> {
+    await db
+      .delete(eventLocations)
+      .where(eq(eventLocations.id, id));
   }
 
   // Company list settings operations

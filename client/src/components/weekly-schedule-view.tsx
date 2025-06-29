@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings } from "@/lib/timeUtils";
+import LocationSelect from "@/components/location-select";
 
 interface WeeklyScheduleViewProps {
   projectId: number;
@@ -627,14 +628,11 @@ function CreateEventForm({
         <Label htmlFor="isAllDay">All Day Event</Label>
       </div>
 
-      <div>
-        <Label htmlFor="location">Location</Label>
-        <Input
-          id="location"
-          value={formData.location}
-          onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-        />
-      </div>
+      <LocationSelect
+        projectId={projectId}
+        value={formData.location}
+        onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
+      />
 
       {/* Contact Assignment */}
       <div>
@@ -806,14 +804,11 @@ function EditEventForm({
         <Label htmlFor="isAllDay">All Day Event</Label>
       </div>
 
-      <div>
-        <Label htmlFor="location">Location</Label>
-        <Input
-          id="location"
-          value={formData.location}
-          onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-        />
-      </div>
+      <LocationSelect
+        projectId={event.projectId}
+        value={formData.location}
+        onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
+      />
 
       {/* Contact Assignment */}
       <div>

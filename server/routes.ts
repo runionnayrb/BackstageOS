@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertErrorLogSchema, insertWaitlistSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertErrorLogSchema, insertWaitlistSchema } from "@shared/schema";
 import { z } from "zod";
 
 // Authentication middleware
@@ -2366,6 +2366,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error updating event participant:", error);
       res.status(500).json({ message: "Failed to update participant" });
+    }
+  });
+
+  // Event locations routes
+  app.get('/api/projects/:id/event-locations', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      // Check project access
+      const project = await storage.getProjectById(projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const locations = await storage.getEventLocationsByProjectId(projectId);
+      res.json(locations);
+    } catch (error) {
+      console.error("Error fetching event locations:", error);
+      res.status(500).json({ message: "Failed to fetch event locations" });
+    }
+  });
+
+  app.post('/api/projects/:id/event-locations', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      // Check project access
+      const project = await storage.getProjectById(projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const locationData = insertEventLocationSchema.parse({
+        ...req.body,
+        projectId,
+        createdBy: req.user.id.toString(),
+      });
+
+      const location = await storage.createEventLocation(locationData);
+      res.status(201).json(location);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid location data", errors: error.errors });
+      }
+      console.error("Error creating event location:", error);
+      res.status(500).json({ message: "Failed to create event location" });
+    }
+  });
+
+  app.put('/api/event-locations/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const locationId = parseInt(req.params.id);
+      const location = await storage.getEventLocationsByProjectId(req.body.projectId);
+      
+      if (!location) {
+        return res.status(404).json({ message: "Location not found" });
+      }
+
+      const locationData = insertEventLocationSchema.partial().parse(req.body);
+      const updatedLocation = await storage.updateEventLocation(locationId, locationData);
+      res.json(updatedLocation);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid location data", errors: error.errors });
+      }
+      console.error("Error updating event location:", error);
+      res.status(500).json({ message: "Failed to update event location" });
+    }
+  });
+
+  app.delete('/api/event-locations/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const locationId = parseInt(req.params.id);
+      await storage.deleteEventLocation(locationId);
+      res.json({ message: "Location deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting event location:", error);
+      res.status(500).json({ message: "Failed to delete event location" });
     }
   });
 

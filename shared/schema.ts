@@ -403,6 +403,20 @@ export const scheduleEventParticipants = pgTable("schedule_event_participants", 
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Event locations table
+export const eventLocations = pgTable("event_locations", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  address: text("address"),
+  description: text("description"),
+  capacity: integer("capacity"),
+  notes: text("notes"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
@@ -438,6 +452,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   showSettings: many(showSettings),
   globalTemplateSettings: many(globalTemplateSettings),
   contacts: many(contacts),
+  eventLocations: many(eventLocations),
 }));
 
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
@@ -715,6 +730,17 @@ export const errorLogsRelations = relations(errorLogs, ({ one }) => ({
   }),
 }));
 
+export const eventLocationsRelations = relations(eventLocations, ({ one }) => ({
+  project: one(projects, {
+    fields: [eventLocations.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [eventLocations.createdBy],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -846,6 +872,12 @@ export const insertScheduleEventParticipantSchema = createInsertSchema(scheduleE
   createdAt: true,
 });
 
+export const insertEventLocationSchema = createInsertSchema(eventLocations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type ContactAvailability = typeof contactAvailability.$inferSelect;
 export type InsertContactAvailability = z.infer<typeof insertContactAvailabilitySchema>;
@@ -853,6 +885,8 @@ export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
 export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;
 export type ScheduleEventParticipant = typeof scheduleEventParticipants.$inferSelect;
 export type InsertScheduleEventParticipant = z.infer<typeof insertScheduleEventParticipantSchema>;
+export type EventLocation = typeof eventLocations.$inferSelect;
+export type InsertEventLocation = z.infer<typeof insertEventLocationSchema>;
 
 export const insertContactSheetVersionSchema = createInsertSchema(contactSheetVersions).omit({
   id: true,
