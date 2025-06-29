@@ -303,7 +303,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
         <div className="space-y-4">
           {/* Week navigation */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm" onClick={goToPreviousWeek}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
