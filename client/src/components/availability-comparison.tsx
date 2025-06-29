@@ -58,6 +58,7 @@ export default function AvailabilityComparison({
         setIsShiftPressed(true);
       }
       if (e.key === 'Delete' && selectedItems.size > 0) {
+        console.log('Delete key pressed with', selectedItems.size, 'items selected');
         setShowBulkDeleteDialog(true);
       }
     };
@@ -487,14 +488,18 @@ export default function AvailabilityComparison({
     
     // Handle Shift+click for multi-selection
     if (e.shiftKey && !mode) {
+      e.preventDefault();
+      console.log('Shift+click detected on item:', item.id);
       if (selectedItems.has(item.id)) {
         const newSelected = new Set(selectedItems);
         newSelected.delete(item.id);
         setSelectedItems(newSelected);
+        console.log('Deselected item:', item.id, 'New selection:', Array.from(newSelected));
       } else {
         const newSelected = new Set(selectedItems);
         newSelected.add(item.id);
         setSelectedItems(newSelected);
+        console.log('Selected item:', item.id, 'New selection:', Array.from(newSelected));
       }
       return;
     }
@@ -773,6 +778,22 @@ export default function AvailabilityComparison({
                                     minWidth: '20px',
                                   }}
                                   onMouseDown={(e) => handleBlockMouseDown(e, item, 'move')}
+                                  onClick={(e) => {
+                                    if (e.shiftKey) {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      console.log('Shift+click on block:', item.id);
+                                      if (selectedItems.has(item.id)) {
+                                        const newSelected = new Set(selectedItems);
+                                        newSelected.delete(item.id);
+                                        setSelectedItems(newSelected);
+                                      } else {
+                                        const newSelected = new Set(selectedItems);
+                                        newSelected.add(item.id);
+                                        setSelectedItems(newSelected);
+                                      }
+                                    }
+                                  }}
                                   onDoubleClick={() => setEditingItem(item)}
                                   title={`${currentItem.availabilityType === 'unavailable' ? 'Unavailable' : 'Preferred'}: ${formatTime(currentStartMinutes)} - ${formatTime(currentEndMinutes)}${currentItem.notes ? `\n${currentItem.notes}` : ''}`}
                                 >
