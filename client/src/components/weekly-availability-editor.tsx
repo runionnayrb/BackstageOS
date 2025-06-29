@@ -52,6 +52,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   const [editingItem, setEditingItem] = useState<ContactAvailability & { notes: string; availabilityType: string } | null>(null);
   const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -762,11 +763,28 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                         }}
                         onMouseDown={(e) => {
                           console.log('Block mousedown triggered for item:', item.id);
-                          handleBlockMouseDown(e, item);
+                          
+                          // Clear any existing timeout
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
+                            clickTimeoutRef.current = null;
+                          }
+                          
+                          // Delay drag start to allow double-click detection
+                          clickTimeoutRef.current = setTimeout(() => {
+                            handleBlockMouseDown(e, item);
+                          }, 200); // 200ms delay
                         }}
                         onDoubleClick={(e) => {
                           e.stopPropagation();
                           console.log('Block double-clicked, item:', item.id);
+                          
+                          // Cancel the delayed drag start
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
+                            clickTimeoutRef.current = null;
+                          }
+                          
                           setEditingItem({
                             ...item,
                             notes: item.notes || '',
