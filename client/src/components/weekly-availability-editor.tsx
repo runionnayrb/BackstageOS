@@ -399,9 +399,10 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const relativeX = mouseX - timeColumnWidth;
       const newDayIndex = Math.max(0, Math.min(6, Math.floor(relativeX / dayColumnWidth)));
       
-      // Calculate new time position - direct pixel to minute conversion
+      // Calculate new time position - allow free movement, maintain duration
       const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
       const rawMinutes = Math.round(contentY);
+      // Clamp to valid range (0 to 1440 minus duration to prevent overflow)
       const newStartMinutes = Math.max(0, Math.min(1440 - duration, rawMinutes));
       
       console.log('Drag move:', {
@@ -409,8 +410,11 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
         scrollTop,
         contentY,
         rawMinutes,
+        duration,
+        maxStart: 1440 - duration,
         newStartMinutes,
-        time: minutesToTime(newStartMinutes)
+        time: minutesToTime(newStartMinutes),
+        endTime: minutesToTime(newStartMinutes + duration)
       });
       
       currentDragState = {
