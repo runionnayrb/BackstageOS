@@ -403,9 +403,14 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
       const rawMinutes = Math.round(contentY);
       
-      // Allow free movement while preventing overflow past midnight
-      const maxStartTime = 1440 - duration; // Ensure end time doesn't exceed midnight
-      const newStartMinutes = Math.max(0, Math.min(maxStartTime, rawMinutes));
+      // Allow movement to any position that keeps end time within 24 hours
+      const maxStartTime = 1440 - duration; // Calculate maximum valid start time
+      let newStartMinutes = Math.max(0, rawMinutes); // Allow any positive time
+      
+      // Only apply upper constraint if moving beyond the valid range
+      if (newStartMinutes > maxStartTime) {
+        newStartMinutes = maxStartTime;
+      }
       
       console.log('Drag move:', {
         mouseY,
