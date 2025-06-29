@@ -607,32 +607,9 @@ export default function ShowSettings() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="timeZone">Time Zone</Label>
-                <Select
-                  value={(settings as any)?.scheduleSettings?.timeZone || "America/New_York"}
-                  onValueChange={(value) =>
-                    handleSettingsUpdate("scheduleSettings", { timeZone: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="America/New_York">Eastern Time</SelectItem>
-                    <SelectItem value="America/Chicago">Central Time</SelectItem>
-                    <SelectItem value="America/Denver">Mountain Time</SelectItem>
-                    <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
-                    <SelectItem value="Europe/London">London</SelectItem>
-                    <SelectItem value="Europe/Paris">Paris</SelectItem>
-                    <SelectItem value="Asia/Tokyo">Tokyo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-4 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="workStart">Working Hours Start</Label>
+                  <Label htmlFor="workStart">Work Start Time</Label>
                   <Input
                     id="workStart"
                     type="time"
@@ -649,7 +626,7 @@ export default function ShowSettings() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="workEnd">Working Hours End</Label>
+                  <Label htmlFor="workEnd">Work End Time</Label>
                   <Input
                     id="workEnd"
                     type="time"
@@ -663,6 +640,52 @@ export default function ShowSettings() {
                       })
                     }
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="timeZone">Time Zone</Label>
+                  <Select
+                    value={(settings as any)?.scheduleSettings?.timeZone || "America/New_York"}
+                    onValueChange={(value) =>
+                      handleSettingsUpdate("scheduleSettings", { timeZone: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="America/New_York">Eastern Time</SelectItem>
+                      <SelectItem value="America/Chicago">Central Time</SelectItem>
+                      <SelectItem value="America/Denver">Mountain Time</SelectItem>
+                      <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
+                      <SelectItem value="Europe/London">London</SelectItem>
+                      <SelectItem value="Europe/Paris">Paris</SelectItem>
+                      <SelectItem value="Asia/Tokyo">Tokyo</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="weekStart">Week Start</Label>
+                  <Select
+                    value={(settings as any)?.scheduleSettings?.weekStartDay || "sunday"}
+                    onValueChange={(value) =>
+                      handleSettingsUpdate("scheduleSettings", { weekStartDay: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sunday">Sunday</SelectItem>
+                      <SelectItem value="monday">Monday</SelectItem>
+                      <SelectItem value="tuesday">Tuesday</SelectItem>
+                      <SelectItem value="wednesday">Wednesday</SelectItem>
+                      <SelectItem value="thursday">Thursday</SelectItem>
+                      <SelectItem value="friday">Friday</SelectItem>
+                      <SelectItem value="saturday">Saturday</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 

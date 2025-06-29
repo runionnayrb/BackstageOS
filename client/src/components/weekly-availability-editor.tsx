@@ -51,13 +51,27 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   const calendarRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Get week dates
+  // Get week dates based on configured week start day
   const getWeekDates = (date: Date) => {
     const week = [];
     const startOfWeek = new Date(date);
-    const day = startOfWeek.getDay();
-    const diff = startOfWeek.getDate() - day; // Sunday = 0
-    startOfWeek.setDate(diff);
+    const currentDay = startOfWeek.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // Map week start day string to number
+    const weekStartMap: { [key: string]: number } = {
+      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, 
+      thursday: 4, friday: 5, saturday: 6
+    };
+    
+    const configuredStartDay = weekStartMap[weekStartDay] || 0;
+    
+    // Calculate days to subtract to get to the configured start day
+    let daysToSubtract = currentDay - configuredStartDay;
+    if (daysToSubtract < 0) {
+      daysToSubtract += 7;
+    }
+    
+    startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract);
     
     for (let i = 0; i < 7; i++) {
       const weekDate = new Date(startOfWeek);
@@ -97,6 +111,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
 
   const workingHours = scheduleSettings.workingHours;
   const timeFormat = scheduleSettings.timeFormat || "24h"; // Default to 24-hour format
+  const weekStartDay = scheduleSettings.weekStartDay || "sunday"; // Default to Sunday
   const startHour = parseInt(workingHours.start.split(':')[0]);
   const endHour = parseInt(workingHours.end.split(':')[0]);
   

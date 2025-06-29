@@ -588,9 +588,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertShowSettings(settingsData: InsertShowSettings): Promise<ShowSettings> {
+    const insertData = {
+      ...settingsData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
     const [settings] = await db
       .insert(showSettings)
-      .values(settingsData)
+      .values(insertData)
       .onConflictDoUpdate({
         target: showSettings.projectId,
         set: {
