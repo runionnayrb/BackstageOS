@@ -189,8 +189,18 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       if (!response.ok) throw new Error("Failed to update availability");
       return response.json();
     },
-    onSuccess: (data, variables) => {
-      // Use optimistic update instead of invalidating queries for faster response
+    onMutate: async (variables) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: [`/api/projects/${contact.projectId}/contacts/${contact.id}/availability`]
+      });
+
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData(
+        [`/api/projects/${contact.projectId}/contacts/${contact.id}/availability`]
+      );
+
+      // Optimistically update to the new value
       queryClient.setQueryData(
         [`/api/projects/${contact.projectId}/contacts/${contact.id}/availability`],
         (oldData: any) => {
@@ -200,6 +210,18 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
           );
         }
       );
+
+      // Return a context object with the snapshotted value
+      return { previousData };
+    },
+    onError: (_err, _variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousData) {
+        queryClient.setQueryData(
+          [`/api/projects/${contact.projectId}/contacts/${contact.id}/availability`],
+          context.previousData
+        );
+      }
     },
   });
 
@@ -453,9 +475,10 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
         setJustDragged(item.id);
         setTimeout(() => setJustDragged(null), 100); // Clear flag after 100ms
         
-        // Only update if position changed
-        if (currentPosition.dayIndex !== originalPosition.dayIndex || 
-            currentPosition.startMinutes !== originalPosition.startMinutes) {
+        // Only update if position changed and mutation isn't already pending
+        if ((currentPosition.dayIndex !== originalPosition.dayIndex || 
+            currentPosition.startMinutes !== originalPosition.startMinutes) &&
+            !updateMutation.isPending) {
           
           const newDate = weekDates[currentPosition.dayIndex].toISOString().split('T')[0];
           const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
@@ -469,6 +492,9 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             newTime: `${minutesToTime(currentPosition.startMinutes)} - ${minutesToTime(newEndMinutes)}`
           });
           
+          // Update UI immediately for instant feedback
+          setDraggedItem(null);
+          
           updateMutation.mutate({
             id: item.id,
             data: {
@@ -479,10 +505,13 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               notes: item.notes || ""
             }
           } as any);
+        } else {
+          setDraggedItem(null);
         }
+      } else {
+        setDraggedItem(null);
       }
       
-      setDraggedItem(null);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
