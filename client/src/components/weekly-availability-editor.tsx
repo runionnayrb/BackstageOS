@@ -40,7 +40,13 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     currentTime: number;
     availabilityType: 'unavailable' | 'preferred';
   } | null>(null);
-  const [draggedItem, setDraggedItem] = useState<ContactAvailability | null>(null);
+  const [draggedItem, setDraggedItem] = useState<{
+    item: ContactAvailability;
+    originalPosition: { dayIndex: number; startMinutes: number };
+    currentPosition: { dayIndex: number; startMinutes: number };
+    offset: { x: number; y: number };
+    isDragging: boolean;
+  } | null>(null);
   const [isResizing, setIsResizing] = useState<{ id: number; edge: 'start' | 'end' } | null>(null);
   const [editingItem, setEditingItem] = useState<ContactAvailability & { notes: string; availabilityType: string } | null>(null);
   const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
@@ -357,6 +363,81 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     document.addEventListener('mouseup', handleMouseUp);
   }, [weekAvailability, weekDates, createMutation]);
 
+  // Handle dragging existing blocks
+  const handleBlockMouseDown = useCallback((e: React.MouseEvent, item: ContactAvailability) => {
+    e.stopPropagation(); // Prevent calendar drag creation
+    
+    if (!calendarRef.current) return;
+    
+    const rect = calendarRef.current.getBoundingClientRect();
+    const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === item.date);
+    const startMinutes = timeToMinutes(item.startTime);
+    
+    // Calculate offset from mouse to top-left of block
+    const blockLeft = (dayIndex / 7) * rect.width;
+    const blockTop = minutesToPosition(startMinutes);
+    const offsetX = e.clientX - rect.left - blockLeft;
+    const offsetY = e.clientY - rect.top - blockTop;
+    
+    setDraggedItem({
+      item,
+      originalPosition: { dayIndex, startMinutes },
+      currentPosition: { dayIndex, startMinutes },
+      offset: { x: offsetX, y: offsetY },
+      isDragging: true
+    });
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!calendarRef.current || !draggedItem) return;
+      
+      const rect = calendarRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left - draggedItem.offset.x;
+      const y = e.clientY - rect.top - draggedItem.offset.y;
+      
+      // Calculate new day and time
+      const newDayIndex = Math.max(0, Math.min(6, Math.floor((x / rect.width) * 7)));
+      const newStartMinutes = Math.max(0, Math.min(1440 - timeToMinutes(item.endTime) + timeToMinutes(item.startTime), positionToMinutes(y)));
+      
+      setDraggedItem(prev => prev ? {
+        ...prev,
+        currentPosition: { dayIndex: newDayIndex, startMinutes: newStartMinutes }
+      } : null);
+    };
+
+    const handleMouseUp = () => {
+      if (draggedItem && draggedItem.isDragging) {
+        const { currentPosition, originalPosition, item } = draggedItem;
+        
+        // Only update if position changed
+        if (currentPosition.dayIndex !== originalPosition.dayIndex || 
+            currentPosition.startMinutes !== originalPosition.startMinutes) {
+          
+          const newDate = weekDates[currentPosition.dayIndex].toISOString().split('T')[0];
+          const duration = timeToMinutes(item.endTime) - timeToMinutes(item.startTime);
+          const newEndMinutes = currentPosition.startMinutes + duration;
+          
+          updateMutation.mutate({
+            id: item.id,
+            data: {
+              date: newDate,
+              startTime: minutesToTime(currentPosition.startMinutes),
+              endTime: minutesToTime(newEndMinutes),
+              availabilityType: item.availabilityType,
+              notes: item.notes || ""
+            }
+          } as any);
+        }
+      }
+      
+      setDraggedItem(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [weekDates, draggedItem, updateMutation]);
+
   // Generate time labels (every 2 hours) using show's time format
   const timeLabels = [];
   for (let hour = 0; hour < 24; hour += 2) {
@@ -559,25 +640,40 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                     const endMinutes = timeToMinutes(item.endTime);
                     const duration = endMinutes - startMinutes;
                     
+                    // Check if this item is being dragged
+                    const isBeingDragged = draggedItem?.item.id === item.id;
+                    
+                    // Use current position if being dragged, otherwise original position
+                    const displayDayIndex = isBeingDragged ? draggedItem.currentPosition.dayIndex : dayIndex;
+                    const displayStartMinutes = isBeingDragged ? draggedItem.currentPosition.startMinutes : startMinutes;
+                    const displayEndMinutes = displayStartMinutes + duration;
+                    
                     return (
                       <div
                         key={item.id}
-                        className={`absolute rounded cursor-pointer border-2 ${getAvailabilityColor(item.availabilityType)}`}
+                        className={`absolute rounded cursor-move border-2 transition-opacity ${getAvailabilityColor(item.availabilityType)} ${isBeingDragged ? 'opacity-80 shadow-lg z-50' : 'hover:opacity-90'}`}
                         style={{
-                          left: `${(dayIndex / 7) * 100 + 0.5}%`,
+                          left: `${(displayDayIndex / 7) * 100 + 0.5}%`,
                           width: `${100 / 7 - 1}%`,
-                          top: `${minutesToPosition(startMinutes)}px`,
-                          height: `${minutesToPosition(duration)}px`
+                          top: `${minutesToPosition(displayStartMinutes)}px`,
+                          height: `${minutesToPosition(duration)}px`,
+                          transform: isBeingDragged ? 'scale(1.02)' : 'none'
                         }}
-                        onClick={() => setEditingItem({
-                          ...item,
-                          notes: item.notes || '',
-                          availabilityType: item.availabilityType
-                        })}
+                        onMouseDown={(e) => handleBlockMouseDown(e, item)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!isBeingDragged) {
+                            setEditingItem({
+                              ...item,
+                              notes: item.notes || '',
+                              availabilityType: item.availabilityType
+                            });
+                          }
+                        }}
                       >
                         <div className="p-1 text-white text-xs">
                           <div className="font-medium">
-                            {item.startTime} - {item.endTime}
+                            {minutesToTime(displayStartMinutes)} - {minutesToTime(displayEndMinutes)}
                           </div>
                           <div className="capitalize opacity-90">
                             {item.availabilityType}
