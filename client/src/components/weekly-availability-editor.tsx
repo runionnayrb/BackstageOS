@@ -238,7 +238,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
 
   const positionToMinutes = (position: number): number => {
     // Convert pixel position back to minutes (1:1 ratio)
-    const minutes = Math.max(0, Math.min(1440, Math.round(position)));
+    const minutes = Math.max(0, Math.min(1439, Math.round(position))); // Cap at 23:59 instead of 24:00
     // Snap to time increment
     return Math.round(minutes / timeIncrement) * timeIncrement;
   };
