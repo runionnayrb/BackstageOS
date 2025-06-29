@@ -9,7 +9,7 @@ import { Edit, X, Save, Mail, Phone } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { AvailabilityEditor } from "@/components/availability-editor";
+import { WeeklyAvailabilityEditor } from "@/components/weekly-availability-editor";
 
 // Phone number formatting function
 const formatPhoneNumber = (value: string): string => {
@@ -441,7 +441,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Availability</h3>
-          <AvailabilityEditor contact={contact} />
+          <WeeklyAvailabilityEditor contact={contact} />
         </div>
         <p className="text-sm text-gray-500">
           Manage this contact's availability for scheduling and calendar coordination.
