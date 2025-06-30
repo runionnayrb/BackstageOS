@@ -1,0 +1,10 @@
+[deployment]
+deploymentTarget = "autoscale"
+build = ["npm", "run", "build"]
+run = ["npm", "run", "start"]
+
+[[deployment.domains]]
+domain = "backstageos.com"
+
+[[deployment.domains]]
+domain = "www.backstageos.com"
