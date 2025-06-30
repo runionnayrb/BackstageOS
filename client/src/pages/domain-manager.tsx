@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { ArrowLeft, Plus, Edit, Trash2, Save, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
@@ -33,6 +34,11 @@ const AVAILABLE_ROUTES = [
 export default function DomainManager() {
   const [routes, setRoutes] = useState<DomainRoute[]>(DEFAULT_ROUTES);
   const [isEditing, setIsEditing] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    isOpen: boolean;
+    routeIndex: number;
+    routeDomain: string;
+  }>({ isOpen: false, routeIndex: -1, routeDomain: '' });
   const { toast } = useToast();
 
   // Load current domain routes configuration
@@ -69,8 +75,24 @@ export default function DomainManager() {
   };
 
   const removeRoute = (index: number) => {
-    setRoutes(routes.filter((_, i) => i !== index));
+    const route = routes[index];
+    setDeleteConfirmation({
+      isOpen: true,
+      routeIndex: index,
+      routeDomain: route.domain
+    });
+  };
+
+  const confirmDelete = () => {
+    const { routeIndex } = deleteConfirmation;
+    setRoutes(routes.filter((_, i) => i !== routeIndex));
     setIsEditing(true);
+    setDeleteConfirmation({ isOpen: false, routeIndex: -1, routeDomain: '' });
+    toast({ title: "Domain route deleted successfully" });
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirmation({ isOpen: false, routeIndex: -1, routeDomain: '' });
   };
 
   const getRouteTypeColor = (type: string) => {
@@ -290,6 +312,36 @@ export default function DomainManager() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmation.isOpen} onOpenChange={(open) => !open && cancelDelete()}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <span>Confirm Deletion</span>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-gray-600">
+              Are you sure you want to delete the domain route for{' '}
+              <strong className="text-gray-900">{deleteConfirmation.routeDomain}</strong>?
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              This action cannot be undone. The domain will no longer route to any page.
+            </p>
+          </div>
+          <DialogFooter className="space-x-2">
+            <Button variant="outline" onClick={cancelDelete}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Route
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
