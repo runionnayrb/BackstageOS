@@ -3231,18 +3231,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // DNS records management - direct Cloudflare integration
+  // DNS records management - DIRECT Cloudflare API call
   app.get('/api/dns-records', requireAdmin, async (req: any, res) => {
     try {
-      if (!cloudflareService) {
+      // Direct Cloudflare API call with hardcoded values
+      const ZONE_ID = '9cb18bcfe89740bffc69765c29779551';
+      const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+      
+      if (!API_TOKEN) {
         return res.status(503).json({ error: 'Cloudflare API token required' });
       }
 
-      // Use hardcoded zone ID since environment variable isn't loading properly
-      const zoneId = '9cb18bcfe89740bffc69765c29779551';
+      console.log('Direct DNS fetch with zone ID:', ZONE_ID);
       
-      const records = await cloudflareService.listDNSRecords(zoneId);
-      res.json(records);
+      // Direct fetch call to Cloudflare API
+      const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        console.error('Cloudflare API error:', response.status, response.statusText);
+        return res.status(response.status).json({ error: `Cloudflare API error: ${response.statusText}` });
+      }
+
+      const data = await response.json();
+      console.log('DNS records fetched successfully:', data.result?.length, 'records');
+      
+      res.json(data.result || []);
     } catch (error) {
       console.error('DNS records fetch error:', error);
       res.status(500).json({ error: 'Failed to fetch DNS records' });
@@ -3251,12 +3270,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/dns-records', requireAdmin, async (req: any, res) => {
     try {
-      if (!cloudflareService) {
+      // Direct Cloudflare API call with hardcoded values
+      const ZONE_ID = '9cb18bcfe89740bffc69765c29779551';
+      const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+      
+      if (!API_TOKEN) {
         return res.status(503).json({ error: 'Cloudflare API token required' });
       }
-
-      // Use hardcoded zone ID since environment variable isn't loading properly
-      const zoneId = '9cb18bcfe89740bffc69765c29779551';
 
       const { name, type, value } = req.body;
       
@@ -3264,14 +3284,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Type and value are required' });
       }
 
-      const record = await cloudflareService.createDNSRecord(zoneId, {
-        name: name || '@',
-        type,
-        content: value,
-        ttl: 1 // Auto TTL
+      console.log('Creating DNS record:', { name: name || '@', type, value });
+
+      // Direct fetch call to Cloudflare API
+      const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${API_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: name || '@',
+          type,
+          content: value,
+          ttl: 1 // Auto TTL
+        })
       });
 
-      res.json(record);
+      if (!response.ok) {
+        console.error('Cloudflare API error:', response.status, response.statusText);
+        return res.status(response.status).json({ error: `Cloudflare API error: ${response.statusText}` });
+      }
+
+      const data = await response.json();
+      console.log('DNS record created successfully:', data.result);
+      
+      res.json(data.result);
     } catch (error) {
       console.error('DNS record creation error:', error);
       res.status(500).json({ error: 'Failed to create DNS record' });

@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, CheckCircle, Plus, Globe, ArrowLeft, Settings, ExternalLink, Edit2, Save, X } from "lucide-react";
+import { AlertCircle, CheckCircle, Plus, Globe, ArrowLeft, Settings, ExternalLink, Edit2, Save, X, Server } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { isAdmin } from "@/lib/admin";
@@ -223,7 +223,7 @@ export default function DomainManagement() {
               <h1 className="text-3xl font-bold flex items-center gap-2">
                 <Globe className="h-8 w-8" />
                 Domain Management
-                <span className="text-xs bg-emerald-100 text-emerald-800 px-2 py-1 rounded">v2.3 - Complete</span>
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">v3.0 - Direct API</span>
               </h1>
               <p className="text-muted-foreground mt-2">
                 Manage your domains, subdomains, and DNS settings
@@ -237,13 +237,21 @@ export default function DomainManagement() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="dns">DNS Records</TabsTrigger>
-            <TabsTrigger value="subdomains">Subdomains</TabsTrigger>
-            <TabsTrigger value="email">Email Aliases</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4 mb-6">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="dns" disabled>DNS Records</TabsTrigger>
+              <TabsTrigger value="subdomains">Subdomains</TabsTrigger>
+              <TabsTrigger value="email">Email Aliases</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
+            </TabsList>
+            <Link href="/dns-records-direct">
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Server className="h-4 w-4 mr-2" />
+                DNS Manager
+              </Button>
+            </Link>
+          </div>
 
           <TabsContent value="overview" className="space-y-6">
             <Card>
