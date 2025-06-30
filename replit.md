@@ -182,6 +182,7 @@ Required environment variables:
 - `ISSUER_URL`: OAuth issuer URL (defaults to Replit)
 
 ## Recent Changes
+- June 30, 2025: **COMPREHENSIVE DOMAIN MANAGEMENT SYSTEM**: Built complete domain management interface with admin-only access protection, Cloudflare integration for DNS record management, subdomain creation and editing capabilities with delete functionality, email alias configuration with detailed settings, and page routing system with descriptive labels. Added delete button to subdomain edit dialog with confirmation prompt. Updated page routing options to clarify destinations: "App Home (Shows List)" for main authenticated dashboard, "Landing Page (Waitlist)" for public signup, and other clear navigation labels. System includes admin authentication middleware and comprehensive error handling for production-ready domain configuration.
 - June 25, 2025: Initial setup with complete authentication system
 - June 25, 2025: Fixed database schema and authentication flow for profile type selection
 - June 25, 2025: Removed dashboard statistics cards per user feedback - stage managers don't need count metrics

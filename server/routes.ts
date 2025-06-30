@@ -17,6 +17,19 @@ function isAuthenticated(req: any, res: any, next: any) {
   res.status(401).json({ message: "Unauthorized" });
 }
 
+// Admin middleware
+function requireAdmin(req: any, res: any, next: any) {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+  
+  if (!isAdmin(req.user.id.toString())) {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+  
+  next();
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication
   setupAuth(app);
@@ -3164,6 +3177,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error checking domain status:', error);
       res.status(500).json({ error: 'Failed to check domain status' });
+    }
+  });
+
+  // Domain configuration endpoint for admin
+  app.post("/api/admin/configure-domain", requireAdmin, async (req: any, res) => {
+    try {
+      const { domain, target } = req.body;
+      
+      if (!process.env.CLOUDFLARE_API_TOKEN) {
+        return res.status(500).json({ error: 'Cloudflare API token not configured' });
+      }
+
+      const { CloudflareService } = await import('./services/cloudflareService.js');
+      const cloudflareService = new CloudflareService(process.env.CLOUDFLARE_API_TOKEN);
+
+      // Get the zone for the domain
+      const zone = await cloudflareService.getZone(domain);
+      if (!zone) {
+        return res.status(404).json({ error: `Zone not found for ${domain}` });
+      }
+
+      // Create CNAME record pointing to target
+      const dnsRecord = await cloudflareService.createDNSRecord(zone.id, {
+        type: 'CNAME',
+        name: '@',
+        content: target,
+        ttl: 1,
+        proxied: true
+      });
+
+      res.json({ 
+        success: true, 
+        message: `DNS record created for ${domain}`,
+        record: dnsRecord 
+      });
+    } catch (error) {
+      console.error('Error configuring domain:', error);
+      res.status(500).json({ error: error.message || 'Failed to configure domain' });
     }
   });
 
