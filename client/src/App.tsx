@@ -45,6 +45,7 @@ import NotFound from "@/pages/not-found";
 import WaitlistLanding from "@/pages/waitlist-landing";
 import DNSManager from "@/pages/dns-manager";
 import DomainManager from "@/pages/domain-manager";
+import PageManager from "@/pages/page-manager";
 
 
 function Router() {
@@ -146,6 +147,7 @@ function Router() {
         <Route path="/feedback" component={FeedbackPage} />
 
         <Route path="/admin" component={AdminDashboard} />
+        <Route path="/admin/pages" component={PageManager} />
         <Route path="/admin/dns" component={DNSManager} />
         <Route path="/admin/domains" component={DomainManager} />
         <Route component={NotFound} />

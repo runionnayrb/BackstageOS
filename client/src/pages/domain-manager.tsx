@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { ArrowLeft, Plus, Edit, Trash2, Save, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, Save, AlertTriangle, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
 import { Badge } from '@/components/ui/badge';
@@ -24,15 +24,24 @@ const DEFAULT_ROUTES: DomainRoute[] = [
   { domain: 'join.backstageos.com', route: '/landing', description: 'Waitlist signup page', type: 'public' }
 ];
 
-const AVAILABLE_ROUTES = [
-  { value: '/', label: 'App Home', description: 'Main authenticated application' },
-  { value: '/landing', label: 'Landing Page', description: 'Public landing/waitlist page' },
-  { value: '/auth', label: 'Sign In', description: 'Authentication page' },
-  { value: '/admin', label: 'Admin Dashboard', description: 'Admin panel (requires admin access)' }
+interface Page {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  isSystem: boolean;
+}
+
+const SYSTEM_PAGES: Page[] = [
+  { id: 'home', name: 'App Home', slug: '/', description: 'Main theater management application', isSystem: true },
+  { id: 'landing', name: 'Landing Page', slug: '/landing', description: 'Public landing/waitlist page', isSystem: true },
+  { id: 'auth', name: 'Sign In', slug: '/auth', description: 'Authentication page', isSystem: true },
+  { id: 'admin', name: 'Admin Dashboard', slug: '/admin', description: 'Admin panel (requires admin access)', isSystem: true }
 ];
 
 export default function DomainManager() {
   const [routes, setRoutes] = useState<DomainRoute[]>(DEFAULT_ROUTES);
+  const [pages, setPages] = useState<Page[]>(SYSTEM_PAGES);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
@@ -41,10 +50,17 @@ export default function DomainManager() {
   }>({ isOpen: false, routeIndex: -1, routeDomain: '' });
   const { toast } = useToast();
 
-  // Load current domain routes configuration
+  // Load pages from localStorage on mount
   useEffect(() => {
-    // In a real implementation, this would fetch from the server
-    // For now, using the default configuration
+    const savedPages = localStorage.getItem('backstage-pages');
+    if (savedPages) {
+      try {
+        const parsed = JSON.parse(savedPages);
+        setPages([...SYSTEM_PAGES, ...parsed.filter((p: Page) => !p.isSystem)]);
+      } catch (error) {
+        console.error('Failed to load pages:', error);
+      }
+    }
   }, []);
 
   const handleSave = () => {
@@ -106,14 +122,22 @@ export default function DomainManager() {
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
-      <div className="flex items-center space-x-4 mb-6">
-        <Link to="/admin/dns">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to DNS Manager
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-4">
+          <Link to="/admin/dns">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to DNS Manager
+            </Button>
+          </Link>
+          <h1 className="text-2xl font-bold">Domain Manager</h1>
+        </div>
+        <Link to="/admin/pages">
+          <Button variant="outline">
+            <FileText className="mr-2 h-4 w-4" />
+            Page Manager
           </Button>
         </Link>
-        <h1 className="text-2xl font-bold">Domain Manager</h1>
       </div>
 
       <div className="mb-6">
@@ -179,11 +203,11 @@ export default function DomainManager() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {AVAILABLE_ROUTES.map((availableRoute) => (
-                          <SelectItem key={availableRoute.value} value={availableRoute.value}>
+                        {pages.map((page) => (
+                          <SelectItem key={page.slug} value={page.slug}>
                             <div>
-                              <div className="font-medium">{availableRoute.label}</div>
-                              <div className="text-xs text-gray-500">{availableRoute.description}</div>
+                              <div className="font-medium">{page.name}</div>
+                              <div className="text-xs text-gray-500">{page.description}</div>
                             </div>
                           </SelectItem>
                         ))}

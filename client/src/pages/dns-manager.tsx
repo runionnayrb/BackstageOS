@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Globe, Shield, ArrowLeft } from 'lucide-react';
+import { Plus, Edit, Trash2, Globe, Shield, ArrowLeft, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
@@ -218,12 +218,20 @@ export default function DNSManager() {
             <p className="text-gray-600">Manage DNS records and domain configuration</p>
           </div>
         </div>
-        <Link href="/admin/domains">
-          <Button variant="outline">
-            <Globe className="mr-2 h-4 w-4" />
-            Domain Manager
-          </Button>
-        </Link>
+        <div className="flex items-center space-x-3">
+          <Link href="/admin/pages">
+            <Button variant="outline">
+              <FileText className="mr-2 h-4 w-4" />
+              Page Manager
+            </Button>
+          </Link>
+          <Link href="/admin/domains">
+            <Button variant="outline">
+              <Globe className="mr-2 h-4 w-4" />
+              Domain Manager
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {zoneInfo && (
