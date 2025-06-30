@@ -11,9 +11,7 @@ app.set('trust proxy', true);
 // Domain routing configuration
 const DOMAIN_ROUTES: { [key: string]: string } = {
   'backstageos.com': '/landing',
-  'beta.backstageos.com': '/',
-  'app.backstageos.com': '/',
-  'join.backstageos.com': '/landing'
+  'beta.backstageos.com': '/'
 };
 
 // Subdomain-based domain handling
