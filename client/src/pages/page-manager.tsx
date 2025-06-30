@@ -61,8 +61,8 @@ const SYSTEM_PAGES: Page[] = [
 
 export default function PageManager() {
   const [pages, setPages] = useState<Page[]>(SYSTEM_PAGES);
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingPage, setEditingPage] = useState<Page | null>(null);
+  const [editedPages, setEditedPages] = useState<Page[]>(SYSTEM_PAGES);
+  const [hasChanges, setHasChanges] = useState(false);
   const [newPage, setNewPage] = useState<Partial<Page>>({
     name: '',
     slug: '',
@@ -83,7 +83,9 @@ export default function PageManager() {
     if (savedPages) {
       try {
         const parsed = JSON.parse(savedPages);
-        setPages([...SYSTEM_PAGES, ...parsed.filter((p: Page) => !p.isSystem)]);
+        const allPages = [...SYSTEM_PAGES, ...parsed.filter((p: Page) => !p.isSystem)];
+        setPages(allPages);
+        setEditedPages(allPages);
       } catch (error) {
         console.error('Failed to load pages:', error);
       }
@@ -97,40 +99,27 @@ export default function PageManager() {
     setPages(updatedPages);
   };
 
-  const startEdit = (page: Page) => {
-    if (page.isSystem) {
-      toast({ title: "Cannot edit system pages", variant: "destructive" });
-      return;
+  const updateURL = (pageId: string, newSlug: string) => {
+    if (!newSlug.startsWith('/')) {
+      newSlug = '/' + newSlug;
     }
-    setEditingPage({ ...page });
-  };
-
-  const saveEdit = () => {
-    if (!editingPage) return;
     
-    if (!editingPage.name.trim() || !editingPage.slug.trim()) {
-      toast({ title: "Please fill in all required fields", variant: "destructive" });
-      return;
-    }
-
-    if (!editingPage.slug.startsWith('/')) {
-      editingPage.slug = '/' + editingPage.slug;
-    }
-
-    const updatedPages = pages.map(p => 
-      p.id === editingPage.id 
-        ? { ...editingPage, updatedAt: new Date().toISOString() }
+    const updatedPages = editedPages.map(p => 
+      p.id === pageId 
+        ? { ...p, slug: newSlug, updatedAt: new Date().toISOString() }
         : p
     );
     
-    savePages(updatedPages);
-    setEditingPage(null);
-    setIsEditing(false);
-    toast({ title: "Page updated successfully" });
+    setEditedPages(updatedPages);
+    setHasChanges(true);
   };
 
-  const cancelEdit = () => {
-    setEditingPage(null);
+  const saveAllChanges = () => {
+    const customPages = editedPages.filter(p => !p.isSystem);
+    localStorage.setItem('backstage-pages', JSON.stringify(customPages));
+    setPages(editedPages);
+    setHasChanges(false);
+    toast({ title: "All URL settings saved successfully" });
   };
 
   const createPage = () => {
@@ -227,97 +216,58 @@ export default function PageManager() {
         {/* Pages List */}
         <Card>
           <CardHeader>
-            <CardTitle>All Pages</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Page URL Settings</CardTitle>
+              <div className="flex items-center space-x-2">
+                {hasChanges && (
+                  <Button onClick={saveAllChanges}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save All Changes
+                  </Button>
+                )}
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {pages.map((page) => (
-                <div key={page.id} className="border rounded-lg p-4">
-                  {editingPage?.id === page.id ? (
-                    /* Edit Mode */
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="edit-name">Page Name</Label>
-                          <Input
-                            id="edit-name"
-                            value={editingPage.name}
-                            onChange={(e) => setEditingPage({ ...editingPage, name: e.target.value })}
-                            placeholder="Page name"
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="edit-slug">URL Slug</Label>
-                          <Input
-                            id="edit-slug"
-                            value={editingPage.slug}
-                            onChange={(e) => setEditingPage({ ...editingPage, slug: e.target.value })}
-                            placeholder="/page-url"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <Label htmlFor="edit-description">Description</Label>
-                        <Textarea
-                          id="edit-description"
-                          value={editingPage.description}
-                          onChange={(e) => setEditingPage({ ...editingPage, description: e.target.value })}
-                          placeholder="Brief description of this page"
-                          rows={2}
-                        />
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button onClick={saveEdit} size="sm">
-                          <Save className="mr-2 h-4 w-4" />
-                          Save
-                        </Button>
-                        <Button variant="outline" onClick={cancelEdit} size="sm">
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    /* View Mode */
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="font-medium text-lg">{page.name}</h3>
-                          <Badge variant={page.isSystem ? "secondary" : "outline"}>
-                            {page.isSystem ? "System" : "Custom"}
-                          </Badge>
-                        </div>
-                        <div className="text-sm text-gray-600 space-y-1">
-                          <div><strong>URL:</strong> {page.slug}</div>
-                          {page.description && <div><strong>Description:</strong> {page.description}</div>}
-                          <div className="text-xs text-gray-500">
-                            Created: {formatDate(page.createdAt)} • Updated: {formatDate(page.updatedAt)}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {!page.isSystem && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => startEdit(page)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => deletePage(page.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
+              {editedPages.map((page) => (
+                <div key={page.id} className="flex items-center justify-between py-3 border-b last:border-b-0">
+                  <div className="flex items-center space-x-3">
+                    <span className="font-medium">{page.name}</span>
+                    <Badge variant={page.isSystem ? "secondary" : "outline"} className="text-xs">
+                      {page.isSystem ? "System" : "Custom"}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      value={page.slug}
+                      onChange={(e) => updateURL(page.id, e.target.value)}
+                      placeholder="/page-url"
+                      className="w-64"
+                      disabled={page.isSystem}
+                    />
+                    {!page.isSystem && (
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        onClick={() => setDeleteConfirmation({ 
+                          isOpen: true, 
+                          pageId: page.id, 
+                          pageName: page.name 
+                        })}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
+              
+              {editedPages.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No pages configured. Click "Create Page" to create your first page.
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
