@@ -47,6 +47,8 @@ import DomainManagement from "@/pages/domain-management-simple";
 import DomainSetup from "@/pages/domain-setup";
 
 function Router() {
+  const { user, isLoading } = useAuth();
+  
   // Check if this is the main landing page domain FIRST
   const hostname = window.location.hostname;
   const isJoinDomain = hostname.includes('join.backstageos.com') || hostname === 'join.backstageos.com';
@@ -66,8 +68,6 @@ function Router() {
     window.location.pathname = '/landing';
     return null;
   }
-
-  const { user, isLoading } = useAuth();
   const isAuthenticated = !!user;
   
   // Keep session alive while user is active
