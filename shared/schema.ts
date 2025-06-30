@@ -900,6 +900,44 @@ export const insertScheduleEventParticipantSchema = createInsertSchema(scheduleE
   createdAt: true,
 });
 
+// Domain Management Tables
+export const domains = pgTable("domains", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull().unique(), // e.g., "backstageos.com"
+  zoneId: varchar("zone_id").notNull(), // Cloudflare zone ID
+  status: varchar("status").default("active"), // active, inactive, pending
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const dnsRecords = pgTable("dns_records", {
+  id: serial("id").primaryKey(),
+  domainId: integer("domain_id").notNull(),
+  cloudflareId: varchar("cloudflare_id"), // Cloudflare record ID
+  type: varchar("type").notNull(), // CNAME, A, AAAA, TXT, MX
+  name: varchar("name").notNull(), // @ for root, subdomain name
+  content: text("content").notNull(), // target/value
+  ttl: integer("ttl").default(1),
+  proxied: boolean("proxied").default(false),
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Domain Management Insert Schemas
+export const insertDomainSchema = createInsertSchema(domains).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDnsRecordSchema = createInsertSchema(dnsRecords).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertEventLocationSchema = createInsertSchema(eventLocations).omit({
   id: true,
   createdAt: true,
@@ -998,135 +1036,6 @@ export type Feedback = typeof feedback.$inferSelect;
 export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;
 export type BetaSettings = typeof betaSettings.$inferSelect;
 export type InsertBetaSettings = z.infer<typeof insertBetaSettingsSchema>;
-
-// Domain Management System
-export const domains = pgTable("domains", {
-  id: serial("id").primaryKey(),
-  name: varchar("name").notNull().unique(), // e.g., "backstageos.com"
-  provider: varchar("provider").notNull(), // "godaddy", "cloudflare", etc.
-  status: varchar("status").default("active"), // "active", "pending", "inactive"
-  cloudflareZoneId: varchar("cloudflare_zone_id"), // Cloudflare zone identifier
-  dnsProvider: varchar("dns_provider").default("cloudflare"), // Which service manages DNS
-  isMainDomain: boolean("is_main_domain").default(false),
-  transferredToCloudflare: boolean("transferred_to_cloudflare").default(false),
-  autoRenewal: boolean("auto_renewal").default(true),
-  expiryDate: timestamp("expiry_date"),
-  createdBy: integer("created_by").notNull().references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const subdomains = pgTable("subdomains", {
-  id: serial("id").primaryKey(),
-  domainId: integer("domain_id").notNull().references(() => domains.id, { onDelete: "cascade" }),
-  name: varchar("name").notNull(), // e.g., "join", "beta", "api"
-  fullDomain: varchar("full_domain").notNull().unique(), // e.g., "join.backstageos.com"
-  type: varchar("type").notNull(), // "A", "CNAME", "AAAA"
-  target: varchar("target").notNull(), // IP address or domain target
-  status: varchar("status").default("active"), // "active", "pending", "inactive"
-  cloudflareRecordId: varchar("cloudflare_record_id"), // Cloudflare DNS record ID
-  isWildcard: boolean("is_wildcard").default(false),
-  ttl: integer("ttl").default(300), // DNS TTL in seconds
-  createdBy: integer("created_by").notNull().references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const emailAliases = pgTable("email_aliases", {
-  id: serial("id").primaryKey(),
-  domainId: integer("domain_id").notNull().references(() => domains.id, { onDelete: "cascade" }),
-  alias: varchar("alias").notNull(), // e.g., "support", "hello"
-  fullEmail: varchar("full_email").notNull().unique(), // e.g., "support@backstageos.com"
-  forwardTo: text("forward_to").notNull(), // JSON array of email addresses to forward to
-  status: varchar("status").default("active"), // "active", "inactive"
-  provider: varchar("provider").default("cloudflare"), // "cloudflare", "mailgun", etc.
-  cloudflareRuleId: varchar("cloudflare_rule_id"), // Cloudflare email routing rule ID
-  description: text("description"), // Optional description
-  createdBy: integer("created_by").notNull().references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const pageRoutes = pgTable("page_routes", {
-  id: serial("id").primaryKey(),
-  domainId: integer("domain_id").references(() => domains.id, { onDelete: "cascade" }),
-  subdomainId: integer("subdomain_id").references(() => subdomains.id, { onDelete: "cascade" }),
-  slug: varchar("slug").notNull(), // e.g., "/about", "/pricing", "/contact"
-  fullUrl: varchar("full_url").notNull(), // e.g., "https://backstageos.com/about"
-  title: varchar("title").notNull(),
-  metaDescription: text("meta_description"),
-  contentType: varchar("content_type").default("page"), // "page", "redirect", "api"
-  targetUrl: varchar("target_url"), // For redirects
-  isActive: boolean("is_active").default(true),
-  requiresAuth: boolean("requires_auth").default(false),
-  allowedRoles: jsonb("allowed_roles"), // Array of roles that can access this page
-  customHeaders: jsonb("custom_headers"), // Custom HTTP headers
-  createdBy: integer("created_by").notNull().references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const domainSettings = pgTable("domain_settings", {
-  id: serial("id").primaryKey(),
-  domainId: integer("domain_id").notNull().references(() => domains.id, { onDelete: "cascade" }).unique(),
-  sslEnabled: boolean("ssl_enabled").default(true),
-  autoHttpsRedirect: boolean("auto_https_redirect").default(true),
-  wwwRedirect: varchar("www_redirect").default("non-www"), // "www", "non-www", "none"
-  customBranding: jsonb("custom_branding"), // Logo, colors, etc.
-  emailSettings: jsonb("email_settings"), // SMTP settings, signatures, etc.
-  securitySettings: jsonb("security_settings"), // HSTS, CSP, etc.
-  analyticsCode: text("analytics_code"), // Google Analytics, etc.
-  customCss: text("custom_css"),
-  customJs: text("custom_js"),
-  maintenanceMode: boolean("maintenance_mode").default(false),
-  maintenanceMessage: text("maintenance_message"),
-  createdBy: integer("created_by").notNull().references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Domain management insert schemas
-export const insertDomainSchema = createInsertSchema(domains).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertSubdomainSchema = createInsertSchema(subdomains).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertEmailAliasSchema = createInsertSchema(emailAliases).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertPageRouteSchema = createInsertSchema(pageRoutes).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertDomainSettingsSchema = createInsertSchema(domainSettings).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-// Domain management types
-export type Domain = typeof domains.$inferSelect;
-export type InsertDomain = z.infer<typeof insertDomainSchema>;
-export type Subdomain = typeof subdomains.$inferSelect;
-export type InsertSubdomain = z.infer<typeof insertSubdomainSchema>;
-export type EmailAlias = typeof emailAliases.$inferSelect;
-export type InsertEmailAlias = z.infer<typeof insertEmailAliasSchema>;
-export type PageRoute = typeof pageRoutes.$inferSelect;
-export type InsertPageRoute = z.infer<typeof insertPageRouteSchema>;
-export type DomainSettings = typeof domainSettings.$inferSelect;
-export type InsertDomainSettings = z.infer<typeof insertDomainSettingsSchema>;
 export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
 export type ErrorLog = typeof errorLogs.$inferSelect;

@@ -5,8 +5,8 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainSchema, insertSubdomainSchema, insertEmailAliasSchema, insertPageRouteSchema, insertDomainSettingsSchema } from "@shared/schema";
-import { CloudflareService, GoDaddyService } from "./services/cloudflareService";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema } from "@shared/schema";
+import { cloudflareService } from "./services/cloudflareService";
 import { z } from "zod";
 
 // Authentication middleware
@@ -2808,590 +2808,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Initialize Cloudflare and GoDaddy services
-  const cloudflareService = process.env.CLOUDFLARE_API_TOKEN 
-    ? new CloudflareService(process.env.CLOUDFLARE_API_TOKEN)
-    : null;
+  // DNS Management Routes (Admin Only)
   
-  const godaddyService = (process.env.GODADDY_API_KEY && process.env.GODADDY_API_SECRET)
-    ? new GoDaddyService(process.env.GODADDY_API_KEY, process.env.GODADDY_API_SECRET)
-    : null;
-
-  // Domain Management Routes (Admin only)
-  // Get all domains
-  app.get('/api/domains', isAuthenticated, async (req: any, res) => {
+  // Get DNS records
+  app.get('/api/dns/records', requireAdmin, async (req: any, res) => {
     try {
-      // Check if user is admin
-      if (!isAdmin(req.user.id.toString())) {
-        return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+      if (!cloudflareService.isConfigured()) {
+        return res.status(400).json({ message: "Cloudflare API not configured. Please provide CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID." });
       }
       
-      const domains = await storage.getDomains(req.user.id.toString());
-      res.json(domains);
-    } catch (error) {
-      console.error('Error fetching domains:', error);
-      res.status(500).json({ error: 'Failed to fetch domains' });
-    }
-  });
-
-  // Create new domain
-  app.post('/api/domains', isAuthenticated, async (req: any, res) => {
-    try {
-      // Check if user is admin
-      if (!isAdmin(req.user.id.toString())) {
-        return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
-      }
-      
-      const domainData = insertDomainSchema.parse({
-        ...req.body,
-        createdBy: req.user.id
-      });
-
-      const domain = await storage.createDomain(domainData);
-      res.status(201).json(domain);
-    } catch (error) {
-      console.error('Error creating domain:', error);
-      res.status(500).json({ error: 'Failed to create domain' });
-    }
-  });
-
-  // Get domain by ID
-  app.get('/api/domains/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      // Check if user is admin
-      if (!isAdmin(req.user.id.toString())) {
-        return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
-      }
-      
-      const domain = await storage.getDomain(parseInt(req.params.id), req.user.id);
-      if (!domain) {
-        return res.status(404).json({ error: 'Domain not found' });
-      }
-      res.json(domain);
-    } catch (error) {
-      console.error('Error fetching domain:', error);
-      res.status(500).json({ error: 'Failed to fetch domain' });
-    }
-  });
-
-  // Update domain
-  app.put('/api/domains/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const domainData = insertDomainSchema.parse({
-        ...req.body,
-        createdBy: req.user.id
-      });
-
-      const domain = await storage.updateDomain(parseInt(req.params.id), domainData, req.user.id);
-      if (!domain) {
-        return res.status(404).json({ error: 'Domain not found' });
-      }
-      res.json(domain);
-    } catch (error) {
-      console.error('Error updating domain:', error);
-      res.status(500).json({ error: 'Failed to update domain' });
-    }
-  });
-
-  // Delete domain
-  app.delete('/api/domains/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const success = await storage.deleteDomain(parseInt(req.params.id), req.user.id);
-      if (!success) {
-        return res.status(404).json({ error: 'Domain not found' });
-      }
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Error deleting domain:', error);
-      res.status(500).json({ error: 'Failed to delete domain' });
-    }
-  });
-
-  // Subdomain Management Routes
-  // Get subdomains for a domain
-  app.get('/api/domains/:domainId/subdomains', isAuthenticated, async (req: any, res) => {
-    try {
-      const subdomains = await storage.getSubdomains(parseInt(req.params.domainId), req.user.id);
-      res.json(subdomains);
-    } catch (error) {
-      console.error('Error fetching subdomains:', error);
-      res.status(500).json({ error: 'Failed to fetch subdomains' });
-    }
-  });
-
-  // Create new subdomain
-  app.post('/api/domains/:domainId/subdomains', isAuthenticated, async (req: any, res) => {
-    try {
-      const subdomainData = insertSubdomainSchema.parse({
-        ...req.body,
-        domainId: parseInt(req.params.domainId),
-        createdBy: req.user.id
-      });
-
-      const subdomain = await storage.createSubdomain(subdomainData);
-      res.status(201).json(subdomain);
-    } catch (error) {
-      console.error('Error creating subdomain:', error);
-      res.status(500).json({ error: 'Failed to create subdomain' });
-    }
-  });
-
-  // Update subdomain
-  app.put('/api/domains/:domainId/subdomains/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const subdomainData = insertSubdomainSchema.parse({
-        ...req.body,
-        domainId: parseInt(req.params.domainId),
-        createdBy: req.user.id
-      });
-
-      const subdomain = await storage.updateSubdomain(parseInt(req.params.id), subdomainData, req.user.id);
-      if (!subdomain) {
-        return res.status(404).json({ error: 'Subdomain not found' });
-      }
-      res.json(subdomain);
-    } catch (error) {
-      console.error('Error updating subdomain:', error);
-      res.status(500).json({ error: 'Failed to update subdomain' });
-    }
-  });
-
-  // Delete subdomain
-  app.delete('/api/domains/:domainId/subdomains/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const success = await storage.deleteSubdomain(parseInt(req.params.id), req.user.id);
-      if (!success) {
-        return res.status(404).json({ error: 'Subdomain not found' });
-      }
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Error deleting subdomain:', error);
-      res.status(500).json({ error: 'Failed to delete subdomain' });
-    }
-  });
-
-  // Email Alias Management Routes
-  // Get email aliases for a domain
-  app.get('/api/domains/:domainId/email-aliases', isAuthenticated, async (req: any, res) => {
-    try {
-      const aliases = await storage.getEmailAliases(parseInt(req.params.domainId), req.user.id);
-      res.json(aliases);
-    } catch (error) {
-      console.error('Error fetching email aliases:', error);
-      res.status(500).json({ error: 'Failed to fetch email aliases' });
-    }
-  });
-
-  // Create new email alias
-  app.post('/api/domains/:domainId/email-aliases', isAuthenticated, async (req: any, res) => {
-    try {
-      const aliasData = insertEmailAliasSchema.parse({
-        ...req.body,
-        domainId: parseInt(req.params.domainId),
-        createdBy: req.user.id
-      });
-
-      const alias = await storage.createEmailAlias(aliasData);
-      res.status(201).json(alias);
-    } catch (error) {
-      console.error('Error creating email alias:', error);
-      res.status(500).json({ error: 'Failed to create email alias' });
-    }
-  });
-
-  // Update email alias
-  app.put('/api/domains/:domainId/email-aliases/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const aliasData = insertEmailAliasSchema.parse({
-        ...req.body,
-        domainId: parseInt(req.params.domainId),
-        createdBy: req.user.id
-      });
-
-      const alias = await storage.updateEmailAlias(parseInt(req.params.id), aliasData, req.user.id);
-      if (!alias) {
-        return res.status(404).json({ error: 'Email alias not found' });
-      }
-      res.json(alias);
-    } catch (error) {
-      console.error('Error updating email alias:', error);
-      res.status(500).json({ error: 'Failed to update email alias' });
-    }
-  });
-
-  // Delete email alias
-  app.delete('/api/domains/:domainId/email-aliases/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const success = await storage.deleteEmailAlias(parseInt(req.params.id), req.user.id);
-      if (!success) {
-        return res.status(404).json({ error: 'Email alias not found' });
-      }
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Error deleting email alias:', error);
-      res.status(500).json({ error: 'Failed to delete email alias' });
-    }
-  });
-
-  // Page Route Management
-  // Get page routes for a domain
-  app.get('/api/domains/:domainId/page-routes', isAuthenticated, async (req: any, res) => {
-    try {
-      const routes = await storage.getPageRoutes(parseInt(req.params.domainId), req.user.id);
-      res.json(routes);
-    } catch (error) {
-      console.error('Error fetching page routes:', error);
-      res.status(500).json({ error: 'Failed to fetch page routes' });
-    }
-  });
-
-  // Create new page route
-  app.post('/api/domains/:domainId/page-routes', isAuthenticated, async (req: any, res) => {
-    try {
-      const routeData = insertPageRouteSchema.parse({
-        ...req.body,
-        domainId: parseInt(req.params.domainId),
-        createdBy: req.user.id
-      });
-
-      const route = await storage.createPageRoute(routeData);
-      res.status(201).json(route);
-    } catch (error) {
-      console.error('Error creating page route:', error);
-      res.status(500).json({ error: 'Failed to create page route' });
-    }
-  });
-
-  // Update page route
-  app.put('/api/domains/:domainId/page-routes/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const routeData = insertPageRouteSchema.parse({
-        ...req.body,
-        domainId: parseInt(req.params.domainId),
-        createdBy: req.user.id
-      });
-
-      const route = await storage.updatePageRoute(parseInt(req.params.id), routeData, req.user.id);
-      if (!route) {
-        return res.status(404).json({ error: 'Page route not found' });
-      }
-      res.json(route);
-    } catch (error) {
-      console.error('Error updating page route:', error);
-      res.status(500).json({ error: 'Failed to update page route' });
-    }
-  });
-
-  // Delete page route
-  app.delete('/api/domains/:domainId/page-routes/:id', isAuthenticated, async (req: any, res) => {
-    try {
-      const success = await storage.deletePageRoute(parseInt(req.params.id), req.user.id);
-      if (!success) {
-        return res.status(404).json({ error: 'Page route not found' });
-      }
-      res.json({ success: true });
-    } catch (error) {
-      console.error('Error deleting page route:', error);
-      res.status(500).json({ error: 'Failed to delete page route' });
-    }
-  });
-
-  // Domain Settings Management
-  // Get domain settings
-  app.get('/api/domains/:domainId/settings', isAuthenticated, async (req: any, res) => {
-    try {
-      const settings = await storage.getDomainSettings(parseInt(req.params.domainId), req.user.id);
-      res.json(settings);
-    } catch (error) {
-      console.error('Error fetching domain settings:', error);
-      res.status(500).json({ error: 'Failed to fetch domain settings' });
-    }
-  });
-
-  // Update domain settings
-  app.put('/api/domains/:domainId/settings', isAuthenticated, async (req: any, res) => {
-    try {
-      const settingsData = insertDomainSettingsSchema.parse({
-        ...req.body,
-        domainId: parseInt(req.params.domainId),
-        createdBy: req.user.id
-      });
-
-      const settings = await storage.updateDomainSettings(parseInt(req.params.domainId), settingsData, req.user.id);
-      res.json(settings);
-    } catch (error) {
-      console.error('Error updating domain settings:', error);
-      res.status(500).json({ error: 'Failed to update domain settings' });
-    }
-  });
-
-  // CRITICAL: Real Cloudflare domain data endpoints - DISABLED to prevent CloudflareService errors
-  // Get actual domains from Cloudflare
-  app.get('/api/domains', requireAdmin, async (req: any, res) => {
-    try {
-      // Return empty array to prevent CloudflareService errors with undefined zones
-      res.json([]);
-    } catch (error) {
-      console.error('Error fetching domains:', error);
-      res.status(500).json({ error: 'Failed to fetch domain data' });
-    }
-  });
-
-  // Get actual subdomains from Cloudflare - DISABLED to prevent undefined zone errors
-  app.get('/api/subdomains', requireAdmin, async (req: any, res) => {
-    try {
-      // Return empty array to prevent CloudflareService errors with undefined zones
-      res.json([]);
-    } catch (error) {
-      console.error('Error fetching subdomains:', error);
-      res.status(500).json({ error: 'Failed to fetch subdomain data' });
-    }
-  });
-
-  // Get email aliases (currently returns empty as they're not DNS records)
-  app.get('/api/email-aliases', requireAdmin, async (req: any, res) => {
-    try {
-      // Email aliases would be managed through a different service
-      // For now, return empty array since they're not DNS records
-      res.json([]);
-    } catch (error) {
-      console.error('Error fetching email aliases:', error);
-      res.status(500).json({ error: 'Failed to fetch email alias data' });
-    }
-  });
-
-  // DNS records management - DIRECT Cloudflare API call (admin only)
-  app.get('/api/dns-records', requireAdmin, async (req: any, res) => {
-    try {
-      // Direct Cloudflare API call with hardcoded values
-      const ZONE_ID = '9cb18bcfe89740bffc69765c29779551';
-      const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
-      
-      if (!API_TOKEN) {
-        return res.status(503).json({ error: 'Cloudflare API token required' });
-      }
-
-      console.log('Admin DNS fetch with zone ID:', ZONE_ID);
-      
-      // Use Node.js native fetch (available in Node 18+)
-      const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${API_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Cloudflare API error:', response.status, response.statusText, errorText);
-        return res.status(response.status).json({ error: `Cloudflare API error: ${response.statusText}` });
-      }
-
-      const data = await response.json();
-      console.log('DNS records fetched successfully:', data.result?.length, 'records');
-      
-      res.json(data.result || []);
+      const records = await cloudflareService.getDNSRecords();
+      res.json(records);
     } catch (error: any) {
-      console.error('DNS records fetch error:', error);
-      res.status(500).json({ error: 'Failed to fetch DNS records', details: error.message });
+      console.error("Error fetching DNS records:", error);
+      res.status(500).json({ message: error.message || "Failed to fetch DNS records" });
     }
   });
 
-  app.post('/api/dns-records', requireAdmin, async (req: any, res) => {
+  // Get zone information
+  app.get('/api/dns/zone', requireAdmin, async (req: any, res) => {
     try {
-      // Direct Cloudflare API call with hardcoded values
-      const ZONE_ID = '9cb18bcfe89740bffc69765c29779551';
-      const API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
-      
-      if (!API_TOKEN) {
-        return res.status(503).json({ error: 'Cloudflare API token required' });
+      if (!cloudflareService.isConfigured()) {
+        return res.status(400).json({ message: "Cloudflare API not configured" });
       }
-
-      const { name, type, value } = req.body;
       
-      if (!type || !value) {
-        return res.status(400).json({ error: 'Type and value are required' });
-      }
-
-      console.log('Admin creating DNS record:', { name: name || '@', type, value });
-
-      // Use Node.js native fetch (available in Node 18+)
-      const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${API_TOKEN}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: name || '@',
-          type,
-          content: value,
-          ttl: 1 // Auto TTL
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Cloudflare API error:', response.status, response.statusText, errorText);
-        return res.status(response.status).json({ error: `Cloudflare API error: ${response.statusText}` });
-      }
-
-      const data = await response.json();
-      console.log('DNS record created successfully:', data.result);
-      
-      res.json(data.result);
+      const zoneInfo = await cloudflareService.getZoneInfo();
+      res.json(zoneInfo);
     } catch (error: any) {
-      console.error('DNS record creation error:', error);
-      res.status(500).json({ error: 'Failed to create DNS record', details: error.message });
+      console.error("Error fetching zone info:", error);
+      res.status(500).json({ message: error.message || "Failed to fetch zone information" });
     }
   });
 
-  // Cloudflare Integration Routes (require API keys)
-  // Transfer domain to Cloudflare
-  app.post('/api/domains/:id/transfer-to-cloudflare', requireAdmin, async (req: any, res) => {
+  // Create DNS record
+  app.post('/api/dns/records', requireAdmin, async (req: any, res) => {
     try {
-      if (!cloudflareService) {
-        return res.status(503).json({ error: 'Cloudflare API token required. Please configure CLOUDFLARE_API_TOKEN environment variable.' });
+      if (!cloudflareService.isConfigured()) {
+        return res.status(400).json({ message: "Cloudflare API not configured" });
       }
 
-      const domain = await storage.getDomain(parseInt(req.params.id), req.user.id);
-      if (!domain) {
-        return res.status(404).json({ error: 'Domain not found' });
-      }
-
-      // Create Cloudflare zone
-      const cfZone = await cloudflareService.createZone(domain.name);
+      const { type, name, content, ttl, proxied } = req.body;
       
-      // Update domain with Cloudflare zone ID
-      await storage.updateDomain(parseInt(req.params.id), {
-        ...domain,
-        cloudflareZoneId: cfZone.id,
-        transferredToCloudflare: true,
-        dnsProvider: 'cloudflare'
-      }, req.user.id);
+      if (!type || !name || !content) {
+        return res.status(400).json({ message: "Type, name, and content are required" });
+      }
 
-      res.json({
-        success: true,
-        nameservers: cfZone.name_servers,
-        zoneId: cfZone.id
+      const record = await cloudflareService.createDNSRecord({
+        type,
+        name,
+        content,
+        ttl: ttl || 300,
+        proxied: proxied || false
       });
-    } catch (error) {
-      console.error('Error transferring domain to Cloudflare:', error);
-      res.status(500).json({ error: 'Failed to transfer domain to Cloudflare' });
+      
+      res.json(record);
+    } catch (error: any) {
+      console.error("Error creating DNS record:", error);
+      res.status(500).json({ message: error.message || "Failed to create DNS record" });
     }
   });
 
-  // Check domain status
-  app.get('/api/domains/:id/status', isAuthenticated, async (req: any, res) => {
+  // Update DNS record
+  app.put('/api/dns/records/:id', requireAdmin, async (req: any, res) => {
     try {
-      if (!cloudflareService) {
-        return res.status(503).json({ error: 'Cloudflare API token required' });
+      if (!cloudflareService.isConfigured()) {
+        return res.status(400).json({ message: "Cloudflare API not configured" });
       }
 
-      const domain = await storage.getDomain(parseInt(req.params.id), req.user.id);
-      if (!domain) {
-        return res.status(404).json({ error: 'Domain not found' });
-      }
-
-      const status = await cloudflareService.checkDomainStatus(domain.name);
-      res.json(status);
-    } catch (error) {
-      console.error('Error checking domain status:', error);
-      res.status(500).json({ error: 'Failed to check domain status' });
+      const recordId = req.params.id;
+      const updates = req.body;
+      
+      const record = await cloudflareService.updateDNSRecord(recordId, updates);
+      res.json(record);
+    } catch (error: any) {
+      console.error("Error updating DNS record:", error);
+      res.status(500).json({ message: error.message || "Failed to update DNS record" });
     }
   });
 
-  // DNS Records API endpoint
-  app.post("/api/dns-records", requireAdmin, async (req: any, res) => {
+  // Delete DNS record
+  app.delete('/api/dns/records/:id', requireAdmin, async (req: any, res) => {
     try {
-      const { name, type, value } = req.body;
-      
-      if (!type || !value) {
-        return res.status(400).json({ error: 'Type and value are required' });
+      if (!cloudflareService.isConfigured()) {
+        return res.status(400).json({ message: "Cloudflare API not configured" });
       }
 
-      // Check if we have the CLOUDFLARE_ZONE_ID secret
-      if (!process.env.CLOUDFLARE_ZONE_ID) {
-        return res.status(500).json({ error: 'Cloudflare Zone ID not configured. Please add CLOUDFLARE_ZONE_ID to environment secrets.' });
-      }
-
-      // For now, we'll simulate the DNS record creation since we need API token
-      // In production, you would uncomment the Cloudflare integration below
-      
-      // Simulate successful DNS record creation
-      const mockRecord = {
-        id: `mock_${Date.now()}`,
-        type: type,
-        name: name || '@',
-        content: value,
-        ttl: 1,
-        proxied: type === 'CNAME'
-      };
-
-      console.log('DNS Record Creation Request:', { name, type, value });
-      console.log('Mock DNS Record Created:', mockRecord);
-
-      /* 
-      // Uncomment when CLOUDFLARE_API_TOKEN is available
-      const { CloudflareService } = await import('./services/cloudflareService.js');
-      const cloudflareService = new CloudflareService(process.env.CLOUDFLARE_API_TOKEN);
-      
-      const dnsRecord = await cloudflareService.createDNSRecord(process.env.CLOUDFLARE_ZONE_ID, {
-        type: type,
-        name: name || '@',
-        content: value,
-        ttl: 1,
-        proxied: type === 'CNAME'
-      });
-      */
-
-      res.json({ 
-        success: true, 
-        message: `DNS record created successfully`,
-        record: mockRecord
-      });
-    } catch (error) {
-      console.error('Error creating DNS record:', error);
-      res.status(500).json({ error: (error as Error).message || 'Failed to create DNS record' });
+      const recordId = req.params.id;
+      await cloudflareService.deleteDNSRecord(recordId);
+      res.json({ message: "DNS record deleted successfully" });
+    } catch (error: any) {
+      console.error("Error deleting DNS record:", error);
+      res.status(500).json({ message: error.message || "Failed to delete DNS record" });
     }
   });
 
-  // Domain configuration endpoint for admin
-  app.post("/api/admin/configure-domain", requireAdmin, async (req: any, res) => {
+  // Create subdomain
+  app.post('/api/dns/subdomain', requireAdmin, async (req: any, res) => {
     try {
-      const { domain, target } = req.body;
-      
-      if (!process.env.CLOUDFLARE_API_TOKEN) {
-        return res.status(500).json({ error: 'Cloudflare API token not configured' });
+      if (!cloudflareService.isConfigured()) {
+        return res.status(400).json({ message: "Cloudflare API not configured" });
       }
 
-      const { CloudflareService } = await import('./services/cloudflareService.js');
-      const cloudflareService = new CloudflareService(process.env.CLOUDFLARE_API_TOKEN);
+      const { subdomain, target, pageRoute, description } = req.body;
+      
+      if (!subdomain || !target) {
+        return res.status(400).json({ message: "Subdomain and target are required" });
+      }
 
-      // Use hardcoded zone ID since environment variable isn't loading properly
-      const zoneId = '9cb18bcfe89740bffc69765c29779551';
-
-      // Create CNAME record pointing to target
-      const dnsRecord = await cloudflareService.createDNSRecord(zoneId, {
-        type: 'CNAME',
-        name: '@',
-        content: target,
-        ttl: 1,
-        proxied: true
-      });
-
-      res.json({ 
-        success: true, 
-        message: `DNS record created for ${domain}`,
-        record: dnsRecord 
-      });
-    } catch (error) {
-      console.error('Error configuring domain:', error);
-      res.status(500).json({ error: (error as Error).message || 'Failed to configure domain' });
+      const record = await cloudflareService.createSubdomain(subdomain, target);
+      res.json({ record, pageRoute, description });
+    } catch (error: any) {
+      console.error("Error creating subdomain:", error);
+      res.status(500).json({ message: error.message || "Failed to create subdomain" });
     }
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
+  // Create email alias
+  app.post('/api/dns/email', requireAdmin, async (req: any, res) => {
+    try {
+      if (!cloudflareService.isConfigured()) {
+        return res.status(400).json({ message: "Cloudflare API not configured" });
+      }
+
+      const { alias, destination, description } = req.body;
+      
+      if (!alias || !destination) {
+        return res.status(400).json({ message: "Alias and destination are required" });
+      }
+
+      const record = await cloudflareService.createEmailForward(alias, destination);
+      res.json({ record, description });
+    } catch (error: any) {
+      console.error("Error creating email alias:", error);
+      res.status(500).json({ message: error.message || "Failed to create email alias" });
+    }
+  });
+
+  const server = createServer(app);
+  return server;
 }
+
+
