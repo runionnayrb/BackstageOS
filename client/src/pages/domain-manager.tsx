@@ -52,6 +52,20 @@ export default function DomainManager() {
 
   // Load pages from localStorage on mount
   useEffect(() => {
+    // First try to load comprehensive pages data (includes system page URL changes)
+    const savedAllPages = localStorage.getItem('backstage-all-pages');
+    if (savedAllPages) {
+      try {
+        const allPagesData = JSON.parse(savedAllPages);
+        console.log('Domain Manager loaded all pages from localStorage:', allPagesData);
+        setPages(allPagesData);
+        return;
+      } catch (error) {
+        console.error('Failed to load comprehensive pages:', error);
+      }
+    }
+    
+    // Fallback to loading custom pages only
     const savedPages = localStorage.getItem('backstage-pages');
     if (savedPages) {
       try {

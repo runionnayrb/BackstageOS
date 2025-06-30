@@ -79,6 +79,21 @@ export default function PageManager() {
 
   // Load pages from localStorage on mount
   useEffect(() => {
+    // First try to load comprehensive pages data (includes system page URL changes)
+    const savedAllPages = localStorage.getItem('backstage-all-pages');
+    if (savedAllPages) {
+      try {
+        const allPagesData = JSON.parse(savedAllPages);
+        console.log('Loaded all pages from localStorage:', allPagesData);
+        setPages(allPagesData);
+        setEditedPages(allPagesData);
+        return;
+      } catch (error) {
+        console.error('Failed to load comprehensive pages:', error);
+      }
+    }
+    
+    // Fallback to loading custom pages only
     const savedPages = localStorage.getItem('backstage-pages');
     if (savedPages) {
       try {
@@ -110,6 +125,9 @@ export default function PageManager() {
         : p
     );
     
+    console.log(`Updated page ${pageId} slug to: ${newSlug}`);
+    console.log('All updated pages:', updatedPages);
+    
     setEditedPages(updatedPages);
     setHasChanges(true);
   };
@@ -117,6 +135,21 @@ export default function PageManager() {
   const saveAllChanges = () => {
     const customPages = editedPages.filter(p => !p.isSystem);
     localStorage.setItem('backstage-pages', JSON.stringify(customPages));
+    
+    // Also save system pages with their updated URLs
+    const allPagesData = editedPages.map(p => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      description: p.description,
+      isSystem: p.isSystem,
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt
+    }));
+    
+    localStorage.setItem('backstage-all-pages', JSON.stringify(allPagesData));
+    console.log('Saved all pages to localStorage:', allPagesData);
+    
     setPages(editedPages);
     setHasChanges(false);
     toast({ title: "All URL settings saved successfully" });
