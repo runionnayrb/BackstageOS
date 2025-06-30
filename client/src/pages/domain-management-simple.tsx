@@ -15,7 +15,7 @@ import { isAdmin } from "@/lib/admin";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function DomainManagement() {
   const [, setLocation] = useLocation();
@@ -25,9 +25,12 @@ export default function DomainManagement() {
   const [editingSubdomain, setEditingSubdomain] = useState(null);
   const [editingEmailAlias, setEditingEmailAlias] = useState(null);
   const [editingDomain, setEditingDomain] = useState(null);
+  const [newDnsRecord, setNewDnsRecord] = useState({ name: "", type: "CNAME", value: "" });
+  const [editingDnsRecord, setEditingDnsRecord] = useState(null);
   const [showSubdomainDialog, setShowSubdomainDialog] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [showDomainDialog, setShowDomainDialog] = useState(false);
+  const [showDnsDialog, setShowDnsDialog] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -85,6 +88,16 @@ export default function DomainManagement() {
     }
   });
 
+  // Fetch DNS records from Cloudflare
+  const { data: dnsRecords = [], isLoading: dnsLoading } = useQuery({
+    queryKey: ['/api/dns-records'],
+    queryFn: async () => {
+      const response = await fetch('/api/dns-records');
+      if (!response.ok) throw new Error('Failed to fetch DNS records');
+      return response.json();
+    }
+  });
+
   const handleCreateSubdomain = () => {
     if (!newSubdomain) return;
     
@@ -103,6 +116,40 @@ export default function DomainManagement() {
       description: `${newEmailAlias}@backstageos.com has been created successfully`
     });
     setNewEmailAlias("");
+  };
+
+  const handleCreateDnsRecord = async () => {
+    if (!newDnsRecord.name || !newDnsRecord.value) return;
+    
+    try {
+      const response = await fetch('/api/dns-records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newDnsRecord),
+      });
+      
+      if (!response.ok) throw new Error('Failed to create DNS record');
+      
+      toast({
+        title: "DNS Record Created",
+        description: `${newDnsRecord.type} record for ${newDnsRecord.name || '@'} created successfully`
+      });
+      
+      setNewDnsRecord({ name: "", type: "CNAME", value: "" });
+      // Refresh the DNS records list
+      window.location.reload();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create DNS record. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleEditDnsRecord = (record: any) => {
+    setEditingDnsRecord(record);
+    setShowDnsDialog(true);
   };
 
   const handleEditEmailAlias = (alias) => {
@@ -193,8 +240,9 @@ export default function DomainManagement() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="dns">DNS Records</TabsTrigger>
             <TabsTrigger value="subdomains">Subdomains</TabsTrigger>
             <TabsTrigger value="email">Email Aliases</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
@@ -286,6 +334,81 @@ export default function DomainManagement() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="dns" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>DNS Records</CardTitle>
+                <CardDescription>
+                  Manage DNS records for backstageos.com
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div>
+                    <Label htmlFor="dns-name">Name</Label>
+                    <Input
+                      id="dns-name"
+                      placeholder="@ (root) or www"
+                      value={newDnsRecord?.name || ""}
+                      onChange={(e) => setNewDnsRecord({...newDnsRecord, name: e.target.value})}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="dns-type">Type</Label>
+                    <Select value={newDnsRecord?.type || "CNAME"} onValueChange={(value) => setNewDnsRecord({...newDnsRecord, type: value})}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="A">A</SelectItem>
+                        <SelectItem value="CNAME">CNAME</SelectItem>
+                        <SelectItem value="MX">MX</SelectItem>
+                        <SelectItem value="TXT">TXT</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="dns-value">Value</Label>
+                    <Input
+                      id="dns-value"
+                      placeholder="your-repl.replit.app"
+                      value={newDnsRecord?.value || ""}
+                      onChange={(e) => setNewDnsRecord({...newDnsRecord, value: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <Button onClick={handleCreateDnsRecord}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create DNS Record
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Existing DNS Records</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {dnsRecords.map((record) => (
+                  <div key={record.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="font-semibold">{record.name || '@'}.backstageos.com</div>
+                      <div className="text-sm text-muted-foreground">
+                        {record.type} → {record.value}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>
+                      <Button variant="ghost" size="sm" onClick={() => handleEditDnsRecord(record)}>
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="subdomains" className="space-y-6">

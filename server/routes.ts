@@ -3237,6 +3237,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // DNS records management - direct Cloudflare integration
+  app.get('/api/dns-records', requireAdmin, async (req: any, res) => {
+    try {
+      if (!cloudflareService) {
+        return res.status(503).json({ error: 'Cloudflare API token required' });
+      }
+
+      const records = await cloudflareService.listDNSRecords();
+      res.json(records);
+    } catch (error) {
+      console.error('DNS records fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch DNS records' });
+    }
+  });
+
+  app.post('/api/dns-records', requireAdmin, async (req: any, res) => {
+    try {
+      if (!cloudflareService) {
+        return res.status(503).json({ error: 'Cloudflare API token required' });
+      }
+
+      const { name, type, value } = req.body;
+      
+      if (!type || !value) {
+        return res.status(400).json({ error: 'Type and value are required' });
+      }
+
+      const record = await cloudflareService.createDNSRecord({
+        name: name || '@',
+        type,
+        content: value,
+        ttl: 1 // Auto TTL
+      });
+
+      res.json(record);
+    } catch (error) {
+      console.error('DNS record creation error:', error);
+      res.status(500).json({ error: 'Failed to create DNS record' });
+    }
+  });
+
   // Cloudflare Integration Routes (require API keys)
   // Transfer domain to Cloudflare
   app.post('/api/domains/:id/transfer-to-cloudflare', requireAdmin, async (req: any, res) => {
