@@ -259,10 +259,12 @@ export default function Header() {
                   Profile Settings
                 </DropdownMenuItem>
                 
-                <DropdownMenuItem onClick={() => setLocation('/domain-management')}>
-                  <Globe className="mr-2 h-4 w-4" />
-                  Domain Management
-                </DropdownMenuItem>
+                {isAdmin(user) && (
+                  <DropdownMenuItem onClick={() => setLocation('/domain-management')}>
+                    <Globe className="mr-2 h-4 w-4" />
+                    Domain Management
+                  </DropdownMenuItem>
+                )}
                 
                 {isAdmin(user) && (
                   <>

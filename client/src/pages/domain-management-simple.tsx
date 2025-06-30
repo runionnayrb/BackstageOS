@@ -58,19 +58,31 @@ export default function DomainManagement() {
   // Fetch real domain data from API
   const { data: domains = [], isLoading: domainsLoading } = useQuery({
     queryKey: ['/api/domains'],
-    queryFn: () => apiRequest('/api/domains')
+    queryFn: async () => {
+      const response = await fetch('/api/domains');
+      if (!response.ok) throw new Error('Failed to fetch domains');
+      return response.json();
+    }
   });
 
   // Fetch real subdomain data from API
   const { data: subdomains = [], isLoading: subdomainsLoading } = useQuery({
     queryKey: ['/api/subdomains'],
-    queryFn: () => apiRequest('/api/subdomains')
+    queryFn: async () => {
+      const response = await fetch('/api/subdomains');
+      if (!response.ok) throw new Error('Failed to fetch subdomains');
+      return response.json();
+    }
   });
 
   // Fetch real email alias data from API
   const { data: emailAliases = [], isLoading: emailLoading } = useQuery({
     queryKey: ['/api/email-aliases'],
-    queryFn: () => apiRequest('/api/email-aliases')
+    queryFn: async () => {
+      const response = await fetch('/api/email-aliases');
+      if (!response.ok) throw new Error('Failed to fetch email aliases');
+      return response.json();
+    }
   });
 
   const handleCreateSubdomain = () => {

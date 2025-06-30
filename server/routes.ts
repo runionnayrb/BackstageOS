@@ -3133,11 +3133,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(503).json({ error: 'Cloudflare API not configured' });
       }
 
+      // Get zone ID for backstageos.com
+      const zone = await cloudflareService.getZone('backstageos.com');
+      if (!zone) {
+        return res.status(404).json({ error: 'backstageos.com zone not found in Cloudflare' });
+      }
+
       // Get actual domain records from Cloudflare
-      const records = await cloudflareService.getDNSRecords();
+      const records = await cloudflareService.listDNSRecords(zone.id);
       
       // Find the main domain record (backstageos.com CNAME)
-      const mainDomain = records.find(record => 
+      const mainDomain = records.find((record: any) => 
         record.name === 'backstageos.com' && record.type === 'CNAME'
       );
 
@@ -3177,17 +3183,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(503).json({ error: 'Cloudflare API not configured' });
       }
 
+      // Get zone ID for backstageos.com
+      const zone = await cloudflareService.getZone('backstageos.com');
+      if (!zone) {
+        return res.status(404).json({ error: 'backstageos.com zone not found in Cloudflare' });
+      }
+
       // Get actual DNS records from Cloudflare
-      const records = await cloudflareService.getDNSRecords();
+      const records = await cloudflareService.listDNSRecords(zone.id);
       
       // Filter for subdomain CNAME records
       const subdomains = records
-        .filter(record => 
+        .filter((record: any) => 
           record.type === 'CNAME' && 
           record.name.includes('.backstageos.com') &&
           record.name !== 'backstageos.com'
         )
-        .map((record, index) => ({
+        .map((record: any, index: number) => ({
           id: index + 1,
           name: record.name.replace('.backstageos.com', ''),
           fullDomain: record.name,
