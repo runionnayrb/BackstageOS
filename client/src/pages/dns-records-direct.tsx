@@ -1,24 +1,72 @@
 import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Plus, Globe } from 'lucide-react';
+import { ArrowLeft, Plus, Globe, Loader2 } from 'lucide-react';
 import { Link } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 export default function DNSRecordsDirect() {
-  const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     type: 'CNAME',
     value: ''
   });
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const createRecord = async () => {
+  // Query to fetch DNS records
+  const { data: records, isLoading: recordsLoading } = useQuery({
+    queryKey: ['/api/dns-records'],
+    enabled: false // Don't auto-fetch since we mainly want to create records
+  });
+
+  // Mutation to create DNS record
+  const createRecordMutation = useMutation({
+    mutationFn: async (recordData: typeof formData) => {
+      const response = await fetch('/api/dns-records', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(recordData),
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create DNS record');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "DNS record created successfully"
+      });
+      
+      // Clear form
+      setFormData({ name: '', type: 'CNAME', value: '' });
+      
+      // Invalidate records cache if needed
+      queryClient.invalidateQueries({ queryKey: ['/api/dns-records'] });
+    },
+    onError: (error: any) => {
+      console.error('DNS record creation error:', error);
+      toast({
+        title: "Error",
+        description: error.message || 'Failed to create DNS record',
+        variant: "destructive"
+      });
+    }
+  });
+
+  const createRecord = () => {
     if (!formData.type || !formData.value) {
       toast({
         title: "Error",
@@ -28,45 +76,7 @@ export default function DNSRecordsDirect() {
       return;
     }
 
-    setLoading(true);
-    try {
-      // Direct API call to create DNS record
-      const response = await fetch('/api/dns-records', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to create DNS record');
-      }
-
-      const result = await response.json();
-      
-      toast({
-        title: "Success",
-        description: "DNS record created successfully"
-      });
-
-      // Clear form
-      setFormData({ name: '', type: 'CNAME', value: '' });
-      
-      // Refresh records (if we had a working list)
-      // fetchRecords();
-      
-    } catch (error: any) {
-      console.error('DNS record creation error:', error);
-      toast({
-        title: "Error",
-        description: error.message || 'Failed to create DNS record',
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+    createRecordMutation.mutate(formData);
   };
 
   return (
@@ -147,10 +157,17 @@ export default function DNSRecordsDirect() {
 
             <Button 
               onClick={createRecord} 
-              disabled={loading || !formData.type || !formData.value}
+              disabled={createRecordMutation.isPending || !formData.type || !formData.value}
               className="w-full md:w-auto"
             >
-              {loading ? 'Creating...' : 'Create DNS Record'}
+              {createRecordMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Create DNS Record'
+              )}
             </Button>
           </CardContent>
         </Card>

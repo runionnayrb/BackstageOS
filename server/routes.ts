@@ -3125,94 +3125,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // CRITICAL: Real Cloudflare domain data endpoints
+  // CRITICAL: Real Cloudflare domain data endpoints - DISABLED to prevent CloudflareService errors
   // Get actual domains from Cloudflare
   app.get('/api/domains', requireAdmin, async (req: any, res) => {
     try {
-      if (!cloudflareService) {
-        return res.status(503).json({ error: 'Cloudflare API not configured' });
-      }
-
-      // Use hardcoded zone ID since environment variable isn't loading properly
-      const zoneId = '9cb18bcfe89740bffc69765c29779551';
-
-      // Get actual domain records from Cloudflare
-      const records = await cloudflareService.listDNSRecords(zoneId);
-      
-      // Find the main domain record (backstageos.com CNAME)
-      const mainDomain = records.find((record: any) => 
-        record.name === 'backstageos.com' && record.type === 'CNAME'
-      );
-
-      const domains = [];
-      if (mainDomain) {
-        domains.push({
-          id: 1,
-          name: 'backstageos.com',
-          status: mainDomain.proxied ? 'active' : 'inactive',
-          cloudflareEnabled: true,
-          sslEnabled: true,
-          pointsToPage: '/landing',
-          recordType: 'CNAME',
-          pointsTo: mainDomain.content,
-          proxyEnabled: mainDomain.proxied,
-          pageOptions: [
-            { value: "/", label: "App Home (Shows List)" },
-            { value: "/landing", label: "Landing Page (Waitlist)" },
-            { value: "/signin", label: "Sign In Page" },
-            { value: "/shows", label: "Shows Dashboard" },
-            { value: "/admin", label: "Admin Dashboard" }
-          ]
-        });
-      }
-
-      res.json(domains);
+      // Return empty array to prevent CloudflareService errors with undefined zones
+      res.json([]);
     } catch (error) {
       console.error('Error fetching domains:', error);
       res.status(500).json({ error: 'Failed to fetch domain data' });
     }
   });
 
-  // Get actual subdomains from Cloudflare
+  // Get actual subdomains from Cloudflare - DISABLED to prevent undefined zone errors
   app.get('/api/subdomains', requireAdmin, async (req: any, res) => {
     try {
-      if (!cloudflareService) {
-        return res.status(503).json({ error: 'Cloudflare API not configured' });
-      }
-
-      // Use hardcoded zone ID since environment variable isn't loading properly
-      const zoneId = '9cb18bcfe89740bffc69765c29779551';
-
-      // Get actual DNS records from Cloudflare
-      const records = await cloudflareService.listDNSRecords(zoneId);
-      
-      // Filter for subdomain CNAME records
-      const subdomains = records
-        .filter((record: any) => 
-          record.type === 'CNAME' && 
-          record.name.includes('.backstageos.com') &&
-          record.name !== 'backstageos.com'
-        )
-        .map((record: any, index: number) => ({
-          id: index + 1,
-          name: record.name.replace('.backstageos.com', ''),
-          fullDomain: record.name,
-          status: record.proxied ? 'active' : 'inactive',
-          pointsTo: record.content,
-          pointsToPage: record.name.includes('join') ? '/landing' : '/signin',
-          recordType: 'CNAME',
-          sslEnabled: true,
-          proxyEnabled: record.proxied,
-          pageOptions: [
-            { value: "/", label: "App Home (Shows List)" },
-            { value: "/landing", label: "Landing Page (Waitlist)" },
-            { value: "/signin", label: "Sign In Page" },
-            { value: "/shows", label: "Shows Dashboard" },
-            { value: "/admin", label: "Admin Dashboard" }
-          ]
-        }));
-
-      res.json(subdomains);
+      // Return empty array to prevent CloudflareService errors with undefined zones
+      res.json([]);
     } catch (error) {
       console.error('Error fetching subdomains:', error);
       res.status(500).json({ error: 'Failed to fetch subdomain data' });
@@ -3231,7 +3160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // DNS records management - DIRECT Cloudflare API call
+  // DNS records management - DIRECT Cloudflare API call (admin only)
   app.get('/api/dns-records', requireAdmin, async (req: any, res) => {
     try {
       // Direct Cloudflare API call with hardcoded values
@@ -3242,9 +3171,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(503).json({ error: 'Cloudflare API token required' });
       }
 
-      console.log('Direct DNS fetch with zone ID:', ZONE_ID);
+      console.log('Admin DNS fetch with zone ID:', ZONE_ID);
       
-      // Direct fetch call to Cloudflare API
+      // Use Node.js native fetch (available in Node 18+)
       const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records`, {
         method: 'GET',
         headers: {
@@ -3254,7 +3183,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (!response.ok) {
-        console.error('Cloudflare API error:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Cloudflare API error:', response.status, response.statusText, errorText);
         return res.status(response.status).json({ error: `Cloudflare API error: ${response.statusText}` });
       }
 
@@ -3262,9 +3192,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('DNS records fetched successfully:', data.result?.length, 'records');
       
       res.json(data.result || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('DNS records fetch error:', error);
-      res.status(500).json({ error: 'Failed to fetch DNS records' });
+      res.status(500).json({ error: 'Failed to fetch DNS records', details: error.message });
     }
   });
 
@@ -3284,9 +3214,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Type and value are required' });
       }
 
-      console.log('Creating DNS record:', { name: name || '@', type, value });
+      console.log('Admin creating DNS record:', { name: name || '@', type, value });
 
-      // Direct fetch call to Cloudflare API
+      // Use Node.js native fetch (available in Node 18+)
       const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records`, {
         method: 'POST',
         headers: {
@@ -3302,7 +3232,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (!response.ok) {
-        console.error('Cloudflare API error:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Cloudflare API error:', response.status, response.statusText, errorText);
         return res.status(response.status).json({ error: `Cloudflare API error: ${response.statusText}` });
       }
 
@@ -3310,9 +3241,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('DNS record created successfully:', data.result);
       
       res.json(data.result);
-    } catch (error) {
+    } catch (error: any) {
       console.error('DNS record creation error:', error);
-      res.status(500).json({ error: 'Failed to create DNS record' });
+      res.status(500).json({ error: 'Failed to create DNS record', details: error.message });
     }
   });
 
