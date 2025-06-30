@@ -1,62 +1,120 @@
-// Quick script to update DNS records for backstageos.com to point to Replit
-const { CloudflareService } = require('./dist/server/services/cloudflareService.js');
+#!/usr/bin/env node
+import 'dotenv/config';
+
+const ZONE_ID = '9cb18bcfe89740bffc69765c29779551';
+const API_EMAIL = process.env.CLOUDFLARE_API_EMAIL;
+const API_KEY = process.env.CLOUDFLARE_API_KEY;
 
 async function updateDNS() {
+  console.log('Fixing DNS configuration for Replit deployment...');
+  
   try {
-    const cloudflareService = new CloudflareService(process.env.CLOUDFLARE_API_TOKEN);
+    // First, get all DNS records to find the A records for backstageos.com
+    const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records`, {
+      headers: {
+        'X-Auth-Email': API_EMAIL,
+        'X-Auth-Key': API_KEY,
+        'Content-Type': 'application/json'
+      }
+    });
     
-    // Get the zone for backstageos.com
-    const zone = await cloudflareService.getZone('backstageos.com');
-    if (!zone) {
-      console.log('Zone not found for backstageos.com');
+    const data = await response.json();
+    
+    if (!data.success) {
+      console.error('Failed to fetch DNS records:', data.errors);
       return;
     }
     
-    console.log('Found zone:', zone.id);
+    console.log('Current DNS records:');
+    data.result.forEach(record => {
+      if (record.name === 'backstageos.com') {
+        console.log(`- ${record.type}: ${record.name} → ${record.content}`);
+      }
+    });
     
-    // List existing DNS records
-    const records = await cloudflareService.listDNSRecords(zone.id);
-    console.log('Existing A records:', records.filter(r => r.type === 'A'));
+    // Find A records for the root domain
+    const aRecords = data.result.filter(record => 
+      record.name === 'backstageos.com' && record.type === 'A'
+    );
     
-    // Find and update the A record for @ (root domain)
-    const aRecord = records.find(r => r.type === 'A' && r.name === 'backstageos.com');
-    
-    if (aRecord) {
-      console.log('Updating existing A record:', aRecord.id);
-      await cloudflareService.updateDNSRecord(zone.id, aRecord.id, {
-        type: 'A',
-        name: '@',
-        content: '34.111.179.208',
-        ttl: 300
+    if (aRecords.length > 0) {
+      console.log(`\nFound ${aRecords.length} A record(s) that need to be converted to CNAME...`);
+      
+      // Delete existing A records
+      for (const record of aRecords) {
+        console.log(`Deleting A record: ${record.content}`);
+        await fetch(`https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${record.id}`, {
+          method: 'DELETE',
+          headers: {
+            'X-Auth-Email': API_EMAIL,
+            'X-Auth-Key': API_KEY,
+          }
+        });
+      }
+      
+      // Create CNAME record pointing to Replit
+      console.log('Creating CNAME record pointing to Replit...');
+      const createResponse = await fetch(`https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records`, {
+        method: 'POST',
+        headers: {
+          'X-Auth-Email': API_EMAIL,
+          'X-Auth-Key': API_KEY,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          type: 'CNAME',
+          name: 'backstageos.com',
+          content: 'backstageos.replit.app',
+          ttl: 300,
+          proxied: false
+        })
       });
-      console.log('A record updated to point to Replit IP: 34.111.179.208');
+      
+      const createData = await createResponse.json();
+      
+      if (createData.success) {
+        console.log('✅ Successfully created CNAME record: backstageos.com → backstageos.replit.app');
+        console.log('\nDNS configuration is now ready for Replit domain linking!');
+        console.log('You can now try linking your domain in Replit again.');
+      } else {
+        console.error('Failed to create CNAME record:', createData.errors);
+      }
     } else {
-      console.log('Creating new A record');
-      await cloudflareService.createDNSRecord(zone.id, {
-        type: 'A',
-        name: '@',
-        content: '34.111.179.208',
-        ttl: 300
-      });
-      console.log('A record created to point to Replit IP: 34.111.179.208');
+      console.log('No A records found. Checking if CNAME already exists...');
+      
+      const cnameRecord = data.result.find(record => 
+        record.name === 'backstageos.com' && record.type === 'CNAME'
+      );
+      
+      if (cnameRecord) {
+        console.log(`CNAME already exists: ${cnameRecord.content}`);
+        if (cnameRecord.content !== 'backstageos.replit.app') {
+          console.log('Updating CNAME to point to Replit...');
+          const updateResponse = await fetch(`https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records/${cnameRecord.id}`, {
+            method: 'PUT',
+            headers: {
+              'X-Auth-Email': API_EMAIL,
+              'X-Auth-Key': API_KEY,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              type: 'CNAME',
+              name: 'backstageos.com',
+              content: 'backstageos.replit.app',
+              ttl: 300,
+              proxied: false
+            })
+          });
+          
+          const updateData = await updateResponse.json();
+          if (updateData.success) {
+            console.log('✅ Updated CNAME record to point to Replit');
+          }
+        } else {
+          console.log('✅ CNAME already correctly points to Replit');
+        }
+      }
     }
-    
-    // Add TXT verification record if it doesn't exist
-    const txtRecord = records.find(r => r.type === 'TXT' && r.content.includes('replit-verify'));
-    if (!txtRecord) {
-      console.log('Adding Replit verification TXT record');
-      await cloudflareService.createDNSRecord(zone.id, {
-        type: 'TXT',
-        name: '@',
-        content: 'replit-verify=bfe1706b-0942-4c',
-        ttl: 300
-      });
-      console.log('TXT verification record added');
-    } else {
-      console.log('TXT verification record already exists');
-    }
-    
-    console.log('DNS update complete!');
     
   } catch (error) {
     console.error('Error updating DNS:', error);
