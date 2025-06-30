@@ -17,11 +17,15 @@ export interface CloudflareDomain {
 
 class CloudflareService {
   private apiToken: string;
+  private apiEmail: string;
+  private apiKey: string;
   private zoneId: string;
   private baseUrl = 'https://api.cloudflare.com/client/v4';
 
   constructor() {
     this.apiToken = process.env.CLOUDFLARE_API_TOKEN || '';
+    this.apiEmail = process.env.CLOUDFLARE_API_EMAIL || '';
+    this.apiKey = process.env.CLOUDFLARE_API_KEY || '';
     this.zoneId = process.env.CLOUDFLARE_ZONE_ID || '';
   }
 
@@ -29,13 +33,24 @@ class CloudflareService {
     console.log(`Making Cloudflare API request to: ${this.baseUrl}${endpoint}`);
     console.log(`Using zone ID: ${this.zoneId}`);
     
+    // Try API token first, fallback to Global API Key if available
+    let headers: any = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+
+    if (this.apiToken) {
+      headers['Authorization'] = `Bearer ${this.apiToken}`;
+    } else if (this.apiEmail && this.apiKey) {
+      headers['X-Auth-Email'] = this.apiEmail;
+      headers['X-Auth-Key'] = this.apiKey;
+    } else {
+      throw new Error('No valid Cloudflare authentication configured');
+    }
+    
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
-      headers: {
-        'Authorization': `Bearer ${this.apiToken}`,
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
     });
 
     const responseText = await response.text();
