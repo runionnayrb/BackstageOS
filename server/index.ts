@@ -11,6 +11,17 @@ app.use((req, res, next) => {
   // Log domain access for debugging
   console.log(`Domain access: ${hostname} -> ${req.url}`);
   
+  // Handle custom domains by setting proper headers
+  if (hostname === 'backstageos.com' || hostname === 'www.backstageos.com') {
+    // Set headers to ensure proper domain handling
+    res.setHeader('Access-Control-Allow-Origin', `https://${hostname}`);
+    res.setHeader('X-Custom-Domain', hostname);
+    
+    // Override host header for internal processing
+    req.headers.host = hostname;
+    req.headers['x-forwarded-host'] = hostname;
+  }
+  
   next();
 });
 app.use(express.json({ limit: '50mb' }));
