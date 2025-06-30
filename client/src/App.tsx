@@ -101,13 +101,13 @@ function Router() {
     );
   }
 
-  // Handle landing page route separately (no layout needed)
+  // Handle landing page route - no authentication required for any domain
   if (window.location.pathname === '/landing') {
     return <WaitlistLanding />;
   }
 
-  // Main domain (backstageos.com) - no authentication required, show waitlist landing page
-  if (isMainDomain && !isAuthenticated) {
+  // Main domain (backstageos.com) - ALWAYS show waitlist, never require authentication
+  if (isMainDomain) {
     return <WaitlistLanding />;
   }
 
