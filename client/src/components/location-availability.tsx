@@ -502,8 +502,8 @@ export default function LocationAvailabilityPage({ projectId, onBack }: Location
       )}
 
       {/* Calendar Grid */}
-      <div className="border rounded-lg overflow-hidden">
-        <div className="grid grid-cols-8 bg-gray-50">
+      <div className="border rounded-lg overflow-hidden max-h-[calc(100vh-20rem)] overflow-y-auto">
+        <div className="grid grid-cols-8 bg-gray-50 sticky top-0 z-10">
           <div className="p-3 border-r font-medium">Location</div>
           {weekDays.map((date, index) => (
             <div key={index} className="p-3 border-r last:border-r-0 font-medium text-center">
@@ -515,12 +515,12 @@ export default function LocationAvailabilityPage({ projectId, onBack }: Location
 
         <div className="grid grid-cols-8">
           {/* Time Labels Column */}
-          <div className="border-r">
+          <div className="border-r sticky left-0 bg-white z-10">
             <div className="relative" style={{ height: `${TOTAL_MINUTES}px` }}>
               {timeLabels.map((time, index) => (
                 <div
                   key={index}
-                  className="absolute text-xs text-gray-500 -translate-y-2"
+                  className="absolute text-xs text-gray-500 -translate-y-2 bg-white px-1"
                   style={{ top: `${(timeToMinutes(time) - START_MINUTES)}px` }}
                 >
                   {formatTime(time)}

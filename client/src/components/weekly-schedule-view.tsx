@@ -87,6 +87,14 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
   }>({ isOpen: false });
   const [scrollPosition, setScrollPosition] = useState(0);
   const [showAllDayEvents, setShowAllDayEvents] = useState(true);
+  const [dragState, setDragState] = useState<{
+    isActive: boolean;
+    startDay: number;
+    startTime: number;
+    currentDay: number;
+    currentTime: number;
+  } | null>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
 
   // Get show settings for timezone and work hours
   const { data: showSettings } = useQuery({
@@ -264,6 +272,81 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
     setScrollPosition(Math.max(0, scrollTop));
   }, [workStartTime]);
 
+
+
+  // Helper function for drag-to-create
+  const formatTimeFromMinutes = (totalMinutes: number) => {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
+
+  // Mouse handlers for drag-to-create
+  const handleMouseDown = useCallback((e: React.MouseEvent, dayIndex: number) => {
+    if (e.target !== e.currentTarget) return; // Only on empty space
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const minutes = snapToIncrement(positionToMinutes(y));
+    
+    setDragState({
+      isActive: true,
+      startDay: dayIndex,
+      startTime: minutes,
+      currentDay: dayIndex,
+      currentTime: minutes,
+    });
+    
+    e.preventDefault();
+  }, [timeIncrement]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!dragState?.isActive || !calendarRef.current) return;
+    
+    const rect = calendarRef.current.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const minutes = snapToIncrement(positionToMinutes(y));
+    
+    // Determine which day column we're in
+    const x = e.clientX - rect.left;
+    const dayWidth = (rect.width - 64) / 7; // Subtract time column width
+    const dayIndex = Math.floor((x - 64) / dayWidth);
+    
+    setDragState(prev => prev ? {
+      ...prev,
+      currentDay: Math.max(0, Math.min(6, dayIndex)),
+      currentTime: minutes,
+    } : null);
+  }, [dragState?.isActive, timeIncrement]);
+
+  const handleMouseUp = useCallback(() => {
+    if (!dragState?.isActive) return;
+    
+    const startTime = Math.min(dragState.startTime, dragState.currentTime);
+    const endTime = Math.max(dragState.startTime, dragState.currentTime);
+    
+    if (endTime - startTime >= timeIncrement) {
+      const date = weekDates[dragState.startDay].toISOString().split('T')[0];
+      setCreateEventDialog({
+        isOpen: true,
+        date,
+        startTime: formatTimeFromMinutes(startTime),
+        endTime: formatTimeFromMinutes(endTime),
+      });
+    }
+    
+    setDragState(null);
+  }, [dragState, timeIncrement, weekDates]);
+
+  // Add global mouse handlers
+  useEffect(() => {
+    if (dragState?.isActive) {
+      const handleGlobalMouseUp = () => handleMouseUp();
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+    }
+  }, [dragState?.isActive, handleMouseUp]);
+
   return (
     <div className="space-y-4">
       {/* Week navigation */}
@@ -370,7 +453,11 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
           style={{ height: '600px' }}
           onScroll={(e) => setScrollPosition(e.currentTarget.scrollTop)}
         >
-          <div className="relative" style={{ height: '960px' }}>
+          <div 
+            ref={calendarRef}
+            className="relative" 
+            style={{ height: '960px' }}
+          >
             {/* Time labels and grid lines */}
             {Array.from({ length: 17 }, (_, i) => {
               const hour = START_HOUR + i;
@@ -403,12 +490,14 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
             {weekDates.map((date, dayIndex) => (
               <div
                 key={dayIndex}
-                className="absolute border-r border-gray-100"
+                className="absolute border-r border-gray-100 cursor-crosshair"
                 style={{
                   left: `${64 + (dayIndex * ((100 - 4) / 7))}%`,
                   width: `${(100 - 4) / 7}%`,
                   height: '960px',
                 }}
+                onMouseDown={(e) => handleMouseDown(e, dayIndex)}
+                onMouseMove={handleMouseMove}
               >
                 {/* Events for this day - only timed events, not all-day */}
                 {events
@@ -458,6 +547,23 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
                   })}
               </div>
             ))}
+
+            {/* Drag preview overlay */}
+            {dragState?.isActive && (
+              <div
+                className="absolute bg-blue-200 border-2 border-blue-400 rounded opacity-60 pointer-events-none"
+                style={{
+                  left: `${64 + (dragState.startDay * ((100 - 4) / 7))}%`,
+                  width: `${(100 - 4) / 7}%`,
+                  top: `${minutesToPosition(Math.min(dragState.startTime, dragState.currentTime))}px`,
+                  height: `${Math.abs(minutesToPosition(dragState.currentTime) - minutesToPosition(dragState.startTime))}px`,
+                }}
+              >
+                <div className="p-1 text-xs text-blue-800 font-medium">
+                  New Event
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
