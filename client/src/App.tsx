@@ -44,6 +44,7 @@ import FeedbackPage from "@/pages/feedback";
 import NotFound from "@/pages/not-found";
 import WaitlistLanding from "@/pages/waitlist-landing";
 import DNSManager from "@/pages/dns-manager";
+import DomainManager from "@/pages/domain-manager";
 
 
 function Router() {
@@ -146,6 +147,7 @@ function Router() {
 
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/dns" component={DNSManager} />
+        <Route path="/admin/domains" component={DomainManager} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

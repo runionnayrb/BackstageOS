@@ -20,6 +20,7 @@ import {
   contactSheetVersions,
   errorLogs,
   props,
+  domainRoutes,
 
   type User,
   type UpsertUser,
@@ -64,6 +65,8 @@ import {
   type InsertWaitlist,
   type Prop,
   type InsertProp,
+  type DomainRoute,
+  type InsertDomainRoute,
 
 } from "@shared/schema";
 import { db } from "./db";

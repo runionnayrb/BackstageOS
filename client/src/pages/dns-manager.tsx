@@ -205,17 +205,25 @@ export default function DNSManager() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center space-x-4">
-        <Link href="/admin">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Admin
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Link href="/admin">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Admin
+            </Button>
+          </Link>
+          <div>
+            <h1 className="text-3xl font-bold">DNS Manager</h1>
+            <p className="text-gray-600">Manage DNS records and domain configuration</p>
+          </div>
+        </div>
+        <Link href="/admin/domains">
+          <Button variant="outline">
+            <Globe className="mr-2 h-4 w-4" />
+            Domain Manager
           </Button>
         </Link>
-        <div>
-          <h1 className="text-3xl font-bold">DNS Manager</h1>
-          <p className="text-gray-600">Manage DNS records and domain configuration</p>
-        </div>
       </div>
 
       {zoneInfo && (

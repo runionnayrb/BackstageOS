@@ -911,6 +911,19 @@ export const domains = pgTable("domains", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Domain routing configuration
+export const domainRoutes = pgTable("domain_routes", {
+  id: serial("id").primaryKey(),
+  domain: varchar("domain").notNull(), // full domain: "backstageos.com", "beta.backstageos.com"
+  routePath: varchar("route_path").notNull(), // app route to load: "/", "/landing", "/auth"
+  routeType: varchar("route_type").notNull(), // "auth_required", "public", "landing"
+  isActive: boolean("is_active").default(true),
+  description: text("description"), // human-readable description
+  createdBy: integer("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const dnsRecords = pgTable("dns_records", {
   id: serial("id").primaryKey(),
   domainId: integer("domain_id").notNull(),
@@ -927,6 +940,12 @@ export const dnsRecords = pgTable("dns_records", {
 
 // Domain Management Insert Schemas
 export const insertDomainSchema = createInsertSchema(domains).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDomainRouteSchema = createInsertSchema(domainRoutes).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -1038,6 +1057,8 @@ export type BetaSettings = typeof betaSettings.$inferSelect;
 export type InsertBetaSettings = z.infer<typeof insertBetaSettingsSchema>;
 export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
+export type DomainRoute = typeof domainRoutes.$inferSelect;
+export type InsertDomainRoute = z.infer<typeof insertDomainRouteSchema>;
 export type ErrorLog = typeof errorLogs.$inferSelect;
 export type InsertErrorLog = z.infer<typeof insertErrorLogSchema>;
 export type Waitlist = typeof waitlist.$inferSelect;

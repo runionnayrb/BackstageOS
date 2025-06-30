@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { z } from "zod";
 
@@ -2941,6 +2941,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error creating email alias:", error);
       res.status(500).json({ message: error.message || "Failed to create email alias" });
+    }
+  });
+
+  // Domain routing management endpoints
+  app.get('/api/domain-routes', requireAdmin, async (req: any, res) => {
+    try {
+      const routes = await storage.getDomainRoutes();
+      res.json(routes);
+    } catch (error) {
+      console.error("Error fetching domain routes:", error);
+      res.status(500).json({ message: "Failed to fetch domain routes" });
+    }
+  });
+
+  app.post('/api/domain-routes', requireAdmin, async (req: any, res) => {
+    try {
+      const routeData = insertDomainRouteSchema.parse({
+        ...req.body,
+        createdBy: req.user.id,
+      });
+      
+      const route = await storage.createDomainRoute(routeData);
+      res.json(route);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid route data", errors: error.errors });
+      }
+      console.error("Error creating domain route:", error);
+      res.status(500).json({ message: "Failed to create domain route" });
+    }
+  });
+
+  app.put('/api/domain-routes/:id', requireAdmin, async (req: any, res) => {
+    try {
+      const routeId = parseInt(req.params.id);
+      const routeData = insertDomainRouteSchema.parse(req.body);
+      
+      const route = await storage.updateDomainRoute(routeId, routeData);
+      if (!route) {
+        return res.status(404).json({ message: "Route not found" });
+      }
+      
+      res.json(route);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid route data", errors: error.errors });
+      }
+      console.error("Error updating domain route:", error);
+      res.status(500).json({ message: "Failed to update domain route" });
+    }
+  });
+
+  app.delete('/api/domain-routes/:id', requireAdmin, async (req: any, res) => {
+    try {
+      const routeId = parseInt(req.params.id);
+      await storage.deleteDomainRoute(routeId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting domain route:", error);
+      res.status(500).json({ message: "Failed to delete domain route" });
     }
   });
 

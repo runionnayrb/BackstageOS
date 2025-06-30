@@ -8,6 +8,14 @@ const app = express();
 // Trust proxy for proper domain handling in production
 app.set('trust proxy', true);
 
+// Domain routing configuration
+const DOMAIN_ROUTES: { [key: string]: string } = {
+  'backstageos.com': '/landing',
+  'beta.backstageos.com': '/',
+  'app.backstageos.com': '/',
+  'join.backstageos.com': '/landing'
+};
+
 // Subdomain-based domain handling
 app.use((req, res, next) => {
   const hostname = req.get('host') || req.hostname;
@@ -21,6 +29,13 @@ app.use((req, res, next) => {
   // Force HTTPS for production
   if (protocol !== 'https' && process.env.NODE_ENV === 'production' && !hostname.includes('localhost')) {
     return res.redirect(301, `https://${hostname}${req.url}`);
+  }
+  
+  // Handle domain-specific routing
+  if (DOMAIN_ROUTES[hostname] && req.path === '/') {
+    const targetRoute = DOMAIN_ROUTES[hostname];
+    console.log(`Domain routing: ${hostname} → ${targetRoute}`);
+    req.url = targetRoute;
   }
   
   next();
