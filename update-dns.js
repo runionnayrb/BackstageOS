@@ -1,6 +1,7 @@
 import https from 'https';
 
-const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+const CLOUDFLARE_API_EMAIL = process.env.CLOUDFLARE_API_EMAIL;
+const CLOUDFLARE_API_KEY = process.env.CLOUDFLARE_API_KEY;
 const ZONE_NAME = 'backstageos.com';
 const REPLIT_IP = '34.111.179.208';
 const TXT_VERIFICATION = 'replit-verify=bfe1706b-0942-4c';
@@ -13,7 +14,8 @@ async function makeCloudflareRequest(path, method = 'GET', data = null) {
       path: `/client/v4${path}`,
       method: method,
       headers: {
-        'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+        'X-Auth-Email': CLOUDFLARE_API_EMAIL,
+        'X-Auth-Key': CLOUDFLARE_API_KEY,
         'Content-Type': 'application/json'
       }
     };
