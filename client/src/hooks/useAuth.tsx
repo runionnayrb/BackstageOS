@@ -35,6 +35,10 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }): React.JSX.Element {
   const { toast } = useToast();
   
+  // Check if we're on the main domain - skip authentication entirely
+  const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isMainDomain = hostname === 'backstageos.com' || (hostname.includes('backstageos.com') && !hostname.includes('beta.') && !hostname.includes('join.'));
+  
   const {
     data: user,
     error,
@@ -45,6 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }): React.JSX.E
     retry: false,
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes to keep session alive
     refetchIntervalInBackground: true,
+    enabled: !isMainDomain, // Skip authentication queries on main domain
   });
 
   const loginMutation = useMutation({
