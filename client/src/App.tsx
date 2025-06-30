@@ -50,12 +50,19 @@ function Router() {
   // Check if this is the main landing page domain FIRST
   const hostname = window.location.hostname;
   const isJoinDomain = hostname.includes('join.backstageos.com') || hostname === 'join.backstageos.com';
+  const isMainDomain = hostname === 'backstageos.com' || hostname.includes('backstageos.com');
   
   // Debug logging for domain routing
-  console.log('Domain routing check:', { hostname, isJoinDomain });
+  console.log('Domain routing check:', { hostname, isJoinDomain, isMainDomain });
   
   // If this is the join domain, redirect to /landing
   if (isJoinDomain && window.location.pathname !== '/landing') {
+    window.location.pathname = '/landing';
+    return null;
+  }
+  
+  // If this is the main backstageos.com domain and user is not authenticated, show landing page
+  if (isMainDomain && !isLoading && !user && window.location.pathname === '/') {
     window.location.pathname = '/landing';
     return null;
   }
