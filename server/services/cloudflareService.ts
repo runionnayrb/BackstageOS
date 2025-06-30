@@ -54,8 +54,23 @@ class CloudflareService {
   }
 
   async getDNSRecords(): Promise<CloudflareRecord[]> {
-    const response = await this.makeRequest(`/zones/${this.zoneId}/dns_records`) as any;
-    return response.result || [];
+    try {
+      // Try with explicit parameters that sometimes help with permissions
+      const response = await this.makeRequest(`/zones/${this.zoneId}/dns_records?per_page=100&page=1`) as any;
+      return response.result || [];
+    } catch (error: any) {
+      console.error('DNS records API failed, trying alternative approach:', error.message);
+      
+      // Alternative: Try to get zone details first to verify permissions
+      const zoneResponse = await this.makeRequest(`/zones/${this.zoneId}`) as any;
+      console.log('Zone permissions:', zoneResponse.result?.permissions);
+      
+      // Retry with minimal endpoint
+      const retryResponse = await this.makeRequest(`/zones/${this.zoneId}/dns_records`, {
+        method: 'GET'
+      }) as any;
+      return retryResponse.result || [];
+    }
   }
 
   async createDNSRecord(record: CloudflareRecord): Promise<CloudflareRecord> {
