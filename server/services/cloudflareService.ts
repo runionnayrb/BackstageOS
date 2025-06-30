@@ -27,6 +27,12 @@ class CloudflareService {
     this.apiEmail = process.env.CLOUDFLARE_API_EMAIL || '';
     this.apiKey = process.env.CLOUDFLARE_API_KEY || '';
     this.zoneId = process.env.CLOUDFLARE_ZONE_ID || '';
+    
+    console.log('Cloudflare Service initialized:');
+    console.log('- API Email:', this.apiEmail ? 'SET' : 'NOT SET');
+    console.log('- API Key:', this.apiKey ? `SET (${this.apiKey.length} chars)` : 'NOT SET');
+    console.log('- API Token:', this.apiToken ? `SET (${this.apiToken.length} chars)` : 'NOT SET');
+    console.log('- Zone ID:', this.zoneId);
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
