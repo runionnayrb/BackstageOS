@@ -55,7 +55,7 @@ function Router() {
   // Check domain routing configuration
   const hostname = window.location.hostname;
   const isJoinDomain = hostname.includes('join.backstageos.com') || hostname === 'join.backstageos.com';
-  const isMainDomain = hostname === 'backstageos.com';
+  const isMainDomain = hostname === 'backstageos.com' || hostname.includes('backstageos.com') && !hostname.includes('beta.') && !hostname.includes('join.');
   const isBetaDomain = hostname.includes('beta.backstageos.com') || hostname === 'beta.backstageos.com';
   
   // Debug logging for domain routing
@@ -67,9 +67,19 @@ function Router() {
     return null;
   }
   
-  const isAuthenticated = !!user;
-  
-  // Keep session alive while user is active
+  // DOMAIN-BASED ROUTING FIRST - Check domain before any authentication logic
+  // Handle landing page route - no authentication required for any domain
+  if (window.location.pathname === '/landing') {
+    return <WaitlistLanding />;
+  }
+
+  // Main domain (backstageos.com) - ALWAYS show waitlist, never require authentication
+  // This includes both root path and /landing path for backstageos.com
+  if (isMainDomain) {
+    return <WaitlistLanding />;
+  }
+
+  // Keep session alive while user is active (only for authenticated domains)
   useSessionHeartbeat();
 
   // Initialize error logging
@@ -101,30 +111,14 @@ function Router() {
     );
   }
 
-  // Handle landing page route - no authentication required for any domain
-  if (window.location.pathname === '/landing') {
-    return <WaitlistLanding />;
-  }
-
-  // Main domain (backstageos.com) - ALWAYS show waitlist, never require authentication
-  if (isMainDomain) {
-    return <WaitlistLanding />;
-  }
-
   // Beta domain or other subdomains - require authentication
-  if (!isAuthenticated && (isBetaDomain || (!isMainDomain && !isJoinDomain))) {
+  if (!user && (isBetaDomain || (!isMainDomain && !isJoinDomain))) {
     return <AuthPage />;
   }
 
   // If authenticated but no profile type selected
-  if (isAuthenticated && !user?.profileType) {
+  if (user && !user?.profileType) {
     return <ProfileSelection />;
-  }
-
-  // If on main domain but authenticated, redirect to beta domain
-  if (isMainDomain && isAuthenticated) {
-    window.location.href = 'https://beta.backstageos.com';
-    return null;
   }
 
   return (
