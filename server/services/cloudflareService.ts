@@ -26,6 +26,9 @@ class CloudflareService {
   }
 
   private async makeRequest(endpoint: string, options: any = {}) {
+    console.log(`Making Cloudflare API request to: ${this.baseUrl}${endpoint}`);
+    console.log(`Using zone ID: ${this.zoneId}`);
+    
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
       headers: {
@@ -35,12 +38,19 @@ class CloudflareService {
       },
     });
 
+    const responseText = await response.text();
+    console.log(`Cloudflare API response status: ${response.status}`);
+    console.log(`Cloudflare API response: ${responseText}`);
+
     if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Cloudflare API error: ${error}`);
+      throw new Error(`Cloudflare API error (${response.status}): ${responseText}`);
     }
 
-    return response.json();
+    try {
+      return JSON.parse(responseText);
+    } catch (e) {
+      throw new Error(`Invalid JSON response from Cloudflare: ${responseText}`);
+    }
   }
 
   async getDNSRecords(): Promise<CloudflareRecord[]> {
