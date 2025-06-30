@@ -3244,7 +3244,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(503).json({ error: 'Cloudflare API token required' });
       }
 
-      const records = await cloudflareService.listDNSRecords();
+      const zoneId = process.env.CLOUDFLARE_ZONE_ID;
+      if (!zoneId) {
+        return res.status(503).json({ error: 'Cloudflare zone ID not configured' });
+      }
+
+      const records = await cloudflareService.listDNSRecords(zoneId);
       res.json(records);
     } catch (error) {
       console.error('DNS records fetch error:', error);
@@ -3258,13 +3263,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(503).json({ error: 'Cloudflare API token required' });
       }
 
+      const zoneId = process.env.CLOUDFLARE_ZONE_ID;
+      if (!zoneId) {
+        return res.status(503).json({ error: 'Cloudflare zone ID not configured' });
+      }
+
       const { name, type, value } = req.body;
       
       if (!type || !value) {
         return res.status(400).json({ error: 'Type and value are required' });
       }
 
-      const record = await cloudflareService.createDNSRecord({
+      const record = await cloudflareService.createDNSRecord(zoneId, {
         name: name || '@',
         type,
         content: value,

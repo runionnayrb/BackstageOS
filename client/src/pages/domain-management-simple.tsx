@@ -91,11 +91,7 @@ export default function DomainManagement() {
   // Fetch DNS records from Cloudflare
   const { data: dnsRecords = [], isLoading: dnsLoading } = useQuery({
     queryKey: ['/api/dns-records'],
-    queryFn: async () => {
-      const response = await fetch('/api/dns-records');
-      if (!response.ok) throw new Error('Failed to fetch DNS records');
-      return response.json();
-    }
+    queryFn: () => apiRequest('/api/dns-records')
   });
 
   const handleCreateSubdomain = () => {
