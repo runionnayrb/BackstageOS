@@ -5,13 +5,10 @@ run = ["npm", "run", "start"]
 ignorePorts = false
 
 [[deployment.domains]]
-domain = "backstageos.com"
+domain = "app.backstageos.com"
 
 [[deployment.domains]]
-domain = "www.backstageos.com"
-
-[[deployment.domains]]
-domain = "join.backstageos.com"
+domain = "beta.backstageos.com"
 
 [env]
 NODE_ENV = "production"

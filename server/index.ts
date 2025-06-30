@@ -7,16 +7,15 @@ const app = express();
 // Trust proxy for proper domain handling in production
 app.set('trust proxy', true);
 
-// CRITICAL: Force application to serve on all domains
+// Subdomain-based domain handling
 app.use((req, res, next) => {
   const hostname = req.get('host') || req.hostname;
   const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
   
-  console.log(`Custom domain handling active for ${hostname}`);
+  console.log(`Backstage OS serving on ${hostname}`);
   
-  // Set headers to identify this as our application
-  res.setHeader('X-Powered-By', 'Backstage OS Application');
-  res.setHeader('X-Custom-Domain-Handler', 'active');
+  // Set application headers
+  res.setHeader('X-Powered-By', 'Backstage OS');
   
   // Force HTTPS for production
   if (protocol !== 'https' && process.env.NODE_ENV === 'production' && !hostname.includes('localhost')) {
