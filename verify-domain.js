@@ -1,81 +1,36 @@
 #!/usr/bin/env node
 
-import https from 'https';
-
-const DOMAIN = 'backstageos.com';
-const EXPECTED_PATHS = ['/api/user', '/signin', '/landing'];
-
 async function testEndpoint(hostname, path) {
-  return new Promise((resolve) => {
-    const options = {
-      hostname,
-      path,
-      method: 'GET',
-      timeout: 5000,
+  try {
+    const response = await fetch(`https://${hostname}${path}`, {
       headers: {
-        'User-Agent': 'Domain-Verification/1.0'
+        'Host': hostname,
+        'User-Agent': 'Domain-Test/1.0'
       }
-    };
-
-    const req = https.request(options, (res) => {
-      resolve({
-        path,
-        status: res.statusCode,
-        headers: Object.fromEntries(Object.entries(res.headers).filter(([k]) => 
-          ['server', 'x-powered-by', 'replit-cluster'].includes(k)
-        ))
-      });
     });
-
-    req.on('error', (error) => {
-      resolve({ path, error: error.message });
-    });
-
-    req.on('timeout', () => {
-      resolve({ path, error: 'timeout' });
-    });
-
-    req.end();
-  });
+    
+    console.log(`${hostname}${path} -> ${response.status} ${response.statusText}`);
+    return response.status;
+  } catch (error) {
+    console.log(`${hostname}${path} -> ERROR: ${error.message}`);
+    return 0;
+  }
 }
 
 async function verifyDomain() {
-  console.log(`🔍 Verifying ${DOMAIN} deployment...`);
+  console.log('Testing deployed app on Replit URL...');
   
-  const results = await Promise.all(
-    EXPECTED_PATHS.map(path => testEndpoint(DOMAIN, path))
-  );
-
-  console.log('\n📊 Results:');
-  results.forEach(result => {
-    if (result.error) {
-      console.log(`❌ ${result.path}: ${result.error}`);
-    } else {
-      const indicator = result.status < 400 ? '✅' : result.status === 404 ? '⚠️' : '❌';
-      console.log(`${indicator} ${result.path}: ${result.status}`);
-      if (result.headers['replit-cluster']) {
-        console.log(`   🖥️  Replit cluster: ${result.headers['replit-cluster']}`);
-      }
-    }
-  });
-
-  const hasErrors = results.some(r => r.error);
-  const hasReplit = results.some(r => r.headers && r.headers['replit-cluster']);
+  // Test the deployed Replit app first
+  await testEndpoint('backstageos.replit.app', '/');
+  await testEndpoint('backstageos.replit.app', '/landing');
   
-  console.log('\n🎯 Summary:');
-  if (hasReplit) {
-    console.log('✅ Domain reaches Replit servers');
-  } else {
-    console.log('❌ Domain not reaching Replit');
-  }
+  console.log('\nTesting custom domains...');
   
-  if (!hasErrors && results.every(r => r.status && r.status < 500)) {
-    console.log('✅ Application responding correctly');
-  } else if (results.some(r => r.status === 404)) {
-    console.log('⚠️  Application deployed but needs domain connection');
-  } else {
-    console.log('❌ Application not responding');
-  }
+  // Test custom domains
+  await testEndpoint('backstageos.com', '/');
+  await testEndpoint('beta.backstageos.com', '/');
+  
+  console.log('\nIf Replit URL works but custom domains don\'t, you need to configure custom domains in your Replit deployment settings.');
 }
 
 verifyDomain().catch(console.error);

@@ -4,7 +4,7 @@ module.exports = {
   NODE_ENV: 'production',
   
   // Custom domain configuration
-  CUSTOM_DOMAINS: ['backstageos.com', 'www.backstageos.com', 'join.backstageos.com'],
+  CUSTOM_DOMAINS: ['backstageos.com', 'beta.backstageos.com'],
   
   // Server configuration
   HOST: '0.0.0.0',
@@ -13,8 +13,7 @@ module.exports = {
   // Domain routing rules
   DOMAIN_ROUTES: {
     'backstageos.com': '/landing',
-    'www.backstageos.com': '/landing',
-    'join.backstageos.com': '/landing'
+    'beta.backstageos.com': '/'
   },
   
   // SSL and security headers
