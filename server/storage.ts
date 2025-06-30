@@ -21,6 +21,7 @@ import {
   errorLogs,
   props,
   domainRoutes,
+  waitlist,
 
   type User,
   type UpsertUser,
@@ -60,7 +61,6 @@ import {
   type InsertLocationAvailability,
   type ErrorLog,
   type InsertErrorLog,
-  waitlist,
   type Waitlist,
   type InsertWaitlist,
   type Prop,
@@ -87,6 +87,13 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[]; isAdmin?: boolean }): Promise<User>;
   deleteUser(userId: string): Promise<void>;
+
+  // Waitlist operations
+  createWaitlistEntry(entry: InsertWaitlist): Promise<Waitlist>;
+  getWaitlistByEmail(email: string): Promise<Waitlist | undefined>;
+  getWaitlistEntries(): Promise<Waitlist[]>;
+  updateWaitlistEntry(id: number, updates: Partial<InsertWaitlist>): Promise<Waitlist>;
+  getWaitlistStats(): Promise<any>;
 
   // Project operations
   getProjectsByUserId(userId: string): Promise<Project[]>;
@@ -690,6 +697,66 @@ class DatabaseStorage implements IStorage {
 
   async deleteDomainRoute(id: number): Promise<void> {
     await db.delete(domainRoutes).where(eq(domainRoutes.id, id));
+  }
+
+  // Waitlist operations
+  async createWaitlistEntry(entry: InsertWaitlist): Promise<Waitlist> {
+    // Get the next position in line
+    const lastEntry = await db.select()
+      .from(waitlist)
+      .orderBy(desc(waitlist.position))
+      .limit(1);
+    
+    const nextPosition = lastEntry.length > 0 ? (lastEntry[0]?.position || 0) + 1 : 1;
+    
+    const result = await db.insert(waitlist).values({
+      ...entry,
+      position: nextPosition,
+      status: 'pending',
+      createdAt: new Date()
+    }).returning();
+    
+    return result[0];
+  }
+
+  async getWaitlistByEmail(email: string): Promise<Waitlist | undefined> {
+    const result = await db.select()
+      .from(waitlist)
+      .where(eq(waitlist.email, email))
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async getWaitlistEntries(): Promise<Waitlist[]> {
+    return await db.select()
+      .from(waitlist)
+      .orderBy(waitlist.position);
+  }
+
+  async updateWaitlistEntry(id: number, updates: Partial<InsertWaitlist>): Promise<Waitlist> {
+    const result = await db.update(waitlist)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(waitlist.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async getWaitlistStats(): Promise<any> {
+    const total = await db.select({ count: sql<number>`count(*)` }).from(waitlist);
+    const pending = await db.select({ count: sql<number>`count(*)` })
+      .from(waitlist)
+      .where(eq(waitlist.status, 'pending'));
+    const approved = await db.select({ count: sql<number>`count(*)` })
+      .from(waitlist)
+      .where(eq(waitlist.status, 'approved'));
+    
+    return {
+      total: total[0]?.count || 0,
+      pending: pending[0]?.count || 0,
+      approved: approved[0]?.count || 0
+    };
   }
 }
 
