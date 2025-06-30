@@ -2,9 +2,16 @@
 deploymentTarget = "autoscale"
 build = ["npm", "run", "build"]
 run = ["npm", "run", "start"]
+ignorePorts = false
 
 [[deployment.domains]]
 domain = "backstageos.com"
 
 [[deployment.domains]]
 domain = "www.backstageos.com"
+
+[[deployment.domains]]
+domain = "join.backstageos.com"
+
+[env]
+NODE_ENV = "production"
