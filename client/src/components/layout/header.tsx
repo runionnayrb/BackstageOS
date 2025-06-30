@@ -260,7 +260,7 @@ export default function Header() {
                 </DropdownMenuItem>
                 
                 {isAdmin(user) && (
-                  <DropdownMenuItem onClick={() => setLocation('/domain-management')}>
+                  <DropdownMenuItem onClick={() => setLocation('/admin/dns')}>
                     <Globe className="mr-2 h-4 w-4" />
                     Domain Management
                   </DropdownMenuItem>
