@@ -115,10 +115,7 @@ export default function PageManager() {
   };
 
   const updateURL = (pageId: string, newSlug: string) => {
-    if (!newSlug.startsWith('/')) {
-      newSlug = '/' + newSlug;
-    }
-    
+    // Don't auto-prepend slash while typing - let user type freely
     const updatedPages = editedPages.map(p => 
       p.id === pageId 
         ? { ...p, slug: newSlug, updatedAt: new Date().toISOString() }
@@ -133,11 +130,17 @@ export default function PageManager() {
   };
 
   const saveAllChanges = () => {
-    const customPages = editedPages.filter(p => !p.isSystem);
+    // Ensure URLs start with / before saving
+    const pagesWithValidUrls = editedPages.map(p => ({
+      ...p,
+      slug: p.slug.startsWith('/') ? p.slug : '/' + p.slug
+    }));
+    
+    const customPages = pagesWithValidUrls.filter(p => !p.isSystem);
     localStorage.setItem('backstage-pages', JSON.stringify(customPages));
     
     // Also save system pages with their updated URLs
-    const allPagesData = editedPages.map(p => ({
+    const allPagesData = pagesWithValidUrls.map(p => ({
       id: p.id,
       name: p.name,
       slug: p.slug,
@@ -150,7 +153,9 @@ export default function PageManager() {
     localStorage.setItem('backstage-all-pages', JSON.stringify(allPagesData));
     console.log('Saved all pages to localStorage:', allPagesData);
     
-    setPages(editedPages);
+    // Update both states with validated URLs
+    setPages(pagesWithValidUrls);
+    setEditedPages(pagesWithValidUrls);
     setHasChanges(false);
     toast({ title: "All URL settings saved successfully" });
   };
@@ -263,7 +268,9 @@ export default function PageManager() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {editedPages.map((page) => (
+              {editedPages.map((page) => {
+                console.log(`Rendering page: ${page.name}, isSystem: ${page.isSystem}, slug: ${page.slug}`);
+                return (
                 <div key={page.id} className="flex items-center justify-between py-3 border-b last:border-b-0">
                   <div className="flex items-center space-x-3">
                     <span className="font-medium">{page.name}</span>
@@ -273,11 +280,16 @@ export default function PageManager() {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Input
-                      value={page.slug}
-                      onChange={(e) => updateURL(page.id, e.target.value)}
+                      value={page.slug || ''}
+                      onChange={(e) => {
+                        console.log(`Changing URL for page ${page.id} (${page.name}) from "${page.slug}" to "${e.target.value}"`);
+                        console.log(`Page isSystem: ${page.isSystem}`);
+                        updateURL(page.id, e.target.value);
+                      }}
                       placeholder="/page-url"
                       className="w-64"
                       disabled={page.isSystem}
+                      readOnly={false}
                     />
                     {!page.isSystem && (
                       <Button 
@@ -294,7 +306,8 @@ export default function PageManager() {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
               
               {editedPages.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
