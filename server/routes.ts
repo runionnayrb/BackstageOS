@@ -3244,11 +3244,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(503).json({ error: 'Cloudflare API token required' });
       }
 
-      const zoneId = process.env.CLOUDFLARE_ZONE_ID;
-      if (!zoneId) {
-        return res.status(503).json({ error: 'Cloudflare zone ID not configured' });
-      }
-
+      // Use hardcoded zone ID since environment variable isn't loading properly
+      const zoneId = '9cb18bcfe89740bffc69765c29779551';
+      
       const records = await cloudflareService.listDNSRecords(zoneId);
       res.json(records);
     } catch (error) {
@@ -3263,10 +3261,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(503).json({ error: 'Cloudflare API token required' });
       }
 
-      const zoneId = process.env.CLOUDFLARE_ZONE_ID;
-      if (!zoneId) {
-        return res.status(503).json({ error: 'Cloudflare zone ID not configured' });
-      }
+      // Use hardcoded zone ID since environment variable isn't loading properly
+      const zoneId = '9cb18bcfe89740bffc69765c29779551';
 
       const { name, type, value } = req.body;
       

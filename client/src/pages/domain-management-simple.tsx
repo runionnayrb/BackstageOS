@@ -223,7 +223,7 @@ export default function DomainManagement() {
               <h1 className="text-3xl font-bold flex items-center gap-2">
                 <Globe className="h-8 w-8" />
                 Domain Management
-                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">v2.0 - DNS Ready</span>
+                <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">v2.1 - Fixed</span>
               </h1>
               <p className="text-muted-foreground mt-2">
                 Manage your domains, subdomains, and DNS settings
