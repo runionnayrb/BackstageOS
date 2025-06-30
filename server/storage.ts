@@ -188,6 +188,12 @@ export interface IStorage {
 
   // Company list settings operations
   getCompanyListSettings(projectId: number): Promise<any>;
+
+  // Domain routing operations
+  getDomainRoutes(): Promise<DomainRoute[]>;
+  createDomainRoute(route: InsertDomainRoute): Promise<DomainRoute>;
+  updateDomainRoute(id: number, route: Partial<InsertDomainRoute>): Promise<DomainRoute>;
+  deleteDomainRoute(id: number): Promise<void>;
 }
 
 class DatabaseStorage implements IStorage {
@@ -661,6 +667,29 @@ class DatabaseStorage implements IStorage {
       .where(eq(showSettings.projectId, projectId));
     
     return result[0]?.companyListSettings || {};
+  }
+
+  // Domain routing operations
+  async getDomainRoutes(): Promise<DomainRoute[]> {
+    const result = await db.select().from(domainRoutes).orderBy(domainRoutes.domain);
+    return result;
+  }
+
+  async createDomainRoute(route: InsertDomainRoute): Promise<DomainRoute> {
+    const result = await db.insert(domainRoutes).values(route).returning();
+    return result[0];
+  }
+
+  async updateDomainRoute(id: number, route: Partial<InsertDomainRoute>): Promise<DomainRoute> {
+    const result = await db.update(domainRoutes)
+      .set({ ...route, updatedAt: new Date() })
+      .where(eq(domainRoutes.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteDomainRoute(id: number): Promise<void> {
+    await db.delete(domainRoutes).where(eq(domainRoutes.id, id));
   }
 }
 

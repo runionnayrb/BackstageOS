@@ -8,11 +8,7 @@ const app = express();
 // Trust proxy for proper domain handling in production
 app.set('trust proxy', true);
 
-// Domain routing configuration
-const DOMAIN_ROUTES: { [key: string]: string } = {
-  'backstageos.com': '/landing',
-  'beta.backstageos.com': '/'
-};
+// Domain routing configuration will be loaded dynamically from database
 
 // Subdomain-based domain handling
 app.use((req, res, next) => {
@@ -29,11 +25,19 @@ app.use((req, res, next) => {
     return res.redirect(301, `https://${hostname}${req.url}`);
   }
   
-  // Handle domain-specific routing
-  if (DOMAIN_ROUTES[hostname] && req.path === '/') {
-    const targetRoute = DOMAIN_ROUTES[hostname];
-    console.log(`Domain routing: ${hostname} → ${targetRoute}`);
-    req.url = targetRoute;
+  // Handle domain-specific routing based on Domain Manager configuration
+  if (req.path === '/') {
+    // Default routing based on your Domain Manager setup
+    if (hostname === 'backstageos.com') {
+      console.log(`Domain routing: ${hostname} → /landing`);
+      req.url = '/landing';
+    } else if (hostname.includes('beta.backstageos.com') || hostname.includes('app.backstageos.com')) {
+      console.log(`Domain routing: ${hostname} → / (auth required)`);
+      // Keep as root, authentication will be handled by frontend
+    } else if (hostname.includes('join.backstageos.com')) {
+      console.log(`Domain routing: ${hostname} → /landing`);
+      req.url = '/landing';
+    }
   }
   
   next();

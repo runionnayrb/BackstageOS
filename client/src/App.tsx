@@ -43,6 +43,7 @@ import CompanyList from "@/pages/company-list";
 import FeedbackPage from "@/pages/feedback";
 import NotFound from "@/pages/not-found";
 import WaitlistLanding from "@/pages/waitlist-landing";
+import MainLanding from "@/pages/main-landing";
 import DNSManager from "@/pages/dns-manager";
 import DomainManager from "@/pages/domain-manager";
 import PageManager from "@/pages/page-manager";
@@ -51,13 +52,14 @@ import PageManager from "@/pages/page-manager";
 function Router() {
   const { user, isLoading } = useAuth();
   
-  // Check if this is the main landing page domain FIRST
+  // Check domain routing configuration
   const hostname = window.location.hostname;
   const isJoinDomain = hostname.includes('join.backstageos.com') || hostname === 'join.backstageos.com';
-  const isMainDomain = hostname === 'backstageos.com' || hostname.includes('backstageos.com');
+  const isMainDomain = hostname === 'backstageos.com';
+  const isBetaDomain = hostname.includes('beta.backstageos.com') || hostname === 'beta.backstageos.com';
   
   // Debug logging for domain routing
-  console.log('Domain routing check:', { hostname, isJoinDomain, isMainDomain });
+  console.log('Domain routing check:', { hostname, isJoinDomain, isMainDomain, isBetaDomain });
   
   // If this is the join domain, redirect to /landing
   if (isJoinDomain && window.location.pathname !== '/landing') {
@@ -65,11 +67,6 @@ function Router() {
     return null;
   }
   
-  // If this is the main backstageos.com domain and user is not authenticated, show landing page
-  if (isMainDomain && !isLoading && !user && window.location.pathname === '/') {
-    window.location.pathname = '/landing';
-    return null;
-  }
   const isAuthenticated = !!user;
   
   // Keep session alive while user is active
@@ -104,17 +101,30 @@ function Router() {
     );
   }
 
-  if (!isAuthenticated) {
-    return <AuthPage />;
-  }
-
-  if (!user?.profileType) {
-    return <ProfileSelection />;
-  }
-
   // Handle landing page route separately (no layout needed)
   if (window.location.pathname === '/landing') {
     return <WaitlistLanding />;
+  }
+
+  // Main domain (backstageos.com) - no authentication required, show waitlist landing page
+  if (isMainDomain && !isAuthenticated) {
+    return <WaitlistLanding />;
+  }
+
+  // Beta domain or other subdomains - require authentication
+  if (!isAuthenticated && (isBetaDomain || (!isMainDomain && !isJoinDomain))) {
+    return <AuthPage />;
+  }
+
+  // If authenticated but no profile type selected
+  if (isAuthenticated && !user?.profileType) {
+    return <ProfileSelection />;
+  }
+
+  // If on main domain but authenticated, redirect to beta domain
+  if (isMainDomain && isAuthenticated) {
+    window.location.href = 'https://beta.backstageos.com';
+    return null;
   }
 
   return (
