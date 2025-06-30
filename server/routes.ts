@@ -3125,9 +3125,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CRITICAL: Real Cloudflare domain data endpoints
+  // Get actual domains from Cloudflare
+  app.get('/api/domains', requireAdmin, async (req: any, res) => {
+    try {
+      if (!cloudflareService) {
+        return res.status(503).json({ error: 'Cloudflare API not configured' });
+      }
+
+      // Get actual domain records from Cloudflare
+      const records = await cloudflareService.getDNSRecords();
+      
+      // Find the main domain record (backstageos.com CNAME)
+      const mainDomain = records.find(record => 
+        record.name === 'backstageos.com' && record.type === 'CNAME'
+      );
+
+      const domains = [];
+      if (mainDomain) {
+        domains.push({
+          id: 1,
+          name: 'backstageos.com',
+          status: mainDomain.proxied ? 'active' : 'inactive',
+          cloudflareEnabled: true,
+          sslEnabled: true,
+          pointsToPage: '/landing',
+          recordType: 'CNAME',
+          pointsTo: mainDomain.content,
+          proxyEnabled: mainDomain.proxied,
+          pageOptions: [
+            { value: "/", label: "App Home (Shows List)" },
+            { value: "/landing", label: "Landing Page (Waitlist)" },
+            { value: "/signin", label: "Sign In Page" },
+            { value: "/shows", label: "Shows Dashboard" },
+            { value: "/admin", label: "Admin Dashboard" }
+          ]
+        });
+      }
+
+      res.json(domains);
+    } catch (error) {
+      console.error('Error fetching domains:', error);
+      res.status(500).json({ error: 'Failed to fetch domain data' });
+    }
+  });
+
+  // Get actual subdomains from Cloudflare
+  app.get('/api/subdomains', requireAdmin, async (req: any, res) => {
+    try {
+      if (!cloudflareService) {
+        return res.status(503).json({ error: 'Cloudflare API not configured' });
+      }
+
+      // Get actual DNS records from Cloudflare
+      const records = await cloudflareService.getDNSRecords();
+      
+      // Filter for subdomain CNAME records
+      const subdomains = records
+        .filter(record => 
+          record.type === 'CNAME' && 
+          record.name.includes('.backstageos.com') &&
+          record.name !== 'backstageos.com'
+        )
+        .map((record, index) => ({
+          id: index + 1,
+          name: record.name.replace('.backstageos.com', ''),
+          fullDomain: record.name,
+          status: record.proxied ? 'active' : 'inactive',
+          pointsTo: record.content,
+          pointsToPage: record.name.includes('join') ? '/landing' : '/signin',
+          recordType: 'CNAME',
+          sslEnabled: true,
+          proxyEnabled: record.proxied,
+          pageOptions: [
+            { value: "/", label: "App Home (Shows List)" },
+            { value: "/landing", label: "Landing Page (Waitlist)" },
+            { value: "/signin", label: "Sign In Page" },
+            { value: "/shows", label: "Shows Dashboard" },
+            { value: "/admin", label: "Admin Dashboard" }
+          ]
+        }));
+
+      res.json(subdomains);
+    } catch (error) {
+      console.error('Error fetching subdomains:', error);
+      res.status(500).json({ error: 'Failed to fetch subdomain data' });
+    }
+  });
+
+  // Get email aliases (currently returns empty as they're not DNS records)
+  app.get('/api/email-aliases', requireAdmin, async (req: any, res) => {
+    try {
+      // Email aliases would be managed through a different service
+      // For now, return empty array since they're not DNS records
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching email aliases:', error);
+      res.status(500).json({ error: 'Failed to fetch email alias data' });
+    }
+  });
+
   // Cloudflare Integration Routes (require API keys)
   // Transfer domain to Cloudflare
-  app.post('/api/domains/:id/transfer-to-cloudflare', isAuthenticated, async (req: any, res) => {
+  app.post('/api/domains/:id/transfer-to-cloudflare', requireAdmin, async (req: any, res) => {
     try {
       if (!cloudflareService) {
         return res.status(503).json({ error: 'Cloudflare API token required. Please configure CLOUDFLARE_API_TOKEN environment variable.' });

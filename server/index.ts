@@ -4,22 +4,40 @@ import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 
-// Custom domain handling middleware - must be first
+// Trust proxy for proper domain handling in production
+app.set('trust proxy', true);
+
+// CRITICAL: Custom domain handling middleware - must be first
 app.use((req, res, next) => {
   const hostname = req.get('host') || req.hostname;
+  const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
   
   // Log domain access for debugging
-  console.log(`Domain access: ${hostname} -> ${req.url}`);
+  console.log(`Domain access: ${hostname} -> ${req.url} (protocol: ${protocol})`);
+  
+  // Force HTTPS redirect for custom domains
+  if (hostname.includes('backstageos.com') && protocol !== 'https' && process.env.NODE_ENV === 'production') {
+    return res.redirect(301, `https://${hostname}${req.url}`);
+  }
   
   // Handle custom domains by setting proper headers
-  if (hostname === 'backstageos.com' || hostname === 'www.backstageos.com') {
-    // Set headers to ensure proper domain handling
-    res.setHeader('Access-Control-Allow-Origin', `https://${hostname}`);
+  if (hostname === 'backstageos.com' || hostname === 'www.backstageos.com' || hostname.includes('backstageos.com')) {
+    // Critical headers for Replit custom domain deployment
     res.setHeader('X-Custom-Domain', hostname);
+    res.setHeader('X-Forwarded-Proto', 'https');
+    res.setHeader('X-Replit-Custom-Domain', 'true');
+    res.setHeader('Access-Control-Allow-Origin', `https://${hostname}`);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     
-    // Override host header for internal processing
+    // Override headers for internal processing
     req.headers.host = hostname;
     req.headers['x-forwarded-host'] = hostname;
+    req.headers['x-forwarded-proto'] = 'https';
+    req.headers['x-replit-custom-domain'] = 'true';
+    
+    // Force application response (prevent Replit default page)
+    res.setHeader('X-Powered-By', 'Backstage OS');
   }
   
   next();
@@ -80,12 +98,13 @@ app.use((req, res, next) => {
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
-  const port = 5000;
+  const port = process.env.PORT || 5000;
   server.listen({
     port,
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    log(`Custom domain handling active for backstageos.com`);
   });
 })();

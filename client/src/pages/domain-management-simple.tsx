@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import { isAdmin } from "@/lib/admin";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function DomainManagement() {
   const [, setLocation] = useLocation();
@@ -53,86 +55,23 @@ export default function DomainManagement() {
     );
   }
 
-  // Mock data for demonstration - in real implementation this would come from API
-  const domains = [
-    {
-      id: 1,
-      name: "backstageos.com",
-      status: "active",
-      cloudflareEnabled: true,
-      sslEnabled: true,
-      pointsToPage: "/landing",
-      pageOptions: [
-        { value: "/", label: "App Home (Shows List)" },
-        { value: "/landing", label: "Landing Page (Waitlist)" },
-        { value: "/signin", label: "Sign In Page" },
-        { value: "/shows", label: "Shows Dashboard" },
-        { value: "/admin", label: "Admin Dashboard" }
-      ]
-    }
-  ];
+  // Fetch real domain data from API
+  const { data: domains = [], isLoading: domainsLoading } = useQuery({
+    queryKey: ['/api/domains'],
+    queryFn: () => apiRequest('/api/domains')
+  });
 
-  const subdomains = [
-    { 
-      id: 1, 
-      name: "join", 
-      fullDomain: "join.backstageos.com", 
-      status: "active",
-      pointsTo: "replit.app",
-      pointsToPage: "/landing",
-      recordType: "CNAME",
-      sslEnabled: true,
-      proxyEnabled: true,
-      pageOptions: [
-        { value: "/", label: "App Home (Shows List)" },
-        { value: "/landing", label: "Landing Page (Waitlist)" },
-        { value: "/signin", label: "Sign In Page" },
-        { value: "/shows", label: "Shows Dashboard" },
-        { value: "/admin", label: "Admin Dashboard" }
-      ]
-    },
-    { 
-      id: 2, 
-      name: "beta", 
-      fullDomain: "beta.backstageos.com", 
-      status: "active",
-      pointsTo: "replit.app",
-      pointsToPage: "/signin",
-      recordType: "CNAME",
-      sslEnabled: true,
-      proxyEnabled: true,
-      pageOptions: [
-        { value: "/", label: "App Home (Shows List)" },
-        { value: "/landing", label: "Landing Page (Waitlist)" },
-        { value: "/signin", label: "Sign In Page" },
-        { value: "/shows", label: "Shows Dashboard" },
-        { value: "/admin", label: "Admin Dashboard" }
-      ]
-    }
-  ];
+  // Fetch real subdomain data from API
+  const { data: subdomains = [], isLoading: subdomainsLoading } = useQuery({
+    queryKey: ['/api/subdomains'],
+    queryFn: () => apiRequest('/api/subdomains')
+  });
 
-  const emailAliases = [
-    { 
-      id: 1, 
-      alias: "support@backstageos.com", 
-      forwarding: "runion.bryan@gmail.com",
-      status: "active",
-      description: "Customer support inquiries",
-      spamFilter: true,
-      autoReply: false,
-      catchAll: false
-    },
-    { 
-      id: 2, 
-      alias: "hello@backstageos.com", 
-      forwarding: "runion.bryan@gmail.com",
-      status: "active",
-      description: "General contact and inquiries",
-      spamFilter: true,
-      autoReply: true,
-      catchAll: false
-    }
-  ];
+  // Fetch real email alias data from API
+  const { data: emailAliases = [], isLoading: emailLoading } = useQuery({
+    queryKey: ['/api/email-aliases'],
+    queryFn: () => apiRequest('/api/email-aliases')
+  });
 
   const handleCreateSubdomain = () => {
     if (!newSubdomain) return;
