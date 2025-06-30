@@ -245,7 +245,7 @@ export default function DomainManagement() {
               <TabsTrigger value="email">Email Aliases</TabsTrigger>
               <TabsTrigger value="security">Security</TabsTrigger>
             </TabsList>
-            <Link href="/dns-records-direct">
+            <Link href="/dns-manager">
               <Button className="bg-blue-600 hover:bg-blue-700">
                 <Server className="h-4 w-4 mr-2" />
                 DNS Manager

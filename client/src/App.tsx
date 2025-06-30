@@ -46,6 +46,7 @@ import WaitlistLanding from "@/pages/waitlist-landing";
 import DomainManagement from "@/pages/domain-management-simple";
 import DomainSetup from "@/pages/domain-setup";
 import DNSRecordsDirect from "@/pages/dns-records-direct";
+import DNSManager from "@/pages/dns-manager";
 
 function Router() {
   const { user, isLoading } = useAuth();
@@ -146,6 +147,7 @@ function Router() {
         <Route path="/feedback" component={FeedbackPage} />
         <Route path="/domain-management" component={DomainManagement} />
         <Route path="/dns-records-direct" component={DNSRecordsDirect} />
+        <Route path="/dns-manager" component={DNSManager} />
         <Route path="/domain-setup" component={DomainSetup} />
         <Route path="/admin" component={AdminDashboard} />
         <Route component={NotFound} />
