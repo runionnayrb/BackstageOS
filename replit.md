@@ -182,6 +182,7 @@ Required environment variables:
 - `ISSUER_URL`: OAuth issuer URL (defaults to Replit)
 
 ## Recent Changes
+- June 30, 2025: **DNS MANAGER ROUTING FIX AND API SETUP**: Resolved critical routing mismatch where admin dropdown linked to `/domain-management` but route was configured as `/admin/dns`. Added proper admin authentication protection to DNS Manager component. Fixed all API request format issues using correct apiRequest signature (method, url, data). DNS Manager interface is now fully accessible through admin dropdown. Cloudflare API token requires specific Zone:Read and DNS:Edit permissions for backstageos.com to complete functionality.
 - June 30, 2025: **COMPREHENSIVE DOMAIN MANAGEMENT SYSTEM COMPLETE**: Built and deployed complete domain management infrastructure with the following fully functional components:
 
 ### ✅ WORKING FEATURES:
