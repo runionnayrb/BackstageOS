@@ -33,17 +33,17 @@ class CloudflareService {
     console.log(`Making Cloudflare API request to: ${this.baseUrl}${endpoint}`);
     console.log(`Using zone ID: ${this.zoneId}`);
     
-    // Try API token first, fallback to Global API Key if available
+    // Use Global API Key authentication (more reliable for DNS operations)
     let headers: any = {
       'Content-Type': 'application/json',
       ...options.headers,
     };
 
-    if (this.apiToken) {
-      headers['Authorization'] = `Bearer ${this.apiToken}`;
-    } else if (this.apiEmail && this.apiKey) {
+    if (this.apiEmail && this.apiKey) {
       headers['X-Auth-Email'] = this.apiEmail;
       headers['X-Auth-Key'] = this.apiKey;
+    } else if (this.apiToken) {
+      headers['Authorization'] = `Bearer ${this.apiToken}`;
     } else {
       throw new Error('No valid Cloudflare authentication configured');
     }
