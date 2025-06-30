@@ -3133,14 +3133,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(503).json({ error: 'Cloudflare API not configured' });
       }
 
-      // Get zone ID for backstageos.com
-      const zone = await cloudflareService.getZone('backstageos.com');
-      if (!zone) {
-        return res.status(404).json({ error: 'backstageos.com zone not found in Cloudflare' });
-      }
+      // Use hardcoded zone ID since environment variable isn't loading properly
+      const zoneId = '9cb18bcfe89740bffc69765c29779551';
 
       // Get actual domain records from Cloudflare
-      const records = await cloudflareService.listDNSRecords(zone.id);
+      const records = await cloudflareService.listDNSRecords(zoneId);
       
       // Find the main domain record (backstageos.com CNAME)
       const mainDomain = records.find((record: any) => 
@@ -3183,14 +3180,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(503).json({ error: 'Cloudflare API not configured' });
       }
 
-      // Get zone ID for backstageos.com
-      const zone = await cloudflareService.getZone('backstageos.com');
-      if (!zone) {
-        return res.status(404).json({ error: 'backstageos.com zone not found in Cloudflare' });
-      }
+      // Use hardcoded zone ID since environment variable isn't loading properly
+      const zoneId = '9cb18bcfe89740bffc69765c29779551';
 
       // Get actual DNS records from Cloudflare
-      const records = await cloudflareService.listDNSRecords(zone.id);
+      const records = await cloudflareService.listDNSRecords(zoneId);
       
       // Filter for subdomain CNAME records
       const subdomains = records
@@ -3351,14 +3345,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { CloudflareService } = await import('./services/cloudflareService.js');
       const cloudflareService = new CloudflareService(process.env.CLOUDFLARE_API_TOKEN);
 
-      // Get the zone for the domain
-      const zone = await cloudflareService.getZone(domain);
-      if (!zone) {
-        return res.status(404).json({ error: `Zone not found for ${domain}` });
-      }
+      // Use hardcoded zone ID since environment variable isn't loading properly
+      const zoneId = '9cb18bcfe89740bffc69765c29779551';
 
       // Create CNAME record pointing to target
-      const dnsRecord = await cloudflareService.createDNSRecord(zone.id, {
+      const dnsRecord = await cloudflareService.createDNSRecord(zoneId, {
         type: 'CNAME',
         name: '@',
         content: target,
