@@ -218,14 +218,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
             body = body.replace(new RegExp(variable, 'g'), value);
           });
 
-          // Clean rich text editor formatting to preserve template design exactly
-          body = body.replace(/style="[^"]*"/g, ''); // Remove inline styles
-          body = body.replace(/<(h[1-6]|p|ul|ol|li|div|span)([^>]*)>/g, '<$1>'); // Remove attributes
-          body = body.replace(/<div><br><\/div>/g, ''); // Remove empty div breaks
-          body = body.replace(/<p><\/p>/g, ''); // Remove empty paragraphs
-          body = body.replace(/<div><\/div>/g, ''); // Remove empty divs
-          body = body.replace(/\s+/g, ' '); // Normalize whitespace
-          body = body.trim(); // Remove leading/trailing whitespace
+          // Enhanced HTML cleaning to preserve exact template design while removing rich editor artifacts
+          // Remove only problematic rich text editor attributes, but preserve intentional formatting
+          body = body.replace(/style="[^"]*"/g, ''); // Remove inline styles that override template
+          body = body.replace(/class="[^"]*"/g, ''); // Remove editor-added classes
+          body = body.replace(/contenteditable="[^"]*"/g, ''); // Remove editor attributes
+          body = body.replace(/data-[^=]*="[^"]*"/g, ''); // Remove data attributes from editor
+          
+          // Remove only empty elements that are editor artifacts, not intentional spacing
+          body = body.replace(/<p><br><\/p>/g, '<p>&nbsp;</p>'); // Convert editor breaks to proper spacing
+          body = body.replace(/<div><br><\/div>/g, ''); // Remove empty div breaks only
+          body = body.replace(/<p><\/p>/g, ''); // Remove empty paragraphs only
+          body = body.replace(/<div><\/div>/g, ''); // Remove empty divs only
+          
+          // Preserve intentional line breaks and paragraph spacing - DO NOT collapse whitespace
+          body = body.replace(/\n\s*\n/g, '\n'); // Clean up excessive line breaks but preserve structure
+          body = body.trim(); // Remove only leading/trailing whitespace
           
           const msg = {
             to: waitlistEntry.email,
@@ -3508,7 +3516,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         testBody = testBody.replace(new RegExp(variable, 'g'), value);
       });
 
-      // NO HTML CLEANING - Send exactly as designed in template
+      // Apply same enhanced HTML cleaning as waitlist emails for consistency
+      // Remove only problematic rich text editor attributes, but preserve intentional formatting
+      testBody = testBody.replace(/style="[^"]*"/g, ''); // Remove inline styles that override template
+      testBody = testBody.replace(/class="[^"]*"/g, ''); // Remove editor-added classes
+      testBody = testBody.replace(/contenteditable="[^"]*"/g, ''); // Remove editor attributes
+      testBody = testBody.replace(/data-[^=]*="[^"]*"/g, ''); // Remove data attributes from editor
+      
+      // Remove only empty elements that are editor artifacts, not intentional spacing
+      testBody = testBody.replace(/<p><br><\/p>/g, '<p>&nbsp;</p>'); // Convert editor breaks to proper spacing
+      testBody = testBody.replace(/<div><br><\/div>/g, ''); // Remove empty div breaks only
+      testBody = testBody.replace(/<p><\/p>/g, ''); // Remove empty paragraphs only
+      testBody = testBody.replace(/<div><\/div>/g, ''); // Remove empty divs only
+      
+      // Preserve intentional line breaks and paragraph spacing - DO NOT collapse whitespace
+      testBody = testBody.replace(/\n\s*\n/g, '\n'); // Clean up excessive line breaks but preserve structure
+      testBody = testBody.trim(); // Remove only leading/trailing whitespace
 
       const msg = {
         to: testEmail,
