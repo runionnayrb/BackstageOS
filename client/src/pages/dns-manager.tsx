@@ -406,14 +406,7 @@ function DNSManagerContent() {
                           <Badge variant="outline">{record.type}</Badge>
                         </div>
                         <div>
-                          <p className="font-medium">{
-                            // Format record names for SendGrid compatibility
-                            // Convert "em1868.backstageos.com" to "em1868.backstageos"
-                            record.name === 'backstageos.com' ? record.name :
-                            record.name.endsWith('.backstageos.com') 
-                              ? record.name.replace('.backstageos.com', '.backstageos')
-                              : record.name
-                          }</p>
+                          <p className="font-medium">{record.name}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">{record.content}</p>
@@ -427,14 +420,7 @@ function DNSManagerContent() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setEditRecord({
-                            ...record,
-                            // Show the display format in edit dialog
-                            name: record.name === 'backstageos.com' ? record.name :
-                                  record.name.endsWith('.backstageos.com') 
-                                    ? record.name.replace('.backstageos.com', '.backstageos')
-                                    : record.name
-                          })}
+                          onClick={() => setEditRecord(record)}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
