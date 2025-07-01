@@ -3508,13 +3508,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log("SendGrid verified senders:", JSON.stringify(verificationData, null, 2));
           
           const isVerified = verificationData.results?.some((sender: any) => 
-            sender.from_email === fromEmail && sender.verified?.status === true
+            sender.from_email === fromEmail && sender.verified === true
           );
           console.log(`Sender ${fromEmail} verification status:`, isVerified ? "VERIFIED" : "NOT VERIFIED");
           
           if (!isVerified) {
             console.log("⚠️  EMAIL DELIVERY ISSUE: Sender email is not verified in SendGrid");
             console.log("⚠️  You must verify this sender in your SendGrid dashboard for emails to be delivered");
+          } else {
+            console.log("✅ Sender email is properly verified in SendGrid");
+            console.log("💡 If emails aren't being delivered, check:");
+            console.log("   - Spam/junk folder in Gmail");
+            console.log("   - Gmail might be filtering emails from new domains");
+            console.log("   - Allow 5-10 minutes for delivery delays");
+            console.log(`   - Message ID for tracking: ${response?.[0]?.headers?.['x-message-id']}`);
           }
         } else {
           console.log("Could not check sender verification status:", verificationResponse.status);
