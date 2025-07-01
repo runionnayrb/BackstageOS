@@ -13,14 +13,13 @@ app.set('trust proxy', true);
 // Subdomain-based domain handling with Cloudflare proxy support
 app.use((req, res, next) => {
   // Get hostname from multiple potential sources when behind Cloudflare proxy
-  const hostname = req.get('cf-connecting-ip') ? 
-    (req.get('cf-original-host') || req.get('x-forwarded-host') || req.get('host')) :
-    (req.get('host') || req.hostname);
-  
+  // Cloudflare sets X-Forwarded-Host or CF-Visitor headers when proxying
+  const hostname = req.get('x-forwarded-host') || req.get('host') || req.hostname;
+  const cfVisitor = req.get('cf-visitor');
   const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
   
   console.log(`Backstage OS serving on ${hostname}`);
-  console.log(`Headers - Host: ${req.get('host')}, X-Forwarded-Host: ${req.get('x-forwarded-host')}, CF-Original-Host: ${req.get('cf-original-host')}`);
+  console.log(`Headers - Host: ${req.get('host')}, X-Forwarded-Host: ${req.get('x-forwarded-host')}, CF-Visitor: ${cfVisitor}`);
   
   // Set application headers
   res.setHeader('X-Powered-By', 'Backstage OS');
@@ -33,7 +32,7 @@ app.use((req, res, next) => {
   // Handle domain-specific routing based on Domain Manager configuration
   if (req.path === '/' && hostname) {
     // Default routing based on your Domain Manager setup
-    if (hostname === 'backstageos.com') {
+    if (hostname === 'backstageos.com' || hostname.includes('backstageos.com') && !hostname.includes('beta.') && !hostname.includes('join.')) {
       console.log(`Domain routing: ${hostname} → /landing`);
       req.url = '/landing';
     } else if (hostname.includes('beta.backstageos.com') || hostname.includes('app.backstageos.com')) {
