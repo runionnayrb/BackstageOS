@@ -51,7 +51,7 @@ export default function SeoManager() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: seoSettings = [], isLoading } = useQuery({
+  const { data: seoSettings = [], isLoading } = useQuery<SeoSettings[]>({
     queryKey: ['/api/seo-settings'],
   });
 
@@ -199,6 +199,26 @@ export default function SeoManager() {
     toast({ title: "Copied to clipboard" });
   };
 
+  const testConnectivity = async () => {
+    try {
+      // Test external API connectivity to verify internet connection
+      const response = await fetch('https://httpbin.org/json');
+      const data = await response.json();
+      toast({ 
+        title: "Internet Connectivity Test Successful", 
+        description: `Connected to external API successfully. Server origin: ${data.origin}`
+      });
+      return true;
+    } catch (error) {
+      toast({ 
+        title: "Connectivity Test Failed", 
+        description: "Cannot connect to external services",
+        variant: "destructive" 
+      });
+      return false;
+    }
+  };
+
   const generateMetaTags = (settings: SeoSettings) => {
     return `<!-- Basic Meta Tags -->
 <title>${settings.siteTitle}</title>
@@ -264,6 +284,13 @@ ${JSON.stringify(settings.structuredData, null, 2)}
               <p className="text-gray-500 dark:text-gray-400">Manage search engine and AI optimization settings for all domains</p>
             </div>
             <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                onClick={testConnectivity}
+              >
+                <Globe className="mr-2 h-4 w-4" />
+                Test Connectivity
+              </Button>
               <Button
                 variant={viewMode === 'list' ? 'default' : 'outline'}
                 onClick={() => setViewMode('list')}
