@@ -219,6 +219,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
 
           // NO HTML CLEANING - Send exactly as designed in template
+          console.log('DEBUG - Raw email body HTML:');
+          console.log(body.substring(0, 500) + '...');
           
           const msg = {
             to: waitlistEntry.email,
