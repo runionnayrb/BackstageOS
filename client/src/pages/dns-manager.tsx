@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Globe, Shield, ArrowLeft, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Globe, Shield, ArrowLeft, FileText, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
@@ -65,6 +65,8 @@ function DNSManagerContent() {
     destination: 'backstageosapp@gmail.com',
     description: ''
   });
+  const [isEditingDestination, setIsEditingDestination] = useState(false);
+  const [isEditingEditDialogDestination, setIsEditingEditDialogDestination] = useState(false);
 
   const [editingEmail, setEditingEmail] = useState<any>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
@@ -182,6 +184,7 @@ function DNSManagerContent() {
       toast({ title: "Email alias updated successfully" });
       setShowEditDialog(false);
       setEditingEmail(null);
+      setIsEditingEditDialogDestination(false);
     },
     onError: (error: any) => {
       toast({ title: "Failed to update email alias", description: error.message, variant: "destructive" });
@@ -569,14 +572,38 @@ function DNSManagerContent() {
               </div>
               <div>
                 <Label htmlFor="destination">Destination Email</Label>
-                <Input
-                  id="destination"
-                  type="email"
-                  value={emailConfig.destination}
-                  readOnly
-                  className="bg-gray-50 text-gray-700"
-                  placeholder="backstageosapp@gmail.com"
-                />
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="destination"
+                    type="email"
+                    value={emailConfig.destination}
+                    onChange={(e) => setEmailConfig({ ...emailConfig, destination: e.target.value })}
+                    readOnly={!isEditingDestination}
+                    className={!isEditingDestination ? "bg-gray-50 text-gray-700" : ""}
+                    placeholder="backstageosapp@gmail.com"
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => {
+                      if (isEditingDestination) {
+                        // Save changes and exit edit mode
+                        setIsEditingDestination(false);
+                      } else {
+                        // Enter edit mode
+                        setIsEditingDestination(true);
+                      }
+                    }}
+                    className="p-2 h-8 w-8"
+                  >
+                    {isEditingDestination ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Edit className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
               <div>
                 <Label htmlFor="email-description">Description</Label>
@@ -625,13 +652,40 @@ function DNSManagerContent() {
               <Label htmlFor="edit-destination" className="text-right">
                 Destination
               </Label>
-              <Input
-                id="edit-destination"
-                value="backstageosapp@gmail.com"
-                readOnly
-                className="col-span-3 bg-gray-50 text-gray-700"
-                placeholder="backstageosapp@gmail.com"
-              />
+              <div className="col-span-3 flex items-center gap-2">
+                <Input
+                  id="edit-destination"
+                  value={editingEmail?.destination || 'backstageosapp@gmail.com'}
+                  onChange={(e) => setEditingEmail({
+                    ...editingEmail,
+                    destination: e.target.value
+                  })}
+                  readOnly={!isEditingEditDialogDestination}
+                  className={!isEditingEditDialogDestination ? "bg-gray-50 text-gray-700" : ""}
+                  placeholder="backstageosapp@gmail.com"
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    if (isEditingEditDialogDestination) {
+                      // Save changes and exit edit mode
+                      setIsEditingEditDialogDestination(false);
+                    } else {
+                      // Enter edit mode
+                      setIsEditingEditDialogDestination(true);
+                    }
+                  }}
+                  className="p-2 h-8 w-8"
+                >
+                  {isEditingEditDialogDestination ? (
+                    <Check className="h-4 w-4" />
+                  ) : (
+                    <Edit className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="edit-description" className="text-right">
@@ -655,6 +709,7 @@ function DNSManagerContent() {
               onClick={() => {
                 setShowEditDialog(false);
                 setEditingEmail(null);
+                setIsEditingEditDialogDestination(false);
               }}
             >
               Cancel
@@ -666,7 +721,7 @@ function DNSManagerContent() {
                     ruleId: editingEmail.id,
                     config: {
                       alias: editingEmail.alias,
-                      destination: 'backstageosapp@gmail.com',
+                      destination: editingEmail.destination || 'backstageosapp@gmail.com',
                       description: editingEmail.description || ''
                     }
                   });
