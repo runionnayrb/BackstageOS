@@ -10,5 +10,11 @@ domain = "backstageos.com"
 [[deployment.domains]]
 domain = "beta.backstageos.com"
 
+[[deployment.domains]]
+domain = "app.backstageos.com"
+
+[[deployment.domains]]
+domain = "join.backstageos.com"
+
 [env]
 NODE_ENV = "production"
