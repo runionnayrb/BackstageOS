@@ -3504,6 +3504,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // NO HTML CLEANING - Send exactly as designed in template
+      console.log('DEBUG - Test email raw HTML:');
+      console.log(testBody.substring(0, 500) + '...');
 
       const msg = {
         to: testEmail,
