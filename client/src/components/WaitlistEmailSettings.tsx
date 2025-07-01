@@ -396,17 +396,24 @@ export default function WaitlistEmailSettings() {
                 <SelectValue placeholder="Select email address" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="hello@backstageos.com">
-                  hello@backstageos.com
-                </SelectItem>
-                {domainEmails?.filter(email => email.email && email.email.trim() !== '').map((email) => {
-                  const cleanEmail = cleanEmailAddress(email.email);
-                  return (
-                    <SelectItem key={cleanEmail} value={cleanEmail}>
-                      {cleanEmail}
+                {(() => {
+                  const emailOptions = new Set<string>();
+                  emailOptions.add("hello@backstageos.com");
+                  
+                  // Add cleaned domain emails, avoiding duplicates
+                  domainEmails?.filter(email => email.email && email.email.trim() !== '').forEach((email) => {
+                    const cleanEmail = cleanEmailAddress(email.email);
+                    if (cleanEmail && cleanEmail !== "hello@backstageos.com") {
+                      emailOptions.add(cleanEmail);
+                    }
+                  });
+                  
+                  return Array.from(emailOptions).map((email) => (
+                    <SelectItem key={email} value={email}>
+                      {email}
                     </SelectItem>
-                  );
-                })}
+                  ));
+                })()}
               </SelectContent>
             </Select>
           </div>
