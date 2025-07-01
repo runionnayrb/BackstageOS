@@ -10,23 +10,28 @@ app.set('trust proxy', true);
 
 // Domain routing configuration will be loaded dynamically from database
 
-// Subdomain-based domain handling
+// Subdomain-based domain handling with Cloudflare proxy support
 app.use((req, res, next) => {
-  const hostname = req.get('host') || req.hostname;
+  // Get hostname from multiple potential sources when behind Cloudflare proxy
+  const hostname = req.get('cf-connecting-ip') ? 
+    (req.get('cf-original-host') || req.get('x-forwarded-host') || req.get('host')) :
+    (req.get('host') || req.hostname);
+  
   const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
   
   console.log(`Backstage OS serving on ${hostname}`);
+  console.log(`Headers - Host: ${req.get('host')}, X-Forwarded-Host: ${req.get('x-forwarded-host')}, CF-Original-Host: ${req.get('cf-original-host')}`);
   
   // Set application headers
   res.setHeader('X-Powered-By', 'Backstage OS');
   
   // Force HTTPS for production
-  if (protocol !== 'https' && process.env.NODE_ENV === 'production' && !hostname.includes('localhost')) {
+  if (protocol !== 'https' && process.env.NODE_ENV === 'production' && hostname && !hostname.includes('localhost')) {
     return res.redirect(301, `https://${hostname}${req.url}`);
   }
   
   // Handle domain-specific routing based on Domain Manager configuration
-  if (req.path === '/') {
+  if (req.path === '/' && hostname) {
     // Default routing based on your Domain Manager setup
     if (hostname === 'backstageos.com') {
       console.log(`Domain routing: ${hostname} → /landing`);
