@@ -57,9 +57,10 @@ function Router() {
   const isJoinDomain = hostname.includes('join.backstageos.com') || hostname === 'join.backstageos.com';
   const isMainDomain = hostname === 'backstageos.com' || hostname.includes('backstageos.com') && !hostname.includes('beta.') && !hostname.includes('join.');
   const isBetaDomain = hostname.includes('beta.backstageos.com') || hostname === 'beta.backstageos.com';
+  const isDevEnvironment = hostname.includes('replit.dev');
   
   // Debug logging for domain routing
-  console.log('Domain routing check:', { hostname, isJoinDomain, isMainDomain, isBetaDomain });
+  console.log('Domain routing check:', { hostname, isJoinDomain, isMainDomain, isBetaDomain, isDevEnvironment });
   
   // If this is the join domain, redirect to /landing
   if (isJoinDomain && window.location.pathname !== '/landing') {
@@ -75,7 +76,8 @@ function Router() {
 
   // Main domain (backstageos.com) - ALWAYS show waitlist, never require authentication
   // This includes both root path and /landing path for backstageos.com
-  if (isMainDomain) {
+  // Also show waitlist in dev environment when accessing root path (for testing)
+  if (isMainDomain || (isDevEnvironment && window.location.pathname === '/')) {
     return <WaitlistLanding />;
   }
 
