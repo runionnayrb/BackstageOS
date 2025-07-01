@@ -168,7 +168,7 @@ export default function WaitlistEmailSettings() {
   });
 
   // Update form data when email settings load
-  useState(() => {
+  useEffect(() => {
     if (emailSettings) {
       setFormData({
         fromEmail: emailSettings.fromEmail || "hello@backstageos.com",
@@ -179,7 +179,7 @@ export default function WaitlistEmailSettings() {
         isEnabled: emailSettings.isEnabled ?? true,
       });
     }
-  });
+  }, [emailSettings]);
 
   const handleSave = () => {
     // Convert camelCase form data to snake_case for API
