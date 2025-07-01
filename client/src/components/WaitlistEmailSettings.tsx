@@ -273,12 +273,12 @@ export default function WaitlistEmailSettings() {
                             {email.name} &lt;{email.email}&gt;
                           </SelectItem>
                         ))}
-                        <SelectItem value="">Custom Email</SelectItem>
+                        <SelectItem value="custom">Custom Email</SelectItem>
                       </SelectContent>
                     </Select>
-                    {!formData.fromEmail && (
+                    {formData.fromEmail === "custom" && (
                       <Input
-                        value={formData.fromEmail}
+                        value=""
                         onChange={(e) => setFormData(prev => ({ ...prev, fromEmail: e.target.value }))}
                         placeholder="Enter email address"
                         className="flex-1"
