@@ -154,7 +154,7 @@ export default function Header() {
               onClick={() => setLocation("/")}
               className="text-xl font-semibold text-gray-900 p-0 hover:bg-transparent"
             >
-              Backstage OS
+              BackstageOS
             </Button>
           </div>
           
