@@ -3493,6 +3493,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("API Key length:", apiSettings.sendgridApiKey?.length);
       console.log("API Key prefix:", apiSettings.sendgridApiKey?.substring(0, 10));
       
+      // Check SendGrid account status and quotas
+      try {
+        const statsUrl = 'https://api.sendgrid.com/v3/user/account';
+        const statsResponse = await fetch(statsUrl, {
+          headers: {
+            'Authorization': `Bearer ${apiSettings.sendgridApiKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (statsResponse.ok) {
+          const accountData = await statsResponse.json();
+          console.log("SendGrid account type:", accountData.type || "Unknown");
+          console.log("SendGrid account reputation:", accountData.reputation || "Unknown");
+        }
+        
+        // Check for any SendGrid suppressions/blocks
+        const suppressionUrl = 'https://api.sendgrid.com/v3/suppression/bounces';
+        const suppressionResponse = await fetch(suppressionUrl, {
+          headers: {
+            'Authorization': `Bearer ${apiSettings.sendgridApiKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (suppressionResponse.ok) {
+          const suppressionData = await suppressionResponse.json();
+          const isBlocked = suppressionData.some((item: any) => item.email === testEmail);
+          console.log(`Email ${testEmail} suppression status:`, isBlocked ? "BLOCKED/BOUNCED" : "CLEAN");
+        }
+      } catch (accountError) {
+        console.log("Could not check SendGrid account status:", accountError);
+      }
+      
       // Check SendGrid sender verification status
       try {
         const verificationUrl = 'https://api.sendgrid.com/v3/verified_senders';
