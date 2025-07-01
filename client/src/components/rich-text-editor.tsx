@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Type, Palette, Hash } from "lucide-react";
+import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Type, Palette, Hash, List, ListOrdered, Heading1, Heading2, Heading3 } from "lucide-react";
 
 interface RichTextEditorProps {
   content: string;
@@ -90,6 +90,28 @@ export function RichTextEditor({
     setShowColorPicker(false);
   };
 
+  const formatHeading = (level: number) => {
+    executeCommand('formatBlock', `h${level}`);
+  };
+
+  const createList = (ordered: boolean = false) => {
+    executeCommand(ordered ? 'insertOrderedList' : 'insertUnorderedList');
+  };
+
+  const createArrowList = () => {
+    // Create a custom bullet list with arrow symbols
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const listItem = document.createElement('div');
+      listItem.innerHTML = '→ ';
+      range.insertNode(listItem);
+      range.setStartAfter(listItem);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  };
+
   return (
     <div className={`border rounded-lg ${className}`}>
       {/* Toolbar */}
@@ -121,6 +143,74 @@ export function RichTextEditor({
           className="h-8 w-8 p-0"
         >
           <Underline className="h-4 w-4" />
+        </Button>
+
+        <div className="w-px h-6 bg-gray-300 mx-1" />
+
+        {/* Headings */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => formatHeading(1)}
+          className="h-8 w-8 p-0"
+          title="Heading 1"
+        >
+          <Heading1 className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => formatHeading(2)}
+          className="h-8 w-8 p-0"
+          title="Heading 2"
+        >
+          <Heading2 className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => formatHeading(3)}
+          className="h-8 w-8 p-0"
+          title="Heading 3"
+        >
+          <Heading3 className="h-4 w-4" />
+        </Button>
+
+        <div className="w-px h-6 bg-gray-300 mx-1" />
+
+        {/* Lists */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => createList(false)}
+          className="h-8 w-8 p-0"
+          title="Bullet List"
+        >
+          <List className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => createList(true)}
+          className="h-8 w-8 p-0"
+          title="Numbered List"
+        >
+          <ListOrdered className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={createArrowList}
+          className="h-8 w-8 p-0"
+          title="Arrow List"
+        >
+          →
         </Button>
 
         <div className="w-px h-6 bg-gray-300 mx-1" />
