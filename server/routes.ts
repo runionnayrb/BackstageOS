@@ -3474,11 +3474,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentEmailSettings = await storage.getWaitlistEmailSettings();
       }
 
-      // Prepare test email content
-      const testSubject = currentEmailSettings?.subject || "Test Email from BackstageOS";
-      const testBody = currentEmailSettings?.body || "This is a test email from your BackstageOS waitlist system.";
+      // Prepare test email content with variable replacement (like actual waitlist emails)
+      let testSubject = currentEmailSettings?.subject || "Welcome to the BackstageOS Waitlist!";
+      let testBody = currentEmailSettings?.bodyHtml || "Thank you for joining our waitlist!";
       const fromEmail = apiSettings.senderEmail || "hello@backstageos.com";
       const fromName = apiSettings.senderName || "BackstageOS";
+
+      // Sample test data for variable replacement
+      const testVariables = {
+        '{{firstName}}': 'John',
+        '{{lastName}}': 'Doe',
+        '{{position}}': '42',
+        '{{email}}': testEmail,
+        '{{date}}': new Date().toLocaleDateString("en-US", { 
+          year: "numeric", 
+          month: "long", 
+          day: "numeric" 
+        })
+      };
+
+      // Replace variables in subject and body (same as actual waitlist signup)
+      Object.entries(testVariables).forEach(([variable, value]) => {
+        testSubject = testSubject.replace(new RegExp(variable, 'g'), value);
+        testBody = testBody.replace(new RegExp(variable, 'g'), value);
+      });
 
       const msg = {
         to: testEmail,
