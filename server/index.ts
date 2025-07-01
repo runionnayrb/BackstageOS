@@ -29,10 +29,11 @@ app.use((req, res, next) => {
     return res.redirect(301, `https://${hostname}${req.url}`);
   }
   
-  // Handle domain-specific routing based on Domain Manager configuration
+  // Handle domain-specific routing based on Page Manager database configuration
   if (req.path === '/' && hostname) {
-    // Default routing based on your Domain Manager setup
-    if (hostname === 'backstageos.com' || hostname.includes('backstageos.com') && !hostname.includes('beta.') && !hostname.includes('join.')) {
+    // TODO: Load from database for production use
+    // For now, using default configuration until Page Manager routes are set up
+    if (hostname === 'backstageos.com' || (hostname.includes('backstageos.com') && !hostname.includes('beta.') && !hostname.includes('join.'))) {
       console.log(`Domain routing: ${hostname} → /landing`);
       req.url = '/landing';
     } else if (hostname.includes('beta.backstageos.com') || hostname.includes('app.backstageos.com')) {
