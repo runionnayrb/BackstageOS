@@ -62,7 +62,7 @@ function DNSManagerContent() {
   });
   const [emailConfig, setEmailConfig] = useState<EmailConfig>({
     alias: '',
-    destination: '',
+    destination: 'backstageosapp@gmail.com',
     description: ''
   });
 
@@ -153,7 +153,7 @@ function DNSManagerContent() {
       queryClient.invalidateQueries({ queryKey: ['/api/dns/email'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dns/records'] });
       toast({ title: "Email alias created successfully" });
-      setEmailConfig({ alias: '', destination: '', description: '' });
+      setEmailConfig({ alias: '', destination: 'backstageosapp@gmail.com', description: '' });
     },
     onError: (error: any) => {
       toast({ title: "Failed to create email alias", description: error.message, variant: "destructive" });
@@ -573,8 +573,9 @@ function DNSManagerContent() {
                   id="destination"
                   type="email"
                   value={emailConfig.destination}
-                  onChange={(e) => setEmailConfig({ ...emailConfig, destination: e.target.value })}
-                  placeholder="your-email@example.com"
+                  readOnly
+                  className="bg-gray-50 text-gray-700"
+                  placeholder="backstageosapp@gmail.com"
                 />
               </div>
               <div>
@@ -626,13 +627,10 @@ function DNSManagerContent() {
               </Label>
               <Input
                 id="edit-destination"
-                value={editingEmail?.destination || ''}
-                onChange={(e) => setEditingEmail({
-                  ...editingEmail,
-                  destination: e.target.value
-                })}
-                className="col-span-3"
-                placeholder="your-email@example.com"
+                value="backstageosapp@gmail.com"
+                readOnly
+                className="col-span-3 bg-gray-50 text-gray-700"
+                placeholder="backstageosapp@gmail.com"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
@@ -663,18 +661,18 @@ function DNSManagerContent() {
             </Button>
             <Button 
               onClick={() => {
-                if (editingEmail?.alias && editingEmail?.destination) {
+                if (editingEmail?.alias) {
                   updateEmailMutation.mutate({
                     ruleId: editingEmail.id,
                     config: {
                       alias: editingEmail.alias,
-                      destination: editingEmail.destination,
+                      destination: 'backstageosapp@gmail.com',
                       description: editingEmail.description || ''
                     }
                   });
                 }
               }}
-              disabled={updateEmailMutation.isPending || !editingEmail?.alias || !editingEmail?.destination}
+              disabled={updateEmailMutation.isPending || !editingEmail?.alias}
             >
               {updateEmailMutation.isPending ? "Updating..." : "Update Alias"}
             </Button>
