@@ -60,6 +60,17 @@ export default function WaitlistLanding() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Basic validation
+    if (!formData.email || !formData.firstName || !formData.lastName || !formData.experience) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields (email, name, and experience level).",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/waitlist", {
         method: "POST",
@@ -82,6 +93,9 @@ export default function WaitlistLanding() {
         description: `You're #${data.position} in line. We'll be in touch soon!`,
       });
     } catch (error: any) {
+      console.error("Waitlist submission error:", error);
+      console.error("Form data:", formData);
+      
       if (error.message?.includes("already on waitlist")) {
         toast({
           title: "Already registered",
@@ -91,7 +105,7 @@ export default function WaitlistLanding() {
       } else {
         toast({
           title: "Something went wrong",
-          description: "Please try again or contact support.",
+          description: `Error: ${error.message}. Please try again or contact support.`,
           variant: "destructive",
         });
       }
