@@ -371,9 +371,7 @@ export default function WaitlistEmailSettings() {
               onValueChange={(value) => setFormData(prev => ({ ...prev, fromEmail: value }))}
             >
               <SelectTrigger className="w-full min-w-[300px]">
-                <SelectValue placeholder="Select email address">
-                  {formData.fromEmail}
-                </SelectValue>
+                <SelectValue placeholder="Select email address" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="hello@backstageos.com">
