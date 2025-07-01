@@ -198,12 +198,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // Replace variables in email content
           let subject = emailSettings.subject || "Welcome to BackstageOS Waitlist";
-          let body = emailSettings.body || "Thank you for joining our waitlist!";
+          let body = emailSettings.bodyHtml || "Thank you for joining our waitlist!";
           
           const variables = {
             '{{firstName}}': waitlistEntry.firstName || '',
             '{{lastName}}': waitlistEntry.lastName || '',
-            '{{position}}': waitlistEntry.position.toString(),
+            '{{position}}': (waitlistEntry.position || 1).toString(),
             '{{email}}': waitlistEntry.email,
             '{{date}}': new Date().toLocaleDateString("en-US", { 
               year: "numeric", 
@@ -3485,13 +3485,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         text: testBody.replace(/<[^>]*>/g, '') // Strip HTML for text version
       };
 
-      await sgMail.send(msg);
+      const response = await sgMail.send(msg);
+      
+      console.log("SendGrid response:", JSON.stringify(response, null, 2));
+      console.log("Email sent successfully to:", testEmail);
+      console.log("From address:", `${fromName} <${fromEmail}>`);
+      console.log("API Key length:", apiSettings.sendgridApiKey?.length);
+      console.log("API Key prefix:", apiSettings.sendgridApiKey?.substring(0, 10));
       
       res.json({ 
         message: "Test email sent successfully",
         sentTo: testEmail,
         from: `${fromName} <${fromEmail}>`,
-        subject: testSubject
+        subject: testSubject,
+        sendgridResponse: response?.[0]?.statusCode
       });
     } catch (error: any) {
       console.error("Error sending test email:", error);
