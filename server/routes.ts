@@ -228,10 +228,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .replace(/<p\s*[^>]*>\s*<\/p>/gi, '')
             // Remove empty divs
             .replace(/<div\s*[^>]*>\s*<\/div>/gi, '')
+            // Remove numbered lists that shouldn't be there
+            .replace(/<ol[^>]*>[\s\S]*?<\/ol>/gi, '')
+            .replace(/<li[^>]*>[\s\S]*?<\/li>/gi, '')
+            // Remove any numbered list items like "1."
+            .replace(/^\s*\d+\.\s*/gm, '')
             // Normalize spacing around block elements
             .replace(/\s*(<\/?(p|div|h[1-6]|ul|ol|li)[^>]*>)\s*/gi, '$1')
-            // Clean up arrow symbols to prevent auto-conversion
-            .replace(/→\s*/g, '&rarr; ');
+            // Clean up arrow symbols to prevent auto-conversion and remove bullets
+            .replace(/•\s*→\s*/g, '→ ')
+            .replace(/→\s*/g, '→ ')
+            // Fix line breaks in signatures
+            .replace(/Best regards,\s*([^<\n]+)/gi, 'Best regards,<br>$1');
           
           const msg = {
             to: waitlistEntry.email,
@@ -3524,10 +3532,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .replace(/<p\s*[^>]*>\s*<\/p>/gi, '')
         // Remove empty divs
         .replace(/<div\s*[^>]*>\s*<\/div>/gi, '')
+        // Remove numbered lists that shouldn't be there
+        .replace(/<ol[^>]*>[\s\S]*?<\/ol>/gi, '')
+        .replace(/<li[^>]*>[\s\S]*?<\/li>/gi, '')
+        // Remove any numbered list items like "1."
+        .replace(/^\s*\d+\.\s*/gm, '')
         // Normalize spacing around block elements
         .replace(/\s*(<\/?(p|div|h[1-6]|ul|ol|li)[^>]*>)\s*/gi, '$1')
-        // Clean up arrow symbols to prevent auto-conversion
-        .replace(/→\s*/g, '&rarr; ');
+        // Clean up arrow symbols to prevent auto-conversion and remove bullets
+        .replace(/•\s*→\s*/g, '→ ')
+        .replace(/→\s*/g, '→ ')
+        // Fix line breaks in signatures
+        .replace(/Best regards,\s*([^<\n]+)/gi, 'Best regards,<br>$1');
 
       const msg = {
         to: testEmail,

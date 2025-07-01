@@ -214,26 +214,20 @@ export function RichTextEditor({
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       
-      // Create custom arrow list using proper HTML structure that won't be auto-converted
-      const listDiv = document.createElement('div');
-      listDiv.style.margin = '8px 0';
-      listDiv.style.paddingLeft = '0';
+      // Create simple paragraph with arrow - no lists or complex structures
+      const paragraph = document.createElement('p');
+      paragraph.style.margin = '4px 0';
+      paragraph.style.padding = '0';
+      paragraph.style.listStyle = 'none';
+      // Use regular arrow character that will be cleaned by server
+      paragraph.innerHTML = '→ ' + (selection.toString() || 'Arrow list item');
       
-      const listItem = document.createElement('p');
-      listItem.style.margin = '4px 0';
-      listItem.style.paddingLeft = '0';
-      listItem.style.textIndent = '0';
-      // Use HTML entity for arrow to prevent email client conversion
-      listItem.innerHTML = '&rarr; ' + (selection.toString() || 'Arrow list item');
-      
-      listDiv.appendChild(listItem);
-      
-      // Insert the arrow list
+      // Insert the paragraph
       range.deleteContents();
-      range.insertNode(listDiv);
+      range.insertNode(paragraph);
       
-      // Set cursor at end of item
-      range.selectNodeContents(listItem);
+      // Set cursor at end
+      range.selectNodeContents(paragraph);
       range.collapse(false);
       selection.removeAllRanges();
       selection.addRange(range);
