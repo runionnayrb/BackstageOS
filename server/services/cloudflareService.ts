@@ -141,16 +141,17 @@ class CloudflareService {
       const response = await this.makeRequest(`/zones/${this.zoneId}/email/routing/rules`, {
         method: 'POST',
         body: JSON.stringify({
-          matcher: {
+          matchers: [{
             type: 'literal',
             field: 'to',
             value: `${alias}@${await this.getZoneName()}`
-          },
-          action: {
+          }],
+          actions: [{
             type: 'forward',
             value: [destination]
-          },
-          enabled: true
+          }],
+          enabled: true,
+          name: `Forward ${alias}@${await this.getZoneName()} to ${destination}`
         })
       }) as any;
 
