@@ -201,7 +201,16 @@ function DNSManagerContent() {
 
   const handleUpdateRecord = () => {
     if (!editRecord) return;
-    updateRecordMutation.mutate(editRecord);
+    
+    // Convert display format back to proper format for API
+    const recordToUpdate = {
+      ...editRecord,
+      name: editRecord.name.endsWith('.backstageos') 
+        ? editRecord.name.replace('.backstageos', '')  // Convert back to subdomain only
+        : editRecord.name
+    };
+    
+    updateRecordMutation.mutate(recordToUpdate);
   };
 
   const handleDeleteRecord = (recordId: string) => {
@@ -407,7 +416,13 @@ function DNSManagerContent() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setEditRecord(record)}
+                          onClick={() => setEditRecord({
+                            ...record,
+                            // Show the display format in edit dialog
+                            name: record.name.endsWith('.backstageos.com') 
+                              ? record.name.replace('.backstageos.com', '.backstageos')
+                              : record.name
+                          })}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
