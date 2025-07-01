@@ -18,7 +18,6 @@ import {
   XCircle, 
   Mail,
   Calendar,
-  Building,
   User
 } from "lucide-react";
 import { format } from "date-fns";
@@ -244,8 +243,7 @@ export default function WaitlistManagement() {
                 <TableHead className="w-12">#</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Organization</TableHead>
-                <TableHead>Role</TableHead>
+                <TableHead>Experience</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Joined</TableHead>
                 <TableHead>Actions</TableHead>
@@ -269,15 +267,9 @@ export default function WaitlistManagement() {
                     {entry.email}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center space-x-2">
-                      {entry.organization && <Building className="h-4 w-4 text-gray-400" />}
-                      <span>{entry.organization || "—"}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {entry.role ? (
+                    {entry.experience ? (
                       <Badge variant="outline">
-                        {entry.role.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
+                        {entry.experience.replace("_", " ").replace(/\b\w/g, l => l.toUpperCase())}
                       </Badge>
                     ) : (
                       "—"
