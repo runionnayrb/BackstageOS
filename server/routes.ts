@@ -3070,6 +3070,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update email alias
+  app.put('/api/dns/email/:ruleId', requireAdmin, async (req: any, res) => {
+    try {
+      if (!cloudflareService.isConfigured()) {
+        return res.status(400).json({ message: "Cloudflare API not configured" });
+      }
+
+      const { ruleId } = req.params;
+      const { alias, destination, description } = req.body;
+      
+      if (!ruleId) {
+        return res.status(400).json({ message: "Rule ID is required" });
+      }
+
+      if (!alias || !destination) {
+        return res.status(400).json({ message: "Alias and destination are required" });
+      }
+
+      // Check for existing email aliases with the same name (excluding current one)
+      const existingRules = await cloudflareService.getEmailRules();
+      const zoneName = await cloudflareService.getZoneName();
+      const fullAlias = `${alias}@${zoneName}`;
+      
+      const duplicateRule = existingRules.find((rule: any) => 
+        rule.id !== ruleId && rule.matchers?.[0]?.value === fullAlias
+      );
+      
+      if (duplicateRule) {
+        return res.status(400).json({ 
+          message: `Email alias ${fullAlias} already exists. Please choose a different alias.` 
+        });
+      }
+
+      const updatedRule = await cloudflareService.updateEmailRule(ruleId, alias, destination, description);
+      res.json({ rule: updatedRule, description });
+    } catch (error: any) {
+      console.error("Error updating email alias:", error);
+      res.status(500).json({ message: error.message || "Failed to update email alias" });
+    }
+  });
+
   // Delete email alias
   app.delete('/api/dns/email/:ruleId', requireAdmin, async (req: any, res) => {
     try {

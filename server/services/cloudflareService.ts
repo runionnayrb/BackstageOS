@@ -175,6 +175,40 @@ class CloudflareService {
     }
   }
 
+  async updateEmailRule(ruleId: string, alias: string, destination: string, description?: string): Promise<any> {
+    try {
+      console.log(`Updating email routing rule: ${ruleId}`);
+      const zoneName = await this.getZoneName();
+      
+      const ruleData = {
+        matchers: [{
+          type: "literal",
+          field: "to",
+          value: `${alias}@${zoneName}`
+        }],
+        actions: [{
+          type: "forward",
+          value: [destination]
+        }],
+        name: description || `Forward ${alias}@${zoneName} to ${destination}`,
+        enabled: true
+      };
+
+      console.log('Updating email rule with data:', JSON.stringify(ruleData, null, 2));
+      
+      const response = await this.makeRequest(`/zones/${this.zoneId}/email/routing/rules/${ruleId}`, {
+        method: 'PUT',
+        body: JSON.stringify(ruleData)
+      }) as any;
+
+      console.log('Email rule update response:', JSON.stringify(response, null, 2));
+      return response.result;
+    } catch (error: any) {
+      console.error('Error updating email rule:', error);
+      throw error;
+    }
+  }
+
   async createEmailForward(alias: string, destination: string): Promise<any> {
     try {
       // First ensure email routing is enabled for the zone

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -65,6 +65,9 @@ function DNSManagerContent() {
     destination: '',
     description: ''
   });
+
+  const [editingEmail, setEditingEmail] = useState<any>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   // Fetch DNS records
   const { data: dnsRecords, isLoading: recordsLoading } = useQuery({
@@ -167,6 +170,21 @@ function DNSManagerContent() {
     },
     onError: (error: any) => {
       toast({ title: "Failed to delete email alias", description: error.message, variant: "destructive" });
+    }
+  });
+
+  // Update email alias mutation
+  const updateEmailMutation = useMutation({
+    mutationFn: ({ ruleId, config }: { ruleId: string, config: EmailConfig }) => 
+      apiRequest('PUT', `/api/dns/email/${ruleId}`, config),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/dns/email'] });
+      toast({ title: "Email alias updated successfully" });
+      setShowEditDialog(false);
+      setEditingEmail(null);
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to update email alias", description: error.message, variant: "destructive" });
     }
   });
 
@@ -494,7 +512,17 @@ function DNSManagerContent() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {/* TODO: Edit functionality */}}
+                              onClick={() => {
+                                const aliasName = fromEmail.split('@')[0];
+                                const destination = rule.actions?.[0]?.value?.[0] || '';
+                                setEditingEmail({ 
+                                  id: rule.id, 
+                                  alias: aliasName,
+                                  destination: destination,
+                                  description: rule.name || ''
+                                });
+                                setShowEditDialog(true);
+                              }}
                             >
                               <Edit className="h-4 w-4" />
                             </Button>
@@ -569,6 +597,90 @@ function DNSManagerContent() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Edit Email Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Email Alias</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-alias" className="text-right">
+                Alias
+              </Label>
+              <Input
+                id="edit-alias"
+                value={editingEmail?.alias || ''}
+                onChange={(e) => setEditingEmail({
+                  ...editingEmail,
+                  alias: e.target.value
+                })}
+                className="col-span-3"
+                placeholder="hello"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-destination" className="text-right">
+                Destination
+              </Label>
+              <Input
+                id="edit-destination"
+                value={editingEmail?.destination || ''}
+                onChange={(e) => setEditingEmail({
+                  ...editingEmail,
+                  destination: e.target.value
+                })}
+                className="col-span-3"
+                placeholder="your-email@example.com"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-description" className="text-right">
+                Description
+              </Label>
+              <Input
+                id="edit-description"
+                value={editingEmail?.description || ''}
+                onChange={(e) => setEditingEmail({
+                  ...editingEmail,
+                  description: e.target.value
+                })}
+                className="col-span-3"
+                placeholder="Optional description"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowEditDialog(false);
+                setEditingEmail(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (editingEmail?.alias && editingEmail?.destination) {
+                  updateEmailMutation.mutate({
+                    ruleId: editingEmail.id,
+                    config: {
+                      alias: editingEmail.alias,
+                      destination: editingEmail.destination,
+                      description: editingEmail.description || ''
+                    }
+                  });
+                }
+              }}
+              disabled={updateEmailMutation.isPending || !editingEmail?.alias || !editingEmail?.destination}
+            >
+              {updateEmailMutation.isPending ? "Updating..." : "Update Alias"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Record Dialog */}
       {editRecord && (
