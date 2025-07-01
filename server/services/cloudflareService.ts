@@ -137,22 +137,30 @@ class CloudflareService {
       // First ensure email routing is enabled for the zone
       await this.enableEmailRouting();
       
+      // Check if required MX records exist for email routing
+      await this.ensureEmailMXRecords();
+      
       // Create the email routing rule
+      const zoneName = await this.getZoneName();
+      const requestBody = {
+        matchers: [{
+          type: 'literal',
+          field: 'to',
+          value: `${alias}@${zoneName}`
+        }],
+        actions: [{
+          type: 'forward',
+          value: [destination]
+        }],
+        enabled: true,
+        name: `Forward ${alias}@${zoneName} to ${destination}`
+      };
+      
+      console.log('Email routing request body:', JSON.stringify(requestBody, null, 2));
+      
       const response = await this.makeRequest(`/zones/${this.zoneId}/email/routing/rules`, {
         method: 'POST',
-        body: JSON.stringify({
-          matchers: [{
-            type: 'literal',
-            field: 'to',
-            value: `${alias}@${await this.getZoneName()}`
-          }],
-          actions: [{
-            type: 'forward',
-            value: [destination]
-          }],
-          enabled: true,
-          name: `Forward ${alias}@${await this.getZoneName()} to ${destination}`
-        })
+        body: JSON.stringify(requestBody)
       }) as any;
 
       return response.result;
@@ -181,6 +189,46 @@ class CloudflareService {
     } catch (error: any) {
       console.error('Error enabling email routing:', error);
       throw new Error(`Failed to enable email routing: ${error.message}`);
+    }
+  }
+
+  private async ensureEmailMXRecords(): Promise<void> {
+    try {
+      console.log('Checking MX records for email routing...');
+      const dnsRecords = await this.getDNSRecords();
+      const mxRecords = dnsRecords.filter(record => record.type === 'MX');
+      
+      console.log('Existing MX records:', mxRecords);
+      
+      // Check if Cloudflare Email Routing MX records exist
+      const requiredMXRecords = [
+        { name: '@', content: 'isaac.mx.cloudflare.net', priority: 93 },
+        { name: '@', content: 'linda.mx.cloudflare.net', priority: 83 },
+        { name: '@', content: 'amir.mx.cloudflare.net', priority: 42 }
+      ];
+      
+      const zoneName = await this.getZoneName();
+      
+      for (const requiredMX of requiredMXRecords) {
+        const exists = mxRecords.some(existing => 
+          existing.content.includes(requiredMX.content.split('.')[0]) // Check for isaac/linda/amir
+        );
+        
+        if (!exists) {
+          console.log(`Creating missing MX record: ${requiredMX.content}`);
+          await this.createDNSRecord({
+            type: 'MX',
+            name: requiredMX.name === '@' ? zoneName : requiredMX.name,
+            content: `${requiredMX.priority} ${requiredMX.content}`,
+            ttl: 300
+          });
+        }
+      }
+      
+      console.log('MX records verified for email routing');
+    } catch (error: any) {
+      console.error('Error ensuring MX records:', error);
+      // Don't throw - continue with email routing setup
     }
   }
 
