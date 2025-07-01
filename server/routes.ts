@@ -3019,6 +3019,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get email routing rules
+  app.get('/api/dns/email', requireAdmin, async (req: any, res) => {
+    try {
+      if (!cloudflareService.isConfigured()) {
+        return res.status(400).json({ message: "Cloudflare API not configured" });
+      }
+
+      const rules = await cloudflareService.getEmailRules();
+      res.json(rules);
+    } catch (error: any) {
+      console.error("Error fetching email rules:", error);
+      res.status(500).json({ message: error.message || "Failed to fetch email rules" });
+    }
+  });
+
   // Create email alias
   app.post('/api/dns/email', requireAdmin, async (req: any, res) => {
     try {

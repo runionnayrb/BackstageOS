@@ -80,6 +80,13 @@ function DNSManagerContent() {
     meta: { errorMessage: 'Failed to load zone information' }
   });
 
+  // Fetch email routing rules
+  const { data: emailRules, isLoading: emailRulesLoading } = useQuery({
+    queryKey: ['/api/dns/email'],
+    queryFn: () => fetch('/api/dns/email').then(res => res.json()),
+    meta: { errorMessage: 'Failed to load email routing rules' }
+  });
+
   // Create DNS record mutation
   const createRecordMutation = useMutation({
     mutationFn: (record: Partial<DNSRecord>) => 
@@ -140,6 +147,7 @@ function DNSManagerContent() {
     mutationFn: (config: EmailConfig) => 
       apiRequest('POST', '/api/dns/email', config),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/dns/email'] });
       queryClient.invalidateQueries({ queryKey: ['/api/dns/records'] });
       toast({ title: "Email alias created successfully" });
       setEmailConfig({ alias: '', destination: '', description: '' });
@@ -442,6 +450,55 @@ function DNSManagerContent() {
         </TabsContent>
 
         <TabsContent value="email" className="space-y-6">
+          {/* Existing Email Routing Rules */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Email Routing Rules</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {emailRulesLoading ? (
+                <div className="flex items-center justify-center p-8">
+                  <div className="text-center">
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600 mx-auto mb-4"></div>
+                    <p className="text-sm text-gray-600">Loading email routing rules...</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {Array.isArray(emailRules) && emailRules.length > 0 ? (
+                    emailRules.map((rule: any) => (
+                      <div key={rule.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex-1 grid grid-cols-3 gap-4">
+                          <div>
+                            <Badge variant="outline">EMAIL</Badge>
+                          </div>
+                          <div>
+                            <p className="font-medium">{rule.name}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">
+                              {rule.matchers?.[0]?.field || 'Unknown'}: {rule.matchers?.[0]?.value || 'Unknown'} → {rule.actions?.[0]?.value?.[0] || 'Unknown'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant={rule.enabled ? 'default' : 'secondary'}>
+                            {rule.enabled ? 'Active' : 'Disabled'}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-500">No email routing rules found</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Create Email Alias Form */}
           <Card>
             <CardHeader>
               <CardTitle>Create Email Alias</CardTitle>

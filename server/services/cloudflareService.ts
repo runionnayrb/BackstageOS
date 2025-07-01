@@ -132,6 +132,22 @@ class CloudflareService {
     });
   }
 
+  async getEmailRules(): Promise<any[]> {
+    try {
+      console.log('Fetching email routing rules...');
+      const response = await this.makeRequest(`/zones/${this.zoneId}/email/routing/rules`) as any;
+      console.log('Email rules full response:', JSON.stringify(response, null, 2));
+      console.log('Email rules count:', response.result?.length || 0);
+      if (response.result && response.result.length > 0) {
+        console.log('First rule structure:', JSON.stringify(response.result[0], null, 2));
+      }
+      return response.result || [];
+    } catch (error: any) {
+      console.error('Error fetching email rules:', error);
+      return [];
+    }
+  }
+
   async createEmailForward(alias: string, destination: string): Promise<any> {
     try {
       // First ensure email routing is enabled for the zone
