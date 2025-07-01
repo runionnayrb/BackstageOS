@@ -91,24 +91,106 @@ export function RichTextEditor({
   };
 
   const formatHeading = (level: number) => {
-    executeCommand('formatBlock', `h${level}`);
-  };
-
-  const createList = (ordered: boolean = false) => {
-    executeCommand(ordered ? 'insertOrderedList' : 'insertUnorderedList');
-  };
-
-  const createArrowList = () => {
-    // Create a custom bullet list with arrow symbols
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
-      const listItem = document.createElement('div');
-      listItem.innerHTML = '→ ';
-      range.insertNode(listItem);
-      range.setStartAfter(listItem);
+      
+      // Get the current block element
+      let blockElement = range.startContainer;
+      if (blockElement.nodeType === Node.TEXT_NODE) {
+        blockElement = blockElement.parentNode as Node;
+      }
+      
+      // Create new heading element
+      const heading = document.createElement(`h${level}`);
+      heading.style.margin = '16px 0 8px 0';
+      heading.style.fontWeight = 'bold';
+      heading.style.fontSize = level === 1 ? '24px' : level === 2 ? '20px' : '16px';
+      
+      // If we're in a block element, replace it
+      if (blockElement && blockElement.nodeType === Node.ELEMENT_NODE) {
+        const element = blockElement as Element;
+        if (element.tagName && ['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(element.tagName)) {
+          heading.innerHTML = element.innerHTML || '';
+          element.parentNode?.replaceChild(heading, element);
+        } else {
+          heading.innerHTML = selection.toString() || 'Heading';
+          range.deleteContents();
+          range.insertNode(heading);
+        }
+      } else {
+        heading.innerHTML = selection.toString() || 'Heading';
+        range.deleteContents();
+        range.insertNode(heading);
+      }
+      
+      // Set cursor at end of heading
+      range.selectNodeContents(heading);
+      range.collapse(false);
       selection.removeAllRanges();
       selection.addRange(range);
+      
+      handleInput();
+    }
+  };
+
+  const createList = (ordered: boolean = false) => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      
+      // Create list container
+      const listElement = document.createElement(ordered ? 'ol' : 'ul');
+      listElement.style.margin = '8px 0';
+      listElement.style.paddingLeft = '20px';
+      
+      // Create first list item
+      const listItem = document.createElement('li');
+      listItem.style.margin = '4px 0';
+      listItem.innerHTML = selection.toString() || 'List item';
+      
+      listElement.appendChild(listItem);
+      
+      // Insert the list
+      range.deleteContents();
+      range.insertNode(listElement);
+      
+      // Set cursor at end of first item
+      range.selectNodeContents(listItem);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      handleInput();
+    }
+  };
+
+  const createArrowList = () => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      
+      // Create custom arrow list
+      const listDiv = document.createElement('div');
+      listDiv.style.margin = '8px 0';
+      
+      const listItem = document.createElement('div');
+      listItem.style.margin = '4px 0';
+      listItem.innerHTML = '→ ' + (selection.toString() || 'Arrow list item');
+      
+      listDiv.appendChild(listItem);
+      
+      // Insert the arrow list
+      range.deleteContents();
+      range.insertNode(listDiv);
+      
+      // Set cursor at end of item
+      range.selectNodeContents(listItem);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      handleInput();
     }
   };
 
