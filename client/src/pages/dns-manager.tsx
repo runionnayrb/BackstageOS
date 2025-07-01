@@ -196,21 +196,14 @@ function DNSManagerContent() {
       toast({ title: "Please fill in all required fields", variant: "destructive" });
       return;
     }
+    
     createRecordMutation.mutate(newRecord);
   };
 
   const handleUpdateRecord = () => {
     if (!editRecord) return;
     
-    // Convert display format back to proper format for API
-    const recordToUpdate = {
-      ...editRecord,
-      name: editRecord.name.endsWith('.backstageos') 
-        ? editRecord.name.replace('.backstageos', '')  // Convert back to subdomain only
-        : editRecord.name
-    };
-    
-    updateRecordMutation.mutate(recordToUpdate);
+    updateRecordMutation.mutate(editRecord);
   };
 
   const handleDeleteRecord = (recordId: string) => {

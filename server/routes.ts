@@ -3005,6 +3005,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Type, name, and content are required" });
       }
 
+      console.log("DNS Record Creation Request:", { type, name, content, ttl, proxied });
+
       const record = await cloudflareService.createDNSRecord({
         type,
         name,
@@ -3013,6 +3015,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         proxied: proxied || false
       });
       
+      console.log("Cloudflare response:", record);
       res.json(record);
     } catch (error: any) {
       console.error("Error creating DNS record:", error);
@@ -3031,13 +3034,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updates = req.body;
       
       console.log("DNS Record Update Request:", updates);
-      
-      // Convert SendGrid display format to proper subdomain format for Cloudflare API
-      if (updates.name && updates.name.endsWith('.backstageos') && updates.name !== 'backstageos.com') {
-        // Convert "em1868.backstageos" to "em1868" for the API
-        updates.name = updates.name.replace('.backstageos', '');
-        console.log("Converted record name from display format:", updates.name);
-      }
       
       const record = await cloudflareService.updateDNSRecord(recordId, updates);
       console.log("Cloudflare response:", record);
