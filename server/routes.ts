@@ -182,6 +182,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const waitlistEntry = await storage.createWaitlistEntry(waitlistData);
+      
+      // Send welcome email if enabled
+      try {
+        const emailSettings = await storage.getWaitlistEmailSettings();
+        const apiSettings = await storage.getApiSettings();
+        
+        if (emailSettings?.isEnabled && apiSettings?.sendgridApiKey) {
+          // Configure SendGrid
+          sgMail.setApiKey(apiSettings.sendgridApiKey);
+          
+          // Use verified sender from API settings
+          const fromEmail = apiSettings.senderEmail || "hello@backstageos.com";
+          const fromName = apiSettings.senderName || "BackstageOS";
+          
+          // Replace variables in email content
+          let subject = emailSettings.subject || "Welcome to BackstageOS Waitlist";
+          let body = emailSettings.body || "Thank you for joining our waitlist!";
+          
+          const variables = {
+            '{{firstName}}': waitlistEntry.firstName || '',
+            '{{lastName}}': waitlistEntry.lastName || '',
+            '{{position}}': waitlistEntry.position.toString(),
+            '{{email}}': waitlistEntry.email,
+            '{{date}}': new Date().toLocaleDateString("en-US", { 
+              year: "numeric", 
+              month: "long", 
+              day: "numeric" 
+            })
+          };
+          
+          // Replace variables in subject and body
+          Object.entries(variables).forEach(([variable, value]) => {
+            subject = subject.replace(new RegExp(variable, 'g'), value);
+            body = body.replace(new RegExp(variable, 'g'), value);
+          });
+          
+          const msg = {
+            to: waitlistEntry.email,
+            from: {
+              email: fromEmail,
+              name: fromName
+            },
+            subject: subject,
+            html: body,
+            text: body.replace(/<[^>]*>/g, '') // Strip HTML for text version
+          };
+          
+          await sgMail.send(msg);
+          console.log(`Welcome email sent to ${waitlistEntry.email} using sender: ${fromEmail}`);
+        }
+      } catch (emailError) {
+        // Don't fail the waitlist signup if email fails
+        console.error("Error sending welcome email:", emailError);
+      }
+      
       res.status(201).json({ 
         success: true, 
         position: waitlistEntry.position,
