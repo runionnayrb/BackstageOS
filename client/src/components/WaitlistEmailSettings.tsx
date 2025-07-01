@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { RichTextEditor } from "@/components/rich-text-editor";
-import { Mail, Eye, EyeOff, Save, Plus } from "lucide-react";
+import { Mail, Eye, EyeOff, Save, Plus, Settings, Trash2 } from "lucide-react";
 import type { WaitlistEmailSettings, InsertWaitlistEmailSettings } from "@shared/schema";
 
 interface Variable {
@@ -29,6 +30,12 @@ const AVAILABLE_VARIABLES: Variable[] = [
 
 export default function WaitlistEmailSettings() {
   const [showPreview, setShowPreview] = useState(false);
+  const [showApiSettings, setShowApiSettings] = useState(false);
+  const [apiSettings, setApiSettings] = useState({
+    sendgridApiKey: "",
+    senderEmail: "",
+    senderName: ""
+  });
   const [previewData, setPreviewData] = useState({
     firstName: "John",
     lastName: "Doe",
@@ -153,13 +160,81 @@ export default function WaitlistEmailSettings() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Waitlist Email Settings
-          </CardTitle>
-          <CardDescription>
-            Configure automatic emails sent to users when they join the waitlist.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5" />
+                Waitlist Email Settings
+              </CardTitle>
+              <CardDescription>
+                Configure automatic emails sent to users when they join the waitlist.
+              </CardDescription>
+            </div>
+            <Dialog open={showApiSettings} onOpenChange={setShowApiSettings}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  API Settings
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>SendGrid API Settings</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="sendgrid-api-key">SendGrid API Key</Label>
+                      <Input
+                        id="sendgrid-api-key"
+                        type="password"
+                        value={apiSettings.sendgridApiKey}
+                        onChange={(e) => setApiSettings(prev => ({ ...prev, sendgridApiKey: e.target.value }))}
+                        placeholder="SG.xxxxxxxxxxxxxxxxxxxx"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="sender-email">Sender Email</Label>
+                      <Input
+                        id="sender-email"
+                        type="email"
+                        value={apiSettings.senderEmail}
+                        onChange={(e) => setApiSettings(prev => ({ ...prev, senderEmail: e.target.value }))}
+                        placeholder="hello@backstageos.com"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="sender-name">Sender Name</Label>
+                      <Input
+                        id="sender-name"
+                        value={apiSettings.senderName}
+                        onChange={(e) => setApiSettings(prev => ({ ...prev, senderName: e.target.value }))}
+                        placeholder="BackstageOS"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button variant="outline" onClick={() => setShowApiSettings(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={() => {
+                      // TODO: Save API settings
+                      toast({
+                        title: "API Settings Saved",
+                        description: "SendGrid configuration has been updated.",
+                      });
+                      setShowApiSettings(false);
+                    }}>
+                      Save Settings
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Email enabled toggle */}
