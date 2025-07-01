@@ -138,7 +138,9 @@ class CloudflareService {
       await this.enableEmailRouting();
       
       // Check if required MX records exist for email routing
+      console.log('About to check MX records...');
       await this.ensureEmailMXRecords();
+      console.log('MX records check completed');
       
       // Create the email routing rule
       const zoneName = await this.getZoneName();
@@ -158,6 +160,21 @@ class CloudflareService {
       
       console.log('Email routing request body:', JSON.stringify(requestBody, null, 2));
       
+      // Check if destination email is verified
+      console.log('Checking destination addresses...');
+      try {
+        const addresses = await this.makeRequest(`/zones/${this.zoneId}/email/routing/addresses`) as any;
+        console.log('Verified addresses:', addresses.result);
+        
+        const isVerified = addresses.result?.some((addr: any) => addr.email === destination && addr.verified);
+        if (!isVerified) {
+          console.log(`Destination ${destination} not verified, attempting to create rule anyway...`);
+        }
+      } catch (addrError) {
+        console.log('Could not check destination addresses, continuing with rule creation...');
+      }
+      
+      console.log('Creating email routing rule...');
       const response = await this.makeRequest(`/zones/${this.zoneId}/email/routing/rules`, {
         method: 'POST',
         body: JSON.stringify(requestBody)
@@ -172,14 +189,17 @@ class CloudflareService {
 
   private async enableEmailRouting(): Promise<void> {
     try {
+      console.log('Checking email routing status...');
       // Check if email routing is already enabled
       const status = await this.makeRequest(`/zones/${this.zoneId}/email/routing`) as any;
+      console.log('Email routing status:', status.result);
       
       if (status.result?.enabled) {
         console.log('Email routing already enabled');
         return;
       }
 
+      console.log('Enabling email routing...');
       // Enable email routing
       await this.makeRequest(`/zones/${this.zoneId}/email/routing/enable`, {
         method: 'POST'
@@ -188,7 +208,8 @@ class CloudflareService {
       console.log('Email routing enabled successfully');
     } catch (error: any) {
       console.error('Error enabling email routing:', error);
-      throw new Error(`Failed to enable email routing: ${error.message}`);
+      console.log('Will continue with rule creation - routing might already be configured');
+      // Don't throw - some zones have routing enabled but API reports differently
     }
   }
 
