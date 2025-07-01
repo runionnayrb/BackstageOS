@@ -218,17 +218,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             body = body.replace(new RegExp(variable, 'g'), value);
           });
 
-          // Clean up HTML formatting to prevent email client issues
-          body = body
-            // Remove any numbered list items like "1." at start of lines (but keep bullet lists)
-            .replace(/^\s*\d+\.\s*/gm, '')
-            // Only remove ordered lists, keep unordered lists (bullet lists)
-            .replace(/<ol[^>]*>/gi, '')
-            .replace(/<\/ol>/gi, '')
-            // MINIMAL CLEANING - Only remove truly empty paragraphs (no content at all)
-            .replace(/<p[^>]*>\s*<\/p>/gi, '')
-            // Fix line breaks in signatures
-            .replace(/Best regards,\s*([^<\n]+)/gi, 'Best regards,<br>$1');
+          // NO HTML CLEANING - Send exactly as designed in template
           
           const msg = {
             to: waitlistEntry.email,
@@ -3511,17 +3501,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         testBody = testBody.replace(new RegExp(variable, 'g'), value);
       });
 
-      // Clean up HTML formatting to prevent email client issues
-      testBody = testBody
-        // Remove any numbered list items like "1." at start of lines (but keep bullet lists)
-        .replace(/^\s*\d+\.\s*/gm, '')
-        // Only remove ordered lists, keep unordered lists (bullet lists)
-        .replace(/<ol[^>]*>/gi, '')
-        .replace(/<\/ol>/gi, '')
-        // MINIMAL CLEANING - Only remove truly empty paragraphs (no content at all)
-        .replace(/<p[^>]*>\s*<\/p>/gi, '')
-        // Fix line breaks in signatures
-        .replace(/Best regards,\s*([^<\n]+)/gi, 'Best regards,<br>$1');
+      // NO HTML CLEANING - Send exactly as designed in template
 
       const msg = {
         to: testEmail,
