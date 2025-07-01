@@ -183,18 +183,25 @@ export function RichTextEditor({
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       
-      // Create list container
+      // Create list container with explicit bullet styling
       const listElement = document.createElement(ordered ? 'ol' : 'ul');
       listElement.style.margin = '8px 0';
       listElement.style.paddingLeft = '20px';
-      listElement.style.listStyleType = ordered ? 'decimal' : 'disc';
+      listElement.style.marginLeft = '0';
+      if (ordered) {
+        listElement.style.listStyleType = 'decimal';
+      } else {
+        listElement.style.listStyleType = 'disc';
+        listElement.style.listStylePosition = 'outside';
+      }
       listElement.style.display = 'block';
       
-      // Create first list item
+      // Create first list item with explicit styling
       const listItem = document.createElement('li');
       listItem.style.margin = '4px 0';
       listItem.style.display = 'list-item';
       listItem.style.listStyleType = 'inherit';
+      listItem.style.listStylePosition = 'inherit';
       listItem.innerHTML = selection.toString() || 'List item';
       
       listElement.appendChild(listItem);
