@@ -769,8 +769,32 @@ class DatabaseStorage implements IStorage {
   }
 
   async deleteWaitlistEntry(id: number): Promise<void> {
+    // First, get the position of the entry being deleted
+    const entryToDelete = await db.select()
+      .from(waitlist)
+      .where(eq(waitlist.id, id))
+      .limit(1);
+    
+    if (entryToDelete.length === 0) {
+      throw new Error("Waitlist entry not found");
+    }
+    
+    const deletedPosition = entryToDelete[0].position;
+    
+    // Delete the entry
     await db.delete(waitlist)
       .where(eq(waitlist.id, id));
+    
+    // Update positions of all entries that came after the deleted entry
+    // Move them up by one position (subtract 1 from their position)
+    if (deletedPosition) {
+      await db.update(waitlist)
+        .set({ 
+          position: sql`${waitlist.position} - 1`,
+          updatedAt: new Date()
+        })
+        .where(sql`${waitlist.position} > ${deletedPosition}`);
+    }
   }
 
   async getWaitlistStats(): Promise<any> {
