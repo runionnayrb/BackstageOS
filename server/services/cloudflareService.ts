@@ -341,7 +341,7 @@ class CloudflareService {
   }
 
   isConfigured(): boolean {
-    return !!(this.apiToken && this.zoneId);
+    return !!((this.apiToken || (this.apiEmail && this.apiKey)) && this.zoneId);
   }
 }
 
