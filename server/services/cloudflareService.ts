@@ -137,11 +137,24 @@ class CloudflareService {
       console.log('Fetching email routing rules...');
       const response = await this.makeRequest(`/zones/${this.zoneId}/email/routing/rules`) as any;
       console.log('Email rules full response:', JSON.stringify(response, null, 2));
-      console.log('Email rules count:', response.result?.length || 0);
-      if (response.result && response.result.length > 0) {
-        console.log('First rule structure:', JSON.stringify(response.result[0], null, 2));
-      }
-      return response.result || [];
+      
+      const allRules = response.result || [];
+      console.log('Total email rules count:', allRules.length);
+      
+      // Filter out system rules (catch-all drop rules) and only return user-created forwarding rules
+      const userRules = allRules.filter((rule: any) => {
+        const isSystemDropRule = rule.actions?.[0]?.type === 'drop' && 
+                                 rule.matchers?.[0]?.type === 'all' &&
+                                 rule.priority === 2147483647;
+        const isForwardRule = rule.actions?.[0]?.type === 'forward';
+        
+        console.log(`Rule ${rule.id}: Type=${rule.actions?.[0]?.type}, Priority=${rule.priority}, IsSystemDrop=${isSystemDropRule}, IsForward=${isForwardRule}`);
+        
+        return isForwardRule && !isSystemDropRule;
+      });
+      
+      console.log('User-created forwarding rules count:', userRules.length);
+      return userRules;
     } catch (error: any) {
       console.error('Error fetching email rules:', error);
       return [];
