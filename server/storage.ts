@@ -22,6 +22,7 @@ import {
   props,
   domainRoutes,
   waitlist,
+  waitlistEmailSettings,
   seoSettings,
 
   type User,
@@ -64,6 +65,8 @@ import {
   type InsertErrorLog,
   type Waitlist,
   type InsertWaitlist,
+  type WaitlistEmailSettings,
+  type InsertWaitlistEmailSettings,
   type Prop,
   type InsertProp,
   type DomainRoute,
@@ -99,6 +102,11 @@ export interface IStorage {
   deleteWaitlistEntry(id: number): Promise<void>;
   getWaitlistStats(): Promise<any>;
   convertWaitlistToUser(email: string): Promise<void>;
+
+  // Waitlist email settings operations
+  getWaitlistEmailSettings(): Promise<WaitlistEmailSettings | undefined>;
+  createWaitlistEmailSettings(settings: InsertWaitlistEmailSettings): Promise<WaitlistEmailSettings>;
+  updateWaitlistEmailSettings(id: number, settings: Partial<InsertWaitlistEmailSettings>): Promise<WaitlistEmailSettings | undefined>;
 
   // Project operations
   getProjectsByUserId(userId: string): Promise<Project[]>;
@@ -811,6 +819,39 @@ class DatabaseStorage implements IStorage {
       pending: pending[0]?.count || 0,
       approved: approved[0]?.count || 0
     };
+  }
+
+  // Waitlist email settings operations
+  async getWaitlistEmailSettings(): Promise<WaitlistEmailSettings | undefined> {
+    const result = await db.select()
+      .from(waitlistEmailSettings)
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async createWaitlistEmailSettings(settings: InsertWaitlistEmailSettings): Promise<WaitlistEmailSettings> {
+    const result = await db.insert(waitlistEmailSettings)
+      .values({
+        ...settings,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    
+    return result[0];
+  }
+
+  async updateWaitlistEmailSettings(id: number, settings: Partial<InsertWaitlistEmailSettings>): Promise<WaitlistEmailSettings | undefined> {
+    const result = await db.update(waitlistEmailSettings)
+      .set({
+        ...settings,
+        updatedAt: new Date()
+      })
+      .where(eq(waitlistEmailSettings.id, id))
+      .returning();
+    
+    return result[0];
   }
 
   // SEO settings operations

@@ -7,9 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import WaitlistEmailSettings from "./WaitlistEmailSettings";
 import { 
   Users, 
   TrendingUp, 
@@ -19,7 +21,8 @@ import {
   Mail,
   Calendar,
   User,
-  Trash2
+  Trash2,
+  Settings
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -232,8 +235,21 @@ export default function WaitlistManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
-      {stats && (
+      <Tabs defaultValue="entries" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="entries" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Waitlist Entries
+          </TabsTrigger>
+          <TabsTrigger value="email-settings" className="flex items-center gap-2">
+            <Settings className="h-4 w-4" />
+            Email Settings
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="entries" className="space-y-6">
+          {/* Stats Cards */}
+          {stats && (
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <Card>
             <CardContent className="p-4">
@@ -541,6 +557,12 @@ export default function WaitlistManagement() {
           </div>
         </DialogContent>
       </Dialog>
+        </TabsContent>
+
+        <TabsContent value="email-settings">
+          <WaitlistEmailSettings />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

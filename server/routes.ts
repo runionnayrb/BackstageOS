@@ -3176,6 +3176,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Waitlist email settings routes
+  app.get('/api/waitlist/email-settings', requireAdmin, async (req: any, res) => {
+    try {
+      const settings = await storage.getWaitlistEmailSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching waitlist email settings:", error);
+      res.status(500).json({ message: "Failed to fetch email settings" });
+    }
+  });
+
+  app.post('/api/waitlist/email-settings', requireAdmin, async (req: any, res) => {
+    try {
+      const settingsData = insertWaitlistEmailSettingsSchema.parse(req.body);
+      const settings = await storage.createWaitlistEmailSettings(settingsData);
+      res.json(settings);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid email settings data", errors: error.errors });
+      }
+      console.error("Error creating waitlist email settings:", error);
+      res.status(500).json({ message: "Failed to create email settings" });
+    }
+  });
+
+  app.put('/api/waitlist/email-settings/:id', requireAdmin, async (req: any, res) => {
+    try {
+      const settingsId = parseInt(req.params.id);
+      const settingsData = insertWaitlistEmailSettingsSchema.partial().parse(req.body);
+      
+      const settings = await storage.updateWaitlistEmailSettings(settingsId, settingsData);
+      if (!settings) {
+        return res.status(404).json({ message: "Email settings not found" });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid email settings data", errors: error.errors });
+      }
+      console.error("Error updating waitlist email settings:", error);
+      res.status(500).json({ message: "Failed to update email settings" });
+    }
+  });
+
   const server = createServer(app);
   return server;
 }

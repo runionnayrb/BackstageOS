@@ -749,6 +749,19 @@ export const errorLogs = pgTable("error_logs", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Waitlist email settings table
+export const waitlistEmailSettings = pgTable("waitlist_email_settings", {
+  id: serial("id").primaryKey(),
+  fromEmail: varchar("from_email", { length: 255 }).notNull(),
+  fromName: varchar("from_name", { length: 100 }).notNull().default("BackstageOS"),
+  subject: varchar("subject", { length: 255 }).notNull().default("Welcome to the BackstageOS Waitlist!"),
+  bodyHtml: text("body_html").notNull(),
+  bodyText: text("body_text").notNull(),
+  isEnabled: boolean("is_enabled").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const contactSheetVersionsRelations = relations(contactSheetVersions, ({ one }) => ({
   project: one(projects, {
     fields: [contactSheetVersions.projectId],
@@ -1069,6 +1082,12 @@ export const insertSeoSettingsSchema = createInsertSchema(seoSettings).omit({
   updatedAt: true,
 });
 
+export const insertWaitlistEmailSettingsSchema = createInsertSchema(waitlistEmailSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type exports
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -1122,3 +1141,5 @@ export type Prop = typeof props.$inferSelect;
 export type InsertProp = z.infer<typeof insertPropsSchema>;
 export type SeoSettings = typeof seoSettings.$inferSelect;
 export type InsertSeoSettings = z.infer<typeof insertSeoSettingsSchema>;
+export type WaitlistEmailSettings = typeof waitlistEmailSettings.$inferSelect;
+export type InsertWaitlistEmailSettings = z.infer<typeof insertWaitlistEmailSettingsSchema>;
