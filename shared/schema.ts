@@ -1018,6 +1018,57 @@ export const insertPropsSchema = createInsertSchema(props).omit({
   updatedAt: true,
 });
 
+// SEO Configuration table with AI optimization
+export const seoSettings = pgTable("seo_settings", {
+  id: serial("id").primaryKey(),
+  domain: varchar("domain").notNull().unique(), // e.g., "backstageos.com", "beta.backstageos.com"
+  siteTitle: varchar("site_title").notNull(),
+  siteDescription: text("site_description").notNull(),
+  keywords: text("keywords"), // comma-separated keywords
+  faviconUrl: varchar("favicon_url"),
+  appleTouchIconUrl: varchar("apple_touch_icon_url"),
+  shareImageUrl: varchar("share_image_url"), // Open Graph image
+  shareImageAlt: varchar("share_image_alt"),
+  twitterCard: varchar("twitter_card").default("summary_large_image"), // summary, summary_large_image
+  twitterHandle: varchar("twitter_handle"), // @username
+  author: varchar("author"),
+  themeColor: varchar("theme_color").default("#2563eb"), // hex color for browser theme
+  customMeta: jsonb("custom_meta"), // Additional meta tags as JSON
+  openGraphType: varchar("og_type").default("website"), // website, article, etc.
+  
+  // AI Optimization Fields
+  structuredData: jsonb("structured_data"), // JSON-LD schema markup for AI/search engines
+  aiDescription: text("ai_description"), // Optimized description for AI systems
+  semanticKeywords: text("semantic_keywords"), // LSI and semantic keywords for AI understanding
+  contentCategories: text("content_categories"), // comma-separated content categories
+  targetAudience: varchar("target_audience"), // primary audience description
+  industryVertical: varchar("industry_vertical"), // theater, entertainment, production
+  functionalityTags: text("functionality_tags"), // what the app does (comma-separated)
+  aiMetadata: jsonb("ai_metadata"), // Additional AI-specific metadata
+  robotsDirectives: text("robots_directives").default("index, follow"), // robots meta tag
+  canonicalUrl: varchar("canonical_url"), // canonical URL for duplicate content
+  languageCode: varchar("language_code").default("en-US"), // language for AI understanding
+  geoTargeting: varchar("geo_targeting"), // geographic targeting info
+  
+  isActive: boolean("is_active").default(true),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const seoSettingsRelations = relations(seoSettings, ({ one }) => ({
+  creator: one(users, {
+    fields: [seoSettings.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const insertSeoSettingsSchema = createInsertSchema(seoSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type exports
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -1069,3 +1120,5 @@ export type LocationAvailability = typeof locationAvailability.$inferSelect;
 export type InsertLocationAvailability = z.infer<typeof insertLocationAvailabilitySchema>;
 export type Prop = typeof props.$inferSelect;
 export type InsertProp = z.infer<typeof insertPropsSchema>;
+export type SeoSettings = typeof seoSettings.$inferSelect;
+export type InsertSeoSettings = z.infer<typeof insertSeoSettingsSchema>;

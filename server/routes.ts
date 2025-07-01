@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { z } from "zod";
 
@@ -3001,6 +3001,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting domain route:", error);
       res.status(500).json({ message: "Failed to delete domain route" });
+    }
+  });
+
+  // SEO Settings Routes
+  app.get('/api/seo-settings', requireAdmin, async (req: any, res) => {
+    try {
+      const settings = await storage.getAllSeoSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching SEO settings:", error);
+      res.status(500).json({ message: "Failed to fetch SEO settings" });
+    }
+  });
+
+  app.get('/api/seo-settings/:domain', async (req: any, res) => {
+    try {
+      const domain = req.params.domain;
+      const settings = await storage.getSeoSettings(domain);
+      
+      if (!settings) {
+        return res.status(404).json({ message: "SEO settings not found for domain" });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching SEO settings:", error);
+      res.status(500).json({ message: "Failed to fetch SEO settings" });
+    }
+  });
+
+  app.post('/api/seo-settings', requireAdmin, async (req: any, res) => {
+    try {
+      const settingsData = insertSeoSettingsSchema.parse({
+        ...req.body,
+        createdBy: req.user.id,
+      });
+      
+      const settings = await storage.createSeoSettings(settingsData);
+      res.json(settings);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid SEO settings data", errors: error.errors });
+      }
+      console.error("Error creating SEO settings:", error);
+      res.status(500).json({ message: "Failed to create SEO settings" });
+    }
+  });
+
+  app.put('/api/seo-settings/:id', requireAdmin, async (req: any, res) => {
+    try {
+      const settingsId = parseInt(req.params.id);
+      const settingsData = insertSeoSettingsSchema.partial().parse(req.body);
+      
+      const settings = await storage.updateSeoSettings(settingsId, settingsData);
+      if (!settings) {
+        return res.status(404).json({ message: "SEO settings not found" });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid SEO settings data", errors: error.errors });
+      }
+      console.error("Error updating SEO settings:", error);
+      res.status(500).json({ message: "Failed to update SEO settings" });
+    }
+  });
+
+  app.delete('/api/seo-settings/:id', requireAdmin, async (req: any, res) => {
+    try {
+      const settingsId = parseInt(req.params.id);
+      await storage.deleteSeoSettings(settingsId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting SEO settings:", error);
+      res.status(500).json({ message: "Failed to delete SEO settings" });
     }
   });
 

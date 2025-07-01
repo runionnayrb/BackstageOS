@@ -22,6 +22,7 @@ import {
   props,
   domainRoutes,
   waitlist,
+  seoSettings,
 
   type User,
   type UpsertUser,
@@ -67,6 +68,8 @@ import {
   type InsertProp,
   type DomainRoute,
   type InsertDomainRoute,
+  type SeoSettings,
+  type InsertSeoSettings,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -201,6 +204,13 @@ export interface IStorage {
   createDomainRoute(route: InsertDomainRoute): Promise<DomainRoute>;
   updateDomainRoute(id: number, route: Partial<InsertDomainRoute>): Promise<DomainRoute>;
   deleteDomainRoute(id: number): Promise<void>;
+
+  // SEO settings operations
+  getSeoSettings(domain: string): Promise<SeoSettings | undefined>;
+  getAllSeoSettings(): Promise<SeoSettings[]>;
+  createSeoSettings(settings: InsertSeoSettings): Promise<SeoSettings>;
+  updateSeoSettings(id: number, settings: Partial<InsertSeoSettings>): Promise<SeoSettings>;
+  deleteSeoSettings(id: number): Promise<void>;
 }
 
 class DatabaseStorage implements IStorage {
@@ -757,6 +767,45 @@ class DatabaseStorage implements IStorage {
       pending: pending[0]?.count || 0,
       approved: approved[0]?.count || 0
     };
+  }
+
+  // SEO settings operations
+  async getSeoSettings(domain: string): Promise<SeoSettings | undefined> {
+    const result = await db.select()
+      .from(seoSettings)
+      .where(eq(seoSettings.domain, domain))
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async getAllSeoSettings(): Promise<SeoSettings[]> {
+    return await db.select()
+      .from(seoSettings)
+      .orderBy(seoSettings.domain);
+  }
+
+  async createSeoSettings(settings: InsertSeoSettings): Promise<SeoSettings> {
+    const result = await db.insert(seoSettings).values({
+      ...settings,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }).returning();
+    
+    return result[0];
+  }
+
+  async updateSeoSettings(id: number, settings: Partial<InsertSeoSettings>): Promise<SeoSettings> {
+    const result = await db.update(seoSettings)
+      .set({ ...settings, updatedAt: new Date() })
+      .where(eq(seoSettings.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  async deleteSeoSettings(id: number): Promise<void> {
+    await db.delete(seoSettings).where(eq(seoSettings.id, id));
   }
 }
 

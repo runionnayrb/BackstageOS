@@ -1,4 +1,4 @@
-import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe } from "lucide-react";
+import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -260,10 +260,16 @@ export default function Header() {
                 </DropdownMenuItem>
                 
                 {isAdmin(user) && (
-                  <DropdownMenuItem onClick={() => setLocation('/admin/dns')}>
-                    <Globe className="mr-2 h-4 w-4" />
-                    Domain Management
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem onClick={() => setLocation('/admin/dns')}>
+                      <Globe className="mr-2 h-4 w-4" />
+                      Domain Management
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLocation('/admin/seo')}>
+                      <Search className="mr-2 h-4 w-4" />
+                      SEO & AI Optimization
+                    </DropdownMenuItem>
+                  </>
                 )}
                 
                 {isAdmin(user) && (

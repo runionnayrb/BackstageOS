@@ -47,6 +47,7 @@ import MainLanding from "@/pages/main-landing";
 import DNSManager from "@/pages/dns-manager";
 import DomainManager from "@/pages/domain-manager";
 import PageManager from "@/pages/page-manager";
+import SeoManager from "@/pages/seo-manager";
 
 
 function Router() {
@@ -165,6 +166,7 @@ function Router() {
         <Route path="/admin/pages" component={PageManager} />
         <Route path="/admin/dns" component={DNSManager} />
         <Route path="/admin/domains" component={DomainManager} />
+        <Route path="/admin/seo" component={SeoManager} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
