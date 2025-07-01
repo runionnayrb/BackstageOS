@@ -81,7 +81,7 @@ export default function WaitlistEmailSettings() {
   });
 
   const [formData, setFormData] = useState<InsertWaitlistEmailSettings>({
-    fromEmail: emailSettings?.fromEmail || "",
+    fromEmail: emailSettings?.fromEmail || "hello@backstageos.com",
     fromName: emailSettings?.fromName || "BackstageOS",
     subject: emailSettings?.subject || "Welcome to the BackstageOS Waitlist!",
     bodyHtml: emailSettings?.bodyHtml || getDefaultHtmlBody(),
@@ -93,12 +93,12 @@ export default function WaitlistEmailSettings() {
   useState(() => {
     if (emailSettings) {
       setFormData({
-        fromEmail: emailSettings.fromEmail,
-        fromName: emailSettings.fromName,
-        subject: emailSettings.subject,
-        bodyHtml: emailSettings.bodyHtml,
-        bodyText: emailSettings.bodyText,
-        isEnabled: emailSettings.isEnabled,
+        fromEmail: emailSettings.fromEmail || "hello@backstageos.com",
+        fromName: emailSettings.fromName || "BackstageOS",
+        subject: emailSettings.subject || "Welcome to the BackstageOS Waitlist!",
+        bodyHtml: emailSettings.bodyHtml || getDefaultHtmlBody(),
+        bodyText: emailSettings.bodyText || getDefaultTextBody(),
+        isEnabled: emailSettings.isEnabled ?? true,
       });
     }
   });
@@ -183,14 +183,14 @@ export default function WaitlistEmailSettings() {
                 <SelectValue placeholder="Select email address" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="hello@backstageos.com">
+                  Default (hello@backstageos.com)
+                </SelectItem>
                 {domainEmails?.filter(email => email.email && email.email.trim() !== '').map((email) => (
                   <SelectItem key={email.email} value={email.email}>
                     {email.name} ({email.email})
                   </SelectItem>
                 ))}
-                <SelectItem value="hello@backstageos.com">
-                  Default (hello@backstageos.com)
-                </SelectItem>
               </SelectContent>
             </Select>
           </div>

@@ -3176,6 +3176,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Domain emails endpoint
+  app.get('/api/domain-emails', requireAdmin, async (req: any, res) => {
+    try {
+      // Return available domain email addresses for the organization
+      const domainEmails = [
+        { email: 'hello@backstageos.com', name: 'Hello' },
+        { email: 'support@backstageos.com', name: 'Support' },
+        { email: 'team@backstageos.com', name: 'Team' },
+        { email: 'noreply@backstageos.com', name: 'No Reply' }
+      ];
+      res.json(domainEmails);
+    } catch (error) {
+      console.error("Error fetching domain emails:", error);
+      res.status(500).json({ message: "Failed to fetch domain emails" });
+    }
+  });
+
   // Waitlist email settings routes
   app.get('/api/waitlist/email-settings', requireAdmin, async (req: any, res) => {
     try {
