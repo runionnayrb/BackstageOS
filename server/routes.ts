@@ -225,26 +225,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Only remove ordered lists, keep unordered lists (bullet lists)
             .replace(/<ol[^>]*>/gi, '')
             .replace(/<\/ol>/gi, '')
-            // Remove ALL empty paragraphs first
-            .replace(/<p\s*[^>]*>\s*<\/p>/gi, '')
-            // Remove excessive whitespace between tags
-            .replace(/>\s+</gi, '><')
-            // Fix spacing after bullet lists - directly connect to next paragraph
-            .replace(/(<\/ul>)\s*(<p[^>]*>)/gi, '$1$2')
-            // Remove excessive spacing before BackstageOS section specifically
-            .replace(/(\s*<p[^>]*>\s*<\/p>\s*)*(<p[^>]*>BackstageOS)/gi, '$2')
-            .replace(/(<\/p>)\s*(<\/p>\s*)*(<p[^>]*>BackstageOS)/gi, '$1$3')
-            .replace(/(<br\s*\/?>\s*){2,}(<p[^>]*>BackstageOS)/gi, '$2')
-            // Clean up any remaining multiple paragraph breaks
-            .replace(/(<\/p>\s*){2,}/gi, '</p>')
+            // MINIMAL CLEANING - Only remove truly empty paragraphs (no content at all)
+            .replace(/<p[^>]*>\s*<\/p>/gi, '')
             // Fix line breaks in signatures
-            .replace(/Best regards,\s*([^<\n]+)/gi, 'Best regards,<br>$1')
-            // Remove excessive spacing at the end of email
-            .replace(/(<\/p>\s*)+$/gi, '</p>')
-            .replace(/(<br\s*\/?>\s*)*$/gi, '')
-            .replace(/\s+$/gi, '')
-            // Final cleanup of excessive whitespace
-            .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>');
+            .replace(/Best regards,\s*([^<\n]+)/gi, 'Best regards,<br>$1');
           
           const msg = {
             to: waitlistEntry.email,
@@ -3534,26 +3518,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Only remove ordered lists, keep unordered lists (bullet lists)
         .replace(/<ol[^>]*>/gi, '')
         .replace(/<\/ol>/gi, '')
-        // Remove ALL empty paragraphs first
-        .replace(/<p\s*[^>]*>\s*<\/p>/gi, '')
-        // Remove excessive whitespace between tags
-        .replace(/>\s+</gi, '><')
-        // Fix spacing after bullet lists - directly connect to next paragraph
-        .replace(/(<\/ul>)\s*(<p[^>]*>)/gi, '$1$2')
-        // Remove excessive spacing before BackstageOS section specifically
-        .replace(/(\s*<p[^>]*>\s*<\/p>\s*)*(<p[^>]*>BackstageOS)/gi, '$2')
-        .replace(/(<\/p>)\s*(<\/p>\s*)*(<p[^>]*>BackstageOS)/gi, '$1$3')
-        .replace(/(<br\s*\/?>\s*){2,}(<p[^>]*>BackstageOS)/gi, '$2')
-        // Clean up any remaining multiple paragraph breaks
-        .replace(/(<\/p>\s*){2,}/gi, '</p>')
+        // MINIMAL CLEANING - Only remove truly empty paragraphs (no content at all)
+        .replace(/<p[^>]*>\s*<\/p>/gi, '')
         // Fix line breaks in signatures
-        .replace(/Best regards,\s*([^<\n]+)/gi, 'Best regards,<br>$1')
-        // Remove excessive spacing at the end of email
-        .replace(/(<\/p>\s*)+$/gi, '</p>')
-        .replace(/(<br\s*\/?>\s*)*$/gi, '')
-        .replace(/\s+$/gi, '')
-        // Final cleanup of excessive whitespace
-        .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>');
+        .replace(/Best regards,\s*([^<\n]+)/gi, 'Best regards,<br>$1');
 
       const msg = {
         to: testEmail,
