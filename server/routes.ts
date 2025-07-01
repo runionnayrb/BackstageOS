@@ -3375,6 +3375,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send test email endpoint
+  app.post('/api/waitlist/send-test-email', requireAdmin, async (req: any, res) => {
+    try {
+      const { testEmail, emailSettings } = req.body;
+      
+      if (!testEmail) {
+        return res.status(400).json({ message: "Test email address is required" });
+      }
+
+      // Get current API settings
+      const apiSettings = await storage.getApiSettings();
+      
+      if (!apiSettings?.sendgridApiKey) {
+        return res.status(400).json({ message: "SendGrid API key not configured. Please configure API settings first." });
+      }
+
+      // Import SendGrid
+      const sgMail = require('@sendgrid/mail');
+      sgMail.setApiKey(apiSettings.sendgridApiKey);
+
+      // Use email settings from request or get from database
+      let currentEmailSettings = emailSettings;
+      if (!currentEmailSettings) {
+        currentEmailSettings = await storage.getWaitlistEmailSettings();
+      }
+
+      // Prepare test email content
+      const testSubject = currentEmailSettings?.subject || "Test Email from BackstageOS";
+      const testBody = currentEmailSettings?.body || "This is a test email from your BackstageOS waitlist system.";
+      const fromEmail = apiSettings.senderEmail || "hello@backstageos.com";
+      const fromName = apiSettings.senderName || "BackstageOS";
+
+      const msg = {
+        to: testEmail,
+        from: {
+          email: fromEmail,
+          name: fromName
+        },
+        subject: testSubject,
+        html: testBody,
+        text: testBody.replace(/<[^>]*>/g, '') // Strip HTML for text version
+      };
+
+      await sgMail.send(msg);
+      
+      res.json({ 
+        message: "Test email sent successfully",
+        sentTo: testEmail,
+        from: `${fromName} <${fromEmail}>`,
+        subject: testSubject
+      });
+    } catch (error: any) {
+      console.error("Error sending test email:", error);
+      
+      // Handle specific SendGrid errors
+      if (error.response && error.response.body && error.response.body.errors) {
+        const sendgridError = error.response.body.errors[0];
+        return res.status(400).json({ 
+          message: `SendGrid Error: ${sendgridError.message}`,
+          details: sendgridError
+        });
+      }
+      
+      res.status(500).json({ 
+        message: "Failed to send test email",
+        error: error.message 
+      });
+    }
+  });
+
   const server = createServer(app);
   return server;
 }

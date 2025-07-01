@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { RichTextEditor } from "@/components/rich-text-editor";
-import { Mail, Eye, EyeOff, Save, Plus, Settings, Trash2 } from "lucide-react";
+import { Mail, Eye, EyeOff, Save, Plus, Settings, Trash2, Send } from "lucide-react";
 import type { WaitlistEmailSettings, InsertWaitlistEmailSettings, ApiSettings, InsertApiSettings } from "@shared/schema";
 
 interface Variable {
@@ -31,6 +31,8 @@ const AVAILABLE_VARIABLES: Variable[] = [
 export default function WaitlistEmailSettings() {
   const [showPreview, setShowPreview] = useState(false);
   const [showApiSettings, setShowApiSettings] = useState(false);
+  const [showTestEmail, setShowTestEmail] = useState(false);
+  const [testEmailAddress, setTestEmailAddress] = useState("");
   const [apiSettings, setApiSettings] = useState({
     sendgridApiKey: "",
     senderEmail: "",
@@ -116,6 +118,32 @@ export default function WaitlistEmailSettings() {
         variant: "destructive",
       });
       console.error("API Settings save error:", error);
+    },
+  });
+
+  // Send test email mutation
+  const sendTestEmailMutation = useMutation({
+    mutationFn: async (testEmail: string) => {
+      return await apiRequest("POST", "/api/waitlist/send-test-email", { 
+        testEmail,
+        emailSettings: formData 
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Test Email Sent",
+        description: "Test email has been sent successfully.",
+      });
+      setShowTestEmail(false);
+      setTestEmailAddress("");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to send test email. Please check your API settings.",
+        variant: "destructive",
+      });
+      console.error("Send test email error:", error);
     },
   });
 
@@ -213,13 +241,55 @@ export default function WaitlistEmailSettings() {
                 Configure automatic emails sent to users when they join the waitlist.
               </CardDescription>
             </div>
-            <Dialog open={showApiSettings} onOpenChange={setShowApiSettings}>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  API Settings
-                </Button>
-              </DialogTrigger>
+            <div className="flex items-center gap-2">
+              <Dialog open={showTestEmail} onOpenChange={setShowTestEmail}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <Send className="h-4 w-4" />
+                    Test Email
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Send Test Email</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="test-email">Email Address</Label>
+                      <Input
+                        id="test-email"
+                        type="email"
+                        value={testEmailAddress}
+                        onChange={(e) => setTestEmailAddress(e.target.value)}
+                        placeholder="test@example.com"
+                      />
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button variant="outline" onClick={() => setShowTestEmail(false)}>
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          if (testEmailAddress.trim()) {
+                            sendTestEmailMutation.mutate(testEmailAddress);
+                          }
+                        }}
+                        disabled={sendTestEmailMutation.isPending || !testEmailAddress.trim()}
+                      >
+                        {sendTestEmailMutation.isPending ? "Sending..." : "Send Test"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              
+              <Dialog open={showApiSettings} onOpenChange={setShowApiSettings}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    API Settings
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>SendGrid API Settings</DialogTitle>
@@ -278,7 +348,8 @@ export default function WaitlistEmailSettings() {
                   </div>
                 </div>
               </DialogContent>
-            </Dialog>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
