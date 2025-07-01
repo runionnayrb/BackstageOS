@@ -187,10 +187,14 @@ export function RichTextEditor({
       const listElement = document.createElement(ordered ? 'ol' : 'ul');
       listElement.style.margin = '8px 0';
       listElement.style.paddingLeft = '20px';
+      listElement.style.listStyleType = ordered ? 'decimal' : 'disc';
+      listElement.style.display = 'block';
       
       // Create first list item
       const listItem = document.createElement('li');
       listItem.style.margin = '4px 0';
+      listItem.style.display = 'list-item';
+      listItem.style.listStyleType = 'inherit';
       listItem.innerHTML = selection.toString() || 'List item';
       
       listElement.appendChild(listItem);
@@ -209,32 +213,7 @@ export function RichTextEditor({
     }
   };
 
-  const createArrowList = () => {
-    const selection = window.getSelection();
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      
-      // Create simple paragraph with arrow - no lists or complex structures
-      const paragraph = document.createElement('p');
-      paragraph.style.margin = '4px 0';
-      paragraph.style.padding = '0';
-      paragraph.style.listStyle = 'none';
-      // Use regular arrow character that will be cleaned by server
-      paragraph.innerHTML = '→ ' + (selection.toString() || 'Arrow list item');
-      
-      // Insert the paragraph
-      range.deleteContents();
-      range.insertNode(paragraph);
-      
-      // Set cursor at end
-      range.selectNodeContents(paragraph);
-      range.collapse(false);
-      selection.removeAllRanges();
-      selection.addRange(range);
-      
-      handleInput();
-    }
-  };
+
 
   return (
     <div className={`border rounded-lg ${className}`}>
@@ -335,16 +314,6 @@ export function RichTextEditor({
           title="Numbered List"
         >
           <ListOrdered className="h-4 w-4" />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={createArrowList}
-          className="h-8 w-8 p-0"
-          title="Arrow List"
-        >
-          →
         </Button>
 
         <div className="w-px h-6 bg-gray-300 mx-1" />

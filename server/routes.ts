@@ -220,16 +220,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Clean up HTML formatting to prevent email client issues
           body = body
-            // Remove any numbered list items like "1." at start of lines
+            // Remove any numbered list items like "1." at start of lines (but keep bullet lists)
             .replace(/^\s*\d+\.\s*/gm, '')
-            // Remove numbered list HTML tags that shouldn't be there
+            // Only remove ordered lists, keep unordered lists (bullet lists)
             .replace(/<ol[^>]*>/gi, '')
             .replace(/<\/ol>/gi, '')
-            // Convert list items to paragraphs to preserve arrow content
-            .replace(/<li[^>]*>/gi, '<p>')
-            .replace(/<\/li>/gi, '</p>')
-            // Remove bullet points before arrows
-            .replace(/•\s*→/g, '→')
             // Fix excessive spacing between sections
             .replace(/(<\/p>\s*){2,}(<p[^>]*>BackstageOS)/gi, '</p>$2')
             .replace(/(<br\s*\/?>\s*){2,}(<p[^>]*>BackstageOS)/gi, '<br>$2')
@@ -3523,16 +3518,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Clean up HTML formatting to prevent email client issues
       testBody = testBody
-        // Remove any numbered list items like "1." at start of lines
+        // Remove any numbered list items like "1." at start of lines (but keep bullet lists)
         .replace(/^\s*\d+\.\s*/gm, '')
-        // Remove numbered list HTML tags that shouldn't be there
+        // Only remove ordered lists, keep unordered lists (bullet lists)
         .replace(/<ol[^>]*>/gi, '')
         .replace(/<\/ol>/gi, '')
-        // Convert list items to paragraphs to preserve arrow content
-        .replace(/<li[^>]*>/gi, '<p>')
-        .replace(/<\/li>/gi, '</p>')
-        // Remove bullet points before arrows
-        .replace(/•\s*→/g, '→')
         // Fix excessive spacing between sections
         .replace(/(<\/p>\s*){2,}(<p[^>]*>BackstageOS)/gi, '</p>$2')
         .replace(/(<br\s*\/?>\s*){2,}(<p[^>]*>BackstageOS)/gi, '<br>$2')
