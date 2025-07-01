@@ -12,6 +12,7 @@ import { isAdmin } from "./adminUtils";
 import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { z } from "zod";
+import sgMail from "@sendgrid/mail";
 
 // Authentication middleware
 function isAuthenticated(req: any, res: any, next: any) {
@@ -3403,8 +3404,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "SendGrid API key not configured. Please configure API settings first." });
       }
 
-      // Import SendGrid
-      const sgMail = require('@sendgrid/mail');
+      // Configure SendGrid
       sgMail.setApiKey(apiSettings.sendgridApiKey);
 
       // Use email settings from request or get from database
