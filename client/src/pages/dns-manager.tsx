@@ -388,7 +388,12 @@ function DNSManagerContent() {
                           <Badge variant="outline">{record.type}</Badge>
                         </div>
                         <div>
-                          <p className="font-medium">{record.name}</p>
+                          <p className="font-medium">{
+                            // Format record names for SendGrid compatibility
+                            record.name.endsWith('.backstageos.com') 
+                              ? record.name.replace('.backstageos.com', '.backstageos')
+                              : record.name
+                          }</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-600">{record.content}</p>
