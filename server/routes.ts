@@ -3268,20 +3268,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Domain emails endpoint
+  // Domain emails endpoint - returns only created email aliases
   app.get('/api/domain-emails', requireAdmin, async (req: any, res) => {
     try {
-      // Return available domain email addresses for the organization
-      const domainEmails = [
-        { email: 'hello@backstageos.com', name: 'Hello' },
-        { email: 'support@backstageos.com', name: 'Support' },
-        { email: 'team@backstageos.com', name: 'Team' },
-        { email: 'noreply@backstageos.com', name: 'No Reply' }
-      ];
+      if (!cloudflareService.isConfigured()) {
+        return res.json([]); // Return empty array if Cloudflare not configured
+      }
+
+      // Get actual email aliases from Cloudflare
+      const emailRules = await cloudflareService.getEmailRules();
+      
+      // Filter for user-created forwarding rules and format for dropdown
+      const domainEmails = emailRules.map(rule => {
+        // Extract alias from rule matchers (e.g., "hello@backstageos.com" from forwarding rule)
+        const fullEmail = rule.matchers?.[0]?.value || '';
+        const alias = fullEmail.split('@')[0] || 'Email'; // Use part before @ as name
+        return {
+          email: fullEmail,
+          name: alias.charAt(0).toUpperCase() + alias.slice(1) // Capitalize first letter
+        };
+      });
+
       res.json(domainEmails);
     } catch (error) {
       console.error("Error fetching domain emails:", error);
-      res.status(500).json({ message: "Failed to fetch domain emails" });
+      // Return empty array on error to prevent UI breaking
+      res.json([]);
     }
   });
 
