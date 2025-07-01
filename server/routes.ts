@@ -229,6 +229,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete waitlist entry (admin only)
+  app.delete('/api/waitlist/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const entryId = parseInt(req.params.id);
+      await storage.deleteWaitlistEntry(entryId);
+      res.json({ success: true, message: "Waitlist entry deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting waitlist entry:", error);
+      res.status(500).json({ message: "Failed to delete waitlist entry" });
+    }
+  });
+
   // Get waitlist stats (admin only)
   app.get('/api/waitlist/stats', isAuthenticated, async (req: any, res) => {
     try {

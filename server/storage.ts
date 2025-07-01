@@ -96,6 +96,7 @@ export interface IStorage {
   getWaitlistByEmail(email: string): Promise<Waitlist | undefined>;
   getWaitlistEntries(): Promise<Waitlist[]>;
   updateWaitlistEntry(id: number, updates: Partial<InsertWaitlist>): Promise<Waitlist>;
+  deleteWaitlistEntry(id: number): Promise<void>;
   getWaitlistStats(): Promise<any>;
   convertWaitlistToUser(email: string): Promise<void>;
 
@@ -765,6 +766,11 @@ class DatabaseStorage implements IStorage {
       .returning();
     
     return result[0];
+  }
+
+  async deleteWaitlistEntry(id: number): Promise<void> {
+    await db.delete(waitlist)
+      .where(eq(waitlist.id, id));
   }
 
   async getWaitlistStats(): Promise<any> {

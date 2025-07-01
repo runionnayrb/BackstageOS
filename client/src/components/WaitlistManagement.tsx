@@ -18,7 +18,8 @@ import {
   XCircle, 
   Mail,
   Calendar,
-  User
+  User,
+  Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -54,6 +55,8 @@ export default function WaitlistManagement() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState("");
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState<WaitlistEntry | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -100,6 +103,38 @@ export default function WaitlistManagement() {
     },
   });
 
+  const deleteEntryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/waitlist/${id}`, {
+        method: "DELETE",
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to delete entry");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/waitlist"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/waitlist/stats"] });
+      toast({
+        title: "Entry deleted",
+        description: "Waitlist entry has been deleted successfully.",
+      });
+      setDeleteConfirmOpen(false);
+      setEntryToDelete(null);
+    },
+    onError: () => {
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete waitlist entry.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const openDialog = (entry: WaitlistEntry) => {
     setSelectedEntry(entry);
     setNotes(entry.notes || "");
@@ -141,6 +176,17 @@ export default function WaitlistManagement() {
       id: selectedEntry.id,
       updates,
     });
+  };
+
+  const handleDeleteEntry = (entry: WaitlistEntry) => {
+    setEntryToDelete(entry);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (entryToDelete) {
+      deleteEntryMutation.mutate(entryToDelete.id);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -306,20 +352,21 @@ export default function WaitlistManagement() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Dialog open={isDialogOpen && selectedEntry?.id === entry.id} onOpenChange={(open) => {
-                      if (!open) {
-                        closeDialog();
-                      }
-                    }}>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleUpdateEntry(entry)}
-                        >
-                          Manage
-                        </Button>
-                      </DialogTrigger>
+                    <div className="flex items-center space-x-2">
+                      <Dialog open={isDialogOpen && selectedEntry?.id === entry.id} onOpenChange={(open) => {
+                        if (!open) {
+                          closeDialog();
+                        }
+                      }}>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleUpdateEntry(entry)}
+                          >
+                            Manage
+                          </Button>
+                        </DialogTrigger>
                       <DialogContent className="max-w-2xl">
                         <DialogHeader>
                           <DialogTitle>
@@ -443,6 +490,15 @@ export default function WaitlistManagement() {
                         )}
                       </DialogContent>
                     </Dialog>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteEntry(entry)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -450,6 +506,41 @@ export default function WaitlistManagement() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Waitlist Entry</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete this waitlist entry? This action cannot be undone.
+            </p>
+            {entryToDelete && (
+              <div className="bg-gray-50 p-3 rounded-lg">
+                <p className="font-medium">
+                  {entryToDelete.firstName} {entryToDelete.lastName}
+                </p>
+                <p className="text-sm text-gray-600">{entryToDelete.email}</p>
+                <p className="text-sm text-gray-600">Position #{entryToDelete.position}</p>
+              </div>
+            )}
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={confirmDelete}
+                disabled={deleteEntryMutation.isPending}
+              >
+                {deleteEntryMutation.isPending ? "Deleting..." : "Delete Entry"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
