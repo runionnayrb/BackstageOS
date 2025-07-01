@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { RichTextEditor } from "@/components/rich-text-editor";
 import { Mail, Eye, EyeOff, Save, Plus } from "lucide-react";
 import type { WaitlistEmailSettings, InsertWaitlistEmailSettings } from "@shared/schema";
 
@@ -232,10 +233,10 @@ export default function WaitlistEmailSettings() {
             />
           </div>
 
-          {/* Email body HTML */}
+          {/* Email Body - Gmail Style */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="body-html">Email Body (HTML)</Label>
+              <Label>Email Body</Label>
               <div className="flex gap-1">
                 {AVAILABLE_VARIABLES.map((variable) => (
                   <Button
@@ -251,41 +252,80 @@ export default function WaitlistEmailSettings() {
                 ))}
               </div>
             </div>
-            <Textarea
-              id="body-html"
-              value={formData.bodyHtml}
-              onChange={(e) => setFormData(prev => ({ ...prev, bodyHtml: e.target.value }))}
-              rows={8}
-              placeholder="Enter HTML email content..."
-            />
-          </div>
-
-          {/* Email body text */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="body-text">Email Body (Plain Text)</Label>
-              <div className="flex gap-1">
-                {AVAILABLE_VARIABLES.map((variable) => (
-                  <Button
-                    key={variable.name}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => insertVariable("bodyText", variable.name)}
-                    title={`${variable.description} (${variable.example})`}
-                  >
-                    <Plus className="h-3 w-3 mr-1" />
-                    {variable.name}
-                  </Button>
-                ))}
+            
+            {/* Gmail-style compose area */}
+            <div className="border border-gray-300 rounded-lg overflow-hidden">
+              {/* Email header section */}
+              <div className="bg-gray-50 p-4 border-b space-y-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600 w-16">From:</span>
+                  <div className="flex items-center space-x-2 flex-1">
+                    <Select
+                      value={formData.fromEmail}
+                      onValueChange={(value) => setFormData(prev => ({ ...prev, fromEmail: value }))}
+                    >
+                      <SelectTrigger className="w-64">
+                        <SelectValue placeholder="Select email address" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {domainEmails?.map((email) => (
+                          <SelectItem key={email.email} value={email.email}>
+                            {email.name} &lt;{email.email}&gt;
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="">Custom Email</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {!formData.fromEmail && (
+                      <Input
+                        value={formData.fromEmail}
+                        onChange={(e) => setFormData(prev => ({ ...prev, fromEmail: e.target.value }))}
+                        placeholder="Enter email address"
+                        className="flex-1"
+                      />
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600 w-16">To:</span>
+                  <span className="text-sm text-gray-600 bg-blue-50 px-2 py-1 rounded">
+                    Waitlist subscribers ({"{{email}}"})
+                  </span>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600 w-16">Subject:</span>
+                  <Input
+                    value={formData.subject}
+                    onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                    placeholder="Email subject line"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+              
+              {/* Rich text editor */}
+              <div className="p-0">
+                <RichTextEditor
+                  content={formData.bodyHtml}
+                  onChange={(html) => {
+                    // Convert HTML to plain text for the bodyText field
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    const plainText = tempDiv.textContent || tempDiv.innerText || '';
+                    
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      bodyHtml: html,
+                      bodyText: plainText
+                    }));
+                  }}
+                  placeholder="Compose your email message..."
+                  className="min-h-[300px] border-0"
+                />
               </div>
             </div>
-            <Textarea
-              id="body-text"
-              value={formData.bodyText}
-              onChange={(e) => setFormData(prev => ({ ...prev, bodyText: e.target.value }))}
-              rows={6}
-              placeholder="Enter plain text email content..."
-            />
           </div>
 
           {/* Preview toggle */}
@@ -376,16 +416,6 @@ export default function WaitlistEmailSettings() {
                 <div className="text-sm text-gray-600">From: {formData.fromName} &lt;{formData.fromEmail}&gt;</div>
                 <div className="text-sm text-gray-600">Subject: {replaceVariables(formData.subject)}</div>
               </div>
-              <div className="p-4">
-                <div className="prose max-w-none" dangerouslySetInnerHTML={{ 
-                  __html: replaceVariables(formData.bodyHtml) 
-                }} />
-              </div>
-            </div>
-
-            {/* Plain text preview */}
-            <div className="border rounded-lg overflow-hidden">
-              <div className="bg-gray-100 p-2 border-b text-sm font-medium">Plain Text Version</div>
               <div className="p-4 font-mono text-sm whitespace-pre-wrap">
                 {replaceVariables(formData.bodyText)}
               </div>
