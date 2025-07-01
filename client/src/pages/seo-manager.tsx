@@ -89,10 +89,10 @@ export default function SeoManager() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: FormData) => apiRequest('/api/seo-settings', {
-      method: 'POST',
-      body: data,
-    }),
+    mutationFn: async (data: FormData) => {
+      const res = await apiRequest('POST', '/api/seo-settings', data);
+      return await res.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/seo-settings'] });
       toast({ title: "SEO settings created successfully" });
@@ -109,11 +109,10 @@ export default function SeoManager() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<FormData> }) => 
-      apiRequest(`/api/seo-settings/${id}`, {
-        method: 'PUT',
-        body: data,
-      }),
+    mutationFn: async ({ id, data }: { id: number; data: Partial<FormData> }) => {
+      const res = await apiRequest('PUT', `/api/seo-settings/${id}`, data);
+      return await res.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/seo-settings'] });
       toast({ title: "SEO settings updated successfully" });
@@ -130,9 +129,10 @@ export default function SeoManager() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/seo-settings/${id}`, {
-      method: 'DELETE',
-    }),
+    mutationFn: async (id: number) => {
+      const res = await apiRequest('DELETE', `/api/seo-settings/${id}`);
+      return await res.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/seo-settings'] });
       toast({ title: "SEO settings deleted successfully" });
