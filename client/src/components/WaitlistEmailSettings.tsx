@@ -659,6 +659,9 @@ function getDefaultHtmlBody(): string {
 
 <p><strong>Your waitlist position:</strong> #{{position}}</p>
 
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+
 <p>We're working hard to build the future of stage management technology. BackstageOS will revolutionize how you manage productions with:</p>
 
 <ul>
