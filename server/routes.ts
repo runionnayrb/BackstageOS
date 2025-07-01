@@ -218,7 +218,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             body = body.replace(new RegExp(variable, 'g'), value);
           });
 
-          // NO HTML CLEANING - Send exactly as designed in template
+          // Clean rich text editor formatting to match template appearance
+          body = body.replace(/style="[^"]*"/g, ''); // Remove all inline styles added by rich text editor
+          body = body.replace(/<(h2|p|ul|li|div)([^>]*)>/g, '<$1>'); // Remove attributes from basic HTML tags
           
           const msg = {
             to: waitlistEntry.email,
