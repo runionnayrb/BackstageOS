@@ -157,6 +157,19 @@ function DNSManagerContent() {
     }
   });
 
+  // Delete email alias mutation
+  const deleteEmailMutation = useMutation({
+    mutationFn: (ruleId: string) => 
+      apiRequest('DELETE', `/api/dns/email/${ruleId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/dns/email'] });
+      toast({ title: "Email alias deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Failed to delete email alias", description: error.message, variant: "destructive" });
+    }
+  });
+
   const handleCreateRecord = () => {
     if (!newRecord.type || !newRecord.name || !newRecord.content) {
       toast({ title: "Please fill in all required fields", variant: "destructive" });
@@ -466,28 +479,41 @@ function DNSManagerContent() {
               ) : (
                 <div className="space-y-2">
                   {Array.isArray(emailRules) && emailRules.length > 0 ? (
-                    emailRules.map((rule: any) => (
-                      <div key={rule.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1 grid grid-cols-3 gap-4">
-                          <div>
-                            <Badge variant="outline">EMAIL</Badge>
-                          </div>
-                          <div>
-                            <p className="font-medium">{rule.name}</p>
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-600">
-                              {rule.matchers?.[0]?.field || 'Unknown'}: {rule.matchers?.[0]?.value || 'Unknown'} → {rule.actions?.[0]?.value?.[0] || 'Unknown'}
+                    emailRules.map((rule: any) => {
+                      const fromEmail = rule.matchers?.[0]?.value || 'Unknown';
+                      const toEmail = rule.actions?.[0]?.value?.[0] || 'Unknown';
+                      
+                      return (
+                        <div key={rule.id} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex-1">
+                            <p className="font-medium">
+                              {fromEmail} → {toEmail}
                             </p>
                           </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {/* TODO: Edit functionality */}}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to delete the email alias ${fromEmail}?`)) {
+                                  deleteEmailMutation.mutate(rule.id);
+                                }
+                              }}
+                              disabled={deleteEmailMutation.isPending}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant={rule.enabled ? 'default' : 'secondary'}>
-                            {rule.enabled ? 'Active' : 'Disabled'}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <div className="text-center py-8">
                       <p className="text-gray-500">No email routing rules found</p>

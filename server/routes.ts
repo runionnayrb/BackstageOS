@@ -3047,11 +3047,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Alias and destination are required" });
       }
 
+      // Check for existing email aliases to prevent duplicates
+      const existingRules = await cloudflareService.getEmailRules();
+      const zoneName = await cloudflareService.getZoneName();
+      const fullAlias = `${alias}@${zoneName}`;
+      
+      const duplicateRule = existingRules.find((rule: any) => 
+        rule.matchers?.[0]?.value === fullAlias
+      );
+      
+      if (duplicateRule) {
+        return res.status(400).json({ 
+          message: `Email alias ${fullAlias} already exists. Please choose a different alias.` 
+        });
+      }
+
       const record = await cloudflareService.createEmailForward(alias, destination);
       res.json({ record, description });
     } catch (error: any) {
       console.error("Error creating email alias:", error);
       res.status(500).json({ message: error.message || "Failed to create email alias" });
+    }
+  });
+
+  // Delete email alias
+  app.delete('/api/dns/email/:ruleId', requireAdmin, async (req: any, res) => {
+    try {
+      if (!cloudflareService.isConfigured()) {
+        return res.status(400).json({ message: "Cloudflare API not configured" });
+      }
+
+      const { ruleId } = req.params;
+      
+      if (!ruleId) {
+        return res.status(400).json({ message: "Rule ID is required" });
+      }
+
+      await cloudflareService.deleteEmailRule(ruleId);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error deleting email alias:", error);
+      res.status(500).json({ message: error.message || "Failed to delete email alias" });
     }
   });
 

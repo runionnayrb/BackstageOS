@@ -148,6 +148,20 @@ class CloudflareService {
     }
   }
 
+  async deleteEmailRule(ruleId: string): Promise<boolean> {
+    try {
+      console.log(`Deleting email routing rule: ${ruleId}`);
+      await this.makeRequest(`/zones/${this.zoneId}/email/routing/rules/${ruleId}`, {
+        method: 'DELETE'
+      });
+      console.log('Email routing rule deleted successfully');
+      return true;
+    } catch (error: any) {
+      console.error('Error deleting email rule:', error);
+      throw error;
+    }
+  }
+
   async createEmailForward(alias: string, destination: string): Promise<any> {
     try {
       // First ensure email routing is enabled for the zone
@@ -269,7 +283,7 @@ class CloudflareService {
     }
   }
 
-  private async getZoneName(): Promise<string> {
+  async getZoneName(): Promise<string> {
     try {
       const zoneInfo = await this.getZoneInfo();
       return zoneInfo.name;
