@@ -217,6 +217,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             subject = subject.replace(new RegExp(variable, 'g'), value);
             body = body.replace(new RegExp(variable, 'g'), value);
           });
+
+          // Clean up HTML formatting to prevent email client issues
+          body = body
+            // Remove excessive whitespace between tags
+            .replace(/>\s+</g, '><')
+            // Clean up multiple consecutive line breaks
+            .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
+            // Remove empty paragraphs
+            .replace(/<p\s*[^>]*>\s*<\/p>/gi, '')
+            // Remove empty divs
+            .replace(/<div\s*[^>]*>\s*<\/div>/gi, '')
+            // Normalize spacing around block elements
+            .replace(/\s*(<\/?(p|div|h[1-6]|ul|ol|li)[^>]*>)\s*/gi, '$1')
+            // Clean up arrow symbols to prevent auto-conversion
+            .replace(/→\s*/g, '&rarr; ');
           
           const msg = {
             to: waitlistEntry.email,
@@ -3498,6 +3513,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         testSubject = testSubject.replace(new RegExp(variable, 'g'), value);
         testBody = testBody.replace(new RegExp(variable, 'g'), value);
       });
+
+      // Clean up HTML formatting to prevent email client issues
+      testBody = testBody
+        // Remove excessive whitespace between tags
+        .replace(/>\s+</g, '><')
+        // Clean up multiple consecutive line breaks
+        .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
+        // Remove empty paragraphs
+        .replace(/<p\s*[^>]*>\s*<\/p>/gi, '')
+        // Remove empty divs
+        .replace(/<div\s*[^>]*>\s*<\/div>/gi, '')
+        // Normalize spacing around block elements
+        .replace(/\s*(<\/?(p|div|h[1-6]|ul|ol|li)[^>]*>)\s*/gi, '$1')
+        // Clean up arrow symbols to prevent auto-conversion
+        .replace(/→\s*/g, '&rarr; ');
 
       const msg = {
         to: testEmail,

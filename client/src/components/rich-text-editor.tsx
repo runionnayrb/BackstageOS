@@ -214,13 +214,17 @@ export function RichTextEditor({
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       
-      // Create custom arrow list
+      // Create custom arrow list using proper HTML structure that won't be auto-converted
       const listDiv = document.createElement('div');
       listDiv.style.margin = '8px 0';
+      listDiv.style.paddingLeft = '0';
       
-      const listItem = document.createElement('div');
+      const listItem = document.createElement('p');
       listItem.style.margin = '4px 0';
-      listItem.innerHTML = '→ ' + (selection.toString() || 'Arrow list item');
+      listItem.style.paddingLeft = '0';
+      listItem.style.textIndent = '0';
+      // Use HTML entity for arrow to prevent email client conversion
+      listItem.innerHTML = '&rarr; ' + (selection.toString() || 'Arrow list item');
       
       listDiv.appendChild(listItem);
       
