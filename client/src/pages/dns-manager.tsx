@@ -399,6 +399,8 @@ function DNSManagerContent() {
                         <div>
                           <p className="font-medium">{
                             // Format record names for SendGrid compatibility
+                            // Convert "em1868.backstageos.com" to "em1868.backstageos"
+                            record.name === 'backstageos.com' ? record.name :
                             record.name.endsWith('.backstageos.com') 
                               ? record.name.replace('.backstageos.com', '.backstageos')
                               : record.name
@@ -419,9 +421,10 @@ function DNSManagerContent() {
                           onClick={() => setEditRecord({
                             ...record,
                             // Show the display format in edit dialog
-                            name: record.name.endsWith('.backstageos.com') 
-                              ? record.name.replace('.backstageos.com', '.backstageos')
-                              : record.name
+                            name: record.name === 'backstageos.com' ? record.name :
+                                  record.name.endsWith('.backstageos.com') 
+                                    ? record.name.replace('.backstageos.com', '.backstageos')
+                                    : record.name
                           })}
                         >
                           <Edit className="h-4 w-4" />

@@ -3030,7 +3030,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const recordId = req.params.id;
       const updates = req.body;
       
+      console.log("DNS Record Update Request:", updates);
+      
+      // Convert SendGrid display format to proper subdomain format for Cloudflare API
+      if (updates.name && updates.name.endsWith('.backstageos') && updates.name !== 'backstageos.com') {
+        // Convert "em1868.backstageos" to "em1868" for the API
+        updates.name = updates.name.replace('.backstageos', '');
+        console.log("Converted record name from display format:", updates.name);
+      }
+      
       const record = await cloudflareService.updateDNSRecord(recordId, updates);
+      console.log("Cloudflare response:", record);
       res.json(record);
     } catch (error: any) {
       console.error("Error updating DNS record:", error);
