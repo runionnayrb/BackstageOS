@@ -221,6 +221,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Clean rich text editor formatting to match template appearance
           body = body.replace(/style="[^"]*"/g, ''); // Remove all inline styles added by rich text editor
           body = body.replace(/<(h2|p|ul|li|div)([^>]*)>/g, '<$1>'); // Remove attributes from basic HTML tags
+          body = body.replace(/<div><br><\/div>/g, ''); // Remove empty div breaks
+          body = body.replace(/<p><\/p>/g, ''); // Remove empty paragraphs
+          body = body.replace(/<p><br><\/p>/g, ''); // Remove paragraph breaks
           
           const msg = {
             to: waitlistEntry.email,
