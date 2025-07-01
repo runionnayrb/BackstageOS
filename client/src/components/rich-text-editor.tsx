@@ -134,6 +134,50 @@ export function RichTextEditor({
     }
   };
 
+  const formatBodyText = () => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      
+      // Get the current block element
+      let blockElement = range.startContainer;
+      if (blockElement.nodeType === Node.TEXT_NODE) {
+        blockElement = blockElement.parentNode as Node;
+      }
+      
+      // Create new paragraph element
+      const paragraph = document.createElement('p');
+      paragraph.style.margin = '0';
+      paragraph.style.fontWeight = 'normal';
+      paragraph.style.fontSize = '14px';
+      
+      // If we're in a block element, replace it
+      if (blockElement && blockElement.nodeType === Node.ELEMENT_NODE) {
+        const element = blockElement as Element;
+        if (element.tagName && ['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(element.tagName)) {
+          paragraph.innerHTML = element.innerHTML || '';
+          element.parentNode?.replaceChild(paragraph, element);
+        } else {
+          paragraph.innerHTML = selection.toString() || '';
+          range.deleteContents();
+          range.insertNode(paragraph);
+        }
+      } else {
+        paragraph.innerHTML = selection.toString() || '';
+        range.deleteContents();
+        range.insertNode(paragraph);
+      }
+      
+      // Set cursor at end of paragraph
+      range.selectNodeContents(paragraph);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      handleInput();
+    }
+  };
+
   const createList = (ordered: boolean = false) => {
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
@@ -259,6 +303,16 @@ export function RichTextEditor({
           title="Heading 3"
         >
           <Heading3 className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={formatBodyText}
+          className="h-8 w-8 p-0"
+          title="Body Text"
+        >
+          <Type className="h-4 w-4" />
         </Button>
 
         <div className="w-px h-6 bg-gray-300 mx-1" />
