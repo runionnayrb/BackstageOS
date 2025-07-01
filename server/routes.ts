@@ -225,6 +225,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           body = body.replace(/<p><\/p>/g, ''); // Remove empty paragraphs
           body = body.replace(/<p><br><\/p>/g, ''); // Remove paragraph breaks
           
+          console.log('DEBUG - Final cleaned email HTML:');
+          console.log(body);
+          
           const msg = {
             to: waitlistEntry.email,
             from: {
