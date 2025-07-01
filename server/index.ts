@@ -31,9 +31,13 @@ app.use((req, res, next) => {
   
   // Handle domain-specific routing based on Page Manager database configuration
   if (req.path === '/' && hostname) {
-    // TODO: Load from database for production use
-    // For now, using default configuration until Page Manager routes are set up
-    if (hostname === 'backstageos.com' || (hostname.includes('backstageos.com') && !hostname.includes('beta.') && !hostname.includes('join.'))) {
+    console.log(`Production routing check for hostname: ${hostname}`);
+    
+    // Fallback when hostname detection fails in production
+    if (!hostname || hostname.includes('replit.app')) {
+      console.log(`Replit deployment URL detected, allowing all routes`);
+      // Don't redirect, let the app handle routing
+    } else if (hostname === 'backstageos.com' || (hostname.includes('backstageos.com') && !hostname.includes('beta.') && !hostname.includes('join.'))) {
       console.log(`Domain routing: ${hostname} → /landing`);
       req.url = '/landing';
     } else if (hostname.includes('beta.backstageos.com') || hostname.includes('app.backstageos.com')) {
@@ -42,6 +46,9 @@ app.use((req, res, next) => {
     } else if (hostname.includes('join.backstageos.com')) {
       console.log(`Domain routing: ${hostname} → /landing`);
       req.url = '/landing';
+    } else {
+      console.log(`Unknown hostname: ${hostname}, allowing default routing`);
+      // Don't redirect unknown hostnames, let frontend handle it
     }
   }
   
