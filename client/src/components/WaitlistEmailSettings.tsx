@@ -57,9 +57,9 @@ export default function WaitlistEmailSettings() {
   const saveSettingsMutation = useMutation({
     mutationFn: async (data: InsertWaitlistEmailSettings) => {
       if (emailSettings?.id) {
-        return await apiRequest(`/api/waitlist/email-settings/${emailSettings.id}`, "PUT", data);
+        return await apiRequest("PUT", `/api/waitlist/email-settings/${emailSettings.id}`, data);
       } else {
-        return await apiRequest("/api/waitlist/email-settings", "POST", data);
+        return await apiRequest("POST", "/api/waitlist/email-settings", data);
       }
     },
     onSuccess: () => {
