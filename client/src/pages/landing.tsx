@@ -10,7 +10,7 @@ export default function Landing() {
         <div className="text-white space-y-8">
           <div>
             <h1 className="text-4xl lg:text-6xl font-bold mb-4 leading-tight">
-              Backstage OS
+              BackstageOS
             </h1>
             <p className="text-xl lg:text-2xl opacity-90 leading-relaxed">
               The complete stage management platform for modern theater professionals

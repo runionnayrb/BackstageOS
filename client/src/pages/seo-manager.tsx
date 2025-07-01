@@ -30,7 +30,7 @@ type FormData = z.infer<typeof formSchema>;
 const defaultStructuredData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "Backstage OS",
+  "name": "BackstageOS",
   "applicationCategory": "BusinessApplication",
   "operatingSystem": "Web",
   "offers": {

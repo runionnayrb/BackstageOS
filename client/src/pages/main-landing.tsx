@@ -38,7 +38,7 @@ export default function MainLanding() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Clapperboard className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold text-gray-900">Backstage OS</h1>
+              <h1 className="text-2xl font-bold text-gray-900">BackstageOS</h1>
             </div>
             <div className="flex items-center space-x-4">
               <Button variant="outline" onClick={handleJoinWaitlist}>

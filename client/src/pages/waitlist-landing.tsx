@@ -228,7 +228,7 @@ export default function WaitlistLanding() {
               You're on the list!
             </h2>
             <p className="text-gray-600 mb-4">
-              You're #{waitlistPosition} in line for early access to Backstage OS.
+              You're #{waitlistPosition} in line for early access to BackstageOS.
             </p>
             <p className="text-sm text-gray-500 mb-6">
               We'll email you when it's your turn to join the beta. In the meantime, 
@@ -252,7 +252,7 @@ export default function WaitlistLanding() {
         <div className="max-w-7xl mx-auto px-4 py-24">
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              Backstage OS
+              BackstageOS
             </h1>
             <p className="text-xl lg:text-2xl mb-8 opacity-90 leading-relaxed">
               The revolutionary stage management platform that's transforming how we collaborate, organize, and execute productions.

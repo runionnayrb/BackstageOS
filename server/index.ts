@@ -18,11 +18,11 @@ app.use((req, res, next) => {
   const cfVisitor = req.get('cf-visitor');
   const protocol = req.get('x-forwarded-proto') || req.protocol || 'https';
   
-  console.log(`Backstage OS serving on ${hostname}`);
+  console.log(`BackstageOS serving on ${hostname}`);
   console.log(`Headers - Host: ${req.get('host')}, X-Forwarded-Host: ${req.get('x-forwarded-host')}, CF-Visitor: ${cfVisitor}`);
   
   // Set application headers
-  res.setHeader('X-Powered-By', 'Backstage OS');
+  res.setHeader('X-Powered-By', 'BackstageOS');
   
   // Force HTTPS for production
   if (protocol !== 'https' && process.env.NODE_ENV === 'production' && hostname && !hostname.includes('localhost')) {
