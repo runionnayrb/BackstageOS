@@ -218,15 +218,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
             body = body.replace(new RegExp(variable, 'g'), value);
           });
 
-          // Clean rich text editor formatting to match template appearance
-          body = body.replace(/style="[^"]*"/g, ''); // Remove all inline styles added by rich text editor
-          body = body.replace(/<(h2|p|ul|li|div)([^>]*)>/g, '<$1>'); // Remove attributes from basic HTML tags
+          // Aggressive HTML cleaning to match template exactly
+          body = body.replace(/style="[^"]*"/g, ''); // Remove all inline styles
+          body = body.replace(/<(h2|p|ul|li|div|span)([^>]*)>/g, '<$1>'); // Remove all attributes
           body = body.replace(/<div><br><\/div>/g, ''); // Remove empty div breaks
-          body = body.replace(/<p><\/p>/g, ''); // Remove empty paragraphs
+          body = body.replace(/<p><\/p>/g, ''); // Remove empty paragraphs  
           body = body.replace(/<p><br><\/p>/g, ''); // Remove paragraph breaks
-          
-          console.log('DEBUG - Final cleaned email HTML:');
-          console.log(body);
+          body = body.replace(/<div><\/div>/g, ''); // Remove empty divs
+          body = body.replace(/<span><\/span>/g, ''); // Remove empty spans
+          body = body.replace(/(<\/ul>)\s*<p>/g, '$1<p>'); // Remove space between ul and p
+          body = body.replace(/(<\/ul>)\s*<div>/g, '$1'); // Remove space between ul and div
           
           const msg = {
             to: waitlistEntry.email,
