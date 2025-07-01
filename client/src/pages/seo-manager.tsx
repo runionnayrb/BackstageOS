@@ -12,7 +12,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Globe, Search, Bot, Image, Settings, Plus, Edit, Trash2, Eye, Copy } from "lucide-react";
+import { ArrowLeft, Globe, Search, Bot, Image, Settings, Plus, Edit, Trash2, Eye, Copy, Upload, X } from "lucide-react";
 import { Link } from "wouter";
 import { insertSeoSettingsSchema, type SeoSettings, type InsertSeoSettings } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -48,6 +48,8 @@ function SeoManagerContent() {
   const [selectedSettings, setSelectedSettings] = useState<SeoSettings | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'preview'>('list');
+  const [uploadingFavicon, setUploadingFavicon] = useState(false);
+  const [uploadingShareImage, setUploadingShareImage] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -153,6 +155,61 @@ function SeoManagerContent() {
     } else {
       createMutation.mutate(data);
     }
+  };
+
+  // Image upload handlers
+  const handleImageUpload = async (file: File, type: 'favicon' | 'shareImage') => {
+    if (type === 'favicon') setUploadingFavicon(true);
+    if (type === 'shareImage') setUploadingShareImage(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('type', type);
+
+      const response = await fetch('/api/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      
+      // Update form with uploaded image URL
+      if (type === 'favicon') {
+        form.setValue('faviconUrl', result.url);
+        if (result.appleTouchIconUrl) {
+          form.setValue('appleTouchIconUrl', result.appleTouchIconUrl);
+        }
+      } else if (type === 'shareImage') {
+        form.setValue('shareImageUrl', result.url);
+      }
+
+      toast({ title: `${type === 'favicon' ? 'Favicon' : 'Share image'} uploaded successfully` });
+    } catch (error) {
+      toast({ 
+        title: "Upload failed", 
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive" 
+      });
+    } finally {
+      if (type === 'favicon') setUploadingFavicon(false);
+      if (type === 'shareImage') setUploadingShareImage(false);
+    }
+  };
+
+  const handleImageRemove = (type: 'favicon' | 'shareImage') => {
+    if (type === 'favicon') {
+      form.setValue('faviconUrl', '');
+      form.setValue('appleTouchIconUrl', '');
+    } else if (type === 'shareImage') {
+      form.setValue('shareImageUrl', '');
+      form.setValue('shareImageAlt', '');
+    }
+    toast({ title: `${type === 'favicon' ? 'Favicon' : 'Share image'} removed` });
   };
 
   const handleEdit = (settings: SeoSettings) => {
@@ -379,6 +436,79 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                             </FormItem>
                           )}
                         />
+                        
+                        {/* Favicon Management */}
+                        <div className="space-y-3">
+                          <FormLabel>Favicon</FormLabel>
+                          {form.watch('faviconUrl') ? (
+                            <div className="flex items-center space-x-3">
+                              <div className="flex-1">
+                                <img 
+                                  src={form.watch('faviconUrl')} 
+                                  alt="Favicon preview" 
+                                  className="h-8 w-8 rounded border"
+                                />
+                                <p className="text-xs text-gray-500 mt-1 truncate">
+                                  {form.watch('faviconUrl')}
+                                </p>
+                              </div>
+                              <div className="flex flex-col space-y-2">
+                                <label htmlFor="faviconUpload">
+                                  <Button type="button" variant="outline" size="sm" asChild disabled={uploadingFavicon}>
+                                    <span className="cursor-pointer">
+                                      {uploadingFavicon ? 'Uploading...' : 'Replace'}
+                                    </span>
+                                  </Button>
+                                </label>
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleImageRemove('favicon')}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                              <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                              <p className="text-sm text-gray-600 mb-2">Upload favicon</p>
+                              <label htmlFor="faviconUpload">
+                                <Button type="button" variant="outline" size="sm" asChild disabled={uploadingFavicon}>
+                                  <span className="cursor-pointer">
+                                    {uploadingFavicon ? 'Uploading...' : 'Choose File'}
+                                  </span>
+                                </Button>
+                              </label>
+                              <p className="text-xs text-gray-500 mt-2">Recommended: 32x32px or 16x16px, ICO or PNG</p>
+                            </div>
+                          )}
+                          <input
+                            id="faviconUpload"
+                            type="file"
+                            accept="image/*,.ico"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageUpload(file, 'favicon');
+                            }}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="faviconUrl"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Favicon URL (or upload above)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="https://example.com/favicon.ico" {...field} />
+                                </FormControl>
+                                <FormDescription>You can either upload an image above or enter a URL manually</FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                       </div>
 
                       {/* SEO Optimization */}
@@ -523,19 +653,78 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                           Social Media & Images
                         </h3>
                         
-                        <FormField
-                          control={form.control}
-                          name="shareImageUrl"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Share Image URL</FormLabel>
-                              <FormControl>
-                                <Input placeholder="https://example.com/og-image.jpg" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
+                        {/* Share Image Management */}
+                        <div className="space-y-3">
+                          <FormLabel>Share Image</FormLabel>
+                          {form.watch('shareImageUrl') ? (
+                            <div className="flex items-center space-x-3">
+                              <div className="flex-1">
+                                <img 
+                                  src={form.watch('shareImageUrl')} 
+                                  alt="Share preview" 
+                                  className="h-20 w-auto rounded border"
+                                />
+                                <p className="text-xs text-gray-500 mt-1 truncate">
+                                  {form.watch('shareImageUrl')}
+                                </p>
+                              </div>
+                              <div className="flex flex-col space-y-2">
+                                <label htmlFor="shareImageUpload">
+                                  <Button type="button" variant="outline" size="sm" asChild disabled={uploadingShareImage}>
+                                    <span className="cursor-pointer">
+                                      {uploadingShareImage ? 'Uploading...' : 'Replace'}
+                                    </span>
+                                  </Button>
+                                </label>
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleImageRemove('shareImage')}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                              <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                              <p className="text-sm text-gray-600 mb-2">Upload share image (Open Graph)</p>
+                              <label htmlFor="shareImageUpload">
+                                <Button type="button" variant="outline" size="sm" asChild disabled={uploadingShareImage}>
+                                  <span className="cursor-pointer">
+                                    {uploadingShareImage ? 'Uploading...' : 'Choose File'}
+                                  </span>
+                                </Button>
+                              </label>
+                              <p className="text-xs text-gray-500 mt-2">Recommended: 1200x630px, PNG or JPG</p>
+                            </div>
                           )}
-                        />
+                          <input
+                            id="shareImageUpload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleImageUpload(file, 'shareImage');
+                            }}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="shareImageUrl"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Share Image URL (or upload above)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="https://example.com/og-image.jpg" {...field} />
+                                </FormControl>
+                                <FormDescription>You can either upload an image above or enter a URL manually</FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
                         
                         <FormField
                           control={form.control}

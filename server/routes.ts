@@ -1,6 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import express from "express";
 import bcrypt from "bcrypt";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
@@ -87,6 +91,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to fetch error logs" });
     }
   });
+
+  // Configure multer for file uploads
+  const uploadsDir = path.join(process.cwd(), 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+
+  const upload = multer({
+    dest: uploadsDir,
+    limits: {
+      fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = /jpeg|jpg|png|gif|ico|webp/;
+      const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+      const mimetype = allowedTypes.test(file.mimetype);
+      
+      if (mimetype && extname) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed'));
+      }
+    }
+  });
+
+  // Image upload endpoint
+  app.post('/api/upload-image', isAuthenticated, requireAdmin, upload.single('image'), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const { type } = req.body;
+      if (!type || !['favicon', 'shareImage'].includes(type)) {
+        return res.status(400).json({ error: 'Invalid image type' });
+      }
+
+      const fileExtension = path.extname(req.file.originalname);
+      const fileName = `${type}-${Date.now()}${fileExtension}`;
+      const newPath = path.join(uploadsDir, fileName);
+      
+      // Move file to permanent location
+      fs.renameSync(req.file.path, newPath);
+
+      // Generate URL (relative to server)
+      const imageUrl = `/uploads/${fileName}`;
+      
+      const response: any = { url: imageUrl };
+
+      // For favicons, also generate apple touch icon if possible
+      if (type === 'favicon') {
+        response.appleTouchIconUrl = imageUrl; // Same URL for now, could process differently
+      }
+
+      res.json(response);
+    } catch (error) {
+      console.error('Image upload error:', error);
+      
+      // Clean up uploaded file on error
+      if (req.file?.path && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      res.status(500).json({ error: 'Upload failed' });
+    }
+  });
+
+  // Serve uploaded files
+  app.use('/uploads', (req, res, next) => {
+    // Add cache headers for images
+    res.set('Cache-Control', 'public, max-age=31536000'); // 1 year
+    next();
+  });
+  app.use('/uploads', express.static(uploadsDir));
 
   // Waitlist API endpoints (public)
   app.post('/api/waitlist', async (req: any, res) => {
