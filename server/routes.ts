@@ -9,7 +9,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { z } from "zod";
 

@@ -103,7 +103,16 @@ export default function WaitlistEmailSettings() {
   });
 
   const handleSave = () => {
-    saveSettingsMutation.mutate(formData);
+    // Convert camelCase form data to snake_case for API
+    const apiData = {
+      fromEmail: formData.fromEmail,
+      fromName: formData.fromName,
+      subject: formData.subject,
+      bodyHtml: formData.bodyHtml,
+      bodyText: formData.bodyText,
+      isEnabled: formData.isEnabled,
+    };
+    saveSettingsMutation.mutate(apiData);
   };
 
   const insertVariable = (field: "subject" | "bodyHtml" | "bodyText", variable: string) => {
