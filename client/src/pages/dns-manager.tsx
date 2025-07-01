@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
 import { useAuth } from '@/hooks/useAuth';
+import AdminGuard from '@/components/admin-guard';
 
 interface DNSRecord {
   id: string;
@@ -42,30 +43,10 @@ interface ZoneInfo {
   status: string;
 }
 
-export default function DNSManager() {
+function DNSManagerContent() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Check if user is admin
-  if (!user?.isAdmin) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-            <p className="text-gray-600">You need admin privileges to access the DNS Manager.</p>
-            <Link href="/admin">
-              <Button className="mt-4">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Admin
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
   
   const [newRecord, setNewRecord] = useState<Partial<DNSRecord>>({
     type: 'A',
@@ -578,5 +559,13 @@ export default function DNSManager() {
         </Dialog>
       )}
     </div>
+  );
+}
+
+export default function DNSManager() {
+  return (
+    <AdminGuard>
+      <DNSManagerContent />
+    </AdminGuard>
   );
 }

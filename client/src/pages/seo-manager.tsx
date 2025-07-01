@@ -17,6 +17,7 @@ import { Link } from "wouter";
 import { insertSeoSettingsSchema, type SeoSettings, type InsertSeoSettings } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
+import AdminGuard from "@/components/admin-guard";
 
 const formSchema = insertSeoSettingsSchema.omit({ 
   id: true,
@@ -43,7 +44,7 @@ const defaultStructuredData = {
   }
 };
 
-export default function SeoManager() {
+function SeoManagerContent() {
   const [selectedSettings, setSelectedSettings] = useState<SeoSettings | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'preview'>('list');
@@ -738,5 +739,13 @@ ${JSON.stringify(settings.structuredData, null, 2)}
         )}
       </div>
     </div>
+  );
+}
+
+export default function SeoManager() {
+  return (
+    <AdminGuard>
+      <SeoManagerContent />
+    </AdminGuard>
   );
 }

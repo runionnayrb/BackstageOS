@@ -261,6 +261,11 @@ export default function Header() {
                 
                 {isAdmin(user) && (
                   <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => setLocation('/admin')}>
+                      <Users className="mr-2 h-4 w-4" />
+                      Admin Dashboard
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setLocation('/admin/dns')}>
                       <Globe className="mr-2 h-4 w-4" />
                       Domain Management
@@ -268,16 +273,6 @@ export default function Header() {
                     <DropdownMenuItem onClick={() => setLocation('/admin/seo')}>
                       <Search className="mr-2 h-4 w-4" />
                       SEO & AI Optimization
-                    </DropdownMenuItem>
-                  </>
-                )}
-                
-                {isAdmin(user) && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setLocation('/admin')}>
-                      <Users className="mr-2 h-4 w-4" />
-                      Admin Dashboard
                     </DropdownMenuItem>
                     
                     {/* Mobile Admin Controls */}
