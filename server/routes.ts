@@ -220,26 +220,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Clean up HTML formatting to prevent email client issues
           body = body
-            // Remove excessive whitespace between tags
-            .replace(/>\s+</g, '><')
-            // Clean up multiple consecutive line breaks
-            .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
-            // Remove empty paragraphs
-            .replace(/<p\s*[^>]*>\s*<\/p>/gi, '')
-            // Remove empty divs
-            .replace(/<div\s*[^>]*>\s*<\/div>/gi, '')
-            // Remove numbered lists that shouldn't be there
-            .replace(/<ol[^>]*>[\s\S]*?<\/ol>/gi, '')
-            .replace(/<li[^>]*>[\s\S]*?<\/li>/gi, '')
-            // Remove any numbered list items like "1."
+            // Remove any numbered list items like "1." at start of lines
             .replace(/^\s*\d+\.\s*/gm, '')
-            // Normalize spacing around block elements
-            .replace(/\s*(<\/?(p|div|h[1-6]|ul|ol|li)[^>]*>)\s*/gi, '$1')
-            // Clean up arrow symbols to prevent auto-conversion and remove bullets
-            .replace(/•\s*→\s*/g, '→ ')
-            .replace(/→\s*/g, '→ ')
+            // Remove numbered list HTML tags that shouldn't be there
+            .replace(/<ol[^>]*>/gi, '')
+            .replace(/<\/ol>/gi, '')
+            // Convert list items to paragraphs to preserve arrow content
+            .replace(/<li[^>]*>/gi, '<p>')
+            .replace(/<\/li>/gi, '</p>')
+            // Remove bullet points before arrows
+            .replace(/•\s*→/g, '→')
+            // Fix excessive spacing between sections
+            .replace(/(<\/p>\s*){2,}(<p[^>]*>BackstageOS)/gi, '</p>$2')
+            .replace(/(<br\s*\/?>\s*){2,}(<p[^>]*>BackstageOS)/gi, '<br>$2')
             // Fix line breaks in signatures
-            .replace(/Best regards,\s*([^<\n]+)/gi, 'Best regards,<br>$1');
+            .replace(/Best regards,\s*([^<\n]+)/gi, 'Best regards,<br>$1')
+            // Clean up excessive whitespace but preserve content
+            .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
+            // Remove empty paragraphs after other cleaning
+            .replace(/<p\s*[^>]*>\s*<\/p>/gi, '');
           
           const msg = {
             to: waitlistEntry.email,
@@ -3524,26 +3523,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Clean up HTML formatting to prevent email client issues
       testBody = testBody
-        // Remove excessive whitespace between tags
-        .replace(/>\s+</g, '><')
-        // Clean up multiple consecutive line breaks
-        .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
-        // Remove empty paragraphs
-        .replace(/<p\s*[^>]*>\s*<\/p>/gi, '')
-        // Remove empty divs
-        .replace(/<div\s*[^>]*>\s*<\/div>/gi, '')
-        // Remove numbered lists that shouldn't be there
-        .replace(/<ol[^>]*>[\s\S]*?<\/ol>/gi, '')
-        .replace(/<li[^>]*>[\s\S]*?<\/li>/gi, '')
-        // Remove any numbered list items like "1."
+        // Remove any numbered list items like "1." at start of lines
         .replace(/^\s*\d+\.\s*/gm, '')
-        // Normalize spacing around block elements
-        .replace(/\s*(<\/?(p|div|h[1-6]|ul|ol|li)[^>]*>)\s*/gi, '$1')
-        // Clean up arrow symbols to prevent auto-conversion and remove bullets
-        .replace(/•\s*→\s*/g, '→ ')
-        .replace(/→\s*/g, '→ ')
+        // Remove numbered list HTML tags that shouldn't be there
+        .replace(/<ol[^>]*>/gi, '')
+        .replace(/<\/ol>/gi, '')
+        // Convert list items to paragraphs to preserve arrow content
+        .replace(/<li[^>]*>/gi, '<p>')
+        .replace(/<\/li>/gi, '</p>')
+        // Remove bullet points before arrows
+        .replace(/•\s*→/g, '→')
+        // Fix excessive spacing between sections
+        .replace(/(<\/p>\s*){2,}(<p[^>]*>BackstageOS)/gi, '</p>$2')
+        .replace(/(<br\s*\/?>\s*){2,}(<p[^>]*>BackstageOS)/gi, '<br>$2')
         // Fix line breaks in signatures
-        .replace(/Best regards,\s*([^<\n]+)/gi, 'Best regards,<br>$1');
+        .replace(/Best regards,\s*([^<\n]+)/gi, 'Best regards,<br>$1')
+        // Clean up excessive whitespace but preserve content
+        .replace(/(<br\s*\/?>\s*){3,}/gi, '<br><br>')
+        // Remove empty paragraphs after other cleaning
+        .replace(/<p\s*[^>]*>\s*<\/p>/gi, '');
 
       const msg = {
         to: testEmail,
