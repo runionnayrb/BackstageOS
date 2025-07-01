@@ -123,7 +123,7 @@ function DNSManagerContent() {
   // Delete DNS record mutation
   const deleteRecordMutation = useMutation({
     mutationFn: (recordId: string) => 
-      apiRequest(`/api/dns/records/${recordId}`, 'DELETE'),
+      apiRequest('DELETE', `/api/dns/records/${recordId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/dns/records'] });
       toast({ title: "DNS record deleted successfully" });
