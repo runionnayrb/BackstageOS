@@ -3507,6 +3507,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const accountData = await statsResponse.json();
           console.log("SendGrid account type:", accountData.type || "Unknown");
           console.log("SendGrid account reputation:", accountData.reputation || "Unknown");
+          
+          if (accountData.type === 'free') {
+            console.log("🚨 DELIVERY ISSUE IDENTIFIED: Free SendGrid account");
+            console.log("💡 Free accounts have poor deliverability to Gmail/major providers");
+            console.log("💡 Consider upgrading to SendGrid paid plan for reliable email delivery");
+            console.log("💡 Alternative: Use a different email service (Mailgun, AWS SES, etc.)");
+          }
         }
         
         // Check for any SendGrid suppressions/blocks
