@@ -62,6 +62,11 @@ function Router() {
   // Debug logging for domain routing
   console.log('Domain routing check:', { hostname, isJoinDomain, isMainDomain, isBetaDomain, isDevEnvironment });
   
+  // Additional debugging for beta domain
+  if (isBetaDomain) {
+    console.log('Beta domain detected - proceeding to authentication flow');
+  }
+  
   // If this is the join domain, redirect to /landing
   if (isJoinDomain && window.location.pathname !== '/landing') {
     window.location.pathname = '/landing';
