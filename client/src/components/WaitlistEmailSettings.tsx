@@ -159,7 +159,7 @@ export default function WaitlistEmailSettings() {
   }, [currentApiSettings]);
 
   const [formData, setFormData] = useState<InsertWaitlistEmailSettings>({
-    fromEmail: emailSettings?.fromEmail || "hello@backstageos.com",
+    fromEmail: "hello@backstageos.com",
     fromName: emailSettings?.fromName || "BackstageOS",
     subject: emailSettings?.subject || "Welcome to the BackstageOS Waitlist!",
     bodyHtml: emailSettings?.bodyHtml || getDefaultHtmlBody(),
@@ -399,11 +399,14 @@ export default function WaitlistEmailSettings() {
                 <SelectItem value="hello@backstageos.com">
                   hello@backstageos.com
                 </SelectItem>
-                {domainEmails?.filter(email => email.email && email.email.trim() !== '').map((email) => (
-                  <SelectItem key={email.email} value={email.email}>
-                    {email.email}
-                  </SelectItem>
-                ))}
+                {domainEmails?.filter(email => email.email && email.email.trim() !== '').map((email) => {
+                  const cleanEmail = cleanEmailAddress(email.email);
+                  return (
+                    <SelectItem key={cleanEmail} value={cleanEmail}>
+                      {cleanEmail}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
