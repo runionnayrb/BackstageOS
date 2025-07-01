@@ -97,6 +97,7 @@ export interface IStorage {
   getWaitlistEntries(): Promise<Waitlist[]>;
   updateWaitlistEntry(id: number, updates: Partial<InsertWaitlist>): Promise<Waitlist>;
   getWaitlistStats(): Promise<any>;
+  convertWaitlistToUser(email: string): Promise<void>;
 
   // Project operations
   getProjectsByUserId(userId: string): Promise<Project[]>;
@@ -736,6 +737,19 @@ class DatabaseStorage implements IStorage {
       .limit(1);
     
     return result[0];
+  }
+
+  async convertWaitlistToUser(email: string): Promise<void> {
+    const waitlistEntry = await this.getWaitlistByEmail(email);
+    if (waitlistEntry && waitlistEntry.status !== 'converted') {
+      await db.update(waitlist)
+        .set({ 
+          status: 'converted',
+          convertedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(waitlist.email, email));
+    }
   }
 
   async getWaitlistEntries(): Promise<Waitlist[]> {

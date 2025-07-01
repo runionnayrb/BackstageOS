@@ -142,6 +142,15 @@ export function setupAuth(app: Express) {
         betaAccess: "limited", // Default beta access
       });
 
+      // Check if this email was on the waitlist and convert it to "converted" status
+      try {
+        await storage.convertWaitlistToUser(email);
+        console.log(`Converted waitlist entry for ${email} to "converted" status`);
+      } catch (waitlistError) {
+        // Log but don't fail registration if waitlist conversion fails
+        console.error('Error converting waitlist entry:', waitlistError);
+      }
+
       // Log them in automatically
       const transformedUser = {
         ...user,
