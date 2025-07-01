@@ -51,6 +51,7 @@ interface WaitlistStats {
 
 export default function WaitlistManagement() {
   const [selectedEntry, setSelectedEntry] = useState<WaitlistEntry | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState("");
   const { toast } = useToast();
@@ -88,7 +89,7 @@ export default function WaitlistManagement() {
         title: "Entry updated",
         description: "Waitlist entry has been updated successfully.",
       });
-      setSelectedEntry(null);
+      closeDialog();
     },
     onError: () => {
       toast({
@@ -99,10 +100,22 @@ export default function WaitlistManagement() {
     },
   });
 
-  const handleUpdateEntry = (entry: WaitlistEntry) => {
+  const openDialog = (entry: WaitlistEntry) => {
     setSelectedEntry(entry);
     setNotes(entry.notes || "");
     setStatus(entry.status);
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+    setSelectedEntry(null);
+    setNotes("");
+    setStatus("");
+  };
+
+  const handleUpdateEntry = (entry: WaitlistEntry) => {
+    openDialog(entry);
   };
 
   const handleSaveUpdate = () => {
@@ -290,7 +303,7 @@ export default function WaitlistManagement() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Dialog>
+                    <Dialog open={isDialogOpen && selectedEntry?.id === entry.id} onOpenChange={(open) => !open && closeDialog()}>
                       <DialogTrigger asChild>
                         <Button 
                           variant="outline" 
@@ -409,7 +422,7 @@ export default function WaitlistManagement() {
 
                             {/* Actions */}
                             <div className="flex justify-end space-x-2">
-                              <Button variant="outline" onClick={() => setSelectedEntry(null)}>
+                              <Button variant="outline" onClick={closeDialog}>
                                 Cancel
                               </Button>
                               <Button 
