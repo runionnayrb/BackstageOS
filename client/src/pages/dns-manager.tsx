@@ -197,13 +197,29 @@ function DNSManagerContent() {
       return;
     }
     
-    createRecordMutation.mutate(newRecord);
+    // Convert SendGrid format to Cloudflare API format
+    const recordToCreate = {
+      ...newRecord,
+      name: newRecord.name && newRecord.name.endsWith('.backstageos') 
+        ? newRecord.name.replace('.backstageos', '')  // Convert "em1868.backstageos" to "em1868"
+        : newRecord.name
+    };
+    
+    createRecordMutation.mutate(recordToCreate);
   };
 
   const handleUpdateRecord = () => {
     if (!editRecord) return;
     
-    updateRecordMutation.mutate(editRecord);
+    // Convert SendGrid format to Cloudflare API format
+    const recordToUpdate = {
+      ...editRecord,
+      name: editRecord.name && editRecord.name.endsWith('.backstageos') 
+        ? editRecord.name.replace('.backstageos', '')  // Convert "em1868.backstageos" to "em1868"
+        : editRecord.name
+    };
+    
+    updateRecordMutation.mutate(recordToUpdate);
   };
 
   const handleDeleteRecord = (recordId: string) => {
