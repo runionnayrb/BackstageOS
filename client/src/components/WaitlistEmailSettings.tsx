@@ -183,7 +183,7 @@ export default function WaitlistEmailSettings() {
                 <SelectValue placeholder="Select email address" />
               </SelectTrigger>
               <SelectContent>
-                {domainEmails?.map((email) => (
+                {domainEmails?.filter(email => email.email && email.email.trim() !== '').map((email) => (
                   <SelectItem key={email.email} value={email.email}>
                     {email.name} ({email.email})
                   </SelectItem>
