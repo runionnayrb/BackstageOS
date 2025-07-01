@@ -762,6 +762,16 @@ export const waitlistEmailSettings = pgTable("waitlist_email_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// API settings table for SendGrid configuration
+export const apiSettings = pgTable("api_settings", {
+  id: serial("id").primaryKey(),
+  sendgridApiKey: varchar("sendgrid_api_key", { length: 255 }),
+  senderEmail: varchar("sender_email", { length: 255 }),
+  senderName: varchar("sender_name", { length: 100 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const contactSheetVersionsRelations = relations(contactSheetVersions, ({ one }) => ({
   project: one(projects, {
     fields: [contactSheetVersions.projectId],
@@ -1088,6 +1098,12 @@ export const insertWaitlistEmailSettingsSchema = createInsertSchema(waitlistEmai
   updatedAt: true,
 });
 
+export const insertApiSettingsSchema = createInsertSchema(apiSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Type exports
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -1143,3 +1159,5 @@ export type SeoSettings = typeof seoSettings.$inferSelect;
 export type InsertSeoSettings = z.infer<typeof insertSeoSettingsSchema>;
 export type WaitlistEmailSettings = typeof waitlistEmailSettings.$inferSelect;
 export type InsertWaitlistEmailSettings = z.infer<typeof insertWaitlistEmailSettingsSchema>;
+export type ApiSettings = typeof apiSettings.$inferSelect;
+export type InsertApiSettings = z.infer<typeof insertApiSettingsSchema>;

@@ -9,7 +9,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { z } from "zod";
 
@@ -3327,6 +3327,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       console.error("Error updating waitlist email settings:", error);
       res.status(500).json({ message: "Failed to update email settings" });
+    }
+  });
+
+  // API settings routes
+  app.get('/api/api-settings', requireAdmin, async (req: any, res) => {
+    try {
+      const settings = await storage.getApiSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching API settings:", error);
+      res.status(500).json({ message: "Failed to fetch API settings" });
+    }
+  });
+
+  app.post('/api/api-settings', requireAdmin, async (req: any, res) => {
+    try {
+      const settingsData = insertApiSettingsSchema.parse(req.body);
+      const settings = await storage.createApiSettings(settingsData);
+      res.json(settings);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid API settings data", errors: error.errors });
+      }
+      console.error("Error creating API settings:", error);
+      res.status(500).json({ message: "Failed to create API settings" });
+    }
+  });
+
+  app.put('/api/api-settings/:id', requireAdmin, async (req: any, res) => {
+    try {
+      const settingsId = parseInt(req.params.id);
+      const settingsData = insertApiSettingsSchema.partial().parse(req.body);
+      
+      const settings = await storage.updateApiSettings(settingsId, settingsData);
+      if (!settings) {
+        return res.status(404).json({ message: "API settings not found" });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid API settings data", errors: error.errors });
+      }
+      console.error("Error updating API settings:", error);
+      res.status(500).json({ message: "Failed to update API settings" });
     }
   });
 

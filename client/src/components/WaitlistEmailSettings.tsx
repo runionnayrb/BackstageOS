@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { RichTextEditor } from "@/components/rich-text-editor";
 import { Mail, Eye, EyeOff, Save, Plus, Settings, Trash2 } from "lucide-react";
-import type { WaitlistEmailSettings, InsertWaitlistEmailSettings } from "@shared/schema";
+import type { WaitlistEmailSettings, InsertWaitlistEmailSettings, ApiSettings, InsertApiSettings } from "@shared/schema";
 
 interface Variable {
   name: string;
@@ -61,6 +61,11 @@ export default function WaitlistEmailSettings() {
     queryKey: ["/api/domain-emails"],
   });
 
+  // Fetch current API settings
+  const { data: currentApiSettings } = useQuery<ApiSettings>({
+    queryKey: ["/api/api-settings"],
+  });
+
   // Save email settings mutation
   const saveSettingsMutation = useMutation({
     mutationFn: async (data: InsertWaitlistEmailSettings) => {
@@ -86,6 +91,44 @@ export default function WaitlistEmailSettings() {
       console.error("Save error:", error);
     },
   });
+
+  // Save API settings mutation
+  const saveApiSettingsMutation = useMutation({
+    mutationFn: async (data: InsertApiSettings) => {
+      if (currentApiSettings?.id) {
+        return await apiRequest("PUT", `/api/api-settings/${currentApiSettings.id}`, data);
+      } else {
+        return await apiRequest("POST", "/api/api-settings", data);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/api-settings"] });
+      toast({
+        title: "API Settings Saved",
+        description: "API settings have been updated successfully.",
+      });
+      setShowApiSettings(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to save API settings. Please try again.",
+        variant: "destructive",
+      });
+      console.error("API Settings save error:", error);
+    },
+  });
+
+  // Update API settings form when data loads
+  useEffect(() => {
+    if (currentApiSettings) {
+      setApiSettings({
+        sendgridApiKey: currentApiSettings.sendgridApiKey || "",
+        senderEmail: currentApiSettings.senderEmail || "",
+        senderName: currentApiSettings.senderName || ""
+      });
+    }
+  }, [currentApiSettings]);
 
   const [formData, setFormData] = useState<InsertWaitlistEmailSettings>({
     fromEmail: emailSettings?.fromEmail || "hello@backstageos.com",
@@ -220,15 +263,17 @@ export default function WaitlistEmailSettings() {
                     <Button variant="outline" onClick={() => setShowApiSettings(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={() => {
-                      // TODO: Save API settings
-                      toast({
-                        title: "API Settings Saved",
-                        description: "SendGrid configuration has been updated.",
-                      });
-                      setShowApiSettings(false);
-                    }}>
-                      Save Settings
+                    <Button 
+                      onClick={() => {
+                        saveApiSettingsMutation.mutate({
+                          sendgridApiKey: apiSettings.sendgridApiKey,
+                          senderEmail: apiSettings.senderEmail,
+                          senderName: apiSettings.senderName
+                        });
+                      }}
+                      disabled={saveApiSettingsMutation.isPending}
+                    >
+                      {saveApiSettingsMutation.isPending ? "Saving..." : "Save Settings"}
                     </Button>
                   </div>
                 </div>

@@ -23,6 +23,7 @@ import {
   domainRoutes,
   waitlist,
   waitlistEmailSettings,
+  apiSettings,
   seoSettings,
 
   type User,
@@ -67,6 +68,8 @@ import {
   type InsertWaitlist,
   type WaitlistEmailSettings,
   type InsertWaitlistEmailSettings,
+  type ApiSettings,
+  type InsertApiSettings,
   type Prop,
   type InsertProp,
   type DomainRoute,
@@ -107,6 +110,11 @@ export interface IStorage {
   getWaitlistEmailSettings(): Promise<WaitlistEmailSettings | undefined>;
   createWaitlistEmailSettings(settings: InsertWaitlistEmailSettings): Promise<WaitlistEmailSettings>;
   updateWaitlistEmailSettings(id: number, settings: Partial<InsertWaitlistEmailSettings>): Promise<WaitlistEmailSettings | undefined>;
+
+  // API settings operations
+  getApiSettings(): Promise<ApiSettings | undefined>;
+  createApiSettings(settings: InsertApiSettings): Promise<ApiSettings>;
+  updateApiSettings(id: number, settings: Partial<InsertApiSettings>): Promise<ApiSettings | undefined>;
 
   // Project operations
   getProjectsByUserId(userId: string): Promise<Project[]>;
@@ -849,6 +857,39 @@ class DatabaseStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(waitlistEmailSettings.id, id))
+      .returning();
+    
+    return result[0];
+  }
+
+  // API settings operations
+  async getApiSettings(): Promise<ApiSettings | undefined> {
+    const result = await db.select()
+      .from(apiSettings)
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async createApiSettings(settings: InsertApiSettings): Promise<ApiSettings> {
+    const result = await db.insert(apiSettings)
+      .values({
+        ...settings,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      .returning();
+    
+    return result[0];
+  }
+
+  async updateApiSettings(id: number, settings: Partial<InsertApiSettings>): Promise<ApiSettings | undefined> {
+    const result = await db.update(apiSettings)
+      .set({
+        ...settings,
+        updatedAt: new Date()
+      })
+      .where(eq(apiSettings.id, id))
       .returning();
     
     return result[0];
