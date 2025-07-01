@@ -167,11 +167,33 @@ export default function WaitlistEmailSettings() {
     isEnabled: emailSettings?.isEnabled ?? true,
   });
 
+  // Clean email address by removing duplicates
+  const cleanEmailAddress = (email: string): string => {
+    if (!email) return "hello@backstageos.com";
+    
+    // Find the first @ symbol to determine if there's duplication
+    const atIndex = email.indexOf('@');
+    if (atIndex === -1) return "hello@backstageos.com";
+    
+    // Extract the part after the first @
+    const afterAt = email.substring(atIndex);
+    
+    // If the email contains the same domain twice, extract just one instance
+    if (email.includes('hello@backstageos.com')) {
+      return 'hello@backstageos.com';
+    }
+    
+    // For other emails, check if they contain duplicated parts
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+/;
+    const match = email.match(emailRegex);
+    return match ? match[0] : "hello@backstageos.com";
+  };
+
   // Update form data when email settings load
   useEffect(() => {
     if (emailSettings) {
       setFormData({
-        fromEmail: emailSettings.fromEmail || "hello@backstageos.com",
+        fromEmail: cleanEmailAddress(emailSettings.fromEmail || "hello@backstageos.com"),
         fromName: emailSettings.fromName || "BackstageOS",
         subject: emailSettings.subject || "Welcome to the BackstageOS Waitlist!",
         bodyHtml: emailSettings.bodyHtml || getDefaultHtmlBody(),
