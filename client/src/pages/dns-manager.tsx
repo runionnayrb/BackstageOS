@@ -277,15 +277,15 @@ function DNSManagerContent() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label className="text-sm font-medium">Domain Name</Label>
+                <p className="text-sm font-medium">Domain Name</p>
                 <p className="text-lg">{(zoneInfo as ZoneInfo).name}</p>
               </div>
               <div>
-                <Label className="text-sm font-medium">Zone ID</Label>
+                <p className="text-sm font-medium">Zone ID</p>
                 <p className="text-sm text-gray-600">{(zoneInfo as ZoneInfo).id}</p>
               </div>
               <div>
-                <Label className="text-sm font-medium">Status</Label>
+                <p className="text-sm font-medium">Status</p>
                 <Badge variant={(zoneInfo as ZoneInfo).status === 'active' ? 'default' : 'secondary'}>
                   {(zoneInfo as ZoneInfo).status}
                 </Badge>
@@ -325,7 +325,7 @@ function DNSManagerContent() {
                           value={newRecord.type} 
                           onValueChange={(value) => setNewRecord({ ...newRecord, type: value })}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger id="record-type">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -475,7 +475,7 @@ function DNSManagerContent() {
                   value={subdomainConfig.pageRoute} 
                   onValueChange={(value) => setSubdomainConfig({ ...subdomainConfig, pageRoute: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="page-route">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -772,7 +772,7 @@ function DNSManagerContent() {
                   value={editRecord.type} 
                   onValueChange={(value) => setEditRecord({ ...editRecord, type: value })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="edit-type">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
