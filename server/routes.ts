@@ -218,16 +218,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             body = body.replace(new RegExp(variable, 'g'), value);
           });
 
-          // Aggressive HTML cleaning to match template exactly
-          body = body.replace(/style="[^"]*"/g, ''); // Remove all inline styles
-          body = body.replace(/<(h2|p|ul|li|div|span)([^>]*)>/g, '<$1>'); // Remove all attributes
+          // Clean rich text editor formatting to preserve template design exactly
+          body = body.replace(/style="[^"]*"/g, ''); // Remove inline styles
+          body = body.replace(/<(h[1-6]|p|ul|ol|li|div|span)([^>]*)>/g, '<$1>'); // Remove attributes
           body = body.replace(/<div><br><\/div>/g, ''); // Remove empty div breaks
-          body = body.replace(/<p><\/p>/g, ''); // Remove empty paragraphs  
-          body = body.replace(/<p><br><\/p>/g, ''); // Remove paragraph breaks
+          body = body.replace(/<p><\/p>/g, ''); // Remove empty paragraphs
           body = body.replace(/<div><\/div>/g, ''); // Remove empty divs
-          body = body.replace(/<span><\/span>/g, ''); // Remove empty spans
-          body = body.replace(/(<\/ul>)\s*<p>/g, '$1<p>'); // Remove space between ul and p
-          body = body.replace(/(<\/ul>)\s*<div>/g, '$1'); // Remove space between ul and div
+          body = body.replace(/\s+/g, ' '); // Normalize whitespace
+          body = body.trim(); // Remove leading/trailing whitespace
           
           const msg = {
             to: waitlistEntry.email,
