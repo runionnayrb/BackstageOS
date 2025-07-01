@@ -132,13 +132,65 @@ class CloudflareService {
     });
   }
 
-  async createEmailForward(alias: string, destination: string): Promise<CloudflareRecord> {
-    return this.createDNSRecord({
-      type: 'MX',
-      name: alias,
-      content: `10 ${destination}`,
-      ttl: 300
-    });
+  async createEmailForward(alias: string, destination: string): Promise<any> {
+    try {
+      // First ensure email routing is enabled for the zone
+      await this.enableEmailRouting();
+      
+      // Create the email routing rule
+      const response = await this.makeRequest(`/zones/${this.zoneId}/email/routing/rules`, {
+        method: 'POST',
+        body: JSON.stringify({
+          matcher: {
+            type: 'literal',
+            field: 'to',
+            value: `${alias}@${await this.getZoneName()}`
+          },
+          action: {
+            type: 'forward',
+            value: [destination]
+          },
+          enabled: true
+        })
+      }) as any;
+
+      return response.result;
+    } catch (error: any) {
+      console.error('Error creating email forward:', error);
+      throw new Error(`Failed to create email forward: ${error.message}`);
+    }
+  }
+
+  private async enableEmailRouting(): Promise<void> {
+    try {
+      // Check if email routing is already enabled
+      const status = await this.makeRequest(`/zones/${this.zoneId}/email/routing`) as any;
+      
+      if (status.result?.enabled) {
+        console.log('Email routing already enabled');
+        return;
+      }
+
+      // Enable email routing
+      await this.makeRequest(`/zones/${this.zoneId}/email/routing/enable`, {
+        method: 'POST'
+      });
+      
+      console.log('Email routing enabled successfully');
+    } catch (error: any) {
+      console.error('Error enabling email routing:', error);
+      throw new Error(`Failed to enable email routing: ${error.message}`);
+    }
+  }
+
+  private async getZoneName(): Promise<string> {
+    try {
+      const zoneInfo = await this.getZoneInfo();
+      return zoneInfo.name;
+    } catch (error) {
+      console.error('Error getting zone name:', error);
+      return 'backstageos.com'; // fallback
+    }
   }
 
   isConfigured(): boolean {
