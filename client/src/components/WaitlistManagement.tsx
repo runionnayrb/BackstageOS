@@ -109,9 +109,12 @@ export default function WaitlistManagement() {
 
   const closeDialog = () => {
     setIsDialogOpen(false);
-    setSelectedEntry(null);
-    setNotes("");
-    setStatus("");
+    // Clear state after a brief delay to prevent flash
+    setTimeout(() => {
+      setSelectedEntry(null);
+      setNotes("");
+      setStatus("");
+    }, 200);
   };
 
   const handleUpdateEntry = (entry: WaitlistEntry) => {
@@ -303,7 +306,11 @@ export default function WaitlistManagement() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Dialog open={isDialogOpen && selectedEntry?.id === entry.id} onOpenChange={(open) => !open && closeDialog()}>
+                    <Dialog open={isDialogOpen && selectedEntry?.id === entry.id} onOpenChange={(open) => {
+                      if (!open) {
+                        closeDialog();
+                      }
+                    }}>
                       <DialogTrigger asChild>
                         <Button 
                           variant="outline" 
