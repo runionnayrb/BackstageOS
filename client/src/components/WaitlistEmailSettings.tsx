@@ -655,34 +655,27 @@ function getDefaultHtmlBody(): string {
 
 <p>Hi {{firstName}},</p>
 
-<p>Thank you for joining the BackstageOS waitlist! We're excited to have you as part of our community of professional stage managers.</p>
+<p>Thank you for joining the BackstageOS waitlist! I'm excited to have you as part of our community of professional stage managers. I'm working hard to build the future of stage management technology.</p>
 
 <p><strong>Your waitlist position:</strong> #{{position}}</p>
 
-<p>&nbsp;</p>
-<p>&nbsp;</p>
-
-<p>We're working hard to build the future of stage management technology. BackstageOS will revolutionize how you manage productions with:</p>
+<p>BackstageOS will revolutionize how you manage productions with:</p>
 
 <ul>
-  <li>Comprehensive production management tools</li>
-  <li>Real-time collaboration features</li>
-  <li>Advanced script editing and cue management</li>
-  <li>Seamless team coordination</li>
+  <li>Comprehensive stage management tools</li>
+  <li>Advanced scheduling and availability management</li>
+  <li>Real-time collaboration features, including real-time document edits, file sharing, and team chatting features</li>
+  <li>Advanced script editing is directly integrated with calling script creation and management</li>
+  <li>Create a PDF, download it, attach it to an email, review it and then send it all from within the app</li>
+  <li>Props lists, scene breakdowns, french scene breakdowns, light cues, audio cues, video cues, lineset schedules, etc.</li>
+  <li>And so much more.</li>
 </ul>
 
-<p>We'll keep you updated on our progress and let you know as soon as beta access becomes available.</p>
+<p>I'll continue to keep you updated on our progress and let you know as soon as beta access becomes available.</p>
 
 <p>Thank you for your patience and interest!</p>
 
-<p>Best regards,<br>
-The BackstageOS Team</p>
-
-<hr>
-<p style="font-size: 12px; color: #666;">
-You're receiving this email because you joined the BackstageOS waitlist on {{date}}. 
-If you have any questions, please reply to this email.
-</p>`;
+<p>Best regards, Bryan at BackstageOS</p>`;
 }
 
 function getDefaultTextBody(): string {

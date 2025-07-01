@@ -218,22 +218,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             body = body.replace(new RegExp(variable, 'g'), value);
           });
 
-          // Enhanced HTML cleaning to preserve exact template design while removing rich editor artifacts
-          // Remove only problematic rich text editor attributes, but preserve intentional formatting
+          // Enhanced HTML cleaning to fix spacing issues and preserve template design
+          // Remove problematic rich text editor attributes
           body = body.replace(/style="[^"]*"/g, ''); // Remove inline styles that override template
-          body = body.replace(/class="[^"]*"/g, ''); // Remove editor-added classes
+          body = body.replace(/class="[^"]*"/g, ''); // Remove editor-added classes  
           body = body.replace(/contenteditable="[^"]*"/g, ''); // Remove editor attributes
           body = body.replace(/data-[^=]*="[^"]*"/g, ''); // Remove data attributes from editor
           
-          // Remove only empty elements that are editor artifacts, not intentional spacing
-          body = body.replace(/<p><br><\/p>/g, '<p>&nbsp;</p>'); // Convert editor breaks to proper spacing
-          body = body.replace(/<div><br><\/div>/g, ''); // Remove empty div breaks only
-          body = body.replace(/<p><\/p>/g, ''); // Remove empty paragraphs only
-          body = body.replace(/<div><\/div>/g, ''); // Remove empty divs only
+          // Fix specific spacing issues that cause extra space in emails
+          body = body.replace(/<p>&nbsp;<\/p>\s*<p>&nbsp;<\/p>/g, '<p>&nbsp;</p>'); // Convert double spacing to single
+          body = body.replace(/<p><br><\/p>/g, ''); // Remove paragraph breaks that create extra space
+          body = body.replace(/<div><br><\/div>/g, ''); // Remove empty div breaks
+          body = body.replace(/<p><\/p>/g, ''); // Remove empty paragraphs
+          body = body.replace(/<div><\/div>/g, ''); // Remove empty divs
+          body = body.replace(/\s*<p>&nbsp;<\/p>\s*/g, '\n\n'); // Convert non-breaking space paragraphs to clean line breaks
           
-          // Preserve intentional line breaks and paragraph spacing - DO NOT collapse whitespace
-          body = body.replace(/\n\s*\n/g, '\n'); // Clean up excessive line breaks but preserve structure
-          body = body.trim(); // Remove only leading/trailing whitespace
+          // Clean up multiple consecutive line breaks that cause spacing issues
+          body = body.replace(/\n{3,}/g, '\n\n'); // Limit to maximum double line breaks
+          body = body.trim(); // Remove leading/trailing whitespace
           
           const msg = {
             to: waitlistEntry.email,
@@ -3517,21 +3519,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Apply same enhanced HTML cleaning as waitlist emails for consistency
-      // Remove only problematic rich text editor attributes, but preserve intentional formatting
+      // Remove problematic rich text editor attributes
       testBody = testBody.replace(/style="[^"]*"/g, ''); // Remove inline styles that override template
-      testBody = testBody.replace(/class="[^"]*"/g, ''); // Remove editor-added classes
+      testBody = testBody.replace(/class="[^"]*"/g, ''); // Remove editor-added classes  
       testBody = testBody.replace(/contenteditable="[^"]*"/g, ''); // Remove editor attributes
       testBody = testBody.replace(/data-[^=]*="[^"]*"/g, ''); // Remove data attributes from editor
       
-      // Remove only empty elements that are editor artifacts, not intentional spacing
-      testBody = testBody.replace(/<p><br><\/p>/g, '<p>&nbsp;</p>'); // Convert editor breaks to proper spacing
-      testBody = testBody.replace(/<div><br><\/div>/g, ''); // Remove empty div breaks only
-      testBody = testBody.replace(/<p><\/p>/g, ''); // Remove empty paragraphs only
-      testBody = testBody.replace(/<div><\/div>/g, ''); // Remove empty divs only
+      // Fix specific spacing issues that cause extra space in emails
+      testBody = testBody.replace(/<p>&nbsp;<\/p>\s*<p>&nbsp;<\/p>/g, '<p>&nbsp;</p>'); // Convert double spacing to single
+      testBody = testBody.replace(/<p><br><\/p>/g, ''); // Remove paragraph breaks that create extra space
+      testBody = testBody.replace(/<div><br><\/div>/g, ''); // Remove empty div breaks
+      testBody = testBody.replace(/<p><\/p>/g, ''); // Remove empty paragraphs
+      testBody = testBody.replace(/<div><\/div>/g, ''); // Remove empty divs
+      testBody = testBody.replace(/\s*<p>&nbsp;<\/p>\s*/g, '\n\n'); // Convert non-breaking space paragraphs to clean line breaks
       
-      // Preserve intentional line breaks and paragraph spacing - DO NOT collapse whitespace
-      testBody = testBody.replace(/\n\s*\n/g, '\n'); // Clean up excessive line breaks but preserve structure
-      testBody = testBody.trim(); // Remove only leading/trailing whitespace
+      // Clean up multiple consecutive line breaks that cause spacing issues
+      testBody = testBody.replace(/\n{3,}/g, '\n\n'); // Limit to maximum double line breaks
+      testBody = testBody.trim(); // Remove leading/trailing whitespace
 
       const msg = {
         to: testEmail,
