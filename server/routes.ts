@@ -3493,6 +3493,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("API Key length:", apiSettings.sendgridApiKey?.length);
       console.log("API Key prefix:", apiSettings.sendgridApiKey?.substring(0, 10));
       
+      // Check SendGrid sender verification status
+      try {
+        const verificationUrl = 'https://api.sendgrid.com/v3/verified_senders';
+        const verificationResponse = await fetch(verificationUrl, {
+          headers: {
+            'Authorization': `Bearer ${apiSettings.sendgridApiKey}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (verificationResponse.ok) {
+          const verificationData = await verificationResponse.json();
+          console.log("SendGrid verified senders:", JSON.stringify(verificationData, null, 2));
+          
+          const isVerified = verificationData.results?.some((sender: any) => 
+            sender.from_email === fromEmail && sender.verified?.status === true
+          );
+          console.log(`Sender ${fromEmail} verification status:`, isVerified ? "VERIFIED" : "NOT VERIFIED");
+          
+          if (!isVerified) {
+            console.log("⚠️  EMAIL DELIVERY ISSUE: Sender email is not verified in SendGrid");
+            console.log("⚠️  You must verify this sender in your SendGrid dashboard for emails to be delivered");
+          }
+        } else {
+          console.log("Could not check sender verification status:", verificationResponse.status);
+        }
+      } catch (verificationError) {
+        console.log("Error checking sender verification:", verificationError);
+      }
+      
       res.json({ 
         message: "Test email sent successfully",
         sentTo: testEmail,
