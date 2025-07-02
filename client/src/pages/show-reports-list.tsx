@@ -57,46 +57,46 @@ export default function ShowReportsList() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="w-full">
-        <div className="px-4 sm:px-6 lg:px-8 py-4 mb-2">
-          <div className="flex items-center justify-between mb-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLocation(`/shows/${projectId}`)}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to {(project as any)?.name}
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setLocation(`/shows/${projectId}/templates`)}
-              className="flex items-center gap-2"
-            >
-              <Settings className="h-4 w-4" />
-              Template Settings
-            </Button>
-          </div>
+    <div className="w-full">
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation(`/shows/${projectId}`)}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to {(project as any)?.name}
+          </Button>
           
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setLocation(`/shows/${projectId}/templates`)}
+            className="flex items-center gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            Template Settings
+          </Button>
+        </div>
+        
+        <div className="mb-2">
           <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
         </div>
+      </div>
 
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="space-y-8">
-            {reportTypes.map((reportType) => (
-              <div
-                key={reportType.type}
-                className="cursor-pointer hover:opacity-75 transition-opacity"
-                onClick={() => setLocation(`/shows/${projectId}/reports/${reportType.type}`)}
-              >
-                <h3 className="text-xl font-medium text-gray-900">{reportType.name}</h3>
-              </div>
-            ))}
-          </div>
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="space-y-1">
+          {reportTypes.map((reportType) => (
+            <div
+              key={reportType.type}
+              className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => setLocation(`/shows/${projectId}/reports/${reportType.type}`)}
+            >
+              <h3 className="text-lg font-medium text-gray-900">{reportType.name}</h3>
+            </div>
+          ))}
         </div>
       </div>
     </div>
