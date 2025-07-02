@@ -249,25 +249,19 @@ export default function CostumeTracker() {
   const isFreelance = user?.profileType === 'freelance';
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
+    <div className="w-full">
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setLocation(`/shows/${projectId}`)}
-            className="flex items-center gap-2"
+            className="text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to {project.name}
           </Button>
-        </div>
-
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Costume Tracker</h1>
-            <p className="text-muted-foreground">{project.name} • {filteredCostumes.length} costumes</p>
-          </div>
+          
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => window.print()}>
               <Printer className="h-4 w-4 mr-2" />
@@ -279,6 +273,13 @@ export default function CostumeTracker() {
             </Button>
           </div>
         </div>
+        
+        <div className="mb-2">
+          <h1 className="text-3xl font-bold text-gray-900">Costume Tracker</h1>
+        </div>
+      </div>
+
+      <div className="px-4 sm:px-6 lg:px-8">
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">

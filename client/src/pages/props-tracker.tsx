@@ -66,6 +66,7 @@ export default function PropsTracker() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sceneFilter, setSceneFilter] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -239,32 +240,45 @@ export default function PropsTracker() {
   const isFreelance = user?.profileType === 'freelance';
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
+    <div className="w-full">
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setLocation(`/shows/${projectId}`)}
-            className="flex items-center gap-2"
+            className="text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to {project.name}
           </Button>
-        </div>
-
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-bold">Props Tracker</h1>
-            <p className="text-muted-foreground">{project.name} • {filteredProps.length} props</p>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+            
+            <Button onClick={() => setIsAddingProp(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Prop
+            </Button>
           </div>
-          <Button onClick={() => setIsAddingProp(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Prop
-          </Button>
         </div>
+        
+        <div className="mb-2">
+          <h1 className="text-3xl font-bold text-gray-900">Props Tracker</h1>
+        </div>
+      </div>
+
+      <div className="px-4 sm:px-6 lg:px-8">
 
         {/* Filters */}
+        {showFilters && (
         <Card className="mb-6">
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -313,6 +327,7 @@ export default function PropsTracker() {
             </div>
           </CardContent>
         </Card>
+        )}
 
         {/* Props Table */}
         <Card>

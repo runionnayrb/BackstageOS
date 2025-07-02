@@ -47,38 +47,34 @@ export default function PropsAndCostumes() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
+    <div className="w-full">
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setLocation(`/shows/${projectId}`)}
-            className="flex items-center gap-2"
+            className="text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to {(project as any)?.name}
           </Button>
         </div>
-
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Props & Costumes</h1>
-          <p className="text-gray-500 mt-2">
-            Manage props and costume tracking for your production
-          </p>
+        
+        <div className="mb-2">
+          <h1 className="text-3xl font-bold text-gray-900">Props & Costumes</h1>
         </div>
+      </div>
 
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="space-y-1">
           {sections.map((section) => (
             <div
               key={section.title}
-              className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+              className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
               onClick={() => setLocation(section.href)}
             >
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-medium text-gray-900">{section.title}</h3>
-                <span className="text-gray-400 text-lg">→</span>
-              </div>
+              <h3 className="text-lg font-medium text-gray-900">{section.title}</h3>
             </div>
           ))}
         </div>
