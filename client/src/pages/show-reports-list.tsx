@@ -58,8 +58,8 @@ export default function ShowReportsList() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <div className="mb-8">
+      <div className="w-full">
+        <div className="px-4 sm:px-6 lg:px-8 py-4 mb-2">
           <div className="flex items-center justify-between mb-2">
             <Button
               variant="ghost"
@@ -85,16 +85,18 @@ export default function ShowReportsList() {
           <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
         </div>
 
-        <div className="space-y-8">
-          {reportTypes.map((reportType) => (
-            <div
-              key={reportType.type}
-              className="cursor-pointer hover:opacity-75 transition-opacity"
-              onClick={() => setLocation(`/shows/${projectId}/reports/${reportType.type}`)}
-            >
-              <h3 className="text-xl font-medium text-gray-900">{reportType.name}</h3>
-            </div>
-          ))}
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="space-y-8">
+            {reportTypes.map((reportType) => (
+              <div
+                key={reportType.type}
+                className="cursor-pointer hover:opacity-75 transition-opacity"
+                onClick={() => setLocation(`/shows/${projectId}/reports/${reportType.type}`)}
+              >
+                <h3 className="text-xl font-medium text-gray-900">{reportType.name}</h3>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
