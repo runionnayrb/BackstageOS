@@ -48,6 +48,54 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **Export Functions**: PDF generation for reports and documents
 - **Integration APIs**: Connect with industry-standard theater software
 
+## Future Email System Implementation Plan
+
+**Complete Email System to Replace External Email Services**
+
+### Phase 1: Database Schema & Core Architecture (2-3 weeks)
+- Email messages storage with threading support
+- Email folders/labels management
+- Email attachments handling
+- Email rules/filters system
+- Background job system for email processing
+
+### Phase 2: Backend Email Processing (2-3 weeks)
+- IMAP integration for syncing existing emails (Gmail, Outlook, Yahoo, custom servers)
+- Enhanced SMTP system beyond current SendGrid integration
+- Two-way email sync (read status, deletions, folder moves)
+- Email queue system for reliable delivery
+- Bounce and delivery tracking
+
+### Phase 3: Frontend Email Client (2-3 weeks)
+- Complete email interface (Inbox, Sent, Drafts, Folders)
+- Email composer using existing rich text editor
+- Threaded conversation view
+- Advanced search and filtering
+- Contact auto-complete integration with existing contacts system
+
+### Phase 4: Theater-Specific Features (2-4 weeks)
+- Show-centric email organization and auto-categorization
+- Production email templates (call sheets, rehearsal notes)
+- Bulk email to cast/crew by role or category
+- Email rules engine for auto-filing by production
+- Integration with scheduling system for email reminders
+
+### Phase 5: Advanced Integration (1-2 weeks)
+- Shared inboxes for production teams
+- Email delegation and assignment
+- Team collaboration on email threads
+- Email archiving by show completion
+
+**Key Advantages:**
+- Leverages existing domain control through Cloudflare DNS
+- Builds on current email alias system and SendGrid integration
+- Integrates with existing contacts and rich text editor systems
+- Provides theater-specific email organization by production
+
+**Total Timeline:** 7-12 weeks for complete system
+
+**To Request Implementation:** Simply ask "I'm ready to start the email system implementation" and reference this plan in replit.md
+
 ## System Architecture
 
 **Show-Centric Design**: Everything is tied to specific shows/projects with no data crossover between productions.
