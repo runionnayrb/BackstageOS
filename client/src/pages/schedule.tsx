@@ -103,24 +103,18 @@ export default function Schedule() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
+    <div className="w-full">
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setLocation(`/shows/${projectId}/calendar`)}
-            className="flex items-center gap-2"
+            className="text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Calendar
           </Button>
-        </div>
-
-        <div className="mb-8 flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold">Schedule</h1>
-          </div>
           
           <div className="flex items-center gap-4">
             <ScheduleFilter
@@ -160,6 +154,13 @@ export default function Schedule() {
             </div>
           </div>
         </div>
+        
+        <div className="mb-2">
+          <h1 className="text-3xl font-bold text-gray-900">Schedule</h1>
+        </div>
+      </div>
+
+      <div className="px-4 sm:px-6 lg:px-8">
 
 
 
