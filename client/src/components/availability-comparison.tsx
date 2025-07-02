@@ -1171,7 +1171,12 @@ export default function AvailabilityComparison({
                 <DialogHeader>
                   <DialogTitle>Edit Availability</DialogTitle>
                   <DialogDescription>
-                    {editingItem.contactFirstName} {editingItem.contactLastName} - {editingItem.date}
+                    {editingItem.contactFirstName} {editingItem.contactLastName} - {new Date(editingItem.date).toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
                   </DialogDescription>
                 </DialogHeader>
                 
