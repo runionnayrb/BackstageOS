@@ -210,7 +210,7 @@ export default function ShowDetail() {
 
   return (
     <div className="w-full">
-      <div className="px-6 py-4">
+      <div className="px-7 py-4">
         <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
@@ -249,7 +249,7 @@ export default function ShowDetail() {
         </div>
       </div>
 
-      <div className="px-6">
+      <div className="px-7">
         <div className="space-y-1">
           {sections.map((section, index) => (
             <div
