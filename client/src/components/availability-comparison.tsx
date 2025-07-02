@@ -865,15 +865,25 @@ export default function AvailabilityComparison({
                   >
                     {/* Time Header */}
                     <div className="sticky top-0 bg-white border-b z-10">
-                      <div className="flex w-full">
-                        {timeLabels.map((timeLabel) => (
-                          <div
-                            key={timeLabel.minutes}
-                            className="border-r text-center py-2 text-xs text-gray-500 flex-1"
-                          >
-                            {timeIncrement >= 60 || timeLabel.minutes % 60 === 0 ? timeLabel.label : ''}
-                          </div>
-                        ))}
+                      <div className="relative w-full h-10">
+                        {/* Generate time labels every hour */}
+                        {Array.from({ length: 17 }, (_, i) => {
+                          const minutes = START_MINUTES + (i * 60); // Every hour from 8 AM to midnight
+                          const startPercent = ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                          
+                          return (
+                            <div
+                              key={minutes}
+                              className="absolute text-center py-2 text-xs text-gray-500 flex items-center justify-center"
+                              style={{
+                                left: `${startPercent}%`,
+                                transform: 'translateX(-50%)',
+                              }}
+                            >
+                              {formatTime(minutes)}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -888,15 +898,7 @@ export default function AvailabilityComparison({
                             className="h-16 border-b relative bg-white cursor-crosshair w-full" 
                             onMouseDown={(e) => handleMouseDown(e, contact.id)}
                           >
-                            {/* Time Grid Background */}
-                            <div className="flex w-full h-full absolute">
-                              {timeLabels.map((timeLabel) => (
-                                <div
-                                  key={timeLabel.minutes}
-                                  className="border-r border-gray-100 h-full flex-1"
-                                />
-                              ))}
-                            </div>
+                            {/* Clean background without grid lines */}
 
                             {/* Availability Blocks */}
                             {contactAvailability.map((item: ProjectAvailability) => {
