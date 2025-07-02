@@ -177,20 +177,18 @@ export default function Personnel() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setLocation(`/shows/${projectId}`)}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to {(project as any)?.name}
-        </Button>
-
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
+    <div className="w-full">
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation(`/shows/${projectId}`)}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to {(project as any)?.name}
+          </Button>
           
           <div className="flex items-center gap-3">
             {allContacts.length > 0 && (
@@ -222,8 +220,14 @@ export default function Personnel() {
             </Button>
           </div>
         </div>
+        
+        <div className="mb-2">
+          <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
+        </div>
+      </div>
 
-        <div className="space-y-8">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="space-y-1">
           {categories.map((category, index) => (
             <div
               key={category.id}
@@ -232,10 +236,10 @@ export default function Personnel() {
               onDragOver={isReordering ? handleDragOver : undefined}
               onDrop={isReordering ? (e) => handleDrop(e, index) : undefined}
               onDragEnd={isReordering ? handleDragEnd : undefined}
-              className={`transition-colors group relative ${
+              className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
                 isReordering && draggedIndex === index 
                   ? 'opacity-50 bg-blue-50 border-blue-200' 
-                  : 'hover:opacity-70'
+                  : ''
               }`}
             >
               <div className="flex items-center gap-3">
@@ -245,7 +249,7 @@ export default function Personnel() {
                   </div>
                 )}
                 <div 
-                  className="flex-1 flex justify-between items-center cursor-pointer"
+                  className="flex-1 flex justify-between items-center"
                   onClick={() => setLocation(category.href)}
                 >
                   <h3 className="text-lg font-medium text-gray-900">{category.title}</h3>
