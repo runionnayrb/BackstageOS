@@ -926,33 +926,32 @@ export default function ContactSheet() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      {/* Header - Hidden in print */}
-      <div className="bg-background border-b print:hidden">
-        <div className="container mx-auto p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLocation(`/shows/${projectId}/contacts`)}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Contacts
-              </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Contact Sheet - {(project as any)?.name}</h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm text-muted-foreground">Version {currentVersion}</span>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <span className="text-xs text-muted-foreground">
-                    {isSaving ? "Saving..." : lastSaved ? `Saved ${lastSaved.toLocaleTimeString()}` : "All changes are auto-saved"}
-                  </span>
-                </div>
-              </div>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto p-6 print:hidden">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation(`/shows/${projectId}/contacts`)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Contacts
+          </Button>
+        </div>
+
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold">Contact Sheet - {(project as any)?.name}</h1>
+            <div className="flex items-center gap-2 mt-2">
+              <span className="text-sm text-muted-foreground">Version {currentVersion}</span>
+              <span className="text-xs text-muted-foreground">•</span>
+              <span className="text-xs text-muted-foreground">
+                {isSaving ? "Saving..." : lastSaved ? `Saved ${lastSaved.toLocaleTimeString()}` : "All changes are auto-saved"}
+              </span>
             </div>
-            <div className="flex items-center gap-2">
+          </div>
+          <div className="flex items-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -1006,10 +1005,12 @@ export default function ContactSheet() {
                 <Printer className="h-4 w-4" />
               </Button>
             </div>
-          </div>
-          
-          {/* Formatting Toolbar - Only show in edit mode */}
-          {!isPreviewMode && (
+        </div>
+      </div>
+        
+      <div className="container mx-auto p-6 print:hidden">
+        {/* Formatting Toolbar - Only show in edit mode */}
+        {!isPreviewMode && (
             <div className="mt-4 pb-4 border-b bg-gray-50 rounded-lg p-4">
               {/* Target Selector */}
               <div className="flex items-center gap-2 mb-3">
@@ -1323,7 +1324,6 @@ export default function ContactSheet() {
               </div>
             </div>
           )}
-        </div>
       </div>
 
       {/* Print Preview Container */}

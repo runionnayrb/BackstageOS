@@ -109,15 +109,25 @@ export default function PersonnelCategory() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4 mb-6">
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => setLocation(`/shows/${projectId}/contacts`)}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Contacts
           </Button>
+        </div>
+
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold">{getCategoryTitle(category)}</h1>
+            <p className="text-gray-500 mt-2">
+              {categoryContacts.length} contact{categoryContacts.length !== 1 ? 's' : ''}
+            </p>
+          </div>
           <Button onClick={handleAddContact} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Add Contact
@@ -127,12 +137,6 @@ export default function PersonnelCategory() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Contact List */}
           <div className="space-y-4">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold">{getCategoryTitle(category)}</h1>
-              <p className="text-gray-500 mt-2">
-                {categoryContacts.length} contact{categoryContacts.length !== 1 ? 's' : ''}
-              </p>
-            </div>
 
             {categoryContacts.length === 0 ? (
               <div className="text-center py-12">
