@@ -210,24 +210,16 @@ export default function ShowDetail() {
 
   return (
     <div className="container mx-auto p-6">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLocation("/")}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Shows
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-              {project.venue && (
-                <p className="text-gray-600 mt-1">{project.venue}</p>
-              )}
-            </div>
-          </div>
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation("/")}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Shows
+          </Button>
           
           <div className="flex items-center space-x-2">
             <Button
@@ -246,6 +238,13 @@ export default function ShowDetail() {
               Show Settings
             </Button>
           </div>
+        </div>
+        
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
+          {project.venue && (
+            <p className="text-gray-600 mt-1">{project.venue}</p>
+          )}
         </div>
 
         <div className="space-y-1">
