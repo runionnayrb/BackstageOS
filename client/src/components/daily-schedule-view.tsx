@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, ChevronRight, Plus, Clock, Users, ArrowLeft, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, Users, Calendar } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -50,7 +50,7 @@ interface Contact {
   role?: string;
 }
 
-const START_HOUR = 6; // 6 AM
+const START_HOUR = 8; // 8 AM
 const END_HOUR = 24; // Midnight
 const START_MINUTES = START_HOUR * 60;
 const END_MINUTES = END_HOUR * 60;
@@ -164,8 +164,13 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
 
   // Drag to create events
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      const rect = e.currentTarget.getBoundingClientRect();
+    // Allow drag creation on empty grid space (but not on events)
+    const target = e.target as HTMLElement;
+    const isOnEvent = target.closest('[data-event-id]');
+    const isOnTimeLabel = target.closest('.time-label') || target.classList.contains('time-label');
+    
+    if (!isOnEvent && !isOnTimeLabel && calendarRef.current) {
+      const rect = calendarRef.current.getBoundingClientRect();
       const y = e.clientY - rect.top;
       const minutes = positionToMinutes(y);
       const snappedMinutes = snapToIncrement(minutes);
@@ -175,6 +180,8 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
         startTime: snappedMinutes,
         currentTime: snappedMinutes,
       });
+      
+      e.preventDefault();
     }
   };
 
@@ -305,31 +312,19 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onBackToWeekly}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Weekly
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm" onClick={goToPreviousDay}>
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={goToPreviousDay}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <h3 className="text-lg font-semibold min-w-80 text-center">
-              {formatDateDisplay(currentDate)}
-            </h3>
-            <Button variant="outline" size="sm" onClick={goToNextDay}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={goToToday}>
-              Today
-            </Button>
-          </div>
+          <h3 className="text-lg font-semibold w-80 text-center">
+            {formatDateDisplay(currentDate)}
+          </h3>
+          <Button variant="outline" size="sm" onClick={goToNextDay}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={goToToday}>
+            Today
+          </Button>
         </div>
 
         <div className="flex items-center space-x-2">
@@ -405,22 +400,39 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
           onMouseDown={handleMouseDown}
         >
           <div className="relative" style={{ height: '1080px' }}>
-            {/* Time labels and grid lines */}
-            {Array.from({ length: 19 }, (_, i) => {
+            {/* Hour labels and major grid lines */}
+            {Array.from({ length: 17 }, (_, i) => {
               const hour = START_HOUR + i;
-              const position = (i / 18) * 1080;
+              const position = (i / 16) * 1080;
               const timeString = `${hour.toString().padStart(2, '0')}:00`;
               const formattedTime = formatTimeDisplay(timeString, timeFormat);
               return (
                 <div
-                  key={hour}
-                  className="absolute left-0 right-0 border-b border-gray-100"
+                  key={`hour-${hour}`}
+                  className="absolute left-0 right-0 border-b border-gray-200"
                   style={{ top: `${position}px` }}
                 >
-                  <div className="absolute left-0 w-20 p-2 text-sm text-gray-500 bg-white border-r">
+                  <div className="absolute left-0 w-20 p-2 text-sm text-gray-500 bg-white border-r time-label">
                     {formattedTime}
                   </div>
                 </div>
+              );
+            })}
+
+            {/* Time increment grid lines */}
+            {Array.from({ length: Math.floor(TOTAL_MINUTES / timeIncrement) }, (_, i) => {
+              const minutes = i * timeIncrement;
+              const position = (minutes / TOTAL_MINUTES) * 1080;
+              const isHour = minutes % 60 === 0;
+              
+              if (isHour) return null; // Skip hour lines as they're already drawn above
+              
+              return (
+                <div
+                  key={`increment-${i}`}
+                  className="absolute left-20 right-0 border-b border-gray-100"
+                  style={{ top: `${position}px` }}
+                />
               );
             })}
 
@@ -466,6 +478,7 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
                   return (
                     <div
                       key={event.id}
+                      data-event-id={event.id}
                       className={`absolute left-2 right-2 border-2 rounded-lg px-3 py-2 cursor-pointer hover:opacity-80 transition-opacity shadow-sm ${
                         eventTypeColors[event.type as keyof typeof eventTypeColors] || eventTypeColors.other
                       }`}

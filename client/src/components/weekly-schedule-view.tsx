@@ -283,21 +283,26 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
 
   // Mouse handlers for drag-to-create
   const handleMouseDown = useCallback((e: React.MouseEvent, dayIndex: number) => {
-    if (e.target !== e.currentTarget) return; // Only on empty space
+    // Allow drag creation on empty grid space (but not on events or time labels)
+    const target = e.target as HTMLElement;
+    const isOnEvent = target.closest('[data-event-id]');
+    const isOnTimeLabel = target.closest('.time-label') || target.classList.contains('time-label');
     
-    const rect = e.currentTarget.getBoundingClientRect();
-    const y = e.clientY - rect.top;
-    const minutes = snapToIncrement(positionToMinutes(y));
-    
-    setDragState({
-      isActive: true,
-      startDay: dayIndex,
-      startTime: minutes,
-      currentDay: dayIndex,
-      currentTime: minutes,
-    });
-    
-    e.preventDefault();
+    if (!isOnEvent && !isOnTimeLabel && calendarRef.current) {
+      const rect = calendarRef.current.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const minutes = snapToIncrement(positionToMinutes(y));
+      
+      setDragState({
+        isActive: true,
+        startDay: dayIndex,
+        startTime: minutes,
+        currentDay: dayIndex,
+        currentTime: minutes,
+      });
+      
+      e.preventDefault();
+    }
   }, [timeIncrement]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -458,7 +463,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
             className="relative" 
             style={{ height: '960px' }}
           >
-            {/* Time labels and grid lines */}
+            {/* Hour labels and major grid lines */}
             {Array.from({ length: 17 }, (_, i) => {
               const hour = START_HOUR + i;
               const position = (i / 16) * 960;
@@ -466,14 +471,31 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
               const formattedTime = formatTimeDisplay(timeString, timeFormat);
               return (
                 <div
-                  key={hour}
-                  className="absolute left-0 right-0 border-b border-gray-100"
+                  key={`hour-${hour}`}
+                  className="absolute left-0 right-0 border-b border-gray-200"
                   style={{ top: `${position}px` }}
                 >
-                  <div className="absolute left-0 w-16 p-2 text-xs text-gray-500 bg-white border-r">
+                  <div className="absolute left-0 w-16 p-2 text-xs text-gray-500 bg-white border-r time-label">
                     {formattedTime}
                   </div>
                 </div>
+              );
+            })}
+
+            {/* Time increment grid lines */}
+            {Array.from({ length: Math.floor(TOTAL_MINUTES / timeIncrement) }, (_, i) => {
+              const minutes = i * timeIncrement;
+              const position = (minutes / TOTAL_MINUTES) * 960;
+              const isHour = minutes % 60 === 0;
+              
+              if (isHour) return null; // Skip hour lines as they're already drawn above
+              
+              return (
+                <div
+                  key={`increment-${i}`}
+                  className="absolute left-16 right-0 border-b border-gray-100"
+                  style={{ top: `${position}px` }}
+                />
               );
             })}
 
@@ -521,6 +543,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
                     return (
                       <div
                         key={event.id}
+                        data-event-id={event.id}
                         className={`absolute left-1 right-1 border rounded px-2 py-1 cursor-pointer hover:opacity-80 transition-opacity ${
                           eventTypeColors[event.type as keyof typeof eventTypeColors] || eventTypeColors.other
                         }`}

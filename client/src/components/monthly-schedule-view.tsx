@@ -208,8 +208,21 @@ export default function MonthlyScheduleView({
 
   return (
     <div className="space-y-4">
-      {/* Toolbar */}
-      <div className="flex justify-end">
+      {/* Month Navigation */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm" onClick={goToPreviousMonth}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <h3 className="text-lg font-semibold w-80 text-center">{formatMonthYear()}</h3>
+          <Button variant="outline" size="sm" onClick={goToNextMonth}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={goToToday}>
+            Today
+          </Button>
+        </div>
+
         <div className="flex items-center space-x-2">
           <Button 
             variant={showAllDayEvents ? "default" : "outline"}
