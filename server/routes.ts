@@ -1677,6 +1677,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Location-specific availability routes (follows contact availability pattern)
+  app.post("/api/projects/:id/locations/:locationId/availability", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const locationId = parseInt(req.params.locationId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const availabilityData = {
+        ...req.body,
+        locationId,
+        projectId,
+        createdBy: req.user.id
+      };
+
+      const availability = await storage.createLocationAvailability(availabilityData);
+      res.json(availability);
+    } catch (error) {
+      console.error("Error creating location availability:", error);
+      res.status(500).json({ message: "Failed to create location availability" });
+    }
+  });
+
+  app.put("/api/projects/:id/locations/:locationId/availability/:availabilityId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const locationId = parseInt(req.params.locationId);
+      const availabilityId = parseInt(req.params.availabilityId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const availabilityData = {
+        ...req.body,
+        locationId,
+        projectId
+      };
+
+      const availability = await storage.updateLocationAvailability(availabilityId, availabilityData);
+      res.json(availability);
+    } catch (error) {
+      console.error("Error updating location availability:", error);
+      res.status(500).json({ message: "Failed to update location availability" });
+    }
+  });
+
   // Props API endpoints
   app.get("/api/projects/:id/props", isAuthenticated, async (req: any, res) => {
     try {

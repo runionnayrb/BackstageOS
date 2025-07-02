@@ -120,7 +120,7 @@ export default function LocationAvailability({
 
   // Get locations data
   const { data: locations = [], isLoading: locationsLoading } = useQuery({
-    queryKey: [`/api/projects/${projectId}/locations`],
+    queryKey: [`/api/projects/${projectId}/event-locations`],
   });
 
   // Get location availability data

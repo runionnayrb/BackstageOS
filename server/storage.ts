@@ -203,6 +203,14 @@ export interface IStorage {
   deleteContactAvailability(id: number): Promise<void>;
   bulkDeleteContactAvailability(ids: number[]): Promise<void>;
 
+  // Location availability operations
+  getLocationAvailabilityByProjectId(projectId: number): Promise<LocationAvailability[]>;
+  getLocationAvailabilityByLocationId(locationId: number, projectId: number): Promise<LocationAvailability[]>;
+  createLocationAvailability(availability: InsertLocationAvailability): Promise<LocationAvailability>;
+  updateLocationAvailability(id: number, availability: Partial<InsertLocationAvailability>): Promise<LocationAvailability>;
+  deleteLocationAvailability(id: number): Promise<void>;
+  bulkDeleteLocationAvailability(ids: number[]): Promise<void>;
+
   // Props operations
   getPropsByProjectId(projectId: number): Promise<Prop[]>;
   getPropById(id: number): Promise<Prop | undefined>;
@@ -641,6 +649,46 @@ class DatabaseStorage implements IStorage {
   async bulkDeleteContactAvailability(ids: number[]): Promise<void> {
     if (ids.length === 0) return;
     await db.delete(contactAvailability).where(sql`${contactAvailability.id} = ANY(${ids})`);
+  }
+
+  // Location availability operations
+  async getLocationAvailabilityByProjectId(projectId: number): Promise<LocationAvailability[]> {
+    const result = await db.select()
+      .from(locationAvailability)
+      .where(eq(locationAvailability.projectId, projectId));
+    return result;
+  }
+
+  async getLocationAvailabilityByLocationId(locationId: number, projectId: number): Promise<LocationAvailability[]> {
+    const result = await db.select()
+      .from(locationAvailability)
+      .where(and(
+        eq(locationAvailability.locationId, locationId),
+        eq(locationAvailability.projectId, projectId)
+      ));
+    return result;
+  }
+
+  async createLocationAvailability(availability: InsertLocationAvailability): Promise<LocationAvailability> {
+    const result = await db.insert(locationAvailability).values(availability).returning();
+    return result[0];
+  }
+
+  async updateLocationAvailability(id: number, availability: Partial<InsertLocationAvailability>): Promise<LocationAvailability> {
+    const result = await db.update(locationAvailability)
+      .set({ ...availability, updatedAt: new Date() })
+      .where(eq(locationAvailability.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteLocationAvailability(id: number): Promise<void> {
+    await db.delete(locationAvailability).where(eq(locationAvailability.id, id));
+  }
+
+  async bulkDeleteLocationAvailability(ids: number[]): Promise<void> {
+    if (ids.length === 0) return;
+    await db.delete(locationAvailability).where(sql`${locationAvailability.id} = ANY(${ids})`);
   }
 
   async getPropsByProjectId(projectId: number): Promise<Prop[]> {
