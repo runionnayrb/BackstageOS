@@ -88,10 +88,9 @@ export default function ScheduleFilter({ projectId, selectedContactIds, onFilter
         <Button
           variant="outline"
           size="sm"
-          className={`flex items-center gap-2 ${getFilterStatusColor()}`}
+          className={`flex items-center ${getFilterStatusColor()}`}
         >
           <Filter className="h-4 w-4" />
-          {getFilterStatusText()}
           {selectedContactIds.length > 0 && (
             <Badge variant="secondary" className="ml-1 px-2 py-0.5 text-xs">
               {selectedContactIds.length}
@@ -185,7 +184,7 @@ export default function ScheduleFilter({ projectId, selectedContactIds, onFilter
           <div className="flex items-center justify-between text-xs text-gray-600">
             <span>
               {selectedContactIds.length === 0 
-                ? "Showing master schedule (all events)"
+                ? "Showing show schedule (production events only)"
                 : `Filtering by ${selectedContactIds.length} ${selectedContactIds.length === 1 ? 'person' : 'people'}`
               }
             </span>
