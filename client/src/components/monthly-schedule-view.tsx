@@ -17,6 +17,7 @@ interface MonthlyScheduleViewProps {
   onDateClick: (date: Date) => void;
   currentDate: Date;
   setCurrentDate: (date: Date) => void;
+  selectedContactIds: number[];
 }
 
 interface ScheduleEvent {
@@ -73,6 +74,7 @@ export default function MonthlyScheduleView({
   onDateClick,
   currentDate,
   setCurrentDate,
+  selectedContactIds,
 }: MonthlyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -100,6 +102,15 @@ export default function MonthlyScheduleView({
   const { data: contacts = [] } = useQuery<Contact[]>({
     queryKey: [`/api/projects/${projectId}/contacts`],
   });
+
+  // Filter events based on selected contact IDs
+  const filteredEvents = selectedContactIds.length === 0 
+    ? events // Show all events when no filter is applied (master schedule)
+    : events.filter(event => 
+        event.participants.some(participant => 
+          selectedContactIds.includes(participant.contactId)
+        )
+      );
 
   // Generate calendar grid for the current month
   const generateCalendarDays = () => {
@@ -130,7 +141,7 @@ export default function MonthlyScheduleView({
   // Get events for a specific date
   const getEventsForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return events.filter(event => event.date === dateStr);
+    return filteredEvents.filter(event => event.date === dateStr);
   };
 
   // Navigation functions

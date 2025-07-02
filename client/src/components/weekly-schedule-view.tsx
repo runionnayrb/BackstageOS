@@ -17,6 +17,7 @@ interface WeeklyScheduleViewProps {
   onDateClick: (date: Date) => void;
   currentDate?: Date;
   setCurrentDate?: (date: Date) => void;
+  selectedContactIds: number[];
 }
 
 interface ScheduleEvent {
@@ -66,7 +67,7 @@ const getEventColor = (type: string) => {
   }
 };
 
-export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklyScheduleViewProps) {
+export default function WeeklyScheduleView({ projectId, onDateClick, selectedContactIds }: WeeklyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
@@ -129,6 +130,15 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
   const { data: contacts = [] } = useQuery<Contact[]>({
     queryKey: [`/api/projects/${projectId}/contacts`],
   });
+
+  // Filter events based on selected contact IDs
+  const filteredEvents = selectedContactIds.length === 0 
+    ? events // Show all events when no filter is applied (master schedule)
+    : events.filter(event => 
+        event.participants.some(participant => 
+          selectedContactIds.includes(participant.contactId)
+        )
+      );
 
   // Calculate week dates based on settings
   const getWeekDates = useCallback((weekStart: Date) => {
@@ -606,7 +616,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
             <div className="p-2 text-xs font-medium text-gray-600 border-r bg-gray-50">All Day</div>
             {weekDates.map((date, dayIndex) => {
               const dateStr = date.toISOString().split('T')[0];
-              const allDayEvents = events?.filter(event => 
+              const allDayEvents = filteredEvents?.filter(event => 
                 event.date === dateStr && event.isAllDay
               ) || [];
               
@@ -701,7 +711,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
                 onMouseMove={handleMouseMove}
               >
                 {/* Events for this day - only timed events, not all-day */}
-                {events
+                {filteredEvents
                   .filter(event => event.date === date.toISOString().split('T')[0] && !event.isAllDay)
                   .map((event) => {
 

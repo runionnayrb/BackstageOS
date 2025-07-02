@@ -6,6 +6,7 @@ import { ArrowLeft, Calendar, CalendarDays, Clock, ChevronLeft, ChevronRight } f
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
 import MonthlyScheduleView from "@/components/monthly-schedule-view";
+import ScheduleFilter from "@/components/schedule-filter";
 
 interface ScheduleParams {
   id: string;
@@ -17,6 +18,7 @@ export default function Schedule() {
   const projectId = params.id;
   const [viewMode, setViewMode] = useState<'monthly' | 'weekly' | 'daily'>('weekly');
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [selectedContactIds, setSelectedContactIds] = useState<number[]>([]);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -120,34 +122,42 @@ export default function Schedule() {
             <h1 className="text-3xl font-bold">Schedule</h1>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button
-              variant={viewMode === 'monthly' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('monthly')}
-              className="flex items-center gap-2"
-            >
-              <Calendar className="h-4 w-4" />
-              Month
-            </Button>
-            <Button
-              variant={viewMode === 'weekly' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('weekly')}
-              className="flex items-center gap-2"
-            >
-              <CalendarDays className="h-4 w-4" />
-              Week
-            </Button>
-            <Button
-              variant={viewMode === 'daily' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('daily')}
-              className="flex items-center gap-2"
-            >
-              <Clock className="h-4 w-4" />
-              Day
-            </Button>
+          <div className="flex items-center gap-4">
+            <ScheduleFilter
+              projectId={parseInt(projectId)}
+              selectedContactIds={selectedContactIds}
+              onFilterChange={setSelectedContactIds}
+            />
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === 'monthly' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('monthly')}
+                className="flex items-center gap-2"
+              >
+                <Calendar className="h-4 w-4" />
+                Month
+              </Button>
+              <Button
+                variant={viewMode === 'weekly' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('weekly')}
+                className="flex items-center gap-2"
+              >
+                <CalendarDays className="h-4 w-4" />
+                Week
+              </Button>
+              <Button
+                variant={viewMode === 'daily' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setViewMode('daily')}
+                className="flex items-center gap-2"
+              >
+                <Clock className="h-4 w-4" />
+                Day
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -159,6 +169,7 @@ export default function Schedule() {
             onDateClick={handleDateClick}
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
+            selectedContactIds={selectedContactIds}
           />
         ) : viewMode === 'weekly' ? (
           <WeeklyScheduleView 
@@ -166,6 +177,7 @@ export default function Schedule() {
             onDateClick={handleDateClick}
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
+            selectedContactIds={selectedContactIds}
           />
         ) : (
           <DailyScheduleView 
@@ -174,6 +186,7 @@ export default function Schedule() {
             onBackToWeekly={() => setViewMode('weekly')}
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
+            selectedContactIds={selectedContactIds}
           />
         )}
       </div>

@@ -25,6 +25,7 @@ interface DailyScheduleViewProps {
   onBackToWeekly: () => void;
   currentDate?: Date;
   setCurrentDate?: (date: Date) => void;
+  selectedContactIds: number[];
 }
 
 interface ScheduleEvent {
@@ -57,7 +58,7 @@ interface Contact {
   role?: string;
 }
 
-export default function DailyScheduleView({ projectId, selectedDate, onBackToWeekly }: DailyScheduleViewProps) {
+export default function DailyScheduleView({ projectId, selectedDate, onBackToWeekly, selectedContactIds }: DailyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentDate, setCurrentDate] = useState<Date>(selectedDate);
@@ -105,9 +106,19 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
     queryKey: [`/api/projects/${projectId}/schedule-events`],
   });
 
-  const dayEvents = allEvents.filter(event => 
+  // Filter events for the current date
+  const currentDateEvents = allEvents.filter(event => 
     event.date === currentDate.toISOString().split('T')[0]
   );
+
+  // Apply contact filter
+  const dayEvents = selectedContactIds.length === 0
+    ? currentDateEvents // Show all events when no filter is applied (master schedule)
+    : currentDateEvents.filter(event =>
+        event.participants.some(participant =>
+          selectedContactIds.includes(participant.contactId)
+        )
+      );
 
   // Fetch contacts
   const { data: contacts = [] } = useQuery<Contact[]>({
