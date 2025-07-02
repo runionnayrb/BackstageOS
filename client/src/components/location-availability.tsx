@@ -840,7 +840,7 @@ export default function LocationAvailability({
                                 left: `${position}%`,
                               }}
                             >
-                              <div className="absolute top-2 left-1 text-xs text-gray-500">
+                              <div className="absolute top-1 left-1 text-xs text-gray-500">
                                 {formatTime(minutes)}
                               </div>
                             </div>
