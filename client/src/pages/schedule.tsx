@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, CalendarDays, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
 import MonthlyScheduleView from "@/components/monthly-schedule-view";
@@ -123,35 +124,25 @@ export default function Schedule() {
               onFilterChange={setSelectedContactIds}
             />
             
-            <div className="flex items-center gap-2">
-              <Button
-                variant={viewMode === 'monthly' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('monthly')}
-                className="flex items-center gap-2"
-              >
-                <Calendar className="h-4 w-4" />
-                Month
-              </Button>
-              <Button
-                variant={viewMode === 'weekly' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('weekly')}
-                className="flex items-center gap-2"
-              >
-                <CalendarDays className="h-4 w-4" />
-                Week
-              </Button>
-              <Button
-                variant={viewMode === 'daily' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('daily')}
-                className="flex items-center gap-2"
-              >
-                <Clock className="h-4 w-4" />
-                Day
-              </Button>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="flex items-center gap-2">
+                  {viewMode === 'monthly' ? 'Month' : viewMode === 'weekly' ? 'Week' : 'Day'}
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setViewMode('monthly')}>
+                  Month
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setViewMode('weekly')}>
+                  Week
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setViewMode('daily')}>
+                  Day
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
         
