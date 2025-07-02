@@ -944,7 +944,7 @@ export default function AvailabilityComparison({
               <>
                 {/* Contact Names Column */}
                 <div className="w-48 border-r bg-gray-50">
-                  <div className="h-12 border-b bg-gray-100 flex items-center px-3">
+                  <div className="h-10 border-b bg-gray-100 flex items-center px-3">
                     <span className="font-medium text-sm">Name</span>
                   </div>
                   {contacts.map((contact: any) => (
@@ -980,8 +980,25 @@ export default function AvailabilityComparison({
                                 left: `${position}%`,
                               }}
                             >
-                              <div className="absolute top-2 left-1 text-xs text-gray-500">
-                                {formatTime(minutes)}
+                              <div className="absolute top-1 left-1 text-xs text-gray-500 leading-tight">
+                                {(() => {
+                                  const timeStr = formatTime(minutes);
+                                  if (timeFormat === '24') {
+                                    return timeStr;
+                                  } else {
+                                    // Split 12-hour format into time and AM/PM
+                                    const parts = timeStr.split(' ');
+                                    if (parts.length === 2) {
+                                      return (
+                                        <div className="text-center">
+                                          <div>{parts[0]}</div>
+                                          <div className="text-xs">{parts[1]}</div>
+                                        </div>
+                                      );
+                                    }
+                                    return timeStr;
+                                  }
+                                })()}
                               </div>
                             </div>
                           );

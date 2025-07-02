@@ -840,8 +840,25 @@ export default function LocationAvailability({
                                 left: `${position}%`,
                               }}
                             >
-                              <div className="absolute top-1 left-1 text-xs text-gray-500">
-                                {formatTime(minutes)}
+                              <div className="absolute top-1 left-1 text-xs text-gray-500 leading-tight">
+                                {(() => {
+                                  const timeStr = formatTime(minutes);
+                                  if (timeFormat === '24') {
+                                    return timeStr;
+                                  } else {
+                                    // Split 12-hour format into time and AM/PM
+                                    const parts = timeStr.split(' ');
+                                    if (parts.length === 2) {
+                                      return (
+                                        <div className="text-center">
+                                          <div>{parts[0]}</div>
+                                          <div className="text-xs">{parts[1]}</div>
+                                        </div>
+                                      );
+                                    }
+                                    return timeStr;
+                                  }
+                                })()}
                               </div>
                             </div>
                           );
