@@ -244,7 +244,7 @@ export default function AvailabilityComparison({
     return Math.round(minutes / timeIncrement) * timeIncrement;
   };
 
-  const formatTimeFromMinutes = (totalMinutes: number) => {
+  const formatTimeFromMinutesLocal = (totalMinutes: number) => {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
@@ -469,7 +469,7 @@ export default function AvailabilityComparison({
       segmentWidth,
       segmentIndex,
       convertedMinutes: positionToMinutes(x, rect.width),
-      convertedTime: formatTimeFromMinutes(positionToMinutes(x, rect.width))
+      convertedTime: formatTimeFromMinutesLocal(positionToMinutes(x, rect.width))
     });
     
     setIsDragging(true);
@@ -500,8 +500,8 @@ export default function AvailabilityComparison({
       
       setDraggedItem({
         ...draggedItem,
-        startTime: formatTimeFromMinutes(newStartMinutes),
-        endTime: formatTimeFromMinutes(newEndMinutes),
+        startTime: formatTimeFromMinutesLocal(newStartMinutes),
+        endTime: formatTimeFromMinutesLocal(newEndMinutes),
         contactId: newContactId || draggedItem.contactId,
       });
     } else if (resizingItem) {
@@ -521,8 +521,8 @@ export default function AvailabilityComparison({
       
       setResizingItem({
         ...resizingItem,
-        startTime: formatTimeFromMinutes(newStartMinutes),
-        endTime: formatTimeFromMinutes(newEndMinutes),
+        startTime: formatTimeFromMinutesLocal(newStartMinutes),
+        endTime: formatTimeFromMinutesLocal(newEndMinutes),
       });
     } else if (!newBlock) {
       // Creating new block - use actual click position as starting point
@@ -536,8 +536,8 @@ export default function AvailabilityComparison({
       
       setNewBlock({
         contactId: dragStart.contactId,
-        startTime: formatTimeFromMinutes(startMinutes),
-        endTime: formatTimeFromMinutes(endMinutes),
+        startTime: formatTimeFromMinutesLocal(startMinutes),
+        endTime: formatTimeFromMinutesLocal(endMinutes),
         availabilityType: 'unavailable',
         date: currentDate.toISOString().split('T')[0],
       });
@@ -553,8 +553,8 @@ export default function AvailabilityComparison({
       
       setNewBlock({
         ...newBlock,
-        startTime: formatTimeFromMinutes(startMinutes),
-        endTime: formatTimeFromMinutes(endMinutes),
+        startTime: formatTimeFromMinutesLocal(startMinutes),
+        endTime: formatTimeFromMinutesLocal(endMinutes),
       });
     }
   };
