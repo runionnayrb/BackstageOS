@@ -1,15 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
-import { format, addDays, subDays, startOfWeek, endOfWeek, parseISO, formatISO } from 'date-fns';
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Filter, Trash2, MapPin } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { formatTimeFromMinutes } from "@/lib/timeUtils";
 
 interface EventLocation {
   id: number;
@@ -24,648 +23,1066 @@ interface EventLocation {
 interface LocationAvailability {
   id: number;
   locationId: number;
+  projectId: number;
   date: string;
   startTime: string;
   endTime: string;
-  type: 'unavailable' | 'preferred';
+  availabilityType: 'unavailable' | 'preferred';
   notes?: string;
+  createdBy: number | null;
+  createdAt: string;
+  updatedAt: string;
+  locationName?: string;
 }
 
-interface LocationAvailabilityPageProps {
+interface LocationAvailabilityProps {
   projectId: number;
   onBack: () => void;
 }
 
-const START_MINUTES = 8 * 60; // 8:00 AM
-const END_MINUTES = 24 * 60; // Midnight
+const START_MINUTES = 8 * 60; // 8:00 AM in minutes
+const END_MINUTES = 24 * 60; // Midnight in minutes
 const TOTAL_MINUTES = END_MINUTES - START_MINUTES; // 16 hours
 
-export default function LocationAvailabilityPage({ projectId, onBack }: LocationAvailabilityPageProps) {
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [timeIncrement, setTimeIncrement] = useState(30);
-  const [editingBlock, setEditingBlock] = useState<LocationAvailability | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedLocations, setSelectedLocations] = useState<number[]>([]);
-  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
-  
-  const queryClient = useQueryClient();
+export default function LocationAvailability({
+  projectId,
+  onBack,
+}: LocationAvailabilityProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [timeIncrement, setTimeIncrement] = useState(30); // minutes
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number; locationId?: number } | null>(null);
+  const [newBlock, setNewBlock] = useState<any>(null);
+  const [draggedItem, setDraggedItem] = useState<any>(null);
+  const [draggedItems, setDraggedItems] = useState<any[]>([]);
+  const [resizingItem, setResizingItem] = useState<any>(null);
+  const [resizeMode, setResizeMode] = useState<'top' | 'bottom' | null>(null);
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [showFilterPopover, setShowFilterPopover] = useState(false);
+  const [selectedLocationTypes, setSelectedLocationTypes] = useState<Set<string>>(new Set());
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
+  const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const selectedItemsRef = useRef<Set<number>>(new Set());
 
-  // Refs for drag operations
-  const dragRef = useRef<{
-    isDragging: boolean;
-    startY: number;
-    startTime: string;
-    endTime: string;
-    type: 'unavailable' | 'preferred';
-    locationId: number;
-    date: string;
-  } | null>(null);
+  // Keep ref in sync with state
+  useEffect(() => {
+    selectedItemsRef.current = selectedItems;
+  }, [selectedItems]);
 
-  const resizeRef = useRef<{
-    isResizing: boolean;
-    blockId: number;
-    edge: 'top' | 'bottom';
-    originalStartTime: string;
-    originalEndTime: string;
-    initialMouseY: number;
-  } | null>(null);
-
-  // Fetch show settings for timezone and working hours
-  const { data: showSettings } = useQuery({
-    queryKey: [`/api/projects/${projectId}/settings`],
-  });
-
-  // Fetch locations for this project
-  const { data: locations = [] } = useQuery<EventLocation[]>({
-    queryKey: [`/api/projects/${projectId}/locations`],
-  });
-
-  // Get schedule settings with safe access
-  const scheduleSettings: any = (() => {
-    const settings = showSettings as any;
-    if (!settings || !settings.scheduleSettings) {
-      return { weekStartDay: 0, timeFormat: '12', workStartTime: '09:00', workEndTime: '18:00', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone };
-    }
-    
-    try {
-      const parsed = typeof settings.scheduleSettings === 'string' ? 
-        JSON.parse(settings.scheduleSettings) : 
-        settings.scheduleSettings;
-      return {
-        weekStartDay: 0,
-        timeFormat: '12',
-        workStartTime: '09:00',
-        workEndTime: '18:00',
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        ...parsed
-      };
-    } catch {
-      return { weekStartDay: 0, timeFormat: '12', workStartTime: '09:00', workEndTime: '18:00', timezone: Intl.DateTimeFormat().resolvedOptions().timeZone };
-    }
-  })();
-
-  // Fetch availability for the current week
-  const weekStartDay = 0; // Always start on Sunday to avoid date-fns issues
-  const safeCurrentDate = new Date(); // Always use current date
-  const weekStart = startOfWeek(safeCurrentDate, { weekStartsOn: 0 });
-  const weekEnd = endOfWeek(safeCurrentDate, { weekStartsOn: 0 });
-
-  const { data: availability = [] } = useQuery<LocationAvailability[]>({
-    queryKey: [`/api/projects/${projectId}/location-availability`],
-  });
-
-  // Mutations for CRUD operations
-  const createMutation = useMutation({
-    mutationFn: (data: Omit<LocationAvailability, 'id'>) =>
-      fetch(`/api/projects/${projectId}/location-availability`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: ({ id, ...data }: LocationAvailability) =>
-      fetch(`/api/projects/${projectId}/location-availability/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) =>
-      fetch(`/api/projects/${projectId}/location-availability/${id}`, {
-        method: 'DELETE',
-      }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
-    },
-  });
-
-  const bulkDeleteMutation = useMutation({
-    mutationFn: (ids: number[]) =>
-      fetch(`/api/projects/${projectId}/location-availability/bulk`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ids }),
-      }).then(res => res.json()),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
-      setSelectedLocations([]);
-      setIsMultiSelectMode(false);
-    },
-  });
-
-  // Navigation functions
-  const goToPreviousWeek = () => setCurrentDate(prev => subDays(prev, 7));
-  const goToNextWeek = () => setCurrentDate(prev => addDays(prev, 7));
-  const goToToday = () => {
-    const timezone = scheduleSettings?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const now = new Date().toLocaleString("en-US", { timeZone: timezone });
-    setCurrentDate(new Date(now));
-  };
-
-  // Time conversion functions
-  const minutesToHeight = (minutes: number) => minutes;
-  const positionToMinutes = (position: number) => Math.min(Math.max(position + START_MINUTES, START_MINUTES), END_MINUTES - 1);
-  const minutesToTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-  };
-
-  const timeToMinutes = (time: string) => {
-    const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + minutes;
-  };
-
-  // Format time for display
-  const formatTime = (time: string) => {
-    const timeFormat = scheduleSettings?.timeFormat || '12';
-    const [hours, minutes] = time.split(':').map(Number);
-    
-    if (timeFormat === '24') {
-      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-    } else {
-      const period = hours >= 12 ? 'PM' : 'AM';
-      const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-      return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-    }
-  };
-
-  // Generate week days
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-
-  // Generate time labels
-  const timeLabels = [];
-  for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += 120) {
-    timeLabels.push(minutesToTime(minutes));
-  }
-
-  // Handle drag start
-  const handleMouseDown = (e: React.MouseEvent, locationId: number, date: string) => {
-    if (isMultiSelectMode) return;
-    
-    e.preventDefault();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const y = e.clientY - rect.top;
-    const startMinutes = positionToMinutes(y);
-    const endMinutes = Math.min(startMinutes + timeIncrement, END_MINUTES);
-    
-    dragRef.current = {
-      isDragging: true,
-      startY: y,
-      startTime: minutesToTime(startMinutes),
-      endTime: minutesToTime(endMinutes),
-      type: 'unavailable',
-      locationId,
-      date: format(parseISO(date), 'yyyy-MM-dd'),
-    };
-  };
-
-  // Handle mouse move during drag
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!dragRef.current?.isDragging && !resizeRef.current?.isResizing) return;
-    
-    if (dragRef.current?.isDragging) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const currentY = e.clientY - rect.top;
-      const startY = dragRef.current.startY;
-      const minY = Math.min(startY, currentY);
-      const maxY = Math.max(startY, currentY);
-      
-      const startMinutes = positionToMinutes(minY);
-      const endMinutes = positionToMinutes(maxY + timeIncrement);
-      
-      dragRef.current.startTime = minutesToTime(startMinutes);
-      dragRef.current.endTime = minutesToTime(Math.min(endMinutes, END_MINUTES));
-    }
-    
-    if (resizeRef.current?.isResizing) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const currentY = e.clientY - rect.top;
-      const deltaY = currentY - resizeRef.current.initialMouseY;
-      const deltaMinutes = deltaY;
-      
-      const originalStart = timeToMinutes(resizeRef.current.originalStartTime);
-      const originalEnd = timeToMinutes(resizeRef.current.originalEndTime);
-      
-      let newStartTime = resizeRef.current.originalStartTime;
-      let newEndTime = resizeRef.current.originalEndTime;
-      
-      if (resizeRef.current.edge === 'top') {
-        const newStart = Math.max(START_MINUTES, originalStart + deltaMinutes);
-        if (newStart < originalEnd - timeIncrement) {
-          newStartTime = minutesToTime(newStart);
-        }
-      } else {
-        const newEnd = Math.min(END_MINUTES, originalEnd + deltaMinutes);
-        if (newEnd > originalStart + timeIncrement) {
-          newEndTime = minutesToTime(newEnd);
-        }
-      }
-      
-      // Update the block immediately in cache
-      const block = availability.find(b => b.id === resizeRef.current!.blockId);
-      if (block) {
-        const updatedBlock = { ...block, startTime: newStartTime, endTime: newEndTime };
-        const queryKey = [`/api/projects/${projectId}/location-availability`, format(weekStart, 'yyyy-MM-dd'), format(weekEnd, 'yyyy-MM-dd')];
-        queryClient.setQueryData(queryKey, (old: LocationAvailability[] = []) =>
-          old.map(b => b.id === resizeRef.current!.blockId ? updatedBlock : b)
-        );
-      }
-    }
-  };
-
-  // Handle mouse up
-  const handleMouseUp = (e: React.MouseEvent) => {
-    if (dragRef.current?.isDragging) {
-      const { startTime, endTime, type, locationId, date } = dragRef.current;
-      
-      if (timeToMinutes(endTime) - timeToMinutes(startTime) >= timeIncrement) {
-        createMutation.mutate({
-          locationId,
-          date,
-          startTime,
-          endTime,
-          type,
-          notes: '',
-        }, {
-          onSuccess: () => {
-            // Auto-open edit dialog
-            setTimeout(() => {
-              const newBlock = availability.find(b => 
-                b.locationId === locationId && 
-                b.date === date && 
-                b.startTime === startTime && 
-                b.endTime === endTime
-              );
-              if (newBlock) {
-                setEditingBlock(newBlock);
-                setIsDialogOpen(true);
-              }
-            }, 100);
-          }
-        });
-      }
-      
-      dragRef.current = null;
-    }
-    
-    if (resizeRef.current?.isResizing) {
-      const block = availability.find(b => b.id === resizeRef.current!.blockId);
-      if (block) {
-        // Debounced save to database
-        setTimeout(() => {
-          updateMutation.mutate(block);
-        }, 500);
-      }
-      resizeRef.current = null;
-    }
-  };
-
-  // Handle block click/double-click
-  const handleBlockClick = (block: LocationAvailability, e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    if (isMultiSelectMode && e.shiftKey) {
-      setSelectedLocations(prev => 
-        prev.includes(block.id) 
-          ? prev.filter(id => id !== block.id)
-          : [...prev, block.id]
-      );
-      return;
-    }
-    
-    // Double-click to edit
-    if (e.detail === 2) {
-      setEditingBlock(block);
-      setIsDialogOpen(true);
-    }
-  };
-
-  // Handle resize
-  const handleResizeStart = (e: React.MouseEvent, blockId: number, edge: 'top' | 'bottom') => {
-    e.stopPropagation();
-    const block = availability.find(b => b.id === blockId);
-    if (!block) return;
-    
-    resizeRef.current = {
-      isResizing: true,
-      blockId,
-      edge,
-      originalStartTime: block.startTime,
-      originalEndTime: block.endTime,
-      initialMouseY: e.clientY - e.currentTarget.getBoundingClientRect().top,
-    };
-  };
-
-  // Get availability blocks for a specific location and date
-  const getAvailabilityForLocationAndDate = (locationId: number, date: string) => {
-    return availability.filter(a => 
-      a.locationId === locationId && 
-      a.date === format(parseISO(date), 'yyyy-MM-dd')
-    );
-  };
-
-  // Keyboard event handling
+  // Keyboard event handlers for shift selection and delete
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.shiftKey && !isMultiSelectMode) {
-        setIsMultiSelectMode(true);
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true);
       }
-      
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedLocations.length > 0) {
-        if (confirm(`Are you sure you want to delete ${selectedLocations.length} availability block(s)?`)) {
-          bulkDeleteMutation.mutate(selectedLocations);
-        }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        setSelectedItems(current => {
+          if (current.size > 0) {
+            setShowBulkDeleteDialog(true);
+          }
+          return current;
+        });
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (!e.shiftKey && isMultiSelectMode) {
-        setIsMultiSelectMode(false);
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
     };
-  }, [isMultiSelectMode, selectedLocations, bulkDeleteMutation]);
+  }, []);
 
-  // Handle edit form submission
-  const handleEditSubmit = () => {
-    if (!editingBlock) return;
-    
-    updateMutation.mutate(editingBlock, {
-      onSuccess: () => {
-        setIsDialogOpen(false);
-        setEditingBlock(null);
-        toast({ title: "Availability updated successfully" });
-      },
-    });
-  };
+  // Get show settings for timezone and time format
+  const { data: showSettings } = useQuery({
+    queryKey: [`/api/projects/${projectId}/settings`],
+  });
 
-  // Handle delete
-  const handleDelete = () => {
-    if (!editingBlock) return;
-    
-    deleteMutation.mutate(editingBlock.id, {
-      onSuccess: () => {
-        setIsDialogOpen(false);
-        setEditingBlock(null);
-        toast({ title: "Availability deleted successfully" });
-      },
-    });
-  };
+  const scheduleSettings = showSettings?.scheduleSettings ? 
+    (typeof showSettings.scheduleSettings === 'string' ? 
+      JSON.parse(showSettings.scheduleSettings) : 
+      showSettings.scheduleSettings) : {};
 
   const timezone = scheduleSettings?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const timeFormat = scheduleSettings?.timeFormat || '12';
+
+  // Get locations data
+  const { data: locations = [], isLoading: locationsLoading } = useQuery({
+    queryKey: [`/api/projects/${projectId}/locations`],
+  });
+
+  // Get location availability data
+  const { data: allAvailability = [], isLoading: availabilityLoading } = useQuery({
+    queryKey: [`/api/projects/${projectId}/location-availability`],
+  });
+
+  const isLoading = locationsLoading || availabilityLoading;
+
+  // Filter locations if needed
+  const filteredLocations = locations.filter((location: EventLocation) => {
+    if (!hasActiveFilters || selectedLocationTypes.size === 0) return true;
+    // Add location type filtering logic here if needed
+    return true;
+  });
+
+  // Get unique location types for filtering
+  const locationTypes = [...new Set(locations.map((location: EventLocation) => location.description).filter(Boolean))];
+
+  const toggleLocationType = (type: string) => {
+    const newTypes = new Set(selectedLocationTypes);
+    if (newTypes.has(type)) {
+      newTypes.delete(type);
+    } else {
+      newTypes.add(type);
+    }
+    setSelectedLocationTypes(newTypes);
+  };
+
+  const applyFilters = () => {
+    setHasActiveFilters(selectedLocationTypes.size > 0);
+    setShowFilterPopover(false);
+  };
+
+  const clearFilters = () => {
+    setSelectedLocationTypes(new Set());
+    setHasActiveFilters(false);
+    setShowFilterPopover(false);
+  };
+
+  // Time formatting using show settings preference
+  const formatTime = (minutes: number) => {
+    return formatTimeFromMinutes(minutes, timeFormat);
+  };
+
+  // Convert time string to minutes since start of day
+  const timeToMinutes = (timeStr: string) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  // Convert minutes to percentage position for full width
+  const minutesToPosition = (minutes: number) => {
+    return Math.max(0, minutes - START_MINUTES);
+  };
+
+  // Convert percentage position to minutes
+  const percentToMinutes = (percent: number) => {
+    return START_MINUTES + (percent / 100) * TOTAL_MINUTES;
+  };
+
+  // Convert minutes to percentage for full width positioning
+  const minutesToPercent = (minutes: number) => {
+    return ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+  };
+
+  // Generate time labels based on increment
+  const timeLabels = [];
+  for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += timeIncrement) {
+    timeLabels.push({
+      minutes,
+      label: formatTime(minutes),
+    });
+  }
+
+  // Get availability for a specific location on the current date
+  const getLocationAvailabilityForDate = (locationId: number) => {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    return (allAvailability as LocationAvailability[]).filter(
+      (item: LocationAvailability) => item.locationId === locationId && item.date === dateStr
+    );
+  };
+
+  // Navigation functions
+  const goToPreviousDay = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() - 1);
+    setCurrentDate(newDate);
+  };
+
+  const goToNextDay = () => {
+    const newDate = new Date(currentDate);
+    newDate.setDate(newDate.getDate() + 1);
+    setCurrentDate(newDate);
+  };
+
+  const goToToday = () => {
+    setCurrentDate(new Date());
+  };
+
+  // Helper functions for drag operations
+  const positionToMinutes = (position: number, containerWidth: number) => {
+    const percentage = Math.max(0, Math.min(1, position / containerWidth));
+    const minutes = START_MINUTES + (percentage * TOTAL_MINUTES);
+    return snapToIncrement(Math.max(START_MINUTES, Math.min(END_MINUTES, minutes)));
+  };
+
+  const snapToIncrement = (minutes: number) => {
+    return Math.round(minutes / timeIncrement) * timeIncrement;
+  };
+
+  const formatTimeFromMinutesLocal = (totalMinutes: number) => {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  };
+
+  // Mutations for CRUD operations
+  const createMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch(`/api/projects/${projectId}/locations/${data.locationId}/availability`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to create availability");
+      return response.json();
+    },
+    onMutate: async (data: any) => {
+      await queryClient.cancelQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
+      
+      const previousData = queryClient.getQueryData([`/api/projects/${projectId}/location-availability`]);
+      
+      const tempItem = {
+        id: Date.now(),
+        locationId: data.locationId,
+        projectId: projectId,
+        date: data.date,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        availabilityType: data.availabilityType,
+        notes: data.notes || '',
+        createdBy: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        locationName: ''
+      };
+      
+      queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], (old: any) => {
+        return old ? [...old, tempItem] : [tempItem];
+      });
+      
+      return { previousData, tempId: tempItem.id };
+    },
+    onSuccess: (newItem, variables, context) => {
+      queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], (old: any) => {
+        return old?.map((item: any) => 
+          item.id === context?.tempId ? newItem : item
+        ) || [];
+      });
+      setNewBlock(null);
+      setEditingItem(newItem);
+    },
+    onError: (error, variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], context.previousData);
+      }
+      toast({ 
+        title: "Failed to create availability", 
+        description: error.message,
+        variant: "destructive" 
+      });
+      setNewBlock(null);
+    },
+  });
+
+  // Silent background update function
+  const silentUpdate = useCallback((id: number, data: any) => {
+    if (updateTimeoutRef.current) {
+      clearTimeout(updateTimeoutRef.current);
+    }
+    
+    updateTimeoutRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/projects/${projectId}/locations/${data.locationId}/availability/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        if (!response.ok) throw new Error("Failed to update availability");
+      } catch (error) {
+        console.error("Silent update failed:", error);
+        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
+      }
+    }, 500);
+  }, [projectId, queryClient]);
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const response = await fetch(`/api/projects/${projectId}/locations/${data.locationId}/availability/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to update availability");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
+      setEditingItem(null);
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Failed to update availability", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/projects/${projectId}/location-availability/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete availability");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
+      setEditingItem(null);
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Failed to delete availability", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      await Promise.all(
+        ids.map(id =>
+          fetch(`/api/projects/${projectId}/location-availability/${id}`, {
+            method: "DELETE",
+          })
+        )
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
+      setSelectedItems(new Set());
+      setShowBulkDeleteDialog(false);
+      toast({ title: "Selected availability blocks deleted successfully" });
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Failed to delete availability blocks", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    },
+  });
+
+  // Event handlers
+  const handleSaveEdit = () => {
+    if (!editingItem) return;
+    
+    const updateData = {
+      locationId: editingItem.locationId,
+      startTime: editingItem.startTime,
+      endTime: editingItem.endTime,
+      availabilityType: editingItem.availabilityType,
+      notes: editingItem.notes,
+      date: editingItem.date,
+    };
+    
+    updateMutation.mutate({ id: editingItem.id, data: updateData });
+  };
+
+  const handleDelete = () => {
+    if (!editingItem) return;
+    deleteMutation.mutate(editingItem.id);
+  };
+
+  const handleBulkDelete = () => {
+    const ids = Array.from(selectedItems);
+    bulkDeleteMutation.mutate(ids);
+  };
+
+  // Mouse event handlers for drag operations
+  const handleMouseDown = (e: React.MouseEvent, locationId: number) => {
+    if (e.shiftKey) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    
+    setDragStart({ x, y: e.clientY, locationId });
+    setIsDragging(true);
+    e.preventDefault();
+  };
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging || !dragStart) return;
+
+    const calendar = document.querySelector('.availability-calendar');
+    if (!calendar) return;
+
+    const rect = calendar.getBoundingClientRect();
+    const containerWidth = rect.width;
+    const currentX = e.clientX - rect.left;
+
+    if (draggedItem || draggedItems.length > 0) {
+      // Moving existing item(s)
+      const deltaX = currentX - dragStart.x;
+      const deltaMinutes = (deltaX / containerWidth) * TOTAL_MINUTES;
+      const snappedDelta = snapToIncrement(deltaMinutes);
+
+      if (draggedItems.length > 0) {
+        // Multi-item drag
+        const updatedItems = draggedItems.map(item => {
+          const originalStartMinutes = timeToMinutes(item.originalStartTime);
+          const originalEndMinutes = timeToMinutes(item.originalEndTime);
+          const newStartMinutes = Math.max(START_MINUTES, Math.min(END_MINUTES - (originalEndMinutes - originalStartMinutes), originalStartMinutes + snappedDelta));
+          const newEndMinutes = newStartMinutes + (originalEndMinutes - originalStartMinutes);
+          
+          return {
+            ...item,
+            startTime: formatTimeFromMinutesLocal(newStartMinutes),
+            endTime: formatTimeFromMinutesLocal(newEndMinutes),
+          };
+        });
+        setDraggedItems(updatedItems);
+      } else if (draggedItem) {
+        // Single item drag
+        const originalStartMinutes = timeToMinutes(draggedItem.originalStartTime);
+        const originalEndMinutes = timeToMinutes(draggedItem.originalEndTime);
+        const newStartMinutes = Math.max(START_MINUTES, Math.min(END_MINUTES - (originalEndMinutes - originalStartMinutes), originalStartMinutes + snappedDelta));
+        const newEndMinutes = newStartMinutes + (originalEndMinutes - originalStartMinutes);
+        
+        setDraggedItem({
+          ...draggedItem,
+          startTime: formatTimeFromMinutesLocal(newStartMinutes),
+          endTime: formatTimeFromMinutesLocal(newEndMinutes),
+        });
+      }
+    } else if (newBlock) {
+      // Creating new block
+      const startX = dragStart.x;
+      const endX = currentX;
+      const leftX = Math.min(startX, endX);
+      const rightX = Math.max(startX, endX);
+      
+      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(leftX, containerWidth)));
+      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(rightX, containerWidth))));
+      
+      setNewBlock({
+        locationId: dragStart.locationId,
+        startTime: formatTimeFromMinutesLocal(startMinutes),
+        endTime: formatTimeFromMinutesLocal(endMinutes),
+        availabilityType: 'unavailable',
+        date: currentDate.toISOString().split('T')[0],
+      });
+    } else {
+      // Updating new block size
+      const startX = dragStart.x;
+      const endX = currentX;
+      const leftX = Math.min(startX, endX);
+      const rightX = Math.max(startX, endX);
+      
+      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(leftX, containerWidth)));
+      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(rightX, containerWidth))));
+      
+      setNewBlock({
+        ...newBlock,
+        startTime: formatTimeFromMinutesLocal(startMinutes),
+        endTime: formatTimeFromMinutesLocal(endMinutes),
+      });
+    }
+  }, [isDragging, dragStart, draggedItem, draggedItems, newBlock, timeIncrement, currentDate]);
+
+  const handleMouseUp = useCallback(() => {
+    if (!isDragging) return;
+    
+    setIsDragging(false);
+    
+    if (draggedItems.length > 0) {
+      // Update all dragged items optimistically
+      queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], (old: any) => {
+        return old?.map((item: any) => {
+          const updatedItem = draggedItems.find(d => d.id === item.id);
+          return updatedItem || item;
+        }) || [];
+      });
+      
+      // Silent background updates
+      draggedItems.forEach(item => {
+        silentUpdate(item.id, {
+          locationId: item.locationId,
+          startTime: item.startTime,
+          endTime: item.endTime,
+          availabilityType: item.availabilityType,
+          notes: item.notes,
+          date: item.date,
+        });
+      });
+      
+      setDraggedItems([]);
+    } else if (draggedItem) {
+      // Update single item optimistically
+      queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], (old: any) => {
+        return old?.map((item: any) => 
+          item.id === draggedItem.id ? draggedItem : item
+        ) || [];
+      });
+      
+      // Silent background update
+      silentUpdate(draggedItem.id, {
+        locationId: draggedItem.locationId,
+        startTime: draggedItem.startTime,
+        endTime: draggedItem.endTime,
+        availabilityType: draggedItem.availabilityType,
+        notes: draggedItem.notes,
+        date: draggedItem.date,
+      });
+      
+      setDraggedItem(null);
+    } else if (newBlock) {
+      const updateData = {
+        locationId: newBlock.locationId,
+        startTime: newBlock.startTime,
+        endTime: newBlock.endTime,
+        availabilityType: newBlock.availabilityType,
+        notes: newBlock.notes,
+        date: currentDate.toISOString().split('T')[0],
+      };
+      
+      // Immediately update the query cache for instant visual feedback
+      queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], (old: any) => {
+        const tempItem = {
+          id: Date.now(),
+          locationId: newBlock.locationId,
+          projectId: projectId,
+          date: newBlock.date,
+          startTime: newBlock.startTime,
+          endTime: newBlock.endTime,
+          availabilityType: newBlock.availabilityType,
+          notes: newBlock.notes || '',
+          createdBy: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          locationName: ''
+        };
+        return old ? [...old, tempItem] : [tempItem];
+      });
+      
+      createMutation.mutate(updateData);
+    }
+    
+    setDragStart(null);
+  }, [isDragging, draggedItem, draggedItems, newBlock, projectId, queryClient, silentUpdate, createMutation, currentDate]);
+
+  // Add mouse event listeners
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  const handleBlockMouseDown = (e: React.MouseEvent, item: LocationAvailability, mode?: 'move' | 'resize-top' | 'resize-bottom') => {
+    e.stopPropagation();
+    
+    // Handle Shift+click for multi-selection
+    if (e.shiftKey && !mode) {
+      e.preventDefault();
+      if (selectedItems.has(item.id)) {
+        const newSelected = new Set(selectedItems);
+        newSelected.delete(item.id);
+        setSelectedItems(newSelected);
+      } else {
+        const newSelected = new Set(selectedItems);
+        newSelected.add(item.id);
+        setSelectedItems(newSelected);
+      }
+      return;
+    }
+
+    // Double-click to edit
+    if (e.detail === 2) {
+      setEditingItem(item);
+      return;
+    }
+
+    const rect = e.currentTarget.closest('.availability-calendar')?.getBoundingClientRect();
+    if (!rect) return;
+
+    const startX = e.clientX - rect.left;
+    
+    setDragStart({ x: startX, y: e.clientY });
+    setIsDragging(true);
+
+    // Check if this item is selected (for multi-drag)
+    if (selectedItems.has(item.id) && selectedItems.size > 1) {
+      // Multi-item drag - prepare all selected items
+      const allSelectedItems = allAvailability.filter((avail: LocationAvailability) => 
+        selectedItems.has(avail.id)
+      ).map(avail => ({
+        ...avail,
+        originalStartTime: avail.startTime,
+        originalEndTime: avail.endTime,
+      }));
+      setDraggedItems(allSelectedItems);
+    } else {
+      // Single item drag
+      setDraggedItem({
+        ...item,
+        originalStartTime: item.startTime,
+        originalEndTime: item.endTime,
+      });
+      setDraggedItems([]);
+    }
+    
+    e.preventDefault();
+  };
+
+  // Show loading state while data is being fetched
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading location availability data...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" onClick={onBack} className="text-gray-600 hover:text-gray-900">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Calendar
-          </Button>
-          <h1 className="text-2xl font-bold">Location Availability</h1>
-        </div>
-        
-        <div className="flex items-center space-x-4">
-          <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(Number(value))}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="15">15 min</SelectItem>
-              <SelectItem value="30">30 min</SelectItem>
-              <SelectItem value="60">60 min</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Week Navigation */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" onClick={goToPreviousWeek}>
-            <ChevronLeft className="h-4 w-4" />
-            Previous
-          </Button>
-          <Button variant="outline" onClick={goToToday}>
-            <Calendar className="mr-2 h-4 w-4" />
-            Today
-          </Button>
-          <Button variant="outline" onClick={goToNextWeek}>
-            Next
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        <div className="text-lg font-semibold">
-          {format(weekStart, 'MMM d')} - {format(weekEnd, 'MMM d, yyyy')}
-        </div>
-        
-        {timezone && (
-          <div className="text-sm text-gray-600">
-            {timezone}
-          </div>
-        )}
-      </div>
-
-      {/* Multi-select indicator */}
-      {isMultiSelectMode && (
-        <div className="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
-          <span className="text-sm text-blue-800">
-            Multi-select mode - Hold Shift and click blocks to select
-          </span>
-          {selectedLocations.length > 0 && (
-            <span className="text-sm text-blue-800">
-              {selectedLocations.length} selected - Press Delete to remove
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Calendar Grid */}
-      <div className="border rounded-lg overflow-hidden max-h-[calc(100vh-20rem)] overflow-y-auto">
-        <div className="grid grid-cols-8 bg-gray-50 sticky top-0 z-10">
-          <div className="p-3 border-r font-medium">Location</div>
-          {weekDays.map((date, index) => (
-            <div key={index} className="p-3 border-r last:border-r-0 font-medium text-center">
-              <div>{format(date, 'EEE')}</div>
-              <div className="text-sm text-gray-600">{format(date, 'MMM d')}</div>
+      <div className="border-b bg-white">
+        <div className="px-6">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <Button onClick={onBack} variant="ghost" size="sm" className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Calendar
+              </Button>
+              <div className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                <h1 className="text-xl font-semibold">Location Availability</h1>
+              </div>
             </div>
-          ))}
+          </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-8">
-          {/* Time Labels Column */}
-          <div className="border-r sticky left-0 bg-white z-10">
-            <div className="relative" style={{ height: `${TOTAL_MINUTES}px` }}>
-              {timeLabels.map((time, index) => (
-                <div
-                  key={index}
-                  className="absolute text-xs text-gray-500 -translate-y-2 bg-white px-1"
-                  style={{ top: `${(timeToMinutes(time) - START_MINUTES)}px` }}
-                >
-                  {formatTime(time)}
+      {/* Main Content */}
+      <div className="px-6 py-6">
+        <div className="h-[calc(100vh-6rem)] flex flex-col">
+          <div className="mb-4">
+            <p className="text-gray-600">
+              Compare location availability for the selected day. Times are shown across the top, locations on the left.
+            </p>
+          </div>
+
+          {/* Navigation and Controls */}
+          <div className="flex items-center justify-between gap-4 border-b pb-4 mb-4">
+            <div className="flex items-center gap-2">
+              <Button onClick={goToPreviousDay} variant="outline" size="sm">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button onClick={goToToday} variant="outline" size="sm">
+                Today
+              </Button>
+              <Button onClick={goToNextDay} variant="outline" size="sm">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <div className="ml-4 flex items-center gap-2">
+                <div className="text-sm font-medium">
+                  {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                 </div>
-              ))}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <CalendarIcon className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={currentDate}
+                      onSelect={(date) => {
+                        if (date) {
+                          setCurrentDate(date);
+                        }
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              {/* Multi-select indicator - positioned before filter */}
+              {selectedItems.size > 0 && (
+                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
+                  {selectedItems.size} selected - Press Delete to remove
+                </span>
+              )}
+              
+              {/* Filter Button - moved to left of timezone */}
+              <Popover open={showFilterPopover} onOpenChange={setShowFilterPopover}>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className={`h-8 w-8 p-0 ${hasActiveFilters ? 'text-blue-600 bg-blue-50' : 'text-gray-500'}`}
+                  >
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64" align="end">
+                  <div className="space-y-4">
+                    <div className="font-medium text-sm">Filter by Location Type</div>
+                    
+                    {locationTypes.length > 0 ? (
+                      <div className="space-y-2">
+                        {locationTypes.map((type) => (
+                          <div key={type} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`type-${type}`}
+                              checked={selectedLocationTypes.has(type)}
+                              onChange={() => toggleLocationType(type)}
+                              className="rounded border-gray-300"
+                            />
+                            <label htmlFor={`type-${type}`} className="text-sm capitalize">
+                              {type}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-500">No location types available</div>
+                    )}
+                    
+                    <div className="flex gap-2 pt-2 border-t">
+                      <Button 
+                        size="sm" 
+                        onClick={applyFilters}
+                        className="flex-1"
+                      >
+                        Apply
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={clearFilters}
+                        className="flex-1"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">
+                  {timezone}
+                </span>
+                <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value))}>
+                  <SelectTrigger className="w-20 border-0 shadow-none">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15m</SelectItem>
+                    <SelectItem value="30">30m</SelectItem>
+                    <SelectItem value="60">60m</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
-          {/* Location Columns */}
-          {weekDays.map((date, dayIndex) => (
-            <div key={dayIndex} className="border-r last:border-r-0">
-              {locations.map((location, locationIndex) => (
-                <div
-                  key={`${dayIndex}-${locationIndex}`}
-                  className={`relative border-b ${isMultiSelectMode ? 'cursor-pointer' : 'cursor-crosshair'}`}
-                  style={{ height: `${TOTAL_MINUTES}px` }}
-                  onMouseDown={(e) => handleMouseDown(e, location.id, date.toISOString())}
-                  onMouseMove={handleMouseMove}
-                  onMouseUp={handleMouseUp}
-                >
-                  {/* Working hours background */}
-                  {scheduleSettings?.workStartTime && scheduleSettings?.workEndTime && (
-                    <div
-                      className="absolute bg-blue-50 border-l-2 border-blue-200"
-                      style={{
-                        top: `${timeToMinutes(scheduleSettings.workStartTime) - START_MINUTES}px`,
-                        height: `${timeToMinutes(scheduleSettings.workEndTime) - timeToMinutes(scheduleSettings.workStartTime)}px`,
-                        left: 0,
-                        right: 0,
-                      }}
-                    />
-                  )}
-
-                  {/* Grid lines */}
-                  {Array.from({ length: Math.floor(TOTAL_MINUTES / 60) }, (_, i) => (
-                    <div
-                      key={i}
-                      className="absolute border-t border-gray-200"
-                      style={{ top: `${i * 60}px`, left: 0, right: 0 }}
-                    />
-                  ))}
-
-                  {/* Availability blocks */}
-                  {getAvailabilityForLocationAndDate(location.id, date.toISOString()).map((block) => (
-                    <div
-                      key={block.id}
-                      className={`absolute left-1 right-1 rounded text-xs text-white cursor-pointer transition-opacity duration-200 ${
-                        block.type === 'unavailable' ? 'bg-red-500' : 'bg-blue-500'
-                      } ${selectedLocations.includes(block.id) ? 'ring-2 ring-yellow-400' : ''}`}
-                      style={{
-                        top: `${timeToMinutes(block.startTime) - START_MINUTES}px`,
-                        height: `${timeToMinutes(block.endTime) - timeToMinutes(block.startTime)}px`,
-                      }}
-                      onClick={(e) => handleBlockClick(block, e)}
-                    >
-                      {/* Resize handles */}
-                      <div
-                        className="absolute top-0 left-0 right-0 h-2 cursor-n-resize hover:bg-black hover:bg-opacity-20"
-                        onMouseDown={(e) => handleResizeStart(e, block.id, 'top')}
-                      />
-                      <div
-                        className="absolute bottom-0 left-0 right-0 h-2 cursor-s-resize hover:bg-black hover:bg-opacity-20"
-                        onMouseDown={(e) => handleResizeStart(e, block.id, 'bottom')}
-                      />
-                      
-                      <div className="p-1 text-center">
-                        <div className="font-medium">
-                          {block.type === 'unavailable' ? 'Unavailable' : 'Preferred'}
-                        </div>
-                        <div className="text-xs opacity-90">
-                          {formatTime(block.startTime)} - {formatTime(block.endTime)}
-                        </div>
+          {/* Calendar Content */}
+          <div 
+            className="flex-1 flex overflow-hidden focus:outline-none availability-calendar" 
+            tabIndex={0}
+          >
+            {isLoading ? (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  <p className="text-sm text-gray-500">Loading availability...</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Location Names Column */}
+                <div className="w-48 border-r bg-gray-50">
+                  <div className="h-12 border-b bg-gray-100 flex items-center px-3">
+                    <span className="font-medium text-sm">Location</span>
+                  </div>
+                  {filteredLocations.map((location: EventLocation) => (
+                    <div key={location.id} className="h-16 border-b flex items-center px-3">
+                      <div className="text-sm font-medium truncate">
+                        {location.name}
                       </div>
                     </div>
                   ))}
-
-                  {/* Location label */}
-                  {dayIndex === 0 && (
-                    <div className="absolute left-2 top-2 text-sm font-medium bg-white px-2 py-1 rounded shadow">
-                      {location.name}
-                    </div>
-                  )}
                 </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Edit Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Location Availability</DialogTitle>
-          </DialogHeader>
-          
-          {editingBlock && (
-            <div className="space-y-4">
-              <div>
-                <Label>Availability Type</Label>
-                <RadioGroup
-                  value={editingBlock.type}
-                  onValueChange={(value: 'unavailable' | 'preferred') =>
-                    setEditingBlock({ ...editingBlock, type: value })
-                  }
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="unavailable" id="unavailable" />
-                    <Label htmlFor="unavailable">Unavailable</Label>
+                {/* Time Header and Grid */}
+                <div className="flex-1 overflow-auto">
+                  <div 
+                    className="relative select-none"
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                  >
+                    {/* Time Header */}
+                    <div className="sticky top-0 bg-white border-b z-10">
+                      <div className="relative w-full h-10">
+                        {/* Show only hour lines that align with the schedule grid */}
+                        {Array.from({ length: 17 }, (_, i) => {
+                          const minutes = START_MINUTES + (i * 60); // Every hour from 8 AM
+                          const position = ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                          
+                          return (
+                            <div
+                              key={minutes}
+                              className="absolute border-r border-gray-200 h-full"
+                              style={{
+                                left: `${position}%`,
+                              }}
+                            >
+                              <div className="absolute top-2 left-1 text-xs text-gray-500">
+                                {formatTime(minutes)}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Location Rows */}
+                    <div>
+                      {filteredLocations.map((location: EventLocation, locationIndex: number) => {
+                        const locationAvailability = getLocationAvailabilityForDate(location.id);
+                        
+                        return (
+                          <div 
+                            key={location.id} 
+                            className="h-16 border-b relative bg-white cursor-crosshair w-full" 
+                            onMouseDown={(e) => handleMouseDown(e, location.id)}
+                          >
+                            {/* Time Grid Background with incremental lines */}
+                            <div className="relative w-full h-full absolute">
+                              {timeLabels.map((timeLabel) => {
+                                const startPercent = ((timeLabel.minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                                const widthPercent = (timeIncrement / TOTAL_MINUTES) * 100;
+                                
+                                return (
+                                  <div
+                                    key={timeLabel.minutes}
+                                    className="absolute border-r border-gray-100 h-full"
+                                    style={{
+                                      left: `${startPercent}%`,
+                                      width: `${widthPercent}%`,
+                                    }}
+                                  />
+                                );
+                              })}
+                            </div>
+
+                            {/* Availability Blocks */}
+                            {locationAvailability.map((item: LocationAvailability) => {
+                              const startMinutes = timeToMinutes(item.startTime);
+                              const endMinutes = timeToMinutes(item.endTime);
+
+                              // Check if this item is being dragged or resized
+                              const isBeingDragged = draggedItem?.id === item.id;
+                              const isBeingDraggedMulti = draggedItems.some(d => d.id === item.id);
+                              const isBeingResized = resizingItem?.id === item.id;
+                              const currentItem = isBeingDragged ? draggedItem : 
+                                                isBeingDraggedMulti ? draggedItems.find(d => d.id === item.id) :
+                                                isBeingResized ? resizingItem : item;
+
+                              const currentStartMinutes = timeToMinutes(currentItem.startTime);
+                              const currentEndMinutes = timeToMinutes(currentItem.endTime);
+                              
+                              // Calculate percentage-based positioning for full width
+                              const startPercent = ((currentStartMinutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                              const widthPercent = ((currentEndMinutes - currentStartMinutes) / TOTAL_MINUTES) * 100;
+                              
+                              const isSelected = selectedItems.has(item.id);
+                              const isMultiDragging = draggedItems.some(d => d.id === item.id);
+                              
+                              return (
+                                <div
+                                  key={item.id}
+                                  className={`absolute text-xs text-white top-2 bottom-2 rounded transition-all duration-150 z-10 
+                                    ${item.availabilityType === 'unavailable' ? 'bg-red-500' : 'bg-blue-500'}
+                                    ${isSelected ? 'ring-2 ring-yellow-400 ring-offset-1' : ''}
+                                    ${isMultiDragging ? 'opacity-80 z-30' : ''}
+                                    ${isShiftPressed ? 'cursor-pointer' : ''}`}
+                                  style={{
+                                    left: `${startPercent}%`,
+                                    width: `${widthPercent}%`,
+                                    minWidth: '20px',
+                                  }}
+                                  onMouseDown={(e) => handleBlockMouseDown(e, item)}
+                                >
+                                  <div className={`px-2 py-1 h-full flex flex-col justify-center ${isShiftPressed ? 'cursor-pointer' : 'cursor-move'}`}>
+                                    <div className="font-medium truncate">
+                                      {item.availabilityType === 'unavailable' ? 'Unavailable' : 'Preferred'}
+                                    </div>
+                                    <div className="text-xs opacity-90 truncate">
+                                      {formatTime(currentStartMinutes)} - {formatTime(currentEndMinutes)}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+
+                            {/* Preview block while creating */}
+                            {newBlock && newBlock.locationId === location.id && (
+                              <div
+                                className="absolute text-xs text-white top-2 bottom-2 rounded bg-gray-500 opacity-60 z-20"
+                                style={{
+                                  left: `${((timeToMinutes(newBlock.startTime) - START_MINUTES) / TOTAL_MINUTES) * 100}%`,
+                                  width: `${((timeToMinutes(newBlock.endTime) - timeToMinutes(newBlock.startTime)) / TOTAL_MINUTES) * 100}%`,
+                                  minWidth: '20px',
+                                }}
+                              >
+                                <div className="px-2 py-1 h-full flex flex-col justify-center">
+                                  <div className="font-medium truncate">New</div>
+                                  <div className="text-xs opacity-90 truncate">
+                                    {formatTime(timeToMinutes(newBlock.startTime))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="preferred" id="preferred" />
-                    <Label htmlFor="preferred">Preferred</Label>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Edit Dialog */}
+          {editingItem && (
+            <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Availability</DialogTitle>
+                  <DialogDescription>
+                    {new Date(editingItem.date + 'T00:00:00').toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Type</label>
+                    <Select
+                      value={editingItem.availabilityType}
+                      onValueChange={(value) => setEditingItem({ ...editingItem, availabilityType: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unavailable">Unavailable</SelectItem>
+                        <SelectItem value="preferred">Preferred</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </RadioGroup>
-              </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Notes</label>
+                    <Textarea
+                      value={editingItem.notes || ''}
+                      onChange={(e) => setEditingItem({ ...editingItem, notes: e.target.value })}
+                      placeholder="Add notes..."
+                    />
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <Button
+                      onClick={handleDelete}
+                      variant="destructive"
+                      size="sm"
+                      disabled={deleteMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                    
+                    <div className="space-x-2">
+                      <Button onClick={() => setEditingItem(null)} variant="outline">
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleSaveEdit}
+                      >
+                        Save Changes
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
 
-              <div>
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={editingBlock.notes || ''}
-                  onChange={(e) => setEditingBlock({ ...editingBlock, notes: e.target.value })}
-                  placeholder="Add any notes about this availability..."
-                  rows={3}
-                />
-              </div>
-
-              <div className="flex justify-between">
-                <Button variant="destructive" onClick={handleDelete}>
-                  Delete
-                </Button>
-                <div className="space-x-2">
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+          {/* Bulk Delete Confirmation Dialog */}
+          {showBulkDeleteDialog && (
+            <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Selected Availability Blocks</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete {selectedItems.size} selected availability block{selectedItems.size !== 1 ? 's' : ''}? This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowBulkDeleteDialog(false)}
+                  >
                     Cancel
                   </Button>
-                  <Button onClick={handleEditSubmit}>
-                    Save Changes
+                  <Button
+                    variant="destructive"
+                    onClick={handleBulkDelete}
+                    disabled={bulkDeleteMutation.isPending}
+                  >
+                    {bulkDeleteMutation.isPending ? "Deleting..." : "Delete"}
                   </Button>
                 </div>
-              </div>
-            </div>
+              </DialogContent>
+            </Dialog>
           )}
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
     </div>
   );
 }
