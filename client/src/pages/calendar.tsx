@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Users, MapPin } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Users, MapPin, ChevronDown } from "lucide-react";
 import AvailabilityComparison from "@/components/availability-comparison";
 import LocationAvailabilityPage from "@/components/location-availability";
 
@@ -85,22 +86,24 @@ export default function Calendar() {
             Back to {(project as any)?.name}
           </Button>
           
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => setShowAvailabilityComparison(true)}
-              className="flex items-center gap-2"
-            >
-              <Users className="h-4 w-4" />
-              Team Availability
-            </Button>
-            <Button
-              onClick={() => setShowLocationAvailability(true)}
-              className="flex items-center gap-2"
-            >
-              <MapPin className="h-4 w-4" />
-              Space Availability
-            </Button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="flex items-center gap-2">
+                Availability
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setShowAvailabilityComparison(true)}>
+                <Users className="mr-2 h-4 w-4" />
+                Team Availability
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowLocationAvailability(true)}>
+                <MapPin className="mr-2 h-4 w-4" />
+                Space Availability
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         
         <div className="mb-2">
