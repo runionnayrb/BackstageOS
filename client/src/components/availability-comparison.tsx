@@ -865,37 +865,20 @@ export default function AvailabilityComparison({
                   >
                     {/* Time Header */}
                     <div className="sticky top-0 bg-white border-b z-10">
-                      <div className="relative w-full h-10">
-                        {/* Generate time labels every hour from 8 AM to midnight (0:00) */}
+                      <div className="flex w-full h-10">
+                        {/* Generate time labels every hour from 8 AM to midnight */}
                         {Array.from({ length: 17 }, (_, i) => {
                           const minutes = START_MINUTES + (i * 60); // Every hour from 8 AM
-                          const position = ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
                           
                           return (
                             <div
                               key={minutes}
-                              className="absolute text-center py-2 text-xs text-gray-500 flex items-center justify-center"
-                              style={{
-                                left: `${position}%`,
-                                width: '60px',
-                                transform: 'translateX(-50%)',
-                              }}
+                              className="flex-1 text-center py-2 text-xs text-gray-500 flex items-center justify-center border-r border-gray-200"
                             >
                               {formatTime(minutes)}
                             </div>
                           );
                         })}
-                        {/* Add midnight (24:00 / 0:00) at the end */}
-                        <div
-                          className="absolute text-center py-2 text-xs text-gray-500 flex items-center justify-center"
-                          style={{
-                            left: '100%',
-                            width: '60px',
-                            transform: 'translateX(-50%)',
-                          }}
-                        >
-                          {formatTime(END_MINUTES)}
-                        </div>
                       </div>
                     </div>
 
