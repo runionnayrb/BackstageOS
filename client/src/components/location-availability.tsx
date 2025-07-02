@@ -348,9 +348,11 @@ export default function LocationAvailability({
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
+      console.log("Frontend: Attempting to delete availability ID:", id);
       const response = await fetch(`/api/projects/${projectId}/location-availability/${id}`, {
         method: "DELETE",
       });
+      console.log("Frontend: Delete response status:", response.status);
       if (!response.ok) throw new Error("Failed to delete availability");
     },
     onSuccess: () => {
@@ -558,7 +560,6 @@ export default function LocationAvailability({
       
       setDraggedItem(null);
     } else if (newBlock) {
-      console.log("Frontend: Creating new block with data:", newBlock);
       // Create the item directly without optimistic update to avoid ID conflicts
       createMutation.mutate(newBlock);
     }

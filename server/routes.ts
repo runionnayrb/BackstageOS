@@ -1647,7 +1647,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      console.log("Attempting to delete location availability ID:", availabilityId);
       await storage.deleteLocationAvailability(availabilityId);
+      console.log("Successfully deleted location availability ID:", availabilityId);
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting location availability:", error);
