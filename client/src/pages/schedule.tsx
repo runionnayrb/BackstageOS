@@ -126,7 +126,7 @@ export default function Schedule() {
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button className="flex items-center gap-2">
+                <Button variant="ghost" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 border-none bg-transparent hover:bg-transparent">
                   {viewMode === 'monthly' ? 'Month' : viewMode === 'weekly' ? 'Week' : 'Day'}
                   <ChevronDown className="h-4 w-4" />
                 </Button>
