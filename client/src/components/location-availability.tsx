@@ -78,11 +78,14 @@ export default function LocationAvailability({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Shift') {
+        console.log('Shift key pressed - entering multiselect mode');
         setIsShiftPressed(true);
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
         setSelectedItems(current => {
+          console.log('Delete key pressed, selected items:', current.size);
           if (current.size > 0) {
+            console.log('Opening bulk delete dialog');
             setShowBulkDeleteDialog(true);
           }
           return current;
@@ -686,13 +689,16 @@ export default function LocationAvailability({
     // Handle Shift+click for multi-selection
     if (e.shiftKey && !mode) {
       e.preventDefault();
+      console.log('Shift+click on block:', item.id, 'currently selected:', selectedItems.has(item.id));
       if (selectedItems.has(item.id)) {
         const newSelected = new Set(selectedItems);
         newSelected.delete(item.id);
+        console.log('Removing from selection, new selection:', Array.from(newSelected));
         setSelectedItems(newSelected);
       } else {
         const newSelected = new Set(selectedItems);
         newSelected.add(item.id);
+        console.log('Adding to selection, new selection:', Array.from(newSelected));
         setSelectedItems(newSelected);
       }
       return;
