@@ -933,6 +933,140 @@ class DatabaseStorage implements IStorage {
   async deleteSeoSettings(id: number): Promise<void> {
     await db.delete(seoSettings).where(eq(seoSettings.id, id));
   }
+
+  // Schedule Events methods
+  async getScheduleEventsByProjectId(projectId: number): Promise<any[]> {
+    const result = await db.select({
+      id: scheduleEvents.id,
+      projectId: scheduleEvents.projectId,
+      title: scheduleEvents.title,
+      description: scheduleEvents.description,
+      date: scheduleEvents.date,
+      startTime: scheduleEvents.startTime,
+      endTime: scheduleEvents.endTime,
+      type: scheduleEvents.type,
+      location: scheduleEvents.location,
+      notes: scheduleEvents.notes,
+      isAllDay: scheduleEvents.isAllDay,
+      createdBy: scheduleEvents.createdBy,
+      createdAt: scheduleEvents.createdAt,
+      updatedAt: scheduleEvents.updatedAt,
+    })
+    .from(scheduleEvents)
+    .where(eq(scheduleEvents.projectId, projectId))
+    .orderBy(scheduleEvents.date, scheduleEvents.startTime);
+
+    // Get participants for each event
+    const eventsWithParticipants = await Promise.all(
+      result.map(async (event) => {
+        const participants = await db.select({
+          id: scheduleEventParticipants.id,
+          contactId: scheduleEventParticipants.contactId,
+          contactFirstName: contacts.firstName,
+          contactLastName: contacts.lastName,
+          isRequired: scheduleEventParticipants.isRequired,
+          status: scheduleEventParticipants.status,
+        })
+        .from(scheduleEventParticipants)
+        .leftJoin(contacts, eq(scheduleEventParticipants.contactId, contacts.id))
+        .where(eq(scheduleEventParticipants.eventId, event.id));
+
+        return {
+          ...event,
+          participants,
+        };
+      })
+    );
+
+    return eventsWithParticipants;
+  }
+
+  async getScheduleEventById(eventId: number): Promise<any> {
+    const result = await db.select()
+      .from(scheduleEvents)
+      .where(eq(scheduleEvents.id, eventId))
+      .limit(1);
+
+    if (!result[0]) return null;
+
+    const participants = await db.select({
+      id: scheduleEventParticipants.id,
+      contactId: scheduleEventParticipants.contactId,
+      contactFirstName: contacts.firstName,
+      contactLastName: contacts.lastName,
+      isRequired: scheduleEventParticipants.isRequired,
+      status: scheduleEventParticipants.status,
+    })
+    .from(scheduleEventParticipants)
+    .leftJoin(contacts, eq(scheduleEventParticipants.contactId, contacts.id))
+    .where(eq(scheduleEventParticipants.eventId, eventId));
+
+    return {
+      ...result[0],
+      participants,
+    };
+  }
+
+  async createScheduleEvent(event: any): Promise<any> {
+    const result = await db.insert(scheduleEvents).values(event).returning();
+    return result[0];
+  }
+
+  async updateScheduleEvent(eventId: number, updates: any): Promise<any> {
+    const result = await db.update(scheduleEvents)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(scheduleEvents.id, eventId))
+      .returning();
+    return result[0];
+  }
+
+  async deleteScheduleEvent(eventId: number): Promise<void> {
+    // Delete participants first
+    await db.delete(scheduleEventParticipants).where(eq(scheduleEventParticipants.eventId, eventId));
+    // Then delete the event
+    await db.delete(scheduleEvents).where(eq(scheduleEvents.id, eventId));
+  }
+
+  async addEventParticipant(participant: any): Promise<any> {
+    const result = await db.insert(scheduleEventParticipants).values(participant).returning();
+    return result[0];
+  }
+
+  async removeEventParticipant(eventId: number, contactId: number): Promise<void> {
+    await db.delete(scheduleEventParticipants)
+      .where(
+        and(
+          eq(scheduleEventParticipants.eventId, eventId),
+          eq(scheduleEventParticipants.contactId, contactId)
+        )
+      );
+  }
+
+  // Event Locations methods
+  async getEventLocationsByProjectId(projectId: number): Promise<any[]> {
+    const result = await db.select()
+      .from(eventLocations)
+      .where(eq(eventLocations.projectId, projectId))
+      .orderBy(eventLocations.name);
+    return result;
+  }
+
+  async createEventLocation(location: any): Promise<any> {
+    const result = await db.insert(eventLocations).values(location).returning();
+    return result[0];
+  }
+
+  async updateEventLocation(locationId: number, updates: any): Promise<any> {
+    const result = await db.update(eventLocations)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(eventLocations.id, locationId))
+      .returning();
+    return result[0];
+  }
+
+  async deleteEventLocation(locationId: number): Promise<void> {
+    await db.delete(eventLocations).where(eq(eventLocations.id, locationId));
+  }
 }
 
 export const storage = new DatabaseStorage();
