@@ -178,22 +178,19 @@ export default function Personnel() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setLocation(`/shows/${projectId}`)}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to {(project as any)?.name}
+        </Button>
+
         <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLocation(`/shows/${projectId}`)}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to {(project as any)?.name}
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
-            </div>
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
           
           <div className="flex items-center gap-3">
             {allContacts.length > 0 && (
@@ -226,7 +223,7 @@ export default function Personnel() {
           </div>
         </div>
 
-        <div className="space-y-1">
+        <div className="space-y-8">
           {categories.map((category, index) => (
             <div
               key={category.id}
@@ -235,10 +232,10 @@ export default function Personnel() {
               onDragOver={isReordering ? handleDragOver : undefined}
               onDrop={isReordering ? (e) => handleDrop(e, index) : undefined}
               onDragEnd={isReordering ? handleDragEnd : undefined}
-              className={`p-4 transition-colors border border-transparent group relative ${
+              className={`transition-colors group relative ${
                 isReordering && draggedIndex === index 
                   ? 'opacity-50 bg-blue-50 border-blue-200' 
-                  : 'hover:bg-gray-50'
+                  : 'hover:opacity-70'
               }`}
             >
               <div className="flex items-center gap-3">
