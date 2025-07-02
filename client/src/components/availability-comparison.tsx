@@ -846,6 +846,13 @@ export default function AvailabilityComparison({
             </div>
 
             <div className="flex items-center gap-4">
+              {/* Multi-select indicator - positioned before filter */}
+              {selectedItems.size > 0 && (
+                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
+                  {selectedItems.size} selected - Press Delete to remove
+                </span>
+              )}
+              
               {/* Filter Button - moved to left of timezone */}
               <Popover open={showFilterPopover} onOpenChange={setShowFilterPopover}>
                 <PopoverTrigger asChild>
@@ -919,20 +926,6 @@ export default function AvailabilityComparison({
                 </Select>
               </div>
             </div>
-              
-            {/* Multi-select indicators */}
-            {selectedItems.size > 0 && (
-              <div className="flex items-center gap-2 text-sm">
-                {isShiftPressed && selectedItems.size === 0 && (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
-                    Multi-select mode
-                  </span>
-                )}
-                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
-                  {selectedItems.size} selected - Press Delete to remove
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Calendar Content */}
