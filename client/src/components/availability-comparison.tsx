@@ -736,23 +736,7 @@ export default function AvailabilityComparison({
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500">
-                  {timezone}
-                </span>
-                <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value))}>
-                  <SelectTrigger className="w-20">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="15">15m</SelectItem>
-                    <SelectItem value="30">30m</SelectItem>
-                    <SelectItem value="60">60m</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Filter Button */}
+              {/* Filter Button - moved to left of timezone */}
               <Popover open={showFilterPopover} onOpenChange={setShowFilterPopover}>
                 <PopoverTrigger asChild>
                   <Button 
@@ -808,6 +792,22 @@ export default function AvailabilityComparison({
                   </div>
                 </PopoverContent>
               </Popover>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">
+                  {timezone}
+                </span>
+                <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value))}>
+                  <SelectTrigger className="w-20 border-0 shadow-none">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15m</SelectItem>
+                    <SelectItem value="30">30m</SelectItem>
+                    <SelectItem value="60">60m</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
               
             {/* Multi-select indicators */}
