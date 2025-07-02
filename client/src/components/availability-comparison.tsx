@@ -269,13 +269,54 @@ export default function AvailabilityComparison({
       if (!response.ok) throw new Error("Failed to create availability");
       return response.json();
     },
-    onSuccess: (newItem) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
+    onMutate: async (data: any) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: [`/api/projects/${projectId}/availability`] });
+      
+      // Snapshot the previous value
+      const previousData = queryClient.getQueryData([`/api/projects/${projectId}/availability`]);
+      
+      // Create temporary item with expected structure
+      const tempItem = {
+        id: Date.now(), // Temporary ID
+        contactId: data.contactId,
+        projectId: projectId,
+        date: data.date,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        availabilityType: data.availabilityType,
+        notes: data.notes || '',
+        createdBy: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        contactFirstName: '',
+        contactLastName: ''
+      };
+      
+      // Optimistically update to the new value
+      queryClient.setQueryData([`/api/projects/${projectId}/availability`], (old: any) => {
+        return old ? [...old, tempItem] : [tempItem];
+      });
+      
+      // Return a context object with the snapshotted value
+      return { previousData, tempId: tempItem.id };
+    },
+    onSuccess: (newItem, variables, context) => {
+      // Replace the temporary item with the real one from the server
+      queryClient.setQueryData([`/api/projects/${projectId}/availability`], (old: any) => {
+        return old?.map((item: any) => 
+          item.id === context?.tempId ? newItem : item
+        ) || [];
+      });
       setNewBlock(null);
       // Open edit dialog for the newly created item
       setEditingItem(newItem);
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousData) {
+        queryClient.setQueryData([`/api/projects/${projectId}/availability`], context.previousData);
+      }
       toast({ 
         title: "Failed to create availability", 
         description: error.message,
