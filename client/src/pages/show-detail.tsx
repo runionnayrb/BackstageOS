@@ -209,7 +209,8 @@ export default function ShowDetail() {
   };
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="w-full">
+      <div className="px-6 py-4">
         <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
@@ -246,7 +247,9 @@ export default function ShowDetail() {
             <p className="text-gray-600 mt-1">{project.venue}</p>
           )}
         </div>
+      </div>
 
+      <div className="px-6">
         <div className="space-y-1">
           {sections.map((section, index) => (
             <div
@@ -279,6 +282,7 @@ export default function ShowDetail() {
             </div>
           ))}
         </div>
+      </div>
     </div>
   );
 }
