@@ -860,19 +860,18 @@ export default function LocationAvailability({
                             className="location-row h-16 border-b relative bg-white cursor-crosshair w-full" 
                             onMouseDown={(e) => handleMouseDown(e, location.id)}
                           >
-                            {/* Time Grid Background with incremental lines */}
+                            {/* Time Grid Background with hour lines matching header */}
                             <div className="relative w-full h-full absolute">
-                              {timeLabels.map((timeLabel) => {
-                                const startPercent = ((timeLabel.minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
-                                const widthPercent = (timeIncrement / TOTAL_MINUTES) * 100;
+                              {Array.from({ length: 17 }, (_, i) => {
+                                const minutes = START_MINUTES + (i * 60); // Every hour from 8 AM, matching header
+                                const position = ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
                                 
                                 return (
                                   <div
-                                    key={timeLabel.minutes}
+                                    key={minutes}
                                     className="absolute border-r border-gray-100 h-full"
                                     style={{
-                                      left: `${startPercent}%`,
-                                      width: `${widthPercent}%`,
+                                      left: `${position}%`,
                                     }}
                                   />
                                 );
