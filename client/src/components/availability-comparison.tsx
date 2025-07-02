@@ -921,18 +921,16 @@ export default function AvailabilityComparison({
             </div>
               
             {/* Multi-select indicators */}
-            {(isShiftPressed || selectedItems.size > 0) && (
+            {selectedItems.size > 0 && (
               <div className="flex items-center gap-2 text-sm">
-                {isShiftPressed && (
+                {isShiftPressed && selectedItems.size === 0 && (
                   <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium">
                     Multi-select mode
                   </span>
                 )}
-                {selectedItems.size > 0 && (
-                  <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
-                    {selectedItems.size} selected - Press Delete to remove
-                  </span>
-                )}
+                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
+                  {selectedItems.size} selected - Press Delete to remove
+                </span>
               </div>
             )}
           </div>
