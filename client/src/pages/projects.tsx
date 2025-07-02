@@ -89,7 +89,7 @@ export default function Projects() {
           {(projects as any[]).map((project: any) => (
             <div 
               key={project.id} 
-              className="p-4 border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+              className="p-4 hover:bg-muted/50 transition-colors cursor-pointer"
               onClick={() => setLocation(`/shows/${project.id}`)}
             >
               <div className="flex justify-between items-start">
@@ -98,7 +98,6 @@ export default function Projects() {
                   <div className="flex gap-6 text-sm text-muted-foreground">
                     <span><span className="font-medium">Venue:</span> {project.venue || "No venue set"}</span>
                     <span><span className="font-medium">Dates:</span> {formatDateRange(project.prepStartDate, project.closingDate)}</span>
-                    <span><span className="font-medium">Updated:</span> {formatDate(project.updatedAt)}</span>
                   </div>
                 </div>
                 <div className="text-muted-foreground">
