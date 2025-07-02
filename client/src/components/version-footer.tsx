@@ -120,7 +120,7 @@ export default function VersionFooter() {
                   size="sm" 
                   className="text-xs text-muted-foreground hover:text-foreground"
                 >
-                  Backstage OS Version {CURRENT_VERSION}
+                  BackstageOS Version {CURRENT_VERSION}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[80vh]">
@@ -130,7 +130,7 @@ export default function VersionFooter() {
                     Release Notes
                   </DialogTitle>
                   <DialogDescription>
-                    Latest updates and improvements to Backstage OS
+                    Latest updates and improvements to BackstageOS
                   </DialogDescription>
                 </DialogHeader>
                 

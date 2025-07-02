@@ -173,13 +173,13 @@ export default function MainLanding() {
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center space-x-3 mb-6">
             <Clapperboard className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold text-white">Backstage OS</span>
+            <span className="text-xl font-bold text-white">BackstageOS</span>
           </div>
           <p className="text-gray-400 mb-4">
             Revolutionizing stage management for the modern theater professional.
           </p>
           <p className="text-sm text-gray-500">
-            © 2025 Backstage OS. Built for the theater community.
+            © 2025 BackstageOS. Built for the theater community.
           </p>
         </div>
       </footer>

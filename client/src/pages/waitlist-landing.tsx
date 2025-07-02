@@ -502,12 +502,12 @@ export default function WaitlistLanding() {
       <footer className="bg-gray-900 text-white py-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center">
-            <h3 className="text-2xl font-bold mb-4">Backstage OS</h3>
+            <h3 className="text-2xl font-bold mb-4">BackstageOS</h3>
             <p className="text-gray-400 max-w-2xl mx-auto">
               Revolutionizing stage management for the modern stage manager.
             </p>
             <div className="mt-8 text-sm text-gray-500">
-              © 2025 Backstage OS. All rights reserved.
+              © 2025 BackstageOS. All rights reserved.
             </div>
           </div>
         </div>
