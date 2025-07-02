@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { ChevronLeft, ChevronRight, Users, Trash2, ArrowLeft, Calendar, Filter } from "lucide-react";
@@ -19,7 +18,6 @@ interface ProjectAvailability {
   startTime: string;
   endTime: string;
   availabilityType: 'unavailable' | 'preferred';
-  title?: string;
   notes?: string;
   contactFirstName: string;
   contactLastName: string;
@@ -496,7 +494,6 @@ export default function AvailabilityComparison({
       startTime: editingItem.startTime,
       endTime: editingItem.endTime,
       availabilityType: editingItem.availabilityType,
-      title: editingItem.title || 'Out',
       notes: editingItem.notes,
       date: currentDate.toISOString().split('T')[0],
     };
@@ -1093,7 +1090,7 @@ export default function AvailabilityComparison({
                                   {/* Content */}
                                   <div className={`px-2 py-1 h-full flex flex-col justify-center ${isShiftPressed ? 'cursor-pointer' : 'cursor-move'}`}>
                                     <div className="font-medium truncate">
-                                      {currentItem.title || 'Out'}
+                                      {currentItem.availabilityType === 'unavailable' ? 'Out' : 'Pref'}
                                     </div>
                                     <div className="text-xs opacity-90 truncate">
                                       {formatTime(currentStartMinutes)}
@@ -1179,15 +1176,6 @@ export default function AvailabilityComparison({
                 </DialogHeader>
                 
                 <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">Title</label>
-                    <Input
-                      value={editingItem.title || ""}
-                      onChange={(e) => setEditingItem({ ...editingItem, title: e.target.value })}
-                      placeholder="Out"
-                    />
-                  </div>
-                  
                   <div>
                     <label className="text-sm font-medium">Type</label>
                     <Select
