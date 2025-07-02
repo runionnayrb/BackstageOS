@@ -227,8 +227,10 @@ export default function ShowDetail() {
               variant="outline"
               size="sm"
               onClick={() => setIsReordering(!isReordering)}
+              className="flex items-center gap-2"
             >
-              {isReordering ? "Done Reordering" : "Re-order"}
+              <GripVertical className="h-4 w-4" />
+              {isReordering ? "Done Reordering" : "Reorder"}
             </Button>
             <Button
               variant="outline"

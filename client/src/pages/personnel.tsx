@@ -216,7 +216,7 @@ export default function Personnel() {
               className="flex items-center gap-2"
             >
               <GripVertical className="h-4 w-4" />
-              {isReordering ? "Done Reordering" : "Re-order"}
+              {isReordering ? "Done Reordering" : "Reorder"}
             </Button>
           </div>
         </div>
