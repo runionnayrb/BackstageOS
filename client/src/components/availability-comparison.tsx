@@ -230,14 +230,14 @@ export default function AvailabilityComparison({
 
   // Helper functions for drag operations
   const positionToMinutes = (position: number, containerWidth: number) => {
-    // Each time segment gets equal width in the flex layout
-    const numSegments = timeLabels.length;
-    const segmentWidth = containerWidth / numSegments;
-    const segmentIndex = Math.floor(position / segmentWidth);
+    // Calculate the exact position as a percentage of the container width
+    const percentage = Math.max(0, Math.min(1, position / containerWidth));
     
-    // Convert segment index to minutes
-    const minutes = START_MINUTES + (segmentIndex * timeIncrement);
-    return Math.max(START_MINUTES, Math.min(END_MINUTES, minutes));
+    // Convert percentage to minutes across the total time range
+    const minutes = START_MINUTES + (percentage * TOTAL_MINUTES);
+    
+    // Snap to the time increment
+    return snapToIncrement(Math.max(START_MINUTES, Math.min(END_MINUTES, minutes)));
   };
 
   const snapToIncrement = (minutes: number) => {
@@ -492,8 +492,11 @@ export default function AvailabilityComparison({
       const endMinutes = timeToMinutes(draggedItem.originalEndTime);
       const duration = endMinutes - startMinutes;
       
+      // Convert delta pixels to delta minutes
+      const deltaMinutes = (deltaX / containerWidth) * TOTAL_MINUTES;
+      
       // Apply delta movement to original position (not absolute positioning)
-      const newStartMinutes = snapToIncrement(Math.max(START_MINUTES, Math.min(END_MINUTES - duration, startMinutes + deltaX)));
+      const newStartMinutes = snapToIncrement(Math.max(START_MINUTES, Math.min(END_MINUTES - duration, startMinutes + deltaMinutes)));
       const newEndMinutes = newStartMinutes + duration;
       
       const newContactId = getContactIdFromY(currentY);
@@ -510,13 +513,16 @@ export default function AvailabilityComparison({
       const startMinutes = timeToMinutes(resizingItem.originalStartTime);
       const endMinutes = timeToMinutes(resizingItem.originalEndTime);
       
+      // Convert delta pixels to delta minutes
+      const deltaMinutes = (deltaX / containerWidth) * TOTAL_MINUTES;
+      
       let newStartMinutes = startMinutes;
       let newEndMinutes = endMinutes;
       
       if (resizeMode === 'top') {
-        newStartMinutes = snapToIncrement(Math.max(START_MINUTES, Math.min(endMinutes - timeIncrement, startMinutes + deltaX)));
+        newStartMinutes = snapToIncrement(Math.max(START_MINUTES, Math.min(endMinutes - timeIncrement, startMinutes + deltaMinutes)));
       } else if (resizeMode === 'bottom') {
-        newEndMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, endMinutes + deltaX)));
+        newEndMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, endMinutes + deltaMinutes)));
       }
       
       setResizingItem({
