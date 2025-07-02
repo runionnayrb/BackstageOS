@@ -59,8 +59,8 @@ export default function ShowReportsList() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
             <Button
               variant="ghost"
               size="sm"
@@ -70,20 +70,19 @@ export default function ShowReportsList() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to {(project as any)?.name}
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
-            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setLocation(`/shows/${projectId}/templates`)}
+              className="flex items-center gap-2"
+            >
+              <Settings className="h-4 w-4" />
+              Template Settings
+            </Button>
           </div>
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}/templates`)}
-            className="flex items-center gap-2"
-          >
-            <Settings className="h-4 w-4" />
-            Template Settings
-          </Button>
+          <h1 className="text-3xl font-bold text-gray-900">Reports</h1>
         </div>
 
         <div className="space-y-8">
