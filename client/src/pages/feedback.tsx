@@ -161,7 +161,7 @@ export default function FeedbackPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold">Feedback Center</h1>
-          <p className="text-gray-600">Help us improve Backstage OS</p>
+          <p className="text-gray-600">Help us improve BackstageOS</p>
         </div>
       </div>
 
@@ -182,7 +182,7 @@ export default function FeedbackPage() {
             <CardHeader>
               <CardTitle>Submit New Feedback</CardTitle>
               <CardDescription>
-                Help us improve Backstage OS by reporting bugs, suggesting features, or sharing your thoughts.
+                Help us improve BackstageOS by reporting bugs, suggesting features, or sharing your thoughts.
               </CardDescription>
             </CardHeader>
             <CardContent>

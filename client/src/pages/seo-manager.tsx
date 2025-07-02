@@ -413,7 +413,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                             <FormItem>
                               <FormLabel>Site Title</FormLabel>
                               <FormControl>
-                                <Input placeholder="Backstage OS - Theater Management Platform" {...field} />
+                                <Input placeholder="BackstageOS - Theater Management Platform" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -733,7 +733,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                             <FormItem>
                               <FormLabel>Share Image Alt Text</FormLabel>
                               <FormControl>
-                                <Input placeholder="Backstage OS theater management platform interface" {...field} />
+                                <Input placeholder="BackstageOS theater management platform interface" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>

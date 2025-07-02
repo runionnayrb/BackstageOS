@@ -155,7 +155,7 @@ export default function MainLanding() {
             Ready to Transform Your Productions?
           </h2>
           <p className="text-xl text-gray-600 mb-10">
-            Join professional stage managers worldwide who are already using Backstage OS to streamline their productions.
+            Join professional stage managers worldwide who are already using BackstageOS to streamline their productions.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" onClick={handleGetStarted} className="text-lg px-8 py-3">

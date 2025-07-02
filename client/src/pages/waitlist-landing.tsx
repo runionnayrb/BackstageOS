@@ -289,7 +289,7 @@ export default function WaitlistLanding() {
               Everything You Need for Professional Stage Management
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Backstage OS provides comprehensive tools for every phase of the production process, 
+              BackstageOS provides comprehensive tools for every phase of the production process, 
               from prep to closing night.
             </p>
           </div>
@@ -318,7 +318,7 @@ export default function WaitlistLanding() {
               Your Complete Production Workflow
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              From first read-through to closing night, Backstage OS streamlines every step 
+              From first read-through to closing night, BackstageOS streamlines every step 
               of your production process.
             </p>
           </div>
@@ -464,7 +464,7 @@ export default function WaitlistLanding() {
                     name="additionalInfo"
                     value={formData.additionalInfo}
                     onChange={handleInputChange}
-                    placeholder="What production challenges could Backstage OS help you solve?"
+                    placeholder="What production challenges could BackstageOS help you solve?"
                     rows={3}
                   />
                 </div>
@@ -489,7 +489,7 @@ export default function WaitlistLanding() {
                 </Button>
 
                 <p className="text-sm text-gray-500 text-center">
-                  By joining the waitlist, you agree to receive updates about Backstage OS. 
+                  By joining the waitlist, you agree to receive updates about BackstageOS. 
                   We respect your privacy and will never share your information.
                 </p>
               </form>
