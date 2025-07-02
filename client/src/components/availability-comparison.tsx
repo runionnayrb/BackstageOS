@@ -64,12 +64,16 @@ export default function AvailabilityComparison({
   // Keyboard event handlers for shift selection and delete
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      console.log('Key pressed:', e.key, 'Selected items:', selectedItems.size);
       if (e.key === 'Shift') {
         setIsShiftPressed(true);
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
+        console.log('Delete key pressed, selected items:', selectedItems.size);
         setSelectedItems(current => {
+          console.log('Current selected items in delete handler:', current.size);
           if (current.size > 0) {
+            console.log('Opening delete dialog');
             setShowBulkDeleteDialog(true);
           }
           return current;
