@@ -689,16 +689,16 @@ export default function LocationAvailability({
     // Handle Shift+click for multi-selection
     if (e.shiftKey && !mode) {
       e.preventDefault();
-      console.log('Shift+click on block:', item.id, 'currently selected:', selectedItems.has(item.id));
+
       if (selectedItems.has(item.id)) {
         const newSelected = new Set(selectedItems);
         newSelected.delete(item.id);
-        console.log('Removing from selection, new selection:', Array.from(newSelected));
+
         setSelectedItems(newSelected);
       } else {
         const newSelected = new Set(selectedItems);
         newSelected.add(item.id);
-        console.log('Adding to selection, new selection:', Array.from(newSelected));
+
         setSelectedItems(newSelected);
       }
       return;
@@ -1094,20 +1094,6 @@ export default function LocationAvailability({
                                     minWidth: '20px',
                                   }}
                                   onMouseDown={(e) => handleBlockMouseDown(e, item)}
-                                  onClick={(e) => {
-                                    if (e.shiftKey) {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                      
-                                      const newSelected = new Set(selectedItemsRef.current);
-                                      if (newSelected.has(item.id)) {
-                                        newSelected.delete(item.id);
-                                      } else {
-                                        newSelected.add(item.id);
-                                      }
-                                      setSelectedItems(newSelected);
-                                    }
-                                  }}
                                   onDoubleClick={() => setEditingItem(item)}
                                 >
                                   {/* Left resize handle */}
