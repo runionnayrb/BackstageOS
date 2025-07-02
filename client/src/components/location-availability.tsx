@@ -804,7 +804,7 @@ export default function LocationAvailability({
               <>
                 {/* Location Names Column */}
                 <div className="w-48 border-r bg-gray-50">
-                  <div className="h-12 border-b bg-gray-100 flex items-center px-3">
+                  <div className="h-10 border-b bg-gray-100 flex items-center px-3">
                     <span className="font-medium text-sm">Location</span>
                   </div>
                   {filteredLocations.map((location: EventLocation) => (
@@ -860,21 +860,38 @@ export default function LocationAvailability({
                             className="location-row h-16 border-b relative bg-white cursor-crosshair w-full" 
                             onMouseDown={(e) => handleMouseDown(e, location.id)}
                           >
-                            {/* Time Grid Background with hour lines matching header */}
+                            {/* Time Grid Background with both hour lines and increment lines */}
                             <div className="relative w-full h-full absolute">
+                              {/* Hour lines matching header */}
                               {Array.from({ length: 17 }, (_, i) => {
                                 const minutes = START_MINUTES + (i * 60); // Every hour from 8 AM, matching header
                                 const position = ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
                                 
                                 return (
                                   <div
-                                    key={minutes}
-                                    className="absolute border-r border-gray-100 h-full"
+                                    key={`hour-${minutes}`}
+                                    className="absolute border-r border-gray-200 h-full"
                                     style={{
                                       left: `${position}%`,
                                     }}
                                   />
                                 );
+                              })}
+                              {/* Increment lines for precision */}
+                              {timeLabels.map((timeLabel) => {
+                                const startPercent = ((timeLabel.minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                                // Don't show increment lines on exact hours to avoid double lines
+                                const isHourLine = timeLabel.minutes % 60 === 0;
+                                
+                                return !isHourLine ? (
+                                  <div
+                                    key={`increment-${timeLabel.minutes}`}
+                                    className="absolute border-r border-gray-100 h-full"
+                                    style={{
+                                      left: `${startPercent}%`,
+                                    }}
+                                  />
+                                ) : null;
                               })}
                             </div>
 
