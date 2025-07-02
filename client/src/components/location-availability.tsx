@@ -1,18 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, ChevronLeft, ChevronRight, Calendar as CalendarIcon, Filter, Trash2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, ChevronLeft, ChevronRight, CalendarIcon, Filter, MapPin, Trash2 } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-
-// Time constants
-const START_MINUTES = 480; // 8:00 AM
-const END_MINUTES = 1440; // 12:00 AM (midnight)
-const TOTAL_MINUTES = END_MINUTES - START_MINUTES; // 16 hours
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { formatTimeFromMinutes } from "@/lib/timeUtils";
 
 interface EventLocation {
   id: number;
@@ -44,6 +40,10 @@ interface LocationAvailabilityProps {
   onBack: () => void;
 }
 
+const START_MINUTES = 8 * 60; // 8:00 AM in minutes
+const END_MINUTES = 24 * 60; // Midnight in minutes
+const TOTAL_MINUTES = END_MINUTES - START_MINUTES; // 16 hours
+
 export default function LocationAvailability({
   projectId,
   onBack,
@@ -69,68 +69,134 @@ export default function LocationAvailability({
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const selectedItemsRef = useRef<Set<number>>(new Set());
 
-  // Fetch project settings for timezone and time format
-  const { data: projectSettings } = useQuery({
+  // Keep ref in sync with state
+  useEffect(() => {
+    selectedItemsRef.current = selectedItems;
+  }, [selectedItems]);
+
+  // Keyboard event handlers for shift selection and delete
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true);
+      }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        setSelectedItems(current => {
+          if (current.size > 0) {
+            setShowBulkDeleteDialog(true);
+          }
+          return current;
+        });
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
+  // Get show settings for timezone and time format
+  const { data: showSettings } = useQuery({
     queryKey: [`/api/projects/${projectId}/settings`],
-    enabled: !!projectId,
   });
 
-  const scheduleSettings = projectSettings?.scheduleSettings ? 
-    (typeof projectSettings.scheduleSettings === 'string' ? 
-      JSON.parse(projectSettings.scheduleSettings) : 
-      projectSettings.scheduleSettings) : {};
+  const scheduleSettings = showSettings?.scheduleSettings ? 
+    (typeof showSettings.scheduleSettings === 'string' ? 
+      JSON.parse(showSettings.scheduleSettings) : 
+      showSettings.scheduleSettings) : {};
 
   const timezone = scheduleSettings?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
   const timeFormat = scheduleSettings?.timeFormat || '12';
 
-  // Fetch locations
-  const { data: locations, isLoading: locationsLoading } = useQuery({
-    queryKey: [`/api/projects/${projectId}/locations`],
-    enabled: !!projectId,
+  // Get locations data
+  const { data: locations = [], isLoading: locationsLoading } = useQuery({
+    queryKey: [`/api/projects/${projectId}/event-locations`],
   });
 
-  // Fetch location availability
-  const { data: allAvailability, isLoading } = useQuery({
+  // Get location availability data
+  const { data: allAvailability = [], isLoading: availabilityLoading } = useQuery({
     queryKey: [`/api/projects/${projectId}/location-availability`],
-    enabled: !!projectId,
   });
 
-  // Create filtered locations based on search and type filters
-  const filteredLocations = (locations as EventLocation[] || []).filter((location: EventLocation) => {
-    if (selectedLocationTypes.size === 0) return true;
-    
-    // Use description as primary filter criteria, fallback to name if description is empty
-    const filterCriteria = location.description || location.name || '';
-    return selectedLocationTypes.has(filterCriteria);
+  // Get schedule events to show as reservations/conflicts
+  const { data: scheduleEvents = [], isLoading: eventsLoading } = useQuery({
+    queryKey: [`/api/projects/${projectId}/schedule-events`],
   });
 
-  // Get unique location types for filtering
-  const locationTypes = [...new Set((locations as EventLocation[] || []).map((location: EventLocation) => 
-    location.description || location.name || ''
+  const isLoading = locationsLoading || availabilityLoading || eventsLoading;
+
+  // Filter locations if needed
+  const filteredLocations = locations.filter((location: EventLocation) => {
+    if (!hasActiveFilters || selectedLocationTypes.size === 0) return true;
+    // Use description first, fallback to name if no description
+    const locationType = location.description || location.name;
+    return selectedLocationTypes.has(locationType);
+  });
+
+  // Get unique location types for filtering - use description first, fallback to name
+  const locationTypes = [...new Set(locations.map((location: EventLocation) => 
+    location.description || location.name
   ).filter(Boolean))];
 
-  // Format time based on user preference
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    
-    if (timeFormat === '24') {
-      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  const toggleLocationType = (type: string) => {
+    const newTypes = new Set(selectedLocationTypes);
+    if (newTypes.has(type)) {
+      newTypes.delete(type);
     } else {
-      const period = hours >= 12 ? 'PM' : 'AM';
-      const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-      return `${displayHours}:${mins.toString().padStart(2, '0')} ${period}`;
+      newTypes.add(type);
     }
+    setSelectedLocationTypes(newTypes);
   };
 
-  // Convert time string to minutes
+  const applyFilters = () => {
+    setHasActiveFilters(selectedLocationTypes.size > 0);
+    setShowFilterPopover(false);
+  };
+
+  const clearFilters = () => {
+    setSelectedLocationTypes(new Set());
+    setHasActiveFilters(false);
+    setShowFilterPopover(false);
+  };
+
+  // Time formatting using show settings preference
+  const formatTime = (minutes: number) => {
+    return formatTimeFromMinutes(minutes, timeFormat);
+  };
+
+  // Convert time string to minutes since start of day
   const timeToMinutes = (timeStr: string) => {
     const [hours, minutes] = timeStr.split(':').map(Number);
     return hours * 60 + minutes;
   };
 
-  // Generate time labels
-  const timeLabels: any[] = [];
+  // Convert minutes to percentage position for full width
+  const minutesToPosition = (minutes: number) => {
+    return Math.max(0, minutes - START_MINUTES);
+  };
+
+  // Convert percentage position to minutes
+  const percentToMinutes = (percent: number) => {
+    return START_MINUTES + (percent / 100) * TOTAL_MINUTES;
+  };
+
+  // Convert minutes to percentage for full width positioning
+  const minutesToPercent = (minutes: number) => {
+    return ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+  };
+
+  // Generate time labels based on increment
+  const timeLabels = [];
   for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += timeIncrement) {
     timeLabels.push({
       minutes,
@@ -245,17 +311,267 @@ export default function LocationAvailability({
       clearTimeout(updateTimeoutRef.current);
     }
     
-    updateTimeoutRef.current = setTimeout(() => {
-      fetch(`/api/projects/${projectId}/locations/${data.locationId}/availability/${id}`, {
+    updateTimeoutRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/projects/${projectId}/locations/${data.locationId}/availability/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        if (!response.ok) throw new Error("Failed to update availability");
+      } catch (error) {
+        console.error("Silent update failed:", error);
+        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
+      }
+    }, 500);
+  }, [projectId, queryClient]);
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const response = await fetch(`/api/projects/${projectId}/locations/${data.locationId}/availability/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      }).catch(error => {
-        console.error("Background update failed:", error);
-        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
       });
-    }, 500);
-  }, [projectId, queryClient]);
+      if (!response.ok) throw new Error("Failed to update availability");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
+      setEditingItem(null);
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Failed to update availability", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      console.log("Frontend: Attempting to delete availability ID:", id);
+      const response = await fetch(`/api/projects/${projectId}/location-availability/${id}`, {
+        method: "DELETE",
+      });
+      console.log("Frontend: Delete response status:", response.status);
+      if (!response.ok) throw new Error("Failed to delete availability");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
+      setEditingItem(null);
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Failed to delete availability", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      console.log("Frontend: Attempting bulk delete of IDs:", ids);
+      await Promise.all(ids.map(id =>
+        fetch(`/api/projects/${projectId}/location-availability/${id}`, {
+          method: "DELETE",
+        }).then(response => {
+          if (!response.ok) throw new Error(`Failed to delete availability ${id}`);
+        })
+      ));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
+      setSelectedItems(new Set());
+      setShowBulkDeleteDialog(false);
+      toast({ title: "Selected availability blocks deleted successfully" });
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Failed to delete availability blocks", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    },
+  });
+
+  // Event handlers
+  const handleSaveEdit = () => {
+    if (!editingItem) return;
+    
+    const updateData = {
+      locationId: editingItem.locationId,
+      startTime: editingItem.startTime,
+      endTime: editingItem.endTime,
+      type: editingItem.availabilityType,
+      notes: editingItem.notes,
+      date: editingItem.date,
+    };
+    
+    updateMutation.mutate({ id: editingItem.id, data: updateData });
+  };
+
+  const handleDelete = () => {
+    if (!editingItem) return;
+    deleteMutation.mutate(editingItem.id);
+  };
+
+  const handleBulkDelete = () => {
+    const ids = Array.from(selectedItems);
+    bulkDeleteMutation.mutate(ids);
+  };
+
+  // Mouse event handlers for drag operations
+  const handleMouseDown = (e: React.MouseEvent, locationId: number) => {
+    if (e.shiftKey) return;
+    if (e.button !== 0) return; // Only left click
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left; // Position relative to the location row
+    const y = e.clientY - rect.top;
+    
+    setDragStart({ x, y, locationId });
+    setIsDragging(true);
+    e.preventDefault();
+  };
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging || !dragStart) return;
+
+    // Find the location row that's being dragged over
+    const locationRow = document.elementFromPoint(e.clientX, e.clientY)?.closest('.location-row');
+    if (!locationRow) return;
+
+    const rect = locationRow.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const containerWidth = rect.width;
+
+    if (draggedItem || draggedItems.length > 0) {
+      // Moving existing item(s)
+      const deltaX = currentX - dragStart.x;
+      const deltaMinutes = (deltaX / containerWidth) * TOTAL_MINUTES;
+      const snappedDelta = snapToIncrement(deltaMinutes);
+
+      if (draggedItems.length > 0) {
+        // Multi-item drag
+        const updatedItems = draggedItems.map(item => {
+          const originalStartMinutes = timeToMinutes(item.originalStartTime);
+          const originalEndMinutes = timeToMinutes(item.originalEndTime);
+          const newStartMinutes = Math.max(START_MINUTES, Math.min(END_MINUTES - (originalEndMinutes - originalStartMinutes), originalStartMinutes + snappedDelta));
+          const newEndMinutes = newStartMinutes + (originalEndMinutes - originalStartMinutes);
+          
+          return {
+            ...item,
+            startTime: formatTimeFromMinutesLocal(newStartMinutes),
+            endTime: formatTimeFromMinutesLocal(newEndMinutes),
+          };
+        });
+        setDraggedItems(updatedItems);
+      } else if (draggedItem) {
+        // Single item drag
+        const originalStartMinutes = timeToMinutes(draggedItem.originalStartTime);
+        const originalEndMinutes = timeToMinutes(draggedItem.originalEndTime);
+        const newStartMinutes = Math.max(START_MINUTES, Math.min(END_MINUTES - (originalEndMinutes - originalStartMinutes), originalStartMinutes + snappedDelta));
+        const newEndMinutes = newStartMinutes + (originalEndMinutes - originalStartMinutes);
+        
+        setDraggedItem({
+          ...draggedItem,
+          startTime: formatTimeFromMinutesLocal(newStartMinutes),
+          endTime: formatTimeFromMinutesLocal(newEndMinutes),
+        });
+      }
+    } else if (newBlock) {
+      // Creating new block
+      const startX = dragStart.x;
+      const endX = currentX;
+      const leftX = Math.min(startX, endX);
+      const rightX = Math.max(startX, endX);
+      
+      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(leftX, containerWidth)));
+      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(rightX, containerWidth))));
+      
+      setNewBlock({
+        locationId: dragStart.locationId,
+        startTime: formatTimeFromMinutesLocal(startMinutes),
+        endTime: formatTimeFromMinutesLocal(endMinutes),
+        availabilityType: 'unavailable',
+        date: currentDate.toISOString().split('T')[0],
+      });
+    } else {
+      // Updating new block size
+      const startX = dragStart.x;
+      const endX = currentX;
+      const leftX = Math.min(startX, endX);
+      const rightX = Math.max(startX, endX);
+      
+      const startMinutes = snapToIncrement(Math.max(START_MINUTES, positionToMinutes(leftX, containerWidth)));
+      const endMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, positionToMinutes(rightX, containerWidth))));
+      
+      setNewBlock({
+        ...newBlock,
+        startTime: formatTimeFromMinutesLocal(startMinutes),
+        endTime: formatTimeFromMinutesLocal(endMinutes),
+      });
+    }
+  }, [isDragging, dragStart, draggedItem, draggedItems, newBlock, timeIncrement, currentDate]);
+
+  const handleMouseUp = useCallback(() => {
+    if (!isDragging) return;
+    
+    setIsDragging(false);
+    
+    if (draggedItems.length > 0) {
+      // Update all dragged items optimistically
+      queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], (old: any) => {
+        return old?.map((item: any) => {
+          const updatedItem = draggedItems.find(d => d.id === item.id);
+          return updatedItem || item;
+        }) || [];
+      });
+      
+      // Silent background updates
+      draggedItems.forEach(item => {
+        silentUpdate(item.id, {
+          locationId: item.locationId,
+          startTime: item.startTime,
+          endTime: item.endTime,
+          type: item.availabilityType,
+          notes: item.notes,
+          date: item.date,
+        });
+      });
+      
+      setDraggedItems([]);
+    } else if (draggedItem) {
+      // Update single item optimistically
+      queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], (old: any) => {
+        return old?.map((item: any) => 
+          item.id === draggedItem.id ? draggedItem : item
+        ) || [];
+      });
+      
+      // Silent background update
+      silentUpdate(draggedItem.id, {
+        locationId: draggedItem.locationId,
+        startTime: draggedItem.startTime,
+        endTime: draggedItem.endTime,
+        type: draggedItem.availabilityType,
+        notes: draggedItem.notes,
+        date: draggedItem.date,
+      });
+      
+      setDraggedItem(null);
+    } else if (newBlock) {
+      // Create the item directly without optimistic update to avoid ID conflicts
+      createMutation.mutate(newBlock);
+    }
+    
+    setDragStart(null);
+  }, [isDragging, draggedItem, draggedItems, newBlock, projectId, queryClient, silentUpdate, createMutation, currentDate]);
+
+
 
   const handleMouseUp = () => {
     if (!isDragging) return;
@@ -321,15 +637,12 @@ export default function LocationAvailability({
     setResizeMode(null);
   };
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
+  const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !dragStart) return;
 
-    const target = e.target as Element;
-    const container = target.closest('.relative');
-    if (!container) return;
-
-    const rect = container.getBoundingClientRect();
+    const rect = e.currentTarget.getBoundingClientRect();
     const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
     const containerWidth = rect.width;
 
     if (draggedItem) {
@@ -427,38 +740,22 @@ export default function LocationAvailability({
         endTime: formatTimeFromMinutesLocal(endMinutes),
       });
     }
-  }, [isDragging, dragStart, draggedItem, draggedItems, resizingItem, resizeMode, newBlock, snapToIncrement, timeIncrement, formatTimeFromMinutesLocal, timeToMinutes, positionToMinutes, currentDate]);
-
-  // Drag event handlers for creating new blocks
-  const handleMouseDown = (e: React.MouseEvent, locationId: number) => {
-    if (e.button !== 0) return; // Only left click
-    
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    setIsDragging(true);
-    setDragStart({ x, y, locationId });
-    e.preventDefault();
   };
+
+  // Add mouse event listeners
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   const handleBlockMouseDown = (e: React.MouseEvent, item: LocationAvailability, mode?: 'move' | 'resize-top' | 'resize-bottom') => {
     e.stopPropagation();
-    
-    // Handle Shift+click for multi-selection
-    if (e.shiftKey && !mode) {
-      e.preventDefault();
-      if (selectedItems.has(item.id)) {
-        const newSelected = new Set(selectedItems);
-        newSelected.delete(item.id);
-        setSelectedItems(newSelected);
-      } else {
-        const newSelected = new Set(selectedItems);
-        newSelected.add(item.id);
-        setSelectedItems(newSelected);
-      }
-      return;
-    }
     
     // Clear selection when starting normal drag operations (but not during Shift+click)
     if (selectedItems.size > 0 && !e.shiftKey) {
@@ -482,7 +779,7 @@ export default function LocationAvailability({
     // Check if this item is selected (for multi-drag)
     if (selectedItems.has(item.id) && selectedItems.size > 1) {
       // Multi-item drag - prepare all selected items
-      const allSelectedItems = (allAvailability as LocationAvailability[]).filter((avail: LocationAvailability) => 
+      const allSelectedItems = allAvailability.filter((avail: LocationAvailability) => 
         selectedItems.has(avail.id)
       ).map(avail => ({
         ...avail,
@@ -502,18 +799,6 @@ export default function LocationAvailability({
     
     e.preventDefault();
   };
-
-  // Add mouse event listeners
-  useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   // Show loading state while data is being fetched
   if (isLoading) {
@@ -595,11 +880,76 @@ export default function LocationAvailability({
             </div>
 
             <div className="flex items-center gap-4">
-              {/* Time increment controls */}
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-600">Increment:</span>
-                <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(Number(value))}>
-                  <SelectTrigger className="w-20 h-8">
+              {/* Multi-select indicator - positioned before filter */}
+              {selectedItems.size > 0 && (
+                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
+                  {selectedItems.size} selected - Press Delete to remove
+                </span>
+              )}
+              
+              {/* Filter Button - moved to left of timezone */}
+              <Popover open={showFilterPopover} onOpenChange={setShowFilterPopover}>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className={`h-8 w-8 p-0 ${hasActiveFilters ? 'text-blue-600 bg-blue-50' : 'text-gray-500'}`}
+                  >
+                    <Filter className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64" align="end">
+                  <div className="space-y-4">
+                    <div className="font-medium text-sm">Filter by Location Type</div>
+                    
+                    {locationTypes.length > 0 ? (
+                      <div className="space-y-2">
+                        {locationTypes.map((type) => (
+                          <div key={type} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id={`type-${type}`}
+                              checked={selectedLocationTypes.has(type)}
+                              onChange={() => toggleLocationType(type)}
+                              className="rounded border-gray-300"
+                            />
+                            <label htmlFor={`type-${type}`} className="text-sm capitalize">
+                              {type}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-500">No location types available</div>
+                    )}
+                    
+                    <div className="flex gap-2 pt-2 border-t">
+                      <Button 
+                        size="sm" 
+                        onClick={applyFilters}
+                        className="flex-1"
+                      >
+                        Apply
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={clearFilters}
+                        className="flex-1"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-500">
+                  {timezone}
+                </span>
+                <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value))}>
+                  <SelectTrigger className="w-20 border-0 shadow-none">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -612,201 +962,306 @@ export default function LocationAvailability({
             </div>
           </div>
 
-          {/* Availability Grid */}
-          <div className="flex-1 overflow-auto">
-            <div className="relative">
-              {/* Timeline */}
-              <div className="grid grid-cols-[200px_1fr] gap-0 border">
-                {/* Header row */}
-                <div className="h-12 border-r border-b bg-gray-50 flex items-center justify-center font-medium">
-                  Locations
+          {/* Calendar Content */}
+          <div 
+            className="flex-1 flex overflow-hidden focus:outline-none availability-calendar" 
+            tabIndex={0}
+          >
+            {isLoading ? (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  <p className="text-sm text-gray-500">Loading availability...</p>
                 </div>
-                <div 
-                  className="border-b bg-gray-50 relative"
-                  onMouseMove={handleMouseMove}
-                  onMouseUp={handleMouseUp}
-                >
-                  <div className="grid h-12" style={{ gridTemplateColumns: `repeat(${timeLabels.length}, 1fr)` }}>
-                    {timeLabels.map((time, index) => (
-                      <div 
-                        key={index} 
-                        className="border-r border-gray-200 text-xs flex items-center justify-center p-1 text-center"
-                      >
-                        {time.label}
-                      </div>
-                    ))}
+              </div>
+            ) : (
+              <>
+                {/* Location Names Column */}
+                <div className="w-48 border-r bg-gray-50">
+                  <div className="h-10 border-b bg-gray-100 flex items-center px-3">
+                    <span className="font-medium text-sm">Location</span>
                   </div>
+                  {filteredLocations.map((location: EventLocation) => (
+                    <div key={location.id} className="h-16 border-b flex items-center px-3">
+                      <div className="text-sm font-medium truncate">
+                        {location.name}
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
-                {/* Location rows */}
-                {filteredLocations.map((location: EventLocation, locationIndex: number) => {
-                  const locationAvailability = getLocationAvailabilityForDate(location.id);
-                  
-                  return (
-                    <div key={location.id} className="contents">
-                      {/* Location name */}
-                      <div className="h-16 border-r border-b bg-white flex items-center px-3">
-                        <div className="text-sm font-medium text-left">
-                          {location.name}
-                        </div>
-                      </div>
-                      
-                      {/* Timeline for this location */}
-                      <div 
-                        className="border-b bg-white relative h-16"
-                        onMouseDown={(e) => handleMouseDown(e, location.id)}
-                      >
-                        {/* Time grid */}
-                        <div className="grid h-full" style={{ gridTemplateColumns: `repeat(${timeLabels.length}, 1fr)` }}>
-                          {timeLabels.map((time, index) => (
-                            <div 
-                              key={index} 
-                              className="border-r border-gray-100 hover:bg-gray-50"
-                            />
-                          ))}
-                        </div>
-
-                        {/* Availability blocks */}
-                        {locationAvailability.map((item: LocationAvailability) => {
-                          const startMinutes = timeToMinutes(item.startTime);
-                          const endMinutes = timeToMinutes(item.endTime);
-                          const leftPercent = ((startMinutes - START_MINUTES) / TOTAL_MINUTES) * 100;
-                          const widthPercent = ((endMinutes - startMinutes) / TOTAL_MINUTES) * 100;
-
+                {/* Time Header and Grid */}
+                <div className="flex-1 overflow-auto">
+                  <div 
+                    className="relative select-none"
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                  >
+                    {/* Time Header */}
+                    <div className="sticky top-0 bg-white border-b z-10">
+                      <div className="relative w-full h-10">
+                        {/* Show only hour lines that align with the schedule grid */}
+                        {Array.from({ length: 17 }, (_, i) => {
+                          const minutes = START_MINUTES + (i * 60); // Every hour from 8 AM
+                          const position = ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                          
                           return (
                             <div
-                              key={item.id}
-                              className={`absolute top-1 bottom-1 rounded cursor-pointer border-2 ${
-                                item.availabilityType === 'unavailable' 
-                                  ? 'bg-red-200 border-red-400' 
-                                  : 'bg-blue-200 border-blue-400'
-                              } ${selectedItems.has(item.id) ? 'ring-2 ring-yellow-400' : ''}`}
+                              key={minutes}
+                              className="absolute border-r border-gray-200 h-full"
                               style={{
-                                left: `${leftPercent}%`,
-                                width: `${widthPercent}%`,
+                                left: `${position}%`,
                               }}
-                              onMouseDown={(e) => handleBlockMouseDown(e, item)}
                             >
-                              <div className="px-2 py-1 text-xs text-center">
-                                {item.availabilityType === 'unavailable' ? 'Unavailable' : 'Preferred'}
+                              <div className="absolute left-1 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">
+                                {formatTime(minutes)}
                               </div>
                             </div>
                           );
                         })}
-
-                        {/* New block preview */}
-                        {newBlock && newBlock.locationId === location.id && (
-                          <div
-                            className="absolute top-1 bottom-1 rounded bg-red-200 border-2 border-red-400 opacity-70"
-                            style={{
-                              left: `${((timeToMinutes(newBlock.startTime) - START_MINUTES) / TOTAL_MINUTES) * 100}%`,
-                              width: `${((timeToMinutes(newBlock.endTime) - timeToMinutes(newBlock.startTime)) / TOTAL_MINUTES) * 100}%`,
-                            }}
-                          >
-                            <div className="px-2 py-1 text-xs text-center">
-                              Unavailable
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Edit Dialog */}
-      {editingItem && (
-        <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit Location Availability</DialogTitle>
-              <DialogDescription>
-                Update the availability details for this location.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Availability Type</label>
-                <Select 
-                  value={editingItem.availabilityType} 
-                  onValueChange={(value) => setEditingItem({...editingItem, availabilityType: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unavailable">Unavailable</SelectItem>
-                    <SelectItem value="preferred">Preferred</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Notes</label>
-                <Textarea
-                  value={editingItem.notes || ''}
-                  onChange={(e) => setEditingItem({...editingItem, notes: e.target.value})}
-                  placeholder="Add any notes about this availability..."
-                  className="mt-1"
-                />
-              </div>
-              <div className="flex justify-between pt-4">
-                <Button
-                  variant="destructive"
-                  onClick={() => {
-                    fetch(`/api/projects/${projectId}/location-availability/${editingItem.id}`, {
-                      method: 'DELETE'
-                    }).then(() => {
-                      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
-                      setEditingItem(null);
-                      toast({ title: "Availability deleted successfully" });
-                    }).catch(() => {
-                      toast({ title: "Failed to delete availability", variant: "destructive" });
-                    });
-                  }}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
-                <div className="space-x-2">
-                  <Button variant="outline" onClick={() => setEditingItem(null)}>
+                    {/* Location Rows */}
+                    <div>
+                      {filteredLocations.map((location: EventLocation, locationIndex: number) => {
+                        const locationAvailability = getLocationAvailabilityForDate(location.id);
+                        
+                        return (
+                          <div 
+                            key={location.id} 
+                            className="location-row h-16 border-b relative bg-white cursor-crosshair w-full" 
+                            onMouseDown={(e) => handleMouseDown(e, location.id)}
+                          >
+                            {/* Time Grid Background with both hour lines and increment lines */}
+                            <div className="relative w-full h-full absolute">
+                              {/* Hour lines matching header */}
+                              {Array.from({ length: 17 }, (_, i) => {
+                                const minutes = START_MINUTES + (i * 60); // Every hour from 8 AM, matching header
+                                const position = ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                                
+                                return (
+                                  <div
+                                    key={`hour-${minutes}`}
+                                    className="absolute border-r border-gray-200 h-full"
+                                    style={{
+                                      left: `${position}%`,
+                                    }}
+                                  />
+                                );
+                              })}
+                              {/* Increment lines for precision */}
+                              {timeLabels.map((timeLabel) => {
+                                const startPercent = ((timeLabel.minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                                // Don't show increment lines on exact hours to avoid double lines
+                                const isHourLine = timeLabel.minutes % 60 === 0;
+                                
+                                return !isHourLine ? (
+                                  <div
+                                    key={`increment-${timeLabel.minutes}`}
+                                    className="absolute border-r border-gray-100 h-full"
+                                    style={{
+                                      left: `${startPercent}%`,
+                                    }}
+                                  />
+                                ) : null;
+                              })}
+                            </div>
+
+                            {/* Availability Blocks */}
+                            {locationAvailability.map((item: LocationAvailability) => {
+                              const startMinutes = timeToMinutes(item.startTime);
+                              const endMinutes = timeToMinutes(item.endTime);
+
+                              // Check if this item is being dragged or resized
+                              const isBeingDragged = draggedItem?.id === item.id;
+                              const isBeingDraggedMulti = draggedItems.some(d => d.id === item.id);
+                              const isBeingResized = resizingItem?.id === item.id;
+                              const currentItem = isBeingDragged ? draggedItem : 
+                                                isBeingDraggedMulti ? draggedItems.find(d => d.id === item.id) :
+                                                isBeingResized ? resizingItem : item;
+
+                              const currentStartMinutes = timeToMinutes(currentItem.startTime);
+                              const currentEndMinutes = timeToMinutes(currentItem.endTime);
+                              
+                              // Calculate percentage-based positioning for full width
+                              const startPercent = ((currentStartMinutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                              const widthPercent = ((currentEndMinutes - currentStartMinutes) / TOTAL_MINUTES) * 100;
+                              
+                              const isSelected = selectedItems.has(item.id);
+                              const isMultiDragging = draggedItems.some(d => d.id === item.id);
+                              
+                              return (
+                                <div
+                                  key={item.id}
+                                  className={`absolute text-xs text-white top-2 bottom-2 rounded transition-all duration-150 z-10 
+                                    ${item.availabilityType === 'unavailable' ? 'bg-red-500' : 'bg-blue-500'}
+                                    ${isSelected ? 'ring-2 ring-yellow-400 ring-offset-1' : ''}
+                                    ${isMultiDragging ? 'opacity-80 z-30' : ''}
+                                    ${isShiftPressed ? 'cursor-pointer' : ''}`}
+                                  style={{
+                                    left: `${startPercent}%`,
+                                    width: `${widthPercent}%`,
+                                    minWidth: '20px',
+                                  }}
+                                  onMouseDown={(e) => handleBlockMouseDown(e, item)}
+                                  onClick={(e) => {
+                                    if (e.shiftKey) {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      
+                                      const newSelected = new Set(selectedItemsRef.current);
+                                      if (newSelected.has(item.id)) {
+                                        newSelected.delete(item.id);
+                                      } else {
+                                        newSelected.add(item.id);
+                                      }
+                                      setSelectedItems(newSelected);
+                                    }
+                                  }}
+                                  onDoubleClick={() => setEditingItem(item)}
+                                >
+                                  <div className={`px-2 py-1 h-full flex flex-col justify-center ${isShiftPressed ? 'cursor-pointer' : 'cursor-move'}`}>
+                                    <div className="font-medium truncate">
+                                      {item.availabilityType === 'unavailable' ? 'Unavailable' : 'Preferred'}
+                                    </div>
+                                    <div className="text-xs opacity-90 truncate">
+                                      {formatTime(currentStartMinutes)} - {formatTime(currentEndMinutes)}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+
+                            {/* Preview block while creating */}
+                            {newBlock && newBlock.locationId === location.id && (
+                              <div
+                                className="absolute text-xs text-white top-2 bottom-2 rounded bg-gray-500 opacity-60 z-20"
+                                style={{
+                                  left: `${((timeToMinutes(newBlock.startTime) - START_MINUTES) / TOTAL_MINUTES) * 100}%`,
+                                  width: `${((timeToMinutes(newBlock.endTime) - timeToMinutes(newBlock.startTime)) / TOTAL_MINUTES) * 100}%`,
+                                  minWidth: '20px',
+                                }}
+                              >
+                                <div className="px-2 py-1 h-full flex flex-col justify-center">
+                                  <div className="font-medium truncate">New</div>
+                                  <div className="text-xs opacity-90 truncate">
+                                    {formatTime(timeToMinutes(newBlock.startTime))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Edit Dialog */}
+          {editingItem && (
+            <Dialog open={!!editingItem} onOpenChange={() => setEditingItem(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Edit Availability</DialogTitle>
+                  <DialogDescription>
+                    {new Date(editingItem.date + 'T00:00:00').toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Type</label>
+                    <Select
+                      value={editingItem.availabilityType}
+                      onValueChange={(value) => setEditingItem({ ...editingItem, availabilityType: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unavailable">Unavailable</SelectItem>
+                        <SelectItem value="preferred">Preferred</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <label className="text-sm font-medium">Notes</label>
+                    <Textarea
+                      value={editingItem.notes || ''}
+                      onChange={(e) => setEditingItem({ ...editingItem, notes: e.target.value })}
+                      placeholder="Add notes..."
+                    />
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <Button
+                      onClick={handleDelete}
+                      variant="destructive"
+                      size="sm"
+                      disabled={deleteMutation.isPending}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
+                    </Button>
+                    
+                    <div className="space-x-2">
+                      <Button onClick={() => setEditingItem(null)} variant="outline">
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleSaveEdit}
+                      >
+                        Save Changes
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          {/* Bulk Delete Confirmation Dialog */}
+          {showBulkDeleteDialog && (
+            <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Delete Selected Availability Blocks</DialogTitle>
+                  <DialogDescription>
+                    Are you sure you want to delete {selectedItems.size} selected availability block{selectedItems.size !== 1 ? 's' : ''}? This action cannot be undone.
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowBulkDeleteDialog(false)}
+                  >
                     Cancel
                   </Button>
                   <Button
-                    onClick={() => {
-                      const updateData = {
-                        locationId: editingItem.locationId,
-                        startTime: editingItem.startTime,
-                        endTime: editingItem.endTime,
-                        availabilityType: editingItem.availabilityType,
-                        notes: editingItem.notes,
-                        date: currentDate.toISOString().split('T')[0],
-                      };
-                      
-                      fetch(`/api/projects/${projectId}/locations/${editingItem.locationId}/availability/${editingItem.id}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(updateData)
-                      }).then(() => {
-                        queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
-                        setEditingItem(null);
-                        toast({ title: "Availability updated successfully" });
-                      }).catch(() => {
-                        toast({ title: "Failed to update availability", variant: "destructive" });
-                      });
-                    }}
+                    variant="destructive"
+                    onClick={handleBulkDelete}
+                    disabled={bulkDeleteMutation.isPending}
                   >
-                    Save Changes
+                    {bulkDeleteMutation.isPending ? "Deleting..." : "Delete"}
                   </Button>
                 </div>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
