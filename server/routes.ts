@@ -1557,7 +1557,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const availability = await storage.getLocationAvailabilityByProjectId(projectId);
-      res.json(availability);
+      // Transform data to match frontend expectations (type -> availabilityType)
+      const transformedAvailability = availability.map(item => ({
+        ...item,
+        availabilityType: item.type
+      }));
+      res.json(transformedAvailability);
     } catch (error) {
       console.error("Error fetching location availability:", error);
       res.status(500).json({ message: "Failed to fetch location availability" });
@@ -1697,6 +1702,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      console.log("Received request body:", req.body);
       const availabilityData = {
         ...req.body,
         type: req.body.availabilityType, // Convert availabilityType to type
@@ -1705,9 +1711,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdBy: req.user.id
       };
       delete availabilityData.availabilityType; // Remove the old field
+      console.log("Processing availability data:", availabilityData);
 
       const availability = await storage.createLocationAvailability(availabilityData);
-      res.json(availability);
+      console.log("Created location availability:", availability);
+      // Transform data to match frontend expectations (type -> availabilityType)
+      const transformedAvailability = {
+        ...availability,
+        availabilityType: availability.type
+      };
+      res.json(transformedAvailability);
     } catch (error) {
       console.error("Error creating location availability:", error);
       res.status(500).json({ message: "Failed to create location availability" });
@@ -1741,7 +1754,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const availability = await storage.updateLocationAvailability(availabilityId, availabilityData);
-      res.json(availability);
+      // Transform data to match frontend expectations (type -> availabilityType)
+      const transformedAvailability = {
+        ...availability,
+        availabilityType: availability.type
+      };
+      res.json(transformedAvailability);
     } catch (error) {
       console.error("Error updating location availability:", error);
       res.status(500).json({ message: "Failed to update location availability" });

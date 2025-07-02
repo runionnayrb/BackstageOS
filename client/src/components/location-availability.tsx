@@ -558,6 +558,7 @@ export default function LocationAvailability({
       
       setDraggedItem(null);
     } else if (newBlock) {
+      console.log("Frontend: Creating new block with data:", newBlock);
       // Create the item directly without optimistic update to avoid ID conflicts
       createMutation.mutate(newBlock);
     }
