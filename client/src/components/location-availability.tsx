@@ -399,7 +399,7 @@ export default function LocationAvailability({
       locationId: editingItem.locationId,
       startTime: editingItem.startTime,
       endTime: editingItem.endTime,
-      availabilityType: editingItem.availabilityType,
+      type: editingItem.availabilityType,
       notes: editingItem.notes,
       date: editingItem.date,
     };
@@ -531,7 +531,7 @@ export default function LocationAvailability({
           locationId: item.locationId,
           startTime: item.startTime,
           endTime: item.endTime,
-          availabilityType: item.availabilityType,
+          type: item.availabilityType,
           notes: item.notes,
           date: item.date,
         });
@@ -551,7 +551,7 @@ export default function LocationAvailability({
         locationId: draggedItem.locationId,
         startTime: draggedItem.startTime,
         endTime: draggedItem.endTime,
-        availabilityType: draggedItem.availabilityType,
+        type: draggedItem.availabilityType,
         notes: draggedItem.notes,
         date: draggedItem.date,
       });
