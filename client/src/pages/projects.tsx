@@ -67,53 +67,57 @@ export default function Projects() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">{projectLabel}</h1>
+      <div className="w-full">
+        <div className="px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center mb-2">
+            <div>
+              <h1 className="text-3xl font-bold">{projectLabel}</h1>
+            </div>
+            <Button onClick={() => setLocation("/create-project")}>
+              <Plus className="w-5 h-5 mr-2" />
+              New {projectSingle}
+            </Button>
           </div>
-          <Button onClick={() => setLocation("/create-project")}>
-            <Plus className="w-5 h-5 mr-2" />
-            New {projectSingle}
-          </Button>
         </div>
 
-        {(projects as any[]).length === 0 ? (
-        <div className="text-center py-12">
-          <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No {projectLabel.toLowerCase()} yet</h3>
-          <p className="text-gray-500 mb-6">Get started by creating your first {projectSingle.toLowerCase()}</p>
-          <Button onClick={() => setLocation("/create-project")}>
-            <Plus className="w-5 h-5 mr-2" />
-            Create {projectSingle}
-          </Button>
-        </div>
-      ) : (
-        <div className="space-y-1">
-          {(projects as any[]).map((project: any) => (
-            <div 
-              key={project.id} 
-              className="p-4 hover:bg-muted/50 transition-colors cursor-pointer"
-              onClick={() => setLocation(`/shows/${project.id}`)}
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-0.5">{project.name}</h3>
-                  <div className="text-sm text-muted-foreground mb-1 ml-0.5">
-                    {project.venue || "No venue set"}
-                  </div>
-                  <div className="text-sm text-muted-foreground ml-0.5">
-                    {formatDateRange(project.prepStartDate, project.closingDate)}
-                  </div>
-                </div>
-                <div className="text-muted-foreground">
-                  →
-                </div>
-              </div>
+        <div className="px-4 sm:px-6 lg:px-8">
+          {(projects as any[]).length === 0 ? (
+            <div className="text-center py-12">
+              <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No {projectLabel.toLowerCase()} yet</h3>
+              <p className="text-gray-500 mb-6">Get started by creating your first {projectSingle.toLowerCase()}</p>
+              <Button onClick={() => setLocation("/create-project")}>
+                <Plus className="w-5 h-5 mr-2" />
+                Create {projectSingle}
+              </Button>
             </div>
-          ))}
+          ) : (
+            <div className="space-y-1">
+              {(projects as any[]).map((project: any) => (
+                <div 
+                  key={project.id} 
+                  className="p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => setLocation(`/shows/${project.id}`)}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold mb-0.5">{project.name}</h3>
+                      <div className="text-sm text-muted-foreground mb-1 ml-0.5">
+                        {project.venue || "No venue set"}
+                      </div>
+                      <div className="text-sm text-muted-foreground ml-0.5">
+                        {formatDateRange(project.prepStartDate, project.closingDate)}
+                      </div>
+                    </div>
+                    <div className="text-muted-foreground">
+                      →
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      )}
       </div>
     </div>
   );
