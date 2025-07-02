@@ -148,6 +148,8 @@ export const useSEO = () => {
       
       // Add image dimensions for better sharing (recommended for Open Graph)
       updateMetaTag('og:image:width', '1200', true);
+      
+      console.log('Applied share image URL:', imageUrl);
       updateMetaTag('og:image:height', '630', true);
       
       console.log('Applied share image URL:', imageUrl);

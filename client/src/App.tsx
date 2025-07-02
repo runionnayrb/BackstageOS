@@ -78,6 +78,10 @@ function Router() {
     return <SEOTest />;
   }
   
+  if (window.location.pathname === '/debug-meta') {
+    return <DebugMeta />;
+  }
+  
   // If this is the join domain, redirect to /landing
   if (isJoinDomain && window.location.pathname !== '/landing') {
     window.location.pathname = '/landing';
