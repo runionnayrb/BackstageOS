@@ -1699,10 +1699,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const availabilityData = {
         ...req.body,
+        type: req.body.availabilityType, // Convert availabilityType to type
         locationId,
         projectId,
         createdBy: req.user.id
       };
+      delete availabilityData.availabilityType; // Remove the old field
 
       const availability = await storage.createLocationAvailability(availabilityData);
       res.json(availability);

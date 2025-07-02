@@ -558,17 +558,8 @@ export default function LocationAvailability({
       
       setDraggedItem(null);
     } else if (newBlock) {
-      const updateData = {
-        locationId: newBlock.locationId,
-        startTime: newBlock.startTime,
-        endTime: newBlock.endTime,
-        type: newBlock.availabilityType,
-        notes: newBlock.notes,
-        date: currentDate.toISOString().split('T')[0],
-      };
-      
       // Create the item directly without optimistic update to avoid ID conflicts
-      createMutation.mutate(updateData);
+      createMutation.mutate(newBlock);
     }
     
     setDragStart(null);
