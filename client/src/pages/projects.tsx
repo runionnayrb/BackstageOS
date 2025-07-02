@@ -94,11 +94,11 @@ export default function Projects() {
             >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold mb-1">{project.name}</h3>
-                  <div className="text-sm text-muted-foreground mb-1">
+                  <h3 className="text-lg font-semibold mb-0.5">{project.name}</h3>
+                  <div className="text-sm text-muted-foreground mb-1 ml-0.5">
                     {project.venue || "No venue set"}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground ml-0.5">
                     {formatDateRange(project.prepStartDate, project.closingDate)}
                   </div>
                 </div>
