@@ -360,7 +360,7 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
       </div>
 
       {/* All-day events section - conditionally rendered */}
-      {showAllDayEvents && dayEvents.filter(e => e.isAllDay).length > 0 && (
+      {showAllDayEvents && (
         <div className="bg-gray-50 border rounded-lg p-4">
           <h4 className="text-sm font-medium text-gray-700 mb-2">All Day Events</h4>
           <div className="space-y-2">
