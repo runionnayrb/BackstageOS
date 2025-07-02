@@ -1008,8 +1008,8 @@ export default function AvailabilityComparison({
                               <div
                                 className="absolute text-xs text-white top-2 bottom-2 rounded bg-gray-500 opacity-60 z-20"
                                 style={{
-                                  left: `${minutesToPosition(timeToMinutes(newBlock.startTime))}px`,
-                                  width: `${timeToMinutes(newBlock.endTime) - timeToMinutes(newBlock.startTime)}px`,
+                                  left: `${((timeToMinutes(newBlock.startTime) - START_MINUTES) / TOTAL_MINUTES) * 100}%`,
+                                  width: `${((timeToMinutes(newBlock.endTime) - timeToMinutes(newBlock.startTime)) / TOTAL_MINUTES) * 100}%`,
                                   minWidth: '20px',
                                 }}
                               >
