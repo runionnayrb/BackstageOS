@@ -65,31 +65,32 @@ export default function ShowReports() {
   const reportTypeName = reportTypeNames[reportType || ''] || "Reports";
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLocation(`/shows/${projectId}/reports`)}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Reports
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">{reportTypeName}</h1>
-              <p className="text-gray-600 mt-1">{project.name}</p>
-            </div>
-          </div>
+    <div className="w-full">
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation(`/shows/${projectId}/reports`)}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Reports
+          </Button>
           
           <Button onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/new`)}>
             <Plus className="h-4 w-4 mr-2" />
             New Report
           </Button>
         </div>
+        
+        <div className="mb-2">
+          <h1 className="text-3xl font-bold text-gray-900">{reportTypeName}</h1>
+          <p className="text-gray-600 mt-1">{project.name}</p>
+        </div>
+      </div>
 
+      <div className="px-4 sm:px-6 lg:px-8">
         {reportsLoading ? (
           <div>Loading reports...</div>
         ) : reports.length === 0 ? (
@@ -99,14 +100,14 @@ export default function ShowReports() {
             </p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-1">
             {reports.map((report: any) => (
               <div 
                 key={report.id} 
-                className="cursor-pointer hover:opacity-75 transition-opacity"
+                className="p-4 cursor-pointer hover:bg-gray-50 transition-colors"
                 onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/${report.id}`)}
               >
-                <h3 className="text-xl font-medium text-gray-900">
+                <h3 className="text-lg font-medium text-gray-900">
                   {reportTypeName.slice(0, -1)} - {project.name} - {new Date(report.date || report.createdAt).toLocaleDateString()}
                 </h3>
               </div>
