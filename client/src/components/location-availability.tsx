@@ -138,12 +138,15 @@ export default function LocationAvailability({
   // Filter locations if needed
   const filteredLocations = locations.filter((location: EventLocation) => {
     if (!hasActiveFilters || selectedLocationTypes.size === 0) return true;
-    // Add location type filtering logic here if needed
-    return true;
+    // Use description first, fallback to name if no description
+    const locationType = location.description || location.name;
+    return selectedLocationTypes.has(locationType);
   });
 
-  // Get unique location types for filtering
-  const locationTypes = [...new Set(locations.map((location: EventLocation) => location.description).filter(Boolean))];
+  // Get unique location types for filtering - use description first, fallback to name
+  const locationTypes = [...new Set(locations.map((location: EventLocation) => 
+    location.description || location.name
+  ).filter(Boolean))];
 
   const toggleLocationType = (type: string) => {
     const newTypes = new Set(selectedLocationTypes);
