@@ -202,7 +202,7 @@ export default function WaitlistLanding() {
   const technologies = [
     {
       icon: Zap,
-      title: "Revolutionary Real-Time Collaboration",
+      title: "Redefining Real-Time Collaboration",
       description: "Industry-first real-time script editing with live presence indicators, instant comments, and collaborative version control designed specifically for theater professionals."
     },
     {
@@ -259,7 +259,7 @@ export default function WaitlistLanding() {
               BackstageOS
             </h1>
             <p className="text-xl lg:text-2xl mb-8 opacity-90 leading-relaxed">
-              The revolutionary stage management platform that's transforming how we collaborate, organize, and execute productions.
+              The redefining stage management platform that's transforming how we collaborate, organize, and execute productions.
             </p>
             <div className="flex justify-center space-x-2 mb-4">
               <Star className="h-5 w-5 text-yellow-400 fill-current" />
@@ -378,7 +378,7 @@ export default function WaitlistLanding() {
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Join the Revolution
+              Join the Redefining
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
               Be among the first stage managers to experience the future of theater production management. 
@@ -504,7 +504,7 @@ export default function WaitlistLanding() {
           <div className="text-center">
             <h3 className="text-2xl font-bold mb-4">BackstageOS</h3>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Revolutionizing stage management for the modern stage manager.
+              Redefining stage management for the modern stage manager.
             </p>
             <div className="mt-8 text-sm text-gray-500">
               © 2025 BackstageOS. All rights reserved.
