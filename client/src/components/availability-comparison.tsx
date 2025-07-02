@@ -898,7 +898,24 @@ export default function AvailabilityComparison({
                             className="h-16 border-b relative bg-white cursor-crosshair w-full" 
                             onMouseDown={(e) => handleMouseDown(e, contact.id)}
                           >
-                            {/* Clean background without grid lines */}
+                            {/* Time Grid Background with incremental lines */}
+                            <div className="relative w-full h-full absolute">
+                              {timeLabels.map((timeLabel) => {
+                                const startPercent = ((timeLabel.minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                                const widthPercent = (timeIncrement / TOTAL_MINUTES) * 100;
+                                
+                                return (
+                                  <div
+                                    key={timeLabel.minutes}
+                                    className="absolute border-r border-gray-100 h-full"
+                                    style={{
+                                      left: `${startPercent}%`,
+                                      width: `${widthPercent}%`,
+                                    }}
+                                  />
+                                );
+                              })}
+                            </div>
 
                             {/* Availability Blocks */}
                             {contactAvailability.map((item: ProjectAvailability) => {
