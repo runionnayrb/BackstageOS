@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth, AuthProvider } from "@/hooks/useAuth";
 import { useSessionHeartbeat } from "@/hooks/useSessionHeartbeat";
 import { errorLogger } from "@/lib/errorLogger";
+import { useSEO } from "@/hooks/useSEO";
 import { useEffect } from "react";
 import AuthPage from "@/pages/auth-page";
 import ProfileSelection from "@/pages/profile-selection";
@@ -48,10 +49,14 @@ import DNSManager from "@/pages/dns-manager";
 import DomainManager from "@/pages/domain-manager";
 import PageManager from "@/pages/page-manager";
 import SeoManager from "@/pages/seo-manager";
+import SEOTest from "@/pages/seo-test";
 
 
 function Router() {
   const { user, isLoading } = useAuth();
+  
+  // Initialize SEO for dynamic meta tags based on domain
+  useSEO();
   
   // Check domain routing configuration
   const hostname = window.location.hostname;
@@ -167,6 +172,7 @@ function Router() {
         <Route path="/admin/dns" component={DNSManager} />
         <Route path="/admin/domains" component={DomainManager} />
         <Route path="/admin/seo" component={SeoManager} />
+        <Route path="/seo-test" component={SEOTest} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
