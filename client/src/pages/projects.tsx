@@ -96,7 +96,7 @@ export default function Projects() {
               {(projects as any[]).map((project: any) => (
                 <div 
                   key={project.id} 
-                  className="p-4 hover:opacity-75 transition-opacity cursor-pointer"
+                  className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
                   onClick={() => setLocation(`/shows/${project.id}`)}
                 >
                   <div className="flex justify-between items-start">
