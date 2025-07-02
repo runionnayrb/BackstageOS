@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
+import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
 import LocationSelect from "@/components/location-select";
 
 interface MonthlyScheduleViewProps {
@@ -105,7 +106,7 @@ export default function MonthlyScheduleView({
 
   // Filter events based on selected contact IDs
   const filteredEvents = selectedContactIds.length === 0 
-    ? events // Show all events when no filter is applied (master schedule)
+    ? events.filter(event => isShowEvent(event.type)) // Show only show-wide events when no filter is applied (show schedule)
     : events.filter(event => 
         event.participants.some(participant => 
           selectedContactIds.includes(participant.contactId)

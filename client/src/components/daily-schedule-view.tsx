@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings } from "@/lib/timeUtils";
+import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
 import LocationSelect from "@/components/location-select";
 
 const START_HOUR = 8;
@@ -113,7 +114,7 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
 
   // Apply contact filter
   const dayEvents = selectedContactIds.length === 0
-    ? currentDateEvents // Show all events when no filter is applied (master schedule)
+    ? currentDateEvents.filter(event => isShowEvent(event.type)) // Show only show-wide events when no filter is applied (show schedule)
     : currentDateEvents.filter(event =>
         event.participants.some(participant =>
           selectedContactIds.includes(participant.contactId)

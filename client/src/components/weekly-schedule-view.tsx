@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings } from "@/lib/timeUtils";
+import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
 import LocationSelect from "@/components/location-select";
 
 interface WeeklyScheduleViewProps {
@@ -133,7 +134,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
   // Filter events based on selected contact IDs
   const filteredEvents = selectedContactIds.length === 0 
-    ? events // Show all events when no filter is applied (master schedule)
+    ? events.filter(event => isShowEvent(event.type)) // Show only show-wide events when no filter is applied (show schedule)
     : events.filter(event => 
         event.participants.some(participant => 
           selectedContactIds.includes(participant.contactId)
@@ -184,6 +185,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
   };
 
   const timeToMinutes = (timeString: string) => {
+    if (!timeString) return 0;
     const [hours, minutes] = timeString.split(':').map(Number);
     return hours * 60 + minutes;
   };

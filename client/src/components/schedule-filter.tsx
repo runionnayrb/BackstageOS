@@ -56,7 +56,7 @@ export default function ScheduleFilter({ projectId, selectedContactIds, onFilter
 
   const getFilterStatusText = () => {
     if (selectedContactIds.length === 0) {
-      return "Master Schedule";
+      return "Show Schedule";
     } else if (selectedContactIds.length === 1) {
       const contact = contacts.find(c => c.id === selectedContactIds[0]);
       return contact ? `${contact.firstName} ${contact.lastName}` : "1 Person";
