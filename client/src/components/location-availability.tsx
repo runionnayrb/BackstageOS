@@ -246,6 +246,14 @@ export default function LocationAvailability({
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   };
 
+  // Helper function to get location ID from Y position
+  const getLocationIdFromY = (y: number) => {
+    const rowHeight = 64; // h-16 = 64px
+    const headerHeight = 40; // h-10 = 40px
+    const rowIndex = Math.floor((y - headerHeight) / rowHeight);
+    return filteredLocations[rowIndex]?.id;
+  };
+
   // Mutations for CRUD operations
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -424,66 +432,122 @@ export default function LocationAvailability({
   };
 
   // Mouse event handlers for drag operations
+  // Drag event handlers
   const handleMouseDown = (e: React.MouseEvent, locationId: number) => {
-    if (e.shiftKey) return;
     if (e.button !== 0) return; // Only left click
     
     const rect = e.currentTarget.getBoundingClientRect();
     const x = e.clientX - rect.left; // Position relative to the location row
     const y = e.clientY - rect.top;
     
-    setDragStart({ x, y, locationId });
+    const numSegments = timeLabels.length;
+    const segmentWidth = rect.width / numSegments;
+    const segmentIndex = Math.floor(x / segmentWidth);
+    
+    console.log('Mouse down debug:', {
+      clientX: e.clientX,
+      relativeX: x,
+      containerWidth: rect.width,
+      numSegments,
+      segmentWidth,
+      segmentIndex,
+      convertedMinutes: positionToMinutes(x, rect.width),
+      convertedTime: formatTimeFromMinutesLocal(positionToMinutes(x, rect.width))
+    });
+    
     setIsDragging(true);
+    setDragStart({ x, y, locationId });
     e.preventDefault();
-  };
+  };;
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
+
+
+
+
+  // Global mouse event handlers for document listeners (proper DOM event types)
+  const handleGlobalMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || !dragStart) return;
 
     // Find the location row that's being dragged over
-    const locationRow = document.elementFromPoint(e.clientX, e.clientY)?.closest('.location-row');
+    const element = document.elementFromPoint(e.clientX, e.clientY);
+    const locationRow = element?.closest('.location-row') as HTMLElement;
     if (!locationRow) return;
 
     const rect = locationRow.getBoundingClientRect();
     const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
     const containerWidth = rect.width;
 
-    if (draggedItem || draggedItems.length > 0) {
-      // Moving existing item(s)
+    if (draggedItem) {
+      // Moving existing item - use relative position from original click
+      const deltaX = currentX - dragStart.x;
+      const startMinutes = timeToMinutes(draggedItem.originalStartTime);
+      const endMinutes = timeToMinutes(draggedItem.originalEndTime);
+      const duration = endMinutes - startMinutes;
+      
+      // Convert delta pixels to delta minutes
+      const deltaMinutes = (deltaX / containerWidth) * TOTAL_MINUTES;
+      
+      // Apply delta movement to original position (not absolute positioning)
+      const newStartMinutes = snapToIncrement(Math.max(START_MINUTES, Math.min(END_MINUTES - duration, startMinutes + deltaMinutes)));
+      const newEndMinutes = newStartMinutes + duration;
+      
+      const newLocationId = getLocationIdFromY(currentY);
+      
+      setDraggedItem({
+        ...draggedItem,
+        startTime: formatTimeFromMinutesLocal(newStartMinutes),
+        endTime: formatTimeFromMinutesLocal(newEndMinutes),
+        locationId: newLocationId || draggedItem.locationId,
+      });
+    } else if (draggedItems.length > 0) {
+      // Moving multiple selected items
       const deltaX = currentX - dragStart.x;
       const deltaMinutes = (deltaX / containerWidth) * TOTAL_MINUTES;
-      const snappedDelta = snapToIncrement(deltaMinutes);
-
-      if (draggedItems.length > 0) {
-        // Multi-item drag
-        const updatedItems = draggedItems.map(item => {
-          const originalStartMinutes = timeToMinutes(item.originalStartTime);
-          const originalEndMinutes = timeToMinutes(item.originalEndTime);
-          const newStartMinutes = Math.max(START_MINUTES, Math.min(END_MINUTES - (originalEndMinutes - originalStartMinutes), originalStartMinutes + snappedDelta));
-          const newEndMinutes = newStartMinutes + (originalEndMinutes - originalStartMinutes);
-          
-          return {
-            ...item,
-            startTime: formatTimeFromMinutesLocal(newStartMinutes),
-            endTime: formatTimeFromMinutesLocal(newEndMinutes),
-          };
-        });
-        setDraggedItems(updatedItems);
-      } else if (draggedItem) {
-        // Single item drag
-        const originalStartMinutes = timeToMinutes(draggedItem.originalStartTime);
-        const originalEndMinutes = timeToMinutes(draggedItem.originalEndTime);
-        const newStartMinutes = Math.max(START_MINUTES, Math.min(END_MINUTES - (originalEndMinutes - originalStartMinutes), originalStartMinutes + snappedDelta));
-        const newEndMinutes = newStartMinutes + (originalEndMinutes - originalStartMinutes);
+      
+      const newLocationId = getLocationIdFromY(currentY);
+      
+      setDraggedItems(draggedItems.map(item => {
+        const startMinutes = timeToMinutes(item.originalStartTime);
+        const endMinutes = timeToMinutes(item.originalEndTime);
+        const duration = endMinutes - startMinutes;
         
-        setDraggedItem({
-          ...draggedItem,
+        // Apply delta movement to original position
+        const newStartMinutes = snapToIncrement(Math.max(START_MINUTES, Math.min(END_MINUTES - duration, startMinutes + deltaMinutes)));
+        const newEndMinutes = newStartMinutes + duration;
+        
+        return {
+          ...item,
           startTime: formatTimeFromMinutesLocal(newStartMinutes),
           endTime: formatTimeFromMinutesLocal(newEndMinutes),
-        });
+          locationId: newLocationId || item.locationId,
+        };
+      }));
+    } else if (resizingItem) {
+      // Resizing existing item
+      const deltaX = currentX - dragStart.x;
+      const startMinutes = timeToMinutes(resizingItem.originalStartTime);
+      const endMinutes = timeToMinutes(resizingItem.originalEndTime);
+      
+      // Convert delta pixels to delta minutes
+      const deltaMinutes = (deltaX / containerWidth) * TOTAL_MINUTES;
+      
+      let newStartMinutes = startMinutes;
+      let newEndMinutes = endMinutes;
+      
+      if (resizeMode === 'top') {
+        newStartMinutes = snapToIncrement(Math.max(START_MINUTES, Math.min(endMinutes - timeIncrement, startMinutes + deltaMinutes)));
+      } else if (resizeMode === 'bottom') {
+        newEndMinutes = snapToIncrement(Math.max(startMinutes + timeIncrement, Math.min(END_MINUTES, endMinutes + deltaMinutes)));
       }
-    } else if (newBlock) {
-      // Creating new block
+      
+      setResizingItem({
+        ...resizingItem,
+        startTime: formatTimeFromMinutesLocal(newStartMinutes),
+        endTime: formatTimeFromMinutesLocal(newEndMinutes),
+      });
+    } else if (!newBlock) {
+      // Creating new block - use actual click position as starting point
       const startX = dragStart.x;
       const endX = currentX;
       const leftX = Math.min(startX, endX);
@@ -496,7 +560,7 @@ export default function LocationAvailability({
         locationId: dragStart.locationId,
         startTime: formatTimeFromMinutesLocal(startMinutes),
         endTime: formatTimeFromMinutesLocal(endMinutes),
-        availabilityType: 'unavailable',
+        type: 'unavailable',
         date: currentDate.toISOString().split('T')[0],
       });
     } else {
@@ -515,116 +579,203 @@ export default function LocationAvailability({
         endTime: formatTimeFromMinutesLocal(endMinutes),
       });
     }
-  }, [isDragging, dragStart, draggedItem, draggedItems, newBlock, timeIncrement, currentDate]);
+  }, [isDragging, dragStart, draggedItem, draggedItems, resizingItem, newBlock, timeIncrement, currentDate, resizeMode]);
 
-  const handleMouseUp = useCallback(() => {
+  const handleGlobalMouseUp = useCallback(() => {
     if (!isDragging) return;
     
-    setIsDragging(false);
-    
-    if (draggedItems.length > 0) {
-      // Update all dragged items optimistically
-      queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], (old: any) => {
-        return old?.map((item: any) => {
-          const updatedItem = draggedItems.find(d => d.id === item.id);
-          return updatedItem || item;
-        }) || [];
-      });
-      
-      // Silent background updates
-      draggedItems.forEach(item => {
-        silentUpdate(item.id, {
-          locationId: item.locationId,
-          startTime: item.startTime,
-          endTime: item.endTime,
-          type: item.availabilityType,
-          notes: item.notes,
-          date: item.date,
-        });
-      });
-      
-      setDraggedItems([]);
+    if (newBlock && newBlock.startTime !== newBlock.endTime) {
+      createMutation.mutate(newBlock);
     } else if (draggedItem) {
-      // Update single item optimistically
-      queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], (old: any) => {
-        return old?.map((item: any) => 
-          item.id === draggedItem.id ? draggedItem : item
-        ) || [];
-      });
-      
-      // Silent background update
-      silentUpdate(draggedItem.id, {
+      const updateData = {
         locationId: draggedItem.locationId,
         startTime: draggedItem.startTime,
         endTime: draggedItem.endTime,
-        type: draggedItem.availabilityType,
+        type: draggedItem.type,
         notes: draggedItem.notes,
-        date: draggedItem.date,
+        date: currentDate.toISOString().split('T')[0],
+      };
+      
+      // Immediately update the query cache for instant visual feedback
+      queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], (old: any) => {
+        return old?.map((item: any) => 
+          item.id === draggedItem.id ? { ...item, ...updateData } : item
+        ) || [];
       });
       
-      setDraggedItem(null);
-    } else if (newBlock) {
-      // Create the item directly without optimistic update to avoid ID conflicts
-      createMutation.mutate(newBlock);
+      // Run database update silently in background
+      silentUpdate(draggedItem.id, updateData);
+    } else if (draggedItems.length > 0) {
+      // Handle multi-select drag operations
+      const updates: any[] = [];
+      
+      // Update query cache for all dragged items immediately
+      queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], (old: any) => {
+        return old?.map((item: any) => {
+          const draggedItem = draggedItems.find(d => d.id === item.id);
+          if (draggedItem) {
+            const updateData = {
+              locationId: draggedItem.locationId,
+              startTime: draggedItem.startTime,
+              endTime: draggedItem.endTime,
+              type: draggedItem.type,
+              notes: draggedItem.notes,
+              date: currentDate.toISOString().split('T')[0],
+            };
+            updates.push({ id: draggedItem.id, data: updateData });
+            return { ...item, ...updateData };
+          }
+          return item;
+        }) || [];
+      });
+      
+      // Run database updates silently in background
+      updates.forEach(({ id, data }) => {
+        silentUpdate(id, data);
+      });
+    } else if (resizingItem) {
+      const updateData = {
+        locationId: resizingItem.locationId,
+        startTime: resizingItem.startTime,
+        endTime: resizingItem.endTime,
+        type: resizingItem.type,
+        notes: resizingItem.notes,
+        date: currentDate.toISOString().split('T')[0],
+      };
+      
+      // Immediately update the query cache for instant visual feedback
+      queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], (old: any) => {
+        return old?.map((item: any) => 
+          item.id === resizingItem.id ? { ...item, ...updateData } : item
+        ) || [];
+      });
+      
+      // Run database update silently in background
+      silentUpdate(resizingItem.id, updateData);
     }
     
+    setIsDragging(false);
     setDragStart(null);
-  }, [isDragging, draggedItem, draggedItems, newBlock, projectId, queryClient, silentUpdate, createMutation, currentDate]);
+    setNewBlock(null);
+    setDraggedItem(null);
+    setDraggedItems([]);
+    setResizingItem(null);
+    setResizeMode(null);
+  }, [isDragging, newBlock, draggedItem, draggedItems, resizingItem, currentDate, projectId, queryClient, createMutation, silentUpdate]);
 
   // Add mouse event listeners
   useEffect(() => {
     if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      document.addEventListener('mouseup', handleGlobalMouseUp);
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('mousemove', handleGlobalMouseMove);
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
       };
     }
-  }, [isDragging, handleMouseMove, handleMouseUp]);
+  }, [isDragging, handleGlobalMouseMove, handleGlobalMouseUp]);
 
   const handleBlockMouseDown = (e: React.MouseEvent, item: LocationAvailability, mode?: 'move' | 'resize-top' | 'resize-bottom') => {
     e.stopPropagation();
+    
+    // Handle Shift+click for multi-selection
+    if (e.shiftKey && !mode) {
+      e.preventDefault();
+      if (selectedItems.has(item.id)) {
+        const newSelected = new Set(selectedItems);
+        newSelected.delete(item.id);
+        setSelectedItems(newSelected);
+      } else {
+        const newSelected = new Set(selectedItems);
+        newSelected.add(item.id);
+        setSelectedItems(newSelected);
+      }
+      return;
+    }
     
     // Clear selection when starting normal drag operations (but not during Shift+click)
     if (selectedItems.size > 0 && !e.shiftKey) {
       setSelectedItems(new Set());
     }
-
-    // Double-click to edit
-    if (e.detail === 2) {
-      setEditingItem(item);
-      return;
-    }
-
-    const rect = e.currentTarget.parentElement?.getBoundingClientRect();
-    if (!rect) return;
     
-    const startX = e.clientX - rect.left;
-    
-    setDragStart({ x: startX, y: e.clientY });
-    setIsDragging(true);
-
-    // Check if this item is selected (for multi-drag)
-    if (selectedItems.has(item.id) && selectedItems.size > 1) {
-      // Multi-item drag - prepare all selected items
-      const allSelectedItems = allAvailability.filter((avail: LocationAvailability) => 
-        selectedItems.has(avail.id)
-      ).map(avail => ({
-        ...avail,
-        originalStartTime: avail.startTime,
-        originalEndTime: avail.endTime,
-      }));
-      setDraggedItems(allSelectedItems);
-    } else {
-      // Single item drag
-      setDraggedItem({
+    // For resize handles, start dragging immediately
+    if (mode === 'resize-top' || mode === 'resize-bottom') {
+      const timelineContainer = e.currentTarget.closest('.relative') as HTMLElement;
+      const rect = timelineContainer?.getBoundingClientRect();
+      if (!rect) return;
+      
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      setIsDragging(true);
+      setDragStart({ x, y });
+      setResizingItem({
         ...item,
         originalStartTime: item.startTime,
         originalEndTime: item.endTime,
       });
-      setDraggedItems([]);
+      setResizeMode(mode === 'resize-top' ? 'top' : 'bottom');
+      e.preventDefault();
+      return;
     }
+    
+    // For move operations, add delay to allow double-click
+    const startTime = Date.now();
+    const startX = e.clientX;
+    const startY = e.clientY;
+    
+    // Capture the timeline container reference before setting up event listeners
+    const timelineContainer = e.currentTarget.closest('.relative') as HTMLElement;
+    const rect = timelineContainer?.getBoundingClientRect();
+    if (!rect) return;
+    
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const timeDiff = Date.now() - startTime;
+      const distance = Math.sqrt(
+        Math.pow(moveEvent.clientX - startX, 2) + Math.pow(moveEvent.clientY - startY, 2)
+      );
+      
+      // Only start dragging if moved more than 3px or held for more than 150ms
+      if (distance > 3 || timeDiff > 150) {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUpTemp);
+        
+        const x = moveEvent.clientX - rect.left;
+        const y = moveEvent.clientY - rect.top;
+        
+        setIsDragging(true);
+        setDragStart({ x, y });
+        
+        // If item is part of selection, drag all selected items
+        if (selectedItems.has(item.id)) {
+          const itemsToDrag = (allAvailability as LocationAvailability[]).filter((a: LocationAvailability) => 
+            selectedItems.has(a.id)
+          ).map(a => ({
+            ...a,
+            originalStartTime: a.startTime,
+            originalEndTime: a.endTime,
+          }));
+          setDraggedItems(itemsToDrag);
+          setDraggedItem(null);
+        } else {
+          // Single item drag
+          setDraggedItem({
+            ...item,
+            originalStartTime: item.startTime,
+            originalEndTime: item.endTime,
+          });
+          setDraggedItems([]);
+        }
+      }
+    };
+    
+    const handleMouseUpTemp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUpTemp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUpTemp);
     
     e.preventDefault();
   };
@@ -823,9 +974,6 @@ export default function LocationAvailability({
                 <div className="flex-1 overflow-auto">
                   <div 
                     className="relative select-none"
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
                   >
                     {/* Time Header */}
                     <div className="sticky top-0 bg-white border-b z-10">
