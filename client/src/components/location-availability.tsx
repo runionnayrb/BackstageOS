@@ -421,8 +421,12 @@ export default function LocationAvailability({
   const handleMouseDown = (e: React.MouseEvent, locationId: number) => {
     if (e.shiftKey) return;
     
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
+    const calendar = e.currentTarget.closest('.availability-calendar');
+    if (!calendar) return;
+    
+    const rect = calendar.getBoundingClientRect();
+    const scrollLeft = calendar.scrollLeft;
+    const x = e.clientX - rect.left + scrollLeft;
     
     setDragStart({ x, y: e.clientY, locationId });
     setIsDragging(true);
@@ -437,7 +441,8 @@ export default function LocationAvailability({
 
     const rect = calendar.getBoundingClientRect();
     const containerWidth = rect.width;
-    const currentX = e.clientX - rect.left;
+    const scrollLeft = calendar.scrollLeft;
+    const currentX = e.clientX - rect.left + scrollLeft;
 
     if (draggedItem || draggedItems.length > 0) {
       // Moving existing item(s)
@@ -564,25 +569,7 @@ export default function LocationAvailability({
         date: currentDate.toISOString().split('T')[0],
       };
       
-      // Immediately update the query cache for instant visual feedback
-      queryClient.setQueryData([`/api/projects/${projectId}/location-availability`], (old: any) => {
-        const tempItem = {
-          id: Date.now(),
-          locationId: newBlock.locationId,
-          projectId: projectId,
-          date: newBlock.date,
-          startTime: newBlock.startTime,
-          endTime: newBlock.endTime,
-          availabilityType: newBlock.availabilityType,
-          notes: newBlock.notes || '',
-          createdBy: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          locationName: ''
-        };
-        return old ? [...old, tempItem] : [tempItem];
-      });
-      
+      // Create the item directly without optimistic update to avoid ID conflicts
       createMutation.mutate(updateData);
     }
     
@@ -625,10 +612,12 @@ export default function LocationAvailability({
       return;
     }
 
-    const rect = e.currentTarget.closest('.availability-calendar')?.getBoundingClientRect();
-    if (!rect) return;
-
-    const startX = e.clientX - rect.left;
+    const calendar = e.currentTarget.closest('.availability-calendar');
+    if (!calendar) return;
+    
+    const rect = calendar.getBoundingClientRect();
+    const scrollLeft = calendar.scrollLeft;
+    const startX = e.clientX - rect.left + scrollLeft;
     
     setDragStart({ x: startX, y: e.clientY });
     setIsDragging(true);
