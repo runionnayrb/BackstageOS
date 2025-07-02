@@ -73,6 +73,11 @@ function Router() {
     console.log('Beta domain detected - proceeding to authentication flow');
   }
   
+  // Special routes that bypass domain restrictions
+  if (window.location.pathname === '/seo-test') {
+    return <SEOTest />;
+  }
+  
   // If this is the join domain, redirect to /landing
   if (isJoinDomain && window.location.pathname !== '/landing') {
     window.location.pathname = '/landing';
@@ -172,7 +177,6 @@ function Router() {
         <Route path="/admin/dns" component={DNSManager} />
         <Route path="/admin/domains" component={DomainManager} />
         <Route path="/admin/seo" component={SeoManager} />
-        <Route path="/seo-test" component={SEOTest} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
