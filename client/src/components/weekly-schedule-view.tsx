@@ -94,7 +94,22 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
     currentDay: number;
     currentTime: number;
   } | null>(null);
+  const [draggedEvent, setDraggedEvent] = useState<{
+    event: ScheduleEvent;
+    originalPosition: { dayIndex: number; startMinutes: number };
+    currentPosition: { dayIndex: number; startMinutes: number };
+    offset: { x: number; y: number };
+    isDragging: boolean;
+  } | null>(null);
+  const [resizingEvent, setResizingEvent] = useState<{
+    event: ScheduleEvent;
+    edge: 'start' | 'end';
+    originalStartMinutes: number;
+    originalEndMinutes: number;
+  } | null>(null);
+  const [justDragged, setJustDragged] = useState<number | null>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Get show settings for timezone and work hours
   const { data: showSettings } = useQuery({
@@ -305,52 +320,213 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
     }
   }, [timeIncrement]);
 
+  // Handle dragging existing events
+  const handleEventMouseDown = useCallback((e: React.MouseEvent, event: ScheduleEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!calendarRef.current || !scrollContainerRef.current) return;
+    
+    const calendarRect = calendarRef.current.getBoundingClientRect();
+    const scrollContainer = scrollContainerRef.current;
+    const eventDate = event.date;
+    const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
+    const startMinutes = timeToMinutes(event.startTime);
+    
+    // Calculate drag offset in time units (minutes)
+    const scrollTop = scrollContainer.scrollTop;
+    const mouseY = e.clientY - calendarRect.top;
+    const absoluteMouseTime = mouseY + scrollTop;
+    const offsetY = absoluteMouseTime - startMinutes;
+    
+    let currentDragState = {
+      event,
+      originalPosition: { dayIndex, startMinutes },
+      currentPosition: { dayIndex, startMinutes },
+      offset: { x: 0, y: offsetY },
+      isDragging: true
+    };
+    
+    setDraggedEvent(currentDragState);
+    setJustDragged(event.id);
+    
+    // Clear the flag after a short delay
+    setTimeout(() => setJustDragged(null), 200);
+  }, [weekDates, timeToMinutes]);
+
+  // Handle resize start
+  const handleResizeStart = useCallback((e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const startMinutes = timeToMinutes(event.startTime);
+    const endMinutes = timeToMinutes(event.endTime);
+    
+    setResizingEvent({
+      event,
+      edge,
+      originalStartMinutes: startMinutes,
+      originalEndMinutes: endMinutes,
+    });
+  }, [timeToMinutes]);
+
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!dragState?.isActive || !calendarRef.current) return;
+    if (!calendarRef.current) return;
     
     const rect = calendarRef.current.getBoundingClientRect();
     const y = e.clientY - rect.top;
-    const minutes = snapToIncrement(positionToMinutes(y));
-    
-    // Determine which day column we're in
     const x = e.clientX - rect.left;
-    const dayWidth = (rect.width - 64) / 7; // Subtract time column width
-    const dayIndex = Math.floor((x - 64) / dayWidth);
     
-    setDragState(prev => prev ? {
-      ...prev,
-      currentDay: Math.max(0, Math.min(6, dayIndex)),
-      currentTime: minutes,
-    } : null);
-  }, [dragState?.isActive, timeIncrement]);
-
-  const handleMouseUp = useCallback(() => {
-    if (!dragState?.isActive) return;
-    
-    const startTime = Math.min(dragState.startTime, dragState.currentTime);
-    const endTime = Math.max(dragState.startTime, dragState.currentTime);
-    
-    if (endTime - startTime >= timeIncrement) {
-      const date = weekDates[dragState.startDay].toISOString().split('T')[0];
-      setCreateEventDialog({
-        isOpen: true,
-        date,
-        startTime: formatTimeFromMinutes(startTime),
-        endTime: formatTimeFromMinutes(endTime),
-      });
+    // Handle drag-to-create
+    if (dragState?.isActive) {
+      const minutes = snapToIncrement(positionToMinutes(y));
+      const dayWidth = (rect.width - 64) / 7; // Subtract time column width
+      const dayIndex = Math.floor((x - 64) / dayWidth);
+      
+      setDragState(prev => prev ? {
+        ...prev,
+        currentDay: Math.max(0, Math.min(6, dayIndex)),
+        currentTime: minutes,
+      } : null);
     }
     
-    setDragState(null);
-  }, [dragState, timeIncrement, weekDates]);
+    // Handle event dragging
+    if (draggedEvent?.isDragging) {
+      const scrollTop = scrollContainerRef.current?.scrollTop || 0;
+      const absoluteMouseTime = y + scrollTop;
+      const newTime = absoluteMouseTime - draggedEvent.offset.y;
+      const snappedTime = snapToIncrement(Math.max(START_MINUTES, Math.min(newTime, END_MINUTES - 30)));
+      
+      const dayWidth = (rect.width - 64) / 7;
+      const dayIndex = Math.max(0, Math.min(6, Math.floor((x - 64) / dayWidth)));
+      
+      setDraggedEvent(prev => prev ? {
+        ...prev,
+        currentPosition: { dayIndex, startMinutes: snappedTime }
+      } : null);
+    }
+    
+    // Handle event resizing
+    if (resizingEvent) {
+      const minutes = snapToIncrement(positionToMinutes(y));
+      const duration = resizingEvent.originalEndMinutes - resizingEvent.originalStartMinutes;
+      
+      if (resizingEvent.edge === 'start') {
+        const newStartTime = Math.max(START_MINUTES, Math.min(minutes, resizingEvent.originalEndMinutes - timeIncrement));
+        setResizingEvent(prev => prev ? {
+          ...prev,
+          originalStartMinutes: newStartTime
+        } : null);
+      } else {
+        const newEndTime = Math.min(END_MINUTES, Math.max(minutes, resizingEvent.originalStartMinutes + timeIncrement));
+        setResizingEvent(prev => prev ? {
+          ...prev,
+          originalEndMinutes: newEndTime
+        } : null);
+      }
+    }
+  }, [dragState?.isActive, draggedEvent?.isDragging, resizingEvent, timeIncrement]);
+
+  const handleMouseUp = useCallback(() => {
+    // Handle drag-to-create completion
+    if (dragState?.isActive) {
+      const startTime = Math.min(dragState.startTime, dragState.currentTime);
+      const endTime = Math.max(dragState.startTime, dragState.currentTime);
+      
+      if (endTime - startTime >= timeIncrement) {
+        const date = weekDates[dragState.startDay].toISOString().split('T')[0];
+        setCreateEventDialog({
+          isOpen: true,
+          date,
+          startTime: formatTimeFromMinutes(startTime),
+          endTime: formatTimeFromMinutes(endTime),
+        });
+      }
+      
+      setDragState(null);
+    }
+    
+    // Handle event drag completion
+    if (draggedEvent?.isDragging) {
+      const { event, currentPosition } = draggedEvent;
+      const newDate = weekDates[currentPosition.dayIndex].toISOString().split('T')[0];
+      const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+      const newStartTime = formatTimeFromMinutes(currentPosition.startMinutes);
+      const newEndTime = formatTimeFromMinutes(currentPosition.startMinutes + duration);
+      
+      const eventData = {
+        ...event,
+        date: newDate,
+        startTime: newStartTime,
+        endTime: newEndTime,
+      };
+      
+      // Use optimistic update approach like availability system
+      queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+        return old?.map((e: ScheduleEvent) => 
+          e.id === event.id ? { ...e, ...eventData } : e
+        ) || [];
+      });
+      
+      // Update in background
+      updateEventMutation.mutate({ 
+        eventId: event.id, 
+        eventData: {
+          date: newDate,
+          startTime: newStartTime,
+          endTime: newEndTime,
+        }
+      });
+      
+      setDraggedEvent(null);
+    }
+    
+    // Handle resize completion
+    if (resizingEvent) {
+      const { event, originalStartMinutes, originalEndMinutes } = resizingEvent;
+      const newStartTime = formatTimeFromMinutes(originalStartMinutes);
+      const newEndTime = formatTimeFromMinutes(originalEndMinutes);
+      
+      const eventData = {
+        startTime: newStartTime,
+        endTime: newEndTime,
+      };
+      
+      // Use optimistic update
+      queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+        return old?.map((e: ScheduleEvent) => 
+          e.id === event.id ? { ...e, ...eventData } : e
+        ) || [];
+      });
+      
+      // Update in background
+      updateEventMutation.mutate({ 
+        eventId: event.id, 
+        eventData
+      });
+      
+      setResizingEvent(null);
+    }
+  }, [dragState, draggedEvent, resizingEvent, timeIncrement, weekDates, queryClient, projectId, updateEventMutation]);
 
   // Add global mouse handlers
   useEffect(() => {
-    if (dragState?.isActive) {
+    if (dragState?.isActive || draggedEvent?.isDragging || resizingEvent) {
       const handleGlobalMouseUp = () => handleMouseUp();
+      const handleGlobalMouseMove = (e: MouseEvent) => {
+        // Convert to React mouse event format for compatibility
+        handleMouseMove(e as any);
+      };
+      
       document.addEventListener('mouseup', handleGlobalMouseUp);
-      return () => document.removeEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('mousemove', handleGlobalMouseMove);
+      
+      return () => {
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
+        document.removeEventListener('mousemove', handleGlobalMouseMove);
+      };
     }
-  }, [dragState?.isActive, handleMouseUp]);
+  }, [dragState?.isActive, draggedEvent?.isDragging, resizingEvent, handleMouseUp, handleMouseMove]);
 
   return (
     <div className="space-y-4">
@@ -454,6 +630,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
 
         {/* Time grid */}
         <div 
+          ref={scrollContainerRef}
           className="relative overflow-y-auto"
           style={{ height: '600px' }}
           onScroll={(e) => setScrollPosition(e.currentTarget.scrollTop)}
@@ -540,38 +717,76 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
                       other: 'bg-gray-100 border-gray-300 text-gray-800',
                     };
 
+                    // Check if this event is being dragged or resized
+                    const isDragging = draggedEvent?.event.id === event.id;
+                    const isResizing = resizingEvent?.event.id === event.id;
+                    const isJustDragged = justDragged === event.id;
+                    
+                    // Calculate position for dragged events
+                    let displayPosition = { top: startPos, height: Math.max(height, 30) };
+                    if (isDragging && draggedEvent) {
+                      const dragStartPos = minutesToPosition(draggedEvent.currentPosition.startMinutes);
+                      displayPosition = { top: dragStartPos, height: Math.max(height, 30) };
+                    } else if (isResizing && resizingEvent) {
+                      const resizeStartPos = minutesToPosition(resizingEvent.originalStartMinutes);
+                      const resizeHeight = (resizingEvent.originalEndMinutes - resizingEvent.originalStartMinutes) / TOTAL_MINUTES * 960;
+                      displayPosition = { top: resizeStartPos, height: Math.max(resizeHeight, 30) };
+                    }
+
                     return (
                       <div
                         key={event.id}
                         data-event-id={event.id}
-                        className={`absolute left-1 right-1 border rounded px-2 py-1 cursor-pointer hover:opacity-80 transition-opacity ${
+                        className={`absolute left-1 right-1 border rounded cursor-pointer hover:opacity-80 transition-opacity ${
                           eventTypeColors[event.type as keyof typeof eventTypeColors] || eventTypeColors.other
-                        }`}
+                        } ${isDragging ? 'opacity-75 z-50' : ''} ${isResizing ? 'z-50' : ''}`}
                         style={{
-                          top: `${startPos}px`,
-                          height: `${Math.max(height, 30)}px`, // Minimum height for visibility
+                          top: `${displayPosition.top}px`,
+                          height: `${displayPosition.height}px`,
                         }}
-                        onClick={() => setEditingEvent(event)}
+                        onMouseDown={(e) => handleEventMouseDown(e, event)}
+                        onClick={(e) => {
+                          if (!isJustDragged) {
+                            setEditingEvent(event);
+                          }
+                        }}
                       >
-                        <div className="text-xs font-medium truncate">
-                          {event.title}
-                        </div>
-                        <div className="text-xs opacity-75 truncate">
-                          {event.startTime} - {event.endTime}
-                        </div>
-                        {event.participants.length > 0 && (
-                          <div className="text-xs opacity-75 flex items-center gap-1 mt-1">
-                            <Users className="h-3 w-3" />
-                            {event.participants.length}
+                        {/* Resize handle - top */}
+                        <div
+                          className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-black hover:bg-opacity-20 transition-colors"
+                          onMouseDown={(e) => handleResizeStart(e, event, 'start')}
+                          style={{ height: '4px', marginTop: '-2px' }}
+                        />
+                        
+                        {/* Event content */}
+                        <div className="px-2 py-1 h-full overflow-hidden">
+                          <div className="text-xs font-medium truncate">
+                            {event.title}
                           </div>
-                        )}
+                          <div className="text-xs opacity-75 truncate">
+                            {event.startTime} - {event.endTime}
+                          </div>
+                          {event.participants.length > 0 && (
+                            <div className="text-xs opacity-75 flex items-center gap-1 mt-1">
+                              <Users className="h-3 w-3" />
+                              {event.participants.length}
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Resize handle - bottom */}
+                        <div
+                          className="absolute bottom-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-black hover:bg-opacity-20 transition-colors"
+                          onMouseDown={(e) => handleResizeStart(e, event, 'end')}
+                          style={{ height: '4px', marginBottom: '-2px' }}
+                        />
                       </div>
                     );
                   })}
               </div>
             ))}
 
-            {/* Drag preview overlay */}
+            {/* Drag preview overlay for new events */}
             {dragState?.isActive && (
               <div
                 className="absolute bg-blue-200 border-2 border-blue-400 rounded opacity-60 pointer-events-none"
@@ -584,6 +799,23 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
               >
                 <div className="p-1 text-xs text-blue-800 font-medium">
                   New Event
+                </div>
+              </div>
+            )}
+
+            {/* Drag preview overlay for moved events */}
+            {draggedEvent?.isDragging && (
+              <div
+                className="absolute bg-yellow-200 border-2 border-yellow-400 rounded opacity-60 pointer-events-none"
+                style={{
+                  left: `${64 + (draggedEvent.currentPosition.dayIndex * ((100 - 4) / 7))}%`,
+                  width: `${(100 - 4) / 7}%`,
+                  top: `${minutesToPosition(draggedEvent.currentPosition.startMinutes)}px`,
+                  height: `${(timeToMinutes(draggedEvent.event.endTime) - timeToMinutes(draggedEvent.event.startTime)) / TOTAL_MINUTES * 960}px`,
+                }}
+              >
+                <div className="p-1 text-xs text-yellow-800 font-medium">
+                  {draggedEvent.event.title}
                 </div>
               </div>
             )}

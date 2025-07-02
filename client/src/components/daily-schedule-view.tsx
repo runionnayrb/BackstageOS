@@ -12,6 +12,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings } from "@/lib/timeUtils";
 import LocationSelect from "@/components/location-select";
 
+const START_HOUR = 8;
+const END_HOUR = 24;
+const TOTAL_HOURS = END_HOUR - START_HOUR;
+const START_MINUTES = START_HOUR * 60;
+const END_MINUTES = END_HOUR * 60;
+const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
+
 interface DailyScheduleViewProps {
   projectId: number;
   selectedDate: Date;
@@ -50,23 +57,6 @@ interface Contact {
   role?: string;
 }
 
-const START_HOUR = 8; // 8 AM
-const END_HOUR = 24; // Midnight
-const START_MINUTES = START_HOUR * 60;
-const END_MINUTES = END_HOUR * 60;
-const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
-
-// Event type colors
-const getEventColor = (type: string) => {
-  switch (type) {
-    case 'rehearsal': return 'bg-blue-500';
-    case 'performance': return 'bg-red-500';
-    case 'tech': return 'bg-purple-500';
-    case 'meeting': return 'bg-green-500';
-    default: return 'bg-gray-500';
-  }
-};
-
 export default function DailyScheduleView({ projectId, selectedDate, onBackToWeekly }: DailyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -83,7 +73,22 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
     startTime: number;
     currentTime: number;
   } | null>(null);
+  const [draggedEvent, setDraggedEvent] = useState<{
+    event: ScheduleEvent;
+    originalPosition: { startMinutes: number };
+    currentPosition: { startMinutes: number };
+    offset: { y: number };
+    isDragging: boolean;
+  } | null>(null);
+  const [resizingEvent, setResizingEvent] = useState<{
+    event: ScheduleEvent;
+    edge: 'start' | 'end';
+    originalStartMinutes: number;
+    originalEndMinutes: number;
+  } | null>(null);
+  const [justDragged, setJustDragged] = useState<number | null>(null);
   const calendarRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showAllDayEvents, setShowAllDayEvents] = useState(true);
 
   // Get show settings
@@ -140,7 +145,7 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
 
   const minutesToPosition = (minutes: number) => {
     const relativeMinutes = Math.max(0, Math.min(minutes - START_MINUTES, TOTAL_MINUTES));
-    return (relativeMinutes / TOTAL_MINUTES) * 1080; // 1080px = 18 hours
+    return (relativeMinutes / TOTAL_MINUTES) * 1080; // 1080px = 16 hours
   };
 
   const positionToMinutes = (position: number) => {
@@ -161,78 +166,6 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
       day: 'numeric' 
     });
   };
-
-  // Drag to create events
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Allow drag creation on empty grid space (but not on events)
-    const target = e.target as HTMLElement;
-    const isOnEvent = target.closest('[data-event-id]');
-    const isOnTimeLabel = target.closest('.time-label') || target.classList.contains('time-label');
-    
-    if (!isOnEvent && !isOnTimeLabel && calendarRef.current) {
-      const rect = calendarRef.current.getBoundingClientRect();
-      const y = e.clientY - rect.top;
-      const minutes = positionToMinutes(y);
-      const snappedMinutes = snapToIncrement(minutes);
-      
-      setIsDragCreating({
-        isActive: true,
-        startTime: snappedMinutes,
-        currentTime: snappedMinutes,
-      });
-      
-      e.preventDefault();
-    }
-  };
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (isDragCreating && calendarRef.current) {
-      const rect = calendarRef.current.getBoundingClientRect();
-      const y = e.clientY - rect.top;
-      const minutes = positionToMinutes(y);
-      const snappedMinutes = snapToIncrement(minutes);
-      
-      setIsDragCreating(prev => prev ? {
-        ...prev,
-        currentTime: Math.max(snappedMinutes, prev.startTime + timeIncrement)
-      } : null);
-    }
-  }, [isDragCreating, timeIncrement]);
-
-  const handleMouseUp = useCallback(() => {
-    if (isDragCreating) {
-      const startTime = formatTime(isDragCreating.startTime);
-      const endTime = formatTime(isDragCreating.currentTime);
-      
-      setCreateEventDialog({
-        isOpen: true,
-        startTime,
-        endTime,
-      });
-      
-      setIsDragCreating(null);
-    }
-  }, [isDragCreating]);
-
-  useEffect(() => {
-    if (isDragCreating) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragCreating, handleMouseMove, handleMouseUp]);
-
-  // Auto-scroll to work hours
-  useEffect(() => {
-    const workStartMinutes = timeToMinutes(workStartTime);
-    const scrollTop = minutesToPosition(workStartMinutes) - 100;
-    if (calendarRef.current) {
-      calendarRef.current.scrollTop = Math.max(0, scrollTop);
-    }
-  }, [workStartTime, currentDate]);
 
   // Mutations
   const createEventMutation = useMutation({
@@ -308,6 +241,223 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
     },
   });
 
+  // Drag to create events
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Allow drag creation on empty grid space (but not on events)
+    const target = e.target as HTMLElement;
+    const isOnEvent = target.closest('[data-event-id]');
+    const isOnTimeLabel = target.closest('.time-label') || target.classList.contains('time-label');
+    
+    if (!isOnEvent && !isOnTimeLabel && calendarRef.current) {
+      const rect = calendarRef.current.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const minutes = positionToMinutes(y);
+      const snappedMinutes = snapToIncrement(minutes);
+      
+      setIsDragCreating({
+        isActive: true,
+        startTime: snappedMinutes,
+        currentTime: snappedMinutes,
+      });
+      
+      e.preventDefault();
+    }
+  };
+
+  // Handle dragging existing events
+  const handleEventMouseDown = useCallback((e: React.MouseEvent, event: ScheduleEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!calendarRef.current || !scrollContainerRef.current) return;
+    
+    const calendarRect = calendarRef.current.getBoundingClientRect();
+    const scrollContainer = scrollContainerRef.current;
+    const startMinutes = timeToMinutes(event.startTime);
+    
+    // Calculate drag offset in time units (minutes)
+    const scrollTop = scrollContainer.scrollTop;
+    const mouseY = e.clientY - calendarRect.top;
+    const absoluteMouseTime = mouseY + scrollTop;
+    const offsetY = absoluteMouseTime - minutesToPosition(startMinutes);
+    
+    let currentDragState = {
+      event,
+      originalPosition: { startMinutes },
+      currentPosition: { startMinutes },
+      offset: { y: offsetY },
+      isDragging: true
+    };
+    
+    setDraggedEvent(currentDragState);
+    setJustDragged(event.id);
+    
+    // Clear the flag after a short delay
+    setTimeout(() => setJustDragged(null), 200);
+  }, [timeToMinutes]);
+
+  // Handle resize start
+  const handleResizeStart = useCallback((e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const startMinutes = timeToMinutes(event.startTime);
+    const endMinutes = timeToMinutes(event.endTime);
+    
+    setResizingEvent({
+      event,
+      edge,
+      originalStartMinutes: startMinutes,
+      originalEndMinutes: endMinutes,
+    });
+  }, [timeToMinutes]);
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!calendarRef.current) return;
+    
+    const rect = calendarRef.current.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    
+    // Handle drag-to-create
+    if (isDragCreating) {
+      const minutes = positionToMinutes(y);
+      const snappedMinutes = snapToIncrement(minutes);
+      
+      setIsDragCreating(prev => prev ? {
+        ...prev,
+        currentTime: Math.max(snappedMinutes, prev.startTime + timeIncrement)
+      } : null);
+    }
+    
+    // Handle event dragging
+    if (draggedEvent?.isDragging) {
+      const scrollTop = scrollContainerRef.current?.scrollTop || 0;
+      const absoluteMouseTime = y + scrollTop;
+      const newTimePosition = absoluteMouseTime - draggedEvent.offset.y;
+      const newTimeMinutes = positionToMinutes(newTimePosition);
+      const snappedTime = snapToIncrement(Math.max(START_MINUTES, Math.min(newTimeMinutes, END_MINUTES - 30)));
+      
+      setDraggedEvent(prev => prev ? {
+        ...prev,
+        currentPosition: { startMinutes: snappedTime }
+      } : null);
+    }
+    
+    // Handle event resizing
+    if (resizingEvent) {
+      const minutes = snapToIncrement(positionToMinutes(y));
+      
+      if (resizingEvent.edge === 'start') {
+        const newStartTime = Math.max(START_MINUTES, Math.min(minutes, resizingEvent.originalEndMinutes - timeIncrement));
+        setResizingEvent(prev => prev ? {
+          ...prev,
+          originalStartMinutes: newStartTime
+        } : null);
+      } else {
+        const newEndTime = Math.min(END_MINUTES, Math.max(minutes, resizingEvent.originalStartMinutes + timeIncrement));
+        setResizingEvent(prev => prev ? {
+          ...prev,
+          originalEndMinutes: newEndTime
+        } : null);
+      }
+    }
+  }, [isDragCreating, draggedEvent?.isDragging, resizingEvent, timeIncrement]);
+
+  const handleMouseUp = useCallback(() => {
+    // Handle drag-to-create completion
+    if (isDragCreating) {
+      const startTime = formatTime(isDragCreating.startTime);
+      const endTime = formatTime(isDragCreating.currentTime);
+      
+      setCreateEventDialog({
+        isOpen: true,
+        startTime,
+        endTime,
+      });
+      
+      setIsDragCreating(null);
+    }
+    
+    // Handle event drag completion
+    if (draggedEvent?.isDragging) {
+      const { event, currentPosition } = draggedEvent;
+      const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+      const newStartTime = formatTime(currentPosition.startMinutes);
+      const newEndTime = formatTime(currentPosition.startMinutes + duration);
+      
+      const eventData = {
+        startTime: newStartTime,
+        endTime: newEndTime,
+      };
+      
+      // Use optimistic update approach like availability system
+      queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+        return old?.map((e: ScheduleEvent) => 
+          e.id === event.id ? { ...e, ...eventData } : e
+        ) || [];
+      });
+      
+      // Update in background
+      updateEventMutation.mutate({ 
+        eventId: event.id, 
+        eventData
+      });
+      
+      setDraggedEvent(null);
+    }
+    
+    // Handle resize completion
+    if (resizingEvent) {
+      const { event, originalStartMinutes, originalEndMinutes } = resizingEvent;
+      const newStartTime = formatTime(originalStartMinutes);
+      const newEndTime = formatTime(originalEndMinutes);
+      
+      const eventData = {
+        startTime: newStartTime,
+        endTime: newEndTime,
+      };
+      
+      // Use optimistic update
+      queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+        return old?.map((e: ScheduleEvent) => 
+          e.id === event.id ? { ...e, ...eventData } : e
+        ) || [];
+      });
+      
+      // Update in background
+      updateEventMutation.mutate({ 
+        eventId: event.id, 
+        eventData
+      });
+      
+      setResizingEvent(null);
+    }
+  }, [isDragCreating, draggedEvent, resizingEvent, queryClient, projectId, updateEventMutation]);
+
+  // Auto-scroll to work hours
+  useEffect(() => {
+    const workStartMinutes = timeToMinutes(workStartTime);
+    const scrollTop = minutesToPosition(workStartMinutes) - 100;
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = Math.max(0, scrollTop);
+    }
+  }, [workStartTime, currentDate]);
+
+  useEffect(() => {
+    if (isDragCreating || draggedEvent?.isDragging || resizingEvent) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragCreating, draggedEvent?.isDragging, resizingEvent, handleMouseMove, handleMouseUp]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -327,66 +477,78 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
           </Button>
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-            <SelectTrigger className="w-24">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="15">15 min</SelectItem>
-              <SelectItem value="30">30 min</SelectItem>
-              <SelectItem value="60">60 min</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Button 
-            variant={showAllDayEvents ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowAllDayEvents(!showAllDayEvents)}
-            className="flex items-center gap-2"
-          >
-            <Calendar className="h-4 w-4" />
-            All Day
-          </Button>
-          
-          <Button 
-            onClick={() => setCreateEventDialog({ isOpen: true })}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            New Event
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Button
+              variant={showAllDayEvents ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowAllDayEvents(!showAllDayEvents)}
+            >
+              All Day
+            </Button>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="time-increment" className="text-sm">Time Increment:</Label>
+            <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(Number(value) as 15 | 30 | 60)}>
+              <SelectTrigger className="w-20" id="time-increment">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="15">15m</SelectItem>
+                <SelectItem value="30">30m</SelectItem>
+                <SelectItem value="60">60m</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button onClick={onBackToWeekly} variant="outline" size="sm">
+            <Calendar className="h-4 w-4 mr-1" />
+            Weekly View
           </Button>
         </div>
       </div>
 
-      {/* All-day events section - conditionally rendered */}
+      {/* All-Day Events */}
       {showAllDayEvents && (
-        <div className="bg-gray-50 border rounded-lg p-4">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">All Day Events</h4>
+        <div className="border rounded-lg bg-white p-4">
+          <h4 className="font-medium mb-2">All Day Events</h4>
           <div className="space-y-2">
             {dayEvents
               .filter(event => event.isAllDay)
-              .map((event) => (
-                <div
-                  key={event.id}
-                  className={`
-                    text-xs p-2 mb-1 rounded text-white cursor-pointer
-                    ${getEventColor(event.type)}
-                  `}
-                  onClick={() => setEditingEvent(event)}
-                >
-                  <div className="font-medium">{event.title}</div>
-                  {event.description && (
-                    <div className="text-xs opacity-75">{event.description}</div>
-                  )}
-                  {event.participants.length > 0 && (
-                    <div className="flex items-center gap-1 text-xs opacity-75 mt-1">
-                      <Users className="h-3 w-3" />
-                      {event.participants.length}
-                    </div>
-                  )}
-                </div>
-              ))}
+              .map((event) => {
+                const eventTypeColors = {
+                  rehearsal: 'bg-blue-100 border-blue-300 text-blue-800',
+                  performance: 'bg-red-100 border-red-300 text-red-800',
+                  tech: 'bg-orange-100 border-orange-300 text-orange-800',
+                  meeting: 'bg-green-100 border-green-300 text-green-800',
+                  other: 'bg-gray-100 border-gray-300 text-gray-800',
+                };
+
+                return (
+                  <div
+                    key={event.id}
+                    className={`p-3 rounded-lg border-2 cursor-pointer hover:opacity-80 transition-opacity ${
+                      eventTypeColors[event.type as keyof typeof eventTypeColors] || eventTypeColors.other
+                    }`}
+                    onClick={() => setEditingEvent(event)}
+                  >
+                    <div className="font-medium">{event.title}</div>
+                    {event.location && (
+                      <div className="text-sm opacity-75">📍 {event.location}</div>
+                    )}
+                    {event.participants.length > 0 && (
+                      <div className="text-sm opacity-75 flex items-center gap-1 mt-1">
+                        <Users className="h-3 w-3" />
+                        {event.participants.length} assigned
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            {dayEvents.filter(event => event.isAllDay).length === 0 && (
+              <p className="text-gray-500 text-sm">No all-day events</p>
+            )}
           </div>
         </div>
       )}
@@ -394,12 +556,16 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
       {/* Time-based calendar */}
       <div className="border rounded-lg bg-white overflow-hidden">
         <div 
-          ref={calendarRef}
+          ref={scrollContainerRef}
           className="relative overflow-y-auto cursor-crosshair"
           style={{ height: '600px' }}
-          onMouseDown={handleMouseDown}
         >
-          <div className="relative" style={{ height: '1080px' }}>
+          <div 
+            ref={calendarRef}
+            className="relative" 
+            style={{ height: '1080px' }}
+            onMouseDown={handleMouseDown}
+          >
             {/* Hour labels and major grid lines */}
             {Array.from({ length: 17 }, (_, i) => {
               const hour = START_HOUR + i;
@@ -475,73 +641,78 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
                     other: 'bg-gray-100 border-gray-300 text-gray-800',
                   };
 
+                  // Check if this event is being dragged or resized
+                  const isDragging = draggedEvent?.event.id === event.id;
+                  const isResizing = resizingEvent?.event.id === event.id;
+                  const isJustDragged = justDragged === event.id;
+                  
+                  // Calculate position for dragged or resized events
+                  let displayPosition = { top: startPos, height: Math.max(height, 40) };
+                  if (isDragging && draggedEvent) {
+                    const dragStartPos = minutesToPosition(draggedEvent.currentPosition.startMinutes);
+                    displayPosition = { top: dragStartPos, height: Math.max(height, 40) };
+                  } else if (isResizing && resizingEvent) {
+                    const resizeStartPos = minutesToPosition(resizingEvent.originalStartMinutes);
+                    const resizeHeight = (resizingEvent.originalEndMinutes - resizingEvent.originalStartMinutes) / TOTAL_MINUTES * 1080;
+                    displayPosition = { top: resizeStartPos, height: Math.max(resizeHeight, 40) };
+                  }
+
                   return (
                     <div
                       key={event.id}
                       data-event-id={event.id}
-                      className={`absolute left-2 right-2 border-2 rounded-lg px-3 py-2 cursor-pointer hover:opacity-80 transition-opacity shadow-sm ${
+                      className={`absolute left-2 right-2 border-2 rounded-lg cursor-pointer hover:opacity-80 transition-opacity shadow-sm ${
                         eventTypeColors[event.type as keyof typeof eventTypeColors] || eventTypeColors.other
-                      }`}
+                      } ${isDragging ? 'opacity-75 z-50' : ''} ${isResizing ? 'z-50' : ''}`}
                       style={{
-                        top: `${startPos}px`,
-                        height: `${Math.max(height, 40)}px`, // Minimum height for visibility
+                        top: `${displayPosition.top}px`,
+                        height: `${displayPosition.height}px`,
                       }}
-                      onClick={() => setEditingEvent(event)}
+                      onMouseDown={(e) => handleEventMouseDown(e, event)}
+                      onClick={(e) => {
+                        if (!isJustDragged) {
+                          setEditingEvent(event);
+                        }
+                      }}
                     >
-                      <div className="font-medium truncate">
-                        {event.title}
-                      </div>
-                      <div className="text-sm opacity-75 truncate">
-                        {event.startTime} - {event.endTime}
-                      </div>
-                      {event.location && (
+                      {/* Resize handle - top */}
+                      <div
+                        className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-black hover:bg-opacity-20 transition-colors"
+                        onMouseDown={(e) => handleResizeStart(e, event, 'start')}
+                        style={{ height: '4px', marginTop: '-2px' }}
+                      />
+                      
+                      {/* Event content */}
+                      <div className="px-3 py-2 h-full overflow-hidden">
+                        <div className="font-medium truncate">
+                          {event.title}
+                        </div>
                         <div className="text-sm opacity-75 truncate">
-                          📍 {event.location}
+                          {event.startTime} - {event.endTime}
                         </div>
-                      )}
-                      {event.participants.length > 0 && (
-                        <div className="text-sm opacity-75 flex items-center gap-1 mt-1">
-                          <Users className="h-3 w-3" />
-                          {event.participants.length} assigned
-                        </div>
-                      )}
+                        {event.location && (
+                          <div className="text-sm opacity-75 truncate">
+                            📍 {event.location}
+                          </div>
+                        )}
+                        {event.participants.length > 0 && (
+                          <div className="text-sm opacity-75 flex items-center gap-1 mt-1">
+                            <Users className="h-3 w-3" />
+                            {event.participants.length} assigned
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Resize handle - bottom */}
+                      <div
+                        className="absolute bottom-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-black hover:bg-opacity-20 transition-colors"
+                        onMouseDown={(e) => handleResizeStart(e, event, 'end')}
+                        style={{ height: '4px', marginBottom: '-2px' }}
+                      />
                     </div>
                   );
                 })}
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Event summary */}
-      <div className="bg-gray-50 border rounded-lg p-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">
-          Day Summary ({dayEvents.length} events)
-        </h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-          <div>
-            <span className="text-gray-600">Rehearsals:</span>
-            <span className="ml-2 font-medium">
-              {dayEvents.filter(e => e.type === 'rehearsal').length}
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-600">Performances:</span>
-            <span className="ml-2 font-medium">
-              {dayEvents.filter(e => e.type === 'performance').length}
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-600">Tech:</span>
-            <span className="ml-2 font-medium">
-              {dayEvents.filter(e => e.type === 'tech').length}
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-600">Meetings:</span>
-            <span className="ml-2 font-medium">
-              {dayEvents.filter(e => e.type === 'meeting').length}
-            </span>
           </div>
         </div>
       </div>
@@ -575,6 +746,7 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
             </DialogHeader>
             <EditEventForm
               event={editingEvent}
+              projectId={projectId}
               contacts={contacts}
               onSubmit={(eventData) => updateEventMutation.mutate({ eventId: editingEvent.id, eventData })}
               onDelete={() => deleteEventMutation.mutate(editingEvent.id)}
@@ -587,39 +759,35 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
   );
 }
 
-// Shared form components would be extracted to separate files in a real app
-// For now, including simplified versions here
-
 function CreateEventForm({ 
   projectId, 
   contacts, 
   onSubmit, 
   onCancel, 
   initialData 
-}: { 
+}: {
   projectId: number;
   contacts: Contact[];
-  onSubmit: (data: any) => void;
+  onSubmit: (eventData: any) => void;
   onCancel: () => void;
-  initialData?: any;
+  initialData?: {
+    date?: string;
+    startTime?: string;
+    endTime?: string;
+  };
 }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    date: initialData?.date || new Date().toISOString().split('T')[0],
-    startTime: initialData?.startTime || '10:00',
-    endTime: initialData?.endTime || '12:00',
+    date: initialData?.date || '',
+    startTime: initialData?.startTime || '',
+    endTime: initialData?.endTime || '',
     type: 'rehearsal',
     location: '',
     notes: '',
     isAllDay: false,
     participants: [] as number[],
   });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
 
   const toggleParticipant = (contactId: number) => {
     setFormData(prev => ({
@@ -630,9 +798,14 @@ function CreateEventForm({
     }));
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div>
           <Label htmlFor="title">Event Title</Label>
           <Input
@@ -642,11 +815,71 @@ function CreateEventForm({
             required
           />
         </div>
-        
+
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          />
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="date">Date</Label>
+            <Input
+              id="date"
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="startTime">Start Time</Label>
+            <Input
+              id="startTime"
+              type="time"
+              value={formData.startTime}
+              onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+              disabled={formData.isAllDay}
+              required={!formData.isAllDay}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="endTime">End Time</Label>
+            <Input
+              id="endTime"
+              type="time"
+              value={formData.endTime}
+              onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+              disabled={formData.isAllDay}
+              required={!formData.isAllDay}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="isAllDay"
+            checked={formData.isAllDay}
+            onCheckedChange={(checked) => setFormData(prev => ({ 
+              ...prev, 
+              isAllDay: checked as boolean,
+              startTime: checked ? '' : formData.startTime,
+              endTime: checked ? '' : formData.endTime
+            }))}
+          />
+          <Label htmlFor="isAllDay">All Day Event</Label>
+        </div>
+
         <div>
           <Label htmlFor="type">Event Type</Label>
           <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
-            <SelectTrigger>
+            <SelectTrigger id="type">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -658,95 +891,44 @@ function CreateEventForm({
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Input
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-        />
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
         <div>
-          <Label htmlFor="date">Date</Label>
-          <Input
-            id="date"
-            type="date"
-            value={formData.date}
-            onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-            required
+          <Label htmlFor="location">Location</Label>
+          <LocationSelect
+            value={formData.location}
+            onChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
           />
         </div>
-        
+
         <div>
-          <Label htmlFor="startTime">Start Time</Label>
-          <Input
-            id="startTime"
-            type="time"
-            value={formData.startTime}
-            onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-            disabled={formData.isAllDay}
-            required={!formData.isAllDay}
+          <Label htmlFor="notes">Notes</Label>
+          <Textarea
+            id="notes"
+            value={formData.notes}
+            onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
           />
         </div>
-        
+
         <div>
-          <Label htmlFor="endTime">End Time</Label>
-          <Input
-            id="endTime"
-            type="time"
-            value={formData.endTime}
-            onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-            disabled={formData.isAllDay}
-            required={!formData.isAllDay}
-          />
+          <Label>Participants</Label>
+          <div className="max-h-40 overflow-y-auto border rounded-lg p-2 space-y-2">
+            {contacts.map((contact) => (
+              <div key={contact.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`participant-${contact.id}`}
+                  checked={formData.participants.includes(contact.id)}
+                  onCheckedChange={() => toggleParticipant(contact.id)}
+                />
+                <Label htmlFor={`participant-${contact.id}`} className="flex-1">
+                  {contact.firstName} {contact.lastName}
+                  {contact.role && (
+                    <span className="text-sm text-gray-500 ml-2">({contact.role})</span>
+                  )}
+                </Label>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="isAllDay"
-          checked={formData.isAllDay}
-          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isAllDay: !!checked }))}
-        />
-        <Label htmlFor="isAllDay">All Day Event</Label>
-      </div>
-
-      <LocationSelect
-        projectId={projectId}
-        value={formData.location}
-        onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
-      />
-
-      <div>
-        <Label>Assign Contacts</Label>
-        <div className="max-h-32 overflow-y-auto border rounded p-2 space-y-1">
-          {contacts.map((contact) => (
-            <div key={contact.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={`contact-${contact.id}`}
-                checked={formData.participants.includes(contact.id)}
-                onCheckedChange={() => toggleParticipant(contact.id)}
-              />
-              <Label htmlFor={`contact-${contact.id}`} className="text-sm">
-                {contact.firstName} {contact.lastName} - {contact.role || contact.category}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-          rows={2}
-        />
       </div>
 
       <div className="flex justify-end space-x-2">
@@ -763,14 +945,16 @@ function CreateEventForm({
 
 function EditEventForm({ 
   event, 
+  projectId, 
   contacts, 
   onSubmit, 
   onDelete, 
   onCancel 
-}: { 
+}: {
   event: ScheduleEvent;
+  projectId: number;
   contacts: Contact[];
-  onSubmit: (data: any) => void;
+  onSubmit: (eventData: any) => void;
   onDelete: () => void;
   onCancel: () => void;
 }) {
@@ -787,11 +971,6 @@ function EditEventForm({
     participants: event.participants.map(p => p.contactId),
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
   const toggleParticipant = (contactId: number) => {
     setFormData(prev => ({
       ...prev,
@@ -801,9 +980,14 @@ function EditEventForm({
     }));
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div>
           <Label htmlFor="title">Event Title</Label>
           <Input
@@ -813,11 +997,71 @@ function EditEventForm({
             required
           />
         </div>
-        
+
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          />
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="date">Date</Label>
+            <Input
+              id="date"
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+              required
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="startTime">Start Time</Label>
+            <Input
+              id="startTime"
+              type="time"
+              value={formData.startTime}
+              onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+              disabled={formData.isAllDay}
+              required={!formData.isAllDay}
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="endTime">End Time</Label>
+            <Input
+              id="endTime"
+              type="time"
+              value={formData.endTime}
+              onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+              disabled={formData.isAllDay}
+              required={!formData.isAllDay}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="isAllDay"
+            checked={formData.isAllDay}
+            onCheckedChange={(checked) => setFormData(prev => ({ 
+              ...prev, 
+              isAllDay: checked as boolean,
+              startTime: checked ? '' : formData.startTime,
+              endTime: checked ? '' : formData.endTime
+            }))}
+          />
+          <Label htmlFor="isAllDay">All Day Event</Label>
+        </div>
+
         <div>
           <Label htmlFor="type">Event Type</Label>
           <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
-            <SelectTrigger>
+            <SelectTrigger id="type">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -829,95 +1073,44 @@ function EditEventForm({
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Input
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-        />
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
         <div>
-          <Label htmlFor="date">Date</Label>
-          <Input
-            id="date"
-            type="date"
-            value={formData.date}
-            onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-            required
+          <Label htmlFor="location">Location</Label>
+          <LocationSelect
+            value={formData.location}
+            onChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
           />
         </div>
-        
+
         <div>
-          <Label htmlFor="startTime">Start Time</Label>
-          <Input
-            id="startTime"
-            type="time"
-            value={formData.startTime}
-            onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-            disabled={formData.isAllDay}
-            required={!formData.isAllDay}
+          <Label htmlFor="notes">Notes</Label>
+          <Textarea
+            id="notes"
+            value={formData.notes}
+            onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
           />
         </div>
-        
+
         <div>
-          <Label htmlFor="endTime">End Time</Label>
-          <Input
-            id="endTime"
-            type="time"
-            value={formData.endTime}
-            onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-            disabled={formData.isAllDay}
-            required={!formData.isAllDay}
-          />
+          <Label>Participants</Label>
+          <div className="max-h-40 overflow-y-auto border rounded-lg p-2 space-y-2">
+            {contacts.map((contact) => (
+              <div key={contact.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`participant-${contact.id}`}
+                  checked={formData.participants.includes(contact.id)}
+                  onCheckedChange={() => toggleParticipant(contact.id)}
+                />
+                <Label htmlFor={`participant-${contact.id}`} className="flex-1">
+                  {contact.firstName} {contact.lastName}
+                  {contact.role && (
+                    <span className="text-sm text-gray-500 ml-2">({contact.role})</span>
+                  )}
+                </Label>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="isAllDay"
-          checked={formData.isAllDay}
-          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isAllDay: !!checked }))}
-        />
-        <Label htmlFor="isAllDay">All Day Event</Label>
-      </div>
-
-      <LocationSelect
-        projectId={event.projectId}
-        value={formData.location}
-        onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
-      />
-
-      <div>
-        <Label>Assigned Contacts ({formData.participants.length})</Label>
-        <div className="max-h-32 overflow-y-auto border rounded p-2 space-y-1">
-          {contacts.map((contact) => (
-            <div key={contact.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={`contact-${contact.id}`}
-                checked={formData.participants.includes(contact.id)}
-                onCheckedChange={() => toggleParticipant(contact.id)}
-              />
-              <Label htmlFor={`contact-${contact.id}`} className="text-sm">
-                {contact.firstName} {contact.lastName} - {contact.role || contact.category}
-              </Label>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-          rows={2}
-        />
       </div>
 
       <div className="flex justify-between">
