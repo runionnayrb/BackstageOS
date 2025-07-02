@@ -257,7 +257,7 @@ export default function PropsTracker() {
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900"
+              className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
               onClick={() => setShowFilters(!showFilters)}
             >
               <Filter className="h-4 w-4" />
