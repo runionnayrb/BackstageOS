@@ -86,13 +86,13 @@ export default function ScheduleFilter({ projectId, selectedContactIds, onFilter
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
-          className={`flex items-center ${getFilterStatusColor()}`}
+          className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent border-none relative"
         >
           <Filter className="h-4 w-4" />
           {selectedContactIds.length > 0 && (
-            <Badge variant="secondary" className="ml-1 px-2 py-0.5 text-xs">
+            <Badge variant="secondary" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center min-w-0">
               {selectedContactIds.length}
             </Badge>
           )}
