@@ -865,17 +865,23 @@ export default function AvailabilityComparison({
                   >
                     {/* Time Header */}
                     <div className="sticky top-0 bg-white border-b z-10">
-                      <div className="flex w-full h-10">
-                        {/* Generate time labels every hour from 8 AM to midnight */}
+                      <div className="relative w-full h-10">
+                        {/* Show only hour lines that align with the schedule grid */}
                         {Array.from({ length: 17 }, (_, i) => {
                           const minutes = START_MINUTES + (i * 60); // Every hour from 8 AM
+                          const position = ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
                           
                           return (
                             <div
                               key={minutes}
-                              className="flex-1 text-center py-2 text-xs text-gray-500 flex items-center justify-center border-r border-gray-200"
+                              className="absolute border-r border-gray-200 h-full"
+                              style={{
+                                left: `${position}%`,
+                              }}
                             >
-                              {formatTime(minutes)}
+                              <div className="absolute top-2 left-1 text-xs text-gray-500">
+                                {formatTime(minutes)}
+                              </div>
                             </div>
                           );
                         })}
