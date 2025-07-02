@@ -128,7 +128,12 @@ export default function LocationAvailability({
     queryKey: [`/api/projects/${projectId}/location-availability`],
   });
 
-  const isLoading = locationsLoading || availabilityLoading;
+  // Get schedule events to show as reservations/conflicts
+  const { data: scheduleEvents = [], isLoading: eventsLoading } = useQuery({
+    queryKey: [`/api/projects/${projectId}/schedule-events`],
+  });
+
+  const isLoading = locationsLoading || availabilityLoading || eventsLoading;
 
   // Filter locations if needed
   const filteredLocations = locations.filter((location: EventLocation) => {
