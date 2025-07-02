@@ -113,7 +113,11 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
   const { timeFormat, timezone: timeZone, weekStartDay, workStartTime, workEndTime } = scheduleSettings;
   
-  const workingHours = { start: workStartTime, end: workEndTime };
+  // Provide defaults for working hours if not set
+  const workingHours = { 
+    start: workStartTime || '09:00', 
+    end: workEndTime || '17:00' 
+  };
   const startHour = parseInt(workingHours.start.split(':')[0]);
   const endHour = parseInt(workingHours.end.split(':')[0]);
 
