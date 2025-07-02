@@ -912,6 +912,9 @@ function CreateEventForm({
             projectId={projectId}
             value={formData.location}
             onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
+            eventDate={formData.date}
+            startTime={formData.startTime}
+            endTime={formData.endTime}
           />
         </div>
 
@@ -1095,6 +1098,9 @@ function EditEventForm({
             projectId={projectId}
             value={formData.location}
             onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
+            eventDate={formData.date}
+            startTime={formData.startTime}
+            endTime={formData.endTime}
           />
         </div>
 

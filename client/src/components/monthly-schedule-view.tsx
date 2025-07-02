@@ -456,6 +456,9 @@ function EventForm({
         projectId={projectId}
         value={formData.location}
         onValueChange={(value) => setFormData({ ...formData, location: value })}
+        eventDate={formData.date}
+        startTime={formData.startTime}
+        endTime={formData.endTime}
       />
 
       <div>

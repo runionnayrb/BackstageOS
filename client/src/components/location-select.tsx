@@ -27,9 +27,12 @@ interface LocationSelectProps {
   projectId: number;
   value?: string;
   onValueChange: (value: string) => void;
+  eventDate?: string; // ISO date string
+  startTime?: string; // HH:MM format
+  endTime?: string; // HH:MM format
 }
 
-export default function LocationSelect({ projectId, value, onValueChange }: LocationSelectProps) {
+export default function LocationSelect({ projectId, value, onValueChange, eventDate, startTime, endTime }: LocationSelectProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newLocationName, setNewLocationName] = useState("");
   const [newLocationAddress, setNewLocationAddress] = useState("");
@@ -43,6 +46,39 @@ export default function LocationSelect({ projectId, value, onValueChange }: Loca
   const { data: locations = [], isLoading } = useQuery<EventLocation[]>({
     queryKey: [`/api/projects/${projectId}/event-locations`],
   });
+
+  // Fetch location availability if we have date and time info
+  const { data: locationAvailability = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/location-availability`],
+    enabled: !!eventDate && !!startTime && !!endTime,
+  });
+
+  // Function to check if a location is unavailable at the specified time
+  const isLocationUnavailable = (locationId: number): boolean => {
+    if (!eventDate || !startTime || !endTime) return false;
+
+    // Convert time to minutes for comparison
+    const timeToMinutes = (time: string): number => {
+      const [hours, minutes] = time.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+
+    const eventStartMinutes = timeToMinutes(startTime);
+    const eventEndMinutes = timeToMinutes(endTime);
+
+    // Check if any availability blocks for this location and date conflict
+    return locationAvailability.some((avail: any) => {
+      if (avail.locationId !== locationId) return false;
+      if (avail.date !== eventDate) return false;
+      if (avail.availabilityType !== 'unavailable') return false;
+
+      const availStartMinutes = timeToMinutes(avail.startTime);
+      const availEndMinutes = timeToMinutes(avail.endTime);
+
+      // Check for time overlap
+      return eventStartMinutes < availEndMinutes && eventEndMinutes > availStartMinutes;
+    });
+  };
 
   const createLocationMutation = useMutation({
     mutationFn: async (locationData: {
@@ -121,17 +157,29 @@ export default function LocationSelect({ projectId, value, onValueChange }: Loca
               <SelectValue placeholder={isLoading ? "Loading locations..." : "Select a location"} />
             </SelectTrigger>
             <SelectContent>
-              {locations.map((location: EventLocation) => (
-                <SelectItem key={location.id} value={location.name}>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <span>{location.name}</span>
-                    {location.address && (
-                      <span className="text-xs text-gray-500">({location.address})</span>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
+              {locations.map((location: EventLocation) => {
+                const unavailable = isLocationUnavailable(location.id);
+                return (
+                  <SelectItem 
+                    key={location.id} 
+                    value={location.name}
+                    disabled={unavailable}
+                  >
+                    <div className={`flex items-center gap-2 ${unavailable ? 'opacity-50' : ''}`}>
+                      <MapPin className="h-4 w-4" />
+                      <div className="flex flex-col">
+                        <span>{location.name}</span>
+                        {unavailable && (
+                          <span className="text-xs text-red-500">Space unavailable at this time</span>
+                        )}
+                        {location.address && !unavailable && (
+                          <span className="text-xs text-gray-500">({location.address})</span>
+                        )}
+                      </div>
+                    </div>
+                  </SelectItem>
+                );
+              })}
               {locations.length === 0 && !isLoading && (
                 <SelectItem value="no-locations" disabled>
                   No locations available
