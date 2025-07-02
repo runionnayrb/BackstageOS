@@ -2728,10 +2728,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
+      console.log("Event creation request body:", req.body);
       const eventData = insertScheduleEventSchema.parse({
         ...req.body,
         projectId,
-        createdBy: req.user.id.toString(),
+        createdBy: parseInt(req.user.id.toString()),
       });
 
       const event = await storage.createScheduleEvent(eventData);
@@ -2935,10 +2936,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      console.log("Location creation request body:", req.body);
       const locationData = insertEventLocationSchema.parse({
         ...req.body,
         projectId,
-        createdBy: req.user.id.toString(),
+        createdBy: parseInt(req.user.id.toString()),
       });
 
       const location = await storage.createEventLocation(locationData);

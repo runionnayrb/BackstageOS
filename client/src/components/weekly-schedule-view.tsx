@@ -657,10 +657,15 @@ function CreateEventForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
+    // Clean up the form data before submission
+    const cleanedData = {
       ...formData,
+      location: formData.location?.trim() || undefined,
+      description: formData.description?.trim() || undefined,
+      notes: formData.notes?.trim() || undefined,
       participants: formData.participants,
-    });
+    };
+    onSubmit(cleanedData);
   };
 
   const toggleParticipant = (contactId: number) => {
@@ -833,10 +838,15 @@ function EditEventForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit({
+    // Clean up the form data before submission
+    const cleanedData = {
       ...formData,
+      location: formData.location?.trim() || undefined,
+      description: formData.description?.trim() || undefined,
+      notes: formData.notes?.trim() || undefined,
       participants: formData.participants,
-    });
+    };
+    onSubmit(cleanedData);
   };
 
   const toggleParticipant = (contactId: number) => {

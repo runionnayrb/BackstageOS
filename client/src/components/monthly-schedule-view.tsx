@@ -359,7 +359,14 @@ function EventForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    // Clean up the form data before submission
+    const cleanedData = {
+      ...formData,
+      location: formData.location?.trim() || undefined,
+      description: formData.description?.trim() || undefined,
+      notes: formData.notes?.trim() || undefined,
+    };
+    onSubmit(cleanedData);
   };
 
   return (
