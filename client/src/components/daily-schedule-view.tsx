@@ -505,7 +505,7 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
           <div className="flex items-center space-x-2">
             <Label htmlFor="time-increment" className="text-sm">Time Increment:</Label>
             <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(Number(value) as 15 | 30 | 60)}>
-              <SelectTrigger className="w-20" id="time-increment">
+              <SelectTrigger className="w-20 border-0 shadow-none" id="time-increment">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

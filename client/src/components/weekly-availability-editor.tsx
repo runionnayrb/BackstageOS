@@ -781,7 +781,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               <div className="flex items-center space-x-2">
                 <span className="text-sm">Grid:</span>
                 <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-                  <SelectTrigger className="w-24">
+                  <SelectTrigger className="w-24 border-0 shadow-none">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

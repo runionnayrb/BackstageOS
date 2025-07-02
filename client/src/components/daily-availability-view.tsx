@@ -212,7 +212,7 @@ export default function DailyAvailabilityView({
 
           <div className="flex items-center gap-2">
             <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value))}>
-              <SelectTrigger className="w-20">
+              <SelectTrigger className="w-20 border-0 shadow-none">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

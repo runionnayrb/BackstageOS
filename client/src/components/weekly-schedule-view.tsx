@@ -561,7 +561,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
         <div className="flex items-center space-x-2">
           <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-            <SelectTrigger className="w-24">
+            <SelectTrigger className="w-24 border-0 shadow-none">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
