@@ -1709,7 +1709,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log("Received request body:", req.body);
       const availabilityData = {
         ...req.body,
-        type: req.body.availabilityType, // Convert availabilityType to type
+        type: req.body.availabilityType || req.body.type, // Handle both field names
         locationId,
         projectId,
         createdBy: req.user.id
