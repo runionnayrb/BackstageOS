@@ -45,6 +45,7 @@ export default function AvailabilityComparison({
   const [dragStart, setDragStart] = useState<{ x: number; y: number; contactId?: number } | null>(null);
   const [newBlock, setNewBlock] = useState<any>(null);
   const [draggedItem, setDraggedItem] = useState<any>(null);
+  const [draggedItems, setDraggedItems] = useState<any[]>([]);
   const [resizingItem, setResizingItem] = useState<any>(null);
   const [resizeMode, setResizeMode] = useState<'top' | 'bottom' | null>(null);
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
@@ -64,16 +65,12 @@ export default function AvailabilityComparison({
   // Keyboard event handlers for shift selection and delete
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      console.log('Key pressed:', e.key, 'Selected items:', selectedItems.size);
       if (e.key === 'Shift') {
         setIsShiftPressed(true);
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
-        console.log('Delete key pressed, selected items:', selectedItems.size);
         setSelectedItems(current => {
-          console.log('Current selected items in delete handler:', current.size);
           if (current.size > 0) {
-            console.log('Opening delete dialog');
             setShowBulkDeleteDialog(true);
           }
           return current;
@@ -334,6 +331,34 @@ export default function AvailabilityComparison({
       
       // Run database update silently in background
       silentUpdate(draggedItem.id, updateData);
+    } else if (draggedItems.length > 0) {
+      // Handle multi-select drag operations
+      const updates: any[] = [];
+      
+      // Update query cache for all dragged items immediately
+      queryClient.setQueryData([`/api/projects/${projectId}/availability`], (old: any) => {
+        return old?.map((item: any) => {
+          const draggedItem = draggedItems.find(d => d.id === item.id);
+          if (draggedItem) {
+            const updateData = {
+              contactId: draggedItem.contactId,
+              startTime: draggedItem.startTime,
+              endTime: draggedItem.endTime,
+              availabilityType: draggedItem.availabilityType,
+              notes: draggedItem.notes,
+              date: currentDate.toISOString().split('T')[0],
+            };
+            updates.push({ id: draggedItem.id, data: updateData });
+            return { ...item, ...updateData };
+          }
+          return item;
+        }) || [];
+      });
+      
+      // Run database updates silently in background
+      updates.forEach(({ id, data }) => {
+        silentUpdate(id, data);
+      });
     } else if (resizingItem) {
       const updateData = {
         contactId: resizingItem.contactId,
@@ -359,6 +384,7 @@ export default function AvailabilityComparison({
     setDragStart(null);
     setNewBlock(null);
     setDraggedItem(null);
+    setDraggedItems([]);
     setResizingItem(null);
     setResizeMode(null);
   };
@@ -511,6 +537,29 @@ export default function AvailabilityComparison({
         endTime: formatTimeFromMinutesLocal(newEndMinutes),
         contactId: newContactId || draggedItem.contactId,
       });
+    } else if (draggedItems.length > 0) {
+      // Moving multiple selected items
+      const deltaX = currentX - dragStart.x;
+      const deltaMinutes = (deltaX / containerWidth) * TOTAL_MINUTES;
+      
+      const newContactId = getContactIdFromY(currentY);
+      
+      setDraggedItems(draggedItems.map(item => {
+        const startMinutes = timeToMinutes(item.originalStartTime);
+        const endMinutes = timeToMinutes(item.originalEndTime);
+        const duration = endMinutes - startMinutes;
+        
+        // Apply delta movement to original position
+        const newStartMinutes = snapToIncrement(Math.max(START_MINUTES, Math.min(END_MINUTES - duration, startMinutes + deltaMinutes)));
+        const newEndMinutes = newStartMinutes + duration;
+        
+        return {
+          ...item,
+          startTime: formatTimeFromMinutesLocal(newStartMinutes),
+          endTime: formatTimeFromMinutesLocal(newEndMinutes),
+          contactId: newContactId || item.contactId,
+        };
+      }));
     } else if (resizingItem) {
       // Resizing existing item
       const deltaX = currentX - dragStart.x;
@@ -641,11 +690,27 @@ export default function AvailabilityComparison({
         
         setIsDragging(true);
         setDragStart({ x, y });
-        setDraggedItem({
-          ...item,
-          originalStartTime: item.startTime,
-          originalEndTime: item.endTime,
-        });
+        
+        // If item is part of selection, drag all selected items
+        if (selectedItems.has(item.id)) {
+          const itemsToDrag = (allAvailability as ProjectAvailability[]).filter((a: ProjectAvailability) => 
+            selectedItems.has(a.id)
+          ).map(a => ({
+            ...a,
+            originalStartTime: a.startTime,
+            originalEndTime: a.endTime,
+          }));
+          setDraggedItems(itemsToDrag);
+          setDraggedItem(null);
+        } else {
+          // Single item drag
+          setDraggedItem({
+            ...item,
+            originalStartTime: item.startTime,
+            originalEndTime: item.endTime,
+          });
+          setDraggedItems([]);
+        }
       }
     };
     
@@ -929,8 +994,11 @@ export default function AvailabilityComparison({
 
                               // Check if this item is being dragged or resized
                               const isBeingDragged = draggedItem?.id === item.id;
+                              const isBeingDraggedMulti = draggedItems.some(d => d.id === item.id);
                               const isBeingResized = resizingItem?.id === item.id;
-                              const currentItem = isBeingDragged ? draggedItem : isBeingResized ? resizingItem : item;
+                              const currentItem = isBeingDragged ? draggedItem : 
+                                                isBeingDraggedMulti ? draggedItems.find(d => d.id === item.id) :
+                                                isBeingResized ? resizingItem : item;
 
                               const currentStartMinutes = timeToMinutes(currentItem.startTime);
                               const currentEndMinutes = timeToMinutes(currentItem.endTime);
@@ -946,7 +1014,7 @@ export default function AvailabilityComparison({
                                     currentItem.availabilityType === 'unavailable'
                                       ? 'bg-red-500 hover:bg-red-600'
                                       : 'bg-blue-500 hover:bg-blue-600'
-                                  } ${(isBeingDragged || isBeingResized) ? 'opacity-80 z-20' : 'z-10'} ${
+                                  } ${(isBeingDragged || isBeingDraggedMulti || isBeingResized) ? 'opacity-80 z-20' : 'z-10'} ${
                                     selectedItems.has(item.id) ? 'ring-2 ring-yellow-400 ring-opacity-80' : ''
                                   } ${isShiftPressed ? 'cursor-pointer' : ''}`}
                                   style={{
