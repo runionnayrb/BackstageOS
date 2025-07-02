@@ -303,9 +303,10 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
     const isOnEvent = target.closest('[data-event-id]');
     const isOnTimeLabel = target.closest('.time-label') || target.classList.contains('time-label');
     
-    if (!isOnEvent && !isOnTimeLabel && calendarRef.current) {
+    if (!isOnEvent && !isOnTimeLabel && calendarRef.current && scrollContainerRef.current) {
       const rect = calendarRef.current.getBoundingClientRect();
-      const y = e.clientY - rect.top;
+      const scrollTop = scrollContainerRef.current.scrollTop;
+      const y = e.clientY - rect.top + scrollTop; // Account for scroll position
       const minutes = snapToIncrement(positionToMinutes(y));
       
       setDragState({
@@ -371,10 +372,11 @@ export default function WeeklyScheduleView({ projectId, onDateClick }: WeeklySch
   }, [timeToMinutes]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!calendarRef.current) return;
+    if (!calendarRef.current || !scrollContainerRef.current) return;
     
     const rect = calendarRef.current.getBoundingClientRect();
-    const y = e.clientY - rect.top;
+    const scrollTop = scrollContainerRef.current.scrollTop;
+    const y = e.clientY - rect.top + scrollTop; // Account for scroll position
     const x = e.clientX - rect.left;
     
     // Handle drag-to-create

@@ -248,9 +248,10 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
     const isOnEvent = target.closest('[data-event-id]');
     const isOnTimeLabel = target.closest('.time-label') || target.classList.contains('time-label');
     
-    if (!isOnEvent && !isOnTimeLabel && calendarRef.current) {
+    if (!isOnEvent && !isOnTimeLabel && calendarRef.current && scrollContainerRef.current) {
       const rect = calendarRef.current.getBoundingClientRect();
-      const y = e.clientY - rect.top;
+      const scrollTop = scrollContainerRef.current.scrollTop;
+      const y = e.clientY - rect.top + scrollTop; // Account for scroll position
       const minutes = positionToMinutes(y);
       const snappedMinutes = snapToIncrement(minutes);
       
@@ -313,10 +314,11 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
   }, [timeToMinutes]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!calendarRef.current) return;
+    if (!calendarRef.current || !scrollContainerRef.current) return;
     
     const rect = calendarRef.current.getBoundingClientRect();
-    const y = e.clientY - rect.top;
+    const scrollTop = scrollContainerRef.current.scrollTop;
+    const y = e.clientY - rect.top + scrollTop; // Account for scroll position
     
     // Handle drag-to-create
     if (isDragCreating) {
@@ -895,8 +897,9 @@ function CreateEventForm({
         <div>
           <Label htmlFor="location">Location</Label>
           <LocationSelect
+            projectId={projectId}
             value={formData.location}
-            onChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
           />
         </div>
 
@@ -1077,8 +1080,9 @@ function EditEventForm({
         <div>
           <Label htmlFor="location">Location</Label>
           <LocationSelect
+            projectId={projectId}
             value={formData.location}
-            onChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
           />
         </div>
 
