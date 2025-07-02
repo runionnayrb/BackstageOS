@@ -420,15 +420,13 @@ export default function LocationAvailability({
   // Mouse event handlers for drag operations
   const handleMouseDown = (e: React.MouseEvent, locationId: number) => {
     if (e.shiftKey) return;
+    if (e.button !== 0) return; // Only left click
     
-    const calendar = e.currentTarget.closest('.availability-calendar');
-    if (!calendar) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left; // Position relative to the location row
+    const y = e.clientY - rect.top;
     
-    const rect = calendar.getBoundingClientRect();
-    const scrollLeft = calendar.scrollLeft;
-    const x = e.clientX - rect.left + scrollLeft;
-    
-    setDragStart({ x, y: e.clientY, locationId });
+    setDragStart({ x, y, locationId });
     setIsDragging(true);
     e.preventDefault();
   };
@@ -436,13 +434,13 @@ export default function LocationAvailability({
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging || !dragStart) return;
 
-    const calendar = document.querySelector('.availability-calendar');
-    if (!calendar) return;
+    // Find the location row that's being dragged over
+    const locationRow = document.elementFromPoint(e.clientX, e.clientY)?.closest('.location-row');
+    if (!locationRow) return;
 
-    const rect = calendar.getBoundingClientRect();
+    const rect = locationRow.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
     const containerWidth = rect.width;
-    const scrollLeft = calendar.scrollLeft;
-    const currentX = e.clientX - rect.left + scrollLeft;
 
     if (draggedItem || draggedItems.length > 0) {
       // Moving existing item(s)
@@ -564,7 +562,7 @@ export default function LocationAvailability({
         locationId: newBlock.locationId,
         startTime: newBlock.startTime,
         endTime: newBlock.endTime,
-        availabilityType: newBlock.availabilityType,
+        type: newBlock.availabilityType,
         notes: newBlock.notes,
         date: currentDate.toISOString().split('T')[0],
       };
@@ -612,12 +610,10 @@ export default function LocationAvailability({
       return;
     }
 
-    const calendar = e.currentTarget.closest('.availability-calendar');
-    if (!calendar) return;
+    const rect = e.currentTarget.parentElement?.getBoundingClientRect();
+    if (!rect) return;
     
-    const rect = calendar.getBoundingClientRect();
-    const scrollLeft = calendar.scrollLeft;
-    const startX = e.clientX - rect.left + scrollLeft;
+    const startX = e.clientX - rect.left;
     
     setDragStart({ x: startX, y: e.clientY });
     setIsDragging(true);
@@ -877,7 +873,7 @@ export default function LocationAvailability({
                         return (
                           <div 
                             key={location.id} 
-                            className="h-16 border-b relative bg-white cursor-crosshair w-full" 
+                            className="location-row h-16 border-b relative bg-white cursor-crosshair w-full" 
                             onMouseDown={(e) => handleMouseDown(e, location.id)}
                           >
                             {/* Time Grid Background with incremental lines */}
