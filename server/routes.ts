@@ -1676,7 +1676,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      console.log("Backend: Attempting bulk delete of IDs:", ids);
       await storage.bulkDeleteLocationAvailability(ids);
+      console.log("Backend: Successfully bulk deleted", ids.length, "items");
       res.json({ success: true, deletedCount: ids.length });
     } catch (error) {
       console.error("Error bulk deleting location availability:", error);

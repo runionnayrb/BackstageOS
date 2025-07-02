@@ -370,13 +370,14 @@ export default function LocationAvailability({
 
   const bulkDeleteMutation = useMutation({
     mutationFn: async (ids: number[]) => {
-      await Promise.all(
-        ids.map(id =>
-          fetch(`/api/projects/${projectId}/location-availability/${id}`, {
-            method: "DELETE",
-          })
-        )
-      );
+      console.log("Frontend: Attempting bulk delete of IDs:", ids);
+      await Promise.all(ids.map(id =>
+        fetch(`/api/projects/${projectId}/location-availability/${id}`, {
+          method: "DELETE",
+        }).then(response => {
+          if (!response.ok) throw new Error(`Failed to delete availability ${id}`);
+        })
+      ));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/location-availability`] });
