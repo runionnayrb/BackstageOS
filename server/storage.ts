@@ -195,6 +195,14 @@ export interface IStorage {
   updateContact(id: number, contact: Partial<InsertContact>): Promise<Contact>;
   deleteContact(id: number): Promise<void>;
 
+  // Contact availability operations
+  getContactAvailability(contactId: number, projectId: number): Promise<ContactAvailability[]>;
+  getAllProjectAvailability(projectId: number): Promise<ContactAvailability[]>;
+  createContactAvailability(availability: InsertContactAvailability): Promise<ContactAvailability>;
+  updateContactAvailability(id: number, availability: Partial<InsertContactAvailability>): Promise<ContactAvailability>;
+  deleteContactAvailability(id: number): Promise<void>;
+  bulkDeleteContactAvailability(ids: number[]): Promise<void>;
+
   // Props operations
   getPropsByProjectId(projectId: number): Promise<Prop[]>;
   getPropById(id: number): Promise<Prop | undefined>;
@@ -593,6 +601,46 @@ class DatabaseStorage implements IStorage {
 
   async deleteContact(id: number): Promise<void> {
     await db.delete(contacts).where(eq(contacts.id, id));
+  }
+
+  // Contact availability operations
+  async getContactAvailability(contactId: number, projectId: number): Promise<ContactAvailability[]> {
+    const result = await db.select()
+      .from(contactAvailability)
+      .where(and(
+        eq(contactAvailability.contactId, contactId),
+        eq(contactAvailability.projectId, projectId)
+      ));
+    return result;
+  }
+
+  async getAllProjectAvailability(projectId: number): Promise<ContactAvailability[]> {
+    const result = await db.select()
+      .from(contactAvailability)
+      .where(eq(contactAvailability.projectId, projectId));
+    return result;
+  }
+
+  async createContactAvailability(availability: InsertContactAvailability): Promise<ContactAvailability> {
+    const result = await db.insert(contactAvailability).values(availability).returning();
+    return result[0];
+  }
+
+  async updateContactAvailability(id: number, availability: Partial<InsertContactAvailability>): Promise<ContactAvailability> {
+    const result = await db.update(contactAvailability)
+      .set(availability)
+      .where(eq(contactAvailability.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteContactAvailability(id: number): Promise<void> {
+    await db.delete(contactAvailability).where(eq(contactAvailability.id, id));
+  }
+
+  async bulkDeleteContactAvailability(ids: number[]): Promise<void> {
+    if (ids.length === 0) return;
+    await db.delete(contactAvailability).where(sql`${contactAvailability.id} = ANY(${ids})`);
   }
 
   async getPropsByProjectId(projectId: number): Promise<Prop[]> {

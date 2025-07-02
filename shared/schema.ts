@@ -370,6 +370,7 @@ export const contactAvailability = pgTable("contact_availability", {
   endTime: varchar("end_time").notNull(), // HH:MM format
   availabilityType: varchar("availability_type").notNull(), // 'unavailable' | 'preferred'
   notes: text("notes"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
