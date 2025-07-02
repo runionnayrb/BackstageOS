@@ -48,7 +48,7 @@ export default function ShowDetail() {
     },
     {
       id: "props-costumes",
-      title: "Props & Costumes",
+      title: "Props",
       href: `/shows/${projectId}/props`,
     },
     {
