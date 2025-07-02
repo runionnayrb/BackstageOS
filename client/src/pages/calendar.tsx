@@ -72,27 +72,18 @@ export default function Calendar() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
+    <div className="w-full">
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setLocation(`/shows/${projectId}`)}
-            className="flex items-center gap-2"
+            className="text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to {(project as any)?.name}
           </Button>
-        </div>
-
-        <div className="mb-8 flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold">Calendar</h1>
-            <p className="text-gray-500 mt-2">
-              Manage rehearsal schedules and daily call sheets
-            </p>
-          </div>
           
           <div className="flex items-center gap-2">
             <Button
@@ -111,7 +102,14 @@ export default function Calendar() {
             </Button>
           </div>
         </div>
+        
+        <div className="mb-2">
+          <h1 className="text-3xl font-bold text-gray-900">Calendar</h1>
+          <p className="text-gray-600 mt-1">Manage rehearsal schedules and daily call sheets</p>
+        </div>
+      </div>
 
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="space-y-1">
           {sections.map((section) => (
             <div
