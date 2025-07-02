@@ -1,9 +1,12 @@
 // Time formatting utilities that respect user's time format preference
 
 export function formatTimeDisplay(timeString: string, timeFormat: '12' | '24' = '12'): string {
-  if (!timeString) return '';
+  if (!timeString || typeof timeString !== 'string') return '';
   
-  const [hours, minutes] = timeString.split(':').map(Number);
+  const timeParts = timeString.split(':');
+  if (timeParts.length !== 2) return timeString; // Return original if not in expected format
+  
+  const [hours, minutes] = timeParts.map(Number);
   
   if (timeFormat === '24') {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;

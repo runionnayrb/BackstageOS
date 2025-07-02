@@ -133,7 +133,7 @@ export default function LocationSelect({ projectId, value, onValueChange }: Loca
                 </SelectItem>
               ))}
               {locations.length === 0 && !isLoading && (
-                <SelectItem value="" disabled>
+                <SelectItem value="no-locations" disabled>
                   No locations available
                 </SelectItem>
               )}
