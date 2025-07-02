@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useSEO } from "@/hooks/useSEO";
 import { 
   FileText, 
   Users, 
@@ -29,6 +30,9 @@ import {
 } from "lucide-react";
 
 export default function WaitlistLanding() {
+  // Initialize SEO for the landing page
+  useSEO();
+  
   const [formData, setFormData] = useState({
     email: "",
     firstName: "",
