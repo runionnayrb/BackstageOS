@@ -589,19 +589,9 @@ export default function LocationAvailability({
   const handleBlockMouseDown = (e: React.MouseEvent, item: LocationAvailability, mode?: 'move' | 'resize-top' | 'resize-bottom') => {
     e.stopPropagation();
     
-    // Handle Shift+click for multi-selection
-    if (e.shiftKey && !mode) {
-      e.preventDefault();
-      if (selectedItems.has(item.id)) {
-        const newSelected = new Set(selectedItems);
-        newSelected.delete(item.id);
-        setSelectedItems(newSelected);
-      } else {
-        const newSelected = new Set(selectedItems);
-        newSelected.add(item.id);
-        setSelectedItems(newSelected);
-      }
-      return;
+    // Clear selection when starting normal drag operations (but not during Shift+click)
+    if (selectedItems.size > 0 && !e.shiftKey) {
+      setSelectedItems(new Set());
     }
 
     // Double-click to edit
@@ -932,6 +922,21 @@ export default function LocationAvailability({
                                     minWidth: '20px',
                                   }}
                                   onMouseDown={(e) => handleBlockMouseDown(e, item)}
+                                  onClick={(e) => {
+                                    if (e.shiftKey) {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      
+                                      const newSelected = new Set(selectedItemsRef.current);
+                                      if (newSelected.has(item.id)) {
+                                        newSelected.delete(item.id);
+                                      } else {
+                                        newSelected.add(item.id);
+                                      }
+                                      setSelectedItems(newSelected);
+                                    }
+                                  }}
+                                  onDoubleClick={() => setEditingItem(item)}
                                 >
                                   <div className={`px-2 py-1 h-full flex flex-col justify-center ${isShiftPressed ? 'cursor-pointer' : 'cursor-move'}`}>
                                     <div className="font-medium truncate">
