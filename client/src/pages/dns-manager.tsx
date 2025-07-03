@@ -245,9 +245,9 @@ function DNSManagerContent() {
   };
 
   return (
-    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-6xl overflow-x-hidden">
+      <div className="flex flex-col space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
           <Link href="/admin">
             <Button variant="ghost" size="sm" className="w-full sm:w-auto">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -255,21 +255,21 @@ function DNSManagerContent() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">DNS Manager</h1>
-            <p className="text-sm sm:text-base text-gray-600">Manage DNS records and domain configuration</p>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">DNS Manager</h1>
+            <p className="text-sm text-gray-600">Manage DNS records and domain configuration</p>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
           <Link href="/admin/pages">
             <Button variant="outline" className="w-full sm:w-auto">
               <FileText className="mr-2 h-4 w-4" />
-              Page Manager
+              <span className="hidden sm:inline">Page </span>Manager
             </Button>
           </Link>
           <Link href="/admin/domains">
             <Button variant="outline" className="w-full sm:w-auto">
               <Globe className="mr-2 h-4 w-4" />
-              Domain Manager
+              <span className="hidden sm:inline">Domain </span>Manager
             </Button>
           </Link>
         </div>
@@ -304,25 +304,34 @@ function DNSManagerContent() {
         </Card>
       )}
 
-      <Tabs defaultValue="records" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="records">DNS Records</TabsTrigger>
-          <TabsTrigger value="subdomains">Subdomains</TabsTrigger>
-          <TabsTrigger value="email">Email Aliases</TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="records" className="space-y-4 sm:space-y-6 w-full">
+        <div className="w-full overflow-x-auto">
+          <TabsList className="grid w-full grid-cols-3 min-w-max sm:min-w-0">
+            <TabsTrigger value="records" className="text-xs sm:text-sm px-2 sm:px-3">
+              <span className="hidden xs:inline">DNS </span>Records
+            </TabsTrigger>
+            <TabsTrigger value="subdomains" className="text-xs sm:text-sm px-2 sm:px-3">
+              Subdomains
+            </TabsTrigger>
+            <TabsTrigger value="email" className="text-xs sm:text-sm px-2 sm:px-3">
+              <span className="hidden xs:inline">Email </span>Aliases
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-        <TabsContent value="records" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                DNS Records
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Add Record
-                    </Button>
-                  </DialogTrigger>
+        <div className="w-full overflow-x-hidden">
+          <TabsContent value="records" className="space-y-4 sm:space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                  <span>DNS Records</span>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button className="w-full sm:w-auto">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Record
+                      </Button>
+                    </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle>Create DNS Record</DialogTitle>
@@ -398,39 +407,87 @@ function DNSManagerContent() {
               {recordsLoading ? (
                 <div className="text-center py-8">Loading DNS records...</div>
               ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {Array.isArray(dnsRecords) && dnsRecords.map((record: DNSRecord) => (
-                    <div key={record.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex-1 grid grid-cols-4 gap-4">
-                        <div>
-                          <Badge variant="outline">{record.type}</Badge>
+                    <div key={record.id} className="border rounded-lg overflow-hidden">
+                      {/* Desktop Layout */}
+                      <div className="hidden md:flex items-center justify-between p-4">
+                        <div className="flex-1 grid grid-cols-4 gap-4">
+                          <div>
+                            <Badge variant="outline">{record.type}</Badge>
+                          </div>
+                          <div>
+                            <p className="font-medium">{record.name}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600 truncate">{record.content}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500">TTL: {record.ttl}s</span>
+                            {record.proxied && <Shield className="h-4 w-4 text-orange-500" />}
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{record.name}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">{record.content}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-500">TTL: {record.ttl}s</span>
-                          {record.proxied && <Shield className="h-4 w-4 text-orange-500" />}
+                        <div className="flex items-center gap-2 ml-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditRecord(record)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteRecord(record.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditRecord(record)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteRecord(record.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+
+                      {/* Mobile Layout */}
+                      <div className="md:hidden p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Badge variant="outline">{record.type}</Badge>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditRecord(record)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteRecord(record.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div>
+                            <p className="text-xs text-gray-500 uppercase tracking-wide">Name</p>
+                            <p className="font-medium text-sm break-all">{record.name}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500 uppercase tracking-wide">Content</p>
+                            <p className="text-sm text-gray-600 break-all">{record.content}</p>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-xs text-gray-500 uppercase tracking-wide">TTL</p>
+                              <p className="text-sm">{record.ttl}s</p>
+                            </div>
+                            {record.proxied && (
+                              <div className="flex items-center gap-1">
+                                <Shield className="h-4 w-4 text-orange-500" />
+                                <span className="text-xs text-orange-500">Proxied</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -438,9 +495,9 @@ function DNSManagerContent() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="subdomains" className="space-y-6">
+          <TabsContent value="subdomains" className="space-y-4 sm:space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Create Subdomain</CardTitle>
@@ -499,9 +556,9 @@ function DNSManagerContent() {
               </Button>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
 
-        <TabsContent value="email" className="space-y-6">
+          <TabsContent value="email" className="space-y-4 sm:space-y-6">
           {/* Existing Email Routing Rules */}
           <Card>
             <CardHeader>
@@ -641,7 +698,8 @@ function DNSManagerContent() {
               </Button>
             </CardContent>
           </Card>
-        </TabsContent>
+          </TabsContent>
+        </div>
       </Tabs>
 
       {/* Edit Email Dialog */}
