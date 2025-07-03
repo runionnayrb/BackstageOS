@@ -319,27 +319,25 @@ export default function AdminErrorLogs() {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 max-w-6xl space-y-6">
+    <div className="container mx-auto p-6 max-w-6xl space-y-6">
       <div>
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 lg:mb-8 gap-4 lg:gap-6">
-          <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-6 w-full lg:w-auto">
+        <div className="flex items-center justify-between mb-8 gap-6">
+          <div className="flex items-center space-x-6">
             <div>
-              <h2 className="text-2xl lg:text-3xl font-bold">Error Logs</h2>
-              <p className="text-sm lg:text-base text-gray-600">Monitor and resolve application errors</p>
+              <h2 className="text-3xl font-bold">Error Logs</h2>
+              <p className="text-base text-gray-600">Monitor and resolve application errors</p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-3">
-              <Link href="/auto-resolution-dashboard" className="w-full sm:w-auto">
-                <Button variant="outline" size="default" className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex gap-3">
+              <Link href="/auto-resolution-dashboard">
+                <Button variant="outline" size="default" className="flex items-center gap-2">
                   <Activity className="h-4 w-4" />
-                  <span className="hidden sm:inline">Auto-Resolution Dashboard</span>
-                  <span className="sm:hidden">Auto-Resolution</span>
+                  Auto-Resolution Dashboard
                 </Button>
               </Link>
-              <Link href="/advanced-analytics-dashboard" className="w-full sm:w-auto">
-                <Button variant="outline" size="default" className="flex items-center gap-2 border-purple-500 text-purple-600 hover:bg-purple-50 w-full sm:w-auto">
+              <Link href="/advanced-analytics-dashboard">
+                <Button variant="outline" size="default" className="flex items-center gap-2 border-purple-500 text-purple-600 hover:bg-purple-50">
                   <BarChart3 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Advanced Analytics</span>
-                  <span className="sm:hidden">Analytics</span>
+                  Advanced Analytics
                 </Button>
               </Link>
             </div>
@@ -368,31 +366,31 @@ export default function AdminErrorLogs() {
         </div>
         
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 mb-6">
-          <Card className="p-3 sm:p-4">
-            <div className="text-xl sm:text-2xl font-bold">{errorLogs.length}</div>
-            <div className="text-xs sm:text-sm text-gray-600">Total Errors</div>
+        <div className="grid grid-cols-5 gap-4 mb-6">
+          <Card className="p-4">
+            <div className="text-2xl font-bold">{errorLogs.length}</div>
+            <div className="text-sm text-gray-600">Total Errors</div>
           </Card>
-          <Card className="p-3 sm:p-4">
-            <div className="text-xl sm:text-2xl font-bold text-red-600">{stats.javascript_error || 0}</div>
-            <div className="text-xs sm:text-sm text-gray-600">JavaScript</div>
+          <Card className="p-4">
+            <div className="text-2xl font-bold text-red-600">{stats.javascript_error || 0}</div>
+            <div className="text-sm text-gray-600">JavaScript</div>
           </Card>
-          <Card className="p-3 sm:p-4">
-            <div className="text-xl sm:text-2xl font-bold text-orange-600">{stats.network_error || 0}</div>
-            <div className="text-xs sm:text-sm text-gray-600">Network</div>
+          <Card className="p-4">
+            <div className="text-2xl font-bold text-orange-600">{stats.network_error || 0}</div>
+            <div className="text-sm text-gray-600">Network</div>
           </Card>
-          <Card className="p-3 sm:p-4">
-            <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.click_failure || 0}</div>
-            <div className="text-xs sm:text-sm text-gray-600">Click Failures</div>
+          <Card className="p-4">
+            <div className="text-2xl font-bold text-blue-600">{stats.click_failure || 0}</div>
+            <div className="text-sm text-gray-600">Click Failures</div>
           </Card>
-          <Card className="p-3 sm:p-4">
-            <div className="text-xl sm:text-2xl font-bold text-purple-600">{stats.form_submission_error || 0}</div>
-            <div className="text-xs sm:text-sm text-gray-600">Form Errors</div>
+          <Card className="p-4">
+            <div className="text-2xl font-bold text-purple-600">{stats.form_submission_error || 0}</div>
+            <div className="text-sm text-gray-600">Form Errors</div>
           </Card>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 mb-6">
+        <div className="flex gap-6 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
@@ -402,9 +400,9 @@ export default function AdminErrorLogs() {
               className="pl-10 h-10"
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+          <div className="flex gap-4">
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-full sm:w-52 h-10">
+              <SelectTrigger className="w-52 h-10">
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
               <SelectContent>
@@ -418,7 +416,7 @@ export default function AdminErrorLogs() {
               </SelectContent>
             </Select>
             <Select value={filterUser} onValueChange={setFilterUser}>
-              <SelectTrigger className="w-full sm:w-52 h-10">
+              <SelectTrigger className="w-52 h-10">
                 <SelectValue placeholder="Filter by user" />
               </SelectTrigger>
             <SelectContent>
@@ -449,21 +447,19 @@ export default function AdminErrorLogs() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Desktop Table View */}
-            <div className="hidden md:block">
-              <div className="overflow-x-auto border rounded-md">
-                <Table className="w-full">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-24 px-3 py-3 font-semibold">Priority</TableHead>
-                      <TableHead className="w-32 px-3 py-3 font-semibold">Type</TableHead>
-                      <TableHead className="min-w-80 px-3 py-3 font-semibold">Message</TableHead>
-                      <TableHead className="w-32 px-3 py-3 font-semibold">Page</TableHead>
-                      <TableHead className="w-36 px-3 py-3 font-semibold">User</TableHead>
-                      <TableHead className="w-28 px-3 py-3 font-semibold">Time</TableHead>
-                      <TableHead className="w-24 px-3 py-3 font-semibold">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
+            <div className="overflow-x-auto border rounded-md">
+              <Table className="w-full min-w-[1200px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px] px-4 py-3 font-semibold">Priority</TableHead>
+                    <TableHead className="w-[120px] px-4 py-3 font-semibold">Type</TableHead>
+                    <TableHead className="w-[400px] px-4 py-3 font-semibold">Message</TableHead>
+                    <TableHead className="w-[150px] px-4 py-3 font-semibold">Page</TableHead>
+                    <TableHead className="w-[180px] px-4 py-3 font-semibold">User</TableHead>
+                    <TableHead className="w-[120px] px-4 py-3 font-semibold">Time</TableHead>
+                    <TableHead className="w-[130px] px-4 py-3 font-semibold">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {filteredErrorLogs.length === 0 ? (
                     <TableRow>
@@ -488,7 +484,7 @@ export default function AdminErrorLogs() {
                       
                       return (
                         <TableRow key={errorLog.id}>
-                          <TableCell className="px-3 py-2">
+                          <TableCell className="px-4 py-3">
                             <div className="flex items-center gap-1">
                               <span className="text-xs">{priorityInfo.icon}</span>
                               <Badge className={`${priorityInfo.color} text-xs px-1 py-0`} variant="secondary">
@@ -496,7 +492,7 @@ export default function AdminErrorLogs() {
                               </Badge>
                             </div>
                           </TableCell>
-                          <TableCell className="px-3 py-2">
+                          <TableCell className="px-4 py-3">
                             <Badge 
                               className={`${errorTypeColors[errorLog.errorType as keyof typeof errorTypeColors] || "bg-gray-100 text-gray-800"} text-xs px-2 py-1`}
                               variant="secondary"
@@ -504,20 +500,20 @@ export default function AdminErrorLogs() {
                               {errorLog.errorType.replace(/_/g, ' ')}
                             </Badge>
                           </TableCell>
-                          <TableCell className="px-3 py-2">
+                          <TableCell className="px-4 py-3">
                             <div className="truncate text-sm" title={errorLog.message}>
                               {errorLog.message}
                             </div>
                           </TableCell>
-                          <TableCell className="px-3 py-2">
+                          <TableCell className="px-4 py-3">
                             <code className="text-xs bg-gray-100 px-1 py-0.5 rounded truncate" title={errorLog.page}>
                               {errorLog.page}
                             </code>
                           </TableCell>
-                          <TableCell className="px-3 py-2">
+                          <TableCell className="px-4 py-3">
                             {errorLog.userId ? (
                               <div className="text-xs">
-                                <div className="font-medium truncate max-w-[120px]" title={errorLog.userFirstName && errorLog.userLastName 
+                                <div className="font-medium truncate max-w-[140px]" title={errorLog.userFirstName && errorLog.userLastName 
                                     ? `${errorLog.userFirstName} ${errorLog.userLastName}`
                                     : errorLog.userEmail || `User ${errorLog.userId}`}>
                                   {errorLog.userFirstName && errorLog.userLastName 
@@ -526,19 +522,19 @@ export default function AdminErrorLogs() {
                                   }
                                 </div>
                                 {errorLog.userEmail && errorLog.userFirstName && (
-                                  <div className="text-xs text-gray-500 truncate max-w-[120px]" title={errorLog.userEmail}>{errorLog.userEmail}</div>
+                                  <div className="text-xs text-gray-500 truncate max-w-[140px]" title={errorLog.userEmail}>{errorLog.userEmail}</div>
                                 )}
                               </div>
                             ) : (
                               <span className="text-gray-400 text-xs">Anonymous</span>
                             )}
                           </TableCell>
-                          <TableCell className="px-3 py-2">
+                          <TableCell className="px-4 py-3">
                             <div className="text-xs text-gray-600 whitespace-nowrap">
                               {formatDate(errorLog.createdAt.toString())}
                             </div>
                           </TableCell>
-                          <TableCell className="px-3 py-2">
+                          <TableCell className="px-4 py-3">
                             <div className="flex items-center gap-1">
                               <Dialog>
                                 <DialogTrigger asChild>
@@ -657,187 +653,6 @@ export default function AdminErrorLogs() {
                   )}
                 </TableBody>
               </Table>
-              </div>
-            </div>
-
-            {/* Mobile Card View */}
-            <div className="md:hidden space-y-3">
-              {filteredErrorLogs.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  {searchTerm || filterType !== "all" || filterUser !== "all" ? "No errors match your filters" : "No errors recorded yet"}
-                </div>
-              ) : (
-                filteredErrorLogs.map((errorLog) => {
-                  const IconComponent = errorTypeIcons[errorLog.errorType as keyof typeof errorTypeIcons] || AlertTriangle;
-                  const priority = calculateErrorPriority(errorLog);
-                  
-                  const getPriorityInfo = (priority: number) => {
-                    if (priority >= 120) return { level: "Critical", color: "bg-red-100 text-red-800", icon: "🔥" };
-                    if (priority >= 100) return { level: "High", color: "bg-orange-100 text-orange-800", icon: "⚠️" };
-                    if (priority >= 80) return { level: "Medium", color: "bg-yellow-100 text-yellow-800", icon: "⚡" };
-                    return { level: "Low", color: "bg-blue-100 text-blue-800", icon: "ℹ️" };
-                  };
-                  
-                  const priorityInfo = getPriorityInfo(priority);
-                  
-                  return (
-                    <Card key={errorLog.id} className="p-4">
-                      <div className="space-y-3">
-                        {/* Header with priority and type */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm">{priorityInfo.icon}</span>
-                            <Badge className={priorityInfo.color} variant="secondary">
-                              {priorityInfo.level}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <IconComponent className="h-4 w-4" />
-                            <Badge 
-                              className={errorTypeColors[errorLog.errorType as keyof typeof errorTypeColors] || "bg-gray-100 text-gray-800"}
-                              variant="secondary"
-                            >
-                              {errorLog.errorType.replace(/_/g, ' ')}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        {/* Error message */}
-                        <div className="text-sm font-medium line-clamp-2">
-                          {errorLog.message}
-                        </div>
-
-                        {/* Page and user info */}
-                        <div className="flex flex-col gap-1 text-xs text-gray-500">
-                          <div>
-                            <span className="font-medium">Page:</span> 
-                            <code className="ml-1 bg-gray-100 px-1 rounded">{errorLog.page}</code>
-                          </div>
-                          <div>
-                            <span className="font-medium">User:</span>
-                            {errorLog.userId ? (
-                              <span className="ml-1">
-                                {errorLog.userFirstName && errorLog.userLastName 
-                                  ? `${errorLog.userFirstName} ${errorLog.userLastName}`
-                                  : errorLog.userEmail || `User ${errorLog.userId}`
-                                }
-                              </span>
-                            ) : (
-                              <span className="ml-1 text-gray-400">Anonymous</span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            {formatDate(errorLog.createdAt.toString())}
-                          </div>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-2 pt-2 border-t">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="outline" size="sm" className="flex-1">
-                                <Eye className="h-4 w-4 mr-1" />
-                                Details
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                              <DialogHeader>
-                                <DialogTitle>Error Details</DialogTitle>
-                                <DialogDescription>
-                                  Detailed information about this error occurrence
-                                </DialogDescription>
-                              </DialogHeader>
-                              <ScrollArea className="max-h-96">
-                                <div className="space-y-4">
-                                  {(() => {
-                                    const naturalDescription = generateNaturalLanguageDescription(errorLog);
-                                    return (
-                                      <div>
-                                        <h4 className="font-medium mb-2">What Happened</h4>
-                                        <div className="bg-blue-50 p-3 rounded text-sm space-y-2">
-                                          <p className="text-blue-900">{naturalDescription.description}</p>
-                                          <div className="pt-2 border-t border-blue-200">
-                                            <span className="font-medium text-blue-800">Impact on Users:</span>
-                                            <p className="text-blue-800 mt-1">{naturalDescription.impact}</p>
-                                          </div>
-                                          <div className="flex items-center gap-2 pt-2">
-                                            <span className="font-medium text-blue-800">Severity:</span>
-                                            <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                              naturalDescription.severity === 'Critical' ? 'bg-red-100 text-red-800' :
-                                              naturalDescription.severity === 'High' ? 'bg-orange-100 text-orange-800' :
-                                              naturalDescription.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                              'bg-green-100 text-green-800'
-                                            }`}>
-                                              {naturalDescription.severity}
-                                            </span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    );
-                                  })()}
-                                  
-                                  <div>
-                                    <h4 className="font-medium mb-2">Technical Details</h4>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                                      <div>
-                                        <span className="font-medium">Type:</span> {errorLog.errorType}
-                                      </div>
-                                      <div>
-                                        <span className="font-medium">Page:</span> {errorLog.page}
-                                      </div>
-                                      <div>
-                                        <span className="font-medium">User Action:</span> {errorLog.userAction || "N/A"}
-                                      </div>
-                                      <div>
-                                        <span className="font-medium">Element:</span> {errorLog.elementClicked || "N/A"}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  
-                                  <div>
-                                    <h4 className="font-medium mb-2">Error Message</h4>
-                                    <div className="bg-gray-50 p-3 rounded text-sm">
-                                      {errorLog.message}
-                                    </div>
-                                  </div>
-
-                                  {errorLog.stackTrace && (
-                                    <div>
-                                      <h4 className="font-medium mb-2">Stack Trace</h4>
-                                      <div className="bg-gray-50 p-3 rounded text-xs font-mono max-h-32 overflow-y-auto">
-                                        <pre>{errorLog.stackTrace}</pre>
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  <div>
-                                    <h4 className="font-medium mb-2">Additional Data</h4>
-                                    <div className="bg-gray-50 p-3 rounded text-xs font-mono max-h-32 overflow-y-auto">
-                                      <pre>{errorLog.additionalData ? String(JSON.stringify(errorLog.additionalData, null, 2)) : 'No additional data'}</pre>
-                                    </div>
-                                  </div>
-                                </div>
-                              </ScrollArea>
-                            </DialogContent>
-                          </Dialog>
-                          
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => analyzeErrorMutation.mutate(errorLog)}
-                            disabled={analyzeErrorMutation.isPending}
-                            className="flex-1 text-green-600 hover:text-green-700 border-green-200 hover:border-green-300"
-                          >
-                            <Wrench className="h-4 w-4 mr-1" />
-                            {analyzeErrorMutation.isPending ? "Analyzing..." : "Fix"}
-                          </Button>
-                        </div>
-                      </div>
-                    </Card>
-                  );
-                })
-              )}
             </div>
           </CardContent>
         </Card>
