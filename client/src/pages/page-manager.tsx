@@ -233,34 +233,35 @@ export default function PageManager() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
+    <div className="container mx-auto p-4 sm:p-6 max-w-6xl">
+      {/* Mobile-responsive header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
+        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
           <Link to="/admin/dns">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="w-full sm:w-auto justify-start">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to DNS Manager
             </Button>
           </Link>
           <h1 className="text-2xl font-bold">Page Manager</h1>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>
+        <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
-          Create Page
+          <span className="sm:inline">Create Page</span>
         </Button>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Pages List */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
               <CardTitle>Page URL Settings</CardTitle>
               <div className="flex items-center space-x-2">
                 {hasChanges && (
-                  <Button onClick={saveAllChanges}>
+                  <Button onClick={saveAllChanges} className="w-full sm:w-auto">
                     <Save className="mr-2 h-4 w-4" />
-                    Save All Changes
+                    <span className="sm:inline">Save All Changes</span>
                   </Button>
                 )}
               </div>
@@ -271,14 +272,14 @@ export default function PageManager() {
               {editedPages.map((page) => {
                 console.log(`Rendering page: ${page.name}, isSystem: ${page.isSystem}, slug: ${page.slug}`);
                 return (
-                <div key={page.id} className="flex items-center justify-between py-3 border-b last:border-b-0">
-                  <div className="flex items-center space-x-3">
+                <div key={page.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 border-b last:border-b-0 space-y-3 sm:space-y-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
                     <span className="font-medium">{page.name}</span>
-                    <Badge variant={page.isSystem ? "secondary" : "outline"} className="text-xs">
+                    <Badge variant={page.isSystem ? "secondary" : "outline"} className="text-xs w-fit">
                       {page.isSystem ? "System" : "Custom"}
                     </Badge>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
                     <Input
                       value={page.slug || ''}
                       onChange={(e) => {
@@ -287,7 +288,7 @@ export default function PageManager() {
                         updateURL(page.id, e.target.value);
                       }}
                       placeholder="/page-url"
-                      className="w-64"
+                      className="w-full sm:w-64"
                       disabled={page.isSystem}
                       readOnly={false}
                     />
@@ -295,13 +296,15 @@ export default function PageManager() {
                       <Button 
                         variant="destructive" 
                         size="sm" 
+                        className="w-full sm:w-auto"
                         onClick={() => setDeleteConfirmation({ 
                           isOpen: true, 
                           pageId: page.id, 
                           pageName: page.name 
                         })}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4 sm:mr-0 mr-2" />
+                        <span className="sm:hidden">Delete</span>
                       </Button>
                     )}
                   </div>
@@ -324,16 +327,16 @@ export default function PageManager() {
             <CardTitle className="text-lg">How Page Management Works</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <div>
                 <h4 className="font-medium text-sm mb-2">Page Types</h4>
                 <div className="space-y-2 text-sm">
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="secondary">System</Badge>
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+                    <Badge variant="secondary" className="w-fit">System</Badge>
                     <span>Built-in pages that cannot be modified</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline">Custom</Badge>
+                  <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-2">
+                    <Badge variant="outline" className="w-fit">Custom</Badge>
                     <span>Pages you create and can edit or delete</span>
                   </div>
                 </div>
@@ -354,7 +357,7 @@ export default function PageManager() {
 
       {/* Create Page Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] max-w-md">
           <DialogHeader>
             <DialogTitle>Create New Page</DialogTitle>
           </DialogHeader>
@@ -366,6 +369,7 @@ export default function PageManager() {
                 value={newPage.name || ''}
                 onChange={(e) => setNewPage({ ...newPage, name: e.target.value })}
                 placeholder="e.g., About Us"
+                className="w-full"
               />
             </div>
             <div>
@@ -375,6 +379,7 @@ export default function PageManager() {
                 value={newPage.slug || ''}
                 onChange={(e) => setNewPage({ ...newPage, slug: e.target.value })}
                 placeholder="e.g., /about-us"
+                className="w-full"
               />
             </div>
             <div>
@@ -385,14 +390,15 @@ export default function PageManager() {
                 onChange={(e) => setNewPage({ ...newPage, description: e.target.value })}
                 placeholder="Brief description of this page"
                 rows={3}
+                className="w-full"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+          <DialogFooter className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button onClick={createPage}>
+            <Button onClick={createPage} className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Create Page
             </Button>
@@ -402,7 +408,7 @@ export default function PageManager() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteConfirmation.isOpen} onOpenChange={(open) => !open && cancelDelete()}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <AlertTriangle className="h-5 w-5 text-red-500" />
@@ -418,11 +424,11 @@ export default function PageManager() {
               This action cannot be undone. Any domain routes pointing to this page will need to be updated.
             </p>
           </div>
-          <DialogFooter className="space-x-2">
-            <Button variant="outline" onClick={cancelDelete}>
+          <DialogFooter className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+            <Button variant="outline" onClick={cancelDelete} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
+            <Button variant="destructive" onClick={confirmDelete} className="w-full sm:w-auto">
               <Trash2 className="mr-2 h-4 w-4" />
               Delete Page
             </Button>
