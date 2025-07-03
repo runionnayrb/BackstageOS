@@ -431,8 +431,8 @@ export default function AdminErrorLogs() {
                   <TableRow className="border-b border-gray-200">
                     <TableHead className="w-[120px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Priority</TableHead>
                     <TableHead className="w-[140px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Type</TableHead>
-                    <TableHead className="w-[280px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Message</TableHead>
-                    <TableHead className="w-[150px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Page</TableHead>
+                    <TableHead className="w-[200px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Message</TableHead>
+                    <TableHead className="w-[180px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Page</TableHead>
                     <TableHead className="w-[120px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">User</TableHead>
                     <TableHead className="w-[140px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Time</TableHead>
                     <TableHead className="w-[240px] px-4 py-3 font-semibold bg-gray-50">Actions</TableHead>
