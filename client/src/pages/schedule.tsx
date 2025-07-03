@@ -3,6 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
@@ -20,6 +21,7 @@ export default function Schedule() {
   const [viewMode, setViewMode] = useState<'monthly' | 'weekly' | 'daily'>('weekly');
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedContactIds, setSelectedContactIds] = useState<number[]>([]);
+  const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -124,6 +126,17 @@ export default function Schedule() {
               onFilterChange={setSelectedContactIds}
             />
             
+            <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
+              <SelectTrigger className="w-24 border-0 shadow-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="15">15 min</SelectItem>
+                <SelectItem value="30">30 min</SelectItem>
+                <SelectItem value="60">60 min</SelectItem>
+              </SelectContent>
+            </Select>
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 border-none bg-transparent hover:bg-transparent">
@@ -170,6 +183,7 @@ export default function Schedule() {
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
+            timeIncrement={timeIncrement}
           />
         ) : (
           <DailyScheduleView 

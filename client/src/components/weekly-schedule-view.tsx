@@ -19,6 +19,7 @@ interface WeeklyScheduleViewProps {
   currentDate?: Date;
   setCurrentDate?: (date: Date) => void;
   selectedContactIds: number[];
+  timeIncrement: 15 | 30 | 60;
 }
 
 interface ScheduleEvent {
@@ -62,11 +63,10 @@ const getEventColor = (type: string) => {
   return 'bg-blue-500'; // Single consistent color for all events
 };
 
-export default function WeeklyScheduleView({ projectId, onDateClick, selectedContactIds }: WeeklyScheduleViewProps) {
+export default function WeeklyScheduleView({ projectId, onDateClick, selectedContactIds, timeIncrement }: WeeklyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
-  const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
   const [isDragCreating, setIsDragCreating] = useState<{
     isActive: boolean;
     startDay: number;
@@ -518,17 +518,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
       <div className="space-y-4">
       {/* Navigation and controls row */}
       <div className="flex items-center justify-between">
-        {/* Time increment on the left */}
-        <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-          <SelectTrigger className="w-24 border-0 shadow-none">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="15">15 min</SelectItem>
-            <SelectItem value="30">30 min</SelectItem>
-            <SelectItem value="60">60 min</SelectItem>
-          </SelectContent>
-        </Select>
+        {/* Empty space on the left */}
+        <div></div>
 
         {/* Week navigation - centered */}
         <div className="flex items-center">
