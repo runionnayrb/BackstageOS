@@ -433,9 +433,9 @@ export default function AdminErrorLogs() {
                     <TableHead className="w-[140px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Type</TableHead>
                     <TableHead className="w-[400px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Message</TableHead>
                     <TableHead className="w-[150px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Page</TableHead>
-                    <TableHead className="w-[200px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">User</TableHead>
+                    <TableHead className="w-[120px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">User</TableHead>
                     <TableHead className="w-[140px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Time</TableHead>
-                    <TableHead className="w-[160px] px-4 py-3 font-semibold bg-gray-50">Actions</TableHead>
+                    <TableHead className="w-[240px] px-4 py-3 font-semibold bg-gray-50">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -490,18 +490,13 @@ export default function AdminErrorLogs() {
                           </TableCell>
                           <TableCell className="px-4 py-3">
                             {errorLog.userId ? (
-                              <div className="text-xs">
-                                <div className="font-medium truncate max-w-[140px]" title={errorLog.userFirstName && errorLog.userLastName 
-                                    ? `${errorLog.userFirstName} ${errorLog.userLastName}`
-                                    : errorLog.userEmail || `User ${errorLog.userId}`}>
-                                  {errorLog.userFirstName && errorLog.userLastName 
-                                    ? `${errorLog.userFirstName} ${errorLog.userLastName}`
-                                    : errorLog.userEmail || `User ${errorLog.userId}`
-                                  }
-                                </div>
-                                {errorLog.userEmail && errorLog.userFirstName && (
-                                  <div className="text-xs text-gray-500 truncate max-w-[140px]" title={errorLog.userEmail}>{errorLog.userEmail}</div>
-                                )}
+                              <div className="text-xs font-medium truncate max-w-[100px]" title={errorLog.userFirstName && errorLog.userLastName 
+                                  ? `${errorLog.userFirstName} ${errorLog.userLastName}`
+                                  : errorLog.userEmail || `User ${errorLog.userId}`}>
+                                {errorLog.userFirstName && errorLog.userLastName 
+                                  ? `${errorLog.userFirstName} ${errorLog.userLastName}`
+                                  : errorLog.userEmail || `User ${errorLog.userId}`
+                                }
                               </div>
                             ) : (
                               <span className="text-gray-400 text-xs">Anonymous</span>
