@@ -11,6 +11,7 @@ import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMid
 import { isAdmin } from "./adminUtils";
 import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
+import { ErrorClusteringService } from "./errorClusteringService";
 import { z } from "zod";
 import sgMail from "@sendgrid/mail";
 
@@ -205,6 +206,9 @@ function requireAdmin(req: any, res: any, next: any) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Initialize error clustering service
+  const errorClusteringService = new ErrorClusteringService(storage);
+
   // Setup authentication
   setupAuth(app);
 
@@ -3321,6 +3325,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting event location:", error);
       res.status(500).json({ message: "Failed to delete event location" });
+    }
+  });
+
+  // Error Clustering & Analytics Routes (Admin Only)
+  
+  // Get error clusters with filtering
+  app.get('/api/error-clusters', requireAdmin, async (req: any, res) => {
+    try {
+      const { timeRange = '24h', severity } = req.query;
+      const clusters = await storage.getErrorClusters(timeRange, severity);
+      res.json(clusters);
+    } catch (error) {
+      console.error("Error fetching error clusters:", error);
+      res.status(500).json({ message: "Failed to fetch error clusters" });
+    }
+  });
+
+  // Get error trends and analytics
+  app.get('/api/error-trends', requireAdmin, async (req: any, res) => {
+    try {
+      const { timeRange = '24h' } = req.query;
+      const trends = await errorClusteringService.getErrorTrends(timeRange);
+      res.json(trends);
+    } catch (error) {
+      console.error("Error fetching error trends:", error);
+      res.status(500).json({ message: "Failed to fetch error trends" });
+    }
+  });
+
+  // Mark error cluster as resolved
+  app.post('/api/error-clusters/:clusterId/resolve', requireAdmin, async (req: any, res) => {
+    try {
+      const { clusterId } = req.params;
+      await storage.resolveErrorCluster(parseInt(clusterId));
+      res.json({ message: "Error cluster marked as resolved" });
+    } catch (error) {
+      console.error("Error resolving cluster:", error);
+      res.status(500).json({ message: "Failed to resolve error cluster" });
+    }
+  });
+
+  // Get cluster details with related error logs
+  app.get('/api/error-clusters/:clusterId/details', requireAdmin, async (req: any, res) => {
+    try {
+      const { clusterId } = req.params;
+      const clusterDetails = await storage.getErrorClusterDetails(parseInt(clusterId));
+      res.json(clusterDetails);
+    } catch (error) {
+      console.error("Error fetching cluster details:", error);
+      res.status(500).json({ message: "Failed to fetch cluster details" });
+    }
+  });
+
+  // Force cluster analysis for new errors
+  app.post('/api/error-clusters/analyze', requireAdmin, async (req: any, res) => {
+    try {
+      // Process recent unprocessed error logs for clustering
+      const recentErrors = await storage.getErrorLogs();
+      for (const error of recentErrors.slice(0, 10)) { // Process last 10 errors
+        await errorClusteringService.processErrorForClustering(error);
+      }
+      res.json({ message: "Error clustering analysis initiated" });
+    } catch (error) {
+      console.error("Error initiating cluster analysis:", error);
+      res.status(500).json({ message: "Failed to initiate clustering analysis" });
     }
   });
 

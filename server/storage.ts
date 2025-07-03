@@ -1278,6 +1278,75 @@ export class DatabaseStorage implements IStorage {
       .set({ isRead: true, readAt: new Date() })
       .where(eq(errorNotifications.id, notificationId));
   }
+
+  // Error Clustering Methods
+  async getErrorClusters(timeRange: string = '24h', severity?: string) {
+    const timeFilter = this.getTimeRangeFilter(timeRange);
+    
+    let query = db.select({
+      id: errorClusters.id,
+      signature: errorClusters.signature,
+      errorPattern: errorClusters.signature, // Using signature as errorPattern for compatibility
+      occurrenceCount: errorClusters.occurrenceCount,
+      severity: errorClusters.priority, // Using priority as severity
+      lastOccurrence: errorClusters.lastOccurrence,
+      createdAt: errorClusters.createdAt,
+      isResolved: sql<boolean>`${errorClusters.status} = 'resolved'`.as('isResolved'),
+      affectedUsers: errorClusters.affectedUsers
+    })
+      .from(errorClusters)
+      .where(and(
+        gte(errorClusters.createdAt, timeFilter),
+        ...(severity ? [eq(errorClusters.priority, severity)] : [])
+      ))
+      .orderBy(desc(errorClusters.lastOccurrence));
+
+    return await query;
+  }
+
+  async resolveErrorCluster(clusterId: number): Promise<void> {
+    await db.update(errorClusters)
+      .set({ status: 'resolved' })
+      .where(eq(errorClusters.id, clusterId));
+  }
+
+  async getErrorClusterDetails(clusterId: number) {
+    const cluster = await db.select()
+      .from(errorClusters)
+      .where(eq(errorClusters.id, clusterId))
+      .limit(1);
+
+    if (cluster.length === 0) {
+      throw new Error('Cluster not found');
+    }
+
+    // Note: errorLogs don't currently have clusterId field in schema,
+    // so using errorSignature to match related errors
+    const relatedErrors = await db.select()
+      .from(errorLogs)
+      .where(eq(errorLogs.errorSignature, cluster[0].signature))
+      .orderBy(desc(errorLogs.createdAt))
+      .limit(50);
+
+    return {
+      cluster: cluster[0],
+      relatedErrors
+    };
+  }
+
+  private getTimeRangeFilter(timeRange: string): Date {
+    const now = new Date();
+    switch (timeRange) {
+      case '24h':
+        return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      case '7d':
+        return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      case '30d':
+        return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      default:
+        return new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
