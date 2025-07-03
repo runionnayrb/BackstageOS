@@ -266,7 +266,10 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     },
     onSuccess: (data) => {
       console.log('Update mutation succeeded:', data);
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      
+      // Force a fresh query rather than just invalidating
+      queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      
       setEditingEvent(null);
       // Only show toast for manual edits, not drag operations
       if (data.fromDrag !== true) {
@@ -275,8 +278,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     },
     onError: (error) => {
       console.error('Update mutation failed:', error);
-      // Revert optimistic update
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      // Revert optimistic update by forcing a fresh query
+      queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
       toast({ 
         title: "Failed to update event", 
         description: error.message,
@@ -573,21 +576,10 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
           console.log('Drag completed, updating event:', event.id, eventData);
 
-          // Update UI immediately for instant visual feedback
-          queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
-            return old?.map((e: ScheduleEvent) => 
-              e.id === event.id ? { ...e, date: newDate, startTime, endTime } : e
-            ) || [];
-          });
-
-          // Update in background - use mutateAsync to handle errors properly
-          updateEventMutation.mutateAsync({
+          // Use the mutation directly and wait for success
+          updateEventMutation.mutate({
             eventId: event.id,
             eventData,
-          }).catch((error) => {
-            console.error('Drag update failed:', error);
-            // Revert the optimistic update
-            queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
           });
 
           setJustDragged(event.id);
