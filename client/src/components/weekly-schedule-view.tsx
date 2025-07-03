@@ -247,20 +247,36 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
   const updateEventMutation = useMutation({
     mutationFn: async ({ eventId, eventData }: { eventId: number; eventData: any }) => {
+      console.log('Updating event:', eventId, eventData);
       const response = await fetch(`/api/schedule-events/${eventId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(eventData),
       });
-      if (!response.ok) throw new Error("Failed to update event");
-      return response.json();
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Update failed:', response.status, errorText);
+        throw new Error(`Failed to update event: ${response.status} ${errorText}`);
+      }
+      
+      const result = await response.json();
+      console.log('Update success:', result);
+      return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Update mutation succeeded:', data);
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
       setEditingEvent(null);
-      toast({ title: "Event updated successfully" });
+      // Only show toast for manual edits, not drag operations
+      if (data.fromDrag !== true) {
+        toast({ title: "Event updated successfully" });
+      }
     },
     onError: (error) => {
+      console.error('Update mutation failed:', error);
+      // Revert optimistic update
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
       toast({ 
         title: "Failed to update event", 
         description: error.message,
@@ -552,7 +568,10 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             date: newDate,
             startTime,
             endTime,
+            fromDrag: true, // Flag to indicate this is a drag operation
           };
+
+          console.log('Drag completed, updating event:', event.id, eventData);
 
           // Update UI immediately for instant visual feedback
           queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
@@ -561,10 +580,14 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             ) || [];
           });
 
-          // Update in background
-          updateEventMutation.mutate({
+          // Update in background - use mutateAsync to handle errors properly
+          updateEventMutation.mutateAsync({
             eventId: event.id,
             eventData,
+          }).catch((error) => {
+            console.error('Drag update failed:', error);
+            // Revert the optimistic update
+            queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
           });
 
           setJustDragged(event.id);
