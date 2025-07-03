@@ -144,6 +144,8 @@ export function setupAuth(app: Express) {
         firstName,
         lastName,
         betaAccess: "limited", // Default beta access
+        defaultReplyToEmail: email, // Auto-populate with their registration email
+        emailDisplayName: `${firstName} ${lastName}`.trim() || null, // Auto-populate with their name
       });
 
       // Check if this email was on the waitlist and convert it to "converted" status
