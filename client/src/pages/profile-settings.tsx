@@ -215,7 +215,7 @@ export default function ProfileSettings() {
                     placeholder={user?.email || "your.email@gmail.com"}
                   />
                   <p className="text-sm text-muted-foreground">
-                    When recipients reply to your show emails, they'll reach this address. Defaults to your account email if left blank.
+                    When recipients reply to your show emails, they'll reach this address. You can enter multiple email addresses separated by commas. Defaults to your account email if left blank.
                   </p>
                 </div>
                 

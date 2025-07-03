@@ -943,7 +943,7 @@ export default function ShowSettings() {
                   onChange={(e) => handleProjectUpdate({ customReplyToEmail: e.target.value })}
                 />
                 <p className="text-sm text-muted-foreground">
-                  When team members reply to emails from this {showLabel.toLowerCase()}, replies will go to this address instead of your default.
+                  When team members reply to emails from this {showLabel.toLowerCase()}, replies will go to this address instead of your default. You can enter multiple email addresses separated by commas.
                 </p>
               </div>
               
