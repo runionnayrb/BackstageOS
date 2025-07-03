@@ -590,10 +590,13 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           };
 
           // Immediately update the query cache for instant visual feedback
-          queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
-            return old?.map((e: ScheduleEvent) => 
+          queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: any) => {
+            console.log('Updating cache for event', event.id, 'with data:', eventData);
+            const updated = old?.map((e: ScheduleEvent) => 
               e.id === event.id ? { ...e, ...eventData } : e
             ) || [];
+            console.log('Updated cache data:', updated.find((e: any) => e.id === event.id));
+            return updated;
           });
 
           // Run database update silently in background
