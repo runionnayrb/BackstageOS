@@ -567,13 +567,33 @@ export default function AdminErrorLogs() {
           
           {analyzedFix && currentError && (
             <div className="space-y-6">
-              {/* Error Summary */}
+              {/* Natural Language Description */}
+              {analyzedFix.errorDescription && (
+                <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
+                  <h4 className="font-medium mb-2 flex items-center gap-2">
+                    <Eye className="h-4 w-4" />
+                    What Happened
+                  </h4>
+                  <p className="text-sm text-blue-900 mb-3">
+                    {analyzedFix.errorDescription.naturalLanguage}
+                  </p>
+                  <div className="text-xs space-y-1">
+                    <div><strong>User Impact:</strong> {analyzedFix.errorDescription.userImpact}</div>
+                    <div><strong>Severity:</strong> {analyzedFix.errorDescription.severity}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Technical Details */}
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="font-medium mb-2">Error Summary</h4>
+                <h4 className="font-medium mb-2">Technical Details</h4>
                 <div className="text-sm space-y-1">
-                  <div><strong>Type:</strong> {currentError.errorType.replace(/_/g, ' ')}</div>
-                  <div><strong>Message:</strong> {currentError.message}</div>
+                  <div><strong>Error Type:</strong> {currentError.errorType.replace(/_/g, ' ')}</div>
                   <div><strong>Page:</strong> {currentError.page}</div>
+                  {analyzedFix.errorDescription && (
+                    <div><strong>Technical Summary:</strong> {analyzedFix.errorDescription.technicalSummary}</div>
+                  )}
+                  <div><strong>Raw Message:</strong> <code className="text-xs bg-white p-1 rounded">{currentError.message}</code></div>
                 </div>
               </div>
 

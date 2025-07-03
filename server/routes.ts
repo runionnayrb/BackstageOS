@@ -23,6 +23,71 @@ function analyzeAndFixError(errorLog: any) {
   let fixActions: string[] = [];
   let recommendation = "";
 
+  // Generate natural language description of what happened
+  function getErrorDescription(type: string, message: string, page: string) {
+    const pageDisplayName = page.replace(/^\//, '').replace(/\//g, ' → ') || 'homepage';
+    
+    switch (type) {
+      case 'javascript_error':
+        return {
+          naturalLanguage: `A JavaScript programming error occurred on the ${pageDisplayName} page. This means some code failed to run properly, which could cause features to stop working or display incorrectly for users.`,
+          technicalSummary: `JavaScript runtime error: ${message}`,
+          userImpact: 'Users may experience broken functionality, missing content, or unresponsive interface elements.',
+          severity: 'High - Can break core functionality'
+        };
+        
+      case 'network_error':
+        return {
+          naturalLanguage: `A network communication problem occurred while the ${pageDisplayName} page was trying to connect to the server. This means data couldn't be sent or received properly.`,
+          technicalSummary: `Network request failed: ${message}`,
+          userImpact: 'Users may see loading errors, missing data, or inability to save their work.',
+          severity: 'High - Prevents data access and updates'
+        };
+        
+      case 'form_submission_error':
+        return {
+          naturalLanguage: `A form on the ${pageDisplayName} page failed to submit properly. Users filled out information but it couldn't be saved or processed correctly.`,
+          technicalSummary: `Form validation or submission failure: ${message}`,
+          userImpact: 'Users lose their entered data and cannot complete important tasks like creating shows or saving settings.',
+          severity: 'Critical - Blocks essential user actions'
+        };
+        
+      case 'page_load_failure':
+        return {
+          naturalLanguage: `The ${pageDisplayName} page failed to load completely. This means users either see a blank page, partial content, or very slow loading times.`,
+          technicalSummary: `Page rendering or resource loading failure: ${message}`,
+          userImpact: 'Users cannot access the page content or experience very poor performance.',
+          severity: 'Critical - Prevents page access'
+        };
+        
+      case 'click_failure':
+        return {
+          naturalLanguage: `A button or clickable element on the ${pageDisplayName} page stopped responding to user clicks. Users try to interact but nothing happens.`,
+          technicalSummary: `Interactive element failure: ${message}`,
+          userImpact: 'Users become frustrated when buttons don\'t work and cannot complete their intended actions.',
+          severity: 'Medium - Reduces usability'
+        };
+        
+      case 'navigation_error':
+        return {
+          naturalLanguage: `Users encountered problems navigating between pages or accessing certain areas of the application. Links may be broken or lead to the wrong places.`,
+          technicalSummary: `Navigation or routing error: ${message}`,
+          userImpact: 'Users get lost, cannot find features, or may access areas they shouldn\'t be able to see.',
+          severity: 'Medium - Affects user flow'
+        };
+        
+      default:
+        return {
+          naturalLanguage: `An unrecognized error occurred on the ${pageDisplayName} page. The system detected a problem but couldn't automatically categorize what went wrong.`,
+          technicalSummary: `Uncategorized error: ${message}`,
+          userImpact: 'Unknown impact - requires manual investigation to determine effects on users.',
+          severity: 'Unknown - Needs investigation'
+        };
+    }
+  }
+
+  const errorDescription = getErrorDescription(errorType, message, page);
+
   switch (errorType) {
     case 'javascript_error':
       if (message.includes('Cannot read property') || message.includes('Cannot read properties')) {
@@ -86,6 +151,7 @@ function analyzeAndFixError(errorLog: any) {
 
   return {
     canFix,
+    errorDescription,
     fixDescription,
     fixActions,
     recommendation
