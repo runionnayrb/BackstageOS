@@ -85,21 +85,68 @@ export default function AdminErrorLogs() {
     return users;
   }, [] as Array<{ id: string; displayName: string; email?: string; }>);
 
-  // Filter error logs based on search, type, and user filter
-  const filteredErrorLogs = errorLogs.filter(log => {
-    const matchesSearch = searchTerm === "" || 
-      log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.page.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.userId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.userEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.userFirstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.userLastName?.toLowerCase().includes(searchTerm.toLowerCase());
+  // Calculate priority for error logs (higher number = higher priority)
+  const calculateErrorPriority = (log: ErrorLog) => {
+    let priority = 0;
     
-    const matchesType = filterType === "all" || log.errorType === filterType;
-    const matchesUser = filterUser === "all" || log.userId === filterUser;
+    // Priority by error type (most critical first)
+    const typePriority = {
+      javascript_error: 100,      // Highest priority - breaks functionality
+      form_submission_error: 90,  // High - prevents user actions
+      page_load_failure: 80,      // High - prevents access
+      click_failure: 70,          // Medium-high - UI issues
+      navigation_error: 60,       // Medium - routing issues
+      network_error: 50           // Lower - often temporary
+    };
+    priority += typePriority[log.errorType as keyof typeof typePriority] || 0;
     
-    return matchesSearch && matchesType && matchesUser;
-  });
+    // Boost priority for recent errors (within last 24 hours)
+    const errorAge = Date.now() - new Date(log.createdAt).getTime();
+    const hoursOld = errorAge / (1000 * 60 * 60);
+    if (hoursOld < 24) {
+      priority += 20; // Recent errors are more relevant
+    }
+    
+    // Boost priority for errors with stack traces (more actionable)
+    if (log.stackTrace) {
+      priority += 10;
+    }
+    
+    // Boost priority for errors from specific critical pages
+    const criticalPages = ['/login', '/register', '/shows', '/admin'];
+    if (criticalPages.some(page => log.page.includes(page))) {
+      priority += 15;
+    }
+    
+    return priority;
+  };
+
+  // Filter and sort error logs by priority
+  const filteredErrorLogs = errorLogs
+    .filter(log => {
+      const matchesSearch = searchTerm === "" || 
+        log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.page.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.userId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.userEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.userFirstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.userLastName?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesType = filterType === "all" || log.errorType === filterType;
+      const matchesUser = filterUser === "all" || log.userId === filterUser;
+      
+      return matchesSearch && matchesType && matchesUser;
+    })
+    .sort((a, b) => {
+      const priorityA = calculateErrorPriority(a);
+      const priorityB = calculateErrorPriority(b);
+      
+      // Sort by priority (highest first), then by creation date (newest first)
+      if (priorityA !== priorityB) {
+        return priorityB - priorityA;
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
 
   // Get stats for the cards
   const stats = errorLogs.reduce((acc, log) => {
@@ -227,7 +274,8 @@ export default function AdminErrorLogs() {
           <CardHeader>
             <CardTitle>Recent Errors ({filteredErrorLogs.length})</CardTitle>
             <CardDescription>
-              Error logging captures JavaScript errors, network failures, and user interaction issues from registered users in production only
+              Error logging captures JavaScript errors, network failures, and user interaction issues from registered users in production only. 
+              Errors are automatically prioritized by criticality - JavaScript errors and recent issues appear first.
               <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
                 isLoggingEnabled 
                   ? "bg-green-100 text-green-800" 
@@ -242,6 +290,7 @@ export default function AdminErrorLogs() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Priority</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Message</TableHead>
                     <TableHead>Page</TableHead>
@@ -253,16 +302,35 @@ export default function AdminErrorLogs() {
                 <TableBody>
                   {filteredErrorLogs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={7} className="text-center py-8 text-gray-500">
                         {searchTerm || filterType !== "all" || filterUser !== "all" ? "No errors match your filters" : "No errors recorded yet"}
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredErrorLogs.map((errorLog) => {
                       const IconComponent = errorTypeIcons[errorLog.errorType as keyof typeof errorTypeIcons] || AlertTriangle;
+                      const priority = calculateErrorPriority(errorLog);
+                      
+                      // Determine priority level and styling
+                      const getPriorityInfo = (priority: number) => {
+                        if (priority >= 120) return { level: "Critical", color: "bg-red-100 text-red-800", icon: "🔥" };
+                        if (priority >= 100) return { level: "High", color: "bg-orange-100 text-orange-800", icon: "⚠️" };
+                        if (priority >= 80) return { level: "Medium", color: "bg-yellow-100 text-yellow-800", icon: "⚡" };
+                        return { level: "Low", color: "bg-blue-100 text-blue-800", icon: "ℹ️" };
+                      };
+                      
+                      const priorityInfo = getPriorityInfo(priority);
                       
                       return (
                         <TableRow key={errorLog.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm">{priorityInfo.icon}</span>
+                              <Badge className={priorityInfo.color} variant="secondary">
+                                {priorityInfo.level}
+                              </Badge>
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <IconComponent className="h-4 w-4" />
