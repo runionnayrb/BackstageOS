@@ -506,7 +506,7 @@ export default function AdminErrorLogs() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-1 text-sm text-gray-600">
+                            <div className="flex items-center gap-1 text-sm text-gray-600 whitespace-nowrap">
                               <Calendar className="h-3 w-3" />
                               {formatDate(errorLog.createdAt.toString())}
                             </div>
