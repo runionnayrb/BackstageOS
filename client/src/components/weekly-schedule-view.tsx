@@ -371,7 +371,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
     // Use same coordinate system as weekly availability editor
     const rect = calendarRef.current.getBoundingClientRect();
-    const y = e.clientY - rect.top;
+    const scrollTop = scrollContainerRef.current.scrollTop;
+    const y = e.clientY - rect.top + scrollTop; // Add scroll offset
     const minutes = snapToIncrement(positionToMinutes(y));
     
     console.log('Mouse click:', { 
@@ -409,10 +410,11 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     setDragState(dragState);
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!calendarRef.current) return;
+      if (!calendarRef.current || !scrollContainerRef.current) return;
 
       const rect = calendarRef.current.getBoundingClientRect();
-      const y = e.clientY - rect.top;
+      const scrollTop = scrollContainerRef.current.scrollTop;
+      const y = e.clientY - rect.top + scrollTop; // Add scroll offset
       const newMinutes = snapToIncrement(positionToMinutes(y));
 
       dragState = { ...dragState, currentTime: newMinutes };
@@ -482,7 +484,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     const startMinutes = timeToMinutes(event.startTime);
     
     // Calculate drag offset in pixels - using same system as weekly availability
-    const mouseY = e.clientY - calendarRect.top;
+    const scrollTop = scrollContainerRef.current.scrollTop;
+    const mouseY = e.clientY - calendarRect.top + scrollTop; // Add scroll offset
     const startPosition = minutesToPosition(startMinutes);
     const offsetY = mouseY - startPosition;
     
@@ -739,7 +742,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               return (
                 <div
                   key={dayIndex}
-                  className="absolute border-r border-gray-200 bg-white cursor-crosshair relative"
+                  className="absolute border-r border-gray-200 bg-white cursor-crosshair"
                   style={{
                     left: leftPosition,
                     width: columnWidth,
