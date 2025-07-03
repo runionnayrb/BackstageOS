@@ -756,18 +756,10 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
         {/* All Day Events Section */}
         {showAllDayEvents && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg">
-            <div className="grid grid-cols-8 border-b border-gray-200">
-              <div className="w-20 p-2 text-sm font-medium text-gray-600 bg-gray-100">
+            <div className="grid grid-cols-8 min-h-[60px]">
+              <div className="w-20 bg-gray-100 p-2 text-sm font-medium text-gray-600 flex items-center">
                 All Day
               </div>
-              {weekDates.map((date, dayIndex) => (
-                <div key={dayIndex} className="p-2 text-sm font-medium text-center border-l border-gray-200">
-                  {/* Empty to avoid duplicate dates */}
-                </div>
-              ))}
-            </div>
-            <div className="grid grid-cols-8 min-h-[60px]">
-              <div className="w-20 bg-gray-100"></div>
               {weekDates.map((date, dayIndex) => {
                 const dayEvents = filteredEvents.filter(event => 
                   event.date === date.toISOString().split('T')[0] && event.isAllDay
