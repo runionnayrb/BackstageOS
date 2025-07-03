@@ -720,12 +720,12 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           {/* All Day and Today buttons - right aligned */}
           <div className="flex items-center space-x-2">
             <Button
-              variant="outline"
+              variant={showAllDayEvents ? "default" : "outline"}
               size="sm"
               onClick={() => setShowAllDayEvents(!showAllDayEvents)}
               className="text-sm"
             >
-              All Day {showAllDayEvents ? 'Hide' : 'Show'}
+              All Day
             </Button>
             <Button variant="outline" onClick={goToToday} size="sm">
               Today
