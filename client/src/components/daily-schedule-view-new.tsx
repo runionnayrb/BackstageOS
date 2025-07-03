@@ -70,14 +70,16 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
   const calendarRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Time utilities - same as availability editor
+  // Time utilities
   const timeToMinutes = (time: string): number => {
     const [hours, minutes] = time.split(':').map(Number);
     return hours * 60 + minutes;
   };
 
   const minutesToTime = (minutes: number): string => {
-    return formatTimeFromMinutes(minutes, '24-Hour');
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
   };
 
   const minutesToPosition = (minutes: number): number => {
@@ -117,10 +119,10 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
   // Filter events for the current day
   const dayEvents = useMemo(() => {
     const dateStr = currentDate.toISOString().split('T')[0];
-    return events.filter((event: any) => event.date === dateStr);
+    return events.filter((event: ScheduleEvent) => event.date === dateStr);
   }, [events, currentDate]);
 
-  // Generate time labels - same as availability editor
+  // Generate time labels
   const timeLabels = useMemo(() => {
     return Array.from({ length: TOTAL_HOURS + 1 }, (_, i) => {
       const hour = START_HOUR + i;
@@ -131,7 +133,7 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
     });
   }, [timeFormat]);
 
-  // Generate grid lines - same as availability editor
+  // Generate grid lines
   const gridLines = useMemo(() => {
     const lines = [];
     for (let hour = START_HOUR; hour <= END_HOUR; hour++) {
@@ -174,7 +176,7 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
     setCurrentDate(new Date());
   };
 
-  // Handle mouse down for creating events - same pattern as availability editor
+  // Handle mouse down for creating events
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target !== e.currentTarget) return;
     
@@ -314,11 +316,11 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
         </div>
 
         {/* All-day events section */}
-        {dayEvents.filter((event: any) => event.isAllDay).length > 0 && (
+        {dayEvents.filter(event => event.isAllDay).length > 0 && (
           <div className="mb-6">
             <h3 className="text-sm font-medium text-gray-600 mb-2">All Day</h3>
             <div className="space-y-1">
-              {dayEvents.filter((event: any) => event.isAllDay).map((event: any) => (
+              {dayEvents.filter(event => event.isAllDay).map((event) => (
                 <div
                   key={event.id}
                   className={`p-2 border rounded-lg cursor-pointer hover:opacity-80 ${getEventTypeColor(event.type)} ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''}`}
@@ -335,7 +337,7 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
           </div>
         )}
 
-        {/* Calendar grid - exactly like availability editor layout */}
+        {/* Calendar grid - using availability editor layout */}
         <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <div 
             ref={scrollContainerRef}
@@ -343,9 +345,9 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
             style={{ height: '600px' }}
           >
             <div style={{ height: '960px', position: 'relative' }}>
-              <div className="grid grid-cols-5 h-full">
-                {/* Time column - matches availability editor */}
-                <div className="border-r bg-gray-50">
+              <div className="grid grid-cols-2 h-full">
+                {/* Time column */}
+                <div className="border-r bg-gray-50 w-24">
                   <div className="relative h-full">
                     {timeLabels.map(({ hour, label, position }) => (
                       <div
@@ -359,8 +361,8 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
                   </div>
                 </div>
 
-                {/* Event area - spans 4 columns like availability editor spans 7 */}
-                <div className="col-span-4 relative" ref={calendarRef}>
+                {/* Event area */}
+                <div className="relative" ref={calendarRef}>
                   {/* Working hours background highlight */}
                   <div
                     className="absolute w-full bg-blue-50 opacity-30"
@@ -370,7 +372,7 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
                     }}
                   />
 
-                  {/* Grid lines based on time increment */}
+                  {/* Grid lines */}
                   {gridLines.map(({ minutes, isHour }) => (
                     <div
                       key={minutes}
@@ -385,10 +387,10 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
                     onMouseDown={handleMouseDown}
                   />
 
-                  {/* Events - positioned like availability blocks */}
+                  {/* Events */}
                   {dayEvents
-                    .filter((event: any) => !event.isAllDay)
-                    .map((event: any) => {
+                    .filter(event => !event.isAllDay)
+                    .map((event) => {
                       const startMinutes = timeToMinutes(event.startTime);
                       const endMinutes = timeToMinutes(event.endTime);
                       const duration = endMinutes - startMinutes;
@@ -398,8 +400,8 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
                           key={event.id}
                           className={`absolute rounded cursor-pointer border-2 transition-opacity hover:opacity-90 ${getEventTypeColor(event.type)} ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''}`}
                           style={{
-                            left: '0.5%',
-                            width: '99%',
+                            left: '4px',
+                            right: '4px',
                             top: `${minutesToPosition(startMinutes)}px`,
                             height: `${minutesToHeight(duration)}px`,
                             minHeight: '24px'
@@ -456,6 +458,7 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
               <Button 
                 variant="destructive" 
                 onClick={() => {
+                  // Bulk delete implementation would go here
                   setSelectedEvents(new Set());
                   setShowBulkDeleteDialog(false);
                   toast({ title: 'Events deleted successfully' });
