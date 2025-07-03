@@ -251,6 +251,61 @@ export default function AdminErrorLogs() {
     return match ? match[0] : userAgent.substring(0, 50) + "...";
   };
 
+  const generateNaturalLanguageDescription = (errorLog: any): { description: string; impact: string; severity: string } => {
+    const errorType = errorLog.errorType;
+    const message = errorLog.message;
+    const page = errorLog.page;
+
+    let description = '';
+    let impact = '';
+    let severity = 'Low';
+
+    switch (errorType) {
+      case 'javascript_error':
+        description = `A JavaScript programming error occurred on the ${page} page. This means some code failed to run properly, which could cause features to stop working or display incorrectly for users.`;
+        impact = 'Users may experience broken functionality, missing content, or interface elements that don\'t respond to clicks.';
+        severity = message.includes('Cannot read') || message.includes('undefined') ? 'High' : 'Medium';
+        break;
+
+      case 'network_error':
+        description = `A network connection problem prevented data from loading on the ${page} page. This usually means the app couldn\'t communicate with the server to fetch or save information.`;
+        impact = 'Users may see loading screens that never complete, empty sections, or get error messages when trying to save their work.';
+        severity = 'High';
+        break;
+
+      case 'page_load_failure':
+        description = `The ${page} page failed to load completely. This means users trying to visit this page encountered a problem that prevented it from displaying properly.`;
+        impact = 'Users cannot access this page at all, creating a dead end in their workflow and potentially blocking critical tasks.';
+        severity = 'Critical';
+        break;
+
+      case 'click_failure':
+        description = `A button or interactive element on the ${page} page isn\'t working when users click it. This suggests a problem with the user interface that prevents normal interaction.`;
+        impact = 'Users click buttons or links expecting something to happen, but nothing occurs, leading to confusion and inability to complete tasks.';
+        severity = 'Medium';
+        break;
+
+      case 'form_submission_error':
+        description = `A form on the ${page} page failed to submit properly when a user tried to save their information. This prevents users from saving their work or completing important actions.`;
+        impact = 'Users lose their work and cannot complete essential tasks like creating shows, saving reports, or updating contact information.';
+        severity = 'High';
+        break;
+
+      case 'navigation_error':
+        description = `Users encountered a problem when trying to navigate to a different page from ${page}. This suggests an issue with the app\'s routing or page transitions.`;
+        impact = 'Users get stuck on pages and cannot move through the application normally, disrupting their workflow.';
+        severity = 'Medium';
+        break;
+
+      default:
+        description = `An unexpected error occurred on the ${page} page. The system encountered a problem that wasn\'t anticipated.`;
+        impact = 'This may cause unpredictable behavior and could affect user experience in various ways.';
+        severity = 'Medium';
+    }
+
+    return { description, impact, severity };
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -477,8 +532,35 @@ export default function AdminErrorLogs() {
                                 </DialogHeader>
                                 <ScrollArea className="max-h-96">
                                   <div className="space-y-4">
+                                    {(() => {
+                                      const naturalDescription = generateNaturalLanguageDescription(errorLog);
+                                      return (
+                                        <div>
+                                          <h4 className="font-medium mb-2">What Happened</h4>
+                                          <div className="bg-blue-50 p-3 rounded text-sm space-y-2">
+                                            <p className="text-blue-900">{naturalDescription.description}</p>
+                                            <div className="pt-2 border-t border-blue-200">
+                                              <span className="font-medium text-blue-800">Impact on Users:</span>
+                                              <p className="text-blue-800 mt-1">{naturalDescription.impact}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2 pt-2">
+                                              <span className="font-medium text-blue-800">Severity:</span>
+                                              <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                                naturalDescription.severity === 'Critical' ? 'bg-red-100 text-red-800' :
+                                                naturalDescription.severity === 'High' ? 'bg-orange-100 text-orange-800' :
+                                                naturalDescription.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                                'bg-green-100 text-green-800'
+                                              }`}>
+                                                {naturalDescription.severity}
+                                              </span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })()}
+
                                     <div>
-                                      <h4 className="font-medium mb-2">Error Information</h4>
+                                      <h4 className="font-medium mb-2">Technical Details</h4>
                                       <div className="grid grid-cols-2 gap-4 text-sm">
                                         <div>
                                           <span className="font-medium">Type:</span> {errorLog.errorType}
@@ -496,7 +578,7 @@ export default function AdminErrorLogs() {
                                     </div>
                                     
                                     <div>
-                                      <h4 className="font-medium mb-2">Message</h4>
+                                      <h4 className="font-medium mb-2">Error Message</h4>
                                       <div className="bg-gray-50 p-3 rounded text-sm">
                                         {errorLog.message}
                                       </div>
