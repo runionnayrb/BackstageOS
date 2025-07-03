@@ -19,6 +19,8 @@ import {
   locationAvailability,
   contactSheetVersions,
   errorLogs,
+  errorClusters,
+  errorNotifications,
   props,
   domainRoutes,
   waitlist,
@@ -64,6 +66,10 @@ import {
   type InsertLocationAvailability,
   type ErrorLog,
   type InsertErrorLog,
+  type ErrorCluster,
+  type InsertErrorCluster,
+  type ErrorNotification,
+  type InsertErrorNotification,
   type Waitlist,
   type InsertWaitlist,
   type WaitlistEmailSettings,
@@ -79,7 +85,7 @@ import {
 
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, ne, sql } from "drizzle-orm";
+import { eq, and, desc, ne, sql, gte, lte, or, isNull } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (email/password auth)
@@ -248,7 +254,7 @@ export interface IStorage {
   deleteSeoSettings(id: number): Promise<void>;
 }
 
-class DatabaseStorage implements IStorage {
+export class DatabaseStorage implements IStorage {
   async getUser(id: string): Promise<User | undefined> {
     const result = await db.select().from(users).where(eq(users.id, parseInt(id)));
     return result[0];
@@ -1211,6 +1217,66 @@ class DatabaseStorage implements IStorage {
 
   async deleteEventLocation(locationId: number): Promise<void> {
     await db.delete(eventLocations).where(eq(eventLocations.id, locationId));
+  }
+
+  // Error Clustering Methods
+  async createErrorCluster(cluster: InsertErrorCluster): Promise<ErrorCluster> {
+    const result = await db.insert(errorClusters).values(cluster).returning();
+    return result[0];
+  }
+
+  async getErrorClusterBySignature(signature: string): Promise<ErrorCluster | null> {
+    const result = await db.select()
+      .from(errorClusters)
+      .where(eq(errorClusters.signature, signature))
+      .limit(1);
+    return result[0] || null;
+  }
+
+  async updateErrorCluster(clusterId: number, updates: Partial<ErrorCluster>): Promise<ErrorCluster> {
+    const result = await db.update(errorClusters)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(errorClusters.id, clusterId))
+      .returning();
+    return result[0];
+  }
+
+  async getErrorClustersAfterDate(date: Date): Promise<ErrorCluster[]> {
+    return await db.select()
+      .from(errorClusters)
+      .where(gte(errorClusters.createdAt, date))
+      .orderBy(desc(errorClusters.lastOccurrence));
+  }
+
+  async getErrorClustersBeforeDate(date: Date): Promise<ErrorCluster[]> {
+    return await db.select()
+      .from(errorClusters)
+      .where(lte(errorClusters.lastOccurrence, date));
+  }
+
+  // Error Notifications Methods
+  async createErrorNotification(notification: InsertErrorNotification): Promise<ErrorNotification> {
+    const result = await db.insert(errorNotifications).values(notification).returning();
+    return result[0];
+  }
+
+  async getErrorNotifications(userId?: string): Promise<ErrorNotification[]> {
+    let query = db.select().from(errorNotifications);
+    
+    if (userId) {
+      query = query.where(or(
+        eq(errorNotifications.readBy, parseInt(userId)),
+        isNull(errorNotifications.readBy)
+      ));
+    }
+    
+    return await query.orderBy(desc(errorNotifications.createdAt));
+  }
+
+  async dismissErrorNotification(notificationId: number): Promise<void> {
+    await db.update(errorNotifications)
+      .set({ isRead: true, readAt: new Date() })
+      .where(eq(errorNotifications.id, notificationId));
   }
 }
 

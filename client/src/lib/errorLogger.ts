@@ -11,6 +11,22 @@ interface ErrorLogData {
   timestamp: string;
   userId?: string;
   additionalData?: Record<string, any>;
+  
+  // Enhanced monitoring fields
+  browserInfo?: Record<string, any>;
+  userJourney?: any[];
+  featureContext?: string;
+  sessionId?: string;
+  errorSignature?: string;
+  businessImpact?: string;
+}
+
+interface UserAction {
+  action: string;
+  page: string;
+  timestamp: number;
+  element?: string;
+  data?: Record<string, any>;
 }
 
 class ErrorLogger {
@@ -18,10 +34,36 @@ class ErrorLogger {
   private userId?: string;
   private currentPage: string = '';
   private isLoggingEnabled: boolean = true;
+  private userJourney: UserAction[] = [];
+  private sessionId: string = '';
+  private maxJourneyLength: number = 10;
 
   private constructor() {
+    this.sessionId = Date.now().toString(36) + Math.random().toString(36).substr(2);
     this.setupGlobalErrorHandlers();
     this.trackPageChanges();
+    this.setupUserTracking();
+  }
+
+  private setupUserTracking() {
+    // Track clicks
+    document.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
+      const elementInfo = this.getElementInfo(target);
+      this.addToUserJourney('click', this.currentPage, elementInfo);
+    });
+
+    // Track form submissions
+    document.addEventListener('submit', (event) => {
+      const target = event.target as HTMLElement;
+      const elementInfo = this.getElementInfo(target);
+      this.addToUserJourney('form_submit', this.currentPage, elementInfo);
+    });
+
+    // Track key navigation events
+    window.addEventListener('popstate', () => {
+      this.addToUserJourney('navigation', window.location.pathname);
+    });
   }
 
   public static getInstance(): ErrorLogger {
@@ -37,6 +79,7 @@ class ErrorLogger {
 
   public setCurrentPage(page: string) {
     this.currentPage = page;
+    this.addToUserJourney('page_change', page);
   }
 
   public enable() {
@@ -215,6 +258,94 @@ class ErrorLogger {
     });
   }
 
+  // Helper methods for enhanced monitoring
+  private generateSessionId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  }
+
+  private addToUserJourney(action: string, page: string, element?: string, data?: Record<string, any>) {
+    const userAction: UserAction = {
+      action,
+      page,
+      timestamp: Date.now(),
+      element,
+      data
+    };
+
+    this.userJourney.push(userAction);
+    
+    // Keep only the last N actions
+    if (this.userJourney.length > this.maxJourneyLength) {
+      this.userJourney.shift();
+    }
+  }
+
+
+
+  private getElementInfo(element: HTMLElement): string {
+    const tagName = element.tagName.toLowerCase();
+    const id = element.id ? `#${element.id}` : '';
+    const className = element.className ? `.${element.className.split(' ').join('.')}` : '';
+    const text = element.textContent?.substring(0, 50) || '';
+    return `${tagName}${id}${className} "${text}"`.trim();
+  }
+
+  private getBrowserInfo(): Record<string, any> {
+    return {
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+      platform: navigator.platform,
+      cookieEnabled: navigator.cookieEnabled,
+      onLine: navigator.onLine,
+      screen: {
+        width: screen.width,
+        height: screen.height,
+        colorDepth: screen.colorDepth
+      },
+      viewport: {
+        width: window.innerWidth,
+        height: window.innerHeight
+      },
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    };
+  }
+
+  private getFeatureContext(page: string): string {
+    if (page.includes('/calendar')) return 'scheduling';
+    if (page.includes('/reports')) return 'reports';
+    if (page.includes('/script')) return 'script_editor';
+    if (page.includes('/contacts')) return 'contacts';
+    if (page.includes('/props') || page.includes('/costumes')) return 'props_costumes';
+    if (page.includes('/admin')) return 'admin';
+    if (page.includes('/settings')) return 'settings';
+    return 'general';
+  }
+
+  private generateErrorSignature(errorData: ErrorLogData): string {
+    // Create a signature for clustering similar errors
+    const messageHash = errorData.message.substring(0, 100);
+    const pageContext = this.getFeatureContext(errorData.page);
+    return `${errorData.errorType}_${pageContext}_${messageHash}`.replace(/[^a-zA-Z0-9_]/g, '');
+  }
+
+  private determineBusinessImpact(errorData: ErrorLogData): string {
+    // Determine business impact based on error type and context
+    if (errorData.errorType === 'javascript_error' && 
+        (errorData.page.includes('/shows') || errorData.page.includes('/reports'))) {
+      return 'high'; // Core workflow issues
+    }
+    if (errorData.errorType === 'network_error' && errorData.message.includes('500')) {
+      return 'critical'; // Server errors
+    }
+    if (errorData.errorType === 'form_submission_error') {
+      return 'high'; // Data input issues
+    }
+    if (errorData.errorType === 'navigation_error') {
+      return 'medium'; // Navigation issues
+    }
+    return 'low'; // Default impact
+  }
+
   private async logError(errorData: ErrorLogData) {
     if (!this.isLoggingEnabled) return;
 
@@ -232,6 +363,12 @@ class ErrorLogger {
       // Use stored user ID, don't fetch during error logging to avoid circular issues
       const finalErrorData = {
         ...errorData,
+        browserInfo: this.getBrowserInfo(),
+        userJourney: [...this.userJourney],
+        featureContext: this.getFeatureContext(errorData.page),
+        sessionId: this.sessionId,
+        errorSignature: this.generateErrorSignature(errorData),
+        businessImpact: this.determineBusinessImpact(errorData),
         userId: this.userId || errorData.userId
       };
 

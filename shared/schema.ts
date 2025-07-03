@@ -741,7 +741,7 @@ export const contactSheetVersions = pgTable("contact_sheet_versions", {
   publishedAt: timestamp("published_at").defaultNow().notNull(),
 });
 
-// Error logs table for automatic error tracking
+// Error logs table for automatic error tracking with enhanced monitoring
 export const errorLogs = pgTable("error_logs", {
   id: serial("id").primaryKey(),
   errorType: varchar("error_type", { length: 50 }).notNull(),
@@ -753,6 +753,51 @@ export const errorLogs = pgTable("error_logs", {
   userAgent: text("user_agent").notNull(),
   userId: varchar("user_id", { length: 50 }),
   additionalData: jsonb("additional_data"),
+  
+  // Enhanced monitoring fields
+  browserInfo: jsonb("browser_info"), // Browser, OS, device details
+  userJourney: jsonb("user_journey"), // Last 5 pages/actions before error
+  featureContext: varchar("feature_context", { length: 100 }), // Which feature area (calendar, reports, etc.)
+  sessionId: varchar("session_id", { length: 100 }), // Session tracking
+  errorSignature: varchar("error_signature", { length: 255 }), // For clustering similar errors
+  businessImpact: varchar("business_impact", { length: 20 }), // critical, high, medium, low
+  isResolved: boolean("is_resolved").default(false),
+  resolvedAt: timestamp("resolved_at"),
+  resolvedBy: integer("resolved_by").references(() => users.id),
+  resolutionNotes: text("resolution_notes"),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Error clusters table for grouping similar errors
+export const errorClusters = pgTable("error_clusters", {
+  id: serial("id").primaryKey(),
+  signature: varchar("signature", { length: 255 }).notNull().unique(),
+  firstOccurrence: timestamp("first_occurrence").defaultNow().notNull(),
+  lastOccurrence: timestamp("last_occurrence").defaultNow().notNull(),
+  occurrenceCount: integer("occurrence_count").default(1).notNull(),
+  affectedUsers: integer("affected_users").default(1).notNull(),
+  errorType: varchar("error_type", { length: 50 }).notNull(),
+  featureContext: varchar("feature_context", { length: 100 }),
+  businessImpact: varchar("business_impact", { length: 20 }),
+  status: varchar("status", { length: 20 }).default("open").notNull(), // open, investigating, resolved
+  assignedTo: integer("assigned_to").references(() => users.id),
+  priority: varchar("priority", { length: 20 }).default("medium").notNull(), // critical, high, medium, low
+  resolutionNotes: text("resolution_notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Error notifications table for proactive alerts
+export const errorNotifications = pgTable("error_notifications", {
+  id: serial("id").primaryKey(),
+  clusterId: integer("cluster_id").references(() => errorClusters.id, { onDelete: "cascade" }),
+  errorLogId: integer("error_log_id").references(() => errorLogs.id, { onDelete: "cascade" }),
+  notificationType: varchar("notification_type", { length: 50 }).notNull(), // critical_error, cluster_threshold, user_impact
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false),
+  readBy: integer("read_by").references(() => users.id),
+  readAt: timestamp("read_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -1011,6 +1056,17 @@ export const insertErrorLogSchema = createInsertSchema(errorLogs).omit({
   createdAt: true,
 });
 
+export const insertErrorClusterSchema = createInsertSchema(errorClusters).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertErrorNotificationSchema = createInsertSchema(errorNotifications).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Waitlist system for landing page
 export const waitlist = pgTable("waitlist", {
   id: serial("id").primaryKey(),
@@ -1158,6 +1214,10 @@ export type ErrorLog = typeof errorLogs.$inferSelect & {
   userLastName?: string;
 };
 export type InsertErrorLog = z.infer<typeof insertErrorLogSchema>;
+export type ErrorCluster = typeof errorClusters.$inferSelect;
+export type InsertErrorCluster = z.infer<typeof insertErrorClusterSchema>;
+export type ErrorNotification = typeof errorNotifications.$inferSelect;
+export type InsertErrorNotification = z.infer<typeof insertErrorNotificationSchema>;
 export type Waitlist = typeof waitlist.$inferSelect;
 export type InsertWaitlist = z.infer<typeof insertWaitlistSchema>;
 export type EventLocation = typeof eventLocations.$inferSelect;
