@@ -270,7 +270,7 @@ export default function ShowSettings() {
         </div>
 
       <Tabs defaultValue="team" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="team" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Team
@@ -294,6 +294,10 @@ export default function ShowSettings() {
           <TabsTrigger value="dates" className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             Important Dates
+          </TabsTrigger>
+          <TabsTrigger value="email" className="flex items-center gap-2">
+            <Mail className="h-4 w-4" />
+            Email Settings
           </TabsTrigger>
         </TabsList>
 
@@ -914,6 +918,70 @@ export default function ShowSettings() {
                 >
                   <Save className="h-4 w-4 mr-2" />
                   {saveProjectMutation.isPending ? "Saving..." : "Save Important Dates"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="email" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Email Settings</CardTitle>
+              <CardDescription>
+                Configure custom email settings for this {showLabel.toLowerCase()}. These settings override your default profile settings for all emails sent for this production.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="customReplyToEmail">Custom Reply-To Email</Label>
+                <Input
+                  id="customReplyToEmail"
+                  type="email"
+                  placeholder="Leave blank to use your default profile setting"
+                  value={(project as any)?.customReplyToEmail || ''}
+                  onChange={(e) => handleProjectUpdate({ customReplyToEmail: e.target.value })}
+                />
+                <p className="text-sm text-muted-foreground">
+                  When team members reply to emails from this {showLabel.toLowerCase()}, replies will go to this address instead of your default.
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="customEmailDisplayName">Custom Email Display Name</Label>
+                <Input
+                  id="customEmailDisplayName"
+                  type="text"
+                  placeholder="Leave blank to use your default profile setting"
+                  value={(project as any)?.customEmailDisplayName || ''}
+                  onChange={(e) => handleProjectUpdate({ customEmailDisplayName: e.target.value })}
+                />
+                <p className="text-sm text-muted-foreground">
+                  This name will appear as the sender for all emails from this {showLabel.toLowerCase()}.
+                </p>
+              </div>
+
+              <div className="bg-muted/50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Email Preview</h4>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Emails for this {showLabel.toLowerCase()} will be sent as:
+                </p>
+                <div className="bg-background p-3 rounded border font-mono text-sm">
+                  {(project as any)?.customEmailDisplayName || user?.emailDisplayName || `${user?.firstName} ${user?.lastName}`.trim() || "Your Name"} &lt;sm@backstageos.com&gt;
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Reply-to: {(project as any)?.customReplyToEmail || user?.defaultReplyToEmail || user?.email || "your-email@example.com"}
+                </p>
+              </div>
+              
+              <div className="pt-4 border-t">
+                <Button 
+                  onClick={() => saveProjectMutation.mutate()}
+                  disabled={saveProjectMutation.isPending}
+                  className="w-full"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {saveProjectMutation.isPending ? "Saving..." : "Save Email Settings"}
                 </Button>
               </div>
             </CardContent>
