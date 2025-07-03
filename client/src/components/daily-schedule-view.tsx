@@ -55,6 +55,18 @@ interface Contact {
   role?: string;
 }
 
+interface ProjectSettings {
+  id?: number;
+  projectId?: number;
+  scheduleSettings?: string | {
+    timeFormat?: string;
+    workStartTime?: string;
+    workEndTime?: string;
+    timeZone?: string;
+    weekStartDay?: string;
+  };
+}
+
 export default function DailyScheduleView({ projectId, selectedDate, onBackToWeekly, selectedContactIds }: DailyScheduleViewProps) {
   const { toast } = useToast();
   
@@ -94,19 +106,23 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
   };
 
   // Fetch project settings
-  const { data: projectSettings } = useQuery({
+  const { data: projectSettings } = useQuery<ProjectSettings>({
     queryKey: [`/api/projects/${projectId}/settings`],
   });
 
   // Extract time format and working hours
-  const scheduleSettings = projectSettings?.scheduleSettings ? JSON.parse(projectSettings.scheduleSettings) : {};
+  const scheduleSettings = projectSettings?.scheduleSettings 
+    ? (typeof projectSettings.scheduleSettings === 'string' 
+        ? JSON.parse(projectSettings.scheduleSettings) 
+        : projectSettings.scheduleSettings)
+    : {};
   const timeFormat = scheduleSettings.timeFormat || '12-Hour AM/PM';
   const workStartTime = scheduleSettings.workStartTime || '09:00';
   const workEndTime = scheduleSettings.workEndTime || '17:00';
 
   // Fetch events for the current date
-  const { data: events = [], isLoading } = useQuery({
-    queryKey: [`/api/projects/${projectId}/schedule/events`, currentDate.toISOString().split('T')[0]],
+  const { data: events = [], isLoading } = useQuery<ScheduleEvent[]>({
+    queryKey: [`/api/projects/${projectId}/schedule-events`],
   });
 
   // Fetch contacts
@@ -117,7 +133,7 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
   // Filter events for the current day
   const dayEvents = useMemo(() => {
     const dateStr = currentDate.toISOString().split('T')[0];
-    return events.filter((event: any) => event.date === dateStr);
+    return events.filter((event: ScheduleEvent) => event.date === dateStr);
   }, [events, currentDate]);
 
   // Generate time labels - same as availability editor
