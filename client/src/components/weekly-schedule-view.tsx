@@ -657,12 +657,6 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             className="relative bg-white" 
             style={{ height: '960px' }}
           >
-            {/* Time column background with right border */}
-            <div 
-              className="absolute left-0 top-0 bottom-0 bg-white border-r border-gray-200 z-20" 
-              style={{ width: '80px', height: '960px' }}
-            />
-
             {/* Hour labels and major grid lines */}
             {Array.from({ length: 17 }, (_, i) => {
               const hour = START_HOUR + i;
@@ -675,7 +669,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                   className="absolute left-0 right-0 border-b border-gray-200"
                   style={{ top: `${position}px` }}
                 >
-                  <div className="absolute left-0 p-2 text-xs text-gray-500 bg-white z-30" style={{ width: '80px' }}>
+                  <div className="absolute left-0 p-2 text-xs text-gray-500 bg-white border-r border-gray-200" style={{ width: '80px', height: '60px' }}>
                     {formattedTime}
                   </div>
                 </div>
@@ -711,6 +705,17 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             <div
               className="absolute left-0 right-0 border-b border-gray-200"
               style={{ top: '960px' }}
+            />
+
+            {/* Continuous time column right border */}
+            <div
+              className="absolute border-r border-gray-200 z-50"
+              style={{ 
+                left: '80px',
+                top: '0px',
+                height: '960px',
+                width: '0px'
+              }}
             />
 
             {/* Day columns */}
