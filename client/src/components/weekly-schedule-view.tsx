@@ -698,11 +698,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     <>
       <div className="space-y-4">
         {/* Navigation and controls row */}
-        <div className="flex items-center justify-between mb-4">
-          {/* Empty space on the left */}
-          <div></div>
-
-          {/* Week navigation - centered */}
+        <div className="relative flex justify-center mb-4">
+          {/* Week navigation - truly centered */}
           <div className="flex items-center space-x-4">
             <Button variant="outline" onClick={goToPreviousWeek} size="sm">
               <ChevronLeft className="h-4 w-4" />
@@ -717,8 +714,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             </Button>
           </div>
 
-          {/* All Day and Today buttons - right aligned */}
-          <div className="flex items-center space-x-2">
+          {/* All Day and Today buttons - absolutely positioned right */}
+          <div className="absolute right-0 top-0 flex items-center space-x-2">
             <Button
               variant={showAllDayEvents ? "default" : "outline"}
               size="sm"
