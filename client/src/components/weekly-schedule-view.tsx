@@ -524,7 +524,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
-        <h3 className="text-lg font-semibold w-80 text-center mx-1">{formatWeekRange(weekDates)}</h3>
+        <h3 className="text-lg font-semibold w-80 text-center mx-3">{formatWeekRange(weekDates)}</h3>
         <button 
           onClick={goToNextWeek}
           className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
