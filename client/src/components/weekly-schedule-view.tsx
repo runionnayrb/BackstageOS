@@ -217,17 +217,20 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
   const formatWeekRange = (dates: Date[]) => {
     const start = dates[0];
     const end = dates[6];
-    const startMonth = start.toLocaleDateString('en-US', { month: 'short' });
-    const endMonth = end.toLocaleDateString('en-US', { month: 'short' });
-    const startDay = start.getDate();
-    const endDay = end.getDate();
-    const year = end.getFullYear();
-
-    if (startMonth === endMonth) {
-      return `${startMonth} ${startDay} - ${endDay}, ${year}`;
-    } else {
-      return `${startMonth} ${startDay} - ${endMonth} ${endDay}, ${year}`;
-    }
+    
+    const startFormatted = start.toLocaleDateString('en-US', { 
+      month: 'long', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+    
+    const endFormatted = end.toLocaleDateString('en-US', { 
+      month: 'long', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+    
+    return `${startFormatted} - ${endFormatted}`;
   };
 
   // Mutations for event operations
@@ -846,17 +849,17 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
         {/* Navigation and controls row */}
         <div className="relative flex justify-between mb-4">
           {/* Week navigation - left aligned */}
-          <div className="flex items-center space-x-4">
-            <button onClick={goToPreviousWeek} className="p-2 hover:bg-gray-100 rounded transition-colors">
-              <ChevronLeft className="h-4 w-4" />
+          <div className="flex items-center space-x-6">
+            <button onClick={goToPreviousWeek} className="p-3 hover:bg-gray-100 rounded transition-colors">
+              <ChevronLeft className="h-5 w-5" />
             </button>
             
-            <div className="text-lg font-medium">
+            <div className="text-lg font-medium min-w-[400px]">
               {formatWeekRange(weekDates)}
             </div>
             
-            <button onClick={goToNextWeek} className="p-2 hover:bg-gray-100 rounded transition-colors">
-              <ChevronRight className="h-4 w-4" />
+            <button onClick={goToNextWeek} className="p-3 hover:bg-gray-100 rounded transition-colors">
+              <ChevronRight className="h-5 w-5" />
             </button>
           </div>
 
