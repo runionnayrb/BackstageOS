@@ -132,7 +132,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
   // Filter events based on selected contact IDs
   const filteredEvents = selectedContactIds.length === 0 
-    ? events.filter(event => isShowEvent(event.type)) // Show only show-wide events when no filter is applied (show schedule)
+    ? events.filter(event => isShowEvent(event.type) || !event.type) // Show show-wide events and events without type when no filter is applied
     : events.filter(event => 
         event.participants.some(participant => 
           selectedContactIds.includes(participant.contactId)
