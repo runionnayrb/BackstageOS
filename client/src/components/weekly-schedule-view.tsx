@@ -677,21 +677,31 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             })}
 
             {/* Time increment grid lines */}
-            {Array.from({ length: Math.floor(TOTAL_MINUTES / timeIncrement) }, (_, i) => {
-              const minutes = i * timeIncrement;
-              const position = (minutes / TOTAL_MINUTES) * 960;
-              const isHour = minutes % 60 === 0;
-              
-              if (isHour) return null; // Skip hour lines as they're already drawn above
-              
-              return (
-                <div
-                  key={`increment-${i}`}
-                  className="absolute left-0 right-0 border-b border-gray-100"
-                  style={{ top: `${position}px` }}
-                />
-              );
-            })}
+            {(() => {
+              const gridLines = [];
+              for (let hour = START_HOUR; hour <= END_HOUR; hour++) {
+                const hourMinutes = hour * 60;
+                // Add hour line (already handled above, so skip)
+                
+                // Add increment lines within the hour
+                if (timeIncrement < 60 && hour < END_HOUR) {
+                  for (let increment = timeIncrement; increment < 60; increment += timeIncrement) {
+                    const totalMinutes = hourMinutes + increment;
+                    const relativeMinutes = totalMinutes - START_MINUTES;
+                    const position = (relativeMinutes / TOTAL_MINUTES) * 960;
+                    
+                    gridLines.push(
+                      <div
+                        key={`increment-${hour}-${increment}`}
+                        className="absolute left-0 right-0 border-b border-gray-300 z-10"
+                        style={{ top: `${position}px` }}
+                      />
+                    );
+                  }
+                }
+              }
+              return gridLines;
+            })()}
 
 
 
