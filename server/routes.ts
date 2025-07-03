@@ -16,6 +16,15 @@ import sgMail from "@sendgrid/mail";
 
 // Authentication middleware
 function isAuthenticated(req: any, res: any, next: any) {
+  console.log("Auth check:", {
+    isAuthenticated: req.isAuthenticated(),
+    hasUser: !!req.user,
+    hasSession: !!req.session,
+    sessionId: req.session?.id,
+    userAgent: req.get('User-Agent')?.substring(0, 50),
+    userId: req.user?.id
+  });
+  
   if (req.isAuthenticated()) {
     return next();
   }

@@ -50,7 +50,9 @@ export function setupAuth(app: Express) {
       secure: false, // Set to true in production with HTTPS
       httpOnly: true,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      sameSite: 'lax', // Important for mobile Safari and cross-site scenarios
     },
+    name: 'backstage.sid', // Custom session name
   };
 
   app.set("trust proxy", 1);
@@ -172,7 +174,22 @@ export function setupAuth(app: Express) {
 
   // Login endpoint
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+    console.log("Login successful:", {
+      userId: req.user?.id,
+      sessionId: req.session?.id,
+      isAuthenticated: req.isAuthenticated(),
+      userAgent: req.get('User-Agent')?.substring(0, 50)
+    });
+    
+    // Force session save for mobile Safari compatibility
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+      } else {
+        console.log("Session saved successfully");
+      }
+      res.status(200).json(req.user);
+    });
   });
 
   // Logout endpoint
