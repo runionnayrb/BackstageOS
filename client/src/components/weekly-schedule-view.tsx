@@ -125,6 +125,11 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     queryKey: [`/api/projects/${projectId}/schedule-events`],
   });
 
+  // Debug: Log when events data changes
+  useEffect(() => {
+    console.log('Events data updated:', events.length, events);
+  }, [events]);
+
   // Fetch contacts for event assignment
   const { data: contacts = [] } = useQuery<Contact[]>({
     queryKey: [`/api/projects/${projectId}/contacts`],
@@ -138,6 +143,12 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           selectedContactIds.includes(participant.contactId)
         )
       );
+
+  // Debug: Log filtered events
+  useEffect(() => {
+    console.log('Filtered events:', filteredEvents.length, filteredEvents);
+    console.log('Selected contact IDs:', selectedContactIds);
+  }, [filteredEvents, selectedContactIds]);
 
   // Calculate week dates based on settings
   const getWeekDates = useCallback((weekStart: Date) => {
@@ -899,6 +910,20 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                   const endMinutes = timeToMinutes(event.endTime);
                   const top = minutesToPosition(startMinutes);
                   const height = endMinutes - startMinutes;
+
+                  // Debug event positioning
+                  if (event.id === 25) {
+                    console.log(`Event 25 positioning:`, {
+                      eventDate: event.date,
+                      startTime: event.startTime,
+                      endTime: event.endTime,
+                      startMinutes,
+                      top,
+                      dayIndex,
+                      draggedEventId: draggedEvent?.event.id,
+                      isDragging: draggedEvent?.isDragging
+                    });
+                  }
 
                   // Use dragged position if this event is being dragged
                   const displayDayIndex = draggedEvent?.event.id === event.id ? 
