@@ -659,7 +659,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           >
             {/* Time column background with right border */}
             <div 
-              className="absolute left-0 top-0 bottom-0 bg-white border-r border-gray-200 z-0" 
+              className="absolute left-0 top-0 bottom-0 bg-white border-r border-gray-200 z-20" 
               style={{ width: '80px', height: '960px' }}
             />
 
@@ -675,7 +675,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                   className="absolute left-0 right-0 border-b border-gray-200"
                   style={{ top: `${position}px` }}
                 >
-                  <div className="absolute left-0 p-2 text-xs text-gray-500 bg-white z-10" style={{ width: '80px' }}>
+                  <div className="absolute left-0 p-2 text-xs text-gray-500 bg-white z-30" style={{ width: '80px' }}>
                     {formattedTime}
                   </div>
                 </div>
