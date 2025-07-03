@@ -188,13 +188,14 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
   };
 
   const minutesToPosition = (minutes: number) => {
-    const relativeMinutes = Math.max(0, Math.min(minutes - START_MINUTES, TOTAL_MINUTES));
-    return (relativeMinutes / TOTAL_MINUTES) * 960; // 960px = 16 hours
+    // Match weekly availability editor: 1:1 pixel-to-minute ratio
+    return Math.max(0, minutes - START_MINUTES);
   };
 
   const positionToMinutes = (position: number) => {
-    const relativeMinutes = (position / 960) * TOTAL_MINUTES;
-    return Math.min(START_MINUTES + relativeMinutes, END_MINUTES - 1);
+    // Match weekly availability editor: 1:1 pixel-to-minute ratio
+    const minutes = Math.max(START_MINUTES, Math.min(END_MINUTES - 1, Math.round(position + START_MINUTES)));
+    return minutes;
   };
 
   const snapToIncrement = (minutes: number) => {
@@ -662,7 +663,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             {/* Hour labels and major grid lines */}
             {Array.from({ length: 17 }, (_, i) => {
               const hour = START_HOUR + i;
-              const position = (i / 16) * 960;
+              const minutes = hour * 60;
+              const position = minutesToPosition(minutes);
               const timeString = `${hour.toString().padStart(2, '0')}:00`;
               const formattedTime = formatTimeDisplay(timeString, timeFormat);
               return (
@@ -684,7 +686,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += timeIncrement) {
                 timeLabels.push({
                   minutes,
-                  position: (minutes - START_MINUTES) / TOTAL_MINUTES * 960,
+                  position: minutesToPosition(minutes),
                 });
               }
               
