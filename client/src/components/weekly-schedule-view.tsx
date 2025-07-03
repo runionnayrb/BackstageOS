@@ -688,14 +688,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               );
             })}
 
-            {/* Working hours highlight */}
-            <div
-              className="absolute left-16 right-0 bg-blue-50 bg-opacity-30 pointer-events-none"
-              style={{
-                top: `${minutesToPosition(timeToMinutes(workStartTime))}px`,
-                height: `${minutesToPosition(timeToMinutes(workEndTime)) - minutesToPosition(timeToMinutes(workStartTime))}px`,
-              }}
-            />
+
 
             {/* Bottom border for grid completion */}
             <div
