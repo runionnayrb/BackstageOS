@@ -329,29 +329,31 @@ ${JSON.stringify(settings.structuredData, null, 2)}
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="border-b bg-white dark:bg-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center space-x-4 py-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 py-3 sm:py-4">
             <Link href="/admin">
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="w-full sm:w-auto">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Admin
               </Button>
             </Link>
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">SEO & AI Optimization</h1>
-              <p className="text-gray-500 dark:text-gray-400">Manage search engine and AI optimization settings for all domains</p>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">SEO & AI Optimization</h1>
+              <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">Manage search engine and AI optimization settings for all domains</p>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row w-full sm:w-auto space-y-2 sm:space-y-0 sm:space-x-2">
               <Button
                 variant="outline"
                 onClick={testConnectivity}
+                className="w-full sm:w-auto"
               >
                 <Globe className="mr-2 h-4 w-4" />
-                Test Connectivity
+                <span className="hidden sm:inline">Test </span>Connectivity
               </Button>
               <Button
                 variant={viewMode === 'list' ? 'default' : 'outline'}
                 onClick={() => setViewMode('list')}
+                className="w-full sm:w-auto"
               >
                 <Settings className="mr-2 h-4 w-4" />
                 Settings
@@ -359,6 +361,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
               <Button
                 variant={viewMode === 'preview' ? 'default' : 'outline'}
                 onClick={() => setViewMode('preview')}
+                className="w-full sm:w-auto"
               >
                 <Eye className="mr-2 h-4 w-4" />
                 Preview
@@ -778,7 +781,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
         {viewMode === 'list' ? (
           <div className="grid gap-6">
             {seoSettings.length === 0 ? (
@@ -794,11 +797,11 @@ ${JSON.stringify(settings.structuredData, null, 2)}
               seoSettings.map((settings: SeoSettings) => (
                 <Card key={settings.id}>
                   <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-2">
-                        <CardTitle className="flex items-center space-x-2">
-                          <Globe className="h-5 w-5" />
-                          <span>{settings.domain}</span>
+                    <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                      <div className="space-y-2 flex-1">
+                        <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
+                          <Globe className="h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="break-words">{settings.domain}</span>
                           {settings.isActive ? (
                             <Badge variant="default">Active</Badge>
                           ) : (
@@ -807,27 +810,33 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                         </CardTitle>
                         <CardDescription>{settings.siteTitle}</CardDescription>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => copyToClipboard(generateMetaTags(settings))}
+                          className="w-full sm:w-auto justify-center sm:justify-start"
                         >
-                          <Copy className="h-4 w-4" />
+                          <Copy className="h-4 w-4 sm:mr-0" />
+                          <span className="ml-2 sm:hidden">Copy</span>
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => handleEdit(settings)}
+                          className="w-full sm:w-auto justify-center sm:justify-start"
                         >
-                          <Edit className="h-4 w-4" />
+                          <Edit className="h-4 w-4 sm:mr-0" />
+                          <span className="ml-2 sm:hidden">Edit</span>
                         </Button>
                         <Button 
                           variant="outline" 
                           size="sm"
                           onClick={() => handleDelete(settings.id)}
+                          className="w-full sm:w-auto justify-center sm:justify-start"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 sm:mr-0" />
+                          <span className="ml-2 sm:hidden">Delete</span>
                         </Button>
                       </div>
                     </div>

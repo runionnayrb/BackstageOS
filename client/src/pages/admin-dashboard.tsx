@@ -16,40 +16,40 @@ export default function AdminDashboard() {
 
   return (
     <AdminGuard>
-      <div className="container mx-auto p-6 max-w-6xl">
-        <div className="flex items-center gap-4 mb-6">
+      <div className="container mx-auto p-3 sm:p-6 max-w-6xl">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
           <Link href="/">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="w-full sm:w-auto">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Shows
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+            <h1 className="text-xl sm:text-2xl font-bold">Admin Dashboard</h1>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="users" className="flex items-center gap-2">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1">
+            <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <Users className="h-4 w-4" />
-              User Management
+              <span className="hidden sm:inline">User </span>Users
             </TabsTrigger>
-            <TabsTrigger value="features" className="flex items-center gap-2">
+            <TabsTrigger value="features" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <Settings className="h-4 w-4" />
-              Beta Features
+              <span className="hidden sm:inline">Beta </span>Features
             </TabsTrigger>
-            <TabsTrigger value="waitlist" className="flex items-center gap-2">
+            <TabsTrigger value="waitlist" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <ClipboardList className="h-4 w-4" />
               Waitlist
             </TabsTrigger>
-            <TabsTrigger value="feedback" className="flex items-center gap-2">
+            <TabsTrigger value="feedback" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
               <MessageSquare className="h-4 w-4" />
               Feedback
             </TabsTrigger>
-            <TabsTrigger value="errors" className="flex items-center gap-2">
+            <TabsTrigger value="errors" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm col-span-2 sm:col-span-1">
               <AlertTriangle className="h-4 w-4" />
-              Error Logs
+              <span className="hidden sm:inline">Error </span>Logs
             </TabsTrigger>
           </TabsList>
 

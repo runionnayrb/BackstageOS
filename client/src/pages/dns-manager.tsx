@@ -245,29 +245,29 @@ function DNSManagerContent() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
           <Link href="/admin">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="w-full sm:w-auto">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Admin
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">DNS Manager</h1>
-            <p className="text-gray-600">Manage DNS records and domain configuration</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">DNS Manager</h1>
+            <p className="text-sm sm:text-base text-gray-600">Manage DNS records and domain configuration</p>
           </div>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
           <Link href="/admin/pages">
-            <Button variant="outline">
+            <Button variant="outline" className="w-full sm:w-auto">
               <FileText className="mr-2 h-4 w-4" />
               Page Manager
             </Button>
           </Link>
           <Link href="/admin/domains">
-            <Button variant="outline">
+            <Button variant="outline" className="w-full sm:w-auto">
               <Globe className="mr-2 h-4 w-4" />
               Domain Manager
             </Button>

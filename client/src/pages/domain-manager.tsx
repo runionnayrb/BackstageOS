@@ -135,31 +135,31 @@ export default function DomainManager() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
+    <div className="container mx-auto p-3 sm:p-6 max-w-6xl">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
           <Link to="/admin/dns">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" className="w-full sm:w-auto">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to DNS Manager
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold">Domain Manager</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Domain Manager</h1>
         </div>
-        <Link to="/admin/pages">
-          <Button variant="outline">
+        <Link to="/admin/pages" className="w-full sm:w-auto">
+          <Button variant="outline" className="w-full sm:w-auto">
             <FileText className="mr-2 h-4 w-4" />
             Page Manager
           </Button>
         </Link>
       </div>
 
-      <div className="mb-6">
-        <div className="flex items-start space-x-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-          <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+      <div className="mb-4 sm:mb-6">
+        <div className="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-amber-600 mt-0.5 flex-shrink-0" />
           <div>
-            <h3 className="font-medium text-amber-800">Domain Routing Configuration</h3>
-            <p className="text-sm text-amber-700 mt-1">
+            <h3 className="font-medium text-amber-800 text-sm sm:text-base">Domain Routing Configuration</h3>
+            <p className="text-xs sm:text-sm text-amber-700 mt-1">
               Configure which page loads when visitors access your domains. Changes require a server restart to take effect.
             </p>
             <p className="text-xs text-amber-600 mt-2">
