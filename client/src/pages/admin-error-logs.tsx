@@ -52,10 +52,12 @@ export default function AdminErrorLogs() {
   const [showFixDialog, setShowFixDialog] = useState(false);
   const [currentError, setCurrentError] = useState<ErrorLog | null>(null);
   const [verificationNotes, setVerificationNotes] = useState("");
+  const [analyzingErrorId, setAnalyzingErrorId] = useState<number | null>(null);
 
   // Mutation to analyze errors and suggest fixes
   const analyzeErrorMutation = useMutation({
     mutationFn: async (errorLog: ErrorLog) => {
+      setAnalyzingErrorId(errorLog.id);
       const response = await fetch("/api/errors/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -72,6 +74,7 @@ export default function AdminErrorLogs() {
       setAnalyzedFix(data);
       setCurrentError(errorLog);
       setShowFixDialog(true);
+      setAnalyzingErrorId(null);
     },
     onError: (error) => {
       toast({
@@ -79,6 +82,7 @@ export default function AdminErrorLogs() {
         description: "Unable to analyze this error for potential fixes",
         variant: "destructive",
       });
+      setAnalyzingErrorId(null);
     },
   });
 
@@ -612,11 +616,11 @@ export default function AdminErrorLogs() {
                               variant="outline"
                               size="sm"
                               onClick={() => analyzeErrorMutation.mutate(errorLog)}
-                              disabled={analyzeErrorMutation.isPending}
+                              disabled={analyzingErrorId === errorLog.id}
                               className="text-green-600 hover:text-green-700 border-green-200 hover:border-green-300"
                             >
                               <Wrench className="h-4 w-4 mr-1" />
-                              {analyzeErrorMutation.isPending ? "Analyzing..." : "Analyze & Fix"}
+                              {analyzingErrorId === errorLog.id ? "Analyzing..." : "Analyze & Fix"}
                             </Button>
                           </div>
                           </TableCell>
