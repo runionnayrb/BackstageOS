@@ -9,7 +9,7 @@ import { ChevronLeft, ChevronRight, Plus, Clock, Users, Calendar } from "lucide-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
-import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings } from "@/lib/timeUtils";
+import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
 import LocationSelect from "@/components/location-select";
 
@@ -372,7 +372,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     const y = e.clientY - rect.top; // Don't add scroll - calendarRef moves with scroll
     const minutes = snapToIncrement(positionToMinutes(y));
     
-    console.log('Mouse click:', { y, minutes, time: formatTimeFromMinutes(minutes, timeFormat), dayIndex });
+    console.log('Mouse click:', { y, minutes, time: formatTimeFromMinutes(minutes), dayIndex });
 
     // Check if clicking on existing event
     const clickedEvent = filteredEvents.find(event => {
@@ -417,8 +417,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
         
         console.log('Creating event:', {
           date: weekDates[dragState.startDay].toISOString().split('T')[0],
-          startTime: formatTimeFromMinutes(startTime, timeFormat),
-          endTime: formatTimeFromMinutes(endTime, timeFormat),
+          startTime: formatTimeFromMinutes(startTime),
+          endTime: formatTimeFromMinutes(endTime),
           duration: endTime - startTime,
           dayIndex: dragState.startDay,
         });
@@ -428,8 +428,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           setCreateEventDialog({
             isOpen: true,
             date,
-            startTime: formatTimeFromMinutes(startTime, timeFormat),
-            endTime: formatTimeFromMinutes(endTime, timeFormat),
+            startTime: formatTimeFromMinutes(startTime),
+            endTime: formatTimeFromMinutes(endTime),
           });
         } else {
           console.log('Block too small:', endTime - startTime, 'minutes');
