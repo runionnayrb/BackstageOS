@@ -678,29 +678,21 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
             {/* Time increment grid lines */}
             {(() => {
-              const gridLines = [];
-              for (let hour = START_HOUR; hour <= END_HOUR; hour++) {
-                const hourMinutes = hour * 60;
-                // Add hour line (already handled above, so skip)
-                
-                // Add increment lines within the hour
-                if (timeIncrement < 60 && hour < END_HOUR) {
-                  for (let increment = timeIncrement; increment < 60; increment += timeIncrement) {
-                    const totalMinutes = hourMinutes + increment;
-                    const relativeMinutes = totalMinutes - START_MINUTES;
-                    const position = (relativeMinutes / TOTAL_MINUTES) * 960;
-                    
-                    gridLines.push(
-                      <div
-                        key={`increment-${hour}-${increment}`}
-                        className="absolute left-0 right-0 border-b border-gray-300 z-10"
-                        style={{ top: `${position}px` }}
-                      />
-                    );
-                  }
-                }
+              const timeLabels = [];
+              for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += timeIncrement) {
+                timeLabels.push({
+                  minutes,
+                  position: (minutes - START_MINUTES) / TOTAL_MINUTES * 960,
+                });
               }
-              return gridLines;
+              
+              return timeLabels.map((timeLabel) => (
+                <div
+                  key={timeLabel.minutes}
+                  className="absolute left-0 right-0 border-b border-gray-200"
+                  style={{ top: `${timeLabel.position}px` }}
+                />
+              ));
             })()}
 
 
