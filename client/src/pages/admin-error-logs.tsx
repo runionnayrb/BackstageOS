@@ -450,18 +450,18 @@ export default function AdminErrorLogs() {
           </CardHeader>
           <CardContent>
             {/* Desktop Table View */}
-            <div className="hidden md:block rounded-md border">
-              <div className="overflow-x-auto">
-                <Table className="min-w-full table-fixed w-[900px]">
+            <div className="hidden md:block">
+              <div className="overflow-x-auto border rounded-md">
+                <Table className="w-full">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[90px] px-2 py-3 font-semibold">Priority</TableHead>
-                      <TableHead className="w-[110px] px-2 py-3 font-semibold">Type</TableHead>
-                      <TableHead className="w-[300px] px-2 py-3 font-semibold">Message</TableHead>
-                      <TableHead className="w-[120px] px-2 py-3 font-semibold">Page</TableHead>
-                      <TableHead className="w-[140px] px-2 py-3 font-semibold">User</TableHead>
-                      <TableHead className="w-[100px] px-2 py-3 font-semibold">Time</TableHead>
-                      <TableHead className="w-[40px] px-2 py-3 font-semibold">Actions</TableHead>
+                      <TableHead className="w-24 px-3 py-3 font-semibold">Priority</TableHead>
+                      <TableHead className="w-32 px-3 py-3 font-semibold">Type</TableHead>
+                      <TableHead className="min-w-80 px-3 py-3 font-semibold">Message</TableHead>
+                      <TableHead className="w-32 px-3 py-3 font-semibold">Page</TableHead>
+                      <TableHead className="w-36 px-3 py-3 font-semibold">User</TableHead>
+                      <TableHead className="w-28 px-3 py-3 font-semibold">Time</TableHead>
+                      <TableHead className="w-24 px-3 py-3 font-semibold">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                 <TableBody>
@@ -488,7 +488,7 @@ export default function AdminErrorLogs() {
                       
                       return (
                         <TableRow key={errorLog.id}>
-                          <TableCell className="px-2 py-2 w-[90px]">
+                          <TableCell className="px-3 py-2">
                             <div className="flex items-center gap-1">
                               <span className="text-xs">{priorityInfo.icon}</span>
                               <Badge className={`${priorityInfo.color} text-xs px-1 py-0`} variant="secondary">
@@ -496,7 +496,7 @@ export default function AdminErrorLogs() {
                               </Badge>
                             </div>
                           </TableCell>
-                          <TableCell className="px-2 py-2 w-[110px]">
+                          <TableCell className="px-3 py-2">
                             <Badge 
                               className={`${errorTypeColors[errorLog.errorType as keyof typeof errorTypeColors] || "bg-gray-100 text-gray-800"} text-xs px-2 py-1`}
                               variant="secondary"
@@ -504,17 +504,17 @@ export default function AdminErrorLogs() {
                               {errorLog.errorType.replace(/_/g, ' ')}
                             </Badge>
                           </TableCell>
-                          <TableCell className="px-2 py-2 w-[300px]">
+                          <TableCell className="px-3 py-2">
                             <div className="truncate text-sm" title={errorLog.message}>
                               {errorLog.message}
                             </div>
                           </TableCell>
-                          <TableCell className="px-2 py-2 w-[120px]">
-                            <code className="text-xs bg-gray-100 px-1 py-0.5 rounded truncate inline-block max-w-[100px]" title={errorLog.page}>
+                          <TableCell className="px-3 py-2">
+                            <code className="text-xs bg-gray-100 px-1 py-0.5 rounded truncate" title={errorLog.page}>
                               {errorLog.page}
                             </code>
                           </TableCell>
-                          <TableCell className="px-2 py-2 w-[140px]">
+                          <TableCell className="px-3 py-2">
                             {errorLog.userId ? (
                               <div className="text-xs">
                                 <div className="font-medium truncate max-w-[120px]" title={errorLog.userFirstName && errorLog.userLastName 
@@ -533,12 +533,12 @@ export default function AdminErrorLogs() {
                               <span className="text-gray-400 text-xs">Anonymous</span>
                             )}
                           </TableCell>
-                          <TableCell className="px-2 py-2 w-[100px]">
-                            <div className="text-xs text-gray-600">
+                          <TableCell className="px-3 py-2">
+                            <div className="text-xs text-gray-600 whitespace-nowrap">
                               {formatDate(errorLog.createdAt.toString())}
                             </div>
                           </TableCell>
-                          <TableCell className="px-2 py-2 w-[40px]">
+                          <TableCell className="px-3 py-2">
                             <div className="flex items-center gap-1">
                               <Dialog>
                                 <DialogTrigger asChild>
