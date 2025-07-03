@@ -127,7 +127,7 @@ export default function Schedule() {
             />
             
             <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-              <SelectTrigger className="w-12 border-0 shadow-none">
+              <SelectTrigger className="w-12 border-0 shadow-none [&>svg]:hidden">
                 <Clock 
                   className={`h-6 w-6 ${
                     timeIncrement === 15 ? 'rotate-90' : 
