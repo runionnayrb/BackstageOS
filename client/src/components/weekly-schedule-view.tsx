@@ -720,11 +720,11 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               variant={showAllDayEvents ? "default" : "outline"}
               size="sm"
               onClick={() => setShowAllDayEvents(!showAllDayEvents)}
-              className="text-sm"
+              className="text-xs px-2 py-1 h-auto"
             >
               All Day
             </Button>
-            <Button variant="outline" onClick={goToToday} size="sm">
+            <Button variant="outline" onClick={goToToday} size="sm" className="text-xs px-2 py-1 h-auto">
               Today
             </Button>
           </div>
