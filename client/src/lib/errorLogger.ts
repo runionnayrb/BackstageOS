@@ -289,9 +289,20 @@ class ErrorLogger {
     // Handle className safely - it might be a string, SVGAnimatedString, or undefined
     let className = '';
     if (element.className) {
-      const classNameStr = typeof element.className === 'string' 
-        ? element.className 
-        : element.className.toString();
+      const classNameValue = element.className;
+      let classNameStr = '';
+      
+      if (typeof classNameValue === 'string') {
+        classNameStr = classNameValue;
+      } else {
+        // For SVGAnimatedString or other objects, convert to string safely
+        try {
+          classNameStr = String(classNameValue);
+        } catch (e) {
+          classNameStr = '';
+        }
+      }
+      
       className = classNameStr ? `.${classNameStr.split(' ').join('.')}` : '';
     }
     
