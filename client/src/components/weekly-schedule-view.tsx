@@ -689,7 +689,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               return timeLabels.map((timeLabel) => (
                 <div
                   key={timeLabel.minutes}
-                  className="absolute border-b border-gray-300 z-0 pointer-events-none"
+                  className="absolute border-b border-gray-300 z-10 pointer-events-none"
                   style={{ 
                     top: `${timeLabel.position}px`,
                     left: '80px',
@@ -764,7 +764,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                       <div
                         key={event.id}
                         data-event-id={event.id}
-                        className={`absolute left-1 right-1 border rounded cursor-pointer hover:opacity-80 transition-opacity ${
+                        className={`absolute left-1 right-1 border rounded cursor-pointer hover:opacity-80 transition-opacity z-20 ${
                           eventTypeColors[event.type as keyof typeof eventTypeColors] || eventTypeColors.other
                         } ${isDragging ? 'opacity-75 z-50' : ''} ${isResizing ? 'z-50' : ''} ${
                           selectedEvents.has(event.id) ? 'ring-4 ring-yellow-400 ring-opacity-75' : ''
