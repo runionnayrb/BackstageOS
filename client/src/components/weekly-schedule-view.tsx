@@ -652,7 +652,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     timeLabels.push(
       <div
         key={minutes}
-        className="absolute left-0 w-20 text-right pr-2 text-sm text-gray-600"
+        className="absolute left-0 w-20 text-left pl-2 text-sm text-gray-600"
         style={{ top: `${position}px` }}
       >
         {formatTimeDisplay(timeString, timeFormat as '12' | '24')}
@@ -758,7 +758,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           {/* Header row */}
           <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '60px' }}>
             <div 
-              className="absolute left-0 top-0 bottom-0 bg-gray-100 border-r border-gray-200 p-3 text-sm font-medium text-gray-600 flex items-center"
+              className="absolute left-0 top-0 bottom-0 bg-gray-100 border-r border-gray-200 p-3 text-sm font-medium text-gray-600 flex items-center justify-start"
               style={{ width: '80px' }}
             >
               Time
@@ -783,7 +783,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           {showAllDayEvents && (
             <div className="relative min-h-[60px] bg-gray-50 border-b border-gray-200">
               <div 
-                className="absolute left-0 top-0 bottom-0 bg-gray-100 border-r border-gray-200 p-2 text-sm font-medium text-gray-600 flex items-center"
+                className="absolute left-0 top-0 bottom-0 bg-gray-100 border-r border-gray-200 p-2 text-sm font-medium text-gray-600 flex items-center justify-start"
                 style={{ width: '80px' }}
               >
                 All Day
