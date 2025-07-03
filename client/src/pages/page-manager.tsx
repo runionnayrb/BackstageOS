@@ -235,17 +235,20 @@ export default function PageManager() {
   return (
     <div className="container mx-auto p-4 sm:p-6 max-w-6xl">
       {/* Mobile-responsive header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
-        <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6 lg:mb-8 space-y-4 lg:space-y-0">
+        <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-6">
           <Link to="/admin/dns">
-            <Button variant="ghost" size="sm" className="w-full sm:w-auto justify-start">
+            <Button variant="ghost" size="default" className="w-full sm:w-auto justify-start">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to DNS Manager
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold">Page Manager</h1>
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold">Page Manager</h1>
+            <p className="text-sm lg:text-base text-gray-600">Manage application pages and routing</p>
+          </div>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)} className="w-full sm:w-auto">
+        <Button onClick={() => setShowCreateDialog(true)} className="w-full lg:w-auto" size="default">
           <Plus className="mr-2 h-4 w-4" />
           <span className="sm:inline">Create Page</span>
         </Button>

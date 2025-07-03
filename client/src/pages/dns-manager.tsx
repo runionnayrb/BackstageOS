@@ -247,27 +247,27 @@ function DNSManagerContent() {
   return (
     <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-6xl overflow-x-hidden">
       <div className="flex flex-col space-y-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center space-y-3 lg:space-y-0 lg:space-x-6">
           <Link href="/admin">
-            <Button variant="ghost" size="sm" className="w-full sm:w-auto">
+            <Button variant="ghost" size="default" className="w-full sm:w-auto">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Admin
             </Button>
           </Link>
-          <div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">DNS Manager</h1>
-            <p className="text-sm text-gray-600">Manage DNS records and domain configuration</p>
+          <div className="flex-1">
+            <h1 className="text-2xl lg:text-3xl font-bold">DNS Manager</h1>
+            <p className="text-sm lg:text-base text-gray-600">Manage DNS records and domain configuration</p>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 mt-4">
           <Link href="/admin/pages">
-            <Button variant="outline" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto" size="default">
               <FileText className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Page </span>Manager
             </Button>
           </Link>
           <Link href="/admin/domains">
-            <Button variant="outline" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto" size="default">
               <Globe className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Domain </span>Manager
             </Button>

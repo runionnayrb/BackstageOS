@@ -136,18 +136,21 @@ export default function DomainManager() {
 
   return (
     <div className="container mx-auto p-3 sm:p-6 max-w-6xl">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 sm:mb-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 lg:gap-6 mb-6 lg:mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-6 w-full lg:w-auto">
           <Link to="/admin/dns">
-            <Button variant="ghost" size="sm" className="w-full sm:w-auto">
+            <Button variant="ghost" size="default" className="w-full sm:w-auto">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to DNS Manager
             </Button>
           </Link>
-          <h1 className="text-xl sm:text-2xl font-bold">Domain Manager</h1>
+          <div>
+            <h1 className="text-2xl lg:text-3xl font-bold">Domain Manager</h1>
+            <p className="text-sm lg:text-base text-gray-600">Configure domain routing and page assignments</p>
+          </div>
         </div>
-        <Link to="/admin/pages" className="w-full sm:w-auto">
-          <Button variant="outline" className="w-full sm:w-auto">
+        <Link to="/admin/pages" className="w-full lg:w-auto">
+          <Button variant="outline" className="w-full sm:w-auto" size="default">
             <FileText className="mr-2 h-4 w-4" />
             Page Manager
           </Button>

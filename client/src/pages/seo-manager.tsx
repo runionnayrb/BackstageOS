@@ -330,22 +330,23 @@ ${JSON.stringify(settings.structuredData, null, 2)}
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="border-b bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 py-3 sm:py-4">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center space-y-3 lg:space-y-0 lg:space-x-6 py-4 lg:py-6">
             <Link href="/admin">
-              <Button variant="ghost" size="sm" className="w-full sm:w-auto">
+              <Button variant="ghost" size="default" className="w-full sm:w-auto">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Admin
               </Button>
             </Link>
             <div className="flex-1">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">SEO & AI Optimization</h1>
-              <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400">Manage search engine and AI optimization settings for all domains</p>
+              <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">SEO & AI Optimization</h1>
+              <p className="text-sm lg:text-base text-gray-500 dark:text-gray-400">Manage search engine and AI optimization settings for all domains</p>
             </div>
-            <div className="flex flex-col sm:flex-row w-full sm:w-auto space-y-2 sm:space-y-0 sm:space-x-2">
+            <div className="flex flex-col sm:flex-row w-full lg:w-auto space-y-3 sm:space-y-0 sm:space-x-3">
               <Button
                 variant="outline"
                 onClick={testConnectivity}
                 className="w-full sm:w-auto"
+                size="default"
               >
                 <Globe className="mr-2 h-4 w-4" />
                 <span className="hidden sm:inline">Test </span>Connectivity
@@ -354,6 +355,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                 variant={viewMode === 'list' ? 'default' : 'outline'}
                 onClick={() => setViewMode('list')}
                 className="w-full sm:w-auto"
+                size="default"
               >
                 <Settings className="mr-2 h-4 w-4" />
                 Settings

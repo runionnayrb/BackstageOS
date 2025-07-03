@@ -321,19 +321,19 @@ export default function AdminErrorLogs() {
   return (
     <div className="space-y-6">
       <div>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
-            <h2 className="text-xl font-semibold">Error Logs</h2>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-6 w-full lg:w-auto">
+            <h2 className="text-2xl lg:text-3xl font-semibold">Error Logs</h2>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-3">
               <Link href="/auto-resolution-dashboard" className="w-full sm:w-auto">
-                <Button variant="outline" size="sm" className="flex items-center gap-2 w-full sm:w-auto">
+                <Button variant="outline" size="default" className="flex items-center gap-2 w-full sm:w-auto">
                   <Activity className="h-4 w-4" />
                   <span className="hidden sm:inline">Auto-Resolution Dashboard</span>
                   <span className="sm:hidden">Auto-Resolution</span>
                 </Button>
               </Link>
               <Link href="/advanced-analytics-dashboard" className="w-full sm:w-auto">
-                <Button variant="outline" size="sm" className="flex items-center gap-2 border-purple-500 text-purple-600 hover:bg-purple-50 w-full sm:w-auto">
+                <Button variant="outline" size="default" className="flex items-center gap-2 border-purple-500 text-purple-600 hover:bg-purple-50 w-full sm:w-auto">
                   <BarChart3 className="h-4 w-4" />
                   <span className="hidden sm:inline">Advanced Analytics</span>
                   <span className="sm:hidden">Analytics</span>
@@ -365,7 +365,7 @@ export default function AdminErrorLogs() {
         </div>
         
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4 mb-6">
           <Card className="p-3 sm:p-4">
             <div className="text-xl sm:text-2xl font-bold">{errorLogs.length}</div>
             <div className="text-xs sm:text-sm text-gray-600">Total Errors</div>
@@ -382,22 +382,26 @@ export default function AdminErrorLogs() {
             <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.click_failure || 0}</div>
             <div className="text-xs sm:text-sm text-gray-600">Click Failures</div>
           </Card>
+          <Card className="p-3 sm:p-4">
+            <div className="text-xl sm:text-2xl font-bold text-purple-600">{stats.form_submission_error || 0}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Form Errors</div>
+          </Card>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Search errors by message, page, or user..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-10"
             />
           </div>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-full sm:w-48">
+              <SelectTrigger className="w-full sm:w-52 h-10">
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
               <SelectContent>
@@ -411,7 +415,7 @@ export default function AdminErrorLogs() {
               </SelectContent>
             </Select>
             <Select value={filterUser} onValueChange={setFilterUser}>
-              <SelectTrigger className="w-full sm:w-48">
+              <SelectTrigger className="w-full sm:w-52 h-10">
                 <SelectValue placeholder="Filter by user" />
               </SelectTrigger>
             <SelectContent>
@@ -748,11 +752,21 @@ export default function AdminErrorLogs() {
                                       <div>
                                         <h4 className="font-medium mb-2">What Happened</h4>
                                         <div className="bg-blue-50 p-3 rounded text-sm space-y-2">
-                                          <p className="text-blue-900">{naturalDescription.naturalLanguage}</p>
-                                          <div className="text-xs space-y-1">
-                                            <div><strong>User Impact:</strong> {naturalDescription.userImpact}</div>
-                                            <div><strong>Severity:</strong> {naturalDescription.severity}</div>
-                                            <div><strong>Technical Summary:</strong> {naturalDescription.technicalSummary}</div>
+                                          <p className="text-blue-900">{naturalDescription.description}</p>
+                                          <div className="pt-2 border-t border-blue-200">
+                                            <span className="font-medium text-blue-800">Impact on Users:</span>
+                                            <p className="text-blue-800 mt-1">{naturalDescription.impact}</p>
+                                          </div>
+                                          <div className="flex items-center gap-2 pt-2">
+                                            <span className="font-medium text-blue-800">Severity:</span>
+                                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                              naturalDescription.severity === 'Critical' ? 'bg-red-100 text-red-800' :
+                                              naturalDescription.severity === 'High' ? 'bg-orange-100 text-orange-800' :
+                                              naturalDescription.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                                              'bg-green-100 text-green-800'
+                                            }`}>
+                                              {naturalDescription.severity}
+                                            </span>
                                           </div>
                                         </div>
                                       </div>
