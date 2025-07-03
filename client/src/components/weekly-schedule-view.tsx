@@ -697,8 +697,26 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
   return (
     <>
       <div className="space-y-4">
-        {/* Controls and navigation */}
-        <div className="flex items-center justify-end mb-4">
+        {/* Navigation and controls row */}
+        <div className="flex items-center justify-between mb-4">
+          {/* Empty space on the left */}
+          <div></div>
+
+          {/* Week navigation - centered */}
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" onClick={goToPreviousWeek} size="sm">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <div className="text-lg font-medium min-w-[200px] text-center">
+              {formatWeekRange(weekDates)}
+            </div>
+            
+            <Button variant="outline" onClick={goToNextWeek} size="sm">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
           {/* All Day and Today buttons - right aligned */}
           <div className="flex items-center space-x-2">
             <Button
@@ -711,23 +729,6 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             </Button>
             <Button variant="outline" onClick={goToToday} size="sm">
               Today
-            </Button>
-          </div>
-        </div>
-
-        {/* Week navigation - centered to calendar */}
-        <div className="flex justify-center mb-4">
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" onClick={goToPreviousWeek} size="sm">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            
-            <div className="text-lg font-medium min-w-[200px] text-center">
-              {formatWeekRange(weekDates)}
-            </div>
-            
-            <Button variant="outline" onClick={goToNextWeek} size="sm">
-              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
