@@ -686,10 +686,19 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                 });
               }
               
+              console.log('Weekly Schedule Increment Lines:', {
+                START_MINUTES,
+                END_MINUTES,
+                TOTAL_MINUTES,
+                timeIncrement,
+                totalLines: timeLabels.length,
+                firstFew: timeLabels.slice(0, 5)
+              });
+              
               return timeLabels.map((timeLabel) => (
                 <div
                   key={timeLabel.minutes}
-                  className="absolute left-0 right-0 border-b border-gray-200"
+                  className="absolute left-0 right-0 border-b border-red-500 z-20"
                   style={{ top: `${timeLabel.position}px` }}
                 />
               ));
