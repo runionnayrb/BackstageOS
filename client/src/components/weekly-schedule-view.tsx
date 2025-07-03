@@ -717,8 +717,16 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             </Button>
           </div>
 
-          {/* Today and New Event buttons - right aligned */}
+          {/* All Day, Today and New Event buttons - right aligned */}
           <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAllDayEvents(!showAllDayEvents)}
+              className="text-sm"
+            >
+              All Day {showAllDayEvents ? 'Hide' : 'Show'}
+            </Button>
             <Button variant="outline" onClick={goToToday} size="sm">
               Today
             </Button>
@@ -759,17 +767,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           </div>
         )}
 
-        {/* All Day Events Toggle */}
-        <div className="flex items-center justify-between">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAllDayEvents(!showAllDayEvents)}
-            className="text-sm"
-          >
-            All Day {showAllDayEvents ? 'Hide' : 'Show'}
-          </Button>
-        </div>
+
 
         {/* Main Schedule Grid */}
         <div className="border border-gray-200 rounded-lg overflow-hidden">
