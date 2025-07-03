@@ -207,8 +207,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Fix error endpoint (admin only)
-  app.post('/api/errors/fix', isAuthenticated, async (req: any, res) => {
+  // Analyze error and suggest fix (admin only)
+  app.post('/api/errors/analyze', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id.toString();
       
@@ -222,23 +222,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Error log data required" });
       }
 
-      // Analyze error and determine fix
+      // Analyze error and determine potential fix
       const fixResult = analyzeAndFixError(errorLog);
       
-      // Mark error as addressed in database if we have a fix
-      if (fixResult.canFix) {
-        await storage.markErrorAsFixed(errorLog.id, fixResult.fixDescription);
-      }
-
       res.json({
-        success: fixResult.canFix,
+        canFix: fixResult.canFix,
         fixDescription: fixResult.fixDescription,
         fixActions: fixResult.fixActions,
-        recommendation: fixResult.recommendation
+        recommendation: fixResult.recommendation,
+        requiresVerification: true
       });
     } catch (error) {
-      console.error("Error applying fix:", error);
-      res.status(500).json({ message: "Failed to apply fix" });
+      console.error("Error analyzing fix:", error);
+      res.status(500).json({ message: "Failed to analyze error" });
+    }
+  });
+
+  // Mark error as fixed after verification (admin only)
+  app.post('/api/errors/mark-fixed', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { errorId, fixDescription, verificationNotes } = req.body;
+      
+      if (!errorId || !fixDescription) {
+        return res.status(400).json({ message: "Error ID and fix description required" });
+      }
+
+      // Mark error as fixed with verification notes
+      const fullFixDescription = verificationNotes 
+        ? `${fixDescription}\n\nVerification: ${verificationNotes}`
+        : fixDescription;
+        
+      await storage.markErrorAsFixed(errorId, fullFixDescription);
+
+      res.json({
+        success: true,
+        message: "Error marked as fixed after verification"
+      });
+    } catch (error) {
+      console.error("Error marking as fixed:", error);
+      res.status(500).json({ message: "Failed to mark error as fixed" });
     }
   });
 

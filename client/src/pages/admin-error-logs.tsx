@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { AlertTriangle, Bug, Wifi, Monitor, MousePointer, FileText, Eye, Calendar, Search, Play, Pause, Wrench } from "lucide-react";
 import { ErrorLog } from "@/../../shared/schema";
 import { errorLogger } from "@/lib/errorLogger";
@@ -44,34 +46,77 @@ export default function AdminErrorLogs() {
     queryKey: ["/api/errors"],
   });
 
-  // Mutation to fix errors
-  const fixErrorMutation = useMutation({
+  // State for fix analysis and verification
+  const [analyzedFix, setAnalyzedFix] = useState<any>(null);
+  const [showFixDialog, setShowFixDialog] = useState(false);
+  const [currentError, setCurrentError] = useState<ErrorLog | null>(null);
+  const [verificationNotes, setVerificationNotes] = useState("");
+
+  // Mutation to analyze errors and suggest fixes
+  const analyzeErrorMutation = useMutation({
     mutationFn: async (errorLog: ErrorLog) => {
-      const response = await fetch("/api/errors/fix", {
+      const response = await fetch("/api/errors/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ errorLog }),
       });
       
       if (!response.ok) {
-        throw new Error("Failed to fix error");
+        throw new Error("Failed to analyze error");
       }
       
       return response.json();
     },
     onSuccess: (data, errorLog) => {
+      setAnalyzedFix(data);
+      setCurrentError(errorLog);
+      setShowFixDialog(true);
+    },
+    onError: (error) => {
       toast({
-        title: "Error Fix Applied",
-        description: `Applied fix for ${errorLog.errorType}: ${data.fixDescription}`,
+        title: "Analysis Failed",
+        description: "Unable to analyze this error for potential fixes",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Mutation to mark error as fixed after verification
+  const markFixedMutation = useMutation({
+    mutationFn: async ({ errorId, fixDescription, verificationNotes }: {
+      errorId: number;
+      fixDescription: string;
+      verificationNotes: string;
+    }) => {
+      const response = await fetch("/api/errors/mark-fixed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ errorId, fixDescription, verificationNotes }),
       });
       
-      // Refetch error logs to show updated status
+      if (!response.ok) {
+        throw new Error("Failed to mark error as fixed");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Error Marked as Fixed",
+        description: "Error has been verified and marked as resolved",
+      });
+      
+      // Reset state and refetch
+      setShowFixDialog(false);
+      setAnalyzedFix(null);
+      setCurrentError(null);
+      setVerificationNotes("");
       queryClient.invalidateQueries({ queryKey: ["/api/errors"] });
     },
     onError: (error) => {
       toast({
-        title: "Fix Failed",
-        description: "Unable to apply automatic fix for this error",
+        title: "Failed to Mark as Fixed",
+        description: "Unable to mark error as fixed",
         variant: "destructive",
       });
     },
@@ -487,12 +532,12 @@ export default function AdminErrorLogs() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => fixErrorMutation.mutate(errorLog)}
-                              disabled={fixErrorMutation.isPending}
+                              onClick={() => analyzeErrorMutation.mutate(errorLog)}
+                              disabled={analyzeErrorMutation.isPending}
                               className="text-green-600 hover:text-green-700 border-green-200 hover:border-green-300"
                             >
                               <Wrench className="h-4 w-4 mr-1" />
-                              {fixErrorMutation.isPending ? "Fixing..." : "Fix"}
+                              {analyzeErrorMutation.isPending ? "Analyzing..." : "Analyze & Fix"}
                             </Button>
                           </div>
                           </TableCell>
@@ -506,6 +551,116 @@ export default function AdminErrorLogs() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Fix Verification Dialog */}
+      <Dialog open={showFixDialog} onOpenChange={setShowFixDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wrench className="h-5 w-5 text-green-600" />
+              Error Fix Analysis & Verification
+            </DialogTitle>
+            <DialogDescription>
+              Review the suggested fix and confirm it has been tested and verified before marking as resolved.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {analyzedFix && currentError && (
+            <div className="space-y-6">
+              {/* Error Summary */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">Error Summary</h4>
+                <div className="text-sm space-y-1">
+                  <div><strong>Type:</strong> {currentError.errorType.replace(/_/g, ' ')}</div>
+                  <div><strong>Message:</strong> {currentError.message}</div>
+                  <div><strong>Page:</strong> {currentError.page}</div>
+                </div>
+              </div>
+
+              {/* Fix Analysis */}
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">Recommended Fix</h4>
+                  <div className="bg-blue-50 p-3 rounded border-l-4 border-blue-400">
+                    <p className="text-sm">{analyzedFix.fixDescription}</p>
+                  </div>
+                </div>
+
+                {analyzedFix.fixActions && analyzedFix.fixActions.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-2">Suggested Actions</h4>
+                    <ul className="text-sm space-y-1 ml-4">
+                      {analyzedFix.fixActions.map((action: string, index: number) => (
+                        <li key={index} className="list-disc">{action}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {analyzedFix.recommendation && (
+                  <div>
+                    <h4 className="font-medium mb-2">Technical Recommendation</h4>
+                    <div className="bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">
+                      <p className="text-sm">{analyzedFix.recommendation}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Verification Notes */}
+              <div className="space-y-2">
+                <Label htmlFor="verification-notes">Verification Notes</Label>
+                <Textarea
+                  id="verification-notes"
+                  placeholder="Describe how you tested the fix and confirmed the error is resolved..."
+                  value={verificationNotes}
+                  onChange={(e) => setVerificationNotes(e.target.value)}
+                  rows={4}
+                />
+                <p className="text-xs text-gray-500">
+                  Required: Describe the testing steps taken to verify this error no longer occurs
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowFixDialog(false);
+                    setAnalyzedFix(null);
+                    setCurrentError(null);
+                    setVerificationNotes("");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (!verificationNotes.trim()) {
+                      toast({
+                        title: "Verification Required",
+                        description: "Please describe how you tested and verified the fix",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    markFixedMutation.mutate({
+                      errorId: currentError.id,
+                      fixDescription: analyzedFix.fixDescription,
+                      verificationNotes: verificationNotes.trim(),
+                    });
+                  }}
+                  disabled={markFixedMutation.isPending || !verificationNotes.trim()}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {markFixedMutation.isPending ? "Marking as Fixed..." : "Mark as Fixed"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
