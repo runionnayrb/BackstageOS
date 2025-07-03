@@ -1233,8 +1233,8 @@ function CreateEventForm({
             </SelectTrigger>
             <SelectContent>
               {ALL_EVENT_TYPES.map(type => (
-                <SelectItem key={type.value} value={type.value}>
-                  {getEventTypeDisplayName(type.value)}
+                <SelectItem key={type} value={type}>
+                  {getEventTypeDisplayName(type)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -1414,8 +1414,8 @@ function EditEventForm({
             </SelectTrigger>
             <SelectContent>
               {ALL_EVENT_TYPES.map(type => (
-                <SelectItem key={type.value} value={type.value}>
-                  {getEventTypeDisplayName(type.value)}
+                <SelectItem key={type} value={type}>
+                  {getEventTypeDisplayName(type)}
                 </SelectItem>
               ))}
             </SelectContent>
