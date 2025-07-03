@@ -648,13 +648,14 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
   for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += 60) {
     const position = minutesToPosition(minutes);
     const hours = Math.floor(minutes / 60);
+    const timeString = `${hours.toString().padStart(2, '0')}:00`;
     timeLabels.push(
       <div
         key={minutes}
         className="absolute left-0 w-20 text-right pr-2 text-sm text-gray-600"
         style={{ top: `${position}px` }}
       >
-        {formatTimeDisplay(minutes, timeFormat)}
+        {formatTimeDisplay(timeString, timeFormat as '12' | '24')}
       </div>
     );
   }
@@ -761,7 +762,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               </div>
               {weekDates.map((date, dayIndex) => (
                 <div key={dayIndex} className="p-2 text-sm font-medium text-center border-l border-gray-200">
-                  {date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  {/* No dates shown here to avoid duplication */}
                 </div>
               ))}
             </div>
@@ -889,7 +890,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                     >
                       <div className="font-medium truncate">{event.title}</div>
                       <div className="text-xs opacity-90">
-                        {formatTimeDisplay(startMinutes, timeFormat)} - {formatTimeDisplay(endMinutes, timeFormat)}
+                        {formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} - {formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}
                       </div>
                       
                       {/* Resize handles */}
