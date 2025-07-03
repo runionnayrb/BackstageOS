@@ -461,8 +461,8 @@ export default function AdminErrorLogs() {
                       const priorityInfo = getPriorityInfo(priority);
                       
                       return (
-                        <TableRow key={errorLog.id}>
-                          <TableCell className="px-4 py-3">
+                        <TableRow key={errorLog.id} className="border-b border-gray-200">
+                          <TableCell className="px-4 py-3 border-r border-gray-200">
                             <div className="flex items-center gap-1">
                               <span className="text-xs">{priorityInfo.icon}</span>
                               <Badge className={`${priorityInfo.color} text-xs px-1 py-0`} variant="secondary">
@@ -470,7 +470,7 @@ export default function AdminErrorLogs() {
                               </Badge>
                             </div>
                           </TableCell>
-                          <TableCell className="px-4 py-3">
+                          <TableCell className="px-4 py-3 border-r border-gray-200">
                             <Badge 
                               className={`${errorTypeColors[errorLog.errorType as keyof typeof errorTypeColors] || "bg-gray-100 text-gray-800"} text-xs px-2 py-1`}
                               variant="secondary"
@@ -478,17 +478,17 @@ export default function AdminErrorLogs() {
                               {errorLog.errorType.replace(/_/g, ' ')}
                             </Badge>
                           </TableCell>
-                          <TableCell className="px-4 py-3">
+                          <TableCell className="px-4 py-3 border-r border-gray-200">
                             <div className="truncate text-sm" title={errorLog.message}>
                               {errorLog.message.split(':')[0]}
                             </div>
                           </TableCell>
-                          <TableCell className="px-4 py-3">
+                          <TableCell className="px-4 py-3 border-r border-gray-200">
                             <code className="text-xs bg-gray-100 px-1 py-0.5 rounded truncate" title={errorLog.page}>
                               {errorLog.page}
                             </code>
                           </TableCell>
-                          <TableCell className="px-4 py-3">
+                          <TableCell className="px-4 py-3 border-r border-gray-200">
                             {errorLog.userId ? (
                               <div className="text-xs font-medium truncate max-w-[100px]" title={errorLog.userFirstName && errorLog.userLastName 
                                   ? `${errorLog.userFirstName} ${errorLog.userLastName}`
@@ -502,7 +502,7 @@ export default function AdminErrorLogs() {
                               <span className="text-gray-400 text-xs">Anonymous</span>
                             )}
                           </TableCell>
-                          <TableCell className="px-4 py-3">
+                          <TableCell className="px-4 py-3 border-r border-gray-200">
                             <div className="text-xs text-gray-600 whitespace-nowrap">
                               {formatDate(errorLog.createdAt.toString())}
                             </div>
