@@ -848,17 +848,17 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
       <div className="space-y-4">
         {/* Navigation and controls row */}
         <div className="relative flex justify-between mb-4">
-          {/* Week navigation - left aligned */}
+          {/* Week navigation - left aligned with fixed arrow positions */}
           <div className="flex items-center">
-            <button onClick={goToPreviousWeek} className="p-3 hover:bg-gray-100 rounded transition-colors">
+            <button onClick={goToPreviousWeek} className="p-3 hover:bg-gray-100 rounded transition-colors flex-shrink-0">
               <ChevronLeft className="h-5 w-5" />
             </button>
             
-            <div className="text-lg font-medium px-6">
+            <div className="text-lg font-medium px-6 min-w-[500px] flex-shrink-0">
               {formatWeekRange(weekDates)}
             </div>
             
-            <button onClick={goToNextWeek} className="p-3 hover:bg-gray-100 rounded transition-colors">
+            <button onClick={goToNextWeek} className="p-3 hover:bg-gray-100 rounded transition-colors flex-shrink-0">
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>
