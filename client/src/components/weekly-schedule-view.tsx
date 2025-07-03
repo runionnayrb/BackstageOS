@@ -769,20 +769,27 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             >
               Time
             </div>
-            {weekDates.map((date, dayIndex) => (
-              <div 
-                key={dayIndex} 
-                className="absolute top-0 bottom-0 p-3 text-sm font-medium text-center border-l border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors flex flex-col justify-center"
-                style={{
-                  left: `calc(80px + (100% - 80px) * ${dayIndex} / 7)`,
-                  width: `calc((100% - 80px) / 7)`,
-                }}
-                onClick={() => onDateClick(date)}
-              >
-                <div>{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                <div className="text-lg">{date.getDate()}</div>
-              </div>
-            ))}
+            {weekDates.map((date, dayIndex) => {
+              const isToday = date.toDateString() === new Date().toDateString();
+              return (
+                <div 
+                  key={dayIndex} 
+                  className={`absolute top-0 bottom-0 p-3 text-sm font-medium text-center border-l border-gray-200 cursor-pointer transition-colors flex flex-col justify-center ${
+                    isToday 
+                      ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                      : 'hover:bg-blue-50'
+                  }`}
+                  style={{
+                    left: `calc(80px + (100% - 80px) * ${dayIndex} / 7)`,
+                    width: `calc((100% - 80px) / 7)`,
+                  }}
+                  onClick={() => onDateClick(date)}
+                >
+                  <div>{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                  <div className="text-lg">{date.getDate()}</div>
+                </div>
+              );
+            })}
           </div>
 
           {/* All Day Events Section - directly below headers */}
