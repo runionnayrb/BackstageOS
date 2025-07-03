@@ -15,7 +15,8 @@ import { ErrorClusteringService } from "./errorClusteringService";
 import { z } from "zod";
 import sgMail from "@sendgrid/mail";
 
-// Error analysis and fixing logic
+// Error analysis and fixing logic - moved after helper functions
+
 function analyzeAndFixError(errorLog: any) {
   const { errorType, message, page, stackTrace } = errorLog;
   
@@ -87,6 +88,8 @@ function analyzeAndFixError(errorLog: any) {
     }
   }
 
+// This function will be defined inside registerRoutes to have proper scope
+
   const errorDescription = getErrorDescription(errorType, message, page);
 
   switch (errorType) {
@@ -155,7 +158,8 @@ function analyzeAndFixError(errorLog: any) {
     errorDescription,
     fixDescription,
     fixActions,
-    recommendation
+    recommendation,
+    codeChanges: [] // Basic analysis doesn't provide specific code changes
   };
 }
 
@@ -208,6 +212,103 @@ function requireAdmin(req: any, res: any, next: any) {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize error clustering service
   const errorClusteringService = new ErrorClusteringService(storage);
+
+  // AI-powered error analysis function
+  async function analyzeAndFixErrorWithAI(errorLog: any) {
+    const { errorType, message, page, stackTrace, userAgent, timestamp } = errorLog;
+    
+    // First get basic error description
+    const errorDescription = getErrorDescription(errorType, message, page);
+    
+    try {
+      // Initialize OpenAI
+      const OpenAI = require('openai');
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      
+      // Create comprehensive error analysis prompt
+      const prompt = `You are an expert JavaScript/TypeScript developer analyzing production errors from a theater management web application called BackstageOS. 
+
+ERROR DETAILS:
+- Type: ${errorType}
+- Message: ${message}
+- Page: ${page}
+- Stack Trace: ${stackTrace || 'Not available'}
+- User Agent: ${userAgent || 'Not available'}
+- When: ${timestamp}
+
+CONTEXT:
+This is a React/Express/PostgreSQL application with:
+- Frontend: React 18, TypeScript, Vite, Shadcn/UI, TanStack Query
+- Backend: Express.js, TypeScript, Drizzle ORM, PostgreSQL
+- Common patterns: API routes, form handling, database queries, authentication
+
+TASK:
+Analyze this error and provide a comprehensive fix recommendation. Return a JSON response with:
+1. canFix: boolean (true if you can suggest specific code changes)
+2. fixDescription: string (clear description of what needs to be fixed)
+3. recommendation: string (detailed explanation of the issue and solution)
+4. codeChanges: array of specific code changes needed
+5. fixActions: array of implementation steps
+
+For codeChanges, provide specific code examples with:
+- file: likely file path
+- description: what to change
+- before: current problematic code (if identifiable)
+- after: fixed code
+
+Focus on:
+- Actual code fixes, not just generic advice
+- Specific file paths and functions likely involved
+- Root cause analysis
+- Prevention of similar issues
+
+Example codeChanges format:
+[
+  {
+    "file": "client/src/pages/calendar.tsx",
+    "description": "Add null check for calendar data",
+    "before": "const events = data.events.map(...)",
+    "after": "const events = data?.events?.map(...) || []"
+  }
+]
+
+Respond with valid JSON only.`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "You are an expert software developer specializing in debugging and fixing JavaScript/TypeScript errors in production web applications. Provide specific, actionable fix recommendations."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.1,
+        max_tokens: 1500
+      });
+
+      const aiAnalysis = JSON.parse(response.choices[0].message.content);
+      
+      return {
+        canFix: aiAnalysis.canFix || false,
+        errorDescription,
+        fixDescription: aiAnalysis.fixDescription || "No specific fix could be determined",
+        fixActions: aiAnalysis.fixActions || [],
+        recommendation: aiAnalysis.recommendation || "Manual investigation required",
+        codeChanges: aiAnalysis.codeChanges || []
+      };
+      
+    } catch (error) {
+      console.error("OpenAI analysis failed:", error);
+      
+      // Fallback to basic analysis if OpenAI fails
+      return analyzeAndFixError(errorLog);
+    }
+  }
 
   // Setup authentication
   setupAuth(app);
@@ -292,14 +393,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Error log data required" });
       }
 
-      // Analyze error and determine potential fix
-      const fixResult = analyzeAndFixError(errorLog);
+      // Analyze error and determine potential fix using OpenAI
+      const fixResult = await analyzeAndFixErrorWithAI(errorLog);
       
       res.json({
         canFix: fixResult.canFix,
         fixDescription: fixResult.fixDescription,
         fixActions: fixResult.fixActions,
         recommendation: fixResult.recommendation,
+        errorDescription: fixResult.errorDescription,
+        codeChanges: fixResult.codeChanges,
         requiresVerification: true
       });
     } catch (error) {
