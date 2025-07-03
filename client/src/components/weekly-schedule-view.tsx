@@ -514,7 +514,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
 
   return (
-    <div className="space-y-4">
+    <>
+      <div className="space-y-4">
       {/* Week navigation */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
@@ -701,16 +702,22 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             />
 
             {/* Day columns */}
-            {weekDates.map((date, dayIndex) => (
-              <div
-                key={dayIndex}
-                className="absolute border-r border-gray-200 bg-white cursor-crosshair"
-                style={{
-                  left: `${(1 + dayIndex) * (100 / 8)}%`,
-                  width: `${100 / 8}%`,
-                  height: '960px',
-                }}
-                onMouseDown={(e) => handleMouseDown(e, dayIndex)}
+            {weekDates.map((date, dayIndex) => {
+              // Calculate column width: (container width - 80px time column) / 7 days
+              // Use calc() to ensure exact alignment with header
+              const leftPosition = `calc(80px + (100% - 80px) * ${dayIndex} / 7)`;
+              const columnWidth = `calc((100% - 80px) / 7)`;
+              
+              return (
+                <div
+                  key={dayIndex}
+                  className="absolute border-r border-gray-200 bg-white cursor-crosshair"
+                  style={{
+                    left: leftPosition,
+                    width: columnWidth,
+                    height: '960px',
+                  }}
+                  onMouseDown={(e) => handleMouseDown(e, dayIndex)}
               >
                 {/* Events for this day - only timed events, not all-day */}
                 {filteredEvents
@@ -800,7 +807,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                     );
                   })}
               </div>
-            ))}
+            );
+          })}
 
             {/* Drag preview overlay for new events */}
             {dragState?.isActive && (
@@ -838,22 +846,23 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           </div>
         </div>
       </div>
+    </div>
 
-      {/* Create Event Dialog */}
-      <Dialog open={createEventDialog.isOpen} onOpenChange={(open) => setCreateEventDialog({ isOpen: open })}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Create New Event</DialogTitle>
-          </DialogHeader>
-          <CreateEventForm
-            projectId={projectId}
-            contacts={contacts}
-            onSubmit={(eventData) => createEventMutation.mutate(eventData)}
-            onCancel={() => setCreateEventDialog({ isOpen: false })}
-            initialData={createEventDialog}
-          />
-        </DialogContent>
-      </Dialog>
+    {/* Create Event Dialog */}
+    <Dialog open={createEventDialog.isOpen} onOpenChange={(open) => setCreateEventDialog({ isOpen: open })}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Create New Event</DialogTitle>
+        </DialogHeader>
+        <CreateEventForm
+          projectId={projectId}
+          contacts={contacts}
+          onSubmit={(eventData) => createEventMutation.mutate(eventData)}
+          onCancel={() => setCreateEventDialog({ isOpen: false })}
+          initialData={createEventDialog}
+        />
+      </DialogContent>
+    </Dialog>
 
       {/* Edit Event Dialog */}
       {editingEvent && (
@@ -904,7 +913,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           </DialogContent>
         </Dialog>
       )}
-    </div>
+    </>
   );
 }
 
