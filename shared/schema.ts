@@ -1152,7 +1152,11 @@ export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
 export type DomainRoute = typeof domainRoutes.$inferSelect;
 export type InsertDomainRoute = z.infer<typeof insertDomainRouteSchema>;
-export type ErrorLog = typeof errorLogs.$inferSelect;
+export type ErrorLog = typeof errorLogs.$inferSelect & {
+  userEmail?: string;
+  userFirstName?: string;
+  userLastName?: string;
+};
 export type InsertErrorLog = z.infer<typeof insertErrorLogSchema>;
 export type Waitlist = typeof waitlist.$inferSelect;
 export type InsertWaitlist = z.infer<typeof insertWaitlistSchema>;

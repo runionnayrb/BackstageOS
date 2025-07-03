@@ -33,6 +33,7 @@ const errorTypeColors = {
 export default function AdminErrorLogs() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
+  const [filterUser, setFilterUser] = useState<string>("all");
   const [selectedError, setSelectedError] = useState<ErrorLog | null>(null);
   const [isLoggingEnabled, setIsLoggingEnabled] = useState(true);
 
@@ -69,16 +70,35 @@ export default function AdminErrorLogs() {
     }
   };
 
-  // Filter error logs based on search and type filter
+  // Get unique users from error logs for dropdown
+  const uniqueUsers = errorLogs.reduce((users, log) => {
+    if (log.userId && !users.some(u => u.id === log.userId)) {
+      const displayName = log.userFirstName && log.userLastName 
+        ? `${log.userFirstName} ${log.userLastName}` 
+        : log.userEmail || `User ${log.userId}`;
+      users.push({
+        id: log.userId,
+        displayName,
+        email: log.userEmail
+      });
+    }
+    return users;
+  }, [] as Array<{ id: string; displayName: string; email?: string; }>);
+
+  // Filter error logs based on search, type, and user filter
   const filteredErrorLogs = errorLogs.filter(log => {
     const matchesSearch = searchTerm === "" || 
       log.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.page.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.userId?.toLowerCase().includes(searchTerm.toLowerCase());
+      log.userId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.userEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.userFirstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.userLastName?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesType = filterType === "all" || log.errorType === filterType;
+    const matchesUser = filterUser === "all" || log.userId === filterUser;
     
-    return matchesSearch && matchesType;
+    return matchesSearch && matchesType && matchesUser;
   });
 
   // Get stats for the cards
@@ -187,6 +207,19 @@ export default function AdminErrorLogs() {
               <SelectItem value="navigation_error">Navigation Errors</SelectItem>
             </SelectContent>
           </Select>
+          <Select value={filterUser} onValueChange={setFilterUser}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filter by user" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Users</SelectItem>
+              {uniqueUsers.map((user) => (
+                <SelectItem key={user.id} value={user.id}>
+                  {user.displayName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Error Logs Table */}
@@ -221,7 +254,7 @@ export default function AdminErrorLogs() {
                   {filteredErrorLogs.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-gray-500">
-                        {searchTerm || filterType !== "all" ? "No errors match your filters" : "No errors recorded yet"}
+                        {searchTerm || filterType !== "all" || filterUser !== "all" ? "No errors match your filters" : "No errors recorded yet"}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -253,7 +286,17 @@ export default function AdminErrorLogs() {
                           </TableCell>
                           <TableCell>
                             {errorLog.userId ? (
-                              <span className="text-sm">User {errorLog.userId}</span>
+                              <div className="text-sm">
+                                <div className="font-medium">
+                                  {errorLog.userFirstName && errorLog.userLastName 
+                                    ? `${errorLog.userFirstName} ${errorLog.userLastName}`
+                                    : errorLog.userEmail || `User ${errorLog.userId}`
+                                  }
+                                </div>
+                                {errorLog.userEmail && errorLog.userFirstName && (
+                                  <div className="text-xs text-gray-500">{errorLog.userEmail}</div>
+                                )}
+                              </div>
                             ) : (
                               <span className="text-gray-400">Anonymous</span>
                             )}

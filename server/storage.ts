@@ -732,8 +732,27 @@ class DatabaseStorage implements IStorage {
   }
 
   async getErrorLogs(): Promise<ErrorLog[]> {
-    const result = await db.select().from(errorLogs).orderBy(desc(errorLogs.createdAt));
-    return result;
+    const result = await db.select({
+      id: errorLogs.id,
+      errorType: errorLogs.errorType,
+      message: errorLogs.message,
+      page: errorLogs.page,
+      userAction: errorLogs.userAction,
+      elementClicked: errorLogs.elementClicked,
+      stackTrace: errorLogs.stackTrace,
+      userAgent: errorLogs.userAgent,
+      userId: errorLogs.userId,
+      additionalData: errorLogs.additionalData,
+      createdAt: errorLogs.createdAt,
+      // Join with users table to get user details
+      userEmail: users.email,
+      userFirstName: users.firstName,
+      userLastName: users.lastName,
+    })
+    .from(errorLogs)
+    .leftJoin(users, eq(errorLogs.userId, sql`${users.id}::text`))
+    .orderBy(desc(errorLogs.createdAt));
+    return result as ErrorLog[];
   }
 
   async getErrorLogsByUserId(userId: string): Promise<ErrorLog[]> {
