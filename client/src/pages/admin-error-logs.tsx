@@ -227,7 +227,7 @@ export default function AdminErrorLogs() {
           <CardHeader>
             <CardTitle>Recent Errors ({filteredErrorLogs.length})</CardTitle>
             <CardDescription>
-              Automatic error logging captures JavaScript errors, network failures, and user interaction issues
+              Error logging captures JavaScript errors, network failures, and user interaction issues from registered users in production only
               <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
                 isLoggingEnabled 
                   ? "bg-green-100 text-green-800" 

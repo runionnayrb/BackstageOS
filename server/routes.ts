@@ -92,6 +92,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/errors/log', async (req: any, res) => {
     try {
       const errorLogData = insertErrorLogSchema.parse(req.body);
+      
+      // Only log errors from registered users
+      if (!errorLogData.userId) {
+        return res.status(400).json({ success: false, message: "User ID required" });
+      }
+
+      // Don't log errors in development environment
+      if (process.env.NODE_ENV === 'development') {
+        return res.status(200).json({ success: true, message: "Development environment - error not logged" });
+      }
+
       const errorLog = await storage.createErrorLog(errorLogData);
       res.status(201).json({ success: true, id: errorLog.id });
     } catch (error) {

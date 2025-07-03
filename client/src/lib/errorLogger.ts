@@ -218,6 +218,16 @@ class ErrorLogger {
   private async logError(errorData: ErrorLogData) {
     if (!this.isLoggingEnabled) return;
 
+    // Only log errors from registered users
+    if (!this.userId && !errorData.userId) {
+      return;
+    }
+
+    // Don't log errors in development environment
+    if (import.meta.env.DEV || window.location.hostname.includes('replit.dev')) {
+      return;
+    }
+
     try {
       // Use stored user ID, don't fetch during error logging to avoid circular issues
       const finalErrorData = {
