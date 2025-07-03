@@ -687,8 +687,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               return (
                 <div
                   key={`increment-${i}`}
-                  className="absolute right-0 border-b border-gray-100"
-                  style={{ left: '80px', top: `${position}px` }}
+                  className="absolute left-0 right-0 border-b border-gray-100"
+                  style={{ top: `${position}px` }}
                 />
               );
             })}
