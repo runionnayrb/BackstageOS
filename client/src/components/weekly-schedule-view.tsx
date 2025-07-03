@@ -753,10 +753,28 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           </Button>
         </div>
 
-        {/* All Day Events Section */}
-        {showAllDayEvents && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg">
-            <div className="grid grid-cols-8 min-h-[60px]">
+        {/* Main Schedule Grid */}
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          {/* Header row */}
+          <div className="grid grid-cols-8 bg-gray-50 border-b border-gray-200">
+            <div className="w-20 p-3 text-sm font-medium text-gray-600">
+              Time
+            </div>
+            {weekDates.map((date, dayIndex) => (
+              <div 
+                key={dayIndex} 
+                className="p-3 text-sm font-medium text-center border-l border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors"
+                onClick={() => onDateClick(date)}
+              >
+                <div>{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                <div className="text-lg">{date.getDate()}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* All Day Events Section - directly below headers */}
+          {showAllDayEvents && (
+            <div className="grid grid-cols-8 min-h-[60px] bg-gray-50 border-b border-gray-200">
               <div className="w-20 bg-gray-100 p-2 text-sm font-medium text-gray-600 flex items-center">
                 All Day
               </div>
@@ -782,27 +800,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                 );
               })}
             </div>
-          </div>
-        )}
-
-        {/* Main Schedule Grid */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
-          {/* Header row */}
-          <div className="grid grid-cols-8 bg-gray-50 border-b border-gray-200">
-            <div className="w-20 p-3 text-sm font-medium text-gray-600">
-              Time
-            </div>
-            {weekDates.map((date, dayIndex) => (
-              <div 
-                key={dayIndex} 
-                className="p-3 text-sm font-medium text-center border-l border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors"
-                onClick={() => onDateClick(date)}
-              >
-                <div>{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                <div className="text-lg">{date.getDate()}</div>
-              </div>
-            ))}
-          </div>
+          )}
 
           {/* Scrollable calendar content */}
           <div 
