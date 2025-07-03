@@ -754,7 +754,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
         >
           <div 
             ref={calendarRef}
-            className="relative" 
+            className="relative bg-white" 
             style={{ height: '960px' }}
           >
             {/* Hour labels and major grid lines */}
@@ -795,18 +795,24 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
             {/* Working hours highlight */}
             <div
-              className="absolute left-16 right-0 bg-blue-50 bg-opacity-50 pointer-events-none"
+              className="absolute left-16 right-0 bg-blue-50 bg-opacity-30 pointer-events-none"
               style={{
                 top: `${minutesToPosition(timeToMinutes(workStartTime))}px`,
                 height: `${minutesToPosition(timeToMinutes(workEndTime)) - minutesToPosition(timeToMinutes(workStartTime))}px`,
               }}
             />
 
+            {/* Bottom border for grid completion */}
+            <div
+              className="absolute left-0 right-0 border-b border-gray-200"
+              style={{ top: '960px' }}
+            />
+
             {/* Day columns */}
             {weekDates.map((date, dayIndex) => (
               <div
                 key={dayIndex}
-                className="absolute border-r border-gray-100 cursor-crosshair"
+                className="absolute border-r border-gray-200 bg-white cursor-crosshair"
                 style={{
                   left: `${64 + (dayIndex * ((100 - 4) / 7))}%`,
                   width: `${(100 - 4) / 7}%`,
