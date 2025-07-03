@@ -157,19 +157,19 @@ export default function AdvancedAnalyticsDashboard() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <Link href="/admin-error-logs">
-              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900 w-fit">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Error Logs
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                 Advanced Analytics Dashboard
               </h1>
-              <p className="text-gray-600 dark:text-gray-300 mt-1">
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">
                 Phase 5: Comprehensive error analysis, business impact assessment, and user satisfaction metrics
               </p>
             </div>
@@ -177,7 +177,7 @@ export default function AdvancedAnalyticsDashboard() {
           
           <div className="flex items-center space-x-4">
             <Select value={selectedTimeFrame} onValueChange={setSelectedTimeFrame}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-full sm:w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -190,7 +190,7 @@ export default function AdvancedAnalyticsDashboard() {
         </div>
 
         {/* System Health Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">System Health</CardTitle>
@@ -262,12 +262,22 @@ export default function AdvancedAnalyticsDashboard() {
 
         {/* Detailed Analytics Tabs */}
         <Tabs defaultValue="trends" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="trends">Error Trends</TabsTrigger>
-            <TabsTrigger value="patterns">Critical Patterns</TabsTrigger>
-            <TabsTrigger value="features">Feature Stability</TabsTrigger>
-            <TabsTrigger value="satisfaction">User Satisfaction</TabsTrigger>
-            <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1">
+            <TabsTrigger value="trends" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Error </span>Trends
+            </TabsTrigger>
+            <TabsTrigger value="patterns" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Critical </span>Patterns
+            </TabsTrigger>
+            <TabsTrigger value="features" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">Feature </span>Stability
+            </TabsTrigger>
+            <TabsTrigger value="satisfaction" className="text-xs sm:text-sm">
+              <span className="hidden sm:inline">User </span>Satisfaction
+            </TabsTrigger>
+            <TabsTrigger value="recommendations" className="text-xs sm:text-sm col-span-2 sm:col-span-1">
+              Recommendations
+            </TabsTrigger>
           </TabsList>
 
           {/* Error Trends Tab */}
@@ -285,10 +295,10 @@ export default function AdvancedAnalyticsDashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {analyticsReport?.trends.map((trend, index) => (
-                    <div key={index} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
+                    <div key={index} className="border rounded-lg p-3 sm:p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                         <div className="flex items-center space-x-2">
-                          <h4 className="font-medium">{trend.errorType.replace('_', ' ').toUpperCase()}</h4>
+                          <h4 className="font-medium text-sm sm:text-base">{trend.errorType.replace('_', ' ').toUpperCase()}</h4>
                           <Badge className={getSeverityColor(trend.severity)}>
                             {trend.severity}
                           </Badge>
@@ -298,7 +308,7 @@ export default function AdvancedAnalyticsDashboard() {
                           <span className="text-sm font-medium">{Math.abs(trend.trend)}%</span>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 text-sm">
                         <div>
                           <span className="text-gray-600">Frequency:</span>
                           <span className="font-medium ml-2">{trend.frequency} occurrences</span>
