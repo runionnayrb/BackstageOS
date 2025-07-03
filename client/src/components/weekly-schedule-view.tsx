@@ -739,7 +739,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               return (
                 <div
                   key={dayIndex}
-                  className="absolute border-r border-gray-200 bg-white cursor-crosshair"
+                  className="absolute border-r border-gray-200 bg-white cursor-crosshair relative"
                   style={{
                     left: leftPosition,
                     width: columnWidth,
