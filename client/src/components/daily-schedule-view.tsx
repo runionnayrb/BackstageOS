@@ -678,10 +678,13 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
         >
           <div 
             ref={calendarRef}
-            className="relative" 
+            className="relative bg-white" 
             style={{ height: '1080px' }}
             onMouseDown={handleMouseDown}
           >
+            {/* Main calendar grid background */}
+            <div className="absolute left-20 right-0 top-0 bottom-0 bg-white border-l border-gray-200" />
+            
             {/* Hour labels and major grid lines */}
             {Array.from({ length: 17 }, (_, i) => {
               const hour = START_HOUR + i;
@@ -689,14 +692,19 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
               const timeString = `${hour.toString().padStart(2, '0')}:00`;
               const formattedTime = formatTimeDisplay(timeString, timeFormat);
               return (
-                <div
-                  key={`hour-${hour}`}
-                  className="absolute left-0 right-0 border-b border-gray-200"
-                  style={{ top: `${position}px` }}
-                >
-                  <div className="absolute left-0 w-20 p-2 text-sm text-gray-500 bg-white border-r time-label">
+                <div key={`hour-${hour}`}>
+                  {/* Time label */}
+                  <div 
+                    className="absolute left-0 w-20 p-2 text-sm text-gray-500 bg-gray-50 border-b border-r border-gray-200 time-label"
+                    style={{ top: `${position}px`, height: '67.5px' }}
+                  >
                     {formattedTime}
                   </div>
+                  {/* Hour grid line across calendar area */}
+                  <div
+                    className="absolute left-20 right-0 border-b border-gray-200 bg-white"
+                    style={{ top: `${position}px`, height: '67.5px' }}
+                  />
                 </div>
               );
             })}
@@ -712,15 +720,18 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
               return (
                 <div
                   key={`increment-${i}`}
-                  className="absolute left-20 right-0 border-b border-gray-100"
-                  style={{ top: `${position}px` }}
+                  className="absolute left-20 right-0 border-b border-gray-100 bg-white"
+                  style={{ 
+                    top: `${position}px`, 
+                    height: `${(timeIncrement / TOTAL_MINUTES) * 1080}px` 
+                  }}
                 />
               );
             })}
 
-            {/* Working hours highlight */}
+            {/* Working hours highlight overlay */}
             <div
-              className="absolute left-20 right-0 bg-blue-50 bg-opacity-50 pointer-events-none"
+              className="absolute left-20 right-0 bg-blue-50 bg-opacity-30 pointer-events-none"
               style={{
                 top: `${minutesToPosition(timeToMinutes(workStartTime))}px`,
                 height: `${minutesToPosition(timeToMinutes(workEndTime)) - minutesToPosition(timeToMinutes(workStartTime))}px`,
