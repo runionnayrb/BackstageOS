@@ -137,15 +137,9 @@ export default function Schedule() {
                 />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="15">
-                  <Clock className="h-6 w-6 rotate-90" />
-                </SelectItem>
-                <SelectItem value="30">
-                  <Clock className="h-6 w-6 rotate-180" />
-                </SelectItem>
-                <SelectItem value="60">
-                  <Clock className="h-6 w-6 rotate-0" />
-                </SelectItem>
+                <SelectItem value="15">15 minutes</SelectItem>
+                <SelectItem value="30">30 minutes</SelectItem>
+                <SelectItem value="60">60 minutes</SelectItem>
               </SelectContent>
             </Select>
             
