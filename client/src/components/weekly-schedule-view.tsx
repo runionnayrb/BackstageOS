@@ -110,6 +110,9 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     originalEndMinutes: number;
   } | null>(null);
   const [justDragged, setJustDragged] = useState<number | null>(null);
+  const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
+  const [isShiftPressed, setIsShiftPressed] = useState(false);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -292,12 +295,71 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     },
   });
 
+  const bulkDeleteEventsMutation = useMutation({
+    mutationFn: async (eventIds: number[]) => {
+      await Promise.all(eventIds.map(id =>
+        fetch(`/api/schedule-events/${id}`, {
+          method: "DELETE",
+        }).then(response => {
+          if (!response.ok) throw new Error(`Failed to delete event ${id}`);
+        })
+      ));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      setSelectedEvents(new Set());
+      setShowBulkDeleteDialog(false);
+      toast({ title: "Selected events deleted successfully" });
+    },
+    onError: (error) => {
+      toast({ 
+        title: "Failed to delete events", 
+        description: error.message,
+        variant: "destructive" 
+      });
+    },
+  });
+
   // Auto-scroll to work hours on mount
   useEffect(() => {
     const workStartMinutes = timeToMinutes(workStartTime);
     const scrollTop = minutesToPosition(workStartMinutes) - 100; // 100px offset
     setScrollPosition(Math.max(0, scrollTop));
   }, [workStartTime]);
+
+  // Handle keyboard events for multi-select and bulk delete
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(true);
+      }
+      
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedEvents.size > 0) {
+        e.preventDefault();
+        setShowBulkDeleteDialog(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') {
+        setIsShiftPressed(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [selectedEvents]);
+
+  // Handle bulk delete
+  const handleBulkDelete = () => {
+    const selectedIds = Array.from(selectedEvents);
+    bulkDeleteEventsMutation.mutate(selectedIds);
+  };
 
 
 
@@ -333,10 +395,24 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     }
   }, [timeIncrement]);
 
-  // Handle dragging existing events
+  // Handle dragging existing events and multi-select
   const handleEventMouseDown = useCallback((e: React.MouseEvent, event: ScheduleEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Handle Shift+click for multi-selection
+    if (e.shiftKey) {
+      if (selectedEvents.has(event.id)) {
+        const newSelected = new Set(selectedEvents);
+        newSelected.delete(event.id);
+        setSelectedEvents(newSelected);
+      } else {
+        const newSelected = new Set(selectedEvents);
+        newSelected.add(event.id);
+        setSelectedEvents(newSelected);
+      }
+      return;
+    }
     
     if (!calendarRef.current || !scrollContainerRef.current) return;
     
@@ -365,7 +441,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     
     // Clear the flag after a short delay
     setTimeout(() => setJustDragged(null), 200);
-  }, [weekDates, timeToMinutes]);
+  }, [weekDates, timeToMinutes, selectedEvents]);
 
   // Handle resize start
   const handleResizeStart = useCallback((e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
@@ -591,6 +667,33 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
         </div>
       </div>
 
+      {/* Multi-select status and controls */}
+      {(isShiftPressed || selectedEvents.size > 0) && (
+        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <div className="flex items-center space-x-4">
+            {isShiftPressed && (
+              <div className="text-sm text-blue-700 font-medium">
+                Multi-select mode - Click events to select/deselect
+              </div>
+            )}
+            {selectedEvents.size > 0 && (
+              <div className="text-sm text-blue-700">
+                {selectedEvents.size} selected - Press Delete to remove
+              </div>
+            )}
+          </div>
+          {selectedEvents.size > 0 && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setSelectedEvents(new Set())}
+            >
+              Clear Selection
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Calendar grid */}
       <div className="border rounded-lg bg-white overflow-hidden">
         {/* Header with day names */}
@@ -753,7 +856,9 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                         data-event-id={event.id}
                         className={`absolute left-1 right-1 border rounded cursor-pointer hover:opacity-80 transition-opacity ${
                           eventTypeColors[event.type as keyof typeof eventTypeColors] || eventTypeColors.other
-                        } ${isDragging ? 'opacity-75 z-50' : ''} ${isResizing ? 'z-50' : ''}`}
+                        } ${isDragging ? 'opacity-75 z-50' : ''} ${isResizing ? 'z-50' : ''} ${
+                          selectedEvents.has(event.id) ? 'ring-4 ring-yellow-400 ring-opacity-75' : ''
+                        } ${isShiftPressed ? 'cursor-pointer' : 'cursor-move'}`}
                         style={{
                           top: `${displayPosition.top}px`,
                           height: `${displayPosition.height}px`,
@@ -867,6 +972,38 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               onDelete={() => deleteEventMutation.mutate(editingEvent.id)}
               onCancel={() => setEditingEvent(null)}
             />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Bulk Delete Confirmation Dialog */}
+      {showBulkDeleteDialog && (
+        <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Selected Events</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-sm text-gray-600">
+                Are you sure you want to delete {selectedEvents.size} selected event{selectedEvents.size !== 1 ? 's' : ''}? This action cannot be undone.
+              </p>
+            </div>
+            
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowBulkDeleteDialog(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleteEventsMutation.isPending}
+              >
+                {bulkDeleteEventsMutation.isPending ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       )}
