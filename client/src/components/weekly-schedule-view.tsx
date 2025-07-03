@@ -664,7 +664,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                   className="absolute left-0 right-0 border-b border-gray-200"
                   style={{ top: `${position}px` }}
                 >
-                  <div className="absolute left-0 w-16 p-2 text-xs text-gray-500 bg-white border-r time-label">
+                  <div className="absolute left-0 p-2 text-xs text-gray-500 bg-white border-r time-label" style={{ width: `${100 / 8}%` }}>
                     {formattedTime}
                   </div>
                 </div>
@@ -682,8 +682,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               return (
                 <div
                   key={`increment-${i}`}
-                  className="absolute left-16 right-0 border-b border-gray-100"
-                  style={{ top: `${position}px` }}
+                  className="absolute right-0 border-b border-gray-100"
+                  style={{ left: `${100 / 8}%`, top: `${position}px` }}
                 />
               );
             })}
@@ -702,8 +702,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                 key={dayIndex}
                 className="absolute border-r border-gray-200 bg-white cursor-crosshair"
                 style={{
-                  left: `${64 + (dayIndex * ((100 - 4) / 7))}%`,
-                  width: `${(100 - 4) / 7}%`,
+                  left: `${(1 + dayIndex) * (100 / 8)}%`,
+                  width: `${100 / 8}%`,
                   height: '960px',
                 }}
                 onMouseDown={(e) => handleMouseDown(e, dayIndex)}
