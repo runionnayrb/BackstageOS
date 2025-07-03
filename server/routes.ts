@@ -312,7 +312,7 @@ Respond with valid JSON only.`;
         max_tokens: 1500
       });
 
-      const aiAnalysis = JSON.parse(response.choices[0].message.content);
+      const aiAnalysis = JSON.parse(response.choices[0].message.content || '{}');
       
       return {
         canFix: aiAnalysis.canFix || false,

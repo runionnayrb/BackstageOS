@@ -664,7 +664,7 @@ export default function AdminErrorLogs() {
 
       {/* Fix Verification Dialog */}
       <Dialog open={showFixDialog} onOpenChange={setShowFixDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Wrench className="h-5 w-5 text-green-600" />
@@ -676,7 +676,7 @@ export default function AdminErrorLogs() {
           </DialogHeader>
           
           {analyzedFix && currentError && (
-            <div className="space-y-6">
+            <div className="space-y-6 break-words">
               {/* Natural Language Description */}
               {analyzedFix.errorDescription && (
                 <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
