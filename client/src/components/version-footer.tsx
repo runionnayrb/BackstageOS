@@ -5,9 +5,21 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle } from "lucide-react";
 
-const CURRENT_VERSION = "1.5.0";
+const CURRENT_VERSION = "26.5.0";
 
 const RELEASE_NOTES = [
+  {
+    version: "26.5.0",
+    date: "July 3, 2025",
+    type: "Major",
+    features: [
+      "Updated version numbering to 26.5.0 for fall release cycle",
+      "Comprehensive scheduling system with weekly calendar drag-and-drop functionality",
+      "Advanced team availability management with visual timeline interface",
+      "Complete contact sheet system with professional formatting and version control",
+      "Enhanced script editor with inline formatting and collaboration features"
+    ]
+  },
   {
     version: "1.5.0",
     date: "June 27, 2025",
