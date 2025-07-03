@@ -57,15 +57,9 @@ const START_MINUTES = START_HOUR * 60;
 const END_MINUTES = END_HOUR * 60;
 const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
 
-// Event type colors
+// Event type colors - consistent single color for all events
 const getEventColor = (type: string) => {
-  switch (type) {
-    case 'rehearsal': return 'bg-blue-500';
-    case 'performance': return 'bg-red-500';
-    case 'tech': return 'bg-purple-500';
-    case 'meeting': return 'bg-green-500';
-    default: return 'bg-gray-500';
-  }
+  return 'bg-blue-500'; // Single consistent color for all events
 };
 
 export default function WeeklyScheduleView({ projectId, onDateClick, selectedContactIds }: WeeklyScheduleViewProps) {
@@ -734,10 +728,10 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
                     const eventTypeColors = {
                       rehearsal: 'bg-blue-100 border-blue-300 text-blue-800',
-                      performance: 'bg-red-100 border-red-300 text-red-800',
-                      tech: 'bg-orange-100 border-orange-300 text-orange-800',
-                      meeting: 'bg-green-100 border-green-300 text-green-800',
-                      other: 'bg-gray-100 border-gray-300 text-gray-800',
+                      performance: 'bg-blue-100 border-blue-300 text-blue-800',
+                      tech: 'bg-blue-100 border-blue-300 text-blue-800',
+                      meeting: 'bg-blue-100 border-blue-300 text-blue-800',
+                      other: 'bg-blue-100 border-blue-300 text-blue-800',
                     };
 
                     // Check if this event is being dragged or resized
