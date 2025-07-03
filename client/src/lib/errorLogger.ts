@@ -285,7 +285,16 @@ class ErrorLogger {
   private getElementInfo(element: HTMLElement): string {
     const tagName = element.tagName.toLowerCase();
     const id = element.id ? `#${element.id}` : '';
-    const className = element.className ? `.${element.className.split(' ').join('.')}` : '';
+    
+    // Handle className safely - it might be a string, SVGAnimatedString, or undefined
+    let className = '';
+    if (element.className) {
+      const classNameStr = typeof element.className === 'string' 
+        ? element.className 
+        : element.className.toString();
+      className = classNameStr ? `.${classNameStr.split(' ').join('.')}` : '';
+    }
+    
     const text = element.textContent?.substring(0, 50) || '';
     return `${tagName}${id}${className} "${text}"`.trim();
   }
