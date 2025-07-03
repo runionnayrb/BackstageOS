@@ -689,7 +689,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               return timeLabels.map((timeLabel) => (
                 <div
                   key={timeLabel.minutes}
-                  className="absolute border-b border-gray-300 z-10 pointer-events-none"
+                  className="absolute border-b border-gray-300 z-0 pointer-events-none"
                   style={{ 
                     top: `${timeLabel.position}px`,
                     left: '80px',
