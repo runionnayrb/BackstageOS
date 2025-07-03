@@ -549,7 +549,6 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           const endTime = formatTimeFromMinutes(draggedEvent.currentPosition.startMinutes + duration);
 
           const eventData = {
-            ...event,
             date: newDate,
             startTime,
             endTime,
@@ -558,7 +557,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           // Update UI immediately for instant visual feedback
           queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
             return old?.map((e: ScheduleEvent) => 
-              e.id === event.id ? { ...e, ...eventData } : e
+              e.id === event.id ? { ...e, date: newDate, startTime, endTime } : e
             ) || [];
           });
 
@@ -633,7 +632,6 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     const handleMouseUp = () => {
       if (resizingEvent) {
         const eventData = {
-          ...event,
           startTime: resizingEvent.event.startTime,
           endTime: resizingEvent.event.endTime,
         };
@@ -641,7 +639,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
         // Update UI immediately for instant visual feedback
         queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
           return old?.map((e: ScheduleEvent) => 
-            e.id === event.id ? { ...e, ...eventData } : e
+            e.id === event.id ? { ...e, startTime: resizingEvent.event.startTime, endTime: resizingEvent.event.endTime } : e
           ) || [];
         });
 
