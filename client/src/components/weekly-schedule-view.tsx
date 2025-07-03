@@ -375,11 +375,10 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     if (!calendarRef.current) return;
 
     const rect = calendarRef.current.getBoundingClientRect();
-    const scrollTop = scrollContainerRef.current?.scrollTop || 0;
-    const y = e.clientY - rect.top + scrollTop;
+    const y = e.clientY - rect.top; // Don't add scroll - calendarRef moves with scroll
     const minutes = snapToIncrement(positionToMinutes(y));
     
-    console.log('Mouse click:', { y, minutes, time: formatTimeFromMinutes(minutes), dayIndex });
+    console.log('Mouse click:', { y, minutes, time: formatTimeFromMinutes(minutes, timeFormat), dayIndex });
 
     // Check if clicking on existing event
     const clickedEvent = filteredEvents.find(event => {
@@ -407,11 +406,10 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     setDragState(dragState);
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!calendarRef.current || !scrollContainerRef.current) return;
+      if (!calendarRef.current) return;
 
       const rect = calendarRef.current.getBoundingClientRect();
-      const scrollTop = scrollContainerRef.current.scrollTop;
-      const y = e.clientY - rect.top + scrollTop;
+      const y = e.clientY - rect.top;
       const newMinutes = snapToIncrement(positionToMinutes(y));
 
       dragState = { ...dragState, currentTime: newMinutes };
@@ -425,8 +423,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
         
         console.log('Creating event:', {
           date: weekDates[dragState.startDay].toISOString().split('T')[0],
-          startTime: formatTimeFromMinutes(startTime),
-          endTime: formatTimeFromMinutes(endTime),
+          startTime: formatTimeFromMinutes(startTime, timeFormat),
+          endTime: formatTimeFromMinutes(endTime, timeFormat),
           duration: endTime - startTime,
           dayIndex: dragState.startDay,
         });
@@ -436,8 +434,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           setCreateEventDialog({
             isOpen: true,
             date,
-            startTime: formatTimeFromMinutes(startTime),
-            endTime: formatTimeFromMinutes(endTime),
+            startTime: formatTimeFromMinutes(startTime, timeFormat),
+            endTime: formatTimeFromMinutes(endTime, timeFormat),
           });
         } else {
           console.log('Block too small:', endTime - startTime, 'minutes');
@@ -451,7 +449,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [filteredEvents, weekDates, timeIncrement]);
+  }, [filteredEvents, weekDates, timeIncrement, timeFormat]);
 
   // Handle dragging existing events and multi-select
   const handleEventMouseDown = useCallback((e: React.MouseEvent, event: ScheduleEvent) => {
