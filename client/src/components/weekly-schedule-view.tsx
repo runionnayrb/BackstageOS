@@ -126,7 +126,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
   });
 
   // Debug logging to track events changes
-  React.useEffect(() => {
+  useEffect(() => {
     console.log('Events array changed:', events.length, 'events');
     console.log('Event #25 current data:', events.find(e => e.id === 25));
   }, [events]);
