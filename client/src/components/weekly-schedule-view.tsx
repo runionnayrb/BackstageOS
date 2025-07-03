@@ -756,14 +756,21 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
         {/* Main Schedule Grid */}
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           {/* Header row */}
-          <div className="grid grid-cols-8 bg-gray-50 border-b border-gray-200">
-            <div className="w-20 p-3 text-sm font-medium text-gray-600">
+          <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '60px' }}>
+            <div 
+              className="absolute left-0 top-0 bottom-0 bg-gray-100 border-r border-gray-200 p-3 text-sm font-medium text-gray-600 flex items-center"
+              style={{ width: '80px' }}
+            >
               Time
             </div>
             {weekDates.map((date, dayIndex) => (
               <div 
                 key={dayIndex} 
-                className="p-3 text-sm font-medium text-center border-l border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors"
+                className="absolute top-0 bottom-0 p-3 text-sm font-medium text-center border-l border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors flex flex-col justify-center"
+                style={{
+                  left: `calc(80px + (100% - 80px) * ${dayIndex} / 7)`,
+                  width: `calc((100% - 80px) / 7)`,
+                }}
                 onClick={() => onDateClick(date)}
               >
                 <div>{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
@@ -774,8 +781,11 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
           {/* All Day Events Section - directly below headers */}
           {showAllDayEvents && (
-            <div className="grid grid-cols-8 min-h-[60px] bg-gray-50 border-b border-gray-200">
-              <div className="w-20 bg-gray-100 p-2 text-sm font-medium text-gray-600 flex items-center">
+            <div className="relative min-h-[60px] bg-gray-50 border-b border-gray-200">
+              <div 
+                className="absolute left-0 top-0 bottom-0 bg-gray-100 border-r border-gray-200 p-2 text-sm font-medium text-gray-600 flex items-center"
+                style={{ width: '80px' }}
+              >
                 All Day
               </div>
               {weekDates.map((date, dayIndex) => {
@@ -783,7 +793,14 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                   event.date === date.toISOString().split('T')[0] && event.isAllDay
                 );
                 return (
-                  <div key={dayIndex} className="p-2 border-l border-gray-200 space-y-1">
+                  <div 
+                    key={dayIndex} 
+                    className="absolute top-0 bottom-0 p-2 border-l border-gray-200 space-y-1"
+                    style={{
+                      left: `calc(80px + (100% - 80px) * ${dayIndex} / 7)`,
+                      width: `calc((100% - 80px) / 7)`,
+                    }}
+                  >
                     {dayEvents.map(event => (
                       <div
                         key={event.id}
