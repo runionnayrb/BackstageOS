@@ -374,7 +374,14 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     const y = e.clientY - rect.top;
     const minutes = snapToIncrement(positionToMinutes(y));
     
-    console.log('Mouse click:', { y, minutes, time: formatTimeFromMinutes(minutes), dayIndex });
+    console.log('Mouse click:', { 
+      y, 
+      minutes, 
+      time: formatTimeFromMinutes(minutes), 
+      dayIndex,
+      clickedDate: weekDates[dayIndex]?.toISOString().split('T')[0],
+      weekDatesDebug: weekDates.map((d, i) => ({ index: i, date: d.toISOString().split('T')[0] }))
+    });
 
     // Check if clicking on existing event
     const clickedEvent = filteredEvents.find(event => {
