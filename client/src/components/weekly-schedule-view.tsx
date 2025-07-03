@@ -516,30 +516,9 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
   return (
     <>
       <div className="space-y-4">
-      {/* Week navigation - centered */}
-      <div className="flex items-center justify-center">
-        <button 
-          onClick={goToPreviousWeek}
-          className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        <h3 className="text-lg font-semibold w-80 text-center mx-0.5">{formatWeekRange(weekDates)}</h3>
-        <button 
-          onClick={goToNextWeek}
-          className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-        <div className="ml-4">
-          <Button variant="outline" size="sm" onClick={goToToday}>
-            Today
-          </Button>
-        </div>
-      </div>
-
-      {/* Controls row */}
-      <div className="flex items-center justify-end space-x-2">
+      {/* Navigation and controls row */}
+      <div className="flex items-center justify-between">
+        {/* Time increment on the left */}
         <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
           <SelectTrigger className="w-24 border-0 shadow-none">
             <SelectValue />
@@ -550,24 +529,49 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             <SelectItem value="60">60 min</SelectItem>
           </SelectContent>
         </Select>
-        
-        <Button 
-          variant={showAllDayEvents ? "default" : "outline"}
-          size="sm"
-          onClick={() => setShowAllDayEvents(!showAllDayEvents)}
-          className="flex items-center gap-2"
-        >
-          <Calendar className="h-4 w-4" />
-          All Day
-        </Button>
-        
-        <Button 
-          onClick={() => setCreateEventDialog({ isOpen: true })}
-          className="flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          New Event
-        </Button>
+
+        {/* Week navigation - centered */}
+        <div className="flex items-center">
+          <button 
+            onClick={goToPreviousWeek}
+            className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <h3 className="text-lg font-semibold w-80 text-center mx-0.5">{formatWeekRange(weekDates)}</h3>
+          <button 
+            onClick={goToNextWeek}
+            className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+          <div className="ml-4">
+            <Button variant="outline" size="sm" onClick={goToToday}>
+              Today
+            </Button>
+          </div>
+        </div>
+
+        {/* Action buttons on the right */}
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant={showAllDayEvents ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowAllDayEvents(!showAllDayEvents)}
+            className="flex items-center gap-2"
+          >
+            <Calendar className="h-4 w-4" />
+            All Day
+          </Button>
+          
+          <Button 
+            onClick={() => setCreateEventDialog({ isOpen: true })}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Event
+          </Button>
+        </div>
       </div>
 
       {/* Multi-select status and controls */}
