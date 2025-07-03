@@ -1138,6 +1138,11 @@ class DatabaseStorage implements IStorage {
       );
   }
 
+  async removeAllEventParticipants(eventId: number): Promise<void> {
+    await db.delete(scheduleEventParticipants)
+      .where(eq(scheduleEventParticipants.eventId, eventId));
+  }
+
   // Event Locations methods
   async getEventLocationsByProjectId(projectId: number): Promise<any[]> {
     const result = await db.select()

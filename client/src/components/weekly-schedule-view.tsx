@@ -548,14 +548,24 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
           const endTime = formatTimeFromMinutes(draggedEvent.currentPosition.startMinutes + duration);
 
+          const eventData = {
+            ...event,
+            date: newDate,
+            startTime,
+            endTime,
+          };
+
+          // Update UI immediately for instant visual feedback
+          queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+            return old?.map((e: ScheduleEvent) => 
+              e.id === event.id ? { ...e, ...eventData } : e
+            ) || [];
+          });
+
+          // Update in background
           updateEventMutation.mutate({
             eventId: event.id,
-            eventData: {
-              ...event,
-              date: newDate,
-              startTime,
-              endTime,
-            },
+            eventData,
           });
 
           setJustDragged(event.id);
@@ -622,13 +632,23 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
     const handleMouseUp = () => {
       if (resizingEvent) {
+        const eventData = {
+          ...event,
+          startTime: resizingEvent.event.startTime,
+          endTime: resizingEvent.event.endTime,
+        };
+
+        // Update UI immediately for instant visual feedback
+        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+          return old?.map((e: ScheduleEvent) => 
+            e.id === event.id ? { ...e, ...eventData } : e
+          ) || [];
+        });
+
+        // Update in background
         updateEventMutation.mutate({
           eventId: event.id,
-          eventData: {
-            ...event,
-            startTime: resizingEvent.event.startTime,
-            endTime: resizingEvent.event.endTime,
-          },
+          eventData,
         });
       }
 
