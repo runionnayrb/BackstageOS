@@ -762,7 +762,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               </div>
               {weekDates.map((date, dayIndex) => (
                 <div key={dayIndex} className="p-2 text-sm font-medium text-center border-l border-gray-200">
-                  {/* No dates shown here to avoid duplication */}
+                  {/* Empty to avoid duplicate dates */}
                 </div>
               ))}
             </div>
@@ -801,7 +801,11 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               Time
             </div>
             {weekDates.map((date, dayIndex) => (
-              <div key={dayIndex} className="p-3 text-sm font-medium text-center border-l border-gray-200">
+              <div 
+                key={dayIndex} 
+                className="p-3 text-sm font-medium text-center border-l border-gray-200 hover:bg-blue-50 cursor-pointer transition-colors"
+                onClick={() => onDateClick(date)}
+              >
                 <div>{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
                 <div className="text-lg">{date.getDate()}</div>
               </div>
