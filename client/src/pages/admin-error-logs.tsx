@@ -319,11 +319,14 @@ export default function AdminErrorLogs() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto p-4 sm:p-6 max-w-6xl space-y-6">
       <div>
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-6 w-full lg:w-auto">
-            <h2 className="text-2xl lg:text-3xl font-semibold">Error Logs</h2>
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 lg:mb-8 gap-4 lg:gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-6 w-full lg:w-auto">
+            <div>
+              <h2 className="text-2xl lg:text-3xl font-bold">Error Logs</h2>
+              <p className="text-sm lg:text-base text-gray-600">Monitor and resolve application errors</p>
+            </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-3">
               <Link href="/auto-resolution-dashboard" className="w-full sm:w-auto">
                 <Button variant="outline" size="default" className="flex items-center gap-2 w-full sm:w-auto">
@@ -447,17 +450,17 @@ export default function AdminErrorLogs() {
           </CardHeader>
           <CardContent>
             {/* Desktop Table View */}
-            <div className="hidden md:block rounded-md border">
-              <Table>
+            <div className="hidden md:block rounded-md border overflow-hidden">
+              <Table className="w-full table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Message</TableHead>
-                    <TableHead>Page</TableHead>
-                    <TableHead>User</TableHead>
-                    <TableHead>Time</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="w-[100px]">Priority</TableHead>
+                    <TableHead className="w-[120px]">Type</TableHead>
+                    <TableHead className="min-w-[300px]">Message</TableHead>
+                    <TableHead className="w-[150px]">Page</TableHead>
+                    <TableHead className="w-[180px]">User</TableHead>
+                    <TableHead className="w-[120px]">Time</TableHead>
+                    <TableHead className="w-[120px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -504,12 +507,12 @@ export default function AdminErrorLogs() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="max-w-xs truncate" title={errorLog.message}>
+                            <div className="max-w-[400px] truncate" title={errorLog.message}>
                               {errorLog.message}
                             </div>
                           </TableCell>
                           <TableCell>
-                            <code className="text-sm bg-gray-100 px-1 rounded">
+                            <code className="text-sm bg-gray-100 px-2 py-1 rounded max-w-[140px] truncate inline-block" title={errorLog.page}>
                               {errorLog.page}
                             </code>
                           </TableCell>
