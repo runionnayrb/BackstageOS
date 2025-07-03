@@ -538,11 +538,22 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
       const rect = calendarRef.current?.getBoundingClientRect();
       if (!rect) return;
 
+      // Calculate the event's current position on screen
+      const eventLeft = 80 + ((rect.width - 80) * dayIndex / 7);
+      const eventTop = minutesToPosition(startMinutes);
+      
+      // Calculate offset relative to the event's top-left corner
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top + (scrollContainerRef.current?.scrollTop || 0);
+      
       const draggedEvent = {
         event,
         originalPosition: { dayIndex, startMinutes },
         currentPosition: { dayIndex, startMinutes },
-        offset: { x: e.clientX - rect.left, y: e.clientY - rect.top },
+        offset: { 
+          x: clickX - eventLeft, 
+          y: clickY - eventTop 
+        },
         isDragging: false,
       };
 
@@ -554,9 +565,19 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
       const handleMouseMove = (e: MouseEvent) => {
         if (!hasStartedDragging) {
+          // Calculate current mouse position
+          const currentX = e.clientX - rect!.left;
+          const currentY = e.clientY - rect!.top;
+          
+          // Calculate original click position
+          const originalEventLeft = 80 + ((rect!.width - 80) * draggedEvent.originalPosition.dayIndex / 7);
+          const originalEventTop = minutesToPosition(draggedEvent.originalPosition.startMinutes);
+          const originalClickX = originalEventLeft + draggedEvent.offset.x;
+          const originalClickY = originalEventTop + draggedEvent.offset.y - (scrollContainerRef.current?.scrollTop || 0);
+          
           const distance = Math.sqrt(
-            Math.pow(e.clientX - (rect!.left + draggedEvent.offset.x), 2) +
-            Math.pow(e.clientY - (rect!.top + draggedEvent.offset.y), 2)
+            Math.pow(currentX - originalClickX, 2) +
+            Math.pow(currentY - originalClickY, 2)
           );
           
           if (distance < moveThreshold) return;
@@ -569,23 +590,30 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
         const newRect = calendarRef.current.getBoundingClientRect();
         const scrollTop = scrollContainerRef.current.scrollTop;
         
-        // Calculate mouse position relative to calendar content with scroll
-        const relativeX = e.clientX - newRect.left;
-        const relativeY = e.clientY - newRect.top + scrollTop;
+        // Calculate mouse position relative to calendar content with scroll, adjusted for click offset
+        const mouseX = e.clientX - newRect.left;
+        const mouseY = e.clientY - newRect.top + scrollTop;
+        
+        // Subtract the offset to get the event's new top-left position
+        const eventX = mouseX - draggedEvent.offset.x;
+        const eventY = mouseY - draggedEvent.offset.y;
 
-        // Calculate day index
-        const newDayIndex = Math.floor((relativeX - 80) / ((newRect.width - 80) / 7));
+        // Calculate day index from event position
+        const newDayIndex = Math.floor((eventX - 80) / ((newRect.width - 80) / 7));
         const constrainedDayIndex = Math.max(0, Math.min(6, newDayIndex));
         
-        // Calculate time position (no offset subtraction - use raw position)
-        const newStartMinutes = snapToIncrement(positionToMinutes(relativeY));
+        // Calculate time position from event position
+        const newStartMinutes = snapToIncrement(positionToMinutes(eventY));
 
         // Update local position tracker
         currentDragPosition = { dayIndex: constrainedDayIndex, startMinutes: newStartMinutes };
 
         console.log('Drag move:', {
-          relativeX,
-          relativeY,
+          mouseX,
+          mouseY,
+          eventX,
+          eventY,
+          offset: draggedEvent.offset,
           scrollTop,
           newDayIndex: constrainedDayIndex,
           newStartMinutes,
