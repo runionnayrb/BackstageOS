@@ -366,10 +366,11 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
   // Mouse handlers for drag-to-create (matching weekly availability pattern)
   const handleMouseDown = useCallback((e: React.MouseEvent, dayIndex: number) => {
-    if (!calendarRef.current) return;
+    if (!calendarRef.current || !scrollContainerRef.current) return;
 
     const rect = calendarRef.current.getBoundingClientRect();
-    const y = e.clientY - rect.top; // Don't add scroll - calendarRef moves with scroll
+    const scrollTop = scrollContainerRef.current.scrollTop;
+    const y = e.clientY - rect.top + scrollTop; // Add scroll position for accurate coordinates
     const minutes = snapToIncrement(positionToMinutes(y));
     
     console.log('Mouse click:', { y, minutes, time: formatTimeFromMinutes(minutes), dayIndex });
@@ -400,10 +401,11 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     setDragState(dragState);
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!calendarRef.current) return;
+      if (!calendarRef.current || !scrollContainerRef.current) return;
 
       const rect = calendarRef.current.getBoundingClientRect();
-      const y = e.clientY - rect.top;
+      const scrollTop = scrollContainerRef.current.scrollTop;
+      const y = e.clientY - rect.top + scrollTop;
       const newMinutes = snapToIncrement(positionToMinutes(y));
 
       dragState = { ...dragState, currentTime: newMinutes };
@@ -472,11 +474,12 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
     const startMinutes = timeToMinutes(event.startTime);
     
-    // Calculate drag offset in time units (minutes)
+    // Calculate drag offset in pixels
     const scrollTop = scrollContainer.scrollTop;
     const mouseY = e.clientY - calendarRect.top;
-    const absoluteMouseTime = mouseY + scrollTop;
-    const offsetY = absoluteMouseTime - startMinutes;
+    const absoluteMouseY = mouseY + scrollTop;
+    const startPosition = minutesToPosition(startMinutes);
+    const offsetY = absoluteMouseY - startPosition;
     
     let currentDragState = {
       event,
