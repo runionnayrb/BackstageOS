@@ -52,8 +52,9 @@ interface Contact {
   role?: string;
 }
 
-const START_HOUR = 8; // 8 AM
-const END_HOUR = 24; // Midnight
+// Constants for time range (8 AM to midnight)
+const START_HOUR = 8;
+const END_HOUR = 24;
 const START_MINUTES = START_HOUR * 60;
 const END_MINUTES = END_HOUR * 60;
 const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
@@ -356,8 +357,6 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     bulkDeleteEventsMutation.mutate(selectedIds);
   };
 
-
-
   // Helper function for drag-to-create
   const formatTimeFromMinutes = (totalMinutes: number) => {
     const hours = Math.floor(totalMinutes / 60);
@@ -371,8 +370,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
     // Use same coordinate system as weekly availability editor
     const rect = calendarRef.current.getBoundingClientRect();
-    const scrollTop = scrollContainerRef.current.scrollTop;
-    const y = e.clientY - rect.top + scrollTop; // Add scroll offset
+    const y = e.clientY - rect.top;
     const minutes = snapToIncrement(positionToMinutes(y));
     
     console.log('Mouse click:', { 
@@ -413,8 +411,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
       if (!calendarRef.current || !scrollContainerRef.current) return;
 
       const rect = calendarRef.current.getBoundingClientRect();
-      const scrollTop = scrollContainerRef.current.scrollTop;
-      const y = e.clientY - rect.top + scrollTop; // Add scroll offset
+      const y = e.clientY - rect.top;
       const newMinutes = snapToIncrement(positionToMinutes(y));
 
       dragState = { ...dragState, currentTime: newMinutes };
@@ -474,181 +471,318 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
       }
       return;
     }
-    
-    if (!calendarRef.current || !scrollContainerRef.current) return;
-    
-    const calendarRect = calendarRef.current.getBoundingClientRect();
-    const scrollContainer = scrollContainerRef.current;
-    const eventDate = event.date;
-    const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
-    const startMinutes = timeToMinutes(event.startTime);
-    
-    // Calculate drag offset in pixels - using same system as weekly availability
-    const scrollTop = scrollContainerRef.current.scrollTop;
-    const mouseY = e.clientY - calendarRect.top + scrollTop; // Add scroll offset
-    const startPosition = minutesToPosition(startMinutes);
-    const offsetY = mouseY - startPosition;
-    
-    let currentDragState = {
-      event,
-      originalPosition: { dayIndex, startMinutes },
-      currentPosition: { dayIndex, startMinutes },
-      offset: { x: 0, y: offsetY },
-      isDragging: true
-    };
-    
-    setDraggedEvent(currentDragState);
-    setJustDragged(event.id);
-    
-    // Clear the flag after a short delay
-    setTimeout(() => setJustDragged(null), 200);
-  }, [weekDates, timeToMinutes, selectedEvents]);
 
-  // Handle resize start
+    // Skip if event was just dragged (prevent immediate edit after drag)
+    if (justDragged === event.id) {
+      setJustDragged(null);
+      return;
+    }
+
+    // Clear any existing selections when not in multi-select mode
+    setSelectedEvents(new Set());
+
+    // Double click to edit
+    const doubleClickHandler = () => {
+      setEditingEvent(event);
+    };
+
+    // Set up double click detection
+    const clickTimeout = setTimeout(() => {
+      // Single click - start dragging
+      const eventDate = event.date;
+      const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
+      
+      if (dayIndex === -1) return;
+
+      const startMinutes = timeToMinutes(event.startTime);
+      const rect = calendarRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const draggedEvent = {
+        event,
+        originalPosition: { dayIndex, startMinutes },
+        currentPosition: { dayIndex, startMinutes },
+        offset: { x: e.clientX - rect.left, y: e.clientY - rect.top },
+        isDragging: false,
+      };
+
+      setDraggedEvent(draggedEvent);
+
+      let hasStartedDragging = false;
+      const moveThreshold = 3; // pixels
+
+      const handleMouseMove = (e: MouseEvent) => {
+        if (!hasStartedDragging) {
+          const distance = Math.sqrt(
+            Math.pow(e.clientX - (rect!.left + draggedEvent.offset.x), 2) +
+            Math.pow(e.clientY - (rect!.top + draggedEvent.offset.y), 2)
+          );
+          
+          if (distance < moveThreshold) return;
+          hasStartedDragging = true;
+          setDraggedEvent(prev => prev ? { ...prev, isDragging: true } : null);
+        }
+
+        if (!calendarRef.current) return;
+
+        const newRect = calendarRef.current.getBoundingClientRect();
+        const relativeX = e.clientX - newRect.left;
+        const relativeY = e.clientY - newRect.top;
+
+        const newDayIndex = Math.floor((relativeX - 80) / ((newRect.width - 80) / 7));
+        const constrainedDayIndex = Math.max(0, Math.min(6, newDayIndex));
+        
+        const newStartMinutes = snapToIncrement(positionToMinutes(relativeY - draggedEvent.offset.y));
+
+        setDraggedEvent(prev => prev ? {
+          ...prev,
+          currentPosition: { dayIndex: constrainedDayIndex, startMinutes: newStartMinutes },
+        } : null);
+      };
+
+      const handleMouseUp = () => {
+        if (hasStartedDragging && draggedEvent) {
+          // Update event position
+          const newDate = weekDates[draggedEvent.currentPosition.dayIndex].toISOString().split('T')[0];
+          const startTime = formatTimeFromMinutes(draggedEvent.currentPosition.startMinutes);
+          const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+          const endTime = formatTimeFromMinutes(draggedEvent.currentPosition.startMinutes + duration);
+
+          updateEventMutation.mutate({
+            eventId: event.id,
+            eventData: {
+              ...event,
+              date: newDate,
+              startTime,
+              endTime,
+            },
+          });
+
+          setJustDragged(event.id);
+        }
+
+        setDraggedEvent(null);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }, 200);
+
+    // Handle double click
+    const handleDoubleClick = () => {
+      clearTimeout(clickTimeout);
+      doubleClickHandler();
+    };
+
+    e.currentTarget.addEventListener('dblclick', handleDoubleClick, { once: true });
+  }, [weekDates, filteredEvents, timeIncrement, updateEventMutation, justDragged, selectedEvents]);
+
+  // Handle event resize
   const handleResizeStart = useCallback((e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
     e.preventDefault();
     e.stopPropagation();
-    
-    const startMinutes = timeToMinutes(event.startTime);
-    const endMinutes = timeToMinutes(event.endTime);
-    
+
+    const originalStartMinutes = timeToMinutes(event.startTime);
+    const originalEndMinutes = timeToMinutes(event.endTime);
+
     setResizingEvent({
       event,
       edge,
-      originalStartMinutes: startMinutes,
-      originalEndMinutes: endMinutes,
+      originalStartMinutes,
+      originalEndMinutes,
     });
-  }, [timeToMinutes]);
 
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!calendarRef.current) return;
 
+      const rect = calendarRef.current.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const minutes = snapToIncrement(positionToMinutes(y));
 
+      let newStartMinutes = originalStartMinutes;
+      let newEndMinutes = originalEndMinutes;
 
+      if (edge === 'start') {
+        newStartMinutes = Math.min(minutes, originalEndMinutes - timeIncrement);
+      } else {
+        newEndMinutes = Math.max(minutes, originalStartMinutes + timeIncrement);
+      }
+
+      const newStartTime = formatTimeFromMinutes(newStartMinutes);
+      const newEndTime = formatTimeFromMinutes(newEndMinutes);
+
+      // Update the event optimistically
+      setResizingEvent(prev => prev ? {
+        ...prev,
+        event: { ...prev.event, startTime: newStartTime, endTime: newEndTime },
+      } : null);
+    };
+
+    const handleMouseUp = () => {
+      if (resizingEvent) {
+        updateEventMutation.mutate({
+          eventId: event.id,
+          eventData: {
+            ...event,
+            startTime: resizingEvent.event.startTime,
+            endTime: resizingEvent.event.endTime,
+          },
+        });
+      }
+
+      setResizingEvent(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [timeIncrement, updateEventMutation, resizingEvent]);
+
+  // Generate time labels and increment lines
+  const timeLabels = [];
+  const incrementLines = [];
+  
+  for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += 60) {
+    const position = minutesToPosition(minutes);
+    const hours = Math.floor(minutes / 60);
+    timeLabels.push(
+      <div
+        key={minutes}
+        className="absolute left-0 w-20 text-right pr-2 text-sm text-gray-600"
+        style={{ top: `${position}px` }}
+      >
+        {formatTimeDisplay(minutes, timeFormat)}
+      </div>
+    );
+  }
+
+  // Add increment lines based on time increment setting
+  for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += timeIncrement) {
+    const position = minutesToPosition(minutes);
+    const isHourLine = minutes % 60 === 0;
+    
+    incrementLines.push(
+      <div
+        key={`increment-${minutes}`}
+        className={`absolute left-0 right-0 border-b ${
+          isHourLine ? 'border-gray-300' : 'border-gray-200'
+        } z-10`}
+        style={{ top: `${position}px` }}
+      />
+    );
+  }
 
   return (
     <>
       <div className="space-y-4">
-      {/* Navigation and controls row */}
-      <div className="flex items-center justify-between">
-        {/* Empty space on the left */}
-        <div></div>
+        {/* Navigation and controls row */}
+        <div className="flex items-center justify-between">
+          {/* Empty space on the left */}
+          <div></div>
 
-        {/* Week navigation - centered */}
-        <div className="flex items-center">
-          <button 
-            onClick={goToPreviousWeek}
-            className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <h3 className="text-lg font-semibold w-80 text-center mx-0.5">{formatWeekRange(weekDates)}</h3>
-          <button 
-            onClick={goToNextWeek}
-            className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-          <div className="ml-4">
-            <Button variant="outline" size="sm" onClick={goToToday}>
+          {/* Week navigation - centered */}
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" onClick={goToPreviousWeek} size="sm">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <div className="text-lg font-medium min-w-[200px] text-center">
+              {formatWeekRange(weekDates)}
+            </div>
+            
+            <Button variant="outline" onClick={goToNextWeek} size="sm">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Today and New Event buttons - right aligned */}
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" onClick={goToToday} size="sm">
               Today
             </Button>
+            <Button
+              onClick={() => setCreateEventDialog({ isOpen: true })}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              New Event
+            </Button>
           </div>
         </div>
 
-        {/* Action buttons on the right */}
-        <div className="flex items-center space-x-2">
-          <Button 
-            variant={showAllDayEvents ? "default" : "outline"}
+        {/* Multi-select status and controls */}
+        {(isShiftPressed || selectedEvents.size > 0) && (
+          <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="flex items-center space-x-4">
+              {isShiftPressed && (
+                <div className="text-sm text-blue-700 font-medium">
+                  Multi-select mode - Click events to select/deselect
+                </div>
+              )}
+              {selectedEvents.size > 0 && (
+                <div className="text-sm text-blue-700">
+                  {selectedEvents.size} selected - Press Delete to remove
+                </div>
+              )}
+            </div>
+            {selectedEvents.size > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowBulkDeleteDialog(true)}
+              >
+                Delete Selected
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* All Day Events Toggle */}
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => setShowAllDayEvents(!showAllDayEvents)}
-            className="flex items-center gap-2"
+            className="text-sm"
           >
-            <Calendar className="h-4 w-4" />
-            All Day
-          </Button>
-          
-          <Button 
-            onClick={() => setCreateEventDialog({ isOpen: true })}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            New Event
+            All Day {showAllDayEvents ? 'Hide' : 'Show'}
           </Button>
         </div>
-      </div>
 
-      {/* Multi-select status and controls */}
-      {(isShiftPressed || selectedEvents.size > 0) && (
-        <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <div className="flex items-center space-x-4">
-            {isShiftPressed && (
-              <div className="text-sm text-blue-700 font-medium">
-                Multi-select mode - Click events to select/deselect
-              </div>
-            )}
-            {selectedEvents.size > 0 && (
-              <div className="text-sm text-blue-700">
-                {selectedEvents.size} selected - Press Delete to remove
-              </div>
-            )}
-          </div>
-          {selectedEvents.size > 0 && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setSelectedEvents(new Set())}
-            >
-              Clear Selection
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* Calendar grid */}
-      <div className="border rounded-lg bg-white overflow-hidden">
-        {/* Header with day names */}
-        <div className="flex border-b bg-gray-50">
-          <div className="p-3 text-sm font-medium text-gray-600 border-r" style={{ width: '80px' }}>Time</div>
-          <div className="flex-1 grid grid-cols-7">
-            {weekDates.map((date, index) => (
-              <div 
-                key={index} 
-                className="p-3 text-center border-r last:border-r-0 cursor-pointer hover:bg-gray-100"
-                onClick={() => onDateClick(date)}
-              >
-                <div className="text-sm font-medium text-gray-900">
-                  {date.toLocaleDateString('en-US', { weekday: 'short' })}
-                </div>
-                <div className="text-lg font-semibold text-gray-700">
-                  {date.getDate()}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* All-day events section - conditionally rendered */}
+        {/* All Day Events Section */}
         {showAllDayEvents && (
-          <div className="flex border-b bg-gray-25">
-            <div className="p-2 text-xs font-medium text-gray-600 border-r bg-gray-50" style={{ width: '80px' }}>All Day</div>
-            <div className="flex-1 grid grid-cols-7">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="grid grid-cols-8 border-b border-gray-200">
+              <div className="w-20 p-2 text-sm font-medium text-gray-600 bg-gray-100">
+                All Day
+              </div>
+              {weekDates.map((date, dayIndex) => (
+                <div key={dayIndex} className="p-2 text-sm font-medium text-center border-l border-gray-200">
+                  {date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-8 min-h-[60px]">
+              <div className="w-20 bg-gray-100"></div>
               {weekDates.map((date, dayIndex) => {
-                const dateStr = date.toISOString().split('T')[0];
-                const allDayEvents = filteredEvents?.filter(event => 
-                  event.date === dateStr && event.isAllDay
-                ) || [];
-                
+                const dayEvents = filteredEvents.filter(event => 
+                  event.date === date.toISOString().split('T')[0] && event.isAllDay
+                );
                 return (
-                  <div key={dayIndex} className="p-1 border-r last:border-r-0 min-h-[40px]">
-                    {allDayEvents.map(event => (
+                  <div key={dayIndex} className="p-2 border-l border-gray-200 space-y-1">
+                    {dayEvents.map(event => (
                       <div
                         key={event.id}
-                        className={`
-                          text-xs p-1 mb-1 rounded text-white cursor-pointer
-                          ${getEventColor(event.type)}
-                        `}
-                        onClick={() => setEditingEvent(event)}
+                        className={`${getEventColor(event.type)} text-white text-xs p-1 rounded cursor-pointer hover:opacity-80 ${
+                          selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
+                        }`}
+                        onClick={(e) => handleEventMouseDown(e, event)}
+                        onMouseDown={(e) => handleEventMouseDown(e, event)}
                       >
-                        <div className="font-medium truncate">{event.title}</div>
+                        {event.title}
                       </div>
                     ))}
                   </div>
@@ -658,256 +792,166 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           </div>
         )}
 
-        {/* Time grid */}
-        <div 
-          ref={scrollContainerRef}
-          className="relative overflow-y-auto"
-          style={{ height: '600px' }}
-          onScroll={(e) => setScrollPosition(e.currentTarget.scrollTop)}
-        >
+        {/* Main Schedule Grid */}
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          {/* Header row */}
+          <div className="grid grid-cols-8 bg-gray-50 border-b border-gray-200">
+            <div className="w-20 p-3 text-sm font-medium text-gray-600">
+              Time
+            </div>
+            {weekDates.map((date, dayIndex) => (
+              <div key={dayIndex} className="p-3 text-sm font-medium text-center border-l border-gray-200">
+                <div>{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                <div className="text-lg">{date.getDate()}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Scrollable calendar content */}
           <div 
-            ref={calendarRef}
-            className="relative bg-white" 
-            style={{ height: '960px' }}
+            ref={scrollContainerRef}
+            className="overflow-y-auto"
+            style={{ 
+              height: '600px',
+              scrollTop: scrollPosition,
+            }}
           >
-            {/* Hour labels and major grid lines */}
-            {Array.from({ length: 17 }, (_, i) => {
-              const hour = START_HOUR + i;
-              const minutes = hour * 60;
-              const position = minutesToPosition(minutes);
-              const timeString = `${hour.toString().padStart(2, '0')}:00`;
-              const formattedTime = formatTimeDisplay(timeString, timeFormat);
-              return (
-                <div
-                  key={`hour-${hour}`}
-                  className="absolute left-0 right-0 border-b border-gray-200"
-                  style={{ top: `${position}px` }}
-                >
-                  <div className="absolute left-0 p-2 text-xs text-gray-500 bg-white border-r border-gray-200" style={{ width: '80px', height: '60px' }}>
-                    {formattedTime}
-                  </div>
-                </div>
-              );
-            })}
+            <div 
+              ref={calendarRef}
+              className="relative bg-white"
+              style={{ height: `${TOTAL_MINUTES}px` }}
+            >
+              {/* Time column with consistent right border */}
+              <div 
+                className="absolute left-0 top-0 bottom-0 bg-gray-50 border-r border-gray-200 z-20"
+                style={{ width: '80px' }}
+              >
+                {/* Time labels */}
+                {timeLabels}
+              </div>
 
-            {/* Time increment grid lines */}
-            {(() => {
-              const timeLabels = [];
-              for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += timeIncrement) {
-                timeLabels.push({
-                  minutes,
-                  position: minutesToPosition(minutes),
-                });
-              }
-              
-              return timeLabels.map((timeLabel) => (
-                <div
-                  key={timeLabel.minutes}
-                  className="absolute border-b border-gray-300 z-10 pointer-events-none"
-                  style={{ 
-                    top: `${timeLabel.position}px`,
-                    left: '80px',
-                    right: '0px'
-                  }}
-                />
-              ));
-            })()}
-
-
-
-            {/* Bottom border for grid completion */}
-            <div
-              className="absolute left-0 right-0 border-b border-gray-200"
-              style={{ top: '960px' }}
-            />
-
-            {/* Continuous time column right border */}
-            <div
-              className="absolute border-r border-gray-200 z-50"
-              style={{ 
-                left: '80px',
-                top: '0px',
-                height: '960px',
-                width: '0px'
-              }}
-            />
-
-            {/* Day columns */}
-            {weekDates.map((date, dayIndex) => {
-              // Calculate column width: (container width - 80px time column) / 7 days
-              // Use calc() to ensure exact alignment with header
-              const leftPosition = `calc(80px + (100% - 80px) * ${dayIndex} / 7)`;
-              const columnWidth = `calc((100% - 80px) / 7)`;
-              
-              return (
+              {/* Day columns */}
+              {Array.from({ length: 7 }, (_, dayIndex) => (
                 <div
                   key={dayIndex}
-                  className="absolute border-r border-gray-200 bg-white cursor-crosshair"
+                  className="absolute top-0 bottom-0 border-l border-gray-100 hover:bg-blue-50/30 cursor-crosshair"
                   style={{
-                    left: leftPosition,
-                    width: columnWidth,
-                    height: '960px',
+                    left: `calc(80px + (100% - 80px) * ${dayIndex} / 7)`,
+                    width: `calc((100% - 80px) / 7)`,
                   }}
                   onMouseDown={(e) => handleMouseDown(e, dayIndex)}
-              >
-                {/* Events for this day - only timed events, not all-day */}
-                {filteredEvents
-                  .filter(event => event.date === date.toISOString().split('T')[0] && !event.isAllDay)
-                  .map((event) => {
+                />
+              ))}
 
-                    const startMinutes = timeToMinutes(event.startTime);
-                    const endMinutes = timeToMinutes(event.endTime);
-                    const startPos = minutesToPosition(startMinutes);
-                    const duration = endMinutes - startMinutes;
-                    const height = duration; // 1:1 pixel-to-minute ratio
+              {/* Time increment grid lines */}
+              {incrementLines}
 
-                    const eventTypeColors = {
-                      rehearsal: 'bg-blue-100 border-blue-300 text-blue-800',
-                      performance: 'bg-blue-100 border-blue-300 text-blue-800',
-                      tech: 'bg-blue-100 border-blue-300 text-blue-800',
-                      meeting: 'bg-blue-100 border-blue-300 text-blue-800',
-                      other: 'bg-blue-100 border-blue-300 text-blue-800',
-                    };
+              {/* Events */}
+              {filteredEvents
+                .filter(event => !event.isAllDay)
+                .map(event => {
+                  const eventDate = event.date;
+                  const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
+                  
+                  if (dayIndex === -1) return null;
 
-                    // Check if this event is being dragged or resized
-                    const isDragging = draggedEvent?.event.id === event.id;
-                    const isResizing = resizingEvent?.event.id === event.id;
-                    const isJustDragged = justDragged === event.id;
-                    
-                    // Calculate position for dragged events
-                    let displayPosition = { top: startPos, height: Math.max(height, 30) };
-                    if (isDragging && draggedEvent) {
-                      const dragStartPos = minutesToPosition(draggedEvent.currentPosition.startMinutes);
-                      displayPosition = { top: dragStartPos, height: Math.max(height, 30) };
-                    } else if (isResizing && resizingEvent) {
-                      const resizeStartPos = minutesToPosition(resizingEvent.originalStartMinutes);
-                      const resizeHeight = resizingEvent.originalEndMinutes - resizingEvent.originalStartMinutes; // 1:1 pixel-to-minute ratio
-                      displayPosition = { top: resizeStartPos, height: Math.max(resizeHeight, 30) };
-                    }
+                  const startMinutes = timeToMinutes(event.startTime);
+                  const endMinutes = timeToMinutes(event.endTime);
+                  const top = minutesToPosition(startMinutes);
+                  const height = endMinutes - startMinutes;
 
-                    return (
-                      <div
-                        key={event.id}
-                        data-event-id={event.id}
-                        className={`absolute left-1 right-1 border rounded cursor-pointer hover:opacity-80 transition-opacity z-30 ${
-                          eventTypeColors[event.type as keyof typeof eventTypeColors] || eventTypeColors.other
-                        } ${isDragging ? 'opacity-75 z-50' : ''} ${isResizing ? 'z-50' : ''} ${
-                          selectedEvents.has(event.id) ? 'ring-4 ring-yellow-400 ring-opacity-75' : ''
-                        } ${isShiftPressed ? 'cursor-pointer' : 'cursor-move'}`}
-                        style={{
-                          top: `${displayPosition.top}px`,
-                          height: `${displayPosition.height}px`,
-                        }}
-                        onMouseDown={(e) => handleEventMouseDown(e, event)}
-                        onClick={(e) => {
-                          if (!isJustDragged) {
-                            setEditingEvent(event);
-                          }
-                        }}
-                      >
-                        {/* Resize handle - top */}
-                        <div
-                          className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-black hover:bg-opacity-20 transition-colors"
-                          onMouseDown={(e) => handleResizeStart(e, event, 'start')}
-                          style={{ height: '4px', marginTop: '-2px' }}
-                        />
-                        
-                        {/* Event content */}
-                        <div className="px-2 py-1 h-full overflow-hidden">
-                          <div className="text-xs font-medium truncate">
-                            {event.title}
-                          </div>
-                          <div className="text-xs opacity-75 truncate">
-                            {event.startTime} - {event.endTime}
-                          </div>
-                          {event.participants.length > 0 && (
-                            <div className="text-xs opacity-75 flex items-center gap-1 mt-1">
-                              <Users className="h-3 w-3" />
-                              {event.participants.length}
-                            </div>
-                          )}
-                        </div>
-                        
-                        {/* Resize handle - bottom */}
-                        <div
-                          className="absolute bottom-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-black hover:bg-opacity-20 transition-colors"
-                          onMouseDown={(e) => handleResizeStart(e, event, 'end')}
-                          style={{ height: '4px', marginBottom: '-2px' }}
-                        />
+                  // Use dragged position if this event is being dragged
+                  const displayDayIndex = draggedEvent?.event.id === event.id ? 
+                    draggedEvent.currentPosition.dayIndex : dayIndex;
+                  const displayTop = draggedEvent?.event.id === event.id ? 
+                    minutesToPosition(draggedEvent.currentPosition.startMinutes) : top;
+
+                  // Use resized dimensions if this event is being resized
+                  const displayHeight = resizingEvent?.event.id === event.id ?
+                    timeToMinutes(resizingEvent.event.endTime) - timeToMinutes(resizingEvent.event.startTime) : height;
+                  const resizedTop = resizingEvent?.event.id === event.id ?
+                    minutesToPosition(timeToMinutes(resizingEvent.event.startTime)) : displayTop;
+
+                  return (
+                    <div
+                      key={event.id}
+                      className={`absolute ${getEventColor(event.type)} text-white text-sm p-2 rounded-md shadow-sm border-l-4 border-blue-700 cursor-pointer hover:opacity-90 z-30 ${
+                        selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
+                      } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''}`}
+                      style={{
+                        left: `calc(80px + (100% - 80px) * ${displayDayIndex} / 7 + 2px)`,
+                        width: `calc((100% - 80px) / 7 - 4px)`,
+                        top: `${resizedTop}px`,
+                        height: `${Math.max(20, displayHeight)}px`,
+                        minHeight: '20px',
+                      }}
+                      onMouseDown={(e) => handleEventMouseDown(e, event)}
+                    >
+                      <div className="font-medium truncate">{event.title}</div>
+                      <div className="text-xs opacity-90">
+                        {formatTimeDisplay(startMinutes, timeFormat)} - {formatTimeDisplay(endMinutes, timeFormat)}
                       </div>
-                    );
-                  })}
-              </div>
-            );
-          })}
+                      
+                      {/* Resize handles */}
+                      <div
+                        className="absolute left-0 right-0 top-0 h-1 cursor-n-resize hover:bg-blue-300 opacity-0 hover:opacity-100"
+                        onMouseDown={(e) => handleResizeStart(e, event, 'start')}
+                      />
+                      <div
+                        className="absolute left-0 right-0 bottom-0 h-1 cursor-s-resize hover:bg-blue-300 opacity-0 hover:opacity-100"
+                        onMouseDown={(e) => handleResizeStart(e, event, 'end')}
+                      />
+                    </div>
+                  );
+                })}
 
-            {/* Drag preview overlay for new events */}
-            {dragState?.isActive && (
-              <div
-                className="absolute bg-blue-200 border-2 border-blue-400 rounded opacity-60 pointer-events-none"
-                style={{
-                  left: `${64 + (dragState.startDay * ((100 - 4) / 7))}%`,
-                  width: `${(100 - 4) / 7}%`,
-                  top: `${minutesToPosition(Math.min(dragState.startTime, dragState.currentTime))}px`,
-                  height: `${Math.abs(minutesToPosition(dragState.currentTime) - minutesToPosition(dragState.startTime))}px`,
-                }}
-              >
-                <div className="p-1 text-xs text-blue-800 font-medium">
-                  New Event
-                </div>
-              </div>
-            )}
-
-            {/* Drag preview overlay for moved events */}
-            {draggedEvent?.isDragging && (
-              <div
-                className="absolute bg-yellow-200 border-2 border-yellow-400 rounded opacity-60 pointer-events-none"
-                style={{
-                  left: `${64 + (draggedEvent.currentPosition.dayIndex * ((100 - 4) / 7))}%`,
-                  width: `${(100 - 4) / 7}%`,
-                  top: `${minutesToPosition(draggedEvent.currentPosition.startMinutes)}px`,
-                  height: `${timeToMinutes(draggedEvent.event.endTime) - timeToMinutes(draggedEvent.event.startTime)}px`,
-                }}
-              >
-                <div className="p-1 text-xs text-yellow-800 font-medium">
-                  {draggedEvent.event.title}
-                </div>
-              </div>
-            )}
+              {/* Drag preview overlay for new events - FIXED POSITIONING */}
+              {dragState?.isActive && (
+                <div
+                  className="absolute bg-blue-200 border-2 border-blue-400 rounded opacity-60 pointer-events-none z-30"
+                  style={{
+                    left: `calc(80px + (100% - 80px) * ${dragState.startDay} / 7 + 2px)`,
+                    width: `calc((100% - 80px) / 7 - 4px)`,
+                    top: `${minutesToPosition(Math.min(dragState.startTime, dragState.currentTime))}px`,
+                    height: `${Math.abs(minutesToPosition(dragState.currentTime) - minutesToPosition(dragState.startTime))}px`,
+                  }}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    {/* Create Event Dialog */}
-    <Dialog open={createEventDialog.isOpen} onOpenChange={(open) => setCreateEventDialog({ isOpen: open })}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Create New Event</DialogTitle>
-        </DialogHeader>
-        <CreateEventForm
-          projectId={projectId}
-          contacts={contacts}
-          onSubmit={(eventData) => createEventMutation.mutate(eventData)}
-          onCancel={() => setCreateEventDialog({ isOpen: false })}
-          initialData={createEventDialog}
-        />
-      </DialogContent>
-    </Dialog>
+      {/* Create Event Dialog */}
+      <Dialog open={createEventDialog.isOpen} onOpenChange={(open) => setCreateEventDialog({ isOpen: open })}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create New Event</DialogTitle>
+          </DialogHeader>
+          <CreateEventForm 
+            projectId={projectId}
+            contacts={contacts}
+            onSubmit={createEventMutation.mutate}
+            onCancel={() => setCreateEventDialog({ isOpen: false })}
+            defaultValues={createEventDialog}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Event Dialog */}
       {editingEvent && (
-        <Dialog open={true} onOpenChange={() => setEditingEvent(null)}>
+        <Dialog open={!!editingEvent} onOpenChange={() => setEditingEvent(null)}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Edit Event</DialogTitle>
             </DialogHeader>
-            <EditEventForm
+            <EditEventForm 
               event={editingEvent}
               contacts={contacts}
-              onSubmit={(eventData) => updateEventMutation.mutate({ eventId: editingEvent.id, eventData })}
+              onSubmit={(data) => updateEventMutation.mutate({ eventId: editingEvent.id, eventData: data })}
               onDelete={() => deleteEventMutation.mutate(editingEvent.id)}
               onCancel={() => setEditingEvent(null)}
+              isDeleting={deleteEventMutation.isPending}
             />
           </DialogContent>
         </Dialog>
@@ -920,26 +964,23 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             <DialogHeader>
               <DialogTitle>Delete Selected Events</DialogTitle>
             </DialogHeader>
-            <div className="py-4">
-              <p className="text-sm text-gray-600">
-                Are you sure you want to delete {selectedEvents.size} selected event{selectedEvents.size !== 1 ? 's' : ''}? This action cannot be undone.
+            <div className="space-y-4">
+              <p>
+                Are you sure you want to delete {selectedEvents.size} selected event{selectedEvents.size !== 1 ? 's' : ''}? 
+                This action cannot be undone.
               </p>
-            </div>
-            
-            <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowBulkDeleteDialog(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleBulkDelete}
-                disabled={bulkDeleteEventsMutation.isPending}
-              >
-                {bulkDeleteEventsMutation.isPending ? "Deleting..." : "Delete"}
-              </Button>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setShowBulkDeleteDialog(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleBulkDelete}
+                  disabled={bulkDeleteEventsMutation.isPending}
+                >
+                  {bulkDeleteEventsMutation.isPending ? "Deleting..." : "Delete"}
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -954,21 +995,21 @@ function CreateEventForm({
   contacts, 
   onSubmit, 
   onCancel, 
-  initialData 
-}: { 
+  defaultValues 
+}: {
   projectId: number;
   contacts: Contact[];
   onSubmit: (data: any) => void;
   onCancel: () => void;
-  initialData?: any;
+  defaultValues: any;
 }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    date: initialData?.date || new Date().toISOString().split('T')[0],
-    startTime: initialData?.startTime || '10:00',
-    endTime: initialData?.endTime || '12:00',
     type: 'rehearsal',
+    date: defaultValues.date || '',
+    startTime: defaultValues.startTime || '',
+    endTime: defaultValues.endTime || '',
     location: '',
     notes: '',
     isAllDay: false,
@@ -977,24 +1018,15 @@ function CreateEventForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Clean up the form data before submission
-    const cleanedData = {
+    onSubmit({
       ...formData,
-      location: formData.location?.trim() || undefined,
-      description: formData.description?.trim() || undefined,
-      notes: formData.notes?.trim() || undefined,
-      participants: formData.participants,
-    };
-    onSubmit(cleanedData);
-  };
-
-  const toggleParticipant = (contactId: number) => {
-    setFormData(prev => ({
-      ...prev,
-      participants: prev.participants.includes(contactId)
-        ? prev.participants.filter(id => id !== contactId)
-        : [...prev.participants, contactId]
-    }));
+      projectId,
+      participants: formData.participants.map(contactId => ({
+        contactId,
+        isRequired: true,
+        status: 'pending',
+      })),
+    });
   };
 
   return (
@@ -1005,23 +1037,22 @@ function CreateEventForm({
           <Input
             id="title"
             value={formData.title}
-            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             required
           />
         </div>
-        
         <div>
           <Label htmlFor="type">Event Type</Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
+          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="rehearsal">Rehearsal</SelectItem>
-              <SelectItem value="performance">Performance</SelectItem>
-              <SelectItem value="tech">Tech</SelectItem>
-              <SelectItem value="meeting">Meeting</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              {ALL_EVENT_TYPES.map(type => (
+                <SelectItem key={type.value} value={type.value}>
+                  {getEventTypeDisplayName(type.value)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -1029,10 +1060,10 @@ function CreateEventForm({
 
       <div>
         <Label htmlFor="description">Description</Label>
-        <Input
+        <Textarea
           id="description"
           value={formData.description}
-          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
         />
       </div>
 
@@ -1043,30 +1074,28 @@ function CreateEventForm({
             id="date"
             type="date"
             value={formData.date}
-            onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
             required
           />
         </div>
-        
         <div>
           <Label htmlFor="startTime">Start Time</Label>
           <Input
             id="startTime"
             type="time"
             value={formData.startTime}
-            onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
             disabled={formData.isAllDay}
             required={!formData.isAllDay}
           />
         </div>
-        
         <div>
           <Label htmlFor="endTime">End Time</Label>
           <Input
             id="endTime"
             type="time"
             value={formData.endTime}
-            onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+            onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
             disabled={formData.isAllDay}
             required={!formData.isAllDay}
           />
@@ -1077,37 +1106,18 @@ function CreateEventForm({
         <Checkbox
           id="isAllDay"
           checked={formData.isAllDay}
-          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isAllDay: !!checked }))}
+          onCheckedChange={(checked) => setFormData({ ...formData, isAllDay: !!checked })}
         />
         <Label htmlFor="isAllDay">All Day Event</Label>
       </div>
 
-      <LocationSelect
-        projectId={projectId}
-        value={formData.location}
-        onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
-        eventDate={formData.date}
-        startTime={formData.startTime}
-        endTime={formData.endTime}
-      />
-
-      {/* Contact Assignment */}
       <div>
-        <Label>Assign Contacts</Label>
-        <div className="max-h-48 overflow-y-auto border rounded p-2 space-y-2">
-          {contacts.map((contact) => (
-            <div key={contact.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={`contact-${contact.id}`}
-                checked={formData.participants.includes(contact.id)}
-                onCheckedChange={() => toggleParticipant(contact.id)}
-              />
-              <Label htmlFor={`contact-${contact.id}`} className="text-sm">
-                {contact.firstName} {contact.lastName} - {contact.role || contact.category}
-              </Label>
-            </div>
-          ))}
-        </div>
+        <Label>Location</Label>
+        <LocationSelect
+          value={formData.location}
+          onChange={(location) => setFormData({ ...formData, location })}
+          projectId={projectId}
+        />
       </div>
 
       <div>
@@ -1115,18 +1125,45 @@ function CreateEventForm({
         <Textarea
           id="notes"
           value={formData.notes}
-          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-          rows={3}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
         />
+      </div>
+
+      <div>
+        <Label>Participants</Label>
+        <div className="space-y-2 max-h-32 overflow-y-auto">
+          {contacts.map(contact => (
+            <div key={contact.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`contact-${contact.id}`}
+                checked={formData.participants.includes(contact.id)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setFormData({
+                      ...formData,
+                      participants: [...formData.participants, contact.id],
+                    });
+                  } else {
+                    setFormData({
+                      ...formData,
+                      participants: formData.participants.filter(id => id !== contact.id),
+                    });
+                  }
+                }}
+              />
+              <Label htmlFor={`contact-${contact.id}`} className="text-sm">
+                {contact.firstName} {contact.lastName} ({contact.role || contact.category})
+              </Label>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="flex justify-end space-x-2">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <Button type="submit">
-          Create Event
-        </Button>
+        <Button type="submit">Create Event</Button>
       </div>
     </form>
   );
@@ -1138,21 +1175,23 @@ function EditEventForm({
   contacts, 
   onSubmit, 
   onDelete, 
-  onCancel 
-}: { 
+  onCancel, 
+  isDeleting 
+}: {
   event: ScheduleEvent;
   contacts: Contact[];
   onSubmit: (data: any) => void;
   onDelete: () => void;
   onCancel: () => void;
+  isDeleting: boolean;
 }) {
   const [formData, setFormData] = useState({
     title: event.title,
     description: event.description || '',
+    type: event.type,
     date: event.date,
     startTime: event.startTime,
     endTime: event.endTime,
-    type: event.type,
     location: event.location || '',
     notes: event.notes || '',
     isAllDay: event.isAllDay,
@@ -1161,24 +1200,14 @@ function EditEventForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Clean up the form data before submission
-    const cleanedData = {
+    onSubmit({
       ...formData,
-      location: formData.location?.trim() || undefined,
-      description: formData.description?.trim() || undefined,
-      notes: formData.notes?.trim() || undefined,
-      participants: formData.participants,
-    };
-    onSubmit(cleanedData);
-  };
-
-  const toggleParticipant = (contactId: number) => {
-    setFormData(prev => ({
-      ...prev,
-      participants: prev.participants.includes(contactId)
-        ? prev.participants.filter(id => id !== contactId)
-        : [...prev.participants, contactId]
-    }));
+      participants: formData.participants.map(contactId => ({
+        contactId,
+        isRequired: true,
+        status: 'pending',
+      })),
+    });
   };
 
   return (
@@ -1189,23 +1218,22 @@ function EditEventForm({
           <Input
             id="title"
             value={formData.title}
-            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             required
           />
         </div>
-        
         <div>
           <Label htmlFor="type">Event Type</Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
+          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="rehearsal">Rehearsal</SelectItem>
-              <SelectItem value="performance">Performance</SelectItem>
-              <SelectItem value="tech">Tech</SelectItem>
-              <SelectItem value="meeting">Meeting</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              {ALL_EVENT_TYPES.map(type => (
+                <SelectItem key={type.value} value={type.value}>
+                  {getEventTypeDisplayName(type.value)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -1213,10 +1241,10 @@ function EditEventForm({
 
       <div>
         <Label htmlFor="description">Description</Label>
-        <Input
+        <Textarea
           id="description"
           value={formData.description}
-          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
         />
       </div>
 
@@ -1227,30 +1255,28 @@ function EditEventForm({
             id="date"
             type="date"
             value={formData.date}
-            onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
             required
           />
         </div>
-        
         <div>
           <Label htmlFor="startTime">Start Time</Label>
           <Input
             id="startTime"
             type="time"
             value={formData.startTime}
-            onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
             disabled={formData.isAllDay}
             required={!formData.isAllDay}
           />
         </div>
-        
         <div>
           <Label htmlFor="endTime">End Time</Label>
           <Input
             id="endTime"
             type="time"
             value={formData.endTime}
-            onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+            onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
             disabled={formData.isAllDay}
             required={!formData.isAllDay}
           />
@@ -1261,37 +1287,18 @@ function EditEventForm({
         <Checkbox
           id="isAllDay"
           checked={formData.isAllDay}
-          onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isAllDay: !!checked }))}
+          onCheckedChange={(checked) => setFormData({ ...formData, isAllDay: !!checked })}
         />
         <Label htmlFor="isAllDay">All Day Event</Label>
       </div>
 
-      <LocationSelect
-        projectId={event.projectId}
-        value={formData.location}
-        onValueChange={(value) => setFormData(prev => ({ ...prev, location: value }))}
-        eventDate={formData.date}
-        startTime={formData.startTime}
-        endTime={formData.endTime}
-      />
-
-      {/* Contact Assignment */}
       <div>
-        <Label>Assign Contacts</Label>
-        <div className="max-h-48 overflow-y-auto border rounded p-2 space-y-2">
-          {contacts.map((contact) => (
-            <div key={contact.id} className="flex items-center space-x-2">
-              <Checkbox
-                id={`contact-${contact.id}`}
-                checked={formData.participants.includes(contact.id)}
-                onCheckedChange={() => toggleParticipant(contact.id)}
-              />
-              <Label htmlFor={`contact-${contact.id}`} className="text-sm">
-                {contact.firstName} {contact.lastName} - {contact.role || contact.category}
-              </Label>
-            </div>
-          ))}
-        </div>
+        <Label>Location</Label>
+        <LocationSelect
+          value={formData.location}
+          onChange={(location) => setFormData({ ...formData, location })}
+          projectId={event.projectId}
+        />
       </div>
 
       <div>
@@ -1299,22 +1306,54 @@ function EditEventForm({
         <Textarea
           id="notes"
           value={formData.notes}
-          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-          rows={3}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
         />
       </div>
 
+      <div>
+        <Label>Participants</Label>
+        <div className="space-y-2 max-h-32 overflow-y-auto">
+          {contacts.map(contact => (
+            <div key={contact.id} className="flex items-center space-x-2">
+              <Checkbox
+                id={`contact-${contact.id}`}
+                checked={formData.participants.includes(contact.id)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setFormData({
+                      ...formData,
+                      participants: [...formData.participants, contact.id],
+                    });
+                  } else {
+                    setFormData({
+                      ...formData,
+                      participants: formData.participants.filter(id => id !== contact.id),
+                    });
+                  }
+                }}
+              />
+              <Label htmlFor={`contact-${contact.id}`} className="text-sm">
+                {contact.firstName} {contact.lastName} ({contact.role || contact.category})
+              </Label>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="flex justify-between">
-        <Button type="button" variant="destructive" onClick={onDelete}>
-          Delete Event
+        <Button 
+          type="button" 
+          variant="destructive" 
+          onClick={onDelete}
+          disabled={isDeleting}
+        >
+          {isDeleting ? "Deleting..." : "Delete Event"}
         </Button>
         <div className="space-x-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit">
-            Update Event
-          </Button>
+          <Button type="submit">Update Event</Button>
         </div>
       </div>
     </form>
