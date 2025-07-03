@@ -127,9 +127,9 @@ export default function Schedule() {
             />
             
             <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-              <SelectTrigger className="w-10 border-0 shadow-none">
+              <SelectTrigger className="w-12 border-0 shadow-none">
                 <Clock 
-                  className={`h-5 w-5 ${
+                  className={`h-6 w-6 ${
                     timeIncrement === 15 ? 'rotate-90' : 
                     timeIncrement === 30 ? 'rotate-180' : 
                     'rotate-0'
@@ -138,13 +138,13 @@ export default function Schedule() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="15">
-                  <Clock className="h-5 w-5 rotate-90" />
+                  <Clock className="h-6 w-6 rotate-90" />
                 </SelectItem>
                 <SelectItem value="30">
-                  <Clock className="h-5 w-5 rotate-180" />
+                  <Clock className="h-6 w-6 rotate-180" />
                 </SelectItem>
                 <SelectItem value="60">
-                  <Clock className="h-5 w-5 rotate-0" />
+                  <Clock className="h-6 w-6 rotate-0" />
                 </SelectItem>
               </SelectContent>
             </Select>
