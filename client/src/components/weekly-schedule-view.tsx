@@ -756,7 +756,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                     const endMinutes = timeToMinutes(event.endTime);
                     const startPos = minutesToPosition(startMinutes);
                     const duration = endMinutes - startMinutes;
-                    const height = (duration / TOTAL_MINUTES) * 960;
+                    const height = duration; // 1:1 pixel-to-minute ratio
 
                     const eventTypeColors = {
                       rehearsal: 'bg-blue-100 border-blue-300 text-blue-800',
@@ -778,7 +778,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                       displayPosition = { top: dragStartPos, height: Math.max(height, 30) };
                     } else if (isResizing && resizingEvent) {
                       const resizeStartPos = minutesToPosition(resizingEvent.originalStartMinutes);
-                      const resizeHeight = (resizingEvent.originalEndMinutes - resizingEvent.originalStartMinutes) / TOTAL_MINUTES * 960;
+                      const resizeHeight = resizingEvent.originalEndMinutes - resizingEvent.originalStartMinutes; // 1:1 pixel-to-minute ratio
                       displayPosition = { top: resizeStartPos, height: Math.max(resizeHeight, 30) };
                     }
 
@@ -863,7 +863,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                   left: `${64 + (draggedEvent.currentPosition.dayIndex * ((100 - 4) / 7))}%`,
                   width: `${(100 - 4) / 7}%`,
                   top: `${minutesToPosition(draggedEvent.currentPosition.startMinutes)}px`,
-                  height: `${(timeToMinutes(draggedEvent.event.endTime) - timeToMinutes(draggedEvent.event.startTime)) / TOTAL_MINUTES * 960}px`,
+                  height: `${timeToMinutes(draggedEvent.event.endTime) - timeToMinutes(draggedEvent.event.startTime)}px`,
                 }}
               >
                 <div className="p-1 text-xs text-yellow-800 font-medium">
