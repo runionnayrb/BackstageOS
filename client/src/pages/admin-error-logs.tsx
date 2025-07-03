@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle, Bug, Wifi, Monitor, MousePointer, FileText, Eye, Calendar, Search, Play, Pause, Wrench, Activity } from "lucide-react";
+import { AlertTriangle, Bug, Wifi, Monitor, MousePointer, FileText, Eye, Calendar, Search, Play, Pause, Wrench, Activity, BarChart3 } from "lucide-react";
 import { Link } from "wouter";
 import { ErrorLog } from "@/../../shared/schema";
 import { errorLogger } from "@/lib/errorLogger";
@@ -328,6 +328,12 @@ export default function AdminErrorLogs() {
               <Button variant="outline" size="sm" className="flex items-center gap-2">
                 <Activity className="h-4 w-4" />
                 Auto-Resolution Dashboard
+              </Button>
+            </Link>
+            <Link href="/advanced-analytics-dashboard">
+              <Button variant="outline" size="sm" className="flex items-center gap-2 border-purple-500 text-purple-600 hover:bg-purple-50">
+                <BarChart3 className="h-4 w-4" />
+                Advanced Analytics
               </Button>
             </Link>
           </div>

@@ -4128,6 +4128,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Phase 5: Advanced Analytics & Categorization Endpoints
+  app.get('/api/admin/advanced-analytics', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { advancedAnalyticsService } = await import('./advancedAnalyticsService');
+      const timeFrame = parseInt(req.query.timeFrame as string) || 30;
+      const report = await advancedAnalyticsService.generateAnalyticsReport(timeFrame);
+      res.json(report);
+    } catch (error) {
+      console.error('Error generating advanced analytics:', error);
+      res.status(500).json({ message: 'Failed to generate analytics report' });
+    }
+  });
+
+  app.get('/api/admin/user-satisfaction', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { advancedAnalyticsService } = await import('./advancedAnalyticsService');
+      const timeFrame = (req.query.timeFrame as 'daily' | 'weekly' | 'monthly') || 'weekly';
+      const metrics = await advancedAnalyticsService.calculateUserSatisfactionMetrics(timeFrame);
+      res.json(metrics);
+    } catch (error) {
+      console.error('Error fetching user satisfaction metrics:', error);
+      res.status(500).json({ message: 'Failed to fetch user satisfaction metrics' });
+    }
+  });
+
+  app.get('/api/admin/feature-stability', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { advancedAnalyticsService } = await import('./advancedAnalyticsService');
+      const metrics = await advancedAnalyticsService.analyzeFeatureStability();
+      res.json(metrics);
+    } catch (error) {
+      console.error('Error analyzing feature stability:', error);
+      res.status(500).json({ message: 'Failed to analyze feature stability' });
+    }
+  });
+
+  app.get('/api/admin/system-health', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { advancedAnalyticsService } = await import('./advancedAnalyticsService');
+      const healthScore = await advancedAnalyticsService.calculateSystemHealthScore();
+      res.json(healthScore);
+    } catch (error) {
+      console.error('Error calculating system health:', error);
+      res.status(500).json({ message: 'Failed to calculate system health' });
+    }
+  });
+
+  app.get('/api/admin/critical-patterns', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { advancedAnalyticsService } = await import('./advancedAnalyticsService');
+      const patterns = await advancedAnalyticsService.identifyCriticalPatterns();
+      res.json(patterns);
+    } catch (error) {
+      console.error('Error identifying critical patterns:', error);
+      res.status(500).json({ message: 'Failed to identify critical patterns' });
+    }
+  });
+
+  app.get('/api/admin/recommendations', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { advancedAnalyticsService } = await import('./advancedAnalyticsService');
+      const timeFrame = parseInt(req.query.timeFrame as string) || 7;
+      const recommendations = await advancedAnalyticsService.generateRecommendations(timeFrame);
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error generating recommendations:', error);
+      res.status(500).json({ message: 'Failed to generate recommendations' });
+    }
+  });
+
+  app.post('/api/admin/business-impact/:clusterId', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { advancedAnalyticsService } = await import('./advancedAnalyticsService');
+      const clusterId = parseInt(req.params.clusterId);
+      const analysis = await advancedAnalyticsService.analyzeBusinessImpact(clusterId);
+      res.json(analysis);
+    } catch (error) {
+      console.error('Error analyzing business impact:', error);
+      res.status(500).json({ message: 'Failed to analyze business impact' });
+    }
+  });
+
   const server = createServer(app);
   return server;
 }

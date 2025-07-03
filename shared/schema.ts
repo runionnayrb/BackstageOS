@@ -8,6 +8,7 @@ import {
   serial,
   boolean,
   integer,
+  decimal,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -861,6 +862,72 @@ export const contactSheetVersionsRelations = relations(contactSheetVersions, ({ 
   }),
 }));
 
+// Phase 5: Advanced Analytics Tables
+export const errorTrends = pgTable("error_trends", {
+  id: serial("id").primaryKey(),
+  timeFrame: varchar("time_frame", { length: 50 }).notNull(), // '7d', '30d', '90d'
+  errorType: varchar("error_type", { length: 100 }).notNull(),
+  frequency: integer("frequency").notNull(),
+  trend: decimal("trend", { precision: 10, scale: 2 }), // percentage change
+  severity: varchar("severity", { length: 20 }).notNull(), // 'low', 'medium', 'high', 'critical'
+  businessImpact: varchar("business_impact", { length: 255 }),
+  recommendation: text("recommendation"),
+  calculatedAt: timestamp("calculated_at").defaultNow().notNull(),
+});
+
+export const errorCategories = pgTable("error_categories", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  parentCategoryId: integer("parent_category_id").references(() => errorCategories.id),
+  color: varchar("color", { length: 7 }).default("#6b7280"), // hex color
+  iconName: varchar("icon_name", { length: 50 }),
+  priority: integer("priority").default(0), // for ordering
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const userSatisfactionMetrics = pgTable("user_satisfaction_metrics", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  timeFrame: varchar("time_frame", { length: 20 }).notNull(), // 'daily', 'weekly', 'monthly'
+  errorFrequency: integer("error_frequency").default(0),
+  satisfactionScore: decimal("satisfaction_score", { precision: 3, scale: 2 }), // 0-10 scale
+  lastErrorAt: timestamp("last_error_at"),
+  totalErrors: integer("total_errors").default(0),
+  resolvedErrors: integer("resolved_errors").default(0),
+  criticalErrors: integer("critical_errors").default(0),
+  calculatedAt: timestamp("calculated_at").defaultNow().notNull(),
+});
+
+export const featureStabilityMetrics = pgTable("feature_stability_metrics", {
+  id: serial("id").primaryKey(),
+  featureName: varchar("feature_name", { length: 100 }).notNull(),
+  errorCount: integer("error_count").default(0),
+  uniqueUsers: integer("unique_users").default(0),
+  avgResolutionTime: integer("avg_resolution_time"), // in minutes
+  stabilityScore: decimal("stability_score", { precision: 3, scale: 2 }), // 0-10 scale
+  lastErrorAt: timestamp("last_error_at"),
+  isActive: boolean("is_active").default(true),
+  calculatedAt: timestamp("calculated_at").defaultNow().notNull(),
+});
+
+export const errorImpactAnalysis = pgTable("error_impact_analysis", {
+  id: serial("id").primaryKey(),
+  errorClusterId: integer("error_cluster_id").references(() => errorClusters.id),
+  affectedUsers: integer("affected_users").notNull(),
+  businessFunctionImpact: varchar("business_function_impact", { length: 255 }),
+  severityLevel: varchar("severity_level", { length: 20 }).notNull(),
+  costEstimate: decimal("cost_estimate", { precision: 12, scale: 2 }),
+  workflowDisruption: boolean("workflow_disruption").default(false),
+  dataLossRisk: boolean("data_loss_risk").default(false),
+  securityImplications: boolean("security_implications").default(false),
+  complianceImpact: boolean("compliance_impact").default(false),
+  analysisNotes: text("analysis_notes"),
+  analyzedAt: timestamp("analyzed_at").defaultNow().notNull(),
+});
+
 export const errorLogsRelations = relations(errorLogs, ({ one }) => ({
   user: one(users, {
     fields: [errorLogs.userId],
@@ -1203,6 +1270,33 @@ export const insertErrorResolutionStatusSchema = createInsertSchema(errorResolut
   id: true,
   createdAt: true,
   updatedAt: true,
+});
+
+// Phase 5: Advanced Analytics Insert Schemas
+export const insertErrorTrendSchema = createInsertSchema(errorTrends).omit({
+  id: true,
+  calculatedAt: true,
+});
+
+export const insertErrorCategorySchema = createInsertSchema(errorCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserSatisfactionMetricSchema = createInsertSchema(userSatisfactionMetrics).omit({
+  id: true,
+  calculatedAt: true,
+});
+
+export const insertFeatureStabilityMetricSchema = createInsertSchema(featureStabilityMetrics).omit({
+  id: true,
+  calculatedAt: true,
+});
+
+export const insertErrorImpactAnalysisSchema = createInsertSchema(errorImpactAnalysis).omit({
+  id: true,
+  analyzedAt: true,
 });
 
 // Type exports
