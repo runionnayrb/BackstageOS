@@ -575,6 +575,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
       };
 
       const handleMouseUp = () => {
+        console.log('Mouse up triggered, hasStartedDragging:', hasStartedDragging, 'draggedEvent:', draggedEvent);
         if (hasStartedDragging && draggedEvent) {
           // Update event position
           const newDate = weekDates[draggedEvent.currentPosition.dayIndex].toISOString().split('T')[0];
