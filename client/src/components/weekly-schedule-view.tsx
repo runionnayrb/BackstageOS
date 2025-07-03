@@ -597,6 +597,11 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             fromDrag: true, // Flag to indicate this is a drag operation
           };
 
+          // Cancel any outgoing refetches to prevent conflicts
+          queryClient.cancelQueries({ 
+            queryKey: [`/api/projects/${projectId}/schedule-events`] 
+          });
+
           // Immediately update the query cache for instant visual feedback
           queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: any) => {
             console.log('Updating cache for event', event.id, 'with data:', eventData);
@@ -607,7 +612,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             return updated;
           });
 
-          // Run database update silently in background
+          // Run database update silently in background with debouncing
           setTimeout(async () => {
             try {
               const response = await fetch(`/api/schedule-events/${event.id}`, {
@@ -633,7 +638,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                 variant: "destructive" 
               });
             }
-          }, 100);
+          }, 500);
 
           setJustDragged(event.id);
         }
@@ -704,6 +709,11 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           endTime: resizingEvent.event.endTime,
         };
 
+        // Cancel any outgoing refetches to prevent conflicts
+        queryClient.cancelQueries({ 
+          queryKey: [`/api/projects/${projectId}/schedule-events`] 
+        });
+
         // Update UI immediately for instant visual feedback
         queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
           return old?.map((e: ScheduleEvent) => 
@@ -711,11 +721,33 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           ) || [];
         });
 
-        // Update in background
-        updateEventMutation.mutate({
-          eventId: event.id,
-          eventData,
-        });
+        // Run database update silently in background with debouncing
+        setTimeout(async () => {
+          try {
+            const response = await fetch(`/api/schedule-events/${event.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(eventData),
+            });
+            
+            if (!response.ok) {
+              // If silent update fails, revert the cache
+              queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+              toast({ 
+                title: "Failed to update event", 
+                variant: "destructive" 
+              });
+            }
+          } catch (error) {
+            console.error('Silent resize update failed:', error);
+            // Revert cache on error
+            queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+            toast({ 
+              title: "Failed to update event", 
+              variant: "destructive" 
+            });
+          }
+        }, 500);
       }
 
       setResizingEvent(null);
