@@ -592,51 +592,55 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
       {/* Calendar grid */}
       <div className="border rounded-lg bg-white overflow-hidden">
         {/* Header with day names */}
-        <div className="grid grid-cols-8 border-b bg-gray-50">
-          <div className="p-3 text-sm font-medium text-gray-600 border-r">Time</div>
-          {weekDates.map((date, index) => (
-            <div 
-              key={index} 
-              className="p-3 text-center border-r last:border-r-0 cursor-pointer hover:bg-gray-100"
-              onClick={() => onDateClick(date)}
-            >
-              <div className="text-sm font-medium text-gray-900">
-                {date.toLocaleDateString('en-US', { weekday: 'short' })}
+        <div className="flex border-b bg-gray-50">
+          <div className="p-3 text-sm font-medium text-gray-600 border-r" style={{ width: '80px' }}>Time</div>
+          <div className="flex-1 grid grid-cols-7">
+            {weekDates.map((date, index) => (
+              <div 
+                key={index} 
+                className="p-3 text-center border-r last:border-r-0 cursor-pointer hover:bg-gray-100"
+                onClick={() => onDateClick(date)}
+              >
+                <div className="text-sm font-medium text-gray-900">
+                  {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                </div>
+                <div className="text-lg font-semibold text-gray-700">
+                  {date.getDate()}
+                </div>
               </div>
-              <div className="text-lg font-semibold text-gray-700">
-                {date.getDate()}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* All-day events section - conditionally rendered */}
         {showAllDayEvents && (
-          <div className="grid grid-cols-8 border-b bg-gray-25">
-            <div className="p-2 text-xs font-medium text-gray-600 border-r bg-gray-50">All Day</div>
-            {weekDates.map((date, dayIndex) => {
-              const dateStr = date.toISOString().split('T')[0];
-              const allDayEvents = filteredEvents?.filter(event => 
-                event.date === dateStr && event.isAllDay
-              ) || [];
-              
-              return (
-                <div key={dayIndex} className="p-1 border-r last:border-r-0 min-h-[40px]">
-                  {allDayEvents.map(event => (
-                    <div
-                      key={event.id}
-                      className={`
-                        text-xs p-1 mb-1 rounded text-white cursor-pointer
-                        ${getEventColor(event.type)}
-                      `}
-                      onClick={() => setEditingEvent(event)}
-                    >
-                      <div className="font-medium truncate">{event.title}</div>
-                    </div>
-                  ))}
-                </div>
-              );
-            })}
+          <div className="flex border-b bg-gray-25">
+            <div className="p-2 text-xs font-medium text-gray-600 border-r bg-gray-50" style={{ width: '80px' }}>All Day</div>
+            <div className="flex-1 grid grid-cols-7">
+              {weekDates.map((date, dayIndex) => {
+                const dateStr = date.toISOString().split('T')[0];
+                const allDayEvents = filteredEvents?.filter(event => 
+                  event.date === dateStr && event.isAllDay
+                ) || [];
+                
+                return (
+                  <div key={dayIndex} className="p-1 border-r last:border-r-0 min-h-[40px]">
+                    {allDayEvents.map(event => (
+                      <div
+                        key={event.id}
+                        className={`
+                          text-xs p-1 mb-1 rounded text-white cursor-pointer
+                          ${getEventColor(event.type)}
+                        `}
+                        onClick={() => setEditingEvent(event)}
+                      >
+                        <div className="font-medium truncate">{event.title}</div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -664,7 +668,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                   className="absolute left-0 right-0 border-b border-gray-200"
                   style={{ top: `${position}px` }}
                 >
-                  <div className="absolute left-0 p-2 text-xs text-gray-500 bg-white border-r time-label" style={{ width: `${100 / 8}%` }}>
+                  <div className="absolute left-0 p-2 text-xs text-gray-500 bg-white border-r time-label" style={{ width: '80px' }}>
                     {formattedTime}
                   </div>
                 </div>
@@ -683,7 +687,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                 <div
                   key={`increment-${i}`}
                   className="absolute right-0 border-b border-gray-100"
-                  style={{ left: `${100 / 8}%`, top: `${position}px` }}
+                  style={{ left: '80px', top: `${position}px` }}
                 />
               );
             })}
