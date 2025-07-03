@@ -153,6 +153,15 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
   };
 
+  // Time labels for grid using current timeIncrement setting
+  const timeLabels = Array.from({ length: Math.floor(TOTAL_MINUTES / timeIncrement) }, (_, i) => {
+    const minutes = START_MINUTES + (i * timeIncrement);
+    return {
+      minutes,
+      label: formatTime(minutes)
+    };
+  });
+
   const timeToMinutes = (timeString: string) => {
     const [hours, minutes] = timeString.split(':').map(Number);
     return hours * 60 + minutes;
@@ -672,97 +681,120 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
       {/* Time-based calendar */}
       <div className="border rounded-lg overflow-hidden bg-white">
         {/* Day header */}
-        <div className="grid grid-cols-2 bg-gray-50 border-b">
-          <div className="p-3 text-xs font-medium text-gray-500 border-r">Time</div>
-          <div className="p-3 text-center">
-            <div className="text-xs font-medium text-gray-500">
-              {selectedDate.toLocaleDateString('en-US', { weekday: 'short' })}
-            </div>
-            <div className="text-lg font-semibold">
-              {selectedDate.getDate()}
-            </div>
+        <div className="bg-gray-50 border-b p-3 text-center">
+          <div className="text-xs font-medium text-gray-500">
+            {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
           </div>
         </div>
 
         {/* Calendar body */}
         <div 
           ref={scrollContainerRef}
-          className="border-t"
-          style={{ 
-            height: '500px',
-            overflowY: 'scroll',
-            position: 'relative'
-          }}
+          className="overflow-auto"
+          style={{ height: '500px' }}
         >
-          <div style={{ height: '960px', position: 'relative' }}> {/* 8 AM to midnight (16 hours) */}
-            <div className="grid grid-cols-2 h-full">
-              {/* Time column */}
-              <div className="border-r bg-gray-50">
-                <div className="relative h-full">
-                  {/* Generate time labels (every 2 hours) starting from 8 AM */}
-                  {Array.from({ length: 8 }, (_, i) => {
-                    const hour = START_HOUR + (i * 2);
-                    const timeString = `${hour.toString().padStart(2, '0')}:00`;
-                    const formattedTime = formatTimeDisplay(timeString, timeFormat);
-                    return (
-                      <div
-                        key={hour}
-                        className={`absolute text-xs text-gray-600 px-2 ${hour === START_HOUR ? 'translate-y-0' : '-translate-y-1/2'}`}
-                        style={{ top: `${minutesToPosition(hour * 60)}px` }}
-                      >
-                        {formattedTime}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Calendar column */}
-              <div className="relative" ref={calendarRef} onMouseDown={handleMouseDown}>
-                {/* Working hours background highlight */}
-                <div
-                  className="absolute w-full bg-blue-50 opacity-30"
-                  style={{
-                    top: `${minutesToPosition(timeToMinutes(workStartTime))}px`,
-                    height: `${minutesToPosition(timeToMinutes(workEndTime)) - minutesToPosition(timeToMinutes(workStartTime))}px`
-                  }}
-                />
-
-                {/* Grid lines based on time increment */}
-                {Array.from({ length: Math.floor(TOTAL_MINUTES / timeIncrement) }, (_, i) => {
-                  const minutes = START_MINUTES + (i * timeIncrement);
-                  const isHour = minutes % 60 === 0;
+          <div 
+            className="relative select-none"
+          >
+            {/* Time Header */}
+            <div className="sticky top-0 bg-white border-b z-10">
+              <div className="relative w-full h-10">
+                {/* Hour lines */}
+                {Array.from({ length: 17 }, (_, i) => {
+                  const minutes = START_MINUTES + (i * 60); // Every hour from 8 AM
+                  const position = ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                  const timeString = `${Math.floor(minutes / 60).toString().padStart(2, '0')}:00`;
+                  const formattedTime = formatTimeDisplay(timeString, timeFormat);
                   
                   return (
                     <div
                       key={minutes}
-                      className={`absolute w-full border-t ${isHour ? 'border-gray-300' : 'border-gray-100'}`}
-                      style={{ top: `${minutesToPosition(minutes)}px` }}
+                      className="absolute border-r border-gray-200 h-full"
+                      style={{
+                        left: `${position}%`,
+                      }}
+                    >
+                      <div className="absolute left-1 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">
+                        {formattedTime}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Single timeline row for events */}
+            <div 
+              className="h-24 border-b relative bg-white cursor-crosshair w-full" 
+              onMouseDown={handleMouseDown}
+            >
+              {/* Time Grid Background */}
+              <div className="relative w-full h-full absolute">
+                {timeLabels.map((timeLabel) => {
+                  const startPercent = ((timeLabel.minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                  const widthPercent = (timeIncrement / TOTAL_MINUTES) * 100;
+                  
+                  return (
+                    <div
+                      key={timeLabel.minutes}
+                      className="absolute border-r border-gray-100 h-full"
+                      style={{
+                        left: `${startPercent}%`,
+                        width: `${widthPercent}%`,
+                      }}
                     />
                   );
                 })}
+              </div>
 
-                {/* Drag preview */}
-                {isDragCreating && (
-                  <div
-                    className="absolute left-2 right-2 bg-blue-200 border-2 border-blue-400 rounded opacity-50 pointer-events-none"
-                    style={{
-                      top: `${minutesToPosition(isDragCreating.startTime)}px`,
-                      height: `${minutesToPosition(isDragCreating.currentTime) - minutesToPosition(isDragCreating.startTime)}px`,
-                    }}
-                  />
-                )}
+              {/* Working hours background highlight */}
+              <div
+                className="absolute h-full bg-blue-50 opacity-30"
+                style={{
+                  left: `${((timeToMinutes(workStartTime) - START_MINUTES) / TOTAL_MINUTES) * 100}%`,
+                  width: `${((timeToMinutes(workEndTime) - timeToMinutes(workStartTime)) / TOTAL_MINUTES) * 100}%`
+                }}
+              />
 
-                {/* Time-based events */}
-                <div className="absolute left-0 right-0 top-0 bottom-0">
-                  {dayEvents
-                    .filter(event => !event.isAllDay)
-                    .map((event) => {
+              {/* Drag preview for new events */}
+              {isDragCreating && (
+                <div
+                  className="absolute bg-blue-200 border-2 border-blue-400 rounded opacity-50 pointer-events-none top-2 bottom-2"
+                  style={{
+                    left: `${((isDragCreating.startTime - START_MINUTES) / TOTAL_MINUTES) * 100}%`,
+                    width: `${((isDragCreating.currentTime - isDragCreating.startTime) / TOTAL_MINUTES) * 100}%`,
+                  }}
+                />
+              )}
+
+              {/* Events on timeline */}
+              {dayEvents
+                .filter(event => !event.isAllDay)
+                .map((event) => {
                   const startMinutes = timeToMinutes(event.startTime);
                   const endMinutes = timeToMinutes(event.endTime);
-                  const startPos = minutesToPosition(startMinutes);
-                  const duration = endMinutes - startMinutes;
-                  const height = (duration / TOTAL_MINUTES) * 1080;
+
+                  // Check if this event is being dragged or resized
+                  const isDragging = draggedEvent?.event.id === event.id;
+                  const isResizing = resizingEvent?.event.id === event.id;
+                  const isJustDragged = justDragged === event.id;
+                  
+                  // Use current position for dragged/resized events
+                  const currentStartMinutes = isDragging && draggedEvent
+                    ? draggedEvent.currentPosition.startMinutes
+                    : isResizing && resizingEvent
+                    ? resizingEvent.originalStartMinutes
+                    : startMinutes;
+                  
+                  const currentEndMinutes = isDragging && draggedEvent
+                    ? draggedEvent.currentPosition.startMinutes + (endMinutes - startMinutes)
+                    : isResizing && resizingEvent
+                    ? resizingEvent.originalEndMinutes
+                    : endMinutes;
+
+                  // Calculate percentage-based positioning for horizontal timeline
+                  const startPercent = ((currentStartMinutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                  const widthPercent = ((currentEndMinutes - currentStartMinutes) / TOTAL_MINUTES) * 100;
 
                   const eventTypeColors = {
                     rehearsal: 'bg-blue-100 border-blue-300 text-blue-800',
@@ -772,81 +804,59 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
                     other: 'bg-gray-100 border-gray-300 text-gray-800',
                   };
 
-                  // Check if this event is being dragged or resized
-                  const isDragging = draggedEvent?.event.id === event.id;
-                  const isResizing = resizingEvent?.event.id === event.id;
-                  const isJustDragged = justDragged === event.id;
-                  
-                  // Calculate position for dragged or resized events
-                  let displayPosition = { top: startPos, height: Math.max(height, 40) };
-                  if (isDragging && draggedEvent) {
-                    const dragStartPos = minutesToPosition(draggedEvent.currentPosition.startMinutes);
-                    displayPosition = { top: dragStartPos, height: Math.max(height, 40) };
-                  } else if (isResizing && resizingEvent) {
-                    const resizeStartPos = minutesToPosition(resizingEvent.originalStartMinutes);
-                    const resizeHeight = (resizingEvent.originalEndMinutes - resizingEvent.originalStartMinutes) / TOTAL_MINUTES * 1080;
-                    displayPosition = { top: resizeStartPos, height: Math.max(resizeHeight, 40) };
-                  }
-
                   return (
                     <div
                       key={event.id}
                       data-event-id={event.id}
-                      className={`absolute left-2 right-2 border-2 rounded-lg cursor-pointer hover:opacity-80 transition-opacity shadow-sm ${
+                      className={`absolute border-2 rounded-lg cursor-pointer hover:opacity-80 transition-opacity shadow-sm top-2 bottom-2 group ${
                         eventTypeColors[event.type as keyof typeof eventTypeColors] || eventTypeColors.other
                       } ${isDragging ? 'opacity-75 z-50' : ''} ${isResizing ? 'z-50' : ''} ${
                         selectedEvents.has(event.id) ? 'ring-4 ring-yellow-400 ring-opacity-75' : ''
                       }`}
                       style={{
-                        top: `${displayPosition.top}px`,
-                        height: `${displayPosition.height}px`,
+                        left: `${startPercent}%`,
+                        width: `${widthPercent}%`,
                       }}
                       onMouseDown={(e) => handleEventMouseDown(e, event)}
-                      onClick={(e) => {
-                        if (!isJustDragged) {
-                          setEditingEvent(event);
-                        }
-                      }}
+                      onDoubleClick={() => setEditingEvent(event)}
                     >
-                      {/* Resize handle - top */}
+                      {/* Resize handle - left */}
                       <div
-                        className="absolute top-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-black hover:bg-opacity-20 transition-colors"
+                        className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-black hover:bg-opacity-20 transition-colors opacity-0 group-hover:opacity-100"
                         onMouseDown={(e) => handleResizeStart(e, event, 'start')}
-                        style={{ height: '4px', marginTop: '-2px' }}
+                        style={{ width: '4px', marginLeft: '-2px' }}
                       />
                       
                       {/* Event content */}
-                      <div className="px-3 py-2 h-full overflow-hidden">
-                        <div className="font-medium truncate">
+                      <div className="px-2 py-1 h-full overflow-hidden">
+                        <div className="font-medium truncate text-xs">
                           {event.title}
                         </div>
-                        <div className="text-sm opacity-75 truncate">
+                        <div className="text-xs opacity-75 truncate">
                           {event.startTime} - {event.endTime}
                         </div>
                         {event.location && (
-                          <div className="text-sm opacity-75 truncate">
+                          <div className="text-xs opacity-75 truncate">
                             📍 {event.location}
                           </div>
                         )}
                         {event.participants.length > 0 && (
-                          <div className="text-sm opacity-75 flex items-center gap-1 mt-1">
+                          <div className="text-xs opacity-75 flex items-center gap-1">
                             <Users className="h-3 w-3" />
-                            {event.participants.length} assigned
+                            {event.participants.length}
                           </div>
                         )}
                       </div>
                       
-                      {/* Resize handle - bottom */}
+                      {/* Resize handle - right */}
                       <div
-                        className="absolute bottom-0 left-0 right-0 h-1 cursor-ns-resize hover:bg-black hover:bg-opacity-20 transition-colors"
+                        className="absolute right-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-black hover:bg-opacity-20 transition-colors opacity-0 group-hover:opacity-100"
                         onMouseDown={(e) => handleResizeStart(e, event, 'end')}
-                        style={{ height: '4px', marginBottom: '-2px' }}
+                        style={{ width: '4px', marginRight: '-2px' }}
                       />
                     </div>
-                    );
-                  })}
-                </div>
-              </div>
+                  );
+                })}
             </div>
           </div>
         </div>
