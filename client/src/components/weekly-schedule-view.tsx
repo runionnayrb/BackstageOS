@@ -518,13 +518,19 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
       <div className="space-y-4">
       {/* Week navigation - centered */}
       <div className="flex items-center justify-center space-x-2">
-        <Button variant="ghost" size="sm" onClick={goToPreviousWeek} className="border-0 shadow-none">
+        <button 
+          onClick={goToPreviousWeek}
+          className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+        >
           <ChevronLeft className="h-4 w-4" />
-        </Button>
+        </button>
         <h3 className="text-lg font-semibold w-80 text-center">{formatWeekRange(weekDates)}</h3>
-        <Button variant="ghost" size="sm" onClick={goToNextWeek} className="border-0 shadow-none">
+        <button 
+          onClick={goToNextWeek}
+          className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+        >
           <ChevronRight className="h-4 w-4" />
-        </Button>
+        </button>
         <Button variant="outline" size="sm" onClick={goToToday}>
           Today
         </Button>
