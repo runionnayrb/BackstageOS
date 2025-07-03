@@ -450,17 +450,17 @@ export default function AdminErrorLogs() {
           </CardHeader>
           <CardContent>
             {/* Desktop Table View */}
-            <div className="hidden md:block rounded-md border overflow-hidden">
-              <Table className="w-full table-fixed">
+            <div className="hidden md:block rounded-md border overflow-x-auto">
+              <Table className="w-full">
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[100px]">Priority</TableHead>
-                    <TableHead className="w-[120px]">Type</TableHead>
-                    <TableHead className="min-w-[300px]">Message</TableHead>
-                    <TableHead className="w-[150px]">Page</TableHead>
-                    <TableHead className="w-[180px]">User</TableHead>
-                    <TableHead className="w-[120px]">Time</TableHead>
-                    <TableHead className="w-[120px]">Actions</TableHead>
+                    <TableHead className="w-[80px] px-3">Priority</TableHead>
+                    <TableHead className="w-[100px] px-3">Type</TableHead>
+                    <TableHead className="flex-1 min-w-[200px] px-3">Message</TableHead>
+                    <TableHead className="w-[120px] px-3">Page</TableHead>
+                    <TableHead className="w-[140px] px-3">User</TableHead>
+                    <TableHead className="w-[100px] px-3">Time</TableHead>
+                    <TableHead className="w-[80px] px-3">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -487,68 +487,67 @@ export default function AdminErrorLogs() {
                       
                       return (
                         <TableRow key={errorLog.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm">{priorityInfo.icon}</span>
-                              <Badge className={priorityInfo.color} variant="secondary">
+                          <TableCell className="px-3 py-2">
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs">{priorityInfo.icon}</span>
+                              <Badge className={`${priorityInfo.color} text-xs px-1 py-0`} variant="secondary">
                                 {priorityInfo.level}
                               </Badge>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <IconComponent className="h-4 w-4" />
-                              <Badge 
-                                className={errorTypeColors[errorLog.errorType as keyof typeof errorTypeColors] || "bg-gray-100 text-gray-800"}
-                                variant="secondary"
-                              >
-                                {errorLog.errorType.replace(/_/g, ' ')}
-                              </Badge>
-                            </div>
+                          <TableCell className="px-3 py-2">
+                            <Badge 
+                              className={`${errorTypeColors[errorLog.errorType as keyof typeof errorTypeColors] || "bg-gray-100 text-gray-800"} text-xs px-2 py-1`}
+                              variant="secondary"
+                            >
+                              {errorLog.errorType.replace(/_/g, ' ')}
+                            </Badge>
                           </TableCell>
-                          <TableCell>
-                            <div className="max-w-[400px] truncate" title={errorLog.message}>
+                          <TableCell className="px-3 py-2">
+                            <div className="truncate text-sm" title={errorLog.message}>
                               {errorLog.message}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <code className="text-sm bg-gray-100 px-2 py-1 rounded max-w-[140px] truncate inline-block" title={errorLog.page}>
+                          <TableCell className="px-3 py-2">
+                            <code className="text-xs bg-gray-100 px-1 py-0.5 rounded truncate inline-block max-w-[100px]" title={errorLog.page}>
                               {errorLog.page}
                             </code>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="px-3 py-2">
                             {errorLog.userId ? (
-                              <div className="text-sm">
-                                <div className="font-medium">
+                              <div className="text-xs">
+                                <div className="font-medium truncate max-w-[120px]" title={errorLog.userFirstName && errorLog.userLastName 
+                                    ? `${errorLog.userFirstName} ${errorLog.userLastName}`
+                                    : errorLog.userEmail || `User ${errorLog.userId}`}>
                                   {errorLog.userFirstName && errorLog.userLastName 
                                     ? `${errorLog.userFirstName} ${errorLog.userLastName}`
                                     : errorLog.userEmail || `User ${errorLog.userId}`
                                   }
                                 </div>
                                 {errorLog.userEmail && errorLog.userFirstName && (
-                                  <div className="text-xs text-gray-500">{errorLog.userEmail}</div>
+                                  <div className="text-xs text-gray-500 truncate max-w-[120px]" title={errorLog.userEmail}>{errorLog.userEmail}</div>
                                 )}
                               </div>
                             ) : (
-                              <span className="text-gray-400">Anonymous</span>
+                              <span className="text-gray-400 text-xs">Anonymous</span>
                             )}
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1 text-sm text-gray-600 whitespace-nowrap">
-                              <Calendar className="h-3 w-3" />
+                          <TableCell className="px-3 py-2">
+                            <div className="text-xs text-gray-600">
                               {formatDate(errorLog.createdAt.toString())}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
+                          <TableCell className="px-3 py-2">
+                            <div className="flex items-center gap-1">
                               <Dialog>
                                 <DialogTrigger asChild>
                                   <Button
                                     variant="ghost"
                                     size="sm"
+                                    className="h-7 w-7 p-0"
                                     onClick={() => setSelectedError(errorLog)}
                                   >
-                                    <Eye className="h-4 w-4" />
+                                    <Eye className="h-3 w-3" />
                                   </Button>
                                 </DialogTrigger>
                               <DialogContent className="max-w-2xl">
