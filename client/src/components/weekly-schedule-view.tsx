@@ -944,7 +944,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                 .filter(event => !event.isAllDay)
                 .map(event => {
                   const eventDate = event.date;
-                  const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
+                  let dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
                   
                   if (dayIndex === -1) return null;
 
@@ -955,11 +955,12 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
 
 
-                  // Use dragged position if this event is being dragged
+                  // Use dragged position if this event is being dragged, otherwise use the event's actual data
                   const displayDayIndex = draggedEvent?.event.id === event.id ? 
                     draggedEvent.currentPosition.dayIndex : dayIndex;
                   const displayTop = draggedEvent?.event.id === event.id ? 
-                    minutesToPosition(draggedEvent.currentPosition.startMinutes) : top;
+                    minutesToPosition(draggedEvent.currentPosition.startMinutes) : 
+                    minutesToPosition(timeToMinutes(event.startTime));
 
                   // Use resized dimensions if this event is being resized
                   const displayHeight = resizingEvent?.event.id === event.id ?
