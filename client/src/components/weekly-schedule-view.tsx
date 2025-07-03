@@ -368,9 +368,10 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
   const handleMouseDown = useCallback((e: React.MouseEvent, dayIndex: number) => {
     if (!calendarRef.current || !scrollContainerRef.current) return;
 
-    const rect = calendarRef.current.getBoundingClientRect();
+    // Get coordinates relative to the scroll container (viewport)
+    const scrollRect = scrollContainerRef.current.getBoundingClientRect();
     const scrollTop = scrollContainerRef.current.scrollTop;
-    const y = e.clientY - rect.top + scrollTop; // Add scroll position for accurate coordinates
+    const y = e.clientY - scrollRect.top + scrollTop; // Mouse Y relative to scroll container + scroll offset
     const minutes = snapToIncrement(positionToMinutes(y));
     
     console.log('Mouse click:', { y, minutes, time: formatTimeFromMinutes(minutes), dayIndex });
@@ -403,9 +404,9 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     const handleMouseMove = (e: MouseEvent) => {
       if (!calendarRef.current || !scrollContainerRef.current) return;
 
-      const rect = calendarRef.current.getBoundingClientRect();
+      const scrollRect = scrollContainerRef.current.getBoundingClientRect();
       const scrollTop = scrollContainerRef.current.scrollTop;
-      const y = e.clientY - rect.top + scrollTop;
+      const y = e.clientY - scrollRect.top + scrollTop;
       const newMinutes = snapToIncrement(positionToMinutes(y));
 
       dragState = { ...dragState, currentTime: newMinutes };
@@ -468,7 +469,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     
     if (!calendarRef.current || !scrollContainerRef.current) return;
     
-    const calendarRect = calendarRef.current.getBoundingClientRect();
+    const scrollRect = scrollContainerRef.current.getBoundingClientRect();
     const scrollContainer = scrollContainerRef.current;
     const eventDate = event.date;
     const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
@@ -476,10 +477,9 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     
     // Calculate drag offset in pixels
     const scrollTop = scrollContainer.scrollTop;
-    const mouseY = e.clientY - calendarRect.top;
-    const absoluteMouseY = mouseY + scrollTop;
+    const mouseY = e.clientY - scrollRect.top + scrollTop;
     const startPosition = minutesToPosition(startMinutes);
-    const offsetY = absoluteMouseY - startPosition;
+    const offsetY = mouseY - startPosition;
     
     let currentDragState = {
       event,
