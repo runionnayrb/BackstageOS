@@ -439,7 +439,7 @@ export default function AdminErrorLogs() {
                     <TableHead className="w-[220px] px-4 py-3 font-semibold bg-gray-50">Page</TableHead>
                     <TableHead className="w-[120px] px-4 py-3 font-semibold bg-gray-50">User</TableHead>
                     <TableHead className="w-[160px] px-4 py-3 font-semibold bg-gray-50">Time</TableHead>
-                    <TableHead className="w-[240px] px-4 py-3 font-semibold bg-gray-50">Actions</TableHead>
+                    <TableHead className="w-[280px] px-4 py-3 font-semibold bg-gray-50">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
