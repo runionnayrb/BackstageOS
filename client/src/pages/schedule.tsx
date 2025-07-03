@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
 import MonthlyScheduleView from "@/components/monthly-schedule-view";
@@ -127,13 +127,31 @@ export default function Schedule() {
             />
             
             <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-              <SelectTrigger className="w-24 border-0 shadow-none">
-                <SelectValue />
+              <SelectTrigger className="w-20 border-0 shadow-none">
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  <span className="text-sm">{timeIncrement}</span>
+                </div>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="15">15 min</SelectItem>
-                <SelectItem value="30">30 min</SelectItem>
-                <SelectItem value="60">60 min</SelectItem>
+                <SelectItem value="15">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>15 min</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="30">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>30 min</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="60">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>60 min</span>
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
             
