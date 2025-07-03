@@ -242,8 +242,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const errorDescription = getErrorDescription(errorType, message, page);
     
     try {
-      // Initialize OpenAI
-      const OpenAI = require('openai');
+      // Initialize OpenAI using dynamic import
+      const OpenAI = (await import('openai')).default;
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
       
       // Create comprehensive error analysis prompt
