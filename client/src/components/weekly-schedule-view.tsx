@@ -563,16 +563,30 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
           setDraggedEvent(prev => prev ? { ...prev, isDragging: true } : null);
         }
 
-        if (!calendarRef.current) return;
+        if (!calendarRef.current || !scrollContainerRef.current) return;
 
         const newRect = calendarRef.current.getBoundingClientRect();
+        const scrollTop = scrollContainerRef.current.scrollTop;
+        
+        // Calculate mouse position relative to calendar content with scroll
         const relativeX = e.clientX - newRect.left;
-        const relativeY = e.clientY - newRect.top;
+        const relativeY = e.clientY - newRect.top + scrollTop;
 
+        // Calculate day index
         const newDayIndex = Math.floor((relativeX - 80) / ((newRect.width - 80) / 7));
         const constrainedDayIndex = Math.max(0, Math.min(6, newDayIndex));
         
-        const newStartMinutes = snapToIncrement(positionToMinutes(relativeY - draggedEvent.offset.y));
+        // Calculate time position (no offset subtraction - use raw position)
+        const newStartMinutes = snapToIncrement(positionToMinutes(relativeY));
+
+        console.log('Drag move:', {
+          relativeX,
+          relativeY,
+          scrollTop,
+          newDayIndex: constrainedDayIndex,
+          newStartMinutes,
+          time: formatTimeFromMinutes(newStartMinutes)
+        });
 
         setDraggedEvent(prev => prev ? {
           ...prev,
