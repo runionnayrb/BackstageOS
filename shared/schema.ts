@@ -36,6 +36,9 @@ export const users = pgTable("users", {
   betaAccess: varchar("beta_access").default("limited"), // 'none', 'limited', 'full'
   betaFeatures: jsonb("beta_features"), // Array of enabled features for beta users
   isAdmin: boolean("is_admin").default(false), // Admin status for user management access
+  // Email settings for show-specific communications via sm@backstageos.com
+  defaultReplyToEmail: varchar("default_reply_to_email"),
+  emailDisplayName: varchar("email_display_name"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -54,6 +57,9 @@ export const projects = pgTable("projects", {
   closingDate: timestamp("closing_date"),
   season: varchar("season"), // for full-time users
   ownerId: integer("owner_id").notNull().references(() => users.id),
+  // Optional show-specific email overrides for sm@backstageos.com emails
+  customReplyToEmail: varchar("custom_reply_to_email"),
+  customEmailDisplayName: varchar("custom_email_display_name"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

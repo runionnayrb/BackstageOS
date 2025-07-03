@@ -22,6 +22,8 @@ export default function ProfileSettings() {
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
     email: user?.email || "",
+    defaultReplyToEmail: user?.defaultReplyToEmail || "",
+    emailDisplayName: user?.emailDisplayName || "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
@@ -81,6 +83,8 @@ export default function ProfileSettings() {
       firstName: profileData.firstName,
       lastName: profileData.lastName,
       email: profileData.email,
+      defaultReplyToEmail: profileData.defaultReplyToEmail,
+      emailDisplayName: profileData.emailDisplayName,
     };
 
     // Only include password fields if user is trying to change password
@@ -184,6 +188,64 @@ export default function ProfileSettings() {
                     placeholder="Enter your email address"
                     required
                   />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Email Communication Settings */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Email Communication Settings
+                </CardTitle>
+                <CardDescription>
+                  Configure how your emails appear when sent from BackstageOS show communications. These settings only apply to show-related emails sent via sm@backstageos.com.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="defaultReplyToEmail">Reply-To Email Address</Label>
+                  <Input
+                    id="defaultReplyToEmail"
+                    name="defaultReplyToEmail"
+                    type="email"
+                    value={profileData.defaultReplyToEmail}
+                    onChange={handleInputChange}
+                    placeholder={user?.email || "your.email@gmail.com"}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    When recipients reply to your show emails, they'll reach this address. Defaults to your account email if left blank.
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="emailDisplayName">Email Display Name</Label>
+                  <Input
+                    id="emailDisplayName"
+                    name="emailDisplayName"
+                    value={profileData.emailDisplayName}
+                    onChange={handleInputChange}
+                    placeholder={`${user?.firstName || 'Your'} ${user?.lastName || 'Name'}`}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    How your name appears in emails (e.g., "John Smith &lt;sm@backstageos.com&gt;"). Defaults to your first and last name if left blank.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                  <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">How This Works</h4>
+                  <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                    <p><strong>Email Example:</strong></p>
+                    <p className="font-mono text-xs bg-white dark:bg-blue-900/30 p-2 rounded">
+                      From: {profileData.emailDisplayName || `${user?.firstName || 'Your'} ${user?.lastName || 'Name'}`} &lt;sm@backstageos.com&gt;<br/>
+                      Reply-To: {profileData.defaultReplyToEmail || user?.email || 'your.email@gmail.com'}<br/>
+                      Subject: [Show Name] Report - Date
+                    </p>
+                    <p className="mt-2">
+                      Recipients see professional BackstageOS branding, but replies come directly to your personal email.
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>

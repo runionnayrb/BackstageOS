@@ -296,7 +296,18 @@ class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async updateUserAdmin(userId: string, updates: { profileType?: string; betaAccess?: string; betaFeatures?: string[]; isAdmin?: boolean }): Promise<User> {
+  async updateUserAdmin(userId: string, updates: { 
+    profileType?: string; 
+    betaAccess?: string; 
+    betaFeatures?: string[]; 
+    isAdmin?: boolean;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    defaultReplyToEmail?: string;
+    emailDisplayName?: string;
+    password?: string;
+  }): Promise<User> {
     const result = await db.update(users)
       .set(updates)
       .where(eq(users.id, userId))

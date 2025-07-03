@@ -597,7 +597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id.toString();
-      const { firstName, lastName, email, currentPassword, newPassword } = req.body;
+      const { firstName, lastName, email, defaultReplyToEmail, emailDisplayName, currentPassword, newPassword } = req.body;
 
       // If email is being changed, check if it's already in use
       if (email && email !== req.user.email) {
@@ -624,6 +624,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         firstName: firstName || req.user.firstName,
         lastName: lastName || req.user.lastName,
         email: email || req.user.email,
+        defaultReplyToEmail: defaultReplyToEmail || req.user.defaultReplyToEmail,
+        emailDisplayName: emailDisplayName || req.user.emailDisplayName,
       };
 
       // Hash new password if provided
