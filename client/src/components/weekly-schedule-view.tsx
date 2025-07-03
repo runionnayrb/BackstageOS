@@ -370,30 +370,88 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   };
 
-  // Mouse handlers for drag-to-create
+  // Mouse handlers for drag-to-create (matching weekly availability pattern)
   const handleMouseDown = useCallback((e: React.MouseEvent, dayIndex: number) => {
-    // Allow drag creation on empty grid space (but not on events or time labels)
-    const target = e.target as HTMLElement;
-    const isOnEvent = target.closest('[data-event-id]');
-    const isOnTimeLabel = target.closest('.time-label') || target.classList.contains('time-label');
+    if (!calendarRef.current) return;
+
+    const rect = calendarRef.current.getBoundingClientRect();
+    const scrollTop = scrollContainerRef.current?.scrollTop || 0;
+    const y = e.clientY - rect.top + scrollTop;
+    const minutes = snapToIncrement(positionToMinutes(y));
     
-    if (!isOnEvent && !isOnTimeLabel && calendarRef.current && scrollContainerRef.current) {
+    console.log('Mouse click:', { y, minutes, time: formatTimeFromMinutes(minutes), dayIndex });
+
+    // Check if clicking on existing event
+    const clickedEvent = filteredEvents.find(event => {
+      const eventDay = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === event.date);
+      const eventStart = timeToMinutes(event.startTime);
+      const eventEnd = timeToMinutes(event.endTime);
+      return eventDay === dayIndex && minutes >= eventStart && minutes <= eventEnd && !event.isAllDay;
+    });
+
+    if (clickedEvent) {
+      // Edit existing event
+      setEditingEvent(clickedEvent);
+      return;
+    }
+
+    // Start drag creation
+    let dragState = {
+      isActive: true,
+      startDay: dayIndex,
+      startTime: minutes,
+      currentDay: dayIndex,
+      currentTime: minutes,
+    };
+
+    setDragState(dragState);
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!calendarRef.current || !scrollContainerRef.current) return;
+
       const rect = calendarRef.current.getBoundingClientRect();
       const scrollTop = scrollContainerRef.current.scrollTop;
-      const y = e.clientY - rect.top + scrollTop; // Account for scroll position
-      const minutes = snapToIncrement(positionToMinutes(y));
+      const y = e.clientY - rect.top + scrollTop;
+      const newMinutes = snapToIncrement(positionToMinutes(y));
+
+      dragState = { ...dragState, currentTime: newMinutes };
+      setDragState(dragState);
+    };
+
+    const handleMouseUp = () => {
+      if (dragState.isActive) {
+        const startTime = Math.min(dragState.startTime, dragState.currentTime);
+        const endTime = Math.max(dragState.startTime, dragState.currentTime);
+        
+        console.log('Creating event:', {
+          date: weekDates[dragState.startDay].toISOString().split('T')[0],
+          startTime: formatTimeFromMinutes(startTime),
+          endTime: formatTimeFromMinutes(endTime),
+          duration: endTime - startTime,
+          dayIndex: dragState.startDay,
+        });
+        
+        if (endTime - startTime >= timeIncrement) {
+          const date = weekDates[dragState.startDay].toISOString().split('T')[0];
+          setCreateEventDialog({
+            isOpen: true,
+            date,
+            startTime: formatTimeFromMinutes(startTime),
+            endTime: formatTimeFromMinutes(endTime),
+          });
+        } else {
+          console.log('Block too small:', endTime - startTime, 'minutes');
+        }
+      }
       
-      setDragState({
-        isActive: true,
-        startDay: dayIndex,
-        startTime: minutes,
-        currentDay: dayIndex,
-        currentTime: minutes,
-      });
-      
-      e.preventDefault();
-    }
-  }, [timeIncrement]);
+      setDragState(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [filteredEvents, weekDates, timeIncrement]);
 
   // Handle dragging existing events and multi-select
   const handleEventMouseDown = useCallback((e: React.MouseEvent, event: ScheduleEvent) => {
@@ -459,164 +517,9 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     });
   }, [timeToMinutes]);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!calendarRef.current || !scrollContainerRef.current) return;
-    
-    const rect = calendarRef.current.getBoundingClientRect();
-    const scrollTop = scrollContainerRef.current.scrollTop;
-    const y = e.clientY - rect.top + scrollTop; // Account for scroll position
-    const x = e.clientX - rect.left;
-    
-    // Handle drag-to-create
-    if (dragState?.isActive) {
-      const minutes = snapToIncrement(positionToMinutes(y));
-      const dayWidth = (rect.width - 64) / 7; // Subtract time column width
-      const dayIndex = Math.floor((x - 64) / dayWidth);
-      
-      setDragState(prev => prev ? {
-        ...prev,
-        currentDay: Math.max(0, Math.min(6, dayIndex)),
-        currentTime: minutes,
-      } : null);
-    }
-    
-    // Handle event dragging
-    if (draggedEvent?.isDragging) {
-      const scrollTop = scrollContainerRef.current?.scrollTop || 0;
-      const absoluteMouseTime = y + scrollTop;
-      const newTime = absoluteMouseTime - draggedEvent.offset.y;
-      const snappedTime = snapToIncrement(Math.max(START_MINUTES, Math.min(newTime, END_MINUTES - 30)));
-      
-      const dayWidth = (rect.width - 64) / 7;
-      const dayIndex = Math.max(0, Math.min(6, Math.floor((x - 64) / dayWidth)));
-      
-      setDraggedEvent(prev => prev ? {
-        ...prev,
-        currentPosition: { dayIndex, startMinutes: snappedTime }
-      } : null);
-    }
-    
-    // Handle event resizing
-    if (resizingEvent) {
-      const minutes = snapToIncrement(positionToMinutes(y));
-      const duration = resizingEvent.originalEndMinutes - resizingEvent.originalStartMinutes;
-      
-      if (resizingEvent.edge === 'start') {
-        const newStartTime = Math.max(START_MINUTES, Math.min(minutes, resizingEvent.originalEndMinutes - timeIncrement));
-        setResizingEvent(prev => prev ? {
-          ...prev,
-          originalStartMinutes: newStartTime
-        } : null);
-      } else {
-        const newEndTime = Math.min(END_MINUTES, Math.max(minutes, resizingEvent.originalStartMinutes + timeIncrement));
-        setResizingEvent(prev => prev ? {
-          ...prev,
-          originalEndMinutes: newEndTime
-        } : null);
-      }
-    }
-  }, [dragState?.isActive, draggedEvent?.isDragging, resizingEvent, timeIncrement]);
 
-  const handleMouseUp = useCallback(() => {
-    // Handle drag-to-create completion
-    if (dragState?.isActive) {
-      const startTime = Math.min(dragState.startTime, dragState.currentTime);
-      const endTime = Math.max(dragState.startTime, dragState.currentTime);
-      
-      if (endTime - startTime >= timeIncrement) {
-        const date = weekDates[dragState.startDay].toISOString().split('T')[0];
-        setCreateEventDialog({
-          isOpen: true,
-          date,
-          startTime: formatTimeFromMinutes(startTime),
-          endTime: formatTimeFromMinutes(endTime),
-        });
-      }
-      
-      setDragState(null);
-    }
-    
-    // Handle event drag completion
-    if (draggedEvent?.isDragging) {
-      const { event, currentPosition } = draggedEvent;
-      const newDate = weekDates[currentPosition.dayIndex].toISOString().split('T')[0];
-      const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
-      const newStartTime = formatTimeFromMinutes(currentPosition.startMinutes);
-      const newEndTime = formatTimeFromMinutes(currentPosition.startMinutes + duration);
-      
-      const eventData = {
-        ...event,
-        date: newDate,
-        startTime: newStartTime,
-        endTime: newEndTime,
-      };
-      
-      // Use optimistic update approach like availability system
-      queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
-        return old?.map((e: ScheduleEvent) => 
-          e.id === event.id ? { ...e, ...eventData } : e
-        ) || [];
-      });
-      
-      // Update in background
-      updateEventMutation.mutate({ 
-        eventId: event.id, 
-        eventData: {
-          date: newDate,
-          startTime: newStartTime,
-          endTime: newEndTime,
-        }
-      });
-      
-      setDraggedEvent(null);
-    }
-    
-    // Handle resize completion
-    if (resizingEvent) {
-      const { event, originalStartMinutes, originalEndMinutes } = resizingEvent;
-      const newStartTime = formatTimeFromMinutes(originalStartMinutes);
-      const newEndTime = formatTimeFromMinutes(originalEndMinutes);
-      
-      const eventData = {
-        startTime: newStartTime,
-        endTime: newEndTime,
-      };
-      
-      // Use optimistic update
-      queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
-        return old?.map((e: ScheduleEvent) => 
-          e.id === event.id ? { ...e, ...eventData } : e
-        ) || [];
-      });
-      
-      // Update in background
-      updateEventMutation.mutate({ 
-        eventId: event.id, 
-        eventData
-      });
-      
-      setResizingEvent(null);
-    }
-  }, [dragState, draggedEvent, resizingEvent, timeIncrement, weekDates, queryClient, projectId, updateEventMutation]);
 
-  // Add global mouse handlers
-  useEffect(() => {
-    if (dragState?.isActive || draggedEvent?.isDragging || resizingEvent) {
-      const handleGlobalMouseUp = () => handleMouseUp();
-      const handleGlobalMouseMove = (e: MouseEvent) => {
-        // Convert to React mouse event format for compatibility
-        handleMouseMove(e as any);
-      };
-      
-      document.addEventListener('mouseup', handleGlobalMouseUp);
-      document.addEventListener('mousemove', handleGlobalMouseMove);
-      
-      return () => {
-        document.removeEventListener('mouseup', handleGlobalMouseUp);
-        document.removeEventListener('mousemove', handleGlobalMouseMove);
-      };
-    }
-  }, [dragState?.isActive, draggedEvent?.isDragging, resizingEvent, handleMouseUp, handleMouseMove]);
+
 
   return (
     <div className="space-y-4">
@@ -819,7 +722,6 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
                   height: '960px',
                 }}
                 onMouseDown={(e) => handleMouseDown(e, dayIndex)}
-                onMouseMove={handleMouseMove}
               >
                 {/* Events for this day - only timed events, not all-day */}
                 {filteredEvents
