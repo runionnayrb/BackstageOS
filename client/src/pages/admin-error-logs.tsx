@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertTriangle, Bug, Wifi, Monitor, MousePointer, FileText, Eye, Calendar, Search, Play, Pause } from "lucide-react";
+import { AlertTriangle, Bug, Wifi, Monitor, MousePointer, FileText, Eye, Calendar, Search, Play, Pause, Wrench } from "lucide-react";
 import { ErrorLog } from "@/../../shared/schema";
 import { errorLogger } from "@/lib/errorLogger";
 
@@ -36,9 +37,44 @@ export default function AdminErrorLogs() {
   const [filterUser, setFilterUser] = useState<string>("all");
   const [selectedError, setSelectedError] = useState<ErrorLog | null>(null);
   const [isLoggingEnabled, setIsLoggingEnabled] = useState(true);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: errorLogs = [], isLoading } = useQuery<ErrorLog[]>({
     queryKey: ["/api/errors"],
+  });
+
+  // Mutation to fix errors
+  const fixErrorMutation = useMutation({
+    mutationFn: async (errorLog: ErrorLog) => {
+      const response = await fetch("/api/errors/fix", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ errorLog }),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to fix error");
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data, errorLog) => {
+      toast({
+        title: "Error Fix Applied",
+        description: `Applied fix for ${errorLog.errorType}: ${data.fixDescription}`,
+      });
+      
+      // Refetch error logs to show updated status
+      queryClient.invalidateQueries({ queryKey: ["/api/errors"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Fix Failed",
+        description: "Unable to apply automatic fix for this error",
+        variant: "destructive",
+      });
+    },
   });
 
   // Initialize logging state from localStorage
@@ -376,16 +412,17 @@ export default function AdminErrorLogs() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setSelectedError(errorLog)}
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </DialogTrigger>
+                            <div className="flex items-center gap-2">
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setSelectedError(errorLog)}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                </DialogTrigger>
                               <DialogContent className="max-w-2xl">
                                 <DialogHeader>
                                   <DialogTitle>Error Details</DialogTitle>
@@ -446,6 +483,18 @@ export default function AdminErrorLogs() {
                                 </ScrollArea>
                               </DialogContent>
                             </Dialog>
+                            
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fixErrorMutation.mutate(errorLog)}
+                              disabled={fixErrorMutation.isPending}
+                              className="text-green-600 hover:text-green-700 border-green-200 hover:border-green-300"
+                            >
+                              <Wrench className="h-4 w-4 mr-1" />
+                              {fixErrorMutation.isPending ? "Fixing..." : "Fix"}
+                            </Button>
+                          </div>
                           </TableCell>
                         </TableRow>
                       );

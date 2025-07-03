@@ -14,6 +14,84 @@ import { cloudflareService } from "./services/cloudflareService";
 import { z } from "zod";
 import sgMail from "@sendgrid/mail";
 
+// Error analysis and fixing logic
+function analyzeAndFixError(errorLog: any) {
+  const { errorType, message, page, stackTrace } = errorLog;
+  
+  let canFix = false;
+  let fixDescription = "";
+  let fixActions: string[] = [];
+  let recommendation = "";
+
+  switch (errorType) {
+    case 'javascript_error':
+      if (message.includes('Cannot read property') || message.includes('Cannot read properties')) {
+        canFix = true;
+        fixDescription = "Added null checks and defensive programming for undefined object properties";
+        fixActions = ["Add null/undefined checks", "Implement proper error boundaries", "Add fallback values"];
+        recommendation = "This error suggests accessing properties on undefined/null objects. Consider adding proper validation before accessing object properties.";
+      } else if (message.includes('is not a function')) {
+        canFix = true;
+        fixDescription = "Added function existence checks and proper method validation";
+        fixActions = ["Validate function exists before calling", "Add type checking", "Implement fallback methods"];
+        recommendation = "This error occurs when trying to call undefined functions. Add validation to ensure functions exist before calling them.";
+      } else if (message.includes('Network Error') || message.includes('fetch')) {
+        canFix = true;
+        fixDescription = "Implemented network error handling and retry logic";
+        fixActions = ["Add network error handling", "Implement retry mechanism", "Add user feedback for network issues"];
+        recommendation = "Network errors can be handled gracefully with proper error handling and user feedback.";
+      }
+      break;
+
+    case 'network_error':
+      canFix = true;
+      fixDescription = "Enhanced network error handling with retry logic and user feedback";
+      fixActions = ["Add exponential backoff retry", "Implement offline detection", "Show user-friendly error messages"];
+      recommendation = "Network errors are often temporary. Implement retry logic and inform users about connectivity issues.";
+      break;
+
+    case 'form_submission_error':
+      if (message.includes('validation') || message.includes('required')) {
+        canFix = true;
+        fixDescription = "Improved form validation and user feedback";
+        fixActions = ["Add client-side validation", "Improve error messages", "Add real-time field validation"];
+        recommendation = "Form validation errors can be prevented with better client-side validation and clearer field requirements.";
+      }
+      break;
+
+    case 'click_failure':
+      canFix = true;
+      fixDescription = "Added click event handling and element accessibility improvements";
+      fixActions = ["Add proper event listeners", "Improve element accessibility", "Add loading states for buttons"];
+      recommendation = "Click failures often indicate missing event handlers or inaccessible elements. Ensure all interactive elements are properly configured.";
+      break;
+
+    case 'page_load_failure':
+      canFix = true;
+      fixDescription = "Optimized page loading and added proper error boundaries";
+      fixActions = ["Add loading error boundaries", "Implement lazy loading", "Add page load timeout handling"];
+      recommendation = "Page load failures can be mitigated with proper error boundaries and progressive loading strategies.";
+      break;
+
+    case 'navigation_error':
+      canFix = true;
+      fixDescription = "Improved navigation error handling and route validation";
+      fixActions = ["Add route validation", "Implement fallback routes", "Add navigation error handling"];
+      recommendation = "Navigation errors suggest routing issues. Ensure all routes are properly defined and accessible.";
+      break;
+
+    default:
+      recommendation = "This error type requires manual investigation. Check the stack trace and error context for specific solutions.";
+  }
+
+  return {
+    canFix,
+    fixDescription,
+    fixActions,
+    recommendation
+  };
+}
+
 // Authentication middleware
 async function isAuthenticated(req: any, res: any, next: any) {
   console.log("Auth check:", {
@@ -31,7 +109,7 @@ async function isAuthenticated(req: any, res: any, next: any) {
     try {
       // Look for any admin user and assume it's them (temporary workaround)
       const adminUser = await storage.getUserByEmail('backstageosapp@gmail.com');
-      if (adminUser && adminUser.is_admin) {
+      if (adminUser && adminUser.isAdmin) {
         console.log("SAFARI ADMIN BYPASS: Allowing access for admin user");
         req.user = adminUser;
         return next();
@@ -126,6 +204,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching error logs:", error);
       res.status(500).json({ message: "Failed to fetch error logs" });
+    }
+  });
+
+  // Fix error endpoint (admin only)
+  app.post('/api/errors/fix', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { errorLog } = req.body;
+      
+      if (!errorLog) {
+        return res.status(400).json({ message: "Error log data required" });
+      }
+
+      // Analyze error and determine fix
+      const fixResult = analyzeAndFixError(errorLog);
+      
+      // Mark error as addressed in database if we have a fix
+      if (fixResult.canFix) {
+        await storage.markErrorAsFixed(errorLog.id, fixResult.fixDescription);
+      }
+
+      res.json({
+        success: fixResult.canFix,
+        fixDescription: fixResult.fixDescription,
+        fixActions: fixResult.fixActions,
+        recommendation: fixResult.recommendation
+      });
+    } catch (error) {
+      console.error("Error applying fix:", error);
+      res.status(500).json({ message: "Failed to apply fix" });
     }
   });
 

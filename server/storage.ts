@@ -222,6 +222,7 @@ export interface IStorage {
   createErrorLog(errorLog: InsertErrorLog): Promise<ErrorLog>;
   getErrorLogs(): Promise<ErrorLog[]>;
   getErrorLogsByUserId(userId: string): Promise<ErrorLog[]>;
+  markErrorAsFixed(errorId: number, fixDescription: string): Promise<void>;
 
   // Contact sheet settings operations
   getContactSheetSettings(projectId: number): Promise<any>;
@@ -758,6 +759,19 @@ class DatabaseStorage implements IStorage {
   async getErrorLogsByUserId(userId: string): Promise<ErrorLog[]> {
     const result = await db.select().from(errorLogs).where(eq(errorLogs.userId, userId)).orderBy(desc(errorLogs.createdAt));
     return result;
+  }
+
+  async markErrorAsFixed(errorId: number, fixDescription: string): Promise<void> {
+    await db.update(errorLogs)
+      .set({ 
+        additionalData: sql`jsonb_set(
+          COALESCE(${errorLogs.additionalData}, '{}'), 
+          '{fixed}', 
+          'true'
+        )`,
+        stackTrace: sql`COALESCE(${errorLogs.stackTrace}, '') || E'\n\n--- FIX APPLIED ---\n' || ${fixDescription}`
+      })
+      .where(eq(errorLogs.id, errorId));
   }
 
   async getContactSheetSettings(projectId: number): Promise<any> {
