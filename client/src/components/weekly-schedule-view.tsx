@@ -579,9 +579,10 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
         if (hasStartedDragging && draggedEvent) {
           // Update event position
           const newDate = weekDates[draggedEvent.currentPosition.dayIndex].toISOString().split('T')[0];
-          const startTime = formatTimeFromMinutes(draggedEvent.currentPosition.startMinutes, '24h');
+          // Format time with seconds for database storage
+          const startTime = formatTimeFromMinutes(draggedEvent.currentPosition.startMinutes) + ':00';
           const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
-          const endTime = formatTimeFromMinutes(draggedEvent.currentPosition.startMinutes + duration, '24h');
+          const endTime = formatTimeFromMinutes(draggedEvent.currentPosition.startMinutes + duration) + ':00';
 
           const eventData = {
             date: newDate,
