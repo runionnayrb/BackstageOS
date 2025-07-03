@@ -4079,6 +4079,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Auto-resolution dashboard endpoints
+  app.get('/api/admin/resolution-stats', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const timeRange = req.query.timeRange || '7d';
+      let days = 7;
+      switch (timeRange) {
+        case '1d': days = 1; break;
+        case '7d': days = 7; break;
+        case '30d': days = 30; break;
+        case '90d': days = 90; break;
+        default: days = 7;
+      }
+
+      const stats = await storage.getResolutionStats(days);
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching resolution stats:', error);
+      res.status(500).json({ message: "Failed to fetch resolution stats" });
+    }
+  });
+
+  app.get('/api/admin/error-trends', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const timeRange = req.query.timeRange || '7d';
+      let days = 7;
+      switch (timeRange) {
+        case '1d': days = 1; break;
+        case '7d': days = 7; break;
+        case '30d': days = 30; break;
+        case '90d': days = 90; break;
+        default: days = 7;
+      }
+
+      const trends = await storage.getErrorTrends(days);
+      res.json(trends);
+    } catch (error) {
+      console.error('Error fetching error trends:', error);
+      res.status(500).json({ message: "Failed to fetch error trends" });
+    }
+  });
+
   const server = createServer(app);
   return server;
 }

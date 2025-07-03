@@ -48,6 +48,7 @@ import MainLanding from "@/pages/main-landing";
 import DNSManager from "@/pages/dns-manager";
 import DomainManager from "@/pages/domain-manager";
 import PageManager from "@/pages/page-manager";
+import AutoResolutionDashboard from "@/pages/auto-resolution-dashboard";
 import SeoManager from "@/pages/seo-manager";
 import SEOTest from "@/pages/seo-test";
 
@@ -179,6 +180,7 @@ function Router() {
         <Route path="/admin/dns" component={DNSManager} />
         <Route path="/admin/domains" component={DomainManager} />
         <Route path="/admin/seo" component={SeoManager} />
+        <Route path="/auto-resolution-dashboard" component={AutoResolutionDashboard} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

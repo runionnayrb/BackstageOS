@@ -11,7 +11,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle, Bug, Wifi, Monitor, MousePointer, FileText, Eye, Calendar, Search, Play, Pause, Wrench } from "lucide-react";
+import { AlertTriangle, Bug, Wifi, Monitor, MousePointer, FileText, Eye, Calendar, Search, Play, Pause, Wrench, Activity } from "lucide-react";
+import { Link } from "wouter";
 import { ErrorLog } from "@/../../shared/schema";
 import { errorLogger } from "@/lib/errorLogger";
 
@@ -321,7 +322,15 @@ export default function AdminErrorLogs() {
     <div className="space-y-6">
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">Error Logs</h2>
+          <div className="flex items-center space-x-4">
+            <h2 className="text-xl font-semibold">Error Logs</h2>
+            <Link href="/auto-resolution-dashboard">
+              <Button variant="outline" size="sm" className="flex items-center gap-2">
+                <Activity className="h-4 w-4" />
+                Auto-Resolution Dashboard
+              </Button>
+            </Link>
+          </div>
           <Button
             onClick={toggleLogging}
             variant={isLoggingEnabled ? "default" : "outline"}

@@ -824,6 +824,32 @@ export const apiSettings = pgTable("api_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Resolution records table for tracking automatic error resolutions
+export const resolutionRecords = pgTable("resolution_records", {
+  id: serial("id").primaryKey(),
+  errorLogId: integer("error_log_id").notNull().references(() => errorLogs.id, { onDelete: "cascade" }),
+  strategy: varchar("strategy", { length: 100 }).notNull(),
+  action: text("action").notNull(),
+  success: boolean("success").notNull(),
+  implementationDetails: jsonb("implementation_details"),
+  resolvedAt: timestamp("resolved_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Error resolution status updates for error logs
+export const errorResolutionStatus = pgTable("error_resolution_status", {
+  id: serial("id").primaryKey(),
+  errorLogId: integer("error_log_id").notNull().references(() => errorLogs.id, { onDelete: "cascade" }),
+  resolved: boolean("resolved").notNull().default(false),
+  resolutionMethod: varchar("resolution_method", { length: 50 }), // 'automatic' | 'manual'
+  resolutionStrategy: varchar("resolution_strategy", { length: 100 }),
+  resolvedAt: timestamp("resolved_at"),
+  resolvedBy: integer("resolved_by").references(() => users.id),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const contactSheetVersionsRelations = relations(contactSheetVersions, ({ one }) => ({
   project: one(projects, {
     fields: [contactSheetVersions.projectId],
@@ -1162,6 +1188,18 @@ export const insertWaitlistEmailSettingsSchema = createInsertSchema(waitlistEmai
 });
 
 export const insertApiSettingsSchema = createInsertSchema(apiSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertResolutionRecordSchema = createInsertSchema(resolutionRecords).omit({
+  id: true,
+  resolvedAt: true,
+  createdAt: true,
+});
+
+export const insertErrorResolutionStatusSchema = createInsertSchema(errorResolutionStatus).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
