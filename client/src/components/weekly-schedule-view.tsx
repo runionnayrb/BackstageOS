@@ -549,6 +549,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
       setDraggedEvent(draggedEvent);
 
       let hasStartedDragging = false;
+      let currentDragPosition = { dayIndex: draggedEvent.originalPosition.dayIndex, startMinutes: draggedEvent.originalPosition.startMinutes };
       const moveThreshold = 3; // pixels
 
       const handleMouseMove = (e: MouseEvent) => {
@@ -579,6 +580,9 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
         // Calculate time position (no offset subtraction - use raw position)
         const newStartMinutes = snapToIncrement(positionToMinutes(relativeY));
 
+        // Update local position tracker
+        currentDragPosition = { dayIndex: constrainedDayIndex, startMinutes: newStartMinutes };
+
         console.log('Drag move:', {
           relativeX,
           relativeY,
@@ -590,19 +594,19 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
         setDraggedEvent(prev => prev ? {
           ...prev,
-          currentPosition: { dayIndex: constrainedDayIndex, startMinutes: newStartMinutes },
+          currentPosition: currentDragPosition,
         } : null);
       };
 
       const handleMouseUp = () => {
-        console.log('Mouse up triggered, hasStartedDragging:', hasStartedDragging, 'draggedEvent:', draggedEvent);
+        console.log('Mouse up triggered, hasStartedDragging:', hasStartedDragging, 'currentDragPosition:', currentDragPosition);
         if (hasStartedDragging && draggedEvent) {
-          // Update event position
-          const newDate = weekDates[draggedEvent.currentPosition.dayIndex].toISOString().split('T')[0];
+          // Update event position using the current drag position
+          const newDate = weekDates[currentDragPosition.dayIndex].toISOString().split('T')[0];
           // Format time with seconds for database storage
-          const startTime = formatTimeFromMinutes(draggedEvent.currentPosition.startMinutes) + ':00';
+          const startTime = formatTimeFromMinutes(currentDragPosition.startMinutes) + ':00';
           const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
-          const endTime = formatTimeFromMinutes(draggedEvent.currentPosition.startMinutes + duration) + ':00';
+          const endTime = formatTimeFromMinutes(currentDragPosition.startMinutes + duration) + ':00';
 
           const eventData = {
             date: newDate,
