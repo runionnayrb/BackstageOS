@@ -34,25 +34,19 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
-  const PostgresSessionStore = connectPg(session);
-
+  // Temporarily use memory store for Safari compatibility testing
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "your-secret-key",
-    resave: true, // Changed to true for Safari compatibility
-    saveUninitialized: true, // Changed to true for Safari compatibility
-    store: new PostgresSessionStore({ 
-      pool, 
-      createTableIfMissing: true,
-      pruneSessionInterval: 60 * 15, // 15 minutes
-      ttl: 30 * 24 * 60 * 60 // 30 days
-    }),
+    resave: false,
+    saveUninitialized: false,
+    // store: undefined, // Use default memory store for testing
     cookie: {
-      secure: false, // Set to true in production with HTTPS
-      httpOnly: false, // Changed to false for Safari compatibility
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      sameSite: 'lax', // Safari compatible setting
+      secure: false,
+      httpOnly: true, // Back to true for security
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours for testing
+      sameSite: 'lax',
     },
-    name: 'backstage.sid', // Custom session name
+    name: 'connect.sid', // Use default session name
   };
 
   app.set("trust proxy", 1);
