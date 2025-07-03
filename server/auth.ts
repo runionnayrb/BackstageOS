@@ -38,8 +38,8 @@ export function setupAuth(app: Express) {
 
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET || "your-secret-key",
-    resave: false,
-    saveUninitialized: false,
+    resave: true, // Changed to true for Safari compatibility
+    saveUninitialized: true, // Changed to true for Safari compatibility
     store: new PostgresSessionStore({ 
       pool, 
       createTableIfMissing: true,
@@ -48,9 +48,9 @@ export function setupAuth(app: Express) {
     }),
     cookie: {
       secure: false, // Set to true in production with HTTPS
-      httpOnly: true,
+      httpOnly: false, // Changed to false for Safari compatibility
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-      sameSite: 'lax', // Important for mobile Safari and cross-site scenarios
+      sameSite: 'lax', // Safari compatible setting
     },
     name: 'backstage.sid', // Custom session name
   };
