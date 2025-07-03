@@ -226,7 +226,7 @@ export default function MonthlyScheduleView({
           <Button variant="outline" size="sm" onClick={goToPreviousMonth}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h3 className="text-lg font-semibold w-80 text-center">{formatMonthYear()}</h3>
+          <h3 className="text-lg font-semibold">{formatMonthYear()}</h3>
           <Button variant="outline" size="sm" onClick={goToNextMonth}>
             <ChevronRight className="h-4 w-4" />
           </Button>
