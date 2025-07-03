@@ -125,6 +125,12 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     queryKey: [`/api/projects/${projectId}/schedule-events`],
   });
 
+  // Debug logging to track events changes
+  React.useEffect(() => {
+    console.log('Events array changed:', events.length, 'events');
+    console.log('Event #25 current data:', events.find(e => e.id === 25));
+  }, [events]);
+
 
 
   // Fetch contacts for event assignment
