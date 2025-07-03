@@ -717,7 +717,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             </Button>
           </div>
 
-          {/* All Day, Today and New Event buttons - right aligned */}
+          {/* All Day and Today buttons - right aligned */}
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
@@ -729,13 +729,6 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             </Button>
             <Button variant="outline" onClick={goToToday} size="sm">
               Today
-            </Button>
-            <Button
-              onClick={() => setCreateEventDialog({ isOpen: true })}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              New Event
             </Button>
           </div>
         </div>
