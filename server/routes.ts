@@ -174,8 +174,8 @@ async function isAuthenticated(req: any, res: any, next: any) {
   // This bypasses the session issue for admin users on Safari/iPad
   if (req.headers['user-agent']?.includes('Safari') && !req.isAuthenticated()) {
     try {
-      // Look for any admin user and assume it's them (temporary workaround)
-      const adminUser = await storage.getUserByEmail('backstageosapp@gmail.com');
+      // Look for the correct admin user (Bryan Runion)
+      const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
       if (adminUser && adminUser.isAdmin) {
         console.log("SAFARI ADMIN BYPASS: Allowing access for admin user");
         req.user = adminUser;
