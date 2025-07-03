@@ -319,8 +319,8 @@ export default function AdminErrorLogs() {
   }
 
   return (
-    <div className="w-full p-6 space-y-6">
-      <div>
+    <div className="min-h-screen w-full p-0 space-y-6">
+      <div className="px-6 pt-6">
         <div className="flex items-center justify-between mb-8 gap-6">
           <div className="flex items-center space-x-6">
             <div>
@@ -408,6 +408,7 @@ export default function AdminErrorLogs() {
         </div>
 
         {/* Error Logs Table */}
+        <div className="px-6">
         <Card>
           <CardHeader>
             <CardTitle>Recent Errors ({filteredErrorLogs.length})</CardTitle>
@@ -633,8 +634,10 @@ export default function AdminErrorLogs() {
             </div>
           </CardContent>
         </Card>
+        </div>
 
         {/* Stats Cards */}
+        <div className="px-6">
         <div className="grid grid-cols-5 gap-4 mt-6 mb-6">
           <Card className="p-4">
             <div className="text-2xl font-bold">{errorLogs.length}</div>
@@ -657,7 +660,7 @@ export default function AdminErrorLogs() {
             <div className="text-sm text-gray-600">Form Errors</div>
           </Card>
         </div>
-
+        </div>
       </div>
 
       {/* Fix Verification Dialog */}
