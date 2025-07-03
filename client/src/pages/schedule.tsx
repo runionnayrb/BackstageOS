@@ -127,30 +127,24 @@ export default function Schedule() {
             />
             
             <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-              <SelectTrigger className="w-20 border-0 shadow-none">
-                <div className="flex items-center gap-1">
-                  <Clock className="h-4 w-4" />
-                  <span className="text-sm">{timeIncrement}</span>
-                </div>
+              <SelectTrigger className="w-8 border-0 shadow-none">
+                <Clock 
+                  className={`h-4 w-4 ${
+                    timeIncrement === 15 ? 'rotate-90' : 
+                    timeIncrement === 30 ? 'rotate-180' : 
+                    'rotate-0'
+                  }`} 
+                />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="15">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    <span>15 min</span>
-                  </div>
+                  <Clock className="h-4 w-4 rotate-90" />
                 </SelectItem>
                 <SelectItem value="30">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    <span>30 min</span>
-                  </div>
+                  <Clock className="h-4 w-4 rotate-180" />
                 </SelectItem>
                 <SelectItem value="60">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    <span>60 min</span>
-                  </div>
+                  <Clock className="h-4 w-4 rotate-0" />
                 </SelectItem>
               </SelectContent>
             </Select>
