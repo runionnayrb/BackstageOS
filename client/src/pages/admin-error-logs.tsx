@@ -319,7 +319,7 @@ export default function AdminErrorLogs() {
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl space-y-6">
+    <div className="w-full p-6 space-y-6">
       <div>
         <div className="flex items-center justify-between mb-8 gap-6">
           <div className="flex items-center space-x-6">
@@ -364,30 +364,6 @@ export default function AdminErrorLogs() {
             )}
           </Button>
         </div>
-        
-        {/* Stats Cards */}
-        <div className="grid grid-cols-5 gap-4 mb-6">
-          <Card className="p-4">
-            <div className="text-2xl font-bold">{errorLogs.length}</div>
-            <div className="text-sm text-gray-600">Total Errors</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-red-600">{stats.javascript_error || 0}</div>
-            <div className="text-sm text-gray-600">JavaScript</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-orange-600">{stats.network_error || 0}</div>
-            <div className="text-sm text-gray-600">Network</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-blue-600">{stats.click_failure || 0}</div>
-            <div className="text-sm text-gray-600">Click Failures</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-purple-600">{stats.form_submission_error || 0}</div>
-            <div className="text-sm text-gray-600">Form Errors</div>
-          </Card>
-        </div>
 
         {/* Filters */}
         <div className="flex gap-6 mb-6">
@@ -419,15 +395,16 @@ export default function AdminErrorLogs() {
               <SelectTrigger className="w-52 h-10">
                 <SelectValue placeholder="Filter by user" />
               </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Users</SelectItem>
-              {uniqueUsers.map((user) => (
-                <SelectItem key={user.id} value={user.id}>
-                  {user.displayName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              <SelectContent>
+                <SelectItem value="all">All Users</SelectItem>
+                {uniqueUsers.map((user) => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.displayName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Error Logs Table */}
@@ -447,17 +424,17 @@ export default function AdminErrorLogs() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto border rounded-md">
-              <Table className="w-full min-w-[1200px]">
+            <div className="w-full overflow-x-auto">
+              <Table className="w-full table-fixed border-collapse border border-gray-200">
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[100px] px-4 py-3 font-semibold">Priority</TableHead>
-                    <TableHead className="w-[120px] px-4 py-3 font-semibold">Type</TableHead>
-                    <TableHead className="w-[400px] px-4 py-3 font-semibold">Message</TableHead>
-                    <TableHead className="w-[150px] px-4 py-3 font-semibold">Page</TableHead>
-                    <TableHead className="w-[180px] px-4 py-3 font-semibold">User</TableHead>
-                    <TableHead className="w-[120px] px-4 py-3 font-semibold">Time</TableHead>
-                    <TableHead className="w-[130px] px-4 py-3 font-semibold">Actions</TableHead>
+                  <TableRow className="border-b border-gray-200">
+                    <TableHead className="w-[120px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Priority</TableHead>
+                    <TableHead className="w-[140px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Type</TableHead>
+                    <TableHead className="w-[400px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Message</TableHead>
+                    <TableHead className="w-[150px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Page</TableHead>
+                    <TableHead className="w-[200px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">User</TableHead>
+                    <TableHead className="w-[140px] px-4 py-3 font-semibold border-r border-gray-200 bg-gray-50">Time</TableHead>
+                    <TableHead className="w-[160px] px-4 py-3 font-semibold bg-gray-50">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -656,6 +633,31 @@ export default function AdminErrorLogs() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-5 gap-4 mt-6 mb-6">
+          <Card className="p-4">
+            <div className="text-2xl font-bold">{errorLogs.length}</div>
+            <div className="text-sm text-gray-600">Total Errors</div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-2xl font-bold text-red-600">{stats.javascript_error || 0}</div>
+            <div className="text-sm text-gray-600">JavaScript</div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-2xl font-bold text-orange-600">{stats.network_error || 0}</div>
+            <div className="text-sm text-gray-600">Network</div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-2xl font-bold text-blue-600">{stats.click_failure || 0}</div>
+            <div className="text-sm text-gray-600">Click Failures</div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-2xl font-bold text-purple-600">{stats.form_submission_error || 0}</div>
+            <div className="text-sm text-gray-600">Form Errors</div>
+          </Card>
+        </div>
+
       </div>
 
       {/* Fix Verification Dialog */}
@@ -787,7 +789,6 @@ export default function AdminErrorLogs() {
           )}
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   );
 }
