@@ -44,7 +44,7 @@ interface TemplateField {
 
 interface ProductionTemplate {
   id: string;
-  phase: "prep" | "rehearsal" | "tech" | "previews" | "performance";
+  phase: "meetings" | "rehearsal" | "tech" | "previews" | "performance";
   name: string;
   description: string;
   header: string;
@@ -53,18 +53,18 @@ interface ProductionTemplate {
 }
 
 const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
-  prep: {
-    phase: "prep",
-    name: "Pre-Production Report",
-    description: "Planning and preparation phase documentation",
-    header: "{{showName}} - Pre-Production Report\nDate: {{date}}\nStage Manager: {{stageManager}}",
-    footer: "Next report due: {{nextReportDate}}\nContact: {{contactInfo}}",
+  meetings: {
+    phase: "meetings",
+    name: "Production Meeting Report",
+    description: "Production meetings and team coordination documentation",
+    header: "{{showName}} - Production Meeting Report\nDate: {{date}}\nStage Manager: {{stageManager}}",
+    footer: "Next meeting due: {{nextMeetingDate}}\nContact: {{contactInfo}}",
     fields: [
-      { id: "date", type: "date", label: "Report Date", required: true, order: 1 },
-      { id: "phase", type: "text", label: "Current Phase", placeholder: "e.g., Casting, Design", required: true, order: 2 },
-      { id: "progress", type: "textarea", label: "Progress Summary", placeholder: "Key accomplishments this period", required: true, order: 3 },
-      { id: "challenges", type: "textarea", label: "Challenges & Issues", placeholder: "Current obstacles and solutions", required: false, order: 4 },
-      { id: "nextSteps", type: "textarea", label: "Next Steps", placeholder: "Upcoming priorities", required: true, order: 5 },
+      { id: "date", type: "date", label: "Meeting Date", required: true, order: 1 },
+      { id: "meetingType", type: "text", label: "Meeting Type", placeholder: "e.g., Production Meeting, Design Meeting", required: true, order: 2 },
+      { id: "attendees", type: "textarea", label: "Attendees", placeholder: "List of meeting attendees", required: true, order: 3 },
+      { id: "agendaItems", type: "textarea", label: "Agenda Items", placeholder: "Topics discussed", required: false, order: 4 },
+      { id: "actionItems", type: "textarea", label: "Action Items", placeholder: "Tasks and assignments", required: true, order: 5 },
       { id: "notes", type: "textarea", label: "Additional Notes", required: false, order: 6 }
     ]
   },
@@ -144,7 +144,7 @@ export default function TemplateSettings() {
   const params = useParams<TemplateSettingsParams>();
   const projectId = params.id;
   
-  const [selectedPhase, setSelectedPhase] = useState<string>("prep");
+  const [selectedPhase, setSelectedPhase] = useState<string>("meetings");
   const [isEditing, setIsEditing] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [templates, setTemplates] = useState<Record<string, ProductionTemplate>>({});
@@ -366,7 +366,7 @@ export default function TemplateSettings() {
 
         <Tabs value={selectedPhase} onValueChange={setSelectedPhase} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="prep">Prep</TabsTrigger>
+            <TabsTrigger value="meetings">Meetings</TabsTrigger>
             <TabsTrigger value="rehearsal">Rehearsal</TabsTrigger>
             <TabsTrigger value="tech">Tech</TabsTrigger>
             <TabsTrigger value="previews">Previews</TabsTrigger>
@@ -385,7 +385,6 @@ export default function TemplateSettings() {
                           <FileText className="h-5 w-5" />
                           {template.name}
                         </CardTitle>
-                        <CardDescription>{template.description}</CardDescription>
                       </div>
                       <Button
                         variant="outline"

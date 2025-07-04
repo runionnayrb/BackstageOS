@@ -60,7 +60,7 @@ const REPORT_TYPES = [
 ];
 
 const PRODUCTION_PHASES = [
-  { value: "prep", label: "Pre-Production" },
+  { value: "meetings", label: "Meetings" },
   { value: "rehearsal", label: "Rehearsal" },
   { value: "tech", label: "Tech Rehearsals" },
   { value: "previews", label: "Previews" },
