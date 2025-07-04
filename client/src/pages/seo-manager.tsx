@@ -19,7 +19,25 @@ import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
 import AdminGuard from "@/components/admin-guard";
 
-const formSchema = insertSeoSettingsSchema;
+// Create a form-friendly schema that transforms null values to empty strings
+const formSchema = insertSeoSettingsSchema.transform((data) => ({
+  ...data,
+  keywords: data.keywords ?? "",
+  faviconUrl: data.faviconUrl ?? "",
+  appleTouchIconUrl: data.appleTouchIconUrl ?? "",
+  shareImageUrl: data.shareImageUrl ?? "",
+  shareImageAlt: data.shareImageAlt ?? "",
+  twitterHandle: data.twitterHandle ?? "",
+  author: data.author ?? "",
+  aiDescription: data.aiDescription ?? "",
+  semanticKeywords: data.semanticKeywords ?? "",
+  contentCategories: data.contentCategories ?? "",
+  targetAudience: data.targetAudience ?? "",
+  industryVertical: data.industryVertical ?? "",
+  functionalityTags: data.functionalityTags ?? "",
+  canonicalUrl: data.canonicalUrl ?? "",
+  geoTargeting: data.geoTargeting ?? "",
+}));
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -210,9 +228,9 @@ function SeoManagerContent() {
   const handleEdit = (settings: SeoSettings) => {
     setSelectedSettings(settings);
     form.reset({
-      domain: settings.domain,
-      siteTitle: settings.siteTitle,
-      siteDescription: settings.siteDescription,
+      domain: settings.domain || "",
+      siteTitle: settings.siteTitle || "",
+      siteDescription: settings.siteDescription || "",
       keywords: settings.keywords || "",
       faviconUrl: settings.faviconUrl || "",
       appleTouchIconUrl: settings.appleTouchIconUrl || "",
@@ -644,7 +662,15 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                               <FormItem>
                                 <FormLabel>Favicon URL (or upload above)</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="https://example.com/favicon.ico" {...field} />
+                                  <Input 
+                                    placeholder="https://example.com/favicon.ico" 
+                                    name={field.name}
+                                    ref={field.ref}
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    value={field.value || ""}
+                                    disabled={field.disabled}
+                                  />
                                 </FormControl>
                                 <FormDescription>You can either upload an image above or enter a URL manually</FormDescription>
                                 <FormMessage />
@@ -668,7 +694,15 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                             <FormItem>
                               <FormLabel>Keywords</FormLabel>
                               <FormControl>
-                                <Input placeholder="theater management, stage management, production tools..." {...field} />
+                                <Input 
+                                placeholder="theater management, stage management, production tools..." 
+                                name={field.name}
+                                ref={field.ref}
+                                onChange={field.onChange}
+                                onBlur={field.onBlur}
+                                value={field.value || ""}
+                                disabled={field.disabled}
+                              />
                               </FormControl>
                               <FormDescription>Comma-separated keywords</FormDescription>
                               <FormMessage />
@@ -683,7 +717,15 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                             <FormItem>
                               <FormLabel>Robots Directives</FormLabel>
                               <FormControl>
-                                <Input placeholder="index, follow" {...field} />
+                                <Input 
+                                placeholder="index, follow" 
+                                name={field.name}
+                                ref={field.ref}
+                                onChange={field.onChange}
+                                onBlur={field.onBlur}
+                                value={field.value || ""}
+                                disabled={field.disabled}
+                              />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -697,7 +739,15 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                             <FormItem>
                               <FormLabel>Canonical URL</FormLabel>
                               <FormControl>
-                                <Input placeholder="https://backstageos.com" {...field} />
+                                <Input 
+                                placeholder="https://backstageos.com" 
+                                name={field.name}
+                                ref={field.ref}
+                                onChange={field.onChange}
+                                onBlur={field.onBlur}
+                                value={field.value || ""}
+                                disabled={field.disabled}
+                              />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -721,7 +771,12 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                               <FormControl>
                                 <Textarea 
                                   placeholder="Detailed description optimized for AI systems and search engines..."
-                                  {...field} 
+                                  name={field.name}
+                                  ref={field.ref}
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  value={field.value || ""}
+                                  disabled={field.disabled}
                                 />
                               </FormControl>
                               <FormDescription>Enhanced description for AI understanding</FormDescription>
@@ -737,7 +792,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                             <FormItem>
                               <FormLabel>Semantic Keywords</FormLabel>
                               <FormControl>
-                                <Input placeholder="show management, rehearsal coordination, production planning..." {...field} />
+                                  <Input placeholder="show management, rehearsal coordination, production planning..." {...field} value={field.value || ""} />
                               </FormControl>
                               <FormDescription>LSI and semantic keywords for AI understanding</FormDescription>
                               <FormMessage />
@@ -752,7 +807,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                             <FormItem>
                               <FormLabel>Target Audience</FormLabel>
                               <FormControl>
-                                <Input placeholder="Theater Professionals, Stage Managers" {...field} />
+                                <Input placeholder="Theater Professionals, Stage Managers" {...field} value={field.value || ""} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -766,7 +821,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                             <FormItem>
                               <FormLabel>Industry Vertical</FormLabel>
                               <FormControl>
-                                <Input placeholder="Theater & Entertainment" {...field} />
+                                <Input placeholder="Theater & Entertainment" {...field} value={field.value || ""} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -860,7 +915,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                               <FormItem>
                                 <FormLabel>Share Image URL (or upload above)</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="https://example.com/og-image.jpg" {...field} />
+                                  <Input placeholder="https://example.com/og-image.jpg" {...field} value={field.value || ""} />
                                 </FormControl>
                                 <FormDescription>You can either upload an image above or enter a URL manually</FormDescription>
                                 <FormMessage />
@@ -876,7 +931,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                             <FormItem>
                               <FormLabel>Share Image Alt Text</FormLabel>
                               <FormControl>
-                                <Input placeholder="BackstageOS theater management platform interface" {...field} />
+                                <Input placeholder="BackstageOS theater management platform interface" {...field} value={field.value || ""} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -890,7 +945,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                             <FormItem>
                               <FormLabel>Twitter Handle</FormLabel>
                               <FormControl>
-                                <Input placeholder="@backstageos" {...field} />
+                                <Input placeholder="@backstageos" {...field} value={field.value || ""} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>

@@ -330,7 +330,7 @@ export class DatabaseStorage implements IStorage {
   }): Promise<User> {
     const result = await db.update(users)
       .set(updates)
-      .where(eq(users.id, userId))
+      .where(eq(users.id, parseInt(userId)))
       .returning();
     return result[0];
   }
@@ -579,7 +579,7 @@ export class DatabaseStorage implements IStorage {
     const nanoid = (await import('nanoid')).nanoid;
     const shareId = nanoid();
     await db.update(showSettings)
-      .set({ shareId })
+      .set({ shareLink: shareId })
       .where(eq(showSettings.projectId, projectId));
     return shareId;
   }
@@ -622,7 +622,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getFeedbackByUserId(userId: string): Promise<Feedback[]> {
-    const result = await db.select().from(feedback).where(eq(feedback.userId, userId));
+    const result = await db.select().from(feedback).where(eq(feedback.submittedBy, parseInt(userId)));
     return result;
   }
 
@@ -854,11 +854,11 @@ export class DatabaseStorage implements IStorage {
     const existingVersions = await db.select()
       .from(contactSheetVersions)
       .where(eq(contactSheetVersions.projectId, projectId))
-      .orderBy(desc(contactSheetVersions.versionNumber));
+      .orderBy(desc(contactSheetVersions.version));
     
     let newVersionNumber = "1.0";
     if (existingVersions.length > 0) {
-      const [major, minor] = existingVersions[0].versionNumber.split('.').map(Number);
+      const [major, minor] = existingVersions[0].version.split('.').map(Number);
       if (versionType === 'major') {
         newVersionNumber = `${major + 1}.0`;
       } else {
@@ -868,8 +868,9 @@ export class DatabaseStorage implements IStorage {
     
     const result = await db.insert(contactSheetVersions).values({
       projectId,
-      versionNumber: newVersionNumber,
+      version: newVersionNumber,
       versionType,
+      type: 'contact-sheet',
       settings,
       publishedBy
     }).returning();
@@ -881,7 +882,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db.select()
       .from(contactSheetVersions)
       .where(eq(contactSheetVersions.projectId, projectId))
-      .orderBy(desc(contactSheetVersions.createdAt));
+      .orderBy(desc(contactSheetVersions.publishedAt));
     
     return result;
   }
@@ -890,10 +891,10 @@ export class DatabaseStorage implements IStorage {
     const result = await db.select()
       .from(contactSheetVersions)
       .where(eq(contactSheetVersions.projectId, projectId))
-      .orderBy(desc(contactSheetVersions.versionNumber))
+      .orderBy(desc(contactSheetVersions.version))
       .limit(1);
     
-    return result[0]?.versionNumber || "1.0";
+    return result[0]?.version || "1.0";
   }
 
   async getCompanyListSettings(projectId: number): Promise<any> {
@@ -1560,9 +1561,9 @@ export class DatabaseStorage implements IStorage {
     return settings;
   }
 
-  async publishCompanyListVersion(projectId: number, versionData: any): Promise<any> {
+  async publishCompanyListVersion(projectId: number, versionType: string, settings: any, publishedBy: number): Promise<any> {
     // Implementation for publishing company list version
-    return versionData;
+    return { projectId, versionType, settings, publishedBy };
   }
 
   async getCompanyListVersions(projectId: number): Promise<any[]> {
@@ -1578,7 +1579,7 @@ export class DatabaseStorage implements IStorage {
   // Event Participant Management
   async updateEventParticipant(participantId: number, updates: any): Promise<any> {
     try {
-      const [updated] = await this.db
+      const [updated] = await db
         .update(scheduleEventParticipants)
         .set(updates)
         .where(eq(scheduleEventParticipants.id, participantId))

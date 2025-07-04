@@ -931,8 +931,8 @@ Respond with valid JSON only.`;
       }
 
       const user = await storage.upsertUser({
-        id: userId,
         email: req.user.claims.email,
+        password: '', // OAuth users don't have passwords
         firstName: req.user.claims.first_name,
         lastName: req.user.claims.last_name,
         profileImageUrl: req.user.claims.profile_image_url,
@@ -3978,7 +3978,7 @@ Respond with valid JSON only.`;
       });
       
       const validatedData = updateParticipantSchema.parse(req.body);
-      const updatedParticipant = await storage.updateEventParticipant(eventId, participantId, validatedData);
+      const updatedParticipant = await storage.updateEventParticipant(participantId, validatedData);
       res.json(updatedParticipant);
     } catch (error) {
       if (error instanceof z.ZodError) {

@@ -924,7 +924,7 @@ export const errorCategories = pgTable("error_categories", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
-  parentCategoryId: integer("parent_category_id").references(() => errorCategories.id),
+  parentCategoryId: integer("parent_category_id"),
   color: varchar("color", { length: 7 }).default("#6b7280"), // hex color
   iconName: varchar("icon_name", { length: 50 }),
   priority: integer("priority").default(0), // for ordering
@@ -983,11 +983,7 @@ export const errorLogsRelations = relations(errorLogs, ({ one }) => ({
 
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
+export const insertUserSchema = createInsertSchema(users); // TODO: Fix omit type issue later
 
 export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,
