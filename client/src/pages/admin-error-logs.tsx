@@ -410,8 +410,8 @@ export default function AdminErrorLogs() {
 
         {/* Error Logs Table */}
         <div>
-          <div className="px-6 mb-4">
-            <div className="flex items-center justify-between">
+          <div className="mb-4">
+            <div className="flex items-center justify-between px-6">
               <h3 className="text-lg font-semibold">Recent Errors ({filteredErrorLogs.length})</h3>
               <span className={`px-2 py-1 text-xs rounded-full ${
                 isLoggingEnabled 
@@ -421,7 +421,7 @@ export default function AdminErrorLogs() {
                 {isLoggingEnabled ? "● Live" : "● Paused"}
               </span>
             </div>
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-600 mt-1 px-6">
               Error logging captures JavaScript errors, network failures, and user interaction issues from registered users in production only. 
               Errors are automatically prioritized by criticality - JavaScript errors and recent issues appear first.
             </p>
