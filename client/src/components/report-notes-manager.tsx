@@ -288,9 +288,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
             }
           }}
         />
-        <div className="text-xs text-muted-foreground">
-          Press Enter to add note, Shift + Enter for new line
-        </div>
+
       </div>
 
       {/* Notes list */}
