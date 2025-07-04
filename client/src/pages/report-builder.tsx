@@ -342,8 +342,7 @@ export default function ReportBuilder() {
               
               <div className="space-y-6">
                 <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                    <span className="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
                     Scenic
                   </div>
                   <ReportNotesManager 
@@ -354,8 +353,7 @@ export default function ReportBuilder() {
                 </div>
 
                 <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                    <span className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
                     Lighting
                   </div>
                   <ReportNotesManager 
@@ -366,8 +364,7 @@ export default function ReportBuilder() {
                 </div>
 
                 <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                    <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
                     Audio
                   </div>
                   <ReportNotesManager 
@@ -378,8 +375,7 @@ export default function ReportBuilder() {
                 </div>
 
                 <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                    <span className="w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
                     Video
                   </div>
                   <ReportNotesManager 
@@ -390,8 +386,7 @@ export default function ReportBuilder() {
                 </div>
 
                 <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                    <span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                  <div className="text-sm font-semibold text-gray-700 mb-2">
                     Props
                   </div>
                   <ReportNotesManager 
