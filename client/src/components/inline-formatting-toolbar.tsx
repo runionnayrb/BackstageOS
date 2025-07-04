@@ -92,36 +92,6 @@ export default function InlineFormattingToolbar({
     }
   }, [isVisible, onAutoSave]);
 
-  // Click outside to close toolbar - simplified approach
-  useEffect(() => {
-    if (!isVisible) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      
-      // Check if click is outside both toolbar and target element
-      if (
-        toolbarRef.current &&
-        !toolbarRef.current.contains(target) &&
-        targetElement &&
-        !targetElement.contains(target) &&
-        onClose
-      ) {
-        onClose();
-      }
-    };
-
-    // Use a timeout to prevent immediate closing
-    const timeoutId = setTimeout(() => {
-      document.addEventListener('click', handleClickOutside);
-    }, 200);
-
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener('click', handleClickOutside);
-    };
-  }, [isVisible, targetElement, onClose]);
-
   const updateActiveStates = () => {
     if (!targetElement) return;
     
