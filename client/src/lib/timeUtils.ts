@@ -65,3 +65,18 @@ export function parseScheduleSettings(settings: any) {
     allowConflicts: scheduleSettings.allowConflicts || false,
   };
 }
+
+export function formatTimestamp(date: Date, timeFormat: '12' | '24' = '12', timezone?: string): string {
+  const options: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: timeFormat === '12',
+  };
+
+  if (timezone) {
+    options.timeZone = timezone;
+  }
+
+  return date.toLocaleTimeString(undefined, options);
+}

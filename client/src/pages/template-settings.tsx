@@ -25,6 +25,7 @@ import InlineFormattingToolbar from "@/components/inline-formatting-toolbar";
 import EditableFieldHeading from "@/components/editable-field-heading";
 import EditableHeaderFooter from "@/components/editable-header-footer";
 import { getAllDepartmentNames, type DepartmentKey } from "@/utils/departmentUtils";
+import { formatTimestamp, parseScheduleSettings } from "@/lib/timeUtils";
 import type { ShowSettings } from "@/../../shared/schema";
 import {
   ArrowLeft,
@@ -573,7 +574,14 @@ export default function TemplateSettings() {
                         </span>
                       ) : lastSaved ? (
                         <span>
-                          Auto-saved at: {lastSaved.toLocaleTimeString()}
+                          Auto-saved at: {(() => {
+                            // Parse user's schedule settings for time format and timezone
+                            const scheduleSettings = parseScheduleSettings(showSettings?.scheduleSettings);
+                            const timeFormat = scheduleSettings.timeFormat === '24' ? '24' : '12';
+                            const timezone = scheduleSettings.timezone;
+                            
+                            return formatTimestamp(lastSaved, timeFormat, timezone);
+                          })()}
                         </span>
                       ) : (
                         <span>Auto-saved</span>
