@@ -94,75 +94,59 @@ export default function EditableFieldHeading({
   const applyFormattingToAllHeaders = async () => {
     console.log('🔥🔥🔥 FIELD HEADING APPLY TO ALL CLICKED!!! 🔥🔥🔥');
     
-    console.log('🔍 Debug info:', {
-      projectId,
-      editingElement: !!editingElement,
-      hasUpdateMutation: !!updateFieldHeaderFormattingMutation,
-      showSettings: !!showSettings
-    });
-    
     if (!projectId) {
-      console.error('❌ No project ID available');
-      alert('❌ No project ID available');
+      console.error('No project ID available');
+      toast({
+        title: "Error",
+        description: "No project ID available",
+        variant: "destructive"
+      });
       return;
     }
     
     if (!editingElement) {
-      console.log('❌ No editing element');
-      alert('❌ No editing element found');
+      console.error('No editing element found');
+      toast({
+        title: "Error",
+        description: "No editing element found",
+        variant: "destructive"
+      });
       return;
     }
 
-    console.log('Apply to All: Starting with element:', editingElement);
-
-    // Get all computed styles from the current element and convert to plain object
-    const computedStyle = window.getComputedStyle(editingElement);
-    const formatting = {
-      fontWeight: String(computedStyle.fontWeight),
-      fontStyle: String(computedStyle.fontStyle),
-      textDecoration: String(computedStyle.textDecoration),
-      textAlign: String(computedStyle.textAlign),
-      fontFamily: String(computedStyle.fontFamily),
-      fontSize: String(computedStyle.fontSize),
-      color: String(computedStyle.color),
-      backgroundColor: String(computedStyle.backgroundColor),
-    };
-
-    console.log('Apply to All: Extracted formatting:', formatting);
-
-    // Use direct fetch approach with async/await
-    console.log('🚀 About to call API with data:', { formatting, applyToAll: true, projectId });
-    
     try {
-      console.log('🧪 Testing direct fetch call');
-      const response = await fetch(`/api/projects/${projectId}/settings/field-header-formatting`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          formatting,
-          applyToAll: true
-        }),
+      // Get all computed styles from the current element
+      const computedStyle = window.getComputedStyle(editingElement);
+      const formatting = {
+        fontWeight: String(computedStyle.fontWeight),
+        fontStyle: String(computedStyle.fontStyle),
+        textDecoration: String(computedStyle.textDecoration),
+        textAlign: String(computedStyle.textAlign),
+        fontFamily: String(computedStyle.fontFamily),
+        fontSize: String(computedStyle.fontSize),
+        color: String(computedStyle.color),
+        backgroundColor: String(computedStyle.backgroundColor),
+      };
+
+      console.log('Applying formatting to all headers:', formatting);
+
+      // Use the existing mutation instead of direct fetch
+      await updateFieldHeaderFormattingMutation.mutateAsync({
+        formatting,
+        applyToAll: true
       });
 
-      console.log('✅ Direct fetch response:', response.status);
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Response data:', data);
-        alert('✅ Direct fetch successful!');
-        // Refresh the page to apply formatting
-        window.location.reload();
-      } else {
-        const text = await response.text();
-        console.error('❌ Direct fetch error:', text);
-        alert('❌ Direct fetch error: ' + text);
-      }
+      // Close the toolbar after successful update
+      setShowToolbar(false);
+      setEditingElement(null);
+
     } catch (error) {
-      console.error('❌ Direct fetch catch error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert('❌ Direct fetch catch error: ' + errorMessage);
+      console.error('Error applying formatting to all headers:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to apply formatting to all headers",
+        variant: "destructive"
+      });
     }
   };
 

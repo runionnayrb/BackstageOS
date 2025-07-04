@@ -226,11 +226,7 @@ export default function InlineFormattingToolbar({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => {
-              console.log('🎯 TOOLBAR BUTTON CLICKED!!! 🎯');
-              alert('🎯 TOOLBAR BUTTON CLICKED!!! 🎯');
-              onApplyToAll();
-            }}
+            onClick={onApplyToAll}
             className="h-8 px-2 text-xs"
           >
             <Copy className="h-3 w-3 mr-1" />
