@@ -309,6 +309,8 @@ export const showSettings = pgTable("show_settings", {
   departmentFormatting: jsonb("department_formatting"), // Department header formatting settings
   departmentOrder: jsonb("department_order"), // Custom department ordering for tech reports
   fieldHeaderFormatting: jsonb("field_header_formatting"), // Field header formatting settings
+  headerFormatting: jsonb("header_formatting"), // Template header formatting settings
+  footerFormatting: jsonb("footer_formatting"), // Template footer formatting settings
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

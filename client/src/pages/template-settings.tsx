@@ -23,6 +23,7 @@ import ReportNotesManager from "@/components/report-notes-manager";
 import EditableDepartmentHeader from "@/components/editable-department-header";
 import InlineFormattingToolbar from "@/components/inline-formatting-toolbar";
 import EditableFieldHeading from "@/components/editable-field-heading";
+import EditableHeaderFooter from "@/components/editable-header-footer";
 import { getAllDepartmentNames, type DepartmentKey } from "@/utils/departmentUtils";
 import type { ShowSettings } from "@/../../shared/schema";
 import {
@@ -581,7 +582,7 @@ export default function TemplateSettings() {
                   }}>
                     {/* Header - Inline Editable */}
                     <div className="text-center mb-6 pb-4 border-b">
-                      <EditableFieldHeading
+                      <EditableHeaderFooter
                         content={template.header}
                         onChange={(newHeader) => {
                           const updatedTemplate = {
@@ -596,6 +597,7 @@ export default function TemplateSettings() {
                         }}
                         className="text-lg font-semibold text-center"
                         projectId={projectId}
+                        type="header"
                       />
                     </div>
 
@@ -766,7 +768,7 @@ export default function TemplateSettings() {
 
                     {/* Footer - Inline Editable */}
                     <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
-                      <EditableFieldHeading
+                      <EditableHeaderFooter
                         content={template.footer}
                         onChange={(newFooter) => {
                           const updatedTemplate = {
@@ -781,6 +783,7 @@ export default function TemplateSettings() {
                         }}
                         className="text-sm text-gray-600 text-center"
                         projectId={projectId}
+                        type="footer"
                       />
                     </div>
                   </div>

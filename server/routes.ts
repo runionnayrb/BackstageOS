@@ -2071,6 +2071,68 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Header formatting endpoints
+  app.put("/api/projects/:id/settings/header-formatting", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { formatting } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Update the settings
+      const updatedSettings = await storage.updateShowSettings(projectId, {
+        headerFormatting: formatting
+      });
+
+      res.json({
+        success: true,
+        headerFormatting: updatedSettings.headerFormatting
+      });
+    } catch (error) {
+      console.error("Error updating header formatting:", error);
+      res.status(500).json({ message: "Failed to update header formatting" });
+    }
+  });
+
+  // Footer formatting endpoints
+  app.put("/api/projects/:id/settings/footer-formatting", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { formatting } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Update the settings
+      const updatedSettings = await storage.updateShowSettings(projectId, {
+        footerFormatting: formatting
+      });
+
+      res.json({
+        success: true,
+        footerFormatting: updatedSettings.footerFormatting
+      });
+    } catch (error) {
+      console.error("Error updating footer formatting:", error);
+      res.status(500).json({ message: "Failed to update footer formatting" });
+    }
+  });
+
   // Department order endpoint
   app.put("/api/projects/:id/settings/department-order", isAuthenticated, async (req: any, res) => {
     try {

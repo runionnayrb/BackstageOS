@@ -22,6 +22,7 @@ interface InlineFormattingToolbarProps {
   onSave: () => void;
   onCancel: () => void;
   onApplyToAll?: () => void;
+  applyToAllText?: string;
 }
 
 export default function InlineFormattingToolbar({
@@ -30,6 +31,7 @@ export default function InlineFormattingToolbar({
   onSave,
   onCancel,
   onApplyToAll,
+  applyToAllText = "Apply to All",
 }: InlineFormattingToolbarProps) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -230,7 +232,7 @@ export default function InlineFormattingToolbar({
             className="h-8 px-2 text-xs"
           >
             <Copy className="h-3 w-3 mr-1" />
-            Apply to All
+            {applyToAllText}
           </Button>
           <div className="w-px h-6 bg-gray-300 mx-1" />
         </>
