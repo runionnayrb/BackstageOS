@@ -6,12 +6,14 @@ interface EditableFieldHeadingProps {
   content: string;
   onChange: (newContent: string) => void;
   className?: string;
+  onApplyToAll?: () => void;
 }
 
 export default function EditableFieldHeading({ 
   content, 
   onChange, 
-  className = "text-sm font-medium text-gray-700 mb-1" 
+  className = "text-sm font-medium text-gray-700 mb-1",
+  onApplyToAll
 }: EditableFieldHeadingProps) {
   const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
@@ -124,7 +126,7 @@ export default function EditableFieldHeading({
             editingElement.blur();
           }
         }}
-        onApplyToAll={applyFormattingToAllHeaders}
+        onApplyToAll={onApplyToAll || applyFormattingToAllHeaders}
       />
     </>
   );

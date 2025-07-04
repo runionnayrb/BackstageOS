@@ -595,6 +595,9 @@ export default function TemplateSettings() {
                           saveTemplate.mutate(updatedTemplate);
                         }}
                         className="text-lg font-semibold text-center"
+                        onApplyToAll={() => {
+                          // Apply to All functionality is handled within the component
+                        }}
                       />
                     </div>
 
@@ -622,6 +625,9 @@ export default function TemplateSettings() {
                                   [phase]: updatedTemplate
                                 }));
                                 saveTemplate.mutate(updatedTemplate);
+                              }}
+                              onApplyToAll={() => {
+                                // Apply to All functionality is handled within the component
                               }}
                             />
                             <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px]">
@@ -778,6 +784,9 @@ export default function TemplateSettings() {
                           saveTemplate.mutate(updatedTemplate);
                         }}
                         className="text-sm text-gray-600 text-center"
+                        onApplyToAll={() => {
+                          // Apply to All functionality is handled within the component
+                        }}
                       />
                     </div>
                   </div>
