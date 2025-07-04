@@ -38,6 +38,14 @@ export default function InlineFormattingToolbar({
   showVariables = true,
 }: InlineFormattingToolbarProps) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [activeStates, setActiveStates] = useState({
+    bold: false,
+    italic: false,
+    underline: false,
+    justifyLeft: false,
+    justifyCenter: false,
+    justifyRight: false
+  });
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,8 +58,32 @@ export default function InlineFormattingToolbar({
         top: rect.top - toolbarRect.height - 8,
         left: rect.left + (rect.width - toolbarRect.width) / 2,
       });
+
+      // Update active states when toolbar becomes visible
+      updateActiveStates();
     }
   }, [isVisible, targetElement]);
+
+  // Add event listeners to track formatting changes
+  useEffect(() => {
+    if (!targetElement || !isVisible) return;
+
+    const handleSelectionChange = () => {
+      updateActiveStates();
+    };
+
+    const handleKeyUp = () => {
+      updateActiveStates();
+    };
+
+    document.addEventListener('selectionchange', handleSelectionChange);
+    targetElement.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      document.removeEventListener('selectionchange', handleSelectionChange);
+      targetElement.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [targetElement, isVisible]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -74,33 +106,53 @@ export default function InlineFormattingToolbar({
     }
   }, [isVisible, onCancel, targetElement]);
 
+  const updateActiveStates = () => {
+    if (!targetElement) return;
+    
+    try {
+      setActiveStates({
+        bold: document.queryCommandState('bold'),
+        italic: document.queryCommandState('italic'),
+        underline: document.queryCommandState('underline'),
+        justifyLeft: document.queryCommandState('justifyLeft'),
+        justifyCenter: document.queryCommandState('justifyCenter'),
+        justifyRight: document.queryCommandState('justifyRight')
+      });
+    } catch {
+      // Fallback: check computed styles if queryCommandState fails
+      if (targetElement) {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          const container = range.commonAncestorContainer;
+          const element = container.nodeType === Node.TEXT_NODE ? container.parentElement : container as HTMLElement;
+          
+          if (element) {
+            const computedStyle = window.getComputedStyle(element);
+            setActiveStates({
+              bold: computedStyle.fontWeight === 'bold' || parseInt(computedStyle.fontWeight) >= 700,
+              italic: computedStyle.fontStyle === 'italic',
+              underline: computedStyle.textDecoration.includes('underline'),
+              justifyLeft: computedStyle.textAlign === 'left' || computedStyle.textAlign === 'start',
+              justifyCenter: computedStyle.textAlign === 'center',
+              justifyRight: computedStyle.textAlign === 'right' || computedStyle.textAlign === 'end'
+            });
+          }
+        }
+      }
+    }
+  };
+
   const executeCommand = (command: string, value?: string) => {
     if (targetElement) {
       targetElement.focus();
       document.execCommand(command, false, value);
+      // Update active states after command execution
+      setTimeout(updateActiveStates, 10);
     }
   };
 
-  const getFormattingState = (command: string) => {
-    if (!targetElement) return false;
-    try {
-      return document.queryCommandState(command);
-    } catch {
-      return false;
-    }
-  };
 
-  const getAlignmentState = (alignment: string) => {
-    if (!targetElement) return false;
-    try {
-      return document.queryCommandValue('justifyLeft') === alignment ||
-             document.queryCommandValue('justifyCenter') === alignment ||
-             document.queryCommandValue('justifyRight') === alignment ||
-             document.queryCommandState(`justify${alignment.charAt(0).toUpperCase() + alignment.slice(1)}`);
-    } catch {
-      return false;
-    }
-  };
 
   const insertVariable = (variable: string) => {
     if (targetElement) {
@@ -128,7 +180,7 @@ export default function InlineFormattingToolbar({
       {/* Text Style Controls */}
       <Button
         size="sm"
-        variant={getFormattingState('bold') ? "default" : "ghost"}
+        variant={activeStates.bold ? "default" : "ghost"}
         onClick={() => executeCommand('bold')}
         className="h-8 w-8 p-0"
       >
@@ -136,7 +188,7 @@ export default function InlineFormattingToolbar({
       </Button>
       <Button
         size="sm"
-        variant={getFormattingState('italic') ? "default" : "ghost"}
+        variant={activeStates.italic ? "default" : "ghost"}
         onClick={() => executeCommand('italic')}
         className="h-8 w-8 p-0"
       >
@@ -144,7 +196,7 @@ export default function InlineFormattingToolbar({
       </Button>
       <Button
         size="sm"
-        variant={getFormattingState('underline') ? "default" : "ghost"}
+        variant={activeStates.underline ? "default" : "ghost"}
         onClick={() => executeCommand('underline')}
         className="h-8 w-8 p-0"
       >
@@ -156,7 +208,7 @@ export default function InlineFormattingToolbar({
       {/* Text Alignment */}
       <Button
         size="sm"
-        variant={getFormattingState('justifyLeft') ? "default" : "ghost"}
+        variant={activeStates.justifyLeft ? "default" : "ghost"}
         onClick={() => executeCommand('justifyLeft')}
         className="h-8 w-8 p-0"
       >
@@ -164,7 +216,7 @@ export default function InlineFormattingToolbar({
       </Button>
       <Button
         size="sm"
-        variant={getFormattingState('justifyCenter') ? "default" : "ghost"}
+        variant={activeStates.justifyCenter ? "default" : "ghost"}
         onClick={() => executeCommand('justifyCenter')}
         className="h-8 w-8 p-0"
       >
@@ -172,7 +224,7 @@ export default function InlineFormattingToolbar({
       </Button>
       <Button
         size="sm"
-        variant={getFormattingState('justifyRight') ? "default" : "ghost"}
+        variant={activeStates.justifyRight ? "default" : "ghost"}
         onClick={() => executeCommand('justifyRight')}
         className="h-8 w-8 p-0"
       >
