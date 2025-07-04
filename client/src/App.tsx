@@ -60,6 +60,30 @@ function Router() {
   // Initialize SEO for dynamic meta tags based on domain
   useSEO();
   
+  // Always call hooks first - never conditionally
+  useSessionHeartbeat();
+  
+  // Initialize error logging - always call
+  useEffect(() => {
+    // Set current page for error logging
+    errorLogger.setCurrentPage(window.location.pathname);
+    
+    // Track page changes
+    const handleRouteChange = () => {
+      errorLogger.setCurrentPage(window.location.pathname);
+    };
+    
+    window.addEventListener('popstate', handleRouteChange);
+    return () => window.removeEventListener('popstate', handleRouteChange);
+  }, []);
+
+  // Update user ID when authentication changes - always call
+  useEffect(() => {
+    if (user) {
+      errorLogger.setUserId(user.id.toString());
+    }
+  }, [user]);
+  
   // Check domain routing configuration
   const hostname = window.location.hostname;
   const isJoinDomain = hostname.includes('join.backstageos.com') || hostname === 'join.backstageos.com';
@@ -104,30 +128,6 @@ function Router() {
   if (isDevEnvironment && window.location.pathname === '/') {
     return <WaitlistLanding />;
   }
-
-  // Keep session alive while user is active (only for authenticated domains)
-  useSessionHeartbeat();
-
-  // Initialize error logging
-  useEffect(() => {
-    // Set current page for error logging
-    errorLogger.setCurrentPage(window.location.pathname);
-    
-    // Track page changes
-    const handleRouteChange = () => {
-      errorLogger.setCurrentPage(window.location.pathname);
-    };
-    
-    window.addEventListener('popstate', handleRouteChange);
-    return () => window.removeEventListener('popstate', handleRouteChange);
-  }, []);
-
-  // Update user ID when authentication changes
-  useEffect(() => {
-    if (user) {
-      errorLogger.setUserId(user.id.toString());
-    }
-  }, [user]);
 
   if (isLoading) {
     return (
