@@ -341,10 +341,10 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       y: item.y,
       w: item.w,
       h: item.h,
-      minW: item.minW || 1,
-      minH: item.minH || 1,
-      maxW: item.maxW,
-      maxH: item.maxH,
+      minW: Math.min(item.minW || 1, item.w), // Ensure minW doesn't exceed actual width
+      minH: Math.min(item.minH || 1, item.h), // Ensure minH doesn't exceed actual height
+      maxW: item.maxW && item.maxW > item.w ? item.maxW : undefined, // Only set maxW if it's larger than current width
+      maxH: item.maxH && item.maxH > item.h ? item.maxH : undefined, // Only set maxH if it's larger than current height
       isResizable: item.isResizable !== false,
       isDraggable: item.isDraggable !== false,
       static: !isEditMode

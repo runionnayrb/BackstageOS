@@ -19,12 +19,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { z } from "zod";
 import AdminGuard from "@/components/admin-guard";
 
-const formSchema = insertSeoSettingsSchema.omit({ 
-  id: true,
-  createdBy: true,
-  createdAt: true,
-  updatedAt: true
-});
+const formSchema = insertSeoSettingsSchema;
 
 type FormData = z.infer<typeof formSchema>;
 

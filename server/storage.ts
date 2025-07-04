@@ -1554,6 +1554,42 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Company List Management
+  async saveCompanyListSettings(projectId: number, settings: any): Promise<any> {
+    // Implementation for saving company list settings
+    return settings;
+  }
+
+  async publishCompanyListVersion(projectId: number, versionData: any): Promise<any> {
+    // Implementation for publishing company list version
+    return versionData;
+  }
+
+  async getCompanyListVersions(projectId: number): Promise<any[]> {
+    // Implementation for getting company list versions
+    return [];
+  }
+
+  async getCurrentCompanyListVersion(projectId: number): Promise<any> {
+    // Implementation for getting current company list version
+    return null;
+  }
+
+  // Event Participant Management
+  async updateEventParticipant(participantId: number, updates: any): Promise<any> {
+    try {
+      const [updated] = await this.db
+        .update(scheduleEventParticipants)
+        .set(updates)
+        .where(eq(scheduleEventParticipants.id, participantId))
+        .returning();
+      return updated;
+    } catch (error) {
+      console.error('Error updating event participant:', error);
+      throw error;
+    }
+  }
+
 
 }
 

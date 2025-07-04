@@ -213,7 +213,7 @@ export const scriptCues = pgTable("script_cues", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const scriptComments = pgTable("script_comments", {
+export const scriptComments: any = pgTable("script_comments", {
   id: serial("id").primaryKey(),
   scriptId: integer("script_id").notNull().references(() => scripts.id, { onDelete: "cascade" }),
   parentId: integer("parent_id").references(() => scriptComments.id), // For threaded replies
