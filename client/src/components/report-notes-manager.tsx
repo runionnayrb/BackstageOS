@@ -314,12 +314,10 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
           >
             <div className="flex items-start justify-between gap-2">
               {/* Note number and content */}
-              <div className="flex items-start gap-3 flex-1">
-                <div className="mt-1">
-                  <span className="text-sm font-medium text-muted-foreground min-w-[20px]">
-                    {index + 1}.
-                  </span>
-                </div>
+              <div className="flex items-start gap-2 flex-1">
+                <span className="text-sm font-medium text-muted-foreground min-w-[20px] mt-0.5">
+                  {index + 1}.
+                </span>
                 
                 <div className="flex-1">
                   {editingNote === note.id ? (
