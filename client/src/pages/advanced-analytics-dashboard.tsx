@@ -159,7 +159,7 @@ export default function AdvancedAnalyticsDashboard() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Link href="/admin-error-logs">
+            <Link href="/admin?tab=errors">
               <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900 w-fit">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Error Logs

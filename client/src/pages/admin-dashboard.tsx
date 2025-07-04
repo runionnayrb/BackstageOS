@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,15 @@ import WaitlistManagement from "@/components/WaitlistManagement";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("users");
+  
+  useEffect(() => {
+    // Check for tab parameter in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam && ['users', 'features', 'waitlist', 'feedback', 'errors'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, []);
 
   return (
     <AdminGuard>
