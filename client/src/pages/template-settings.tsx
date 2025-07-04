@@ -651,7 +651,7 @@ export default function TemplateSettings() {
                       
                       {/* Department Notes Section - only for tech template */}
                       {selectedPhase === 'tech' && (
-                        <div className="space-y-6 mt-8 border-t pt-6">
+                        <div className="space-y-6 mt-8">
                           <div className="flex items-center justify-between border-b pb-2">
                             <div className="text-lg font-semibold text-gray-800">
                               Department Notes
