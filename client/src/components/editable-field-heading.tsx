@@ -16,6 +16,35 @@ export default function EditableFieldHeading({
   const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
 
+  const applyFormattingToAllElements = () => {
+    if (!editingElement) return;
+
+    // Get all computed styles from the current element
+    const computedStyle = window.getComputedStyle(editingElement);
+    const styles = {
+      fontWeight: computedStyle.fontWeight,
+      fontStyle: computedStyle.fontStyle,
+      textDecoration: computedStyle.textDecoration,
+      textAlign: computedStyle.textAlign,
+      fontFamily: computedStyle.fontFamily,
+      fontSize: computedStyle.fontSize,
+      color: computedStyle.color,
+      backgroundColor: computedStyle.backgroundColor,
+    };
+
+    // Find all editable elements on the page
+    const editableElements = document.querySelectorAll('[contenteditable="true"]');
+    
+    editableElements.forEach((element) => {
+      if (element !== editingElement) {
+        const htmlElement = element as HTMLElement;
+        Object.entries(styles).forEach(([property, value]) => {
+          htmlElement.style.setProperty(property.replace(/([A-Z])/g, '-$1').toLowerCase(), value);
+        });
+      }
+    });
+  };
+
   return (
     <>
       <div className="relative group">
@@ -63,6 +92,7 @@ export default function EditableFieldHeading({
             editingElement.blur();
           }
         }}
+        onApplyToAll={applyFormattingToAllElements}
       />
     </>
   );

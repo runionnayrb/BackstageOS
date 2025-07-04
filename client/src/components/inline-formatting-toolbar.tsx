@@ -12,7 +12,8 @@ import {
   Type,
   Palette,
   Check,
-  ChevronDown
+  ChevronDown,
+  Copy
 } from "lucide-react";
 
 interface InlineFormattingToolbarProps {
@@ -20,6 +21,7 @@ interface InlineFormattingToolbarProps {
   isVisible: boolean;
   onSave: () => void;
   onCancel: () => void;
+  onApplyToAll?: () => void;
 }
 
 export default function InlineFormattingToolbar({
@@ -27,6 +29,7 @@ export default function InlineFormattingToolbar({
   isVisible,
   onSave,
   onCancel,
+  onApplyToAll,
 }: InlineFormattingToolbarProps) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -216,6 +219,22 @@ export default function InlineFormattingToolbar({
       </Popover>
 
       <div className="w-px h-6 bg-gray-300 mx-1" />
+
+      {/* Apply to All */}
+      {onApplyToAll && (
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onApplyToAll}
+            className="h-8 px-2 text-xs"
+          >
+            <Copy className="h-3 w-3 mr-1" />
+            Apply to All
+          </Button>
+          <div className="w-px h-6 bg-gray-300 mx-1" />
+        </>
+      )}
 
       {/* Actions */}
       <Button
