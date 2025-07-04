@@ -482,10 +482,18 @@ Respond with valid JSON only.`;
       let appliedChanges = [];
       let failedChanges = [];
 
+      console.log(`Auto-fix attempt: Processing ${codeChanges.length} code changes`);
+      
       // Apply each code change
       for (const change of codeChanges) {
         try {
           const { file, description, before, after } = change;
+          
+          console.log(`Processing change for file: ${file}`);
+          console.log(`Description: ${description}`);
+          console.log(`Before code (${before?.length || 0} chars): ${before?.substring(0, 100)}${before?.length > 100 ? '...' : ''}`);
+          console.log(`After code (${after?.length || 0} chars): ${after?.substring(0, 100)}${after?.length > 100 ? '...' : ''}`);
+          
           
           // Basic validation
           if (!file || !after) {
@@ -536,8 +544,10 @@ Respond with valid JSON only.`;
                 
                 if (!foundMatch) {
                   console.log(`Auto-fix debug - Could not find code in ${file}:`);
-                  console.log(`Looking for: "${before}"`);
-                  console.log(`File contains: ${currentContent.substring(0, 200)}...`);
+                  console.log(`Looking for exact match: "${before}"`);
+                  console.log(`Looking for normalized: "${normalizedBefore}"`);
+                  console.log(`File starts with: "${currentContent.substring(0, 300)}..."`);
+                  console.log(`File ends with: "...${currentContent.substring(currentContent.length - 300)}"`);
                   failedChanges.push({ 
                     ...change, 
                     reason: `Original code not found. Looking for: "${before.substring(0, 100)}${before.length > 100 ? '...' : ''}"`
