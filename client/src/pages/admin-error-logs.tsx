@@ -327,12 +327,6 @@ export default function AdminErrorLogs() {
       <div className="px-6 pt-6">
         <div className="flex items-center justify-between mb-8 gap-6">
           <div className="flex items-center space-x-6">
-            <Link href="/admin">
-              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Admin
-              </Button>
-            </Link>
             <div>
               <h2 className="text-3xl font-bold">Error Logs</h2>
               <p className="text-base text-gray-600">Monitor and resolve application errors</p>
