@@ -561,8 +561,7 @@ export default function TemplateSettings() {
               <Card className="min-h-[600px]">
                 <CardHeader>
                   <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <FileText className="h-5 w-5" />
+                    <CardTitle>
                       {template.name}
                     </CardTitle>
                     {/* Auto-save indicator */}
