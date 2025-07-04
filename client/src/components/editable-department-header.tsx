@@ -249,10 +249,62 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     }
   };
 
-  const handleApplyToAll = () => {
-    updateFormattingMutation.mutate({ formatting, applyToAll: true });
+  const handleApplyToAll = async () => {
+    try {
+      // Apply formatting to all department headers
+      await updateFormattingMutation.mutateAsync({ formatting, applyToAll: true });
+      
+      // Also apply formatting to field headers
+      const fieldFormatting = {
+        fontWeight: formatting.bold ? 'bold' : 'normal',
+        fontStyle: formatting.italic ? 'italic' : 'normal',
+        textDecoration: formatting.underline ? 'underline' : 'none',
+        textAlign: formatting.textAlign,
+        fontFamily: formatting.fontFamily,
+        fontSize: formatting.fontSize,
+        color: formatting.textColor,
+        backgroundColor: formatting.backgroundColor,
+      };
+
+      await fetch(`/api/projects/${projectId}/settings/field-header-formatting`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          formatting: fieldFormatting,
+          applyToAll: true
+        }),
+      });
+
+      // Apply formatting immediately to all headers on the page
+      const allHeaders = document.querySelectorAll('[data-field-heading], [data-department-header]');
+      allHeaders.forEach((element) => {
+        const htmlElement = element as HTMLElement;
+        htmlElement.style.fontWeight = formatting.bold ? 'bold' : 'normal';
+        htmlElement.style.fontStyle = formatting.italic ? 'italic' : 'normal';
+        htmlElement.style.textDecoration = formatting.underline ? 'underline' : 'none';
+        htmlElement.style.textAlign = formatting.textAlign;
+        htmlElement.style.fontFamily = formatting.fontFamily;
+        htmlElement.style.fontSize = formatting.fontSize;
+        htmlElement.style.color = formatting.textColor;
+        htmlElement.style.backgroundColor = formatting.backgroundColor;
+      });
+
+      toast({
+        title: "Formatting applied",
+        description: "Formatting applied to all headers (department and field headers)",
+      });
+
+    } catch (error) {
+      console.error('Error applying formatting to all headers:', error);
+      toast({
+        title: "Error",
+        description: "Failed to apply formatting to all headers",
+        variant: "destructive"
+      });
+    }
     // Keep the toolbar open so user can continue making changes
-    // setShowToolbar(false); // Removed this line
   };
 
   const handleHeaderClick = () => {

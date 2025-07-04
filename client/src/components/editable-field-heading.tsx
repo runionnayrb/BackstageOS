@@ -140,7 +140,7 @@ export default function EditableFieldHeading({
     try {
       // Get all computed styles from the current element
       const computedStyle = window.getComputedStyle(editingElement);
-      const formatting = {
+      const fieldFormatting = {
         fontWeight: String(computedStyle.fontWeight),
         fontStyle: String(computedStyle.fontStyle),
         textDecoration: String(computedStyle.textDecoration),
@@ -151,24 +151,60 @@ export default function EditableFieldHeading({
         backgroundColor: String(computedStyle.backgroundColor),
       };
 
-      console.log('Applying formatting to all headers:', formatting);
+      console.log('Applying formatting to all headers:', fieldFormatting);
 
-      // Use the existing mutation instead of direct fetch
+      // Apply to field headers
       await updateFieldHeaderFormattingMutation.mutateAsync({
-        formatting,
+        formatting: fieldFormatting,
         applyToAll: true
       });
 
+      // Also apply formatting to department headers
+      const departmentFormatting = {
+        bold: fieldFormatting.fontWeight === 'bold' || fieldFormatting.fontWeight === '700',
+        italic: fieldFormatting.fontStyle === 'italic',
+        underline: fieldFormatting.textDecoration.includes('underline'),
+        textAlign: fieldFormatting.textAlign as 'left' | 'center' | 'right',
+        fontFamily: fieldFormatting.fontFamily,
+        fontSize: fieldFormatting.fontSize,
+        textColor: fieldFormatting.color,
+        backgroundColor: fieldFormatting.backgroundColor,
+        borderTop: false,
+        borderRight: false,
+        borderBottom: false,
+        borderLeft: false,
+        borderWeight: '1px',
+        borderColor: '#d1d5db'
+      };
+
+      // Apply to all departments (scenic, lighting, audio, video, props)
+      await fetch(`/api/projects/${projectId}/settings/department-formatting`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          department: 'scenic', // Not used when applyToAll is true
+          formatting: departmentFormatting,
+          applyToAll: true
+        }),
+      });
+
       // Immediately apply formatting to all headers on the page
-      const fieldHeaders = document.querySelectorAll('[data-field-heading]');
-      fieldHeaders.forEach((element) => {
+      const allHeaders = document.querySelectorAll('[data-field-heading], [data-department-header]');
+      allHeaders.forEach((element) => {
         const htmlElement = element as HTMLElement;
-        Object.entries(formatting).forEach(([property, value]) => {
+        Object.entries(fieldFormatting).forEach(([property, value]) => {
           if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
             const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
             htmlElement.style.setProperty(cssProperty, value as string);
           }
         });
+      });
+
+      toast({
+        title: "Formatting applied",
+        description: "Formatting applied to all headers (field and department headers)",
       });
 
       // Close the toolbar after successful update
