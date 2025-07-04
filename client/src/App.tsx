@@ -25,7 +25,7 @@ import ShowReports from "@/pages/show-reports";
 import ScriptEditor from "@/pages/script-editor";
 import PropsTracker from "@/pages/props-tracker";
 import CostumeTracker from "@/pages/costume-tracker";
-import TemplateCustomizer from "@/pages/template-customizer";
+
 import ShowSettings from "@/pages/show-settings";
 import ShowReportsList from "@/pages/show-reports-list";
 import TemplateSettings from "@/pages/template-settings";
