@@ -200,58 +200,7 @@ export default function ReportBuilder() {
     mutation.mutate(data);
   };
 
-  const renderDepartmentNotes = () => {
-    return (
-      <div className="mb-6">
-        <div className="text-lg font-semibold text-gray-800 mb-4">Department Notes</div>
-        
-        <div className="mb-6">
-          <div className="text-sm font-semibold text-gray-700 mb-2">Scenic</div>
-          <ReportNotesManager 
-            reportId={reportId || 0} 
-            reportType={reportType || ""}
-            department="scenic"
-          />
-        </div>
 
-        <div className="mb-6">
-          <div className="text-sm font-semibold text-gray-700 mb-2">Lighting</div>
-          <ReportNotesManager 
-            reportId={reportId || 0} 
-            reportType={reportType || ""}
-            department="lighting"
-          />
-        </div>
-
-        <div className="mb-6">
-          <div className="text-sm font-semibold text-gray-700 mb-2">Audio</div>
-          <ReportNotesManager 
-            reportId={reportId || 0} 
-            reportType={reportType || ""}
-            department="audio"
-          />
-        </div>
-
-        <div className="mb-6">
-          <div className="text-sm font-semibold text-gray-700 mb-2">Video</div>
-          <ReportNotesManager 
-            reportId={reportId || 0} 
-            reportType={reportType || ""}
-            department="video"
-          />
-        </div>
-
-        <div className="mb-6">
-          <div className="text-sm font-semibold text-gray-700 mb-2">Props</div>
-          <ReportNotesManager 
-            reportId={reportId || 0} 
-            reportType={reportType || ""}
-            department="props"
-          />
-        </div>
-      </div>
-    );
-  };
 
   const renderTemplateFields = () => {
     if (!selectedTemplate) return null;
@@ -331,9 +280,6 @@ export default function ReportBuilder() {
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
-            
-            {/* Department Notes */}
-            {renderDepartmentNotes()}
           </>
         );
       
@@ -341,10 +287,12 @@ export default function ReportBuilder() {
         return (
           <>
             {commonFields}
+            
+            {/* Session Information */}
             <div className="grid grid-cols-2 gap-6 mb-6">
               <div>
-                <div className="text-sm font-semibold text-gray-700 mb-2">Tech Focus</div>
-                <Select value={currentContent.techFocus || ""} onValueChange={(value) => form.setValue("content.techFocus", value)}>
+                <div className="text-sm font-semibold text-gray-700 mb-2">Session Focus</div>
+                <Select value={currentContent.sessionFocus || ""} onValueChange={(value) => form.setValue("content.sessionFocus", value)}>
                   <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
                     <SelectValue placeholder="Select focus area" />
                   </SelectTrigger>
@@ -373,17 +321,101 @@ export default function ReportBuilder() {
                 </Select>
               </div>
             </div>
+
+            {/* Session Overview */}
             <div className="mb-6">
-              <div className="text-sm font-semibold text-gray-700 mb-2">Technical Issues</div>
+              <div className="text-sm font-semibold text-gray-700 mb-2">Session Overview</div>
               <Textarea
-                id="technicalIssues"
+                id="sessionOverview"
                 rows={3}
-                placeholder="List any technical issues encountered..."
-                value={currentContent.technicalIssues || ""}
-                onChange={(e) => form.setValue("content.technicalIssues", e.target.value)}
+                placeholder="Brief overview of what was accomplished in this tech session..."
+                value={currentContent.sessionOverview || ""}
+                onChange={(e) => form.setValue("content.sessionOverview", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
+
+            {/* Department Notes - Enhanced with visual indicators */}
+            <div className="mb-6">
+              <div className="text-lg font-semibold text-gray-800 mb-2">Department Notes</div>
+              <div className="text-sm text-gray-600 mb-4">Add numbered notes for each department. These will appear as organized lists in your report.</div>
+              
+              <div className="space-y-6">
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                    <span className="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>
+                    Scenic
+                  </div>
+                  <ReportNotesManager 
+                    reportId={reportId || 0} 
+                    reportType={reportType || ""}
+                    department="scenic"
+                  />
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                    <span className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></span>
+                    Lighting
+                  </div>
+                  <ReportNotesManager 
+                    reportId={reportId || 0} 
+                    reportType={reportType || ""}
+                    department="lighting"
+                  />
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                    <span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>
+                    Audio
+                  </div>
+                  <ReportNotesManager 
+                    reportId={reportId || 0} 
+                    reportType={reportType || ""}
+                    department="audio"
+                  />
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                    <span className="w-3 h-3 bg-purple-500 rounded-full mr-2"></span>
+                    Video
+                  </div>
+                  <ReportNotesManager 
+                    reportId={reportId || 0} 
+                    reportType={reportType || ""}
+                    department="video"
+                  />
+                </div>
+
+                <div>
+                  <div className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                    <span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>
+                    Props
+                  </div>
+                  <ReportNotesManager 
+                    reportId={reportId || 0} 
+                    reportType={reportType || ""}
+                    department="props"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Fields */}
+            <div className="mb-6">
+              <div className="text-sm font-semibold text-gray-700 mb-2">Outstanding Issues</div>
+              <Textarea
+                id="outstandingIssues"
+                rows={3}
+                placeholder="Issues that need to be resolved before next session..."
+                value={currentContent.outstandingIssues || ""}
+                onChange={(e) => form.setValue("content.outstandingIssues", e.target.value)}
+                className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
+              />
+            </div>
+            
             <div className="mb-6">
               <div className="text-sm font-semibold text-gray-700 mb-2">Next Session Goals</div>
               <Textarea
@@ -395,9 +427,6 @@ export default function ReportBuilder() {
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
-            
-            {/* Department Notes */}
-            {renderDepartmentNotes()}
           </>
         );
       
@@ -462,8 +491,6 @@ export default function ReportBuilder() {
               />
             </div>
             
-            {/* Department Notes */}
-            {renderDepartmentNotes()}
           </>
         );
       
@@ -531,8 +558,6 @@ export default function ReportBuilder() {
               />
             </div>
             
-            {/* Department Notes */}
-            {renderDepartmentNotes()}
           </>
         );
       
@@ -543,16 +568,12 @@ export default function ReportBuilder() {
             <>
               {commonFields}
               {renderCustomFields(customTemplate.fields)}
-              {/* Department Notes */}
-              {renderDepartmentNotes()}
             </>
           );
         }
         return (
           <>
             {commonFields}
-            {/* Department Notes */}
-            {renderDepartmentNotes()}
           </>
         );
     }
