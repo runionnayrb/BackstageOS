@@ -188,7 +188,7 @@ export default function TemplateSettings() {
   });
 
   const { data: showSettings } = useQuery<ShowSettings>({
-    queryKey: [`/api/projects/${projectId}/settings`],
+    queryKey: ['/api/projects', projectId, 'settings'],
   });
 
   // Load user-created templates
@@ -252,10 +252,10 @@ export default function TemplateSettings() {
     },
     onSuccess: (data) => {
       // Update the cache immediately with new data
-      queryClient.setQueryData([`/api/projects/${projectId}/settings`], data);
+      queryClient.setQueryData(['/api/projects', projectId, 'settings'], data);
       // Then invalidate to trigger a fresh fetch
       queryClient.invalidateQueries({
-        queryKey: [`/api/projects/${projectId}/settings`]
+        queryKey: ['/api/projects', projectId, 'settings']
       });
       toast({
         title: "Department order saved",
@@ -406,7 +406,7 @@ export default function TemplateSettings() {
       
       // Invalidate cache to refresh settings
       queryClient.invalidateQueries({
-        queryKey: [`/api/projects/${projectId}/settings`]
+        queryKey: ['/api/projects', projectId, 'settings']
       });
     }).catch((error) => {
       console.error('Failed to save field header formatting:', error);
@@ -817,12 +817,12 @@ export default function TemplateSettings() {
                                       isEditing={true}
                                       onNameChange={(newName) => {
                                         queryClient.invalidateQueries({
-                                          queryKey: [`/api/projects/${projectId}/settings`]
+                                          queryKey: ['/api/projects', projectId, 'settings']
                                         });
                                       }}
                                       onFormattingChange={(formatting) => {
                                         queryClient.invalidateQueries({
-                                          queryKey: [`/api/projects/${projectId}/settings`]
+                                          queryKey: ['/api/projects', projectId, 'settings']
                                         });
                                       }}
                                     />
