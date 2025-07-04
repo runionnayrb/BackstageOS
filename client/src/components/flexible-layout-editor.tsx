@@ -62,6 +62,8 @@ interface FlexibleLayoutEditorProps {
   initialConfiguration?: FlexibleLayoutConfiguration;
   isEditing?: boolean;
   onConfigurationChange?: (config: FlexibleLayoutConfiguration) => void;
+  template?: any;
+  onTemplateUpdate?: (template: any) => void;
 }
 
 // Draggable component wrapper for grid items
@@ -195,47 +197,113 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   reportType = 'tech',
   initialConfiguration,
   isEditing = true,
-  onConfigurationChange
+  onConfigurationChange,
+  template,
+  onTemplateUpdate
 }) => {
   const [isEditMode, setIsEditMode] = useState(isEditing);
   const [layouts, setLayouts] = useState<Layouts>({});
-  const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(
-    initialConfiguration || {
-      items: [
+  
+  // Generate layout from template data
+  const generateLayoutFromTemplate = useCallback(() => {
+    if (!template) {
+      // Fallback to basic layout
+      return [
         {
           id: 'scenic-header',
-          type: 'department-header',
+          type: 'department-header' as const,
           content: { department: 'scenic', displayName: 'Scenic' },
           x: 0, y: 0, w: 6, h: 2,
           minW: 2, minH: 1
         },
         {
           id: 'lighting-header', 
-          type: 'department-header',
+          type: 'department-header' as const,
           content: { department: 'lighting', displayName: 'Lighting' },
           x: 6, y: 0, w: 6, h: 2,
           minW: 2, minH: 1
         },
         {
           id: 'scenic-notes',
-          type: 'notes',
+          type: 'notes' as const,
           content: { department: 'scenic' },
           x: 0, y: 2, w: 6, h: 4,
           minW: 3, minH: 2
         },
         {
           id: 'lighting-notes',
-          type: 'notes', 
+          type: 'notes' as const, 
           content: { department: 'lighting' },
           x: 6, y: 2, w: 6, h: 4,
           minW: 3, minH: 2
         }
-      ],
-      gridCols: 12,
-      gridRows: 20,
-      gridGap: 8
+      ];
     }
-  );
+    
+    const items: LayoutItem[] = [];
+    let currentY = 0;
+    
+    // Add all template fields as draggable field headers with notes
+    const templateFields = template.fields
+      .filter((field: any) => !field.id.includes('Notes') || field.id === 'notes')
+      .sort((a: any, b: any) => a.order - b.order);
+    
+    templateFields.forEach((field: any, index: number) => {
+      // Field header
+      items.push({
+        id: `field-header-${field.id}`,
+        type: 'field-header' as const,
+        content: { fieldId: field.id, label: field.label },
+        x: 0, y: currentY, w: 12, h: 1,
+        minW: 3, minH: 1
+      });
+      
+      // Field notes area
+      items.push({
+        id: `field-notes-${field.id}`,
+        type: 'notes' as const,
+        content: { fieldId: field.id, placeholder: field.placeholder || "Sample content..." },
+        x: 0, y: currentY + 1, w: 12, h: 2,
+        minW: 3, minH: 1
+      });
+      
+      currentY += 3;
+    });
+    
+    // Add department headers and notes (typically for tech templates)
+    const departments = ['scenic', 'lighting', 'audio', 'video', 'props'];
+    departments.forEach((dept, index) => {
+      const xPos = (index % 2) * 6; // Alternate between left (0) and right (6)
+      const yPos = currentY + Math.floor(index / 2) * 3;
+      
+      // Department header
+      items.push({
+        id: `dept-header-${dept}`,
+        type: 'department-header' as const,
+        content: { department: dept, displayName: dept.charAt(0).toUpperCase() + dept.slice(1) },
+        x: xPos, y: yPos, w: 6, h: 1,
+        minW: 2, minH: 1
+      });
+      
+      // Department notes
+      items.push({
+        id: `dept-notes-${dept}`,
+        type: 'notes' as const,
+        content: { department: dept },
+        x: xPos, y: yPos + 1, w: 6, h: 2,
+        minW: 3, minH: 1
+      });
+    });
+    
+    return items;
+  }, [template]);
+
+  const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => ({
+    items: generateLayoutFromTemplate(),
+    gridCols: 12,
+    gridRows: 20,
+    gridGap: 8
+  }));
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -245,6 +313,18 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     queryKey: ['/api/projects', projectId, 'settings'],
     enabled: !!projectId
   });
+
+  // Regenerate layout when template changes
+  useEffect(() => {
+    if (template && !((showSettings as any)?.layoutConfiguration)) {
+      setConfiguration({
+        items: generateLayoutFromTemplate(),
+        gridCols: 12,
+        gridRows: 20,
+        gridGap: 8
+      });
+    }
+  }, [template, generateLayoutFromTemplate, showSettings]);
 
   // Load configuration from settings
   useEffect(() => {

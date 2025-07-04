@@ -699,59 +699,56 @@ export default function TemplateSettings() {
                     </div>
 
                     {/* Fields Preview */}
-                    <div className="space-y-6">
-                      {/* Regular fields (non-department notes) */}
-                      {template.fields
-                        .filter(field => !field.id.includes('Notes') || field.id === 'notes')
-                        .sort((a, b) => a.order - b.order)
-                        .map((field) => (
-                          <div key={field.id} className="space-y-2">
-                            <EditableFieldHeading
-                              content={field.label}
-                              onChange={(newLabel) => {
-                                const updatedTemplate = {
-                                  ...template,
-                                  fields: template.fields.map(f =>
-                                    f.id === field.id 
-                                      ? { ...f, label: newLabel }
-                                      : f
-                                  )
-                                };
-                                setTemplates(prev => ({
-                                  ...prev,
-                                  [phase]: updatedTemplate
-                                }));
-                                saveTemplate.mutate(updatedTemplate);
-                              }}
-                              projectId={projectId}
-                              onApplyToAll={applyFormattingToAllFieldHeaders}
-                            />
-                            <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px]">
-                              {field.placeholder || "Sample content..."}
+                    {selectedPhase === 'tech' ? (
+                      /* Flexible Layout Editor for entire tech template */
+                      <FlexibleLayoutEditor
+                        projectId={parseInt(params.id)}
+                        reportType="tech"
+                        isEditing={true}
+                        template={template}
+                        onTemplateUpdate={(updatedTemplate) => {
+                          setTemplates(prev => ({
+                            ...prev,
+                            [phase]: updatedTemplate
+                          }));
+                          saveTemplate.mutate(updatedTemplate);
+                        }}
+                      />
+                    ) : (
+                      /* Standard layout for other templates */
+                      <div className="space-y-6">
+                        {template.fields
+                          .filter(field => !field.id.includes('Notes') || field.id === 'notes')
+                          .sort((a, b) => a.order - b.order)
+                          .map((field) => (
+                            <div key={field.id} className="space-y-2">
+                              <EditableFieldHeading
+                                content={field.label}
+                                onChange={(newLabel) => {
+                                  const updatedTemplate = {
+                                    ...template,
+                                    fields: template.fields.map(f =>
+                                      f.id === field.id 
+                                        ? { ...f, label: newLabel }
+                                        : f
+                                    )
+                                  };
+                                  setTemplates(prev => ({
+                                    ...prev,
+                                    [phase]: updatedTemplate
+                                  }));
+                                  saveTemplate.mutate(updatedTemplate);
+                                }}
+                                projectId={projectId}
+                                onApplyToAll={applyFormattingToAllFieldHeaders}
+                              />
+                              <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px]">
+                                {field.placeholder || "Sample content..."}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      
-                      {/* Flexible Layout Editor Section - only for tech template */}
-                      {selectedPhase === 'tech' && (
-                        <div className="space-y-6 mt-8">
-                          <div className="border-b pb-2">
-                            <div className="text-lg font-semibold text-gray-800">
-                              Flexible Template Layout
-                            </div>
-                            <p className="text-sm text-gray-600 mt-1">
-                              Drag and drop headers and notes anywhere. Resize components to fit your needs.
-                            </p>
-                          </div>
-
-                          <FlexibleLayoutEditor
-                            projectId={parseInt(params.id)}
-                            reportType="tech"
-                            isEditing={true}
-                          />
-                        </div>
-                      )}
-                    </div>
+                          ))}
+                      </div>
+                    )}
 
                     {/* Footer - Inline Editable */}
                     <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
