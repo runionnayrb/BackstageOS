@@ -183,6 +183,9 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
       priority: 'medium',
       department: department || null
     });
+    
+    // Clear the input after creating the note
+    setNewNoteContent('');
   };
 
   const handleEditNote = (note: ReportNote) => {
@@ -279,7 +282,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
           onChange={(e) => setNewNoteContent(e.target.value)}
           className="min-h-[80px] resize-none border-0 shadow-none focus:ring-0"
           onKeyDown={(e) => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+            if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
               handleAddNote();
             }
@@ -287,7 +290,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
         />
         <div className="flex justify-between items-center">
           <div className="text-xs text-muted-foreground">
-            Press Cmd/Ctrl + Enter to add note
+            Press Enter to add note, Shift + Enter for new line
           </div>
           <Button 
             onClick={handleAddNote}
