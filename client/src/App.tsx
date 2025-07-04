@@ -124,7 +124,7 @@ function Router() {
     return <WaitlistLanding />;
   }
   
-  // For dev environment, only show waitlist when explicitly visiting /landing
+  // For dev environment, only show waitlist when explicitly visiting root path
   if (isDevEnvironment && window.location.pathname === '/') {
     return <WaitlistLanding />;
   }
@@ -137,9 +137,14 @@ function Router() {
     );
   }
 
-  // Beta domain or other subdomains - require authentication
-  if (!user && (isBetaDomain || (!isMainDomain && !isJoinDomain))) {
+  // Beta domain or other subdomains - require authentication (but not for dev environment with authenticated users)
+  if (!user && (isBetaDomain || (!isMainDomain && !isJoinDomain && !isDevEnvironment))) {
     return <AuthPage />;
+  }
+
+  // For dev environment, if user exists, proceed to app routing
+  if (isDevEnvironment && user) {
+    // Continue to app routing below
   }
 
   // If authenticated but no profile type selected
