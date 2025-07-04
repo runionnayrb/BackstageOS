@@ -105,7 +105,7 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
     footer: "Next tech: {{nextTech}}\nTechnical Director: {{technicalDirector}}",
     fields: [
       { id: "date", type: "date", label: "Date", required: true, order: 1 },
-      { id: "day", type: "number", label: "Day", required: true, order: 2 },
+      { id: "day", type: "text", label: "Day", required: true, order: 2 },
       { id: "techDay", type: "number", label: "Tech Day #", required: true, order: 3 },
       { id: "sessionOverview", type: "textarea", label: "Session Overview", placeholder: "Overall goals and achievements for this tech session", required: true, order: 4 },
       { id: "cuesRun", type: "textarea", label: "Cues Rehearsed", placeholder: "Light cues 1-25, Sound cues A-M", required: true, order: 5 },

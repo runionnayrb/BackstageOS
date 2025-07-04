@@ -640,6 +640,8 @@ export default function ReportBuilder() {
                 value={currentContent[field.id] || ""}
                 onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
+                readOnly={field.id === 'day'}
+                style={field.id === 'day' ? { backgroundColor: '#f9fafb', color: '#6b7280', cursor: 'not-allowed' } : {}}
               />
             </div>
           );
@@ -683,6 +685,22 @@ export default function ReportBuilder() {
           );
           
         case 'date':
+          const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+            const selectedDate = e.target.value;
+            form.setValue(`content.${field.id}`, selectedDate);
+            
+            // Auto-populate day field if it exists
+            if (selectedDate && customTemplate?.fields) {
+              const dayField = customTemplate.fields.find((f: any) => f.id === 'day');
+              if (dayField) {
+                const date = new Date(selectedDate);
+                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const dayName = dayNames[date.getDay()];
+                form.setValue(`content.day`, dayName);
+              }
+            }
+          };
+
           return (
             <div key={field.id} className="mb-6">
               <div className="text-sm font-semibold text-gray-700 mb-2">
@@ -694,7 +712,7 @@ export default function ReportBuilder() {
                 type="date"
                 required={field.required}
                 value={currentContent[field.id] || ""}
-                onChange={(e) => form.setValue(`content.${field.id}`, e.target.value)}
+                onChange={handleDateChange}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
             </div>
