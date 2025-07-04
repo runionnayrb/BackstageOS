@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import ReportNotesManager from "@/components/report-notes-manager";
 import {
   ArrowLeft,
   Save,
@@ -423,7 +424,9 @@ export default function TemplateSettings() {
 
                       {/* Fields Preview */}
                       <div className="space-y-6">
+                        {/* Regular fields (non-department notes) */}
                         {template.fields
+                          .filter(field => !field.id.includes('Notes') || field.id === 'notes')
                           .sort((a, b) => a.order - b.order)
                           .map((field) => (
                             <div key={field.id} className="space-y-2">
@@ -435,6 +438,80 @@ export default function TemplateSettings() {
                               </div>
                             </div>
                           ))}
+                        
+                        {/* Department Notes Section - only for tech template */}
+                        {phase === 'tech' && (
+                          <div className="space-y-6 mt-8">
+                            <div className="text-lg font-semibold text-gray-800 border-b pb-2">
+                              Department Notes
+                            </div>
+                            <div className="text-sm text-gray-600 mb-4">
+                              Interactive department-specific note tracking with numbered lists and collaboration features.
+                            </div>
+                            
+                            <div className="space-y-6">
+                              <div>
+                                <div className="text-sm font-semibold text-gray-700 mb-2">
+                                  Scenic
+                                </div>
+                                <ReportNotesManager 
+                                  reportId={5} 
+                                  projectId={parseInt(params.id)}
+                                  reportType="tech"
+                                  department="scenic"
+                                />
+                              </div>
+
+                              <div>
+                                <div className="text-sm font-semibold text-gray-700 mb-2">
+                                  Lighting
+                                </div>
+                                <ReportNotesManager 
+                                  reportId={5} 
+                                  projectId={parseInt(params.id)}
+                                  reportType="tech"
+                                  department="lighting"
+                                />
+                              </div>
+
+                              <div>
+                                <div className="text-sm font-semibold text-gray-700 mb-2">
+                                  Audio
+                                </div>
+                                <ReportNotesManager 
+                                  reportId={5} 
+                                  projectId={parseInt(params.id)}
+                                  reportType="tech"
+                                  department="audio"
+                                />
+                              </div>
+
+                              <div>
+                                <div className="text-sm font-semibold text-gray-700 mb-2">
+                                  Video
+                                </div>
+                                <ReportNotesManager 
+                                  reportId={5} 
+                                  projectId={parseInt(params.id)}
+                                  reportType="tech"
+                                  department="video"
+                                />
+                              </div>
+
+                              <div>
+                                <div className="text-sm font-semibold text-gray-700 mb-2">
+                                  Props
+                                </div>
+                                <ReportNotesManager 
+                                  reportId={5} 
+                                  projectId={parseInt(params.id)}
+                                  reportType="tech"
+                                  department="props"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Footer */}
