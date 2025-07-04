@@ -25,6 +25,7 @@ interface InlineFormattingToolbarProps {
   onCancel: () => void;
   onApplyToAll?: () => void;
   applyToAllText?: string;
+  showVariables?: boolean;
 }
 
 export default function InlineFormattingToolbar({
@@ -34,6 +35,7 @@ export default function InlineFormattingToolbar({
   onCancel,
   onApplyToAll,
   applyToAllText = "Apply to All",
+  showVariables = true,
 }: InlineFormattingToolbarProps) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -306,40 +308,44 @@ export default function InlineFormattingToolbar({
         </PopoverContent>
       </Popover>
 
-      <div className="w-px h-6 bg-gray-300 mx-1" />
+      {showVariables && (
+        <>
+          <div className="w-px h-6 bg-gray-300 mx-1" />
 
-      {/* Variables */}
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-8 px-3">
-            Variables
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-48 p-2">
-          <div className="space-y-1">
-            {[
-              '{{showName}}',
-              '{{date}}',
-              '{{stageManager}}',
-              '{{reportType}}',
-              '{{pageNumber}}',
-              '{{totalPages}}'
-            ].map((variable) => (
-              <Button
-                key={variable}
-                variant="ghost"
-                size="sm"
-                onClick={() => insertVariable(variable)}
-                className="w-full justify-start text-xs"
-              >
-                {variable}
+          {/* Variables */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 px-3">
+                Variables
               </Button>
-            ))}
-          </div>
-        </PopoverContent>
-      </Popover>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-2">
+              <div className="space-y-1">
+                {[
+                  '{{showName}}',
+                  '{{date}}',
+                  '{{stageManager}}',
+                  '{{reportType}}',
+                  '{{pageNumber}}',
+                  '{{totalPages}}'
+                ].map((variable) => (
+                  <Button
+                    key={variable}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => insertVariable(variable)}
+                    className="w-full justify-start text-xs"
+                  >
+                    {variable}
+                  </Button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
 
-      <div className="w-px h-6 bg-gray-300 mx-1" />
+          <div className="w-px h-6 bg-gray-300 mx-1" />
+        </>
+      )}
 
       {/* Apply to All */}
       {onApplyToAll && (

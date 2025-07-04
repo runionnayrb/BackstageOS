@@ -209,6 +209,7 @@ export default function EditableFieldHeading({
           }
         }}
         onApplyToAll={onApplyToAll || applyFormattingToAllHeaders}
+        showVariables={false}
       />
     </>
   );
