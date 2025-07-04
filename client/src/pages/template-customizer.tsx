@@ -532,10 +532,11 @@ export default function TemplateCustomizer() {
                                     </Badge>
                                   )}
                                 </div>
-                                <div className="text-sm text-muted-foreground">
-                                  {fieldTypeInfo.label}
-                                  {field.placeholder && ` • ${field.placeholder}`}
-                                </div>
+                                {field.placeholder && (
+                                  <div className="text-sm text-muted-foreground">
+                                    {field.placeholder}
+                                  </div>
+                                )}
                               </div>
                               
                               <div className="flex items-center gap-2">
