@@ -400,41 +400,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
               )}
             </div>
 
-            {/* Quick actions */}
-            {!editingNote && (
-              <div className="flex items-center gap-2 pt-1">
-                <Select
-                  value={note.priority || 'medium'}
-                  onValueChange={(value) => handlePriorityChange(note, value)}
-                >
-                  <SelectTrigger className="h-6 w-20 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectContent>
-                </Select>
 
-                <Select
-                  value={note.assignedTo?.toString() || 'unassigned'}
-                  onValueChange={(value) => handleAssignUser(note, value === 'unassigned' ? null : parseInt(value))}
-                >
-                  <SelectTrigger className="h-6 w-32 text-xs">
-                    <SelectValue placeholder="Assign to..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="unassigned">Unassigned</SelectItem>
-                    {teamMembers.map((member) => (
-                      <SelectItem key={member.id} value={member.id.toString()}>
-                        {member.firstName} {member.lastName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
           </div>
         ))}
 
