@@ -453,12 +453,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
           </div>
         ))}
 
-        {sortedNotes.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>No notes yet for this {reportType.toLowerCase()} report.</p>
-            <p className="text-sm">Add your first note above to get started.</p>
-          </div>
-        )}
+
       </div>
     </div>
   );
