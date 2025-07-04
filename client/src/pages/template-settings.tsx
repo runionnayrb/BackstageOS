@@ -174,9 +174,7 @@ export default function TemplateSettings() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newDepartmentName, setNewDepartmentName] = useState("");
   
-  // Inline editing state
-  const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
-  const [showToolbar, setShowToolbar] = useState(false);
+
 
 
 
@@ -582,37 +580,22 @@ export default function TemplateSettings() {
                     fontFamily: "Arial, sans-serif"
                   }}>
                     {/* Header - Inline Editable */}
-                    <div className="text-center mb-6 pb-4 border-b relative group">
-                      <div 
-                        className="whitespace-pre-line text-lg font-semibold cursor-pointer hover:bg-gray-50 p-2 rounded min-h-[40px] outline-none"
-                        contentEditable
-                        suppressContentEditableWarning
-                        onClick={(e) => {
-                          setEditingElement(e.currentTarget);
-                          setShowToolbar(true);
-                          // Show raw template with variables for editing
-                          e.currentTarget.innerHTML = template.header.replace(/\n/g, '<br>');
+                    <div className="text-center mb-6 pb-4 border-b">
+                      <EditableFieldHeading
+                        content={template.header}
+                        onChange={(newHeader) => {
+                          const updatedTemplate = {
+                            ...template,
+                            header: newHeader
+                          };
+                          setTemplates(prev => ({
+                            ...prev,
+                            [phase]: updatedTemplate
+                          }));
+                          saveTemplate.mutate(updatedTemplate);
                         }}
-                        onBlur={(e) => {
-                          if (!showToolbar) {
-                            const newHeader = e.currentTarget.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
-                            setTemplates(prev => ({
-                              ...prev,
-                              [phase]: { ...prev[phase], header: newHeader }
-                            }));
-                          }
-                        }}
-                        dangerouslySetInnerHTML={{
-                          __html: template.header
-                            .replace(/\{\{showName\}\}/g, (project as any)?.name || "Show Name")
-                            .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
-                            .replace(/\{\{reportType\}\}/g, template.name)
-                            .replace(/\n/g, '<br>')
-                        }}
+                        className="text-lg font-semibold text-center"
                       />
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Badge variant="secondary" className="text-xs">Click to edit</Badge>
-                      </div>
                     </div>
 
                     {/* Fields Preview */}
@@ -780,68 +763,28 @@ export default function TemplateSettings() {
                     </div>
 
                     {/* Footer - Inline Editable */}
-                    <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600 relative group">
-                      <div 
-                        className="whitespace-pre-line cursor-pointer hover:bg-gray-50 p-2 rounded min-h-[40px] outline-none"
-                        contentEditable
-                        suppressContentEditableWarning
-                        onClick={(e) => {
-                          setEditingElement(e.currentTarget);
-                          setShowToolbar(true);
-                          // Show raw template with variables for editing
-                          e.currentTarget.innerHTML = template.footer.replace(/\n/g, '<br>');
+                    <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
+                      <EditableFieldHeading
+                        content={template.footer}
+                        onChange={(newFooter) => {
+                          const updatedTemplate = {
+                            ...template,
+                            footer: newFooter
+                          };
+                          setTemplates(prev => ({
+                            ...prev,
+                            [phase]: updatedTemplate
+                          }));
+                          saveTemplate.mutate(updatedTemplate);
                         }}
-                        onBlur={(e) => {
-                          if (!showToolbar) {
-                            const newFooter = e.currentTarget.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
-                            setTemplates(prev => ({
-                              ...prev,
-                              [phase]: { ...prev[phase], footer: newFooter }
-                            }));
-                          }
-                        }}
-                        dangerouslySetInnerHTML={{
-                          __html: template.footer
-                            .replace(/\{\{preparedBy\}\}/g, "Stage Manager")
-                            .replace(/\n/g, '<br>')
-                        }}
+                        className="text-sm text-gray-600 text-center"
                       />
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Badge variant="secondary" className="text-xs">Click to edit</Badge>
-                      </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               
-              {/* Inline Formatting Toolbar */}
-              <InlineFormattingToolbar
-                targetElement={editingElement}
-                isVisible={showToolbar}
-                onSave={() => {
-                  if (editingElement) {
-                    const isHeader = editingElement.closest('.border-b') !== null;
-                    const content = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
-                    
-                    setTemplates(prev => ({
-                      ...prev,
-                      [phase]: { 
-                        ...prev[phase], 
-                        [isHeader ? 'header' : 'footer']: content 
-                      }
-                    }));
-                  }
-                  setShowToolbar(false);
-                  setEditingElement(null);
-                }}
-                onCancel={() => {
-                  setShowToolbar(false);
-                  setEditingElement(null);
-                  if (editingElement) {
-                    editingElement.blur();
-                  }
-                }}
-              />
+
             </TabsContent>
           ))}
         </Tabs>
