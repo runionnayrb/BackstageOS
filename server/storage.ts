@@ -29,6 +29,7 @@ import {
   seoSettings,
   resolutionRecords,
   errorResolutionStatus,
+  reportNotes,
 
   type User,
   type UpsertUser,
@@ -84,6 +85,8 @@ import {
   type InsertDomainRoute,
   type SeoSettings,
   type InsertSeoSettings,
+  type ReportNote,
+  type InsertReportNote,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -151,6 +154,14 @@ export interface IStorage {
   createReportTemplate(template: InsertReportTemplate): Promise<ReportTemplate>;
   updateReportTemplate(id: number, template: Partial<InsertReportTemplate>): Promise<ReportTemplate>;
   deleteReportTemplate(id: number): Promise<void>;
+
+  // Report notes operations
+  getReportNotesByReportId(reportId: number): Promise<ReportNote[]>;
+  getReportNoteById(id: number): Promise<ReportNote | undefined>;
+  createReportNote(note: InsertReportNote): Promise<ReportNote>;
+  updateReportNote(id: number, note: Partial<InsertReportNote>): Promise<ReportNote>;
+  deleteReportNote(id: number): Promise<void>;
+  reorderReportNotes(notes: { id: number; noteOrder: number }[]): Promise<void>;
 
   // Show document operations
   getShowDocumentsByProjectId(projectId: number): Promise<ShowDocument[]>;
@@ -422,6 +433,41 @@ export class DatabaseStorage implements IStorage {
 
   async deleteReportTemplate(id: number): Promise<void> {
     await db.delete(reportTemplates).where(eq(reportTemplates.id, id));
+  }
+
+  // Report notes operations
+  async getReportNotesByReportId(reportId: number): Promise<ReportNote[]> {
+    const result = await db.select().from(reportNotes)
+      .where(eq(reportNotes.reportId, reportId))
+      .orderBy(reportNotes.noteOrder);
+    return result;
+  }
+
+  async getReportNoteById(id: number): Promise<ReportNote | undefined> {
+    const result = await db.select().from(reportNotes).where(eq(reportNotes.id, id));
+    return result[0];
+  }
+
+  async createReportNote(note: InsertReportNote): Promise<ReportNote> {
+    const result = await db.insert(reportNotes).values(note).returning();
+    return result[0];
+  }
+
+  async updateReportNote(id: number, note: Partial<InsertReportNote>): Promise<ReportNote> {
+    const result = await db.update(reportNotes).set(note).where(eq(reportNotes.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteReportNote(id: number): Promise<void> {
+    await db.delete(reportNotes).where(eq(reportNotes.id, id));
+  }
+
+  async reorderReportNotes(notes: { id: number; noteOrder: number }[]): Promise<void> {
+    for (const note of notes) {
+      await db.update(reportNotes)
+        .set({ noteOrder: note.noteOrder })
+        .where(eq(reportNotes.id, note.id));
+    }
   }
 
   async getShowDocumentsByProjectId(projectId: number): Promise<ShowDocument[]> {

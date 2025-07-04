@@ -1591,6 +1591,161 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Report notes routes
+  app.get('/api/projects/:projectId/reports/:reportId/notes', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const reportId = parseInt(req.params.reportId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check access (owner or team member)
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const report = await storage.getReportById(reportId);
+      if (!report || report.projectId !== projectId) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+
+      const notes = await storage.getReportNotesByReportId(reportId);
+      res.json(notes);
+    } catch (error) {
+      console.error("Error fetching report notes:", error);
+      res.status(500).json({ message: "Failed to fetch report notes" });
+    }
+  });
+
+  app.post('/api/projects/:projectId/reports/:reportId/notes', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const reportId = parseInt(req.params.reportId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check access (owner or team member)
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const report = await storage.getReportById(reportId);
+      if (!report || report.projectId !== projectId) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+
+      // Get current max order to ensure new note goes at the end
+      const existingNotes = await storage.getReportNotesByReportId(reportId);
+      const maxOrder = Math.max(0, ...existingNotes.map(n => n.noteOrder));
+
+      const noteData = {
+        ...req.body,
+        reportId,
+        projectId,
+        createdBy: parseInt(req.user.id),
+        noteOrder: maxOrder + 1
+      };
+
+      const note = await storage.createReportNote(noteData);
+      res.json(note);
+    } catch (error) {
+      console.error("Error creating report note:", error);
+      res.status(500).json({ message: "Failed to create report note" });
+    }
+  });
+
+  app.patch('/api/projects/:projectId/reports/:reportId/notes/:noteId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const reportId = parseInt(req.params.reportId);
+      const noteId = parseInt(req.params.noteId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check access (owner or team member)
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const note = await storage.getReportNoteById(noteId);
+      if (!note || note.reportId !== reportId || note.projectId !== projectId) {
+        return res.status(404).json({ message: "Note not found" });
+      }
+
+      const updatedNote = await storage.updateReportNote(noteId, req.body);
+      res.json(updatedNote);
+    } catch (error) {
+      console.error("Error updating report note:", error);
+      res.status(500).json({ message: "Failed to update report note" });
+    }
+  });
+
+  app.delete('/api/projects/:projectId/reports/:reportId/notes/:noteId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const reportId = parseInt(req.params.reportId);
+      const noteId = parseInt(req.params.noteId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check access (owner or team member)
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const note = await storage.getReportNoteById(noteId);
+      if (!note || note.reportId !== reportId || note.projectId !== projectId) {
+        return res.status(404).json({ message: "Note not found" });
+      }
+
+      await storage.deleteReportNote(noteId);
+      res.json({ message: "Note deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting report note:", error);
+      res.status(500).json({ message: "Failed to delete report note" });
+    }
+  });
+
+  app.patch('/api/projects/:projectId/reports/:reportId/notes/reorder', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const reportId = parseInt(req.params.reportId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check access (owner or team member)
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const report = await storage.getReportById(reportId);
+      if (!report || report.projectId !== projectId) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+
+      await storage.reorderReportNotes(req.body.notes);
+      res.json({ message: "Notes reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering report notes:", error);
+      res.status(500).json({ message: "Failed to reorder report notes" });
+    }
+  });
+
   // Report template routes (show-specific)
   app.get('/api/projects/:projectId/templates', isAuthenticated, async (req: any, res) => {
     try {

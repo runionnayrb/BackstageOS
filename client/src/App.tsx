@@ -52,6 +52,7 @@ import AutoResolutionDashboard from "@/pages/auto-resolution-dashboard";
 import AdvancedAnalyticsDashboard from "@/pages/advanced-analytics-dashboard";
 import SeoManager from "@/pages/seo-manager";
 import SEOTest from "@/pages/seo-test";
+import TestNotesPage from "@/pages/test-notes";
 
 
 function Router() {
@@ -188,6 +189,7 @@ function Router() {
         <Route path="/admin/seo" component={SeoManager} />
         <Route path="/auto-resolution-dashboard" component={AutoResolutionDashboard} />
         <Route path="/advanced-analytics-dashboard" component={AdvancedAnalyticsDashboard} />
+        <Route path="/test-notes" component={TestNotesPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

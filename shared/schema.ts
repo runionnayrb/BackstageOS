@@ -108,6 +108,22 @@ export const reportTemplates = pgTable("report_templates", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Individual report notes for tracking and follow-up
+export const reportNotes = pgTable("report_notes", {
+  id: serial("id").primaryKey(),
+  reportId: integer("report_id").notNull().references(() => reports.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  noteOrder: integer("note_order").notNull(), // Order within the report for numbered list display
+  isCompleted: boolean("is_completed").default(false),
+  priority: varchar("priority").default("medium"), // low, medium, high
+  assignedTo: integer("assigned_to").references(() => users.id),
+  dueDate: timestamp("due_date"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // New tables for show-specific documentation
 export const showDocuments = pgTable("show_documents", {
   id: serial("id").primaryKey(),
@@ -475,6 +491,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   globalTemplateSettings: many(globalTemplateSettings),
   contacts: many(contacts),
   eventLocations: many(eventLocations),
+  reportNotes: many(reportNotes),
 }));
 
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
@@ -488,7 +505,7 @@ export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
   }),
 }));
 
-export const reportsRelations = relations(reports, ({ one }) => ({
+export const reportsRelations = relations(reports, ({ one, many }) => ({
   project: one(projects, {
     fields: [reports.projectId],
     references: [projects.id],
@@ -501,6 +518,7 @@ export const reportsRelations = relations(reports, ({ one }) => ({
     fields: [reports.createdBy],
     references: [users.id],
   }),
+  notes: many(reportNotes),
 }));
 
 export const reportTemplatesRelations = relations(reportTemplates, ({ one, many }) => ({
@@ -513,6 +531,25 @@ export const reportTemplatesRelations = relations(reportTemplates, ({ one, many 
     references: [users.id],
   }),
   reports: many(reports),
+}));
+
+export const reportNotesRelations = relations(reportNotes, ({ one }) => ({
+  report: one(reports, {
+    fields: [reportNotes.reportId],
+    references: [reports.id],
+  }),
+  project: one(projects, {
+    fields: [reportNotes.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [reportNotes.createdBy],
+    references: [users.id],
+  }),
+  assignedUser: one(users, {
+    fields: [reportNotes.assignedTo],
+    references: [users.id],
+  }),
 }));
 
 export const showDocumentsRelations = relations(showDocuments, ({ one }) => ({
@@ -968,6 +1005,12 @@ export const insertReportTemplateSchema = createInsertSchema(reportTemplates).om
   updatedAt: true,
 });
 
+export const insertReportNoteSchema = createInsertSchema(reportNotes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertShowDocumentSchema = createInsertSchema(showDocuments).omit({
   id: true,
   createdAt: true,
@@ -1138,6 +1181,8 @@ export type ScheduleEvent = typeof scheduleEvents.$inferSelect;
 export type InsertScheduleEvent = z.infer<typeof insertScheduleEventSchema>;
 export type ScheduleEventParticipant = typeof scheduleEventParticipants.$inferSelect;
 export type InsertScheduleEventParticipant = z.infer<typeof insertScheduleEventParticipantSchema>;
+export type ReportNote = typeof reportNotes.$inferSelect;
+export type InsertReportNote = z.infer<typeof insertReportNoteSchema>;
 
 export const insertContactSheetVersionSchema = createInsertSchema(contactSheetVersions).omit({
   id: true,
