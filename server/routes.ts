@@ -501,16 +501,44 @@ Respond with valid JSON only.`;
             continue;
           }
 
-          // Ensure file path is safe (within project directory)
-          const safePath = path.resolve(process.cwd(), file.replace(/^\/+/, ''));
-          if (!safePath.startsWith(process.cwd())) {
-            failedChanges.push({ ...change, reason: "File path outside project directory" });
-            continue;
+          // Try to find the actual file - handle common path variations
+          let actualFilePath = file.replace(/^\/+/, '');
+          let safePath = path.resolve(process.cwd(), actualFilePath);
+          
+          if (!fs.existsSync(safePath)) {
+            // Try common variations
+            const variations = [
+              `client/${actualFilePath}`,
+              `client/src/${actualFilePath.replace('src/', '')}`,
+              actualFilePath.replace('src/', 'client/src/'),
+              actualFilePath.replace('src/components/', 'client/src/components/'),
+              actualFilePath.replace('src/pages/', 'client/src/pages/'),
+              actualFilePath.replace('src/lib/', 'client/src/lib/'),
+              actualFilePath.replace('src/', 'client/src/')
+            ];
+            
+            let found = false;
+            for (const variation of variations) {
+              const testPath = path.resolve(process.cwd(), variation);
+              if (fs.existsSync(testPath)) {
+                actualFilePath = variation;
+                safePath = testPath;
+                found = true;
+                console.log(`Found file at alternate path: ${variation}`);
+                break;
+              }
+            }
+            
+            if (!found) {
+              console.log(`File not found: ${file}, tried variations: ${variations.join(', ')}`);
+              failedChanges.push({ ...change, reason: `File does not exist: ${file}` });
+              continue;
+            }
           }
 
-          // Check if file exists
-          if (!fs.existsSync(safePath)) {
-            failedChanges.push({ ...change, reason: "File does not exist" });
+          // Ensure file path is safe (within project directory)
+          if (!safePath.startsWith(process.cwd())) {
+            failedChanges.push({ ...change, reason: "File path outside project directory" });
             continue;
           }
 
