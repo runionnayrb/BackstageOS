@@ -194,10 +194,23 @@ export default function EditableFieldHeading({
           suppressContentEditableWarning
           data-field-heading="true"
           onClick={(e) => {
-            setEditingElement(e.currentTarget);
-            setShowToolbar(true);
-            // Set content for editing
-            e.currentTarget.innerHTML = content.replace(/\n/g, '<br>');
+            // Only handle click if no text is currently selected
+            const selection = window.getSelection();
+            if (!selection || selection.toString().length === 0) {
+              setEditingElement(e.currentTarget);
+              setShowToolbar(true);
+              // Set content for editing
+              e.currentTarget.innerHTML = content.replace(/\n/g, '<br>');
+            }
+          }}
+          onDoubleClick={(e) => {
+            // Handle double-click for text selection
+            e.preventDefault();
+            const range = document.createRange();
+            range.selectNodeContents(e.currentTarget);
+            const selection = window.getSelection();
+            selection?.removeAllRanges();
+            selection?.addRange(range);
           }}
           onBlur={(e) => {
             if (!showToolbar) {
