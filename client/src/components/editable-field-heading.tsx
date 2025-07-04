@@ -225,7 +225,10 @@ export default function EditableFieldHeading({
         }}
         onApplyToAll={onApplyToAll || applyFormattingToAllHeaders}
         showVariables={false}
-        onClose={() => setShowToolbar(false)}
+        onClose={() => {
+          setShowToolbar(false);
+          setEditingElement(null);
+        }}
       />
     </>
   );

@@ -92,6 +92,45 @@ export default function InlineFormattingToolbar({
     }
   }, [isVisible, onAutoSave]);
 
+  // Handle click outside to close toolbar
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      
+      // Don't close if clicking on the toolbar itself
+      if (toolbarRef.current && toolbarRef.current.contains(target)) {
+        return;
+      }
+      
+      // Don't close if clicking on the target element
+      if (targetElement && targetElement.contains(target)) {
+        return;
+      }
+      
+      // Don't close if clicking on popover content or select dropdowns
+      if (target.closest('[role="dialog"]') || 
+          target.closest('.popover-content') ||
+          target.closest('[data-radix-popper-content-wrapper]')) {
+        return;
+      }
+      
+      // Close the toolbar
+      if (onClose) {
+        onClose();
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isVisible, targetElement, onClose]);
+
   const updateActiveStates = () => {
     if (!targetElement) return;
     

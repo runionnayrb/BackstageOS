@@ -212,7 +212,10 @@ export default function EditableHeaderFooter({
         }}
         onApplyToAll={applyFormatting}
         applyToAllText={`Apply to All ${type.charAt(0).toUpperCase() + type.slice(1)}s`}
-        onClose={() => setShowToolbar(false)}
+        onClose={() => {
+          setShowToolbar(false);
+          setEditingElement(null);
+        }}
       />
     </>
   );
