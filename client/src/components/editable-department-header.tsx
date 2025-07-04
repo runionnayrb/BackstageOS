@@ -263,7 +263,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     }, 50);
   };
 
-  if (isEditing) {
+  if (isEditingText && isEditing) {
     return (
       <div className="relative mb-2">
         {/* Formatting Toolbar */}
