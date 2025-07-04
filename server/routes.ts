@@ -1861,6 +1861,8 @@ Respond with valid JSON only.`;
   app.get("/api/projects/:id/settings", isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
+      console.log(`🎨 GET /api/projects/${projectId}/settings - Backend endpoint hit`);
+      
       const project = await storage.getProjectById(projectId);
       
       if (!project) {
@@ -1873,15 +1875,18 @@ Respond with valid JSON only.`;
       }
 
       let settings = await storage.getShowSettingsByProjectId(projectId);
+      console.log(`🎨 Retrieved settings from database:`, settings);
       
       if (!settings) {
         // Create default settings if none exist
+        console.log(`🎨 Creating default settings for project ${projectId}`);
         settings = await storage.upsertShowSettings({
           projectId,
           createdBy: req.user.id.toString(),
         });
       }
       
+      console.log(`🎨 Returning settings:`, settings);
       res.json(settings);
     } catch (error) {
       console.error("Error fetching show settings:", error);
