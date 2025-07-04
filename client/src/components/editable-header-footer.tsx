@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +28,27 @@ export default function EditableHeaderFooter({
     queryKey: ['/api/projects', projectId, 'settings'],
     enabled: !!projectId
   });
+
+  // Query to fetch project data for variable replacement
+  const { data: project } = useQuery({
+    queryKey: [`/api/projects/${projectId}`],
+    enabled: !!projectId
+  });
+
+  // Process content and replace variables with actual values for display
+  const processRichContent = useCallback((content: string): string => {
+    if (!content) return '';
+    
+    return content
+      .replace(/\{\{showName\}\}/g, (project as any)?.name || 'Show Name')
+      .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
+      .replace(/\{\{stageManager\}\}/g, 'Stage Manager')
+      .replace(/\{\{techDay\}\}/g, '1')
+      .replace(/\{\{nextTech\}\}/g, 'Next Tech Session')
+      .replace(/\{\{technicalDirector\}\}/g, 'Technical Director')
+      .replace(/\{\{pageNumber\}\}/g, '1')
+      .replace(/\{\{totalPages\}\}/g, '1');
+  }, [project]);
 
   // Apply saved header/footer formatting when component mounts or settings change
   useEffect(() => {
@@ -184,17 +205,19 @@ export default function EditableHeaderFooter({
           onClick={(e) => {
             setEditingElement(e.currentTarget);
             setShowToolbar(true);
-            // Set content for editing
+            // Set raw content for editing (with variables)
             e.currentTarget.innerHTML = content.replace(/\n/g, '<br>');
           }}
           onBlur={(e) => {
             if (!showToolbar) {
               const newContent = e.currentTarget.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
               onChange(newContent);
+              // After saving, show processed content again
+              e.currentTarget.innerHTML = processRichContent(newContent).replace(/\n/g, '<br>');
             }
           }}
           dangerouslySetInnerHTML={{
-            __html: content.replace(/\n/g, '<br>')
+            __html: processRichContent(content).replace(/\n/g, '<br>')
           }}
         />
       </div>
@@ -208,11 +231,20 @@ export default function EditableHeaderFooter({
             const content = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
             onChange(content);
             handleAutoSave(); // Auto-save formatting changes
+            // Update display to show processed content
+            editingElement.innerHTML = processRichContent(content).replace(/\n/g, '<br>');
           }
         }}
         onApplyToAll={applyFormatting}
         applyToAllText={`Apply to All ${type.charAt(0).toUpperCase() + type.slice(1)}s`}
         onClose={() => {
+          if (editingElement) {
+            // Get the current content and save it
+            const currentContent = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
+            onChange(currentContent);
+            // Update display to show processed content
+            editingElement.innerHTML = processRichContent(currentContent).replace(/\n/g, '<br>');
+          }
           setShowToolbar(false);
           setEditingElement(null);
         }}
