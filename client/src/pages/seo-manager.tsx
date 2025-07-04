@@ -261,10 +261,11 @@ function SeoManagerContent() {
     const tests = [];
     let allPassed = true;
 
+    // Show single "running tests" notification
+    toast({ title: "Running SEO & Connectivity Tests...", description: "Testing all components" });
+
     try {
       // Test 1: Internet connectivity
-      toast({ title: "Running connectivity tests...", description: "Testing internet connection" });
-      
       const connectivityResponse = await fetch('https://httpbin.org/json');
       const connectivityData = await connectivityResponse.json();
       tests.push({
@@ -283,8 +284,6 @@ function SeoManagerContent() {
 
     try {
       // Test 2: SEO Meta Tags Verification
-      toast({ title: "Testing SEO meta tags...", description: "Checking if meta tags are served correctly" });
-      
       const currentUrl = window.location.origin;
       const metaResponse = await fetch(currentUrl);
       const htmlContent = await metaResponse.text();
@@ -328,8 +327,6 @@ function SeoManagerContent() {
 
     try {
       // Test 3: Share Image Accessibility
-      toast({ title: "Testing share image...", description: "Verifying share image is accessible" });
-      
       const shareImageUrl = `${window.location.origin}/uploads/shareImage-1751581407362.png`;
       const imageResponse = await fetch(shareImageUrl, { method: 'HEAD' });
       
@@ -360,8 +357,6 @@ function SeoManagerContent() {
 
     try {
       // Test 4: Social Media Indexability 
-      toast({ title: "Testing social indexability...", description: "Checking social media crawler compatibility" });
-      
       const currentUrl = window.location.origin;
       const crawlerResponse = await fetch(currentUrl, {
         headers: {
@@ -404,13 +399,16 @@ function SeoManagerContent() {
       allPassed = false;
     }
 
-    // Display comprehensive results
-    const resultsText = tests.map(test => `${test.status} ${test.name}: ${test.details}`).join('\n');
+    // Create single comprehensive results notification
+    const passedCount = tests.filter(test => test.status.includes("PASS")).length;
+    const totalTests = tests.length;
+    const resultsDescription = tests.map(test => `${test.status} ${test.name}`).join(' • ');
     
     toast({
-      title: allPassed ? "All SEO Tests Passed!" : "SEO Tests Completed with Issues",
-      description: allPassed ? "Your SEO configuration is working correctly" : "Some issues found - check results below",
-      variant: allPassed ? "default" : "destructive"
+      title: allPassed ? `All ${totalTests} SEO Tests Passed!` : `SEO Tests Complete: ${passedCount}/${totalTests} Passed`,
+      description: resultsDescription,
+      variant: allPassed ? "default" : "destructive",
+      duration: 8000 // Longer duration for comprehensive results
     });
 
     // Log detailed results to console for debugging
