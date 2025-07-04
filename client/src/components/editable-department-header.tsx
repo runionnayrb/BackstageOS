@@ -95,10 +95,12 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     style.borderBottom = formatting.borderBottom ? `${formatting.borderWeight} solid ${formatting.borderColor}` : 'none';
     style.borderLeft = formatting.borderLeft ? `${formatting.borderWeight} solid ${formatting.borderColor}` : 'none';
     
-    style.padding = '4px 8px';
-    style.minHeight = '24px';
-    style.display = 'inline-block';
-    style.minWidth = '60px';
+    // Full width styling
+    style.padding = '8px 12px';
+    style.minHeight = '28px';
+    style.display = 'block';
+    style.width = '100%';
+    style.boxSizing = 'border-box';
   };
 
   const updateFormatting = (key: keyof HeaderFormatting, value: any) => {
@@ -443,10 +445,27 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           ref={editableRef}
           contentEditable
           suppressContentEditableWarning
-          className="text-sm font-semibold text-gray-700 outline-none cursor-text"
+          className="outline-none cursor-text w-full"
           style={{
             border: '2px solid #3b82f6',
-            borderRadius: '4px'
+            borderRadius: '4px',
+            fontWeight: formatting.bold ? 'bold' : 'normal',
+            fontStyle: formatting.italic ? 'italic' : 'normal',
+            textDecoration: formatting.underline ? 'underline' : 'none',
+            textAlign: formatting.textAlign,
+            fontFamily: formatting.fontFamily,
+            fontSize: formatting.fontSize,
+            color: formatting.textColor,
+            backgroundColor: formatting.backgroundColor,
+            borderTop: formatting.borderTop ? `${formatting.borderWeight} solid ${formatting.borderColor}` : '2px solid #3b82f6',
+            borderRight: formatting.borderRight ? `${formatting.borderWeight} solid ${formatting.borderColor}` : '2px solid #3b82f6',
+            borderBottom: formatting.borderBottom ? `${formatting.borderWeight} solid ${formatting.borderColor}` : '2px solid #3b82f6',
+            borderLeft: formatting.borderLeft ? `${formatting.borderWeight} solid ${formatting.borderColor}` : '2px solid #3b82f6',
+            padding: '8px 12px',
+            minHeight: '28px',
+            display: 'block',
+            width: '100%',
+            boxSizing: 'border-box'
           }}
           onBlur={(e) => {
             const newText = e.currentTarget.textContent?.trim() || '';
@@ -460,10 +479,30 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   }
 
   return (
-    <div className="flex items-center gap-2 mb-2 group">
+    <div className="mb-2 group relative">
       <div 
-        className="text-sm font-semibold text-gray-700 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded"
+        className="cursor-pointer hover:opacity-80 transition-opacity w-full"
         onClick={handleHeaderClick}
+        style={{
+          fontWeight: formatting.bold ? 'bold' : 'normal',
+          fontStyle: formatting.italic ? 'italic' : 'normal',
+          textDecoration: formatting.underline ? 'underline' : 'none',
+          textAlign: formatting.textAlign,
+          fontFamily: formatting.fontFamily,
+          fontSize: formatting.fontSize,
+          color: formatting.textColor,
+          backgroundColor: formatting.backgroundColor,
+          borderTop: formatting.borderTop ? `${formatting.borderWeight} solid ${formatting.borderColor}` : 'none',
+          borderRight: formatting.borderRight ? `${formatting.borderWeight} solid ${formatting.borderColor}` : 'none',
+          borderBottom: formatting.borderBottom ? `${formatting.borderWeight} solid ${formatting.borderColor}` : 'none',
+          borderLeft: formatting.borderLeft ? `${formatting.borderWeight} solid ${formatting.borderColor}` : 'none',
+          padding: '8px 12px',
+          minHeight: '28px',
+          display: 'block',
+          width: '100%',
+          boxSizing: 'border-box',
+          borderRadius: '4px'
+        }}
       >
         {displayName}
       </div>
@@ -471,7 +510,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
         size="sm"
         variant="ghost"
         onClick={handleHeaderClick}
-        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-1"
       >
         <Edit2 className="h-3 w-3" />
       </Button>
