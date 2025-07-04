@@ -21,7 +21,6 @@ export default function EditableFieldHeading({
 }: EditableFieldHeadingProps) {
   const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
-  const [skipAutoSave, setSkipAutoSave] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -93,7 +92,7 @@ export default function EditableFieldHeading({
   });
 
   const handleAutoSave = () => {
-    if (editingElement && !skipAutoSave) {
+    if (editingElement) {
       // Get all computed styles from the current element
       const computedStyle = window.getComputedStyle(editingElement);
       const formatting = {
@@ -208,15 +207,16 @@ export default function EditableFieldHeading({
         description: "Formatting applied to all headers (field and department headers)",
       });
 
-      // Set flag to skip auto-save and close the toolbar after successful update
-      setSkipAutoSave(true);
+      // Close the toolbar after successful update
       setShowToolbar(false);
       setEditingElement(null);
       
-      // Reset the skip flag after a short delay
-      setTimeout(() => {
-        setSkipAutoSave(false);
-      }, 100);
+      // Trigger auto-save to ensure the formatting persists
+      if (editingElement) {
+        setTimeout(() => {
+          handleAutoSave();
+        }, 50);
+      }
 
     } catch (error) {
       console.error('Error applying formatting to all headers:', error);
@@ -256,7 +256,7 @@ export default function EditableFieldHeading({
             selection?.addRange(range);
           }}
           onBlur={(e) => {
-            if (!showToolbar && !skipAutoSave) {
+            if (!showToolbar) {
               const newContent = e.currentTarget.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
               onChange(newContent);
             }
