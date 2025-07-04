@@ -28,7 +28,7 @@ export default function EditableFieldHeading({
   console.log('🔍 EditableFieldHeading mounted with onApplyToAll:', !!onApplyToAll);
 
   // Query to fetch show settings including field header formatting
-  const { data: showSettings } = useQuery({
+  const { data: showSettings } = useQuery<any>({
     queryKey: ['/api/projects', projectId, 'settings'],
     enabled: !!projectId
   });
@@ -95,7 +95,19 @@ export default function EditableFieldHeading({
     console.log('🔥🔥🔥 FIELD HEADING APPLY TO ALL CLICKED!!! 🔥🔥🔥');
     console.error('🔥🔥🔥 FIELD HEADING APPLY TO ALL CLICKED!!! 🔥🔥🔥');
     console.warn('🔥🔥🔥 FIELD HEADING APPLY TO ALL CLICKED!!! 🔥🔥🔥');
-    alert('🔥 FIELD HEADING Apply to All function called! 🔥');
+    
+    console.log('🔍 Debug info:', {
+      projectId,
+      editingElement: !!editingElement,
+      hasUpdateMutation: !!updateFieldHeaderFormattingMutation,
+      showSettings: !!showSettings
+    });
+    
+    if (!projectId) {
+      console.error('❌ No project ID available');
+      alert('❌ No project ID available');
+      return;
+    }
     
     if (!editingElement) {
       console.log('❌ No editing element');
@@ -123,15 +135,40 @@ export default function EditableFieldHeading({
     // Use the database-backed mutation to apply formatting to all field headers
     console.log('🚀 About to call mutation with data:', { formatting, applyToAll: true, projectId });
     
+    // Test direct fetch approach instead of mutation
     try {
-      updateFieldHeaderFormattingMutation.mutate({ 
-        formatting, 
-        applyToAll: true 
+      console.log('🧪 Testing direct fetch call');
+      fetch(`/api/projects/${projectId}/settings/field-header-formatting`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          formatting,
+          applyToAll: true
+        }),
+      })
+      .then(response => {
+        console.log('✅ Direct fetch response:', response.status);
+        if (response.ok) {
+          alert('✅ Direct fetch successful!');
+          // Refresh the page to apply formatting
+          window.location.reload();
+        } else {
+          return response.text().then(text => {
+            console.error('❌ Direct fetch error:', text);
+            alert('❌ Direct fetch error: ' + text);
+          });
+        }
+      })
+      .catch(error => {
+        console.error('❌ Direct fetch catch error:', error);
+        alert('❌ Direct fetch catch error: ' + error.message);
       });
-      console.log('✅ Mutation called successfully');
     } catch (error) {
-      console.error('❌ Error calling mutation:', error);
-      alert('❌ Error calling mutation: ' + error.message);
+      console.error('❌ Error in try block:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      alert('❌ Error in try block: ' + errorMessage);
     }
   };
 
