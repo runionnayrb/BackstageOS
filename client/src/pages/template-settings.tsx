@@ -506,8 +506,8 @@ export default function TemplateSettings() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
             <Button
               variant="ghost"
               size="sm"
@@ -517,14 +517,7 @@ export default function TemplateSettings() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Reports
             </Button>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Report Templates</h1>
-              <p className="text-gray-600 mt-1">
-                Customize report templates for each production phase
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2">
+            <div className="flex gap-2">
             <Button
               variant="outline"
               onClick={() => setLocation(`/shows/${projectId}/global-template-settings`)}
@@ -550,7 +543,9 @@ export default function TemplateSettings() {
                 Save Template
               </Button>
             )}
+            </div>
           </div>
+          <h1 className="text-3xl font-bold text-gray-900">Report Templates</h1>
         </div>
 
         <Tabs value={selectedPhase} onValueChange={setSelectedPhase} className="space-y-6">
