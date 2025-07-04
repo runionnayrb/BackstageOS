@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import ReportNotesManager from "@/components/report-notes-manager";
 import EditableDepartmentHeader from "@/components/editable-department-header";
+import InlineFormattingToolbar from "@/components/inline-formatting-toolbar";
 import { getAllDepartmentNames, type DepartmentKey } from "@/utils/departmentUtils";
 import type { ShowSettings } from "@/../../shared/schema";
 import {
@@ -162,7 +163,6 @@ export default function TemplateSettings() {
   const projectId = params.id;
   
   const [selectedPhase, setSelectedPhase] = useState<string>("meetings");
-  const [isEditing, setIsEditing] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [templates, setTemplates] = useState<Record<string, ProductionTemplate>>({});
   
@@ -172,6 +172,10 @@ export default function TemplateSettings() {
   const [departments, setDepartments] = useState<Array<{ key: DepartmentKey; displayName: string }>>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newDepartmentName, setNewDepartmentName] = useState("");
+  
+  // Inline editing state
+  const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
+  const [showToolbar, setShowToolbar] = useState(false);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -469,7 +473,6 @@ export default function TemplateSettings() {
         title: "Template Saved",
         description: "Template configuration saved successfully",
       });
-      setIsEditing(false);
       // Refetch templates to get updated data
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
     },
@@ -528,16 +531,7 @@ export default function TemplateSettings() {
               <Plus className="h-4 w-4" />
               Create New Template
             </Button>
-            {isEditing && (
-              <Button
-                onClick={() => saveTemplate.mutate(currentTemplate)}
-                disabled={saveTemplate.isPending}
-                className="flex items-center gap-2"
-              >
-                <Save className="h-4 w-4" />
-                Save Template
-              </Button>
-            )}
+
             </div>
           </div>
           <h1 className="text-3xl font-bold text-gray-900">Report Templates</h1>
@@ -556,360 +550,280 @@ export default function TemplateSettings() {
 
           {Object.entries(templates).map(([phase, template]) => (
             <TabsContent key={phase} value={phase} className="space-y-6">
-              {!isEditing ? (
-                // Preview Mode (Default)
-                <Card className="min-h-[600px]">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="flex items-center gap-2">
-                          <FileText className="h-5 w-5" />
-                          {template.name}
-                        </CardTitle>
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsEditing(true)}
-                      >
-                        <Edit3 className="h-4 w-4 mr-2" />
-                        Edit
-                      </Button>
+              {/* Always show inline editable preview mode */}
+              <Card className="min-h-[600px]">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <FileText className="h-5 w-5" />
+                        {template.name}
+                      </CardTitle>
                     </div>
-                  </CardHeader>
-                  <CardContent className="p-8">
-                    {/* Document-style Preview */}
-                    <div className="bg-white min-h-[500px] shadow-lg border border-gray-200 mx-auto" style={{ 
-                      width: "8.5in", 
-                      padding: "1in",
-                      fontFamily: "Arial, sans-serif"
-                    }}>
-                      {/* Header */}
-                      <div className="text-center mb-6 pb-4 border-b">
-                        <div className="whitespace-pre-line text-lg font-semibold">
-                          {template.header.replace(/\{\{showName\}\}/g, (project as any)?.name || "Show Name")
-                                         .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
-                                         .replace(/\{\{reportType\}\}/g, template.name)}
-                        </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => saveTemplate.mutate(template)}
+                      disabled={saveTemplate.isPending}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {saveTemplate.isPending ? "Saving..." : "Save"}
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-8">
+                  {/* Document-style Preview */}
+                  <div className="bg-white min-h-[500px] shadow-lg border border-gray-200 mx-auto" style={{ 
+                    width: "8.5in", 
+                    padding: "1in",
+                    fontFamily: "Arial, sans-serif"
+                  }}>
+                    {/* Header - Inline Editable */}
+                    <div className="text-center mb-6 pb-4 border-b relative group">
+                      <div 
+                        className="whitespace-pre-line text-lg font-semibold cursor-pointer hover:bg-gray-50 p-2 rounded min-h-[40px] outline-none"
+                        contentEditable
+                        suppressContentEditableWarning
+                        onClick={(e) => {
+                          setEditingElement(e.currentTarget);
+                          setShowToolbar(true);
+                          // Show raw template with variables for editing
+                          e.currentTarget.innerHTML = template.header.replace(/\n/g, '<br>');
+                        }}
+                        onBlur={(e) => {
+                          if (!showToolbar) {
+                            const newHeader = e.currentTarget.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
+                            setTemplates(prev => ({
+                              ...prev,
+                              [phase]: { ...prev[phase], header: newHeader }
+                            }));
+                          }
+                        }}
+                        dangerouslySetInnerHTML={{
+                          __html: template.header
+                            .replace(/\{\{showName\}\}/g, (project as any)?.name || "Show Name")
+                            .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
+                            .replace(/\{\{reportType\}\}/g, template.name)
+                            .replace(/\n/g, '<br>')
+                        }}
+                      />
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Badge variant="secondary" className="text-xs">Click to edit</Badge>
                       </div>
+                    </div>
 
-                      {/* Fields Preview */}
-                      <div className="space-y-6">
-                        {/* Regular fields (non-department notes) */}
-                        {template.fields
-                          .filter(field => !field.id.includes('Notes') || field.id === 'notes')
-                          .sort((a, b) => a.order - b.order)
-                          .map((field) => (
-                            <div key={field.id} className="space-y-2">
-                              <label className="text-sm font-medium text-gray-700">
-                                {field.label}
-                              </label>
-                              <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px]">
-                                {field.placeholder || "Sample content..."}
-                              </div>
+                    {/* Fields Preview */}
+                    <div className="space-y-6">
+                      {/* Regular fields (non-department notes) */}
+                      {template.fields
+                        .filter(field => !field.id.includes('Notes') || field.id === 'notes')
+                        .sort((a, b) => a.order - b.order)
+                        .map((field) => (
+                          <div key={field.id} className="space-y-2">
+                            <label className="text-sm font-medium text-gray-700">
+                              {field.label}
+                            </label>
+                            <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px]">
+                              {field.placeholder || "Sample content..."}
                             </div>
-                          ))}
-                        
-                        
-                        {/* Department Notes Section - only for tech template */}
-                        {selectedPhase === 'tech' && (
-                          <div className="space-y-6 mt-8 border-t pt-6">
-                            <div className="flex items-center justify-between border-b pb-2">
-                              <div className="text-lg font-semibold text-gray-800">
-                                Department Notes
-                              </div>
-                              <div className="flex gap-2">
-                                {isEditing && (
-                                  <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-                                    <DialogTrigger asChild>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="text-xs"
-                                      >
-                                        <Plus className="h-3 w-3 mr-1" />
-                                        Add
-                                      </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                      <DialogHeader>
-                                        <DialogTitle>Add Department</DialogTitle>
-                                      </DialogHeader>
-                                      <div className="space-y-4">
-                                        <div>
-                                          <Label htmlFor="department-name">Department Name</Label>
-                                          <Input
-                                            id="department-name"
-                                            value={newDepartmentName}
-                                            onChange={(e) => setNewDepartmentName(e.target.value)}
-                                            placeholder="Enter department name..."
-                                          />
-                                        </div>
-                                      </div>
-                                      <DialogFooter>
-                                        <Button
-                                          variant="outline"
-                                          onClick={() => {
-                                            setShowAddDialog(false);
-                                            setNewDepartmentName("");
-                                          }}
-                                        >
-                                          Cancel
-                                        </Button>
-                                        <Button
-                                          onClick={addDepartment}
-                                          disabled={!newDepartmentName.trim()}
-                                        >
-                                          Add Department
-                                        </Button>
-                                      </DialogFooter>
-                                    </DialogContent>
-                                  </Dialog>
-                                )}
-                                {isEditing && (
+                          </div>
+                        ))}
+                      
+                      {/* Department Notes Section - only for tech template */}
+                      {selectedPhase === 'tech' && (
+                        <div className="space-y-6 mt-8 border-t pt-6">
+                          <div className="flex items-center justify-between border-b pb-2">
+                            <div className="text-lg font-semibold text-gray-800">
+                              Department Notes
+                            </div>
+                            <div className="flex gap-2">
+                              <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+                                <DialogTrigger asChild>
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => setIsReordering(!isReordering)}
-                                    disabled={saveDepartmentOrderMutation.isPending}
                                     className="text-xs"
                                   >
-                                    {saveDepartmentOrderMutation.isPending 
-                                      ? "Saving..." 
-                                      : (isReordering ? "Done Reordering" : "Re-order")
-                                    }
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    Add
                                   </Button>
-                                )}
-                              </div>
-                            </div>
-                            <div className="text-sm text-gray-600 mb-4">
-                              Interactive department-specific note tracking with numbered lists and collaboration features.
-                            </div>
-                            
-                            <div className="space-y-6" key={departments.map(d => d.key).join('-')}>
-                              {departments.map(({ key, displayName }, index) => (
-                                <div 
-                                  key={`${key}-${index}`}
-                                  draggable={isEditing && isReordering}
-                                  onDragStart={isEditing ? (e) => handleDragStart(e, index) : undefined}
-                                  onDragOver={isEditing ? (e) => handleDragOver(e, index) : undefined}
-                                  onDragEnd={isEditing ? handleDragEnd : undefined}
-                                  className={`
-                                    relative group
-                                    ${isEditing && isReordering ? 'cursor-move' : ''}
-                                    ${draggedIndex === index ? 'bg-blue-50 border-blue-200' : ''}
-                                  `}
-                                >
-                                  {isEditing && isReordering && (
-                                    <div className="absolute left-0 top-2 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                                      <GripVertical className="h-4 w-4" />
-                                    </div>
-                                  )}
-                                  <div className={isEditing && isReordering ? 'pl-6' : ''}>
-                                    <div className="relative">
-                                      <EditableDepartmentHeader
-                                        projectId={parseInt(params.id)}
-                                        department={key}
-                                        displayName={displayName}
-                                        isEditing={isEditing}
-                                        onNameChange={(newName) => {
-                                          // Invalidate the show settings query to refetch updated names
-                                          queryClient.invalidateQueries({
-                                            queryKey: [`/api/projects/${projectId}/settings`]
-                                          });
-                                        }}
-                                        onFormattingChange={(formatting) => {
-                                          // Invalidate the show settings query to refetch updated formatting
-                                          queryClient.invalidateQueries({
-                                            queryKey: [`/api/projects/${projectId}/settings`]
-                                          });
-                                        }}
+                                </DialogTrigger>
+                                <DialogContent>
+                                  <DialogHeader>
+                                    <DialogTitle>Add Department</DialogTitle>
+                                  </DialogHeader>
+                                  <div className="space-y-4">
+                                    <div>
+                                      <Label htmlFor="department-name">Department Name</Label>
+                                      <Input
+                                        id="department-name"
+                                        value={newDepartmentName}
+                                        onChange={(e) => setNewDepartmentName(e.target.value)}
+                                        placeholder="Enter department name..."
                                       />
-                                      {isEditing && (
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => removeDepartment(key)}
-                                          className="absolute right-0 top-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
-                                        >
-                                          <X className="h-3 w-3" />
-                                        </Button>
-                                      )}
                                     </div>
-                                    <ReportNotesManager 
-                                      reportId={5} 
-                                      projectId={parseInt(params.id)}
-                                      reportType="tech"
-                                      department={key}
-                                      isEditing={isEditing}
-                                    />
                                   </div>
-                                </div>
-                              ))}
+                                  <DialogFooter>
+                                    <Button
+                                      variant="outline"
+                                      onClick={() => {
+                                        setShowAddDialog(false);
+                                        setNewDepartmentName("");
+                                      }}
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      onClick={addDepartment}
+                                      disabled={!newDepartmentName.trim()}
+                                    >
+                                      Add Department
+                                    </Button>
+                                  </DialogFooter>
+                                </DialogContent>
+                              </Dialog>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsReordering(!isReordering)}
+                                disabled={saveDepartmentOrderMutation.isPending}
+                                className="text-xs"
+                              >
+                                {saveDepartmentOrderMutation.isPending 
+                                  ? "Saving..." 
+                                  : (isReordering ? "Done Reordering" : "Re-order")
+                                }
+                              </Button>
                             </div>
                           </div>
-                        )}
-                      </div>
-
-                      {/* Footer */}
-                      <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
-                        <div className="whitespace-pre-line">
-                          {template.footer.replace(/\{\{preparedBy\}\}/g, "Stage Manager")}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                // Edit Mode
-                <Card className="min-h-[600px]">
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 space-y-2">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-5 w-5" />
-                          <Input
-                            value={template.name}
-                            onChange={(e) => setTemplates(prev => ({
-                              ...prev,
-                              [phase]: { ...prev[phase], name: e.target.value }
-                            }))}
-                            className="text-xl font-semibold border-0 bg-transparent p-0 focus:ring-0 focus:outline-none h-auto flex-1"
-                            placeholder="Template name"
-                          />
-                        </div>
-                        <Textarea
-                          value={template.description}
-                          onChange={(e) => setTemplates(prev => ({
-                            ...prev,
-                            [phase]: { ...prev[phase], description: e.target.value }
-                          }))}
-                          className="text-sm text-muted-foreground border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none min-h-[40px]"
-                          placeholder="Template description"
-                        />
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setIsEditing(false)}
-                      >
-                        <Edit3 className="h-4 w-4 mr-2" />
-                        Done Editing
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-8">
-                    {/* Document-style Edit Mode */}
-                    <div className="bg-white min-h-[500px] shadow-lg border border-gray-200 mx-auto" style={{ 
-                      width: "8.5in", 
-                      padding: "1in",
-                      fontFamily: "Arial, sans-serif"
-                    }}>
-                      {/* Editable Header */}
-                      <div className="text-center mb-6 pb-4 border-b">
-                        <Textarea
-                          value={template.header}
-                          onChange={(e) => setTemplates(prev => ({
-                            ...prev,
-                            [phase]: { ...prev[phase], header: e.target.value }
-                          }))}
-                          className="text-center text-lg font-semibold border-0 bg-transparent resize-none whitespace-pre-line p-0 focus:ring-0 focus:outline-none"
-                          placeholder="{{showName}} - {{reportType}}&#10;{{date}}"
-                        />
-                      </div>
-
-                      {/* Editable Fields */}
-                      <div className="space-y-6">
-                        {template.fields
-                          .sort((a, b) => a.order - b.order)
-                          .map((field, index) => (
-                            <div key={field.id} className="space-y-2 relative group">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 flex-1">
-                                  <Input
-                                    value={field.label}
-                                    onChange={(e) => updateField(field.id, { label: e.target.value })}
-                                    className="text-sm font-medium border-0 bg-transparent p-0 focus:ring-0 focus:outline-none h-auto flex-1"
-                                    placeholder="Field label"
-                                  />
-                                </div>
-                                <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => moveField(field.id, "up")}
-                                    disabled={index === 0}
-                                    className="h-6 w-6 p-0"
-                                  >
-                                    ↑
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => moveField(field.id, "down")}
-                                    disabled={index === template.fields.length - 1}
-                                    className="h-6 w-6 p-0"
-                                  >
-                                    ↓
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => deleteField(field.id)}
-                                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              </div>
-                              <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px] relative">
-                                {field.type === "textarea" ? (
-                                  <Textarea
-                                    value={field.placeholder || ""}
-                                    onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
-                                    className="border-0 p-0 h-auto text-sm bg-transparent focus:ring-0 focus:outline-none resize-none min-h-[60px]"
-                                    placeholder="Field placeholder text..."
-                                  />
-                                ) : (
-                                  <Input
-                                    value={field.placeholder || ""}
-                                    onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
-                                    className="border-0 p-0 h-auto text-sm bg-transparent focus:ring-0 focus:outline-none"
-                                    placeholder="Field placeholder text..."
-                                  />
+                          <div className="text-sm text-gray-600 mb-4">
+                            Interactive department-specific note tracking with numbered lists and collaboration features.
+                          </div>
+                          
+                          <div className="space-y-6" key={departments.map(d => d.key).join('-')}>
+                            {departments.map(({ key, displayName }, index) => (
+                              <div 
+                                key={`${key}-${index}`}
+                                draggable={isReordering}
+                                onDragStart={(e) => handleDragStart(e, index)}
+                                onDragOver={(e) => handleDragOver(e, index)}
+                                onDragEnd={handleDragEnd}
+                                className={`
+                                  relative group
+                                  ${isReordering ? 'cursor-move' : ''}
+                                  ${draggedIndex === index ? 'bg-blue-50 border-blue-200' : ''}
+                                `}
+                              >
+                                {isReordering && (
+                                  <div className="absolute left-0 top-2 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <GripVertical className="h-4 w-4" />
+                                  </div>
                                 )}
+                                <div className={isReordering ? 'pl-6' : ''}>
+                                  <div className="relative">
+                                    <EditableDepartmentHeader
+                                      projectId={parseInt(params.id)}
+                                      department={key}
+                                      displayName={displayName}
+                                      isEditing={true}
+                                      onNameChange={(newName) => {
+                                        queryClient.invalidateQueries({
+                                          queryKey: [`/api/projects/${projectId}/settings`]
+                                        });
+                                      }}
+                                      onFormattingChange={(formatting) => {
+                                        queryClient.invalidateQueries({
+                                          queryKey: [`/api/projects/${projectId}/settings`]
+                                        });
+                                      }}
+                                    />
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => removeDepartment(key)}
+                                      className="absolute right-0 top-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                  <ReportNotesManager 
+                                    reportId={5} 
+                                    projectId={parseInt(params.id)}
+                                    reportType="tech"
+                                    department={key}
+                                    isEditing={true}
+                                  />
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                        
-                        <div className="text-center pt-4">
-                          <Button
-                            variant="outline"
-                            onClick={addField}
-                            className="w-full border-dashed"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Field
-                          </Button>
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
+                    </div>
 
-                      {/* Editable Footer */}
-                      <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
-                        <Textarea
-                          value={template.footer}
-                          onChange={(e) => setTemplates(prev => ({
-                            ...prev,
-                            [phase]: { ...prev[phase], footer: e.target.value }
-                          }))}
-                          className="text-center text-sm text-gray-600 border-0 bg-transparent resize-none whitespace-pre-line p-0 focus:ring-0 focus:outline-none"
-                          placeholder="Prepared by: {{preparedBy}}"
-                        />
+                    {/* Footer - Inline Editable */}
+                    <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600 relative group">
+                      <div 
+                        className="whitespace-pre-line cursor-pointer hover:bg-gray-50 p-2 rounded min-h-[40px] outline-none"
+                        contentEditable
+                        suppressContentEditableWarning
+                        onClick={(e) => {
+                          setEditingElement(e.currentTarget);
+                          setShowToolbar(true);
+                          // Show raw template with variables for editing
+                          e.currentTarget.innerHTML = template.footer.replace(/\n/g, '<br>');
+                        }}
+                        onBlur={(e) => {
+                          if (!showToolbar) {
+                            const newFooter = e.currentTarget.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
+                            setTemplates(prev => ({
+                              ...prev,
+                              [phase]: { ...prev[phase], footer: newFooter }
+                            }));
+                          }
+                        }}
+                        dangerouslySetInnerHTML={{
+                          __html: template.footer
+                            .replace(/\{\{preparedBy\}\}/g, "Stage Manager")
+                            .replace(/\n/g, '<br>')
+                        }}
+                      />
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Badge variant="secondary" className="text-xs">Click to edit</Badge>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  </div>
+                </CardContent>
+              </Card>
+              
+              {/* Inline Formatting Toolbar */}
+              <InlineFormattingToolbar
+                targetElement={editingElement}
+                isVisible={showToolbar}
+                onSave={() => {
+                  if (editingElement) {
+                    const isHeader = editingElement.closest('.border-b') !== null;
+                    const content = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
+                    
+                    setTemplates(prev => ({
+                      ...prev,
+                      [phase]: { 
+                        ...prev[phase], 
+                        [isHeader ? 'header' : 'footer']: content 
+                      }
+                    }));
+                  }
+                  setShowToolbar(false);
+                  setEditingElement(null);
+                }}
+                onCancel={() => {
+                  setShowToolbar(false);
+                  setEditingElement(null);
+                  if (editingElement) {
+                    editingElement.blur();
+                  }
+                }}
+              />
             </TabsContent>
           ))}
         </Tabs>
