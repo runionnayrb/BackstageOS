@@ -62,9 +62,9 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   const queryClient = useQueryClient();
   const editableRef = useRef<HTMLDivElement>(null);
 
-  // Default formatting state
+  // Default formatting state - headers are bold by default
   const [formatting, setFormatting] = useState<HeaderFormatting>({
-    bold: false,
+    bold: true,
     italic: false,
     underline: false,
     textAlign: 'left',
@@ -242,7 +242,6 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   };
 
   const handleHeaderClick = () => {
-    console.log('Header clicked, setting editing state'); // Debug log
     setIsEditing(true);
     setShowToolbar(true);
     setEditValue(displayName);
