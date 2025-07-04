@@ -277,7 +277,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
       {/* Add new note */}
       <div className="px-4 pt-2 pb-1">
         <Textarea
-          placeholder="Add a new note..."
+          placeholder="1.   No notes."
           value={newNoteContent}
           onChange={(e) => setNewNoteContent(e.target.value)}
           className="min-h-[24px] max-h-[200px] resize-none border-0 shadow-none focus:ring-0 overflow-y-auto py-1 px-2"
@@ -299,14 +299,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
 
       {/* Notes list */}
       <div className="space-y-2">
-        {sortedNotes.length === 0 ? (
-          <div className="p-4">
-            <p className="text-sm text-muted-foreground">
-              <span className="font-medium mr-2">1.</span>No notes.
-            </p>
-          </div>
-        ) : (
-          sortedNotes.map((note, index) => (
+        {sortedNotes.map((note, index) => (
             <div 
               key={note.id}
               className={`p-4 space-y-2 ${
@@ -396,7 +389,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
               </div>
             </div>
           ))
-        )}
+        }
       </div>
     </div>
   );
