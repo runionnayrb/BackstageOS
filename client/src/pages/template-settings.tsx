@@ -382,6 +382,8 @@ export default function TemplateSettings() {
             <TabsTrigger value="previews">Previews</TabsTrigger>
             <TabsTrigger value="performance">Performance</TabsTrigger>
           </TabsList>
+          
+
 
           {Object.entries(templates).map(([phase, template]) => (
             <TabsContent key={phase} value={phase} className="space-y-6">
@@ -439,13 +441,14 @@ export default function TemplateSettings() {
                             </div>
                           ))}
                         
+                        
                         {/* Department Notes Section - only for tech template */}
                         {selectedPhase === 'tech' && (
                           <div className="space-y-6 mt-8 border-t pt-6">
-                            <div className="text-lg font-semibold text-gray-800 border-b pb-2 bg-blue-50 px-4 py-2 rounded">
-                              🎭 Department Notes
+                            <div className="text-lg font-semibold text-gray-800 border-b pb-2">
+                              Department Notes
                             </div>
-                            <div className="text-sm text-gray-600 mb-4 bg-yellow-50 p-3 rounded">
+                            <div className="text-sm text-gray-600 mb-4">
                               Interactive department-specific note tracking with numbered lists and collaboration features.
                             </div>
                             
