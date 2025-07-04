@@ -340,62 +340,76 @@ export default function ReportBuilder() {
               <div className="text-lg font-semibold text-gray-800 mb-2">Department Notes</div>
               <div className="text-sm text-gray-600 mb-4">Add numbered notes for each department. These will appear as organized lists in your report.</div>
               
-              <div className="space-y-6">
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2">
-                    Scenic
+              {reportId ? (
+                <div className="space-y-6">
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 mb-2">
+                      Scenic
+                    </div>
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="scenic"
+                    />
                   </div>
-                  <ReportNotesManager 
-                    reportId={reportId || 0} 
-                    reportType={reportType || ""}
-                    department="scenic"
-                  />
-                </div>
 
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2">
-                    Lighting
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 mb-2">
+                      Lighting
+                    </div>
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="lighting"
+                    />
                   </div>
-                  <ReportNotesManager 
-                    reportId={reportId || 0} 
-                    reportType={reportType || ""}
-                    department="lighting"
-                  />
-                </div>
 
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2">
-                    Audio
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 mb-2">
+                      Audio
+                    </div>
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="audio"
+                    />
                   </div>
-                  <ReportNotesManager 
-                    reportId={reportId || 0} 
-                    reportType={reportType || ""}
-                    department="audio"
-                  />
-                </div>
 
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2">
-                    Video
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 mb-2">
+                      Video
+                    </div>
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="video"
+                    />
                   </div>
-                  <ReportNotesManager 
-                    reportId={reportId || 0} 
-                    reportType={reportType || ""}
-                    department="video"
-                  />
-                </div>
 
-                <div>
-                  <div className="text-sm font-semibold text-gray-700 mb-2">
-                    Props
+                  <div>
+                    <div className="text-sm font-semibold text-gray-700 mb-2">
+                      Props
+                    </div>
+                    <ReportNotesManager 
+                      reportId={reportId} 
+                      projectId={projectId}
+                      reportType={reportType || ""}
+                      department="props"
+                    />
                   </div>
-                  <ReportNotesManager 
-                    reportId={reportId || 0} 
-                    reportType={reportType || ""}
-                    department="props"
-                  />
                 </div>
-              </div>
+              ) : (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-700">
+                    <strong>Note:</strong> Department notes will be available after you save this report. 
+                    Complete the basic report information above and click "Create Report" to start adding department-specific notes.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Additional Fields */}
