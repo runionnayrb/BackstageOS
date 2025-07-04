@@ -324,7 +324,7 @@ export default function AdminErrorLogs() {
 
   return (
     <div className="min-h-screen w-full p-0 space-y-6">
-      <div className="px-6 pt-6">
+      <div className="px-4 sm:px-6 pt-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4 sm:gap-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-4">
             <h2 className="text-lg sm:text-xl font-semibold">Error Logs</h2>
@@ -415,7 +415,7 @@ export default function AdminErrorLogs() {
         {/* Error Logs Section */}
         <div>
           <div className="mb-4">
-            <div className="flex items-center justify-between px-6">
+            <div className="flex items-center justify-between px-4 sm:px-6">
               <h3 className="text-lg font-semibold">Recent Errors ({filteredErrorLogs.length})</h3>
               <span className={`px-2 py-1 text-xs rounded-full ${
                 isLoggingEnabled 
@@ -425,7 +425,7 @@ export default function AdminErrorLogs() {
                 {isLoggingEnabled ? "● Live" : "● Paused"}
               </span>
             </div>
-            <p className="text-sm text-gray-600 mt-1 px-6">
+            <p className="text-sm text-gray-600 mt-1 px-4 sm:px-6">
               Error logging captures JavaScript errors, network failures, and user interaction issues from registered users in production only. 
               Errors are automatically prioritized by criticality - JavaScript errors and recent issues appear first.
             </p>
@@ -546,7 +546,7 @@ export default function AdminErrorLogs() {
             </div>
 
           {/* Mobile Card View */}
-          <div className="md:hidden px-6 space-y-4">
+          <div className="md:hidden px-4 space-y-4">
             {filteredErrorLogs.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 {searchTerm || filterType !== "all" || filterUser !== "all" ? "No errors match your filters" : "No errors recorded yet"}
@@ -749,7 +749,7 @@ export default function AdminErrorLogs() {
         )}
 
         {/* Stats Cards */}
-        <div className="px-6">
+        <div className="px-4 sm:px-6">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mt-6 mb-6">
           <Card className="p-3 sm:p-4">
             <div className="text-xl sm:text-2xl font-bold">{errorLogs.length}</div>
