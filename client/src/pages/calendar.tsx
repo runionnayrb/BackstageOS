@@ -108,7 +108,6 @@ export default function Calendar() {
         
         <div className="mb-2">
           <h1 className="text-3xl font-bold text-gray-900">Calendar</h1>
-          <p className="text-gray-600 mt-1">Manage rehearsal schedules and daily call sheets</p>
         </div>
       </div>
 
