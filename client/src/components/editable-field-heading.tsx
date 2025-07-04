@@ -17,7 +17,14 @@ export default function EditableFieldHeading({
   const [showToolbar, setShowToolbar] = useState(false);
 
   const applyFormattingToAllHeaders = () => {
-    if (!editingElement) return;
+    console.log('🔥 APPLY TO ALL CLICKED!!! 🔥');
+    alert('Apply to All function called!');
+    
+    if (!editingElement) {
+      console.log('❌ No editing element');
+      alert('No editing element found');
+      return;
+    }
 
     console.log('Apply to All: Starting with element:', editingElement);
 
@@ -66,6 +73,7 @@ export default function EditableFieldHeading({
     });
 
     console.log(`Apply to All: Updated ${totalUpdated} header elements`);
+    alert(`Updated ${totalUpdated} header elements`);
   };
 
   return (
