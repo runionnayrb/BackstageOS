@@ -433,14 +433,14 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
                 </Select>
 
                 <Select
-                  value={note.assignedTo?.toString() || ''}
-                  onValueChange={(value) => handleAssignUser(note, value ? parseInt(value) : null)}
+                  value={note.assignedTo?.toString() || 'unassigned'}
+                  onValueChange={(value) => handleAssignUser(note, value === 'unassigned' ? null : parseInt(value))}
                 >
                   <SelectTrigger className="h-6 w-32 text-xs">
                     <SelectValue placeholder="Assign to..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
                     {teamMembers.map((member) => (
                       <SelectItem key={member.id} value={member.id.toString()}>
                         {member.firstName} {member.lastName}
