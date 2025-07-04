@@ -440,12 +440,12 @@ export default function TemplateSettings() {
                           ))}
                         
                         {/* Department Notes Section - only for tech template */}
-                        {phase === 'tech' && (
-                          <div className="space-y-6 mt-8">
-                            <div className="text-lg font-semibold text-gray-800 border-b pb-2">
-                              Department Notes
+                        {selectedPhase === 'tech' && (
+                          <div className="space-y-6 mt-8 border-t pt-6">
+                            <div className="text-lg font-semibold text-gray-800 border-b pb-2 bg-blue-50 px-4 py-2 rounded">
+                              🎭 Department Notes
                             </div>
-                            <div className="text-sm text-gray-600 mb-4">
+                            <div className="text-sm text-gray-600 mb-4 bg-yellow-50 p-3 rounded">
                               Interactive department-specific note tracking with numbered lists and collaboration features.
                             </div>
                             
