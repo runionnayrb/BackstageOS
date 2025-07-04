@@ -271,7 +271,6 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
 
   return (
     <div className="space-y-4">
-
       {/* Add new note */}
       <div className="border rounded-lg p-4 space-y-3">
         <Textarea
