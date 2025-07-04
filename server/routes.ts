@@ -464,6 +464,126 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Auto-apply AI recommended fixes (admin only)
+  app.post('/api/errors/auto-apply-fix', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { errorId, codeChanges } = req.body;
+      
+      if (!errorId || !codeChanges || !Array.isArray(codeChanges)) {
+        return res.status(400).json({ message: "Error ID and code changes array required" });
+      }
+
+      let appliedChanges = [];
+      let failedChanges = [];
+
+      // Apply each code change
+      for (const change of codeChanges) {
+        try {
+          const { file, description, before, after } = change;
+          
+          // Basic validation
+          if (!file || !after) {
+            failedChanges.push({ ...change, reason: "Missing required fields" });
+            continue;
+          }
+
+          // Ensure file path is safe (within project directory)
+          const safePath = path.resolve(process.cwd(), file.replace(/^\/+/, ''));
+          if (!safePath.startsWith(process.cwd())) {
+            failedChanges.push({ ...change, reason: "File path outside project directory" });
+            continue;
+          }
+
+          // Check if file exists
+          if (!fs.existsSync(safePath)) {
+            failedChanges.push({ ...change, reason: "File does not exist" });
+            continue;
+          }
+
+          // Read current file content
+          const currentContent = fs.readFileSync(safePath, 'utf8');
+          
+          let newContent;
+          if (before && before.trim()) {
+            // Replace specific code if 'before' is provided
+            if (!currentContent.includes(before)) {
+              failedChanges.push({ ...change, reason: "Original code not found in file" });
+              continue;
+            }
+            newContent = currentContent.replace(before, after);
+          } else {
+            // If no 'before' code, append/prepend the fix
+            if (after.includes('import ') && after.includes('from ')) {
+              // Add import at the top of file
+              const lines = currentContent.split('\n');
+              const importInsertIndex = lines.findIndex(line => line.startsWith('import ')) || 0;
+              lines.splice(importInsertIndex, 0, after);
+              newContent = lines.join('\n');
+            } else {
+              // Append to end of file
+              newContent = currentContent + '\n\n' + after;
+            }
+          }
+
+          // Create backup of original file
+          const backupPath = safePath + '.backup.' + Date.now();
+          fs.writeFileSync(backupPath, currentContent);
+
+          // Write the fixed content
+          fs.writeFileSync(safePath, newContent);
+
+          appliedChanges.push({ 
+            ...change, 
+            backupFile: backupPath,
+            applied: true 
+          });
+
+        } catch (error) {
+          console.error(`Failed to apply change to ${change.file}:`, error);
+          failedChanges.push({ 
+            ...change, 
+            reason: error instanceof Error ? error.message : "Unknown error" 
+          });
+        }
+      }
+
+      // Log the auto-fix attempt
+      console.log(`Auto-fix attempt for error ${errorId}:`, {
+        type: 'auto-fix-attempt',
+        appliedChanges: appliedChanges.length,
+        failedChanges: failedChanges.length,
+        timestamp: new Date(),
+        adminId: userId
+      });
+
+      const response = {
+        success: appliedChanges.length > 0,
+        message: `Applied ${appliedChanges.length} of ${codeChanges.length} code changes`,
+        appliedChanges,
+        failedChanges,
+        totalChanges: codeChanges.length
+      };
+
+      if (appliedChanges.length === codeChanges.length) {
+        response.message = "All code changes applied successfully";
+      } else if (appliedChanges.length === 0) {
+        response.message = "No code changes could be applied";
+        return res.status(400).json(response);
+      }
+
+      res.json(response);
+    } catch (error) {
+      console.error("Error auto-applying fix:", error);
+      res.status(500).json({ message: "Failed to auto-apply fix" });
+    }
+  });
+
   // Configure multer for file uploads
   const uploadsDir = path.join(process.cwd(), 'uploads');
   if (!fs.existsSync(uploadsDir)) {

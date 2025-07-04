@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle, Bug, Wifi, Monitor, MousePointer, FileText, Eye, Calendar, Search, Play, Pause, Wrench, Activity, BarChart3 } from "lucide-react";
+import { AlertTriangle, Bug, Wifi, Monitor, MousePointer, FileText, Eye, Calendar, Search, Play, Pause, Wrench, Activity, BarChart3, Zap } from "lucide-react";
 import { Link } from "wouter";
 import { ErrorLog } from "@/../../shared/schema";
 import { errorLogger } from "@/lib/errorLogger";
@@ -753,18 +753,61 @@ export default function AdminErrorLogs() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex justify-end gap-3 pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowFixDialog(false);
-                    setAnalyzedFix(null);
-                    setCurrentError(null);
-                    setVerificationNotes("");
-                  }}
-                >
-                  Cancel
-                </Button>
+              <div className="flex justify-between pt-4 border-t">
+                <div className="flex gap-3">
+                  {analyzedFix.codeChanges && analyzedFix.codeChanges.length > 0 && (
+                    <Button
+                      variant="secondary"
+                      onClick={async () => {
+                        try {
+                          const response = await fetch('/api/errors/auto-apply-fix', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              errorId: currentError.id,
+                              codeChanges: analyzedFix.codeChanges
+                            })
+                          });
+                          
+                          if (response.ok) {
+                            toast({
+                              title: "Fix Applied Successfully",
+                              description: "The AI-recommended code changes have been automatically applied",
+                            });
+                          } else {
+                            toast({
+                              title: "Auto-Apply Failed",
+                              description: "Could not automatically apply the fix. Please implement manually.",
+                              variant: "destructive",
+                            });
+                          }
+                        } catch (error) {
+                          toast({
+                            title: "Auto-Apply Error",
+                            description: "Failed to apply automatic fix",
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      <Zap className="h-4 w-4 mr-2" />
+                      Auto-Apply Fix
+                    </Button>
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowFixDialog(false);
+                      setAnalyzedFix(null);
+                      setCurrentError(null);
+                      setVerificationNotes("");
+                    }}
+                  >
+                    Cancel
+                  </Button>
                 <Button
                   onClick={() => {
                     if (!verificationNotes.trim()) {
@@ -786,6 +829,7 @@ export default function AdminErrorLogs() {
                 >
                   {markFixedMutation.isPending ? "Marking as Fixed..." : "Mark as Fixed"}
                 </Button>
+                </div>
               </div>
             </div>
           )}
