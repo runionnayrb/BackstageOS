@@ -91,10 +91,8 @@ export default function EditableFieldHeading({
     }
   });
 
-  const applyFormattingToAllHeaders = () => {
+  const applyFormattingToAllHeaders = async () => {
     console.log('🔥🔥🔥 FIELD HEADING APPLY TO ALL CLICKED!!! 🔥🔥🔥');
-    console.error('🔥🔥🔥 FIELD HEADING APPLY TO ALL CLICKED!!! 🔥🔥🔥');
-    console.warn('🔥🔥🔥 FIELD HEADING APPLY TO ALL CLICKED!!! 🔥🔥🔥');
     
     console.log('🔍 Debug info:', {
       projectId,
@@ -132,13 +130,12 @@ export default function EditableFieldHeading({
 
     console.log('Apply to All: Extracted formatting:', formatting);
 
-    // Use the database-backed mutation to apply formatting to all field headers
-    console.log('🚀 About to call mutation with data:', { formatting, applyToAll: true, projectId });
+    // Use direct fetch approach with async/await
+    console.log('🚀 About to call API with data:', { formatting, applyToAll: true, projectId });
     
-    // Test direct fetch approach instead of mutation
     try {
       console.log('🧪 Testing direct fetch call');
-      fetch(`/api/projects/${projectId}/settings/field-header-formatting`, {
+      const response = await fetch(`/api/projects/${projectId}/settings/field-header-formatting`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -147,28 +144,25 @@ export default function EditableFieldHeading({
           formatting,
           applyToAll: true
         }),
-      })
-      .then(response => {
-        console.log('✅ Direct fetch response:', response.status);
-        if (response.ok) {
-          alert('✅ Direct fetch successful!');
-          // Refresh the page to apply formatting
-          window.location.reload();
-        } else {
-          return response.text().then(text => {
-            console.error('❌ Direct fetch error:', text);
-            alert('❌ Direct fetch error: ' + text);
-          });
-        }
-      })
-      .catch(error => {
-        console.error('❌ Direct fetch catch error:', error);
-        alert('❌ Direct fetch catch error: ' + error.message);
       });
+
+      console.log('✅ Direct fetch response:', response.status);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Response data:', data);
+        alert('✅ Direct fetch successful!');
+        // Refresh the page to apply formatting
+        window.location.reload();
+      } else {
+        const text = await response.text();
+        console.error('❌ Direct fetch error:', text);
+        alert('❌ Direct fetch error: ' + text);
+      }
     } catch (error) {
-      console.error('❌ Error in try block:', error);
+      console.error('❌ Direct fetch catch error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert('❌ Error in try block: ' + errorMessage);
+      alert('❌ Direct fetch catch error: ' + errorMessage);
     }
   };
 
