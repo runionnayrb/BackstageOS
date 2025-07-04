@@ -299,100 +299,104 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
 
       {/* Notes list */}
       <div className="space-y-2">
-        {sortedNotes.map((note, index) => (
-          <div 
-            key={note.id}
-            className={`p-4 space-y-2 ${
-              note.isCompleted ? 'bg-gray-50 dark:bg-gray-900' : ''
-            }`}
-          >
-            <div className="flex items-start justify-between gap-2">
-              {/* Note content with inline number */}
-              <div className="flex-1">
-                {editingNote === note.id ? (
-                  <div className="space-y-2">
-                    <Textarea
-                      value={editContent}
-                      onChange={(e) => setEditContent(e.target.value)}
-                      className="min-h-[60px] resize-none"
-                      autoFocus
-                    />
-                    <div className="flex gap-2">
-                      <Button size="sm" onClick={handleSaveEdit}>
-                        <Check className="h-4 w-4 mr-1" />
-                        Save
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={handleCancelEdit}>
-                        <X className="h-4 w-4 mr-1" />
-                        Cancel
-                      </Button>
+        {sortedNotes.length === 0 ? (
+          <div className="p-4">
+            <p className="text-sm text-muted-foreground">
+              <span className="font-medium mr-2">1.</span>No notes.
+            </p>
+          </div>
+        ) : (
+          sortedNotes.map((note, index) => (
+            <div 
+              key={note.id}
+              className={`p-4 space-y-2 ${
+                note.isCompleted ? 'bg-gray-50 dark:bg-gray-900' : ''
+              }`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                {/* Note content with inline number */}
+                <div className="flex-1">
+                  {editingNote === note.id ? (
+                    <div className="space-y-2">
+                      <Textarea
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        className="min-h-[60px] resize-none"
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={handleSaveEdit}>
+                          <Check className="h-4 w-4 mr-1" />
+                          Save
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                          <X className="h-4 w-4 mr-1" />
+                          Cancel
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <p 
-                    className={`text-sm leading-relaxed cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded p-1 -m-1 ${
-                      note.isCompleted ? 'line-through text-muted-foreground' : ''
-                    }`}
-                    onClick={() => handleEditNote(note)}
+                  ) : (
+                    <p 
+                      className={`text-sm leading-relaxed cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded p-1 -m-1 ${
+                        note.isCompleted ? 'line-through text-muted-foreground' : ''
+                      }`}
+                      onClick={() => handleEditNote(note)}
+                    >
+                      <span className="font-medium mr-2">{index + 1}.</span>{note.content}
+                    </p>
+                  )}
+                </div>
+
+                {/* Controls */}
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => moveNote(note.id, 'up')}
+                    disabled={index === 0}
+                    className="h-6 w-6 p-0"
                   >
-                    <span className="font-medium mr-2">{index + 1}.</span>{note.content}
-                  </p>
+                    <ChevronUp className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => moveNote(note.id, 'down')}
+                    disabled={index === sortedNotes.length - 1}
+                    className="h-6 w-6 p-0"
+                  >
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => deleteNoteMutation.mutate(note.id)}
+                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Note metadata */}
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                {note.assignedTo && (
+                  <div className="flex items-center gap-1">
+                    <User className="h-3 w-3" />
+                    <span>{getAssignedUserName(note.assignedTo)}</span>
+                  </div>
+                )}
+                
+                {note.dueDate && (
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    <span>{new Date(note.dueDate).toLocaleDateString()}</span>
+                  </div>
                 )}
               </div>
-
-              {/* Controls */}
-              <div className="flex items-center gap-1">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => moveNote(note.id, 'up')}
-                  disabled={index === 0}
-                  className="h-6 w-6 p-0"
-                >
-                  <ChevronUp className="h-3 w-3" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => moveNote(note.id, 'down')}
-                  disabled={index === sortedNotes.length - 1}
-                  className="h-6 w-6 p-0"
-                >
-                  <ChevronDown className="h-3 w-3" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => deleteNoteMutation.mutate(note.id)}
-                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
             </div>
-
-            {/* Note metadata */}
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {note.assignedTo && (
-                <div className="flex items-center gap-1">
-                  <User className="h-3 w-3" />
-                  <span>{getAssignedUserName(note.assignedTo)}</span>
-                </div>
-              )}
-              
-              {note.dueDate && (
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  <span>{new Date(note.dueDate).toLocaleDateString()}</span>
-                </div>
-              )}
-            </div>
-
-
-          </div>
-        ))}
-
-
+          ))
+        )}
       </div>
     </div>
   );
