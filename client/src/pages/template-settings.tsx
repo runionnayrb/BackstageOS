@@ -28,7 +28,6 @@ import { getAllDepartmentNames, type DepartmentKey } from "@/utils/departmentUti
 import type { ShowSettings } from "@/../../shared/schema";
 import {
   ArrowLeft,
-  Save,
   Edit3,
   Eye,
   Plus,
@@ -555,22 +554,11 @@ export default function TemplateSettings() {
               {/* Always show inline editable preview mode */}
               <Card className="min-h-[600px]">
                 <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <FileText className="h-5 w-5" />
-                        {template.name}
-                      </CardTitle>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => saveTemplate.mutate(template)}
-                      disabled={saveTemplate.isPending}
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      {saveTemplate.isPending ? "Saving..." : "Save"}
-                    </Button>
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <FileText className="h-5 w-5" />
+                      {template.name}
+                    </CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="p-8">
