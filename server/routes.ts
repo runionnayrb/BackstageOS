@@ -509,24 +509,71 @@ Respond with valid JSON only.`;
           // Read current file content
           const currentContent = fs.readFileSync(safePath, 'utf8');
           
-          let newContent;
+          let newContent: string = currentContent;
           if (before && before.trim()) {
             // Replace specific code if 'before' is provided
             if (!currentContent.includes(before)) {
-              failedChanges.push({ ...change, reason: "Original code not found in file" });
-              continue;
-            }
-            newContent = currentContent.replace(before, after);
-          } else {
-            // If no 'before' code, append/prepend the fix
-            if (after.includes('import ') && after.includes('from ')) {
-              // Add import at the top of file
-              const lines = currentContent.split('\n');
-              const importInsertIndex = lines.findIndex(line => line.startsWith('import ')) || 0;
-              lines.splice(importInsertIndex, 0, after);
-              newContent = lines.join('\n');
+              // Try fuzzy matching - remove extra whitespace and check again
+              const normalizedBefore = before.replace(/\s+/g, ' ').trim();
+              const normalizedContent = currentContent.replace(/\s+/g, ' ');
+              
+              if (normalizedContent.includes(normalizedBefore)) {
+                // Found with normalized whitespace, do the replacement
+                newContent = currentContent.replace(before, after);
+              } else {
+                // Try partial matching for common cases
+                const beforeLines = before.split('\n').map((line: string) => line.trim()).filter((line: string) => line);
+                let foundMatch = false;
+                
+                for (const line of beforeLines) {
+                  if (line && currentContent.includes(line.trim())) {
+                    // Found at least one line, try to replace just that line
+                    newContent = currentContent.replace(line.trim(), after);
+                    foundMatch = true;
+                    break;
+                  }
+                }
+                
+                if (!foundMatch) {
+                  console.log(`Auto-fix debug - Could not find code in ${file}:`);
+                  console.log(`Looking for: "${before}"`);
+                  console.log(`File contains: ${currentContent.substring(0, 200)}...`);
+                  failedChanges.push({ 
+                    ...change, 
+                    reason: `Original code not found. Looking for: "${before.substring(0, 100)}${before.length > 100 ? '...' : ''}"`
+                  });
+                  continue;
+                }
+              }
             } else {
-              // Append to end of file
+              newContent = currentContent.replace(before, after);
+            }
+          } else {
+            // If no 'before' code, treat 'after' as new code to add
+            if (after.includes('import ') && after.includes('from ')) {
+              // Add import at the top of file after existing imports
+              const lines = currentContent.split('\n');
+              let insertIndex = 0;
+              
+              // Find the last import line
+              for (let i = 0; i < lines.length; i++) {
+                if (lines[i].trim().startsWith('import ')) {
+                  insertIndex = i + 1;
+                }
+              }
+              
+              lines.splice(insertIndex, 0, after);
+              newContent = lines.join('\n');
+            } else if (description && description.toLowerCase().includes('add') && description.toLowerCase().includes('function')) {
+              // Adding a new function - append before the last closing brace or at end
+              const lastBraceIndex = currentContent.lastIndexOf('}');
+              if (lastBraceIndex > 0) {
+                newContent = currentContent.substring(0, lastBraceIndex) + '\n\n' + after + '\n\n' + currentContent.substring(lastBraceIndex);
+              } else {
+                newContent = currentContent + '\n\n' + after;
+              }
+            } else {
+              // Default: append to end of file
               newContent = currentContent + '\n\n' + after;
             }
           }

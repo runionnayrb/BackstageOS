@@ -770,14 +770,24 @@ export default function AdminErrorLogs() {
                           });
                           
                           if (response.ok) {
-                            toast({
-                              title: "Fix Applied Successfully",
-                              description: "The AI-recommended code changes have been automatically applied",
-                            });
+                            const result = await response.json();
+                            if (result.success) {
+                              toast({
+                                title: "Fix Applied Successfully",
+                                description: result.message || "The AI-recommended code changes have been automatically applied",
+                              });
+                            } else {
+                              toast({
+                                title: "Auto-Apply Partially Failed",
+                                description: result.message || "Some changes could not be applied automatically",
+                                variant: "destructive",
+                              });
+                            }
                           } else {
+                            const errorResult = await response.json().catch(() => ({}));
                             toast({
                               title: "Auto-Apply Failed",
-                              description: "Could not automatically apply the fix. Please implement manually.",
+                              description: errorResult.message || "Could not automatically apply the fix. Please implement manually.",
                               variant: "destructive",
                             });
                           }
