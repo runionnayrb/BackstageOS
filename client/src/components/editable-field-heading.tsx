@@ -29,7 +29,7 @@ export default function EditableFieldHeading({
 
   // Query to fetch show settings including field header formatting
   const { data: showSettings } = useQuery({
-    queryKey: [`/api/projects/${projectId}/settings`],
+    queryKey: ['/api/projects', projectId, 'settings'],
     enabled: !!projectId
   });
 
@@ -121,10 +121,18 @@ export default function EditableFieldHeading({
     console.log('Apply to All: Extracted formatting:', formatting);
 
     // Use the database-backed mutation to apply formatting to all field headers
-    updateFieldHeaderFormattingMutation.mutate({ 
-      formatting, 
-      applyToAll: true 
-    });
+    console.log('🚀 About to call mutation with data:', { formatting, applyToAll: true, projectId });
+    
+    try {
+      updateFieldHeaderFormattingMutation.mutate({ 
+        formatting, 
+        applyToAll: true 
+      });
+      console.log('✅ Mutation called successfully');
+    } catch (error) {
+      console.error('❌ Error calling mutation:', error);
+      alert('❌ Error calling mutation: ' + error.message);
+    }
   };
 
   return (
