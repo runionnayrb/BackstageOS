@@ -381,7 +381,22 @@ export default function ContactSheet() {
   useEffect(() => {
     // Try localStorage first as fallback
     const localSettings = localStorage.getItem(`contact-sheet-settings-${projectId}`);
-    const settings = localSettings ? JSON.parse(localSettings) : (savedSettings && typeof savedSettings === 'object' ? savedSettings as any : null);
+    let settings = null;
+    
+    if (localSettings) {
+      try {
+        settings = JSON.parse(localSettings);
+      } catch (error) {
+        console.warn('Failed to parse contact sheet settings from localStorage:', error);
+        // Clear invalid localStorage data
+        localStorage.removeItem(`contact-sheet-settings-${projectId}`);
+        settings = null;
+      }
+    }
+    
+    if (!settings && savedSettings && typeof savedSettings === 'object') {
+      settings = savedSettings as any;
+    }
     
     if (settings) {
       // Update old "Full Name" labels to "Name" for existing saved settings

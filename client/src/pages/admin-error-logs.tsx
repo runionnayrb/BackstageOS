@@ -131,12 +131,20 @@ export default function AdminErrorLogs() {
   useEffect(() => {
     const savedState = localStorage.getItem('errorLoggingEnabled');
     if (savedState !== null) {
-      const enabled = JSON.parse(savedState);
-      setIsLoggingEnabled(enabled);
-      if (enabled) {
+      try {
+        const enabled = JSON.parse(savedState);
+        setIsLoggingEnabled(enabled);
+        if (enabled) {
+          errorLogger.enable();
+        } else {
+          errorLogger.disable();
+        }
+      } catch (error) {
+        console.warn('Failed to parse error logging state from localStorage:', error);
+        // Clear invalid localStorage data and default to enabled
+        localStorage.removeItem('errorLoggingEnabled');
+        setIsLoggingEnabled(true);
         errorLogger.enable();
-      } else {
-        errorLogger.disable();
       }
     } else {
       // Check current state from errorLogger

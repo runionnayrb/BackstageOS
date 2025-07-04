@@ -32,6 +32,16 @@ import {
   ArrowLeft
 } from "lucide-react";
 
+// Helper function to safely parse JSON with error handling
+const safeJsonParse = (jsonString: string, fallback: any = {}) => {
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.warn('Failed to parse JSON:', error);
+    return fallback;
+  }
+};
+
 interface ShowSettingsParams {
   id: string;
 }
@@ -163,7 +173,7 @@ export default function ShowSettings() {
     // Handle scheduleSettings specially since it's stored as JSON string
     if (section === 'scheduleSettings') {
       const currentScheduleSettings = typeof settingsData.scheduleSettings === 'string' 
-        ? JSON.parse(settingsData.scheduleSettings) 
+        ? safeJsonParse(settingsData.scheduleSettings, {}) 
         : (settingsData.scheduleSettings || {});
       
       const updatedScheduleSettings = {
@@ -638,7 +648,7 @@ export default function ShowSettings() {
                     type="time"
                     value={(() => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? JSON.parse((settings as any).scheduleSettings) 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
                         : ((settings as any)?.scheduleSettings || {});
                       return scheduleSettings?.workingHours?.start || "09:00";
                     })()}
@@ -647,7 +657,7 @@ export default function ShowSettings() {
                         workingHours: {
                           ...(() => {
                             const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                              ? JSON.parse((settings as any).scheduleSettings) 
+                              ? safeJsonParse((settings as any).scheduleSettings, {}) 
                               : ((settings as any)?.scheduleSettings || {});
                             return scheduleSettings?.workingHours || {};
                           })(),
@@ -665,7 +675,7 @@ export default function ShowSettings() {
                     type="time"
                     value={(() => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? JSON.parse((settings as any).scheduleSettings) 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
                         : ((settings as any)?.scheduleSettings || {});
                       return scheduleSettings?.workingHours?.end || "18:00";
                     })()}
@@ -674,7 +684,7 @@ export default function ShowSettings() {
                         workingHours: {
                           ...(() => {
                             const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                              ? JSON.parse((settings as any).scheduleSettings) 
+                              ? safeJsonParse((settings as any).scheduleSettings, {}) 
                               : ((settings as any)?.scheduleSettings || {});
                             return scheduleSettings?.workingHours || {};
                           })(),
@@ -690,7 +700,7 @@ export default function ShowSettings() {
                   <Select
                     value={(() => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? JSON.parse((settings as any).scheduleSettings) 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
                         : ((settings as any)?.scheduleSettings || {});
                       return scheduleSettings?.timeZone || "America/New_York";
                     })()}
@@ -718,7 +728,7 @@ export default function ShowSettings() {
                   <Select
                     value={(() => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? JSON.parse((settings as any).scheduleSettings) 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
                         : ((settings as any)?.scheduleSettings || {});
                       return scheduleSettings?.weekStartDay || "sunday";
                     })()}
@@ -746,7 +756,7 @@ export default function ShowSettings() {
                   <Select
                     value={(() => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? JSON.parse((settings as any).scheduleSettings) 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
                         : ((settings as any)?.scheduleSettings || {});
                       return scheduleSettings?.timeFormat || "12";
                     })()}
@@ -775,7 +785,7 @@ export default function ShowSettings() {
                 <Switch
                   checked={(() => {
                     const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                      ? JSON.parse((settings as any).scheduleSettings) 
+                      ? safeJsonParse((settings as any).scheduleSettings, {}) 
                       : ((settings as any)?.scheduleSettings || {});
                     return scheduleSettings?.allowConflicts || false;
                   })()}

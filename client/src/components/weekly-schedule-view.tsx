@@ -993,7 +993,6 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             className="overflow-y-auto"
             style={{ 
               height: '600px',
-              scrollTop: scrollPosition,
             }}
           >
             <div 
@@ -1308,7 +1307,7 @@ function CreateEventForm({
         <Label>Location</Label>
         <LocationSelect
           value={formData.location}
-          onChange={(location) => setFormData({ ...formData, location })}
+          onValueChange={(location) => setFormData({ ...formData, location })}
           projectId={projectId}
         />
       </div>
@@ -1489,7 +1488,7 @@ function EditEventForm({
         <Label>Location</Label>
         <LocationSelect
           value={formData.location}
-          onChange={(location) => setFormData({ ...formData, location })}
+          onValueChange={(location) => setFormData({ ...formData, location })}
           projectId={event.projectId}
         />
       </div>
