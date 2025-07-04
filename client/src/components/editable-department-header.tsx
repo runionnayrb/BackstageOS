@@ -85,7 +85,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
 
   // Load saved formatting from show settings
   const { data: showSettings } = useQuery({
-    queryKey: [`/api/projects/${projectId}/settings`],
+    queryKey: ['/api/projects', projectId, 'settings'],
     enabled: !!projectId
   });
 
