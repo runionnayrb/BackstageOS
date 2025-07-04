@@ -231,7 +231,8 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
 
   const handleApplyToAll = () => {
     updateFormattingMutation.mutate({ formatting, applyToAll: true });
-    setShowToolbar(false);
+    // Keep the toolbar open so user can continue making changes
+    // setShowToolbar(false); // Removed this line
   };
 
   const handleCancel = () => {
@@ -241,6 +242,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   };
 
   const handleHeaderClick = () => {
+    console.log('Header clicked, setting editing state'); // Debug log
     setIsEditing(true);
     setShowToolbar(true);
     setEditValue(displayName);
