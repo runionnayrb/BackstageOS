@@ -90,13 +90,11 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
     fields: [
       { id: "date", type: "date", label: "Rehearsal Date", required: true, order: 1 },
       { id: "day", type: "number", label: "Rehearsal Day #", required: true, order: 2 },
-      { id: "startTime", type: "time", label: "Start Time", required: true, order: 3 },
-      { id: "endTime", type: "time", label: "End Time", required: true, order: 4 },
-      { id: "location", type: "text", label: "Location", placeholder: "Rehearsal room/venue", required: true, order: 5 },
-      { id: "scenes", type: "textarea", label: "Scenes Worked", placeholder: "Act I, Scene 1-3", required: true, order: 6 },
-      { id: "notes", type: "textarea", label: "Director's Notes", required: true, order: 7 },
-      { id: "technical", type: "textarea", label: "Technical Notes", placeholder: "Props, costumes, set pieces", required: false, order: 8 },
-      { id: "attendance", type: "textarea", label: "Attendance Notes", placeholder: "Late arrivals, absences", required: false, order: 9 }
+      { id: "location", type: "text", label: "Location", placeholder: "Rehearsal room/venue", required: true, order: 3 },
+      { id: "scenes", type: "textarea", label: "Scenes Worked", placeholder: "Act I, Scene 1-3", required: true, order: 4 },
+      { id: "notes", type: "textarea", label: "Director's Notes", required: true, order: 5 },
+      { id: "technical", type: "textarea", label: "Technical Notes", placeholder: "Props, costumes, set pieces", required: false, order: 6 },
+      { id: "attendance", type: "textarea", label: "Attendance Notes", placeholder: "Late arrivals, absences", required: false, order: 7 }
     ]
   },
   tech: {
@@ -108,20 +106,18 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
     fields: [
       { id: "date", type: "date", label: "Tech Date", required: true, order: 1 },
       { id: "techDay", type: "number", label: "Tech Day #", required: true, order: 2 },
-      { id: "startTime", type: "time", label: "Start Time", required: true, order: 3 },
-      { id: "endTime", type: "time", label: "End Time", required: true, order: 4 },
-      { id: "sessionOverview", type: "textarea", label: "Session Overview", placeholder: "Overall goals and achievements for this tech session", required: true, order: 5 },
-      { id: "cuesRun", type: "textarea", label: "Cues Rehearsed", placeholder: "Light cues 1-25, Sound cues A-M", required: true, order: 6 },
+      { id: "sessionOverview", type: "textarea", label: "Session Overview", placeholder: "Overall goals and achievements for this tech session", required: true, order: 3 },
+      { id: "cuesRun", type: "textarea", label: "Cues Rehearsed", placeholder: "Light cues 1-25, Sound cues A-M", required: true, order: 4 },
       
       // Department Notes Sections
-      { id: "scenicNotes", type: "textarea", label: "Scenic Department Notes", placeholder: "Set changes, scenic cues, technical notes for scenic department", required: false, order: 7 },
-      { id: "lightingNotes", type: "textarea", label: "Lighting Department Notes", placeholder: "Light cues, equipment issues, lighting notes", required: false, order: 8 },
-      { id: "audioNotes", type: "textarea", label: "Audio Department Notes", placeholder: "Sound cues, microphone issues, audio equipment notes", required: false, order: 9 },
-      { id: "videoNotes", type: "textarea", label: "Video Department Notes", placeholder: "Video cues, projection issues, media notes", required: false, order: 10 },
-      { id: "propsNotes", type: "textarea", label: "Props Department Notes", placeholder: "Prop tracking, quick changes, costume notes", required: false, order: 11 },
+      { id: "scenicNotes", type: "textarea", label: "Scenic Department Notes", placeholder: "Set changes, scenic cues, technical notes for scenic department", required: false, order: 5 },
+      { id: "lightingNotes", type: "textarea", label: "Lighting Department Notes", placeholder: "Light cues, equipment issues, lighting notes", required: false, order: 6 },
+      { id: "audioNotes", type: "textarea", label: "Audio Department Notes", placeholder: "Sound cues, microphone issues, audio equipment notes", required: false, order: 7 },
+      { id: "videoNotes", type: "textarea", label: "Video Department Notes", placeholder: "Video cues, projection issues, media notes", required: false, order: 8 },
+      { id: "propsNotes", type: "textarea", label: "Props Department Notes", placeholder: "Prop tracking, quick changes, costume notes", required: false, order: 9 },
       
-      { id: "outstandingIssues", type: "textarea", label: "Outstanding Issues", placeholder: "Unresolved problems requiring follow-up", required: false, order: 12 },
-      { id: "notes", type: "textarea", label: "General Notes", placeholder: "Additional notes and observations", required: false, order: 13 }
+      { id: "outstandingIssues", type: "textarea", label: "Outstanding Issues", placeholder: "Unresolved problems requiring follow-up", required: false, order: 10 },
+      { id: "notes", type: "textarea", label: "General Notes", placeholder: "Additional notes and observations", required: false, order: 11 }
     ]
   },
   previews: {
@@ -134,11 +130,10 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
       { id: "date", type: "date", label: "Preview Date", required: true, order: 1 },
       { id: "previewNumber", type: "number", label: "Preview #", required: true, order: 2 },
       { id: "audienceCount", type: "number", label: "Audience Count", required: false, order: 3 },
-      { id: "startTime", type: "time", label: "Start Time", required: true, order: 4 },
-      { id: "runtime", type: "text", label: "Runtime", placeholder: "2h 15min", required: false, order: 5 },
-      { id: "technical", type: "textarea", label: "Technical Notes", required: false, order: 6 },
-      { id: "performance", type: "textarea", label: "Performance Notes", required: true, order: 7 },
-      { id: "audienceResponse", type: "textarea", label: "Audience Response", required: false, order: 8 }
+      { id: "runtime", type: "text", label: "Runtime", placeholder: "2h 15min", required: false, order: 4 },
+      { id: "technical", type: "textarea", label: "Technical Notes", required: false, order: 5 },
+      { id: "performance", type: "textarea", label: "Performance Notes", required: true, order: 6 },
+      { id: "audienceResponse", type: "textarea", label: "Audience Response", required: false, order: 7 }
     ]
   },
   performance: {
@@ -151,11 +146,10 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
       { id: "date", type: "date", label: "Performance Date", required: true, order: 1 },
       { id: "performanceNumber", type: "number", label: "Performance #", required: true, order: 2 },
       { id: "ticketsSold", type: "number", label: "Tickets Sold", required: false, order: 3 },
-      { id: "startTime", type: "time", label: "Actual Start Time", required: true, order: 4 },
-      { id: "runtime", type: "text", label: "Total Runtime", placeholder: "2h 18min", required: false, order: 5 },
-      { id: "technical", type: "textarea", label: "Technical Issues", placeholder: "Equipment problems, delays", required: false, order: 6 },
-      { id: "incidentReport", type: "textarea", label: "Incident Report", placeholder: "Accidents, emergencies, unusual events", required: false, order: 7 },
-      { id: "companyNotes", type: "textarea", label: "Company Notes", placeholder: "Cast/crew notes, announcements", required: false, order: 8 }
+      { id: "runtime", type: "text", label: "Total Runtime", placeholder: "2h 18min", required: false, order: 4 },
+      { id: "technical", type: "textarea", label: "Technical Issues", placeholder: "Equipment problems, delays", required: false, order: 5 },
+      { id: "incidentReport", type: "textarea", label: "Incident Report", placeholder: "Accidents, emergencies, unusual events", required: false, order: 6 },
+      { id: "companyNotes", type: "textarea", label: "Company Notes", placeholder: "Cast/crew notes, announcements", required: false, order: 7 }
     ]
   }
 };
