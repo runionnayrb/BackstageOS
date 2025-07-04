@@ -84,16 +84,22 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   });
 
   // Load saved formatting from show settings
-  const { data: showSettings } = useQuery({
+  const { data: showSettings, refetch: refetchSettings } = useQuery({
     queryKey: ['/api/projects', projectId, 'settings'],
-    enabled: !!projectId
+    enabled: !!projectId,
+    staleTime: 0 // Always fetch fresh data
   });
 
   // Apply saved formatting when loaded
   useEffect(() => {
+    console.log(`🎨 ShowSettings for ${department}:`, showSettings);
+    console.log(`🎨 DepartmentFormatting object:`, (showSettings as any)?.departmentFormatting);
     if (showSettings && (showSettings as any).departmentFormatting?.[department]) {
       const savedFormatting = (showSettings as any).departmentFormatting[department];
+      console.log(`🎨 Loading saved formatting for ${department}:`, savedFormatting);
       setFormatting(savedFormatting);
+    } else {
+      console.log(`🎨 No saved formatting found for ${department}, using defaults`);
     }
   }, [showSettings, department]);
 
