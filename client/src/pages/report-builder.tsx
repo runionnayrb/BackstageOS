@@ -13,6 +13,7 @@ import { useLocation, useParams } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, Settings, Star, Users, FileText, ArrowLeft } from "lucide-react";
+import ReportNotesManager from "@/components/report-notes-manager";
 
 const reportSchema = z.object({
   projectId: z.number(),
@@ -337,6 +338,65 @@ export default function ReportBuilder() {
                 onChange={(e) => form.setValue("content.nextSessionGoals", e.target.value)}
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
+            </div>
+
+            {/* Departmental Notes */}
+            <div className="mb-6">
+              <div className="text-lg font-semibold text-gray-800 mb-4">Department Notes</div>
+              
+              <div className="mb-6">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Scenic</div>
+                <ReportNotesManager 
+                  reportId={reportId || 0} 
+                  reportType="tech" 
+                  department="scenic"
+                />
+              </div>
+
+              <div className="mb-6">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Lighting</div>
+                <ReportNotesManager 
+                  reportId={reportId || 0} 
+                  reportType="tech" 
+                  department="lighting"
+                />
+              </div>
+
+              <div className="mb-6">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Audio</div>
+                <ReportNotesManager 
+                  reportId={reportId || 0} 
+                  reportType="tech" 
+                  department="audio"
+                />
+              </div>
+
+              <div className="mb-6">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Video</div>
+                <ReportNotesManager 
+                  reportId={reportId || 0} 
+                  reportType="tech" 
+                  department="video"
+                />
+              </div>
+
+              <div className="mb-6">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Props</div>
+                <ReportNotesManager 
+                  reportId={reportId || 0} 
+                  reportType="tech" 
+                  department="props"
+                />
+              </div>
+
+              <div className="mb-6">
+                <div className="text-sm font-semibold text-gray-700 mb-2">Costumes</div>
+                <ReportNotesManager 
+                  reportId={reportId || 0} 
+                  reportType="tech" 
+                  department="costumes"
+                />
+              </div>
             </div>
           </>
         );

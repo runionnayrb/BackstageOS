@@ -1596,6 +1596,7 @@ Respond with valid JSON only.`;
     try {
       const projectId = parseInt(req.params.projectId);
       const reportId = parseInt(req.params.reportId);
+      const department = req.query.department as string | undefined;
       
       const project = await storage.getProjectById(projectId);
       if (!project) {
@@ -1612,7 +1613,7 @@ Respond with valid JSON only.`;
         return res.status(404).json({ message: "Report not found" });
       }
 
-      const notes = await storage.getReportNotesByReportId(reportId);
+      const notes = await storage.getReportNotesByReportId(reportId, department);
       res.json(notes);
     } catch (error) {
       console.error("Error fetching report notes:", error);

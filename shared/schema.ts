@@ -119,6 +119,7 @@ export const reportNotes = pgTable("report_notes", {
   priority: varchar("priority").default("medium"), // low, medium, high
   assignedTo: integer("assigned_to").references(() => users.id),
   dueDate: timestamp("due_date"),
+  department: varchar("department"), // scenic, lighting, audio, video, props, costumes, etc.
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

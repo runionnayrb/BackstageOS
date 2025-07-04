@@ -12,8 +12,9 @@ import type { ReportNote, InsertReportNote } from '@shared/schema';
 
 interface ReportNotesManagerProps {
   reportId: number;
-  projectId: number;
+  projectId?: number;
   reportType: string;
+  department?: string;
 }
 
 interface User {
@@ -26,7 +27,8 @@ interface User {
 const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({ 
   reportId, 
   projectId, 
-  reportType 
+  reportType,
+  department 
 }) => {
   const [newNoteContent, setNewNoteContent] = useState('');
   const [editingNote, setEditingNote] = useState<number | null>(null);
@@ -36,9 +38,12 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
 
   // Query to fetch notes for this report
   const { data: notes = [], isLoading } = useQuery<ReportNote[]>({
-    queryKey: ['/api/projects', projectId, 'reports', reportId, 'notes'],
+    queryKey: ['/api/projects', projectId, 'reports', reportId, 'notes', department],
     queryFn: async () => {
-      const response = await fetch(`/api/projects/${projectId}/reports/${reportId}/notes`);
+      const url = department 
+        ? `/api/projects/${projectId}/reports/${reportId}/notes?department=${encodeURIComponent(department)}`
+        : `/api/projects/${projectId}/reports/${reportId}/notes`;
+      const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch notes');
       return response.json();
     }
@@ -73,7 +78,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['/api/projects', projectId, 'reports', reportId, 'notes']
+        queryKey: ['/api/projects', projectId, 'reports', reportId, 'notes', department]
       });
       setNewNoteContent('');
       toast({ title: 'Note added successfully' });
@@ -100,7 +105,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['/api/projects', projectId, 'reports', reportId, 'notes']
+        queryKey: ['/api/projects', projectId, 'reports', reportId, 'notes', department]
       });
       setEditingNote(null);
       toast({ title: 'Note updated successfully' });
@@ -125,7 +130,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['/api/projects', projectId, 'reports', reportId, 'notes']
+        queryKey: ['/api/projects', projectId, 'reports', reportId, 'notes', department]
       });
       toast({ title: 'Note deleted successfully' });
     },
@@ -151,7 +156,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['/api/projects', projectId, 'reports', reportId, 'notes']
+        queryKey: ['/api/projects', projectId, 'reports', reportId, 'notes', department]
       });
       toast({ title: 'Notes reordered successfully' });
     },
@@ -173,9 +178,10 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
       content: newNoteContent.trim(),
       noteOrder: nextOrder,
       reportId,
-      projectId,
+      projectId: projectId || 0,
       isCompleted: false,
-      priority: 'medium'
+      priority: 'medium',
+      department: department || null
     });
   };
 

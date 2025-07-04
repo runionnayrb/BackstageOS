@@ -436,9 +436,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Report notes operations
-  async getReportNotesByReportId(reportId: number): Promise<ReportNote[]> {
+  async getReportNotesByReportId(reportId: number, department?: string): Promise<ReportNote[]> {
+    const conditions = [eq(reportNotes.reportId, reportId)];
+    
+    if (department) {
+      conditions.push(eq(reportNotes.department, department));
+    }
+    
     const result = await db.select().from(reportNotes)
-      .where(eq(reportNotes.reportId, reportId))
+      .where(and(...conditions))
       .orderBy(reportNotes.noteOrder);
     return result;
   }
