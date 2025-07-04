@@ -50,6 +50,7 @@ import DomainManager from "@/pages/domain-manager";
 import PageManager from "@/pages/page-manager";
 import AutoResolutionDashboard from "@/pages/auto-resolution-dashboard";
 import AdvancedAnalyticsDashboard from "@/pages/advanced-analytics-dashboard";
+import AdminErrorLogs from "@/pages/admin-error-logs";
 import SeoManager from "@/pages/seo-manager";
 import SEOTest from "@/pages/seo-test";
 
@@ -181,8 +182,9 @@ function Router() {
         <Route path="/admin/dns" component={DNSManager} />
         <Route path="/admin/domains" component={DomainManager} />
         <Route path="/admin/seo" component={SeoManager} />
+        <Route path="/admin-error-logs" component={AdminErrorLogs} />
         <Route path="/auto-resolution-dashboard" component={AutoResolutionDashboard} />
-      <Route path="/advanced-analytics-dashboard" component={AdvancedAnalyticsDashboard} />
+        <Route path="/advanced-analytics-dashboard" component={AdvancedAnalyticsDashboard} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
