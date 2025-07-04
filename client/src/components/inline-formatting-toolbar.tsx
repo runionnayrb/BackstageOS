@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -92,26 +92,35 @@ export default function InlineFormattingToolbar({
     }
   }, [isVisible, onAutoSave]);
 
-  // Click outside to close toolbar
+  // Click outside to close toolbar - simplified approach
   useEffect(() => {
-    if (!isVisible || !onClose) return;
+    if (!isVisible) return;
 
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      
+      // Check if click is outside both toolbar and target element
       if (
         toolbarRef.current &&
-        !toolbarRef.current.contains(event.target as Node) &&
+        !toolbarRef.current.contains(target) &&
         targetElement &&
-        !targetElement.contains(event.target as Node)
+        !targetElement.contains(target) &&
+        onClose
       ) {
         onClose();
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    // Use a timeout to prevent immediate closing
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('click', handleClickOutside);
+    }, 200);
+
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      clearTimeout(timeoutId);
+      document.removeEventListener('click', handleClickOutside);
     };
-  }, [isVisible, onClose, targetElement]);
+  }, [isVisible, targetElement, onClose]);
 
   const updateActiveStates = () => {
     if (!targetElement) return;
