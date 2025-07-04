@@ -186,9 +186,7 @@ export default function EditableFieldHeading({
             __html: content.replace(/\n/g, '<br>')
           }}
         />
-        <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Badge variant="secondary" className="text-xs">Click to edit</Badge>
-        </div>
+
       </div>
 
       {/* Inline Formatting Toolbar */}
