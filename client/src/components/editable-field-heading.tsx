@@ -115,17 +115,17 @@ export default function EditableFieldHeading({
 
     console.log('Apply to All: Starting with element:', editingElement);
 
-    // Get all computed styles from the current element
+    // Get all computed styles from the current element and convert to plain object
     const computedStyle = window.getComputedStyle(editingElement);
     const formatting = {
-      fontWeight: computedStyle.fontWeight,
-      fontStyle: computedStyle.fontStyle,
-      textDecoration: computedStyle.textDecoration,
-      textAlign: computedStyle.textAlign,
-      fontFamily: computedStyle.fontFamily,
-      fontSize: computedStyle.fontSize,
-      color: computedStyle.color,
-      backgroundColor: computedStyle.backgroundColor,
+      fontWeight: String(computedStyle.fontWeight),
+      fontStyle: String(computedStyle.fontStyle),
+      textDecoration: String(computedStyle.textDecoration),
+      textAlign: String(computedStyle.textAlign),
+      fontFamily: String(computedStyle.fontFamily),
+      fontSize: String(computedStyle.fontSize),
+      color: String(computedStyle.color),
+      backgroundColor: String(computedStyle.backgroundColor),
     };
 
     console.log('Apply to All: Extracted formatting:', formatting);
