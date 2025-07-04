@@ -18,13 +18,18 @@ export default function EditableFieldHeading({
   const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
 
+  // Debug: Log when component mounts with onApplyToAll prop
+  console.log('🔍 EditableFieldHeading mounted with onApplyToAll:', !!onApplyToAll);
+
   const applyFormattingToAllHeaders = () => {
-    console.log('🔥 APPLY TO ALL CLICKED!!! 🔥');
-    alert('Apply to All function called!');
+    console.log('🔥🔥🔥 FIELD HEADING APPLY TO ALL CLICKED!!! 🔥🔥🔥');
+    console.error('🔥🔥🔥 FIELD HEADING APPLY TO ALL CLICKED!!! 🔥🔥🔥');
+    console.warn('🔥🔥🔥 FIELD HEADING APPLY TO ALL CLICKED!!! 🔥🔥🔥');
+    alert('🔥 FIELD HEADING Apply to All function called! 🔥');
     
     if (!editingElement) {
       console.log('❌ No editing element');
-      alert('No editing element found');
+      alert('❌ No editing element found');
       return;
     }
 
