@@ -81,6 +81,27 @@ export default function InlineFormattingToolbar({
     }
   };
 
+  const getFormattingState = (command: string) => {
+    if (!targetElement) return false;
+    try {
+      return document.queryCommandState(command);
+    } catch {
+      return false;
+    }
+  };
+
+  const getAlignmentState = (alignment: string) => {
+    if (!targetElement) return false;
+    try {
+      return document.queryCommandValue('justifyLeft') === alignment ||
+             document.queryCommandValue('justifyCenter') === alignment ||
+             document.queryCommandValue('justifyRight') === alignment ||
+             document.queryCommandState(`justify${alignment.charAt(0).toUpperCase() + alignment.slice(1)}`);
+    } catch {
+      return false;
+    }
+  };
+
   const insertVariable = (variable: string) => {
     if (targetElement) {
       targetElement.focus();
@@ -107,7 +128,7 @@ export default function InlineFormattingToolbar({
       {/* Text Style Controls */}
       <Button
         size="sm"
-        variant="ghost"
+        variant={getFormattingState('bold') ? "default" : "ghost"}
         onClick={() => executeCommand('bold')}
         className="h-8 w-8 p-0"
       >
@@ -115,7 +136,7 @@ export default function InlineFormattingToolbar({
       </Button>
       <Button
         size="sm"
-        variant="ghost"
+        variant={getFormattingState('italic') ? "default" : "ghost"}
         onClick={() => executeCommand('italic')}
         className="h-8 w-8 p-0"
       >
@@ -123,7 +144,7 @@ export default function InlineFormattingToolbar({
       </Button>
       <Button
         size="sm"
-        variant="ghost"
+        variant={getFormattingState('underline') ? "default" : "ghost"}
         onClick={() => executeCommand('underline')}
         className="h-8 w-8 p-0"
       >
@@ -135,7 +156,7 @@ export default function InlineFormattingToolbar({
       {/* Text Alignment */}
       <Button
         size="sm"
-        variant="ghost"
+        variant={getFormattingState('justifyLeft') ? "default" : "ghost"}
         onClick={() => executeCommand('justifyLeft')}
         className="h-8 w-8 p-0"
       >
@@ -143,7 +164,7 @@ export default function InlineFormattingToolbar({
       </Button>
       <Button
         size="sm"
-        variant="ghost"
+        variant={getFormattingState('justifyCenter') ? "default" : "ghost"}
         onClick={() => executeCommand('justifyCenter')}
         className="h-8 w-8 p-0"
       >
@@ -151,7 +172,7 @@ export default function InlineFormattingToolbar({
       </Button>
       <Button
         size="sm"
-        variant="ghost"
+        variant={getFormattingState('justifyRight') ? "default" : "ghost"}
         onClick={() => executeCommand('justifyRight')}
         className="h-8 w-8 p-0"
       >
