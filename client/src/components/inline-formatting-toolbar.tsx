@@ -51,6 +51,27 @@ export default function InlineFormattingToolbar({
     }
   }, [isVisible, targetElement]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        isVisible &&
+        toolbarRef.current &&
+        !toolbarRef.current.contains(event.target as Node) &&
+        targetElement &&
+        !targetElement.contains(event.target as Node)
+      ) {
+        onCancel();
+      }
+    };
+
+    if (isVisible) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isVisible, onCancel, targetElement]);
+
   const executeCommand = (command: string, value?: string) => {
     if (targetElement) {
       targetElement.focus();

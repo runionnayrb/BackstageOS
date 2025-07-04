@@ -63,6 +63,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const editableRef = useRef<HTMLDivElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
 
   // Default formatting state - matching preview mode appearance
   const [formatting, setFormatting] = useState<HeaderFormatting>({
@@ -212,6 +213,28 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     }
   }, [formatting, isEditingText]);
 
+  // Click outside to close toolbar
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showToolbar &&
+        toolbarRef.current &&
+        !toolbarRef.current.contains(event.target as Node) &&
+        editableRef.current &&
+        !editableRef.current.contains(event.target as Node)
+      ) {
+        handleCancel();
+      }
+    };
+
+    if (showToolbar) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showToolbar]);
+
   const handleSave = () => {
     if (editableRef.current) {
       const newText = editableRef.current.textContent?.trim() || '';
@@ -268,7 +291,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
       <div className="relative mb-2">
         {/* Formatting Toolbar */}
         {showToolbar && (
-          <div className="absolute -top-16 left-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap items-center gap-1 min-w-max">
+          <div ref={toolbarRef} className="absolute -top-16 left-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap items-center gap-1 min-w-max">
             {/* Text Style Controls */}
             <Button
               size="sm"
