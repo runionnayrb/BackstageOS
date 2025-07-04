@@ -528,20 +528,18 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
               size="sm"
               onClick={handleSave}
               disabled={updateDepartmentNameMutation.isPending || updateFormattingMutation.isPending}
-              className="h-8 px-3"
+              className="h-8 w-8 p-0"
             >
-              <Check className="h-4 w-4 mr-1" />
-              Save
+              <Check className="h-4 w-4" />
             </Button>
             <Button
               size="sm"
               variant="ghost"
               onClick={handleCancel}
               disabled={updateDepartmentNameMutation.isPending}
-              className="h-8 px-3"
+              className="h-8 w-8 p-0"
             >
-              <X className="h-4 w-4 mr-1" />
-              Cancel
+              <X className="h-4 w-4" />
             </Button>
           </div>
         )}
