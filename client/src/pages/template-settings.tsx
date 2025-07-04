@@ -350,35 +350,39 @@ export default function TemplateSettings() {
 
   // Field header formatting "Apply to All" functionality
   const applyFormattingToAllFieldHeaders = () => {
-    console.log('🔥 Apply to All Field Headers function called!');
+    console.log('🔥 Apply to All Field Headers function called from template-settings!');
     
-    // Get the current formatting from the currently editing element
-    const activeElement = document.querySelector('[data-field-header-editing="true"]') as HTMLElement;
+    // Find any currently editing field header using the correct data attribute
+    const activeElement = document.querySelector('[data-field-heading="true"][contenteditable="true"]') as HTMLElement;
     if (!activeElement) {
-      console.log('No active editing element found');
+      console.log('No active editing element found - looking for [data-field-heading="true"][contenteditable="true"]');
+      // Try alternative selector
+      const toolbarVisible = document.querySelector('.inline-formatting-toolbar');
+      if (toolbarVisible) {
+        console.log('Toolbar is visible, but no contenteditable element found');
+      }
       return;
     }
 
-    // Extract current formatting from the active element
+    console.log('Found active editing element:', activeElement);
+
+    // Get computed styles instead of inline styles for more accurate formatting
+    const computedStyle = window.getComputedStyle(activeElement);
     const currentFormatting = {
-      fontWeight: activeElement.style.fontWeight || 'normal',
-      fontStyle: activeElement.style.fontStyle || 'normal',
-      textDecoration: activeElement.style.textDecoration || 'none',
-      textAlign: activeElement.style.textAlign || 'left',
-      fontSize: activeElement.style.fontSize || '14px',
-      fontFamily: activeElement.style.fontFamily || 'Arial',
-      color: activeElement.style.color || '#000000',
-      backgroundColor: activeElement.style.backgroundColor || 'transparent',
-      borderTop: activeElement.style.borderTop || 'none',
-      borderRight: activeElement.style.borderRight || 'none',
-      borderBottom: activeElement.style.borderBottom || 'none',
-      borderLeft: activeElement.style.borderLeft || 'none'
+      fontWeight: computedStyle.fontWeight,
+      fontStyle: computedStyle.fontStyle,
+      textDecoration: computedStyle.textDecoration,
+      textAlign: computedStyle.textAlign,
+      fontSize: computedStyle.fontSize,
+      fontFamily: computedStyle.fontFamily,
+      color: computedStyle.color,
+      backgroundColor: computedStyle.backgroundColor,
     };
 
     console.log('Current formatting to apply:', currentFormatting);
 
     // Apply formatting to all field header elements
-    const allFieldHeaders = document.querySelectorAll('[data-field-header="true"]');
+    const allFieldHeaders = document.querySelectorAll('[data-field-heading="true"]');
     console.log('Found field headers to format:', allFieldHeaders.length);
     
     allFieldHeaders.forEach((element) => {
@@ -386,7 +390,7 @@ export default function TemplateSettings() {
       Object.entries(currentFormatting).forEach(([property, value]) => {
         if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
           const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
-          htmlElement.style.setProperty(cssProperty, value);
+          htmlElement.style.setProperty(cssProperty, value as string);
         }
       });
     });
