@@ -388,7 +388,7 @@ export default function TemplateSettings() {
     allFieldHeaders.forEach((element) => {
       const htmlElement = element as HTMLElement;
       Object.entries(currentFormatting).forEach(([property, value]) => {
-        if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
+        if (value && value !== 'rgba(0, 0, 0, 0)') {
           const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
           htmlElement.style.setProperty(cssProperty, value as string);
         }

@@ -44,7 +44,7 @@ export default function EditableFieldHeading({
       fieldHeaders.forEach((element) => {
         const htmlElement = element as HTMLElement;
         Object.entries(formatting).forEach(([property, value]) => {
-          if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
+          if (value && value !== 'rgba(0, 0, 0, 0)') {
             const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
             htmlElement.style.setProperty(cssProperty, value as string);
           }
@@ -195,7 +195,7 @@ export default function EditableFieldHeading({
       allHeaders.forEach((element) => {
         const htmlElement = element as HTMLElement;
         Object.entries(fieldFormatting).forEach(([property, value]) => {
-          if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
+          if (value && value !== 'rgba(0, 0, 0, 0)') {
             const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
             htmlElement.style.setProperty(cssProperty, value as string);
           }
