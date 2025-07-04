@@ -280,7 +280,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
           placeholder="Add a new note..."
           value={newNoteContent}
           onChange={(e) => setNewNoteContent(e.target.value)}
-          className="min-h-[80px] resize-none border-0 shadow-none focus:ring-0"
+          className="h-10 resize-none border-0 shadow-none focus:ring-0"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
