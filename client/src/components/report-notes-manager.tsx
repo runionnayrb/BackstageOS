@@ -280,7 +280,13 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
           placeholder="Add a new note..."
           value={newNoteContent}
           onChange={(e) => setNewNoteContent(e.target.value)}
-          className="h-10 resize-none border-0 shadow-none focus:ring-0"
+          className="min-h-[40px] max-h-[200px] resize-none border-0 shadow-none focus:ring-0 overflow-y-auto"
+          style={{ height: 'auto' }}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = 'auto';
+            target.style.height = target.scrollHeight + 'px';
+          }}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
               e.preventDefault();
