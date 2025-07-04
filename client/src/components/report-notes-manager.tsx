@@ -307,43 +307,37 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
             }`}
           >
             <div className="flex items-start justify-between gap-2">
-              {/* Note number and content */}
-              <div className="flex items-start gap-1 flex-1">
-                <span className="text-sm font-medium text-foreground min-w-[20px] mt-0">
-                  {index + 1}.
-                </span>
-                
-                <div className="flex-1">
-                  {editingNote === note.id ? (
-                    <div className="space-y-2">
-                      <Textarea
-                        value={editContent}
-                        onChange={(e) => setEditContent(e.target.value)}
-                        className="min-h-[60px] resize-none"
-                        autoFocus
-                      />
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={handleSaveEdit}>
-                          <Check className="h-4 w-4 mr-1" />
-                          Save
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={handleCancelEdit}>
-                          <X className="h-4 w-4 mr-1" />
-                          Cancel
-                        </Button>
-                      </div>
+              {/* Note content with inline number */}
+              <div className="flex-1">
+                {editingNote === note.id ? (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      className="min-h-[60px] resize-none"
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={handleSaveEdit}>
+                        <Check className="h-4 w-4 mr-1" />
+                        Save
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                        <X className="h-4 w-4 mr-1" />
+                        Cancel
+                      </Button>
                     </div>
-                  ) : (
-                    <p 
-                      className={`text-sm leading-relaxed cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded p-1 -m-1 ${
-                        note.isCompleted ? 'line-through text-muted-foreground' : ''
-                      }`}
-                      onClick={() => handleEditNote(note)}
-                    >
-                      {note.content}
-                    </p>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <p 
+                    className={`text-sm leading-relaxed cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded p-1 -m-1 ${
+                      note.isCompleted ? 'line-through text-muted-foreground' : ''
+                    }`}
+                    onClick={() => handleEditNote(note)}
+                  >
+                    <span className="font-medium mr-2">{index + 1}.</span>{note.content}
+                  </p>
+                )}
               </div>
 
               {/* Controls */}
