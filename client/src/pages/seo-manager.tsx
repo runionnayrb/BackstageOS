@@ -258,23 +258,168 @@ function SeoManagerContent() {
   };
 
   const testConnectivity = async () => {
+    const tests = [];
+    let allPassed = true;
+
     try {
-      // Test external API connectivity to verify internet connection
-      const response = await fetch('https://httpbin.org/json');
-      const data = await response.json();
-      toast({ 
-        title: "Internet Connectivity Test Successful", 
-        description: `Connected to external API successfully. Server origin: ${data.origin}`
+      // Test 1: Internet connectivity
+      toast({ title: "Running connectivity tests...", description: "Testing internet connection" });
+      
+      const connectivityResponse = await fetch('https://httpbin.org/json');
+      const connectivityData = await connectivityResponse.json();
+      tests.push({
+        name: "Internet Connectivity",
+        status: "✅ PASS",
+        details: `Server IP: ${connectivityData.origin}`
       });
-      return true;
     } catch (error) {
-      toast({ 
-        title: "Connectivity Test Failed", 
-        description: "Cannot connect to external services",
-        variant: "destructive" 
+      tests.push({
+        name: "Internet Connectivity", 
+        status: "❌ FAIL",
+        details: "Cannot connect to external services"
       });
-      return false;
+      allPassed = false;
     }
+
+    try {
+      // Test 2: SEO Meta Tags Verification
+      toast({ title: "Testing SEO meta tags...", description: "Checking if meta tags are served correctly" });
+      
+      const currentUrl = window.location.origin;
+      const metaResponse = await fetch(currentUrl);
+      const htmlContent = await metaResponse.text();
+      
+      // Check for essential meta tags
+      const hasTitle = htmlContent.includes('<title>') && htmlContent.includes('BackstageOS');
+      const hasDescription = htmlContent.includes('name="description"') || htmlContent.includes('property="og:description"');
+      const hasOgImage = htmlContent.includes('property="og:image"');
+      const hasTwitterCard = htmlContent.includes('name="twitter:card"');
+      const hasStructuredData = htmlContent.includes('application/ld+json');
+      
+      if (hasTitle && hasDescription && hasOgImage && hasTwitterCard && hasStructuredData) {
+        tests.push({
+          name: "SEO Meta Tags",
+          status: "✅ PASS", 
+          details: "All essential meta tags found in HTML"
+        });
+      } else {
+        const missing = [];
+        if (!hasTitle) missing.push("title");
+        if (!hasDescription) missing.push("description");
+        if (!hasOgImage) missing.push("og:image");
+        if (!hasTwitterCard) missing.push("twitter:card");
+        if (!hasStructuredData) missing.push("structured data");
+        
+        tests.push({
+          name: "SEO Meta Tags",
+          status: "⚠️ PARTIAL",
+          details: `Missing: ${missing.join(", ")}`
+        });
+        allPassed = false;
+      }
+    } catch (error) {
+      tests.push({
+        name: "SEO Meta Tags",
+        status: "❌ FAIL", 
+        details: "Cannot fetch page HTML for analysis"
+      });
+      allPassed = false;
+    }
+
+    try {
+      // Test 3: Share Image Accessibility
+      toast({ title: "Testing share image...", description: "Verifying share image is accessible" });
+      
+      const shareImageUrl = `${window.location.origin}/uploads/shareImage-1751581407362.png`;
+      const imageResponse = await fetch(shareImageUrl, { method: 'HEAD' });
+      
+      if (imageResponse.ok) {
+        const contentType = imageResponse.headers.get('content-type');
+        const contentLength = imageResponse.headers.get('content-length');
+        tests.push({
+          name: "Share Image",
+          status: "✅ PASS",
+          details: `Image accessible (${contentType}, ${contentLength} bytes)`
+        });
+      } else {
+        tests.push({
+          name: "Share Image", 
+          status: "❌ FAIL",
+          details: `HTTP ${imageResponse.status}: Image not accessible`
+        });
+        allPassed = false;
+      }
+    } catch (error) {
+      tests.push({
+        name: "Share Image",
+        status: "❌ FAIL",
+        details: "Cannot verify image accessibility"
+      });
+      allPassed = false;
+    }
+
+    try {
+      // Test 4: Social Media Indexability 
+      toast({ title: "Testing social indexability...", description: "Checking social media crawler compatibility" });
+      
+      const currentUrl = window.location.origin;
+      const crawlerResponse = await fetch(currentUrl, {
+        headers: {
+          'User-Agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'
+        }
+      });
+      
+      if (crawlerResponse.ok) {
+        const crawlerHtml = await crawlerResponse.text();
+        const hasOgTags = crawlerHtml.includes('property="og:') && crawlerHtml.includes('property="og:image"');
+        
+        if (hasOgTags) {
+          tests.push({
+            name: "Social Media Indexability",
+            status: "✅ PASS",
+            details: "Page accessible to social media crawlers"
+          });
+        } else {
+          tests.push({
+            name: "Social Media Indexability", 
+            status: "⚠️ PARTIAL",
+            details: "Accessible but missing Open Graph tags"
+          });
+          allPassed = false;
+        }
+      } else {
+        tests.push({
+          name: "Social Media Indexability",
+          status: "❌ FAIL", 
+          details: `HTTP ${crawlerResponse.status}: Not accessible to crawlers`
+        });
+        allPassed = false;
+      }
+    } catch (error) {
+      tests.push({
+        name: "Social Media Indexability",
+        status: "❌ FAIL",
+        details: "Cannot test social media crawler access"
+      });
+      allPassed = false;
+    }
+
+    // Display comprehensive results
+    const resultsText = tests.map(test => `${test.status} ${test.name}: ${test.details}`).join('\n');
+    
+    toast({
+      title: allPassed ? "All SEO Tests Passed!" : "SEO Tests Completed with Issues",
+      description: allPassed ? "Your SEO configuration is working correctly" : "Some issues found - check results below",
+      variant: allPassed ? "default" : "destructive"
+    });
+
+    // Log detailed results to console for debugging
+    console.log("SEO Test Results:");
+    tests.forEach(test => {
+      console.log(`${test.status} ${test.name}: ${test.details}`);
+    });
+
+    return allPassed;
   };
 
   const generateMetaTags = (settings: SeoSettings) => {
@@ -349,7 +494,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                 size="default"
               >
                 <Globe className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Test </span>Connectivity
+                <span className="hidden sm:inline">Test SEO & </span>Connectivity
               </Button>
               <Button
                 variant={viewMode === 'list' ? 'default' : 'outline'}
