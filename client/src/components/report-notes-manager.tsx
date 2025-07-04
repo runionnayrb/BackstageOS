@@ -315,20 +315,10 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
             <div className="flex items-start justify-between gap-2">
               {/* Note number and content */}
               <div className="flex items-start gap-3 flex-1">
-                <div className="flex items-center gap-1 mt-1">
+                <div className="mt-1">
                   <span className="text-sm font-medium text-muted-foreground min-w-[20px]">
                     {index + 1}.
                   </span>
-                  <button
-                    onClick={() => handleToggleComplete(note)}
-                    className={`w-4 h-4 rounded border flex items-center justify-center ${
-                      note.isCompleted 
-                        ? 'bg-green-500 border-green-500 text-white' 
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
-                  >
-                    {note.isCompleted && <Check className="h-3 w-3" />}
-                  </button>
                 </div>
                 
                 <div className="flex-1">
