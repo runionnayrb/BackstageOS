@@ -91,6 +91,29 @@ export default function EditableFieldHeading({
     }
   });
 
+  const handleAutoSave = () => {
+    if (editingElement) {
+      // Get all computed styles from the current element
+      const computedStyle = window.getComputedStyle(editingElement);
+      const formatting = {
+        fontWeight: String(computedStyle.fontWeight),
+        fontStyle: String(computedStyle.fontStyle),
+        textDecoration: String(computedStyle.textDecoration),
+        textAlign: String(computedStyle.textAlign),
+        fontFamily: String(computedStyle.fontFamily),
+        fontSize: String(computedStyle.fontSize),
+        color: String(computedStyle.color),
+        backgroundColor: String(computedStyle.backgroundColor),
+      };
+
+      // Auto-save the formatting for this specific field
+      updateFieldHeaderFormattingMutation.mutate({
+        formatting,
+        applyToAll: false
+      });
+    }
+  };
+
   const applyFormattingToAllHeaders = async () => {
     console.log('🔥🔥🔥 FIELD HEADING APPLY TO ALL CLICKED!!! 🔥🔥🔥');
     
@@ -197,6 +220,7 @@ export default function EditableFieldHeading({
           if (editingElement) {
             const content = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
             onChange(content);
+            handleAutoSave(); // Auto-save formatting changes
           }
         }}
         onApplyToAll={onApplyToAll || applyFormattingToAllHeaders}

@@ -88,6 +88,26 @@ export default function EditableHeaderFooter({
     }
   });
 
+  const handleAutoSave = () => {
+    if (editingElement) {
+      // Get all computed styles from the current element
+      const computedStyle = window.getComputedStyle(editingElement);
+      const formatting = {
+        fontWeight: String(computedStyle.fontWeight),
+        fontStyle: String(computedStyle.fontStyle),
+        textDecoration: String(computedStyle.textDecoration),
+        textAlign: String(computedStyle.textAlign),
+        fontFamily: String(computedStyle.fontFamily),
+        fontSize: String(computedStyle.fontSize),
+        color: String(computedStyle.color),
+        backgroundColor: String(computedStyle.backgroundColor),
+      };
+
+      // Auto-save the formatting
+      updateFormattingMutation.mutate({ formatting });
+    }
+  };
+
   const applyFormatting = async () => {
     console.log(`🎨 ${type.toUpperCase()} FORMATTING APPLIED! 🎨`);
     
@@ -187,6 +207,7 @@ export default function EditableHeaderFooter({
           if (editingElement) {
             const content = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
             onChange(content);
+            handleAutoSave(); // Auto-save formatting changes
           }
         }}
         onApplyToAll={applyFormatting}
