@@ -89,7 +89,7 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
   tech: {
     phase: "tech",
     name: "Technical Rehearsal Report", 
-    description: "Technical rehearsal and cue integration",
+    description: "Technical rehearsal and cue integration with department notes",
     header: "{{showName}} - Tech Rehearsal Report\nDate: {{date}} | Tech Day {{techDay}}\nStage Manager: {{stageManager}}",
     footer: "Next tech: {{nextTech}}\nTechnical Director: {{technicalDirector}}",
     fields: [
@@ -97,9 +97,18 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
       { id: "techDay", type: "number", label: "Tech Day #", required: true, order: 2 },
       { id: "startTime", type: "time", label: "Start Time", required: true, order: 3 },
       { id: "endTime", type: "time", label: "End Time", required: true, order: 4 },
-      { id: "cuesRun", type: "textarea", label: "Cues Rehearsed", placeholder: "Light cues 1-25, Sound cues A-M", required: true, order: 5 },
-      { id: "technical", type: "textarea", label: "Technical Issues", placeholder: "Equipment problems, delays", required: false, order: 6 },
-      { id: "notes", type: "textarea", label: "General Notes", required: true, order: 7 }
+      { id: "sessionOverview", type: "textarea", label: "Session Overview", placeholder: "Overall goals and achievements for this tech session", required: true, order: 5 },
+      { id: "cuesRun", type: "textarea", label: "Cues Rehearsed", placeholder: "Light cues 1-25, Sound cues A-M", required: true, order: 6 },
+      
+      // Department Notes Sections
+      { id: "scenicNotes", type: "textarea", label: "🔵 Scenic Department Notes", placeholder: "Set changes, scenic cues, technical notes for scenic department", required: false, order: 7 },
+      { id: "lightingNotes", type: "textarea", label: "🟡 Lighting Department Notes", placeholder: "Light cues, equipment issues, lighting notes", required: false, order: 8 },
+      { id: "audioNotes", type: "textarea", label: "🟢 Audio Department Notes", placeholder: "Sound cues, microphone issues, audio equipment notes", required: false, order: 9 },
+      { id: "videoNotes", type: "textarea", label: "🟣 Video Department Notes", placeholder: "Video cues, projection issues, media notes", required: false, order: 10 },
+      { id: "propsNotes", type: "textarea", label: "🔴 Props Department Notes", placeholder: "Prop tracking, quick changes, costume notes", required: false, order: 11 },
+      
+      { id: "outstandingIssues", type: "textarea", label: "Outstanding Issues", placeholder: "Unresolved problems requiring follow-up", required: false, order: 12 },
+      { id: "notes", type: "textarea", label: "General Notes", placeholder: "Additional notes and observations", required: false, order: 13 }
     ]
   },
   previews: {
