@@ -409,36 +409,37 @@ export default function AdminErrorLogs() {
         </div>
 
         {/* Error Logs Table */}
-        <div className="px-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Errors ({filteredErrorLogs.length})</CardTitle>
-            <CardDescription>
-              Error logging captures JavaScript errors, network failures, and user interaction issues from registered users in production only. 
-              Errors are automatically prioritized by criticality - JavaScript errors and recent issues appear first.
-              <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+        <div>
+          <div className="px-6 mb-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Recent Errors ({filteredErrorLogs.length})</h3>
+              <span className={`px-2 py-1 text-xs rounded-full ${
                 isLoggingEnabled 
                   ? "bg-green-100 text-green-800" 
                   : "bg-red-100 text-red-800"
               }`}>
                 {isLoggingEnabled ? "● Live" : "● Paused"}
               </span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="w-full overflow-x-auto">
-              <Table className="w-full table-fixed">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[120px] px-4 py-3 font-semibold bg-gray-50">Priority</TableHead>
-                    <TableHead className="w-[140px] px-4 py-3 font-semibold bg-gray-50">Type</TableHead>
-                    <TableHead className="w-[200px] px-4 py-3 font-semibold bg-gray-50">Message</TableHead>
-                    <TableHead className="w-[220px] px-4 py-3 font-semibold bg-gray-50">Page</TableHead>
-                    <TableHead className="w-[120px] px-4 py-3 font-semibold bg-gray-50">User</TableHead>
-                    <TableHead className="w-[160px] px-4 py-3 font-semibold bg-gray-50">Time</TableHead>
-                    <TableHead className="w-[280px] px-4 py-3 font-semibold bg-gray-50">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+            </div>
+            <p className="text-sm text-gray-600 mt-1">
+              Error logging captures JavaScript errors, network failures, and user interaction issues from registered users in production only. 
+              Errors are automatically prioritized by criticality - JavaScript errors and recent issues appear first.
+            </p>
+          </div>
+          
+          <div className="w-full overflow-x-auto">
+            <Table className="w-full table-fixed">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[120px] px-4 py-3 font-semibold bg-gray-50">Priority</TableHead>
+                  <TableHead className="w-[140px] px-4 py-3 font-semibold bg-gray-50">Type</TableHead>
+                  <TableHead className="w-[200px] px-4 py-3 font-semibold bg-gray-50">Message</TableHead>
+                  <TableHead className="w-[220px] px-4 py-3 font-semibold bg-gray-50">Page</TableHead>
+                  <TableHead className="w-[120px] px-4 py-3 font-semibold bg-gray-50">User</TableHead>
+                  <TableHead className="w-[160px] px-4 py-3 font-semibold bg-gray-50">Time</TableHead>
+                  <TableHead className="w-[280px] px-4 py-3 font-semibold bg-gray-50">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
                 <TableBody>
                   {filteredErrorLogs.length === 0 ? (
                     <TableRow>
@@ -628,8 +629,6 @@ export default function AdminErrorLogs() {
                 </TableBody>
               </Table>
             </div>
-          </CardContent>
-        </Card>
         </div>
 
         {/* Stats Cards */}
