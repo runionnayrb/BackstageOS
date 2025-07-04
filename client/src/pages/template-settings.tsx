@@ -22,6 +22,7 @@ import {
 import ReportNotesManager from "@/components/report-notes-manager";
 import EditableDepartmentHeader from "@/components/editable-department-header";
 import InlineFormattingToolbar from "@/components/inline-formatting-toolbar";
+import EditableFieldHeading from "@/components/editable-field-heading";
 import { getAllDepartmentNames, type DepartmentKey } from "@/utils/departmentUtils";
 import type { ShowSettings } from "@/../../shared/schema";
 import {
@@ -176,6 +177,8 @@ export default function TemplateSettings() {
   // Inline editing state
   const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
+
+
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -620,9 +623,24 @@ export default function TemplateSettings() {
                         .sort((a, b) => a.order - b.order)
                         .map((field) => (
                           <div key={field.id} className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700">
-                              {field.label}
-                            </label>
+                            <EditableFieldHeading
+                              content={field.label}
+                              onChange={(newLabel) => {
+                                const updatedTemplate = {
+                                  ...template,
+                                  fields: template.fields.map(f =>
+                                    f.id === field.id 
+                                      ? { ...f, label: newLabel }
+                                      : f
+                                  )
+                                };
+                                setTemplates(prev => ({
+                                  ...prev,
+                                  [phase]: updatedTemplate
+                                }));
+                                saveTemplate.mutate(updatedTemplate);
+                              }}
+                            />
                             <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px]">
                               {field.placeholder || "Sample content..."}
                             </div>
