@@ -348,6 +348,72 @@ export default function TemplateSettings() {
     });
   };
 
+  // Field header formatting "Apply to All" functionality
+  const applyFormattingToAllFieldHeaders = () => {
+    console.log('🔥 Apply to All Field Headers function called!');
+    
+    // Get the current formatting from the currently editing element
+    const activeElement = document.querySelector('[data-field-header-editing="true"]') as HTMLElement;
+    if (!activeElement) {
+      console.log('No active editing element found');
+      return;
+    }
+
+    // Extract current formatting from the active element
+    const currentFormatting = {
+      fontWeight: activeElement.style.fontWeight || 'normal',
+      fontStyle: activeElement.style.fontStyle || 'normal',
+      textDecoration: activeElement.style.textDecoration || 'none',
+      textAlign: activeElement.style.textAlign || 'left',
+      fontSize: activeElement.style.fontSize || '14px',
+      fontFamily: activeElement.style.fontFamily || 'Arial',
+      color: activeElement.style.color || '#000000',
+      backgroundColor: activeElement.style.backgroundColor || 'transparent',
+      borderTop: activeElement.style.borderTop || 'none',
+      borderRight: activeElement.style.borderRight || 'none',
+      borderBottom: activeElement.style.borderBottom || 'none',
+      borderLeft: activeElement.style.borderLeft || 'none'
+    };
+
+    console.log('Current formatting to apply:', currentFormatting);
+
+    // Apply formatting to all field header elements
+    const allFieldHeaders = document.querySelectorAll('[data-field-header="true"]');
+    console.log('Found field headers to format:', allFieldHeaders.length);
+    
+    allFieldHeaders.forEach((element) => {
+      const htmlElement = element as HTMLElement;
+      Object.entries(currentFormatting).forEach(([property, value]) => {
+        if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
+          const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
+          htmlElement.style.setProperty(cssProperty, value);
+        }
+      });
+    });
+
+    // Save formatting to database
+    apiRequest("PUT", `/api/projects/${projectId}/settings/field-header-formatting`, {
+      formatting: currentFormatting
+    }).then(() => {
+      toast({
+        title: "Formatting applied",
+        description: "Field header formatting applied to all fields",
+      });
+      
+      // Invalidate cache to refresh settings
+      queryClient.invalidateQueries({
+        queryKey: [`/api/projects/${projectId}/settings`]
+      });
+    }).catch((error) => {
+      console.error('Failed to save field header formatting:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save field header formatting",
+        variant: "destructive",
+      });
+    });
+  };
+
   // Drag and drop handlers for department reordering
   const handleDragStart = (e: React.DragEvent, index: number) => {
     if (!isReordering) return;
@@ -642,6 +708,7 @@ export default function TemplateSettings() {
                                 saveTemplate.mutate(updatedTemplate);
                               }}
                               projectId={projectId}
+                              onApplyToAll={applyFormattingToAllFieldHeaders}
                             />
                             <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px]">
                               {field.placeholder || "Sample content..."}
