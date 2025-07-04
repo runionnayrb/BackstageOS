@@ -288,18 +288,8 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
             }
           }}
         />
-        <div className="flex justify-between items-center">
-          <div className="text-xs text-muted-foreground">
-            Press Enter to add note, Shift + Enter for new line
-          </div>
-          <Button 
-            onClick={handleAddNote}
-            disabled={!newNoteContent.trim() || createNoteMutation.isPending}
-            size="sm"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Add Note
-          </Button>
+        <div className="text-xs text-muted-foreground">
+          Press Enter to add note, Shift + Enter for new line
         </div>
       </div>
 
