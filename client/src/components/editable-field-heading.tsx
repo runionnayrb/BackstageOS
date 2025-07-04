@@ -44,7 +44,7 @@ export default function EditableFieldHeading({
       fieldHeaders.forEach((element) => {
         const htmlElement = element as HTMLElement;
         Object.entries(formatting).forEach(([property, value]) => {
-          if (value) {
+          if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
             const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
             htmlElement.style.setProperty(cssProperty, value as string);
           }
@@ -134,6 +134,18 @@ export default function EditableFieldHeading({
       await updateFieldHeaderFormattingMutation.mutateAsync({
         formatting,
         applyToAll: true
+      });
+
+      // Immediately apply formatting to all headers on the page
+      const fieldHeaders = document.querySelectorAll('[data-field-heading]');
+      fieldHeaders.forEach((element) => {
+        const htmlElement = element as HTMLElement;
+        Object.entries(formatting).forEach(([property, value]) => {
+          if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
+            const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
+            htmlElement.style.setProperty(cssProperty, value as string);
+          }
+        });
       });
 
       // Close the toolbar after successful update
