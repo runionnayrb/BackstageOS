@@ -325,20 +325,22 @@ export default function AdminErrorLogs() {
   return (
     <div className="min-h-screen w-full p-0 space-y-6">
       <div className="px-6 pt-6">
-        <div className="flex items-center justify-between mb-8 gap-6">
-          <div className="flex items-center justify-between w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8 gap-4 sm:gap-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-4">
             <h2 className="text-lg sm:text-xl font-semibold">Error Logs</h2>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <Link href="/auto-resolution-dashboard">
-                <Button variant="outline" size="default" className="flex items-center gap-2">
+                <Button variant="outline" size="default" className="flex items-center gap-2 w-full sm:w-auto">
                   <Activity className="h-4 w-4" />
-                  Auto-Resolution Dashboard
+                  <span className="hidden sm:inline">Auto-Resolution Dashboard</span>
+                  <span className="sm:hidden">Auto-Resolution</span>
                 </Button>
               </Link>
               <Link href="/advanced-analytics-dashboard">
-                <Button variant="outline" size="default" className="flex items-center gap-2 border-purple-500 text-purple-600 hover:bg-purple-50">
+                <Button variant="outline" size="default" className="flex items-center gap-2 border-purple-500 text-purple-600 hover:bg-purple-50 w-full sm:w-auto">
                   <BarChart3 className="h-4 w-4" />
-                  Advanced Analytics
+                  <span className="hidden sm:inline">Advanced Analytics</span>
+                  <span className="sm:hidden">Analytics</span>
                 </Button>
               </Link>
             </div>
@@ -346,7 +348,7 @@ export default function AdminErrorLogs() {
           <Button
             onClick={toggleLogging}
             variant={isLoggingEnabled ? "default" : "outline"}
-            className={`flex items-center gap-2 ${
+            className={`flex items-center gap-2 w-full sm:w-auto ${
               isLoggingEnabled 
                 ? "bg-green-600 hover:bg-green-700" 
                 : "border-red-500 text-red-600 hover:bg-red-50"
@@ -355,19 +357,21 @@ export default function AdminErrorLogs() {
             {isLoggingEnabled ? (
               <>
                 <Pause className="h-4 w-4" />
-                Pause Logging
+                <span className="hidden sm:inline">Pause Logging</span>
+                <span className="sm:hidden">Pause</span>
               </>
             ) : (
               <>
                 <Play className="h-4 w-4" />
-                Resume Logging
+                <span className="hidden sm:inline">Resume Logging</span>
+                <span className="sm:hidden">Resume</span>
               </>
             )}
           </Button>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-6 mb-6">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
@@ -377,9 +381,9 @@ export default function AdminErrorLogs() {
               className="pl-10 h-10"
             />
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-52 h-10">
+              <SelectTrigger className="w-full sm:w-52 h-10">
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
               <SelectContent>
@@ -393,7 +397,7 @@ export default function AdminErrorLogs() {
               </SelectContent>
             </Select>
             <Select value={filterUser} onValueChange={setFilterUser}>
-              <SelectTrigger className="w-52 h-10">
+              <SelectTrigger className="w-full sm:w-52 h-10">
                 <SelectValue placeholder="Filter by user" />
               </SelectTrigger>
               <SelectContent>
@@ -408,7 +412,7 @@ export default function AdminErrorLogs() {
           </div>
         </div>
 
-        {/* Error Logs Table */}
+        {/* Error Logs Section */}
         <div>
           <div className="mb-4">
             <div className="flex items-center justify-between px-6">
@@ -426,8 +430,9 @@ export default function AdminErrorLogs() {
               Errors are automatically prioritized by criticality - JavaScript errors and recent issues appear first.
             </p>
           </div>
-          
-          <div className="w-full overflow-x-auto">
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block w-full overflow-x-auto">
             <Table className="w-full table-fixed">
               <TableHeader>
                 <TableRow>
@@ -511,104 +516,14 @@ export default function AdminErrorLogs() {
                           </TableCell>
                           <TableCell className="px-4 py-3">
                             <div className="flex items-center gap-1">
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 w-7 p-0"
-                                    onClick={() => setSelectedError(errorLog)}
-                                  >
-                                    <Eye className="h-3 w-3" />
-                                  </Button>
-                                </DialogTrigger>
-                              <DialogContent className="max-w-2xl">
-                                <DialogHeader>
-                                  <DialogTitle>Error Details</DialogTitle>
-                                  <DialogDescription>
-                                    Detailed information about this error occurrence
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <ScrollArea className="max-h-96">
-                                  <div className="space-y-4">
-                                    {(() => {
-                                      const naturalDescription = generateNaturalLanguageDescription(errorLog);
-                                      return (
-                                        <div>
-                                          <h4 className="font-medium mb-2">What Happened</h4>
-                                          <div className="bg-blue-50 p-3 rounded text-sm space-y-2">
-                                            <p className="text-blue-900">{naturalDescription.description}</p>
-                                            <div className="pt-2 border-t border-blue-200">
-                                              <span className="font-medium text-blue-800">Impact on Users:</span>
-                                              <p className="text-blue-800 mt-1">{naturalDescription.impact}</p>
-                                            </div>
-                                            <div className="flex items-center gap-2 pt-2">
-                                              <span className="font-medium text-blue-800">Severity:</span>
-                                              <span className={`px-2 py-1 rounded text-xs font-medium ${
-                                                naturalDescription.severity === 'Critical' ? 'bg-red-100 text-red-800' :
-                                                naturalDescription.severity === 'High' ? 'bg-orange-100 text-orange-800' :
-                                                naturalDescription.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                                                'bg-green-100 text-green-800'
-                                              }`}>
-                                                {naturalDescription.severity}
-                                              </span>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      );
-                                    })()}
-
-                                    <div>
-                                      <h4 className="font-medium mb-2">Technical Details</h4>
-                                      <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div>
-                                          <span className="font-medium">Type:</span> {errorLog.errorType}
-                                        </div>
-                                        <div>
-                                          <span className="font-medium">Page:</span> {errorLog.page}
-                                        </div>
-                                        <div>
-                                          <span className="font-medium">User Action:</span> {errorLog.userAction || "N/A"}
-                                        </div>
-                                        <div>
-                                          <span className="font-medium">Element:</span> {errorLog.elementClicked || "N/A"}
-                                        </div>
-                                      </div>
-                                    </div>
-                                    
-                                    <div>
-                                      <h4 className="font-medium mb-2">Error Message</h4>
-                                      <div className="bg-gray-50 p-3 rounded text-sm">
-                                        {errorLog.message}
-                                      </div>
-                                    </div>
-
-                                    {errorLog.stackTrace && (
-                                      <div>
-                                        <h4 className="font-medium mb-2">Stack Trace</h4>
-                                        <div className="bg-gray-50 p-3 rounded text-xs font-mono max-h-32 overflow-y-auto">
-                                          {errorLog.stackTrace}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    <div>
-                                      <h4 className="font-medium mb-2">Browser Information</h4>
-                                      <div className="bg-gray-50 p-3 rounded text-sm">
-                                        {formatUserAgent(errorLog.userAgent)}
-                                      </div>
-                                    </div>
-
-                                    <div>
-                                      <h4 className="font-medium mb-2">Additional Data</h4>
-                                      <div className="bg-gray-50 p-3 rounded text-xs font-mono max-h-32 overflow-y-auto">
-                                        <pre>{errorLog.additionalData ? String(JSON.stringify(errorLog.additionalData, null, 2)) : 'No additional data'}</pre>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </ScrollArea>
-                              </DialogContent>
-                            </Dialog>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                onClick={() => setSelectedError(errorLog)}
+                              >
+                                <Eye className="h-3 w-3" />
+                              </Button>
                             
                             <Button
                               variant="outline"
@@ -629,30 +544,232 @@ export default function AdminErrorLogs() {
                 </TableBody>
               </Table>
             </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden px-6 space-y-4">
+            {filteredErrorLogs.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                {searchTerm || filterType !== "all" || filterUser !== "all" ? "No errors match your filters" : "No errors recorded yet"}
+              </div>
+            ) : (
+              filteredErrorLogs.map((errorLog) => {
+                const IconComponent = errorTypeIcons[errorLog.errorType as keyof typeof errorTypeIcons] || AlertTriangle;
+                const priority = calculateErrorPriority(errorLog);
+                
+                // Determine priority level and styling
+                const getPriorityInfo = (priority: number) => {
+                  if (priority >= 120) return { level: "Critical", color: "bg-red-100 text-red-800", icon: "🔥" };
+                  if (priority >= 100) return { level: "High", color: "bg-orange-100 text-orange-800", icon: "⚠️" };
+                  if (priority >= 80) return { level: "Medium", color: "bg-yellow-100 text-yellow-800", icon: "⚡" };
+                  return { level: "Low", color: "bg-blue-100 text-blue-800", icon: "ℹ️" };
+                };
+                
+                const priorityInfo = getPriorityInfo(priority);
+                
+                return (
+                  <Card key={errorLog.id} className="p-4 border-l-4 border-l-red-500">
+                    <div className="space-y-3">
+                      {/* Header row with priority and time */}
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg">{priorityInfo.icon}</span>
+                          <Badge className={`${priorityInfo.color} text-xs`} variant="secondary">
+                            {priorityInfo.level}
+                          </Badge>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {formatDate(errorLog.createdAt.toString())}
+                        </div>
+                      </div>
+
+                      {/* Error type badge */}
+                      <div>
+                        <Badge 
+                          className={`${errorTypeColors[errorLog.errorType as keyof typeof errorTypeColors] || "bg-gray-100 text-gray-800"} text-xs`}
+                          variant="secondary"
+                        >
+                          {errorLog.errorType.replace(/_/g, ' ')}
+                        </Badge>
+                      </div>
+
+                      {/* Error message */}
+                      <div>
+                        <div className="text-sm font-medium text-gray-900 mb-1">Message</div>
+                        <div className="text-sm text-gray-700" title={errorLog.message}>
+                          {errorLog.message.split(':')[0]}
+                        </div>
+                      </div>
+
+                      {/* Page */}
+                      <div>
+                        <div className="text-sm font-medium text-gray-900 mb-1">Page</div>
+                        <code className="text-xs bg-gray-100 px-2 py-1 rounded" title={errorLog.page}>
+                          {errorLog.page}
+                        </code>
+                      </div>
+
+                      {/* User */}
+                      <div>
+                        <div className="text-sm font-medium text-gray-900 mb-1">User</div>
+                        {errorLog.userId ? (
+                          <div className="text-sm text-gray-700" title={errorLog.userFirstName && errorLog.userLastName 
+                              ? `${errorLog.userFirstName} ${errorLog.userLastName}`
+                              : errorLog.userEmail || `User ${errorLog.userId}`}>
+                            {errorLog.userFirstName && errorLog.userLastName 
+                              ? `${errorLog.userFirstName} ${errorLog.userLastName}`
+                              : errorLog.userEmail || `User ${errorLog.userId}`
+                            }
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-sm">Anonymous</span>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex gap-2 pt-2 border-t border-gray-200">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-2 flex-1"
+                          onClick={() => setSelectedError(errorLog)}
+                        >
+                          <Eye className="h-4 w-4" />
+                          View Details
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => analyzeErrorMutation.mutate(errorLog)}
+                          disabled={analyzingErrorId === errorLog.id}
+                          className="text-green-600 hover:text-green-700 border-green-200 hover:border-green-300 flex items-center gap-2 flex-1"
+                        >
+                          <Wrench className="h-4 w-4" />
+                          {analyzingErrorId === errorLog.id ? "Analyzing..." : "Analyze & Fix"}
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })
+            )}
+          </div>
         </div>
+
+        {/* Shared Error Details Dialog */}
+        {selectedError && (
+          <Dialog open={!!selectedError} onOpenChange={() => setSelectedError(null)}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Error Details</DialogTitle>
+                <DialogDescription>
+                  Detailed information about this error occurrence
+                </DialogDescription>
+              </DialogHeader>
+              <ScrollArea className="max-h-96">
+                <div className="space-y-4">
+                  {(() => {
+                    const naturalDescription = generateNaturalLanguageDescription(selectedError);
+                    return (
+                      <div>
+                        <h4 className="font-medium mb-2">What Happened</h4>
+                        <div className="bg-blue-50 p-3 rounded text-sm space-y-2">
+                          <p className="text-blue-900">{naturalDescription.description}</p>
+                          <div className="pt-2 border-t border-blue-200">
+                            <span className="font-medium text-blue-800">Impact on Users:</span>
+                            <p className="text-blue-800 mt-1">{naturalDescription.impact}</p>
+                          </div>
+                          <div className="flex items-center gap-2 pt-2">
+                            <span className="font-medium text-blue-800">Severity:</span>
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              naturalDescription.severity === 'Critical' ? 'bg-red-100 text-red-800' :
+                              naturalDescription.severity === 'High' ? 'bg-orange-100 text-orange-800' :
+                              naturalDescription.severity === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-green-100 text-green-800'
+                            }`}>
+                              {naturalDescription.severity}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  <div>
+                    <h4 className="font-medium mb-2">Technical Details</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="font-medium">Type:</span> {selectedError.errorType}
+                      </div>
+                      <div>
+                        <span className="font-medium">Page:</span> {selectedError.page}
+                      </div>
+                      <div>
+                        <span className="font-medium">User Action:</span> {selectedError.userAction || "N/A"}
+                      </div>
+                      <div>
+                        <span className="font-medium">Element:</span> {selectedError.elementClicked || "N/A"}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Error Message</h4>
+                    <div className="bg-gray-50 p-3 rounded text-sm">
+                      {selectedError.message}
+                    </div>
+                  </div>
+
+                  {selectedError.stackTrace && (
+                    <div>
+                      <h4 className="font-medium mb-2">Stack Trace</h4>
+                      <div className="bg-gray-50 p-3 rounded text-xs font-mono max-h-32 overflow-y-auto">
+                        {selectedError.stackTrace}
+                      </div>
+                    </div>
+                  )}
+
+                  <div>
+                    <h4 className="font-medium mb-2">Browser Information</h4>
+                    <div className="bg-gray-50 p-3 rounded text-sm">
+                      {formatUserAgent(selectedError.userAgent)}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium mb-2">Additional Data</h4>
+                    <div className="bg-gray-50 p-3 rounded text-xs font-mono max-h-32 overflow-y-auto">
+                      <pre>{selectedError.additionalData ? String(JSON.stringify(selectedError.additionalData, null, 2)) : 'No additional data'}</pre>
+                    </div>
+                  </div>
+                </div>
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
+        )}
 
         {/* Stats Cards */}
         <div className="px-6">
-        <div className="grid grid-cols-5 gap-4 mt-6 mb-6">
-          <Card className="p-4">
-            <div className="text-2xl font-bold">{errorLogs.length}</div>
-            <div className="text-sm text-gray-600">Total Errors</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mt-6 mb-6">
+          <Card className="p-3 sm:p-4">
+            <div className="text-xl sm:text-2xl font-bold">{errorLogs.length}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Total Errors</div>
           </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-red-600">{stats.javascript_error || 0}</div>
-            <div className="text-sm text-gray-600">JavaScript</div>
+          <Card className="p-3 sm:p-4">
+            <div className="text-xl sm:text-2xl font-bold text-red-600">{stats.javascript_error || 0}</div>
+            <div className="text-xs sm:text-sm text-gray-600">JavaScript</div>
           </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-orange-600">{stats.network_error || 0}</div>
-            <div className="text-sm text-gray-600">Network</div>
+          <Card className="p-3 sm:p-4">
+            <div className="text-xl sm:text-2xl font-bold text-orange-600">{stats.network_error || 0}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Network</div>
           </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-blue-600">{stats.click_failure || 0}</div>
-            <div className="text-sm text-gray-600">Click Failures</div>
+          <Card className="p-3 sm:p-4">
+            <div className="text-xl sm:text-2xl font-bold text-blue-600">{stats.click_failure || 0}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Click Failures</div>
           </Card>
-          <Card className="p-4">
-            <div className="text-2xl font-bold text-purple-600">{stats.form_submission_error || 0}</div>
-            <div className="text-sm text-gray-600">Form Errors</div>
+          <Card className="p-3 sm:p-4 col-span-2 sm:col-span-1">
+            <div className="text-xl sm:text-2xl font-bold text-purple-600">{stats.form_submission_error || 0}</div>
+            <div className="text-xs sm:text-sm text-gray-600">Form Errors</div>
           </Card>
         </div>
         </div>
