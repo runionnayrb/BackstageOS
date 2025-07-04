@@ -429,7 +429,6 @@ export default function TemplateSettings() {
                             <div key={field.id} className="space-y-2">
                               <label className="text-sm font-medium text-gray-700">
                                 {field.label}
-                                {field.required && <span className="text-red-500 ml-1">*</span>}
                               </label>
                               <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px]">
                                 {field.placeholder || "Sample content..."}
