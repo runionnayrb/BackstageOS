@@ -76,7 +76,7 @@ export default function CreateProject() {
         title: "Success",
         description: `${projectSingle} created successfully!`,
       });
-      setLocation("/projects");
+      setLocation("/");
     },
     onError: (error) => {
       toast({
