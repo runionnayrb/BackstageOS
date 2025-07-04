@@ -271,12 +271,6 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">Notes ({sortedNotes.length})</h3>
-        <Badge variant="outline" className="text-xs">
-          {reportType} Report
-        </Badge>
-      </div>
 
       {/* Add new note */}
       <div className="border rounded-lg p-4 space-y-3">
