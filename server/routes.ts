@@ -2030,6 +2030,37 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Department order endpoint
+  app.put("/api/projects/:id/settings/department-order", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { departmentOrder } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Update the settings
+      const updatedSettings = await storage.updateShowSettings(projectId, {
+        departmentOrder: departmentOrder
+      });
+
+      res.json({
+        success: true,
+        departmentOrder: updatedSettings.departmentOrder
+      });
+    } catch (error) {
+      console.error("Error updating department order:", error);
+      res.status(500).json({ message: "Failed to update department order" });
+    }
+  });
+
   app.post("/api/projects/:id/share-link", isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);

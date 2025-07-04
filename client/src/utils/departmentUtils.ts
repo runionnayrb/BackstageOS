@@ -16,12 +16,20 @@ export function getDepartmentDisplayName(
   return customNames?.[department] || DEFAULT_DEPARTMENT_NAMES[department];
 }
 
-export function getAllDepartmentNames(customNames?: Record<string, string>): Array<{
+export function getAllDepartmentNames(
+  customNames?: Record<string, string>,
+  departmentOrder?: string[]
+): Array<{
   key: DepartmentKey;
   displayName: string;
 }> {
-  return Object.keys(DEFAULT_DEPARTMENT_NAMES).map(key => ({
-    key: key as DepartmentKey,
-    displayName: getDepartmentDisplayName(key as DepartmentKey, customNames)
+  const defaultOrder = Object.keys(DEFAULT_DEPARTMENT_NAMES) as DepartmentKey[];
+  const orderedKeys = departmentOrder && departmentOrder.length > 0 
+    ? departmentOrder.filter(key => key in DEFAULT_DEPARTMENT_NAMES) as DepartmentKey[]
+    : defaultOrder;
+  
+  return orderedKeys.map(key => ({
+    key,
+    displayName: getDepartmentDisplayName(key, customNames)
   }));
 }

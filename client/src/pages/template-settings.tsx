@@ -161,6 +161,11 @@ export default function TemplateSettings() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [templates, setTemplates] = useState<Record<string, ProductionTemplate>>({});
+  
+  // Department reordering state
+  const [isReordering, setIsReordering] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [departments, setDepartments] = useState<Array<{ key: DepartmentKey; displayName: string }>>([]);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -206,6 +211,68 @@ export default function TemplateSettings() {
     
     setTemplates(initialTemplates);
   }, [projectId, userTemplates]);
+
+  // Update departments list when settings change
+  useEffect(() => {
+    if (showSettings) {
+      const departmentOrder = showSettings.departmentOrder as string[] | undefined;
+      const departmentNames = showSettings.departmentNames as Record<string, string> | undefined;
+      setDepartments(getAllDepartmentNames(departmentNames, departmentOrder));
+    }
+  }, [showSettings]);
+
+  // Department order mutation
+  const saveDepartmentOrderMutation = useMutation({
+    mutationFn: async (departmentOrder: string[]) => {
+      const response = await apiRequest("PUT", `/api/projects/${projectId}/settings/department-order`, {
+        departmentOrder
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: [`/api/projects/${projectId}/settings`]
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: "Failed to save department order",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Drag and drop handlers for department reordering
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    if (!isReordering) return;
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, targetIndex: number) => {
+    if (!isReordering || draggedIndex === null) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    
+    if (draggedIndex !== targetIndex) {
+      const newDepartments = [...departments];
+      const draggedItem = newDepartments[draggedIndex];
+      newDepartments.splice(draggedIndex, 1);
+      newDepartments.splice(targetIndex, 0, draggedItem);
+      setDepartments(newDepartments);
+      setDraggedIndex(targetIndex);
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (!isReordering) return;
+    setDraggedIndex(null);
+    
+    // Save the new order to the database
+    const departmentOrder = departments.map(d => d.key);
+    saveDepartmentOrderMutation.mutate(departmentOrder);
+  };
 
   const addField = () => {
     const newField: TemplateField = {
@@ -448,39 +515,67 @@ export default function TemplateSettings() {
                         {/* Department Notes Section - only for tech template */}
                         {selectedPhase === 'tech' && (
                           <div className="space-y-6 mt-8 border-t pt-6">
-                            <div className="text-lg font-semibold text-gray-800 border-b pb-2">
-                              Department Notes
+                            <div className="flex items-center justify-between border-b pb-2">
+                              <div className="text-lg font-semibold text-gray-800">
+                                Department Notes
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setIsReordering(!isReordering)}
+                                className="text-xs"
+                              >
+                                {isReordering ? "Done Reordering" : "Re-order"}
+                              </Button>
                             </div>
                             <div className="text-sm text-gray-600 mb-4">
                               Interactive department-specific note tracking with numbered lists and collaboration features.
                             </div>
                             
                             <div className="space-y-6">
-                              {getAllDepartmentNames(showSettings?.departmentNames).map(({ key, displayName }) => (
-                                <div key={key}>
-                                  <EditableDepartmentHeader
-                                    projectId={parseInt(params.id)}
-                                    department={key}
-                                    displayName={displayName}
-                                    onNameChange={(newName) => {
-                                      // Invalidate the show settings query to refetch updated names
-                                      queryClient.invalidateQueries({
-                                        queryKey: [`/api/projects/${projectId}/settings`]
-                                      });
-                                    }}
-                                    onFormattingChange={(formatting) => {
-                                      // Invalidate the show settings query to refetch updated formatting
-                                      queryClient.invalidateQueries({
-                                        queryKey: [`/api/projects/${projectId}/settings`]
-                                      });
-                                    }}
-                                  />
-                                  <ReportNotesManager 
-                                    reportId={5} 
-                                    projectId={parseInt(params.id)}
-                                    reportType="tech"
-                                    department={key}
-                                  />
+                              {departments.map(({ key, displayName }, index) => (
+                                <div 
+                                  key={key}
+                                  draggable={isReordering}
+                                  onDragStart={(e) => handleDragStart(e, index)}
+                                  onDragOver={(e) => handleDragOver(e, index)}
+                                  onDragEnd={handleDragEnd}
+                                  className={`
+                                    relative group
+                                    ${isReordering ? 'cursor-move' : ''}
+                                    ${draggedIndex === index ? 'bg-blue-50 border-blue-200' : ''}
+                                  `}
+                                >
+                                  {isReordering && (
+                                    <div className="absolute left-0 top-2 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <GripVertical className="h-4 w-4" />
+                                    </div>
+                                  )}
+                                  <div className={isReordering ? 'pl-6' : ''}>
+                                    <EditableDepartmentHeader
+                                      projectId={parseInt(params.id)}
+                                      department={key}
+                                      displayName={displayName}
+                                      onNameChange={(newName) => {
+                                        // Invalidate the show settings query to refetch updated names
+                                        queryClient.invalidateQueries({
+                                          queryKey: [`/api/projects/${projectId}/settings`]
+                                        });
+                                      }}
+                                      onFormattingChange={(formatting) => {
+                                        // Invalidate the show settings query to refetch updated formatting
+                                        queryClient.invalidateQueries({
+                                          queryKey: [`/api/projects/${projectId}/settings`]
+                                        });
+                                      }}
+                                    />
+                                    <ReportNotesManager 
+                                      reportId={5} 
+                                      projectId={parseInt(params.id)}
+                                      reportType="tech"
+                                      department={key}
+                                    />
+                                  </div>
                                 </div>
                               ))}
                             </div>
