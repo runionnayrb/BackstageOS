@@ -385,10 +385,6 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
 
             {/* Note metadata */}
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Badge className={getPriorityColor(note.priority || 'medium')}>
-                {note.priority || 'medium'}
-              </Badge>
-              
               {note.assignedTo && (
                 <div className="flex items-center gap-1">
                   <User className="h-3 w-3" />
@@ -402,8 +398,6 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
                   <span>{new Date(note.dueDate).toLocaleDateString()}</span>
                 </div>
               )}
-              
-              <span>Added {note.createdAt ? new Date(note.createdAt).toLocaleString() : 'Unknown'}</span>
             </div>
 
             {/* Quick actions */}
