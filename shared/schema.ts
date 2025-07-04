@@ -9,6 +9,8 @@ import {
   boolean,
   integer,
   decimal,
+  date,
+  time,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -412,9 +414,9 @@ export const scheduleEvents = pgTable("schedule_events", {
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
   title: varchar("title").notNull(),
   description: text("description"),
-  date: varchar("date").notNull(), // YYYY-MM-DD format
-  startTime: varchar("start_time").notNull(), // HH:MM format
-  endTime: varchar("end_time").notNull(), // HH:MM format
+  date: date("date").notNull(), // Date type to match database
+  startTime: time("start_time").notNull(), // Time type to match database  
+  endTime: time("end_time").notNull(), // Time type to match database
   type: varchar("type").notNull().default("rehearsal"), // rehearsal, performance, meeting, tech, other
   location: varchar("location"),
   notes: text("notes"),

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -116,9 +116,9 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     queryKey: [`/api/projects/${projectId}/settings`],
   });
 
-  // Parse schedule settings with time format preference
+  // Parse schedule settings with time format preference - ensure timeFormat has fallback
   const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
-  const { timeFormat, timezone, weekStartDay, workStartTime, workEndTime } = scheduleSettings;
+  const { timeFormat = '12', timezone, weekStartDay, workStartTime, workEndTime } = scheduleSettings;
 
   // Fetch schedule events
   const { data: events = [], isLoading } = useQuery<ScheduleEvent[]>({
@@ -808,24 +808,30 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     document.addEventListener('mouseup', handleMouseUp);
   }, [timeIncrement, updateEventMutation, resizingEvent]);
 
-  // Generate time labels and increment lines
-  const timeLabels = [];
+  // Generate time labels using memoization to prevent scoping issues
+  const timeLabels = useMemo(() => {
+    const labels = [];
+    
+    for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += 60) {
+      const position = minutesToPosition(minutes);
+      const hours = Math.floor(minutes / 60);
+      const timeString = `${hours.toString().padStart(2, '0')}:00`;
+      labels.push(
+        <div
+          key={minutes}
+          className="absolute left-0 w-20 text-left pl-2 text-sm text-gray-600"
+          style={{ top: `${position}px` }}
+        >
+          {formatTimeDisplay(timeString, timeFormat as '12' | '24')}
+        </div>
+      );
+    }
+    
+    return labels;
+  }, [timeFormat]);
+
+  // Generate increment lines
   const incrementLines = [];
-  
-  for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += 60) {
-    const position = minutesToPosition(minutes);
-    const hours = Math.floor(minutes / 60);
-    const timeString = `${hours.toString().padStart(2, '0')}:00`;
-    timeLabels.push(
-      <div
-        key={minutes}
-        className="absolute left-0 w-20 text-left pl-2 text-sm text-gray-600"
-        style={{ top: `${position}px` }}
-      >
-        {formatTimeDisplay(timeString, timeFormat as '12' | '24')}
-      </div>
-    );
-  }
 
   // Add increment lines based on time increment setting
   for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += timeIncrement) {
