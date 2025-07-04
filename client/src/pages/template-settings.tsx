@@ -11,6 +11,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import ReportNotesManager from "@/components/report-notes-manager";
 import EditableDepartmentHeader from "@/components/editable-department-header";
 import { getAllDepartmentNames, type DepartmentKey } from "@/utils/departmentUtils";
@@ -29,7 +37,8 @@ import {
   Clock,
   User,
   MapPin,
-  Settings
+  Settings,
+  X
 } from "lucide-react";
 
 interface TemplateSettingsParams {
@@ -166,6 +175,8 @@ export default function TemplateSettings() {
   const [isReordering, setIsReordering] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [departments, setDepartments] = useState<Array<{ key: DepartmentKey; displayName: string }>>([]);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [newDepartmentName, setNewDepartmentName] = useState("");
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -260,6 +271,77 @@ export default function TemplateSettings() {
       }
     },
   });
+
+  // Add department functionality
+  const addDepartment = () => {
+    if (newDepartmentName.trim()) {
+      const newKey = newDepartmentName.toLowerCase().replace(/\s+/g, '_') as DepartmentKey;
+      const newDepartment = {
+        key: newKey,
+        displayName: newDepartmentName.trim()
+      };
+      
+      // Add to local state immediately
+      setDepartments([...departments, newDepartment]);
+      
+      // Update department names and order in backend
+      const newDepartmentNames = {
+        ...(showSettings?.departmentNames as Record<string, string> || {}),
+        [newKey]: newDepartmentName.trim()
+      };
+      const newOrder = [...departments.map(d => d.key), newKey];
+      
+      // Save both department names and order
+      Promise.all([
+        apiRequest("PUT", `/api/projects/${projectId}/settings`, {
+          departmentNames: newDepartmentNames
+        }),
+        saveDepartmentOrderMutation.mutateAsync(newOrder)
+      ]).then(() => {
+        toast({
+          title: "Department added",
+          description: `${newDepartmentName} has been added to the list`,
+        });
+      }).catch(() => {
+        // Revert on error
+        setDepartments(departments);
+        toast({
+          title: "Error",
+          description: "Failed to add department",
+          variant: "destructive",
+        });
+      });
+      
+      setNewDepartmentName("");
+      setShowAddDialog(false);
+    }
+  };
+
+  // Remove department functionality
+  const removeDepartment = (keyToRemove: DepartmentKey) => {
+    const newDepartments = departments.filter(d => d.key !== keyToRemove);
+    setDepartments(newDepartments);
+    
+    // Update department order in backend
+    const newOrder = newDepartments.map(d => d.key);
+    saveDepartmentOrderMutation.mutate(newOrder, {
+      onSuccess: () => {
+        toast({
+          title: "Department removed",
+          description: "Department has been removed from the list",
+        });
+      },
+      onError: () => {
+        // Revert on error
+        setDepartments(departments);
+        toast({
+          title: "Error", 
+          description: "Failed to remove department",
+          variant: "destructive",
+        });
+      }
+    });
+  };
 
   // Drag and drop handlers for department reordering
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -546,18 +628,65 @@ export default function TemplateSettings() {
                               <div className="text-lg font-semibold text-gray-800">
                                 Department Notes
                               </div>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsReordering(!isReordering)}
-                                disabled={saveDepartmentOrderMutation.isPending}
-                                className="text-xs"
-                              >
-                                {saveDepartmentOrderMutation.isPending 
-                                  ? "Saving..." 
-                                  : (isReordering ? "Done Reordering" : "Re-order")
-                                }
-                              </Button>
+                              <div className="flex gap-2">
+                                <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-xs"
+                                    >
+                                      <Plus className="h-3 w-3 mr-1" />
+                                      Add
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Add Department</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="space-y-4">
+                                      <div>
+                                        <Label htmlFor="department-name">Department Name</Label>
+                                        <Input
+                                          id="department-name"
+                                          value={newDepartmentName}
+                                          onChange={(e) => setNewDepartmentName(e.target.value)}
+                                          placeholder="Enter department name..."
+                                        />
+                                      </div>
+                                    </div>
+                                    <DialogFooter>
+                                      <Button
+                                        variant="outline"
+                                        onClick={() => {
+                                          setShowAddDialog(false);
+                                          setNewDepartmentName("");
+                                        }}
+                                      >
+                                        Cancel
+                                      </Button>
+                                      <Button
+                                        onClick={addDepartment}
+                                        disabled={!newDepartmentName.trim()}
+                                      >
+                                        Add Department
+                                      </Button>
+                                    </DialogFooter>
+                                  </DialogContent>
+                                </Dialog>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setIsReordering(!isReordering)}
+                                  disabled={saveDepartmentOrderMutation.isPending}
+                                  className="text-xs"
+                                >
+                                  {saveDepartmentOrderMutation.isPending 
+                                    ? "Saving..." 
+                                    : (isReordering ? "Done Reordering" : "Re-order")
+                                  }
+                                </Button>
+                              </div>
                             </div>
                             <div className="text-sm text-gray-600 mb-4">
                               Interactive department-specific note tracking with numbered lists and collaboration features.
@@ -583,23 +712,33 @@ export default function TemplateSettings() {
                                     </div>
                                   )}
                                   <div className={isReordering ? 'pl-6' : ''}>
-                                    <EditableDepartmentHeader
-                                      projectId={parseInt(params.id)}
-                                      department={key}
-                                      displayName={displayName}
-                                      onNameChange={(newName) => {
-                                        // Invalidate the show settings query to refetch updated names
-                                        queryClient.invalidateQueries({
-                                          queryKey: [`/api/projects/${projectId}/settings`]
-                                        });
-                                      }}
-                                      onFormattingChange={(formatting) => {
-                                        // Invalidate the show settings query to refetch updated formatting
-                                        queryClient.invalidateQueries({
-                                          queryKey: [`/api/projects/${projectId}/settings`]
-                                        });
-                                      }}
-                                    />
+                                    <div className="relative">
+                                      <EditableDepartmentHeader
+                                        projectId={parseInt(params.id)}
+                                        department={key}
+                                        displayName={displayName}
+                                        onNameChange={(newName) => {
+                                          // Invalidate the show settings query to refetch updated names
+                                          queryClient.invalidateQueries({
+                                            queryKey: [`/api/projects/${projectId}/settings`]
+                                          });
+                                        }}
+                                        onFormattingChange={(formatting) => {
+                                          // Invalidate the show settings query to refetch updated formatting
+                                          queryClient.invalidateQueries({
+                                            queryKey: [`/api/projects/${projectId}/settings`]
+                                          });
+                                        }}
+                                      />
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => removeDepartment(key)}
+                                        className="absolute right-0 top-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </Button>
+                                    </div>
                                     <ReportNotesManager 
                                       reportId={5} 
                                       projectId={parseInt(params.id)}
