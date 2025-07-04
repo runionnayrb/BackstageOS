@@ -716,9 +716,7 @@ export default function TemplateSettings() {
                               </Button>
                             </div>
                           </div>
-                          <div className="text-sm text-gray-600 mb-4">
-                            Interactive department-specific note tracking with numbered lists and collaboration features.
-                          </div>
+
                           
                           <div className="space-y-6" key={departments.map(d => d.key).join('-')}>
                             {departments.map(({ key, displayName }, index) => (
