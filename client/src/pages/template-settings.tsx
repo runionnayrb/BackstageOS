@@ -629,63 +629,67 @@ export default function TemplateSettings() {
                                 Department Notes
                               </div>
                               <div className="flex gap-2">
-                                <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-                                  <DialogTrigger asChild>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-xs"
-                                    >
-                                      <Plus className="h-3 w-3 mr-1" />
-                                      Add
-                                    </Button>
-                                  </DialogTrigger>
-                                  <DialogContent>
-                                    <DialogHeader>
-                                      <DialogTitle>Add Department</DialogTitle>
-                                    </DialogHeader>
-                                    <div className="space-y-4">
-                                      <div>
-                                        <Label htmlFor="department-name">Department Name</Label>
-                                        <Input
-                                          id="department-name"
-                                          value={newDepartmentName}
-                                          onChange={(e) => setNewDepartmentName(e.target.value)}
-                                          placeholder="Enter department name..."
-                                        />
-                                      </div>
-                                    </div>
-                                    <DialogFooter>
+                                {isEditing && (
+                                  <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+                                    <DialogTrigger asChild>
                                       <Button
                                         variant="outline"
-                                        onClick={() => {
-                                          setShowAddDialog(false);
-                                          setNewDepartmentName("");
-                                        }}
+                                        size="sm"
+                                        className="text-xs"
                                       >
-                                        Cancel
+                                        <Plus className="h-3 w-3 mr-1" />
+                                        Add
                                       </Button>
-                                      <Button
-                                        onClick={addDepartment}
-                                        disabled={!newDepartmentName.trim()}
-                                      >
-                                        Add Department
-                                      </Button>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setIsReordering(!isReordering)}
-                                  disabled={saveDepartmentOrderMutation.isPending}
-                                  className="text-xs"
-                                >
-                                  {saveDepartmentOrderMutation.isPending 
-                                    ? "Saving..." 
-                                    : (isReordering ? "Done Reordering" : "Re-order")
-                                  }
-                                </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                      <DialogHeader>
+                                        <DialogTitle>Add Department</DialogTitle>
+                                      </DialogHeader>
+                                      <div className="space-y-4">
+                                        <div>
+                                          <Label htmlFor="department-name">Department Name</Label>
+                                          <Input
+                                            id="department-name"
+                                            value={newDepartmentName}
+                                            onChange={(e) => setNewDepartmentName(e.target.value)}
+                                            placeholder="Enter department name..."
+                                          />
+                                        </div>
+                                      </div>
+                                      <DialogFooter>
+                                        <Button
+                                          variant="outline"
+                                          onClick={() => {
+                                            setShowAddDialog(false);
+                                            setNewDepartmentName("");
+                                          }}
+                                        >
+                                          Cancel
+                                        </Button>
+                                        <Button
+                                          onClick={addDepartment}
+                                          disabled={!newDepartmentName.trim()}
+                                        >
+                                          Add Department
+                                        </Button>
+                                      </DialogFooter>
+                                    </DialogContent>
+                                  </Dialog>
+                                )}
+                                {isEditing && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setIsReordering(!isReordering)}
+                                    disabled={saveDepartmentOrderMutation.isPending}
+                                    className="text-xs"
+                                  >
+                                    {saveDepartmentOrderMutation.isPending 
+                                      ? "Saving..." 
+                                      : (isReordering ? "Done Reordering" : "Re-order")
+                                    }
+                                  </Button>
+                                )}
                               </div>
                             </div>
                             <div className="text-sm text-gray-600 mb-4">
@@ -696,22 +700,22 @@ export default function TemplateSettings() {
                               {departments.map(({ key, displayName }, index) => (
                                 <div 
                                   key={`${key}-${index}`}
-                                  draggable={isReordering}
-                                  onDragStart={(e) => handleDragStart(e, index)}
-                                  onDragOver={(e) => handleDragOver(e, index)}
-                                  onDragEnd={handleDragEnd}
+                                  draggable={isEditing && isReordering}
+                                  onDragStart={isEditing ? (e) => handleDragStart(e, index) : undefined}
+                                  onDragOver={isEditing ? (e) => handleDragOver(e, index) : undefined}
+                                  onDragEnd={isEditing ? handleDragEnd : undefined}
                                   className={`
                                     relative group
-                                    ${isReordering ? 'cursor-move' : ''}
+                                    ${isEditing && isReordering ? 'cursor-move' : ''}
                                     ${draggedIndex === index ? 'bg-blue-50 border-blue-200' : ''}
                                   `}
                                 >
-                                  {isReordering && (
+                                  {isEditing && isReordering && (
                                     <div className="absolute left-0 top-2 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
                                       <GripVertical className="h-4 w-4" />
                                     </div>
                                   )}
-                                  <div className={isReordering ? 'pl-6' : ''}>
+                                  <div className={isEditing && isReordering ? 'pl-6' : ''}>
                                     <div className="relative">
                                       <EditableDepartmentHeader
                                         projectId={parseInt(params.id)}
@@ -730,20 +734,23 @@ export default function TemplateSettings() {
                                           });
                                         }}
                                       />
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => removeDepartment(key)}
-                                        className="absolute right-0 top-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
-                                      >
-                                        <X className="h-3 w-3" />
-                                      </Button>
+                                      {isEditing && (
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => removeDepartment(key)}
+                                          className="absolute right-0 top-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </Button>
+                                      )}
                                     </div>
                                     <ReportNotesManager 
                                       reportId={5} 
                                       projectId={parseInt(params.id)}
                                       reportType="tech"
                                       department={key}
+                                      isEditing={isEditing}
                                     />
                                   </div>
                                 </div>

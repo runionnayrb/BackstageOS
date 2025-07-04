@@ -15,6 +15,7 @@ interface ReportNotesManagerProps {
   projectId?: number;
   reportType: string;
   department?: string;
+  isEditing?: boolean;
 }
 
 interface User {
@@ -28,7 +29,8 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
   reportId, 
   projectId, 
   reportType,
-  department 
+  department,
+  isEditing = true 
 }) => {
   const [newNoteContent, setNewNoteContent] = useState('');
   const [editingNote, setEditingNote] = useState<number | null>(null);
@@ -274,28 +276,38 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
 
   return (
     <div className="space-y-2">
-      {/* Add new note */}
-      <div className="px-4 pt-2 pb-1">
-        <Textarea
-          placeholder="1.   No notes."
-          value={newNoteContent}
-          onChange={(e) => setNewNoteContent(e.target.value)}
-          className="min-h-[24px] max-h-[200px] resize-none border-0 shadow-none focus:ring-0 overflow-y-auto py-1 px-2"
-          style={{ height: '24px', lineHeight: '1.2' }}
-          onInput={(e) => {
-            const target = e.target as HTMLTextAreaElement;
-            target.style.height = '24px';
-            target.style.height = Math.max(24, target.scrollHeight) + 'px';
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleAddNote();
-            }
-          }}
-        />
+      {/* Add new note - only in editing mode */}
+      {isEditing && (
+        <div className="px-4 pt-2 pb-1">
+          <Textarea
+            placeholder="1.   No notes."
+            value={newNoteContent}
+            onChange={(e) => setNewNoteContent(e.target.value)}
+            className="min-h-[24px] max-h-[200px] resize-none border-0 shadow-none focus:ring-0 overflow-y-auto py-1 px-2"
+            style={{ height: '24px', lineHeight: '1.2' }}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = '24px';
+              target.style.height = Math.max(24, target.scrollHeight) + 'px';
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleAddNote();
+              }
+            }}
+          />
+        </div>
+      )}
 
-      </div>
+      {/* Show placeholder text when not editing and no notes */}
+      {!isEditing && sortedNotes.length === 0 && (
+        <div className="px-4 pt-2 pb-1">
+          <div className="text-gray-500 py-1 px-2 text-sm">
+            1. No notes.
+          </div>
+        </div>
+      )}
 
       {/* Notes list */}
       <div className="space-y-2">
@@ -330,45 +342,47 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
                     </div>
                   ) : (
                     <p 
-                      className={`text-sm leading-relaxed cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded p-1 -m-1 ${
+                      className={`text-sm leading-relaxed ${isEditing ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 rounded p-1 -m-1' : ''} ${
                         note.isCompleted ? 'line-through text-muted-foreground' : ''
                       }`}
-                      onClick={() => handleEditNote(note)}
+                      onClick={isEditing ? () => handleEditNote(note) : undefined}
                     >
                       <span className="font-medium mr-2">{index + 1}.</span>{note.content}
                     </p>
                   )}
                 </div>
 
-                {/* Controls */}
-                <div className="flex items-center gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => moveNote(note.id, 'up')}
-                    disabled={index === 0}
-                    className="h-6 w-6 p-0"
-                  >
-                    <ChevronUp className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => moveNote(note.id, 'down')}
-                    disabled={index === sortedNotes.length - 1}
-                    className="h-6 w-6 p-0"
-                  >
-                    <ChevronDown className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => deleteNoteMutation.mutate(note.id)}
-                    className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
+                {/* Controls - only in editing mode */}
+                {isEditing && (
+                  <div className="flex items-center gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => moveNote(note.id, 'up')}
+                      disabled={index === 0}
+                      className="h-6 w-6 p-0"
+                    >
+                      <ChevronUp className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => moveNote(note.id, 'down')}
+                      disabled={index === sortedNotes.length - 1}
+                      className="h-6 w-6 p-0"
+                    >
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => deleteNoteMutation.mutate(note.id)}
+                      className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Note metadata */}
