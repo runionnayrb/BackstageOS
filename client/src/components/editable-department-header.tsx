@@ -266,7 +266,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
         backgroundColor: formatting.backgroundColor,
       };
 
-      await fetch(`/api/projects/${projectId}/settings/field-header-formatting`, {
+      const fieldResponse = await fetch(`/api/projects/${projectId}/settings/field-header-formatting`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -276,6 +276,13 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           applyToAll: true
         }),
       });
+
+      if (!fieldResponse.ok) {
+        throw new Error(`Failed to update field header formatting: ${fieldResponse.status}`);
+      }
+
+      // Invalidate the query cache so field headers reload with the new formatting
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
 
       // Apply formatting immediately to all headers on the page
       const allHeaders = document.querySelectorAll('[data-field-heading], [data-department-header]');
