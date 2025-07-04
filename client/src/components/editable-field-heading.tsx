@@ -19,6 +19,8 @@ export default function EditableFieldHeading({
   const applyFormattingToAllHeaders = () => {
     if (!editingElement) return;
 
+    console.log('Apply to All: Starting with element:', editingElement);
+
     // Get all computed styles from the current element
     const computedStyle = window.getComputedStyle(editingElement);
     const styles = {
@@ -32,6 +34,8 @@ export default function EditableFieldHeading({
       backgroundColor: computedStyle.backgroundColor,
     };
 
+    console.log('Apply to All: Extracted styles:', styles);
+
     // Find only header elements: field headings, department headers, template headers/footers
     const headerSelectors = [
       '[data-field-heading]',           // Field headings
@@ -42,17 +46,26 @@ export default function EditableFieldHeading({
       '.editable-department-header'     // Department header class
     ];
     
+    let totalUpdated = 0;
     headerSelectors.forEach(selector => {
       const headerElements = document.querySelectorAll(selector);
+      console.log(`Apply to All: Found ${headerElements.length} elements for selector "${selector}"`);
+      
       headerElements.forEach((element) => {
         if (element !== editingElement) {
           const htmlElement = element as HTMLElement;
+          console.log('Apply to All: Updating element:', htmlElement);
           Object.entries(styles).forEach(([property, value]) => {
-            htmlElement.style.setProperty(property.replace(/([A-Z])/g, '-$1').toLowerCase(), value);
+            const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
+            htmlElement.style.setProperty(cssProperty, value);
+            console.log(`Apply to All: Set ${cssProperty} = ${value}`);
           });
+          totalUpdated++;
         }
       });
     });
+
+    console.log(`Apply to All: Updated ${totalUpdated} header elements`);
   };
 
   return (
