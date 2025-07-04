@@ -721,6 +721,7 @@ export default function TemplateSettings() {
                                         projectId={parseInt(params.id)}
                                         department={key}
                                         displayName={displayName}
+                                        isEditing={isEditing}
                                         onNameChange={(newName) => {
                                           // Invalidate the show settings query to refetch updated names
                                           queryClient.invalidateQueries({

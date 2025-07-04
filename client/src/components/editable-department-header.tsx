@@ -29,6 +29,7 @@ interface EditableDepartmentHeaderProps {
   displayName: string;
   onNameChange?: (newName: string) => void;
   onFormattingChange?: (formatting: HeaderFormatting) => void;
+  isEditing?: boolean;
 }
 
 interface HeaderFormatting {
@@ -53,9 +54,10 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   department,
   displayName,
   onNameChange,
-  onFormattingChange
+  onFormattingChange,
+  isEditing = true
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingText, setIsEditingText] = useState(false);
   const [editValue, setEditValue] = useState(displayName);
   const [showToolbar, setShowToolbar] = useState(false);
   const { toast } = useToast();
@@ -148,7 +150,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
         title: "Department name updated",
         description: "The department name has been successfully updated.",
       });
-      setIsEditing(false);
+      setIsEditingText(false);
       setShowToolbar(false);
       onNameChange?.(editValue);
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
@@ -205,10 +207,10 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
 
   // Apply formatting when formatting state changes
   useEffect(() => {
-    if (editableRef.current && isEditing) {
+    if (editableRef.current && isEditingText) {
       applyFormatting(editableRef.current);
     }
-  }, [formatting, isEditing]);
+  }, [formatting, isEditingText]);
 
   const handleSave = () => {
     if (editableRef.current) {
@@ -237,12 +239,13 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
 
   const handleCancel = () => {
     setEditValue(displayName);
-    setIsEditing(false);
+    setIsEditingText(false);
     setShowToolbar(false);
   };
 
   const handleHeaderClick = () => {
-    setIsEditing(true);
+    if (!isEditing) return; // Only allow editing when in edit mode
+    setIsEditingText(true);
     setShowToolbar(true);
     setEditValue(displayName);
     
@@ -561,7 +564,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   return (
     <div className="mb-2 group relative">
       <div 
-        className="cursor-pointer hover:opacity-80 transition-opacity w-full"
+        className={`w-full transition-opacity ${isEditing ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
         onClick={handleHeaderClick}
         style={{
           fontWeight: formatting.bold ? 'bold' : 'normal',
@@ -586,14 +589,16 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
       >
         {displayName}
       </div>
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={handleHeaderClick}
-        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-1"
-      >
-        <Edit2 className="h-3 w-3" />
-      </Button>
+      {isEditing && (
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={handleHeaderClick}
+          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-1"
+        >
+          <Edit2 className="h-3 w-3" />
+        </Button>
+      )}
     </div>
   );
 };
