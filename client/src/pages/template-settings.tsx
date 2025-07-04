@@ -212,14 +212,19 @@ export default function TemplateSettings() {
     setTemplates(initialTemplates);
   }, [projectId, userTemplates]);
 
-  // Update departments list when settings change
+  // Update departments list when settings change (only if not currently reordering)
   useEffect(() => {
-    if (showSettings) {
+    if (showSettings && !isReordering) {
       const departmentOrder = showSettings.departmentOrder as string[] | undefined;
       const departmentNames = showSettings.departmentNames as Record<string, string> | undefined;
-      setDepartments(getAllDepartmentNames(departmentNames, departmentOrder));
+      const newDepartments = getAllDepartmentNames(departmentNames, departmentOrder);
+      
+      // Only update if the order has actually changed to prevent unnecessary re-renders
+      if (JSON.stringify(newDepartments.map(d => d.key)) !== JSON.stringify(departments.map(d => d.key))) {
+        setDepartments(newDepartments);
+      }
     }
-  }, [showSettings]);
+  }, [showSettings, isReordering, departments]);
 
   // Department order mutation
   const saveDepartmentOrderMutation = useMutation({
@@ -229,9 +234,16 @@ export default function TemplateSettings() {
       });
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Update the cache immediately with new data
+      queryClient.setQueryData([`/api/projects/${projectId}/settings`], data);
+      // Then invalidate to trigger a fresh fetch
       queryClient.invalidateQueries({
         queryKey: [`/api/projects/${projectId}/settings`]
+      });
+      toast({
+        title: "Department order saved",
+        description: "Changes will persist across sessions",
       });
     },
     onError: (error: any) => {
@@ -240,6 +252,12 @@ export default function TemplateSettings() {
         description: "Failed to save department order",
         variant: "destructive",
       });
+      // Revert to the saved order from the server on error
+      if (showSettings) {
+        const departmentOrder = showSettings.departmentOrder as string[] | undefined;
+        const departmentNames = showSettings.departmentNames as Record<string, string> | undefined;
+        setDepartments(getAllDepartmentNames(departmentNames, departmentOrder));
+      }
     },
   });
 
@@ -269,9 +287,18 @@ export default function TemplateSettings() {
     if (!isReordering) return;
     setDraggedIndex(null);
     
-    // Save the new order to the database
+    // Save the new order to the database with optimistic update
     const departmentOrder = departments.map(d => d.key);
-    saveDepartmentOrderMutation.mutate(departmentOrder);
+    
+    // Store the current order before mutation for potential rollback
+    const currentOrder = [...departments];
+    
+    saveDepartmentOrderMutation.mutate(departmentOrder, {
+      onError: () => {
+        // Revert to previous order on error
+        setDepartments(currentOrder);
+      }
+    });
   };
 
   const addField = () => {
@@ -523,19 +550,23 @@ export default function TemplateSettings() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => setIsReordering(!isReordering)}
+                                disabled={saveDepartmentOrderMutation.isPending}
                                 className="text-xs"
                               >
-                                {isReordering ? "Done Reordering" : "Re-order"}
+                                {saveDepartmentOrderMutation.isPending 
+                                  ? "Saving..." 
+                                  : (isReordering ? "Done Reordering" : "Re-order")
+                                }
                               </Button>
                             </div>
                             <div className="text-sm text-gray-600 mb-4">
                               Interactive department-specific note tracking with numbered lists and collaboration features.
                             </div>
                             
-                            <div className="space-y-6">
+                            <div className="space-y-6" key={departments.map(d => d.key).join('-')}>
                               {departments.map(({ key, displayName }, index) => (
                                 <div 
-                                  key={key}
+                                  key={`${key}-${index}`}
                                   draggable={isReordering}
                                   onDragStart={(e) => handleDragStart(e, index)}
                                   onDragOver={(e) => handleDragOver(e, index)}

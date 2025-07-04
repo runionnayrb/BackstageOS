@@ -2051,10 +2051,8 @@ Respond with valid JSON only.`;
         departmentOrder: departmentOrder
       });
 
-      res.json({
-        success: true,
-        departmentOrder: updatedSettings.departmentOrder
-      });
+      // Return the complete updated settings object for cache consistency
+      res.json(updatedSettings);
     } catch (error) {
       console.error("Error updating department order:", error);
       res.status(500).json({ message: "Failed to update department order" });
