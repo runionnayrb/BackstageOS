@@ -64,7 +64,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   const queryClient = useQueryClient();
   const editableRef = useRef<HTMLDivElement>(null);
 
-  // Default formatting state - headers are bold by default
+  // Default formatting state - matching preview mode appearance
   const [formatting, setFormatting] = useState<HeaderFormatting>({
     bold: true,
     italic: false,
@@ -72,8 +72,8 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     textAlign: 'left',
     fontFamily: 'Arial',
     fontSize: '14px',
-    textColor: '#374151',
-    backgroundColor: 'transparent',
+    textColor: '#ffffff',
+    backgroundColor: '#000000',
     borderTop: false,
     borderRight: false,
     borderBottom: false,
