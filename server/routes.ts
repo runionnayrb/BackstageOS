@@ -2167,6 +2167,37 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Layout configuration endpoint
+  app.put("/api/projects/:id/settings/layout-configuration", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { layoutConfiguration } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Update the settings
+      const updatedSettings = await storage.updateShowSettings(projectId, {
+        layoutConfiguration: layoutConfiguration
+      });
+
+      res.json({
+        success: true,
+        layoutConfiguration: updatedSettings.layoutConfiguration
+      });
+    } catch (error) {
+      console.error("Error updating layout configuration:", error);
+      res.status(500).json({ message: "Failed to update layout configuration" });
+    }
+  });
+
   app.post("/api/projects/:id/share-link", isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);

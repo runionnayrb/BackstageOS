@@ -35,6 +35,7 @@ import EditableDepartmentHeader from "@/components/editable-department-header";
 import InlineFormattingToolbar from "@/components/inline-formatting-toolbar";
 import EditableFieldHeading from "@/components/editable-field-heading";
 import EditableHeaderFooter from "@/components/editable-header-footer";
+import FlexibleLayoutEditor from "@/components/flexible-layout-editor";
 import { getAllDepartmentNames, type DepartmentKey } from "@/utils/departmentUtils";
 import { formatTimestamp, parseScheduleSettings } from "@/lib/timeUtils";
 import type { ShowSettings } from "@/../../shared/schema";
@@ -731,152 +732,23 @@ export default function TemplateSettings() {
                           </div>
                         ))}
                       
-                      {/* Department Notes Section - only for tech template */}
+                      {/* Flexible Layout Editor Section - only for tech template */}
                       {selectedPhase === 'tech' && (
                         <div className="space-y-6 mt-8">
-                          <div className="flex items-center justify-between border-b pb-2">
+                          <div className="border-b pb-2">
                             <div className="text-lg font-semibold text-gray-800">
-                              Department Notes
+                              Flexible Template Layout
                             </div>
-                            <div className="flex gap-2">
-                              <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-                                <DialogTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-xs"
-                                  >
-                                    <Plus className="h-3 w-3 mr-1" />
-                                    Add
-                                  </Button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                  <DialogHeader>
-                                    <DialogTitle>Add Department</DialogTitle>
-                                  </DialogHeader>
-                                  <div className="space-y-4">
-                                    <div>
-                                      <Label htmlFor="department-name">Department Name</Label>
-                                      <Input
-                                        id="department-name"
-                                        value={newDepartmentName}
-                                        onChange={(e) => setNewDepartmentName(e.target.value)}
-                                        placeholder="Enter department name..."
-                                      />
-                                    </div>
-                                  </div>
-                                  <DialogFooter>
-                                    <Button
-                                      variant="outline"
-                                      onClick={() => {
-                                        setShowAddDialog(false);
-                                        setNewDepartmentName("");
-                                      }}
-                                    >
-                                      Cancel
-                                    </Button>
-                                    <Button
-                                      onClick={addDepartment}
-                                      disabled={!newDepartmentName.trim()}
-                                    >
-                                      Add Department
-                                    </Button>
-                                  </DialogFooter>
-                                </DialogContent>
-                              </Dialog>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setIsReordering(!isReordering)}
-                                disabled={saveDepartmentOrderMutation.isPending}
-                                className="text-xs"
-                              >
-                                {saveDepartmentOrderMutation.isPending 
-                                  ? "Saving..." 
-                                  : (isReordering ? "Done Reordering" : "Re-order")
-                                }
-                              </Button>
-                            </div>
+                            <p className="text-sm text-gray-600 mt-1">
+                              Drag and drop headers and notes anywhere. Resize components to fit your needs.
+                            </p>
                           </div>
 
-                          
-                          <div className="space-y-6" key={departments.map(d => d.key).join('-')}>
-                            {departments.map(({ key, displayName }, index) => (
-                              <div 
-                                key={`${key}-${index}`}
-                                draggable={isReordering}
-                                onDragStart={(e) => handleDragStart(e, index)}
-                                onDragOver={(e) => handleDragOver(e, index)}
-                                onDragEnd={handleDragEnd}
-                                className={`
-                                  relative group
-                                  ${isReordering ? 'cursor-move' : ''}
-                                  ${draggedIndex === index ? 'bg-blue-50 border-blue-200' : ''}
-                                `}
-                              >
-                                {isReordering && (
-                                  <div className="absolute left-0 top-2 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <GripVertical className="h-4 w-4" />
-                                  </div>
-                                )}
-                                <div className={isReordering ? 'pl-6' : ''}>
-                                  <div className="relative">
-                                    <EditableDepartmentHeader
-                                      projectId={parseInt(params.id)}
-                                      department={key}
-                                      displayName={displayName}
-                                      isEditing={true}
-                                      onNameChange={(newName) => {
-                                        queryClient.invalidateQueries({
-                                          queryKey: ['/api/projects', projectId, 'settings']
-                                        });
-                                      }}
-                                      onFormattingChange={(formatting) => {
-                                        queryClient.invalidateQueries({
-                                          queryKey: ['/api/projects', projectId, 'settings']
-                                        });
-                                      }}
-                                    />
-                                    <AlertDialog>
-                                      <AlertDialogTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="absolute right-0 top-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
-                                        >
-                                          <X className="h-3 w-3" />
-                                        </Button>
-                                      </AlertDialogTrigger>
-                                      <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                          <AlertDialogTitle>Delete Department</AlertDialogTitle>
-                                          <AlertDialogDescription>
-                                            Are you sure you want to delete the "{displayName}" department? This will also remove all associated notes and cannot be undone.
-                                          </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                          <AlertDialogAction
-                                            onClick={() => removeDepartment(key)}
-                                            className="bg-red-600 hover:bg-red-700 text-white"
-                                          >
-                                            Delete Department
-                                          </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                      </AlertDialogContent>
-                                    </AlertDialog>
-                                  </div>
-                                  <ReportNotesManager 
-                                    reportId={5} 
-                                    projectId={parseInt(params.id)}
-                                    reportType="tech"
-                                    department={key}
-                                    isEditing={true}
-                                  />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                          <FlexibleLayoutEditor
+                            projectId={parseInt(params.id)}
+                            reportType="tech"
+                            isEditing={true}
+                          />
                         </div>
                       )}
                     </div>

@@ -311,6 +311,7 @@ export const showSettings = pgTable("show_settings", {
   fieldHeaderFormatting: jsonb("field_header_formatting"), // Field header formatting settings
   headerFormatting: jsonb("header_formatting"), // Template header formatting settings
   footerFormatting: jsonb("footer_formatting"), // Template footer formatting settings
+  layoutConfiguration: jsonb("layout_configuration"), // Drag-and-drop layout positioning for headers and notes
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
