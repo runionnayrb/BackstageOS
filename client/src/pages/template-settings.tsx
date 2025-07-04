@@ -167,6 +167,10 @@ export default function TemplateSettings() {
   const [editingField, setEditingField] = useState<string | null>(null);
   const [templates, setTemplates] = useState<Record<string, ProductionTemplate>>({});
   
+  // Auto-save state
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  
   // Department reordering state
   const [isReordering, setIsReordering] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -448,6 +452,8 @@ export default function TemplateSettings() {
 
   const saveTemplate = useMutation({
     mutationFn: async (template: ProductionTemplate) => {
+      setIsSaving(true);
+      
       // Check if this is an existing template (has numeric ID) or new template
       const isExisting = typeof template.id === 'string' && /^\d+$/.test(template.id);
       
@@ -470,14 +476,13 @@ export default function TemplateSettings() {
       }
     },
     onSuccess: () => {
-      toast({
-        title: "Template Saved",
-        description: "Template configuration saved successfully",
-      });
+      setIsSaving(false);
+      setLastSaved(new Date());
       // Refetch templates to get updated data
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
     },
     onError: (error) => {
+      setIsSaving(false);
       console.error("Template save error:", error);
       toast({
         title: "Error", 
@@ -559,6 +564,21 @@ export default function TemplateSettings() {
                       <FileText className="h-5 w-5" />
                       {template.name}
                     </CardTitle>
+                    {/* Auto-save indicator */}
+                    <div className="text-sm text-gray-500 mt-1">
+                      {isSaving ? (
+                        <span className="flex items-center gap-1">
+                          <div className="animate-spin h-3 w-3 border border-gray-300 border-t-blue-500 rounded-full"></div>
+                          Saving...
+                        </span>
+                      ) : lastSaved ? (
+                        <span>
+                          All changes auto-saved at {lastSaved.toLocaleTimeString()}
+                        </span>
+                      ) : (
+                        <span>All changes are auto-saved</span>
+                      )}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="p-8">
