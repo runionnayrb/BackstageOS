@@ -326,10 +326,8 @@ export default function AdminErrorLogs() {
     <div className="min-h-screen w-full p-0 space-y-6">
       <div className="px-6 pt-6">
         <div className="flex items-center justify-between mb-8 gap-6">
-          <div className="flex items-center space-x-6">
-            <div>
-              <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Error Logs</h2>
-            </div>
+          <div className="flex items-center justify-between w-full">
+            <h2 className="text-lg sm:text-xl font-semibold">Error Logs</h2>
             <div className="flex gap-3">
               <Link href="/auto-resolution-dashboard">
                 <Button variant="outline" size="default" className="flex items-center gap-2">
