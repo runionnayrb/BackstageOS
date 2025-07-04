@@ -90,8 +90,8 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
 
   // Apply saved formatting when loaded
   useEffect(() => {
-    if (showSettings?.departmentFormatting?.[department]) {
-      const savedFormatting = showSettings.departmentFormatting[department];
+    if (showSettings && (showSettings as any).departmentFormatting?.[department]) {
+      const savedFormatting = (showSettings as any).departmentFormatting[department];
       setFormatting(savedFormatting);
     }
   }, [showSettings, department]);
@@ -528,7 +528,8 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           ref={editableRef}
           contentEditable
           suppressContentEditableWarning
-          className="outline-none cursor-text w-full"
+          className="outline-none cursor-text w-full editable-department-header"
+          data-department-header="true"
           style={{
             border: '2px solid #3b82f6',
             borderRadius: '4px',

@@ -16,7 +16,7 @@ export default function EditableFieldHeading({
   const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
 
-  const applyFormattingToAllElements = () => {
+  const applyFormattingToAllHeaders = () => {
     if (!editingElement) return;
 
     // Get all computed styles from the current element
@@ -32,16 +32,26 @@ export default function EditableFieldHeading({
       backgroundColor: computedStyle.backgroundColor,
     };
 
-    // Find all editable elements on the page
-    const editableElements = document.querySelectorAll('[contenteditable="true"]');
+    // Find only header elements: field headings, department headers, template headers/footers
+    const headerSelectors = [
+      '[data-field-heading]',           // Field headings
+      '[data-department-header]',       // Department headers
+      '[data-template-header]',         // Template headers
+      '[data-template-footer]',         // Template footers
+      '.editable-field-heading',        // Field heading class
+      '.editable-department-header'     // Department header class
+    ];
     
-    editableElements.forEach((element) => {
-      if (element !== editingElement) {
-        const htmlElement = element as HTMLElement;
-        Object.entries(styles).forEach(([property, value]) => {
-          htmlElement.style.setProperty(property.replace(/([A-Z])/g, '-$1').toLowerCase(), value);
-        });
-      }
+    headerSelectors.forEach(selector => {
+      const headerElements = document.querySelectorAll(selector);
+      headerElements.forEach((element) => {
+        if (element !== editingElement) {
+          const htmlElement = element as HTMLElement;
+          Object.entries(styles).forEach(([property, value]) => {
+            htmlElement.style.setProperty(property.replace(/([A-Z])/g, '-$1').toLowerCase(), value);
+          });
+        }
+      });
     });
   };
 
@@ -49,9 +59,10 @@ export default function EditableFieldHeading({
     <>
       <div className="relative group">
         <div 
-          className={`${className} cursor-pointer hover:bg-gray-50 p-1 rounded min-h-[24px] outline-none`}
+          className={`${className} cursor-pointer hover:bg-gray-50 p-1 rounded min-h-[24px] outline-none editable-field-heading`}
           contentEditable
           suppressContentEditableWarning
+          data-field-heading="true"
           onClick={(e) => {
             setEditingElement(e.currentTarget);
             setShowToolbar(true);
@@ -92,7 +103,7 @@ export default function EditableFieldHeading({
             editingElement.blur();
           }
         }}
-        onApplyToAll={applyFormattingToAllElements}
+        onApplyToAll={applyFormattingToAllHeaders}
       />
     </>
   );
