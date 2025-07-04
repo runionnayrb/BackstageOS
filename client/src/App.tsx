@@ -143,11 +143,6 @@ function Router() {
     return <AuthPage />;
   }
 
-  // For dev environment, if user exists, proceed to app routing
-  if (isDevEnvironment && user) {
-    // Continue to app routing below
-  }
-
   // If authenticated but no profile type selected
   if (user && !user?.profileType) {
     return <ProfileSelection />;
