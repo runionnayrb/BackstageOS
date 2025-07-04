@@ -231,7 +231,7 @@ export default function CreateProject() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setLocation("/projects")}
+                  onClick={() => setLocation("/")}
                 >
                   Cancel
                 </Button>
