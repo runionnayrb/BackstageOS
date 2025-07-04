@@ -50,6 +50,16 @@ export default function EditableHeaderFooter({
       .replace(/\{\{totalPages\}\}/g, '1');
   }, [project]);
 
+  // Function to apply formatting to element
+  const applyFormattingToElement = useCallback((element: HTMLElement, formatting: any) => {
+    Object.entries(formatting).forEach(([property, value]) => {
+      if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
+        const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
+        element.style.setProperty(cssProperty, value as string);
+      }
+    });
+  }, []);
+
   // Apply saved header/footer formatting when component mounts or settings change
   useEffect(() => {
     const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
@@ -59,19 +69,15 @@ export default function EditableHeaderFooter({
       const formatting = showSettings[settingsKey];
       console.log(`Applying saved ${type} formatting:`, formatting);
       
-      // Apply formatting to the specific header or footer element
-      const elements = document.querySelectorAll(`[${dataAttribute}="true"]`);
-      elements.forEach((element) => {
-        const htmlElement = element as HTMLElement;
-        Object.entries(formatting).forEach(([property, value]) => {
-          if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
-            const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
-            htmlElement.style.setProperty(cssProperty, value as string);
-          }
+      // Small delay to ensure content is rendered first
+      setTimeout(() => {
+        const elements = document.querySelectorAll(`[${dataAttribute}="true"]`);
+        elements.forEach((element) => {
+          applyFormattingToElement(element as HTMLElement, formatting);
         });
-      });
+      }, 100);
     }
-  }, [showSettings?.headerFormatting, showSettings?.footerFormatting, type]);
+  }, [showSettings?.headerFormatting, showSettings?.footerFormatting, type, applyFormattingToElement]);
 
   // Header/Footer formatting mutation
   const updateFormattingMutation = useMutation({
@@ -214,10 +220,29 @@ export default function EditableHeaderFooter({
               onChange(newContent);
               // After saving, show processed content again
               e.currentTarget.innerHTML = processRichContent(newContent).replace(/\n/g, '<br>');
+              
+              // Reapply formatting after content update
+              const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
+              if (showSettings?.[settingsKey]) {
+                setTimeout(() => {
+                  applyFormattingToElement(e.currentTarget, showSettings[settingsKey]);
+                }, 50);
+              }
             }
           }}
           dangerouslySetInnerHTML={{
             __html: processRichContent(content).replace(/\n/g, '<br>')
+          }}
+          ref={(el) => {
+            if (el && !editingElement) {
+              // Apply formatting after initial render
+              const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
+              if (showSettings?.[settingsKey]) {
+                setTimeout(() => {
+                  applyFormattingToElement(el, showSettings[settingsKey]);
+                }, 100);
+              }
+            }
           }}
         />
       </div>
@@ -233,6 +258,14 @@ export default function EditableHeaderFooter({
             handleAutoSave(); // Auto-save formatting changes
             // Update display to show processed content
             editingElement.innerHTML = processRichContent(content).replace(/\n/g, '<br>');
+            
+            // Reapply formatting after content update
+            const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
+            if (showSettings?.[settingsKey]) {
+              setTimeout(() => {
+                applyFormattingToElement(editingElement, showSettings[settingsKey]);
+              }, 50);
+            }
           }
         }}
         onApplyToAll={applyFormatting}
@@ -244,6 +277,14 @@ export default function EditableHeaderFooter({
             onChange(currentContent);
             // Update display to show processed content
             editingElement.innerHTML = processRichContent(currentContent).replace(/\n/g, '<br>');
+            
+            // Reapply formatting after content update
+            const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
+            if (showSettings?.[settingsKey]) {
+              setTimeout(() => {
+                applyFormattingToElement(editingElement, showSettings[settingsKey]);
+              }, 50);
+            }
           }
           setShowToolbar(false);
           setEditingElement(null);
