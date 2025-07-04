@@ -29,7 +29,25 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    // Construct URL from query key array
+    let url: string;
+    if (typeof queryKey[0] === 'string' && queryKey[0].startsWith('/api/')) {
+      if (queryKey.length === 1) {
+        // Simple string query key like ['/api/projects']
+        url = queryKey[0];
+      } else {
+        // Array query key like ['/api/projects', projectId, 'settings']
+        // Join the parts to create the full URL
+        url = queryKey.join('/');
+      }
+    } else {
+      // Fallback to original behavior for non-API keys
+      url = queryKey[0] as string;
+    }
+    
+    console.log(`🎯 Query URL constructed:`, url, `from queryKey:`, queryKey);
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
 
