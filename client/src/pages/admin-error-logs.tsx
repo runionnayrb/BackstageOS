@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle, Bug, Wifi, Monitor, MousePointer, FileText, Eye, Calendar, Search, Play, Pause, Wrench, Activity, BarChart3, Zap } from "lucide-react";
+import { AlertTriangle, Bug, Wifi, Monitor, MousePointer, FileText, Eye, Calendar, Search, Play, Pause, Wrench, Activity, BarChart3, Zap, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 import { ErrorLog } from "@/../../shared/schema";
 import { errorLogger } from "@/lib/errorLogger";
@@ -327,6 +327,12 @@ export default function AdminErrorLogs() {
       <div className="px-6 pt-6">
         <div className="flex items-center justify-between mb-8 gap-6">
           <div className="flex items-center space-x-6">
+            <Link href="/admin">
+              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Admin
+              </Button>
+            </Link>
             <div>
               <h2 className="text-3xl font-bold">Error Logs</h2>
               <p className="text-base text-gray-600">Monitor and resolve application errors</p>
