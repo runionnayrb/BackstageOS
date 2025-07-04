@@ -1976,6 +1976,60 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Department formatting endpoints
+  app.put("/api/projects/:id/settings/department-formatting", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { department, formatting, applyToAll } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get current settings
+      const settings = await storage.getShowSettingsByProjectId(projectId);
+      const currentDepartmentFormatting = settings?.departmentFormatting || {};
+      
+      let updatedDepartmentFormatting;
+      
+      if (applyToAll) {
+        // Apply formatting to all departments
+        updatedDepartmentFormatting = {
+          scenic: formatting,
+          lighting: formatting,
+          audio: formatting,
+          video: formatting,
+          props: formatting
+        };
+      } else {
+        // Update just the specific department
+        updatedDepartmentFormatting = {
+          ...currentDepartmentFormatting,
+          [department]: formatting
+        };
+      }
+
+      // Update the settings
+      const updatedSettings = await storage.updateShowSettings(projectId, {
+        departmentFormatting: updatedDepartmentFormatting
+      });
+
+      res.json({
+        success: true,
+        departmentFormatting: updatedSettings.departmentFormatting
+      });
+    } catch (error) {
+      console.error("Error updating department formatting:", error);
+      res.status(500).json({ message: "Failed to update department formatting" });
+    }
+  });
+
   app.post("/api/projects/:id/share-link", isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);

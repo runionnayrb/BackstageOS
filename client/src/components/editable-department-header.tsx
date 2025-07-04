@@ -16,9 +16,10 @@ import {
   Type,
   Palette,
   Square,
-  Minus
+  Minus,
+  Copy
 } from 'lucide-react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,6 +28,7 @@ interface EditableDepartmentHeaderProps {
   department: string;
   displayName: string;
   onNameChange?: (newName: string) => void;
+  onFormattingChange?: (formatting: HeaderFormatting) => void;
 }
 
 interface HeaderFormatting {
@@ -50,7 +52,8 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   projectId,
   department,
   displayName,
-  onNameChange
+  onNameChange,
+  onFormattingChange
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(displayName);
@@ -76,6 +79,20 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     borderWeight: '1px',
     borderColor: '#d1d5db'
   });
+
+  // Load saved formatting from show settings
+  const { data: showSettings } = useQuery({
+    queryKey: [`/api/projects/${projectId}/settings`],
+    enabled: !!projectId
+  });
+
+  // Apply saved formatting when loaded
+  useEffect(() => {
+    if (showSettings?.departmentFormatting?.[department]) {
+      const savedFormatting = showSettings.departmentFormatting[department];
+      setFormatting(savedFormatting);
+    }
+  }, [showSettings, department]);
 
   // Apply styles to the editable element
   const applyFormatting = (element: HTMLElement) => {
@@ -146,6 +163,46 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     }
   });
 
+  // Update formatting mutation
+  const updateFormattingMutation = useMutation({
+    mutationFn: async ({ formatting: newFormatting, applyToAll = false }: { formatting: HeaderFormatting; applyToAll?: boolean }) => {
+      const response = await fetch(`/api/projects/${projectId}/settings/department-formatting`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          department,
+          formatting: newFormatting,
+          applyToAll
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update department formatting');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      const { applyToAll } = variables;
+      toast({
+        title: "Formatting updated",
+        description: applyToAll ? "Formatting applied to all departments" : "Department formatting updated successfully",
+      });
+      onFormattingChange?.(formatting);
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating formatting",
+        description: "Failed to update the department formatting. Please try again.",
+        variant: "destructive",
+      });
+      console.error('Failed to update department formatting:', error);
+    }
+  });
+
   // Apply formatting when formatting state changes
   useEffect(() => {
     if (editableRef.current && isEditing) {
@@ -165,8 +222,16 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
         return;
       }
       setEditValue(newText);
+      
+      // Save both name and formatting
       updateDepartmentNameMutation.mutate(newText);
+      updateFormattingMutation.mutate({ formatting, applyToAll: false });
     }
+  };
+
+  const handleApplyToAll = () => {
+    updateFormattingMutation.mutate({ formatting, applyToAll: true });
+    setShowToolbar(false);
   };
 
   const handleCancel = () => {
@@ -417,11 +482,25 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
 
             <div className="w-px h-6 bg-gray-300 mx-1" />
 
+            {/* Apply to All */}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleApplyToAll}
+              disabled={updateFormattingMutation.isPending}
+              className="h-8 px-3"
+            >
+              <Copy className="h-4 w-4 mr-1" />
+              Apply to All
+            </Button>
+
+            <div className="w-px h-6 bg-gray-300 mx-1" />
+
             {/* Save/Cancel */}
             <Button
               size="sm"
               onClick={handleSave}
-              disabled={updateDepartmentNameMutation.isPending}
+              disabled={updateDepartmentNameMutation.isPending || updateFormattingMutation.isPending}
               className="h-8 px-3"
             >
               <Check className="h-4 w-4 mr-1" />

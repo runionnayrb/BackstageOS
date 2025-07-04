@@ -468,6 +468,12 @@ export default function TemplateSettings() {
                                         queryKey: [`/api/projects/${projectId}/settings`]
                                       });
                                     }}
+                                    onFormattingChange={(formatting) => {
+                                      // Invalidate the show settings query to refetch updated formatting
+                                      queryClient.invalidateQueries({
+                                        queryKey: [`/api/projects/${projectId}/settings`]
+                                      });
+                                    }}
                                   />
                                   <ReportNotesManager 
                                     reportId={5} 
