@@ -586,7 +586,7 @@ export default function ReportBuilder() {
             <div key={field.id} className="mb-6">
               <div className="text-sm font-semibold text-gray-700 mb-2">
                 {field.label}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
+                
               </div>
               <Input
                 id={fieldId}
@@ -604,7 +604,7 @@ export default function ReportBuilder() {
             <div key={field.id} className="mb-6">
               <div className="text-sm font-semibold text-gray-700 mb-2">
                 {field.label}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
+                
               </div>
               <Textarea
                 id={fieldId}
@@ -623,7 +623,7 @@ export default function ReportBuilder() {
             <div key={field.id} className="mb-6">
               <div className="text-sm font-semibold text-gray-700 mb-2">
                 {field.label}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
+                
               </div>
               <Input
                 id={fieldId}
@@ -642,7 +642,7 @@ export default function ReportBuilder() {
             <div key={field.id} className="mb-6">
               <div className="text-sm font-semibold text-gray-700 mb-2">
                 {field.label}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
+                
               </div>
               <Input
                 id={fieldId}
@@ -660,7 +660,7 @@ export default function ReportBuilder() {
             <div key={field.id} className="mb-6">
               <div className="text-sm font-semibold text-gray-700 mb-2">
                 {field.label}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
+                
               </div>
               <Input
                 id={fieldId}
@@ -678,7 +678,7 @@ export default function ReportBuilder() {
             <div key={field.id} className="mb-6">
               <div className="text-sm font-semibold text-gray-700 mb-2">
                 {field.label}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
+                
               </div>
               <Select value={currentContent[field.id] || ""} onValueChange={(value) => form.setValue(`content.${field.id}`, value)}>
                 <SelectTrigger className="border-0 bg-transparent p-0 focus:ring-0">
@@ -706,7 +706,7 @@ export default function ReportBuilder() {
               />
               <div className="text-sm font-semibold text-gray-700">
                 {field.label}
-                {field.required && <span className="text-red-500 ml-1">*</span>}
+                
               </div>
             </div>
           );

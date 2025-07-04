@@ -519,18 +519,8 @@ export default function TemplateSettings() {
                                     className="text-sm font-medium border-0 bg-transparent p-0 focus:ring-0 focus:outline-none h-auto flex-1"
                                     placeholder="Field label"
                                   />
-                                  {field.required && <span className="text-red-500 text-sm">*</span>}
                                 </div>
                                 <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => updateField(field.id, { required: !field.required })}
-                                    className={`h-6 w-6 p-0 ${field.required ? 'text-red-500' : 'text-gray-400'}`}
-                                    title="Toggle required"
-                                  >
-                                    *
-                                  </Button>
                                   <Button
                                     size="sm"
                                     variant="ghost"
