@@ -382,7 +382,9 @@ function renderReportContent(report: any) {
               {key.replace(/([A-Z])/g, ' $1').trim()}
             </div>
             <div className="text-sm whitespace-pre-wrap">
-              {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : value}
+              {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : 
+               typeof value === 'object' ? JSON.stringify(value) : 
+               value}
             </div>
           </div>
         );
