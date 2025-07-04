@@ -2,6 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide field type labels in template editor */
+[data-field-type]::after,
+[data-type]::after,
+.field-type-label,
+.type-indicator,
+.field-type,
+[title*="date"]::after,
+[title*="number"]::after,
+[title*="time"]::after,
+[title*="text"]::after,
+[title*="textarea"]::after,
+[title*="select"]::after,
+[title*="checkbox"]::after {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Hide field type indicators specifically */
+.field-type-indicator,
+.template-field-type,
+.field-type-badge {
+  display: none !important;
+}
+
+/* More aggressive hiding of field type indicators */
+*[class*="type"]:not(input):not(select):not(textarea)::after,
+*[class*="field"]::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* Target possible field type text positioning */
+.space-y-2.relative.group > div:last-child span:only-child,
+.space-y-2.relative.group > div:last-child .absolute,
+.space-y-2.relative.group::after {
+  display: none !important;
+}
+
+/* Hide any text elements that might show field types */
+.border.rounded-md span:only-child:not(input):not(textarea) {
+  display: none !important;
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(20, 14.3%, 4.1%);
