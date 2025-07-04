@@ -200,6 +200,59 @@ export default function ReportBuilder() {
     mutation.mutate(data);
   };
 
+  const renderDepartmentNotes = () => {
+    return (
+      <div className="mb-6">
+        <div className="text-lg font-semibold text-gray-800 mb-4">Department Notes</div>
+        
+        <div className="mb-6">
+          <div className="text-sm font-semibold text-gray-700 mb-2">Scenic</div>
+          <ReportNotesManager 
+            reportId={reportId || 0} 
+            reportType={reportType || ""}
+            department="scenic"
+          />
+        </div>
+
+        <div className="mb-6">
+          <div className="text-sm font-semibold text-gray-700 mb-2">Lighting</div>
+          <ReportNotesManager 
+            reportId={reportId || 0} 
+            reportType={reportType || ""}
+            department="lighting"
+          />
+        </div>
+
+        <div className="mb-6">
+          <div className="text-sm font-semibold text-gray-700 mb-2">Audio</div>
+          <ReportNotesManager 
+            reportId={reportId || 0} 
+            reportType={reportType || ""}
+            department="audio"
+          />
+        </div>
+
+        <div className="mb-6">
+          <div className="text-sm font-semibold text-gray-700 mb-2">Video</div>
+          <ReportNotesManager 
+            reportId={reportId || 0} 
+            reportType={reportType || ""}
+            department="video"
+          />
+        </div>
+
+        <div className="mb-6">
+          <div className="text-sm font-semibold text-gray-700 mb-2">Props</div>
+          <ReportNotesManager 
+            reportId={reportId || 0} 
+            reportType={reportType || ""}
+            department="props"
+          />
+        </div>
+      </div>
+    );
+  };
+
   const renderTemplateFields = () => {
     if (!selectedTemplate) return null;
 
@@ -278,6 +331,9 @@ export default function ReportBuilder() {
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
+            
+            {/* Department Notes */}
+            {renderDepartmentNotes()}
           </>
         );
       
@@ -339,65 +395,9 @@ export default function ReportBuilder() {
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
-
-            {/* Departmental Notes */}
-            <div className="mb-6">
-              <div className="text-lg font-semibold text-gray-800 mb-4">Department Notes</div>
-              
-              <div className="mb-6">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Scenic</div>
-                <ReportNotesManager 
-                  reportId={reportId || 0} 
-                  reportType="tech" 
-                  department="scenic"
-                />
-              </div>
-
-              <div className="mb-6">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Lighting</div>
-                <ReportNotesManager 
-                  reportId={reportId || 0} 
-                  reportType="tech" 
-                  department="lighting"
-                />
-              </div>
-
-              <div className="mb-6">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Audio</div>
-                <ReportNotesManager 
-                  reportId={reportId || 0} 
-                  reportType="tech" 
-                  department="audio"
-                />
-              </div>
-
-              <div className="mb-6">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Video</div>
-                <ReportNotesManager 
-                  reportId={reportId || 0} 
-                  reportType="tech" 
-                  department="video"
-                />
-              </div>
-
-              <div className="mb-6">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Props</div>
-                <ReportNotesManager 
-                  reportId={reportId || 0} 
-                  reportType="tech" 
-                  department="props"
-                />
-              </div>
-
-              <div className="mb-6">
-                <div className="text-sm font-semibold text-gray-700 mb-2">Costumes</div>
-                <ReportNotesManager 
-                  reportId={reportId || 0} 
-                  reportType="tech" 
-                  department="costumes"
-                />
-              </div>
-            </div>
+            
+            {/* Department Notes */}
+            {renderDepartmentNotes()}
           </>
         );
       
@@ -461,6 +461,9 @@ export default function ReportBuilder() {
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none resize-none"
               />
             </div>
+            
+            {/* Department Notes */}
+            {renderDepartmentNotes()}
           </>
         );
       
@@ -527,6 +530,9 @@ export default function ReportBuilder() {
                 className="border-0 bg-transparent p-0 focus:ring-0 focus:outline-none"
               />
             </div>
+            
+            {/* Department Notes */}
+            {renderDepartmentNotes()}
           </>
         );
       
@@ -537,10 +543,18 @@ export default function ReportBuilder() {
             <>
               {commonFields}
               {renderCustomFields(customTemplate.fields)}
+              {/* Department Notes */}
+              {renderDepartmentNotes()}
             </>
           );
         }
-        return commonFields;
+        return (
+          <>
+            {commonFields}
+            {/* Department Notes */}
+            {renderDepartmentNotes()}
+          </>
+        );
     }
   };
 
