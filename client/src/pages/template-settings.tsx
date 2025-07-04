@@ -573,10 +573,10 @@ export default function TemplateSettings() {
                         </span>
                       ) : lastSaved ? (
                         <span>
-                          All changes auto-saved at {lastSaved.toLocaleTimeString()}
+                          Auto-saved at: {lastSaved.toLocaleTimeString()}
                         </span>
                       ) : (
-                        <span>All changes are auto-saved</span>
+                        <span>Auto-saved</span>
                       )}
                     </div>
                   </div>
