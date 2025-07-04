@@ -1935,6 +1935,47 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Department names endpoint
+  app.put("/api/projects/:id/settings/department-names", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { department, name } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get current settings
+      const settings = await storage.getShowSettingsByProjectId(projectId);
+      const currentDepartmentNames = settings?.departmentNames || {};
+      
+      // Update the specific department name
+      const updatedDepartmentNames = {
+        ...currentDepartmentNames,
+        [department]: name
+      };
+
+      // Update the settings
+      const updatedSettings = await storage.updateShowSettings(projectId, {
+        departmentNames: updatedDepartmentNames
+      });
+
+      res.json({
+        success: true,
+        departmentNames: updatedSettings.departmentNames
+      });
+    } catch (error) {
+      console.error("Error updating department name:", error);
+      res.status(500).json({ message: "Failed to update department name" });
+    }
+  });
+
   app.post("/api/projects/:id/share-link", isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);

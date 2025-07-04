@@ -12,6 +12,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import ReportNotesManager from "@/components/report-notes-manager";
+import EditableDepartmentHeader from "@/components/editable-department-header";
+import { getAllDepartmentNames, type DepartmentKey } from "@/utils/departmentUtils";
+import type { ShowSettings } from "@/../../shared/schema";
 import {
   ArrowLeft,
   Save,
@@ -163,7 +166,7 @@ export default function TemplateSettings() {
     queryKey: [`/api/projects/${projectId}`],
   });
 
-  const { data: settings } = useQuery({
+  const { data: showSettings } = useQuery<ShowSettings>({
     queryKey: [`/api/projects/${projectId}/settings`],
   });
 
@@ -453,65 +456,27 @@ export default function TemplateSettings() {
                             </div>
                             
                             <div className="space-y-6">
-                              <div>
-                                <div className="text-sm font-semibold text-gray-700 mb-2">
-                                  Scenic
+                              {getAllDepartmentNames(showSettings?.departmentNames).map(({ key, displayName }) => (
+                                <div key={key}>
+                                  <EditableDepartmentHeader
+                                    projectId={parseInt(params.id)}
+                                    department={key}
+                                    displayName={displayName}
+                                    onNameChange={(newName) => {
+                                      // Invalidate the show settings query to refetch updated names
+                                      queryClient.invalidateQueries({
+                                        queryKey: [`/api/projects/${projectId}/settings`]
+                                      });
+                                    }}
+                                  />
+                                  <ReportNotesManager 
+                                    reportId={5} 
+                                    projectId={parseInt(params.id)}
+                                    reportType="tech"
+                                    department={key}
+                                  />
                                 </div>
-                                <ReportNotesManager 
-                                  reportId={5} 
-                                  projectId={parseInt(params.id)}
-                                  reportType="tech"
-                                  department="scenic"
-                                />
-                              </div>
-
-                              <div>
-                                <div className="text-sm font-semibold text-gray-700 mb-2">
-                                  Lighting
-                                </div>
-                                <ReportNotesManager 
-                                  reportId={5} 
-                                  projectId={parseInt(params.id)}
-                                  reportType="tech"
-                                  department="lighting"
-                                />
-                              </div>
-
-                              <div>
-                                <div className="text-sm font-semibold text-gray-700 mb-2">
-                                  Audio
-                                </div>
-                                <ReportNotesManager 
-                                  reportId={5} 
-                                  projectId={parseInt(params.id)}
-                                  reportType="tech"
-                                  department="audio"
-                                />
-                              </div>
-
-                              <div>
-                                <div className="text-sm font-semibold text-gray-700 mb-2">
-                                  Video
-                                </div>
-                                <ReportNotesManager 
-                                  reportId={5} 
-                                  projectId={parseInt(params.id)}
-                                  reportType="tech"
-                                  department="video"
-                                />
-                              </div>
-
-                              <div>
-                                <div className="text-sm font-semibold text-gray-700 mb-2">
-                                  Props
-                                </div>
-                                <ReportNotesManager 
-                                  reportId={5} 
-                                  projectId={parseInt(params.id)}
-                                  reportType="tech"
-                                  department="props"
-                                />
-                              </div>
+                              ))}
                             </div>
                           </div>
                         )}

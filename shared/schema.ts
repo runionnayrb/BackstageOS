@@ -305,6 +305,7 @@ export const showSettings = pgTable("show_settings", {
   sectionsOrder: jsonb("sections_order"), // Array of section IDs in custom order for main show page
   contactSheetSettings: jsonb("contact_sheet_settings"), // Contact sheet layout and formatting settings
   companyListSettings: jsonb("company_list_settings"), // Company list layout and formatting settings
+  departmentNames: jsonb("department_names"), // Custom department names for tech reports
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
