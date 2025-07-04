@@ -272,12 +272,12 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
   return (
     <div className="space-y-4">
       {/* Add new note */}
-      <div className="border rounded-lg p-4 space-y-3">
+      <div className="p-4 space-y-3">
         <Textarea
           placeholder="Add a new note..."
           value={newNoteContent}
           onChange={(e) => setNewNoteContent(e.target.value)}
-          className="min-h-[80px] resize-none"
+          className="min-h-[80px] resize-none border-0 shadow-none focus:ring-0"
           onKeyDown={(e) => {
             if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
               e.preventDefault();
@@ -305,7 +305,7 @@ const ReportNotesManager: React.FC<ReportNotesManagerProps> = ({
         {sortedNotes.map((note, index) => (
           <div 
             key={note.id}
-            className={`border rounded-lg p-4 space-y-2 ${
+            className={`p-4 space-y-2 ${
               note.isCompleted ? 'bg-gray-50 dark:bg-gray-900' : ''
             }`}
           >
