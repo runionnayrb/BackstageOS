@@ -19,6 +19,17 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import ReportNotesManager from "@/components/report-notes-manager";
 import EditableDepartmentHeader from "@/components/editable-department-header";
 import InlineFormattingToolbar from "@/components/inline-formatting-toolbar";
@@ -826,14 +837,34 @@ export default function TemplateSettings() {
                                         });
                                       }}
                                     />
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => removeDepartment(key)}
-                                      className="absolute right-0 top-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
-                                    >
-                                      <X className="h-3 w-3" />
-                                    </Button>
+                                    <AlertDialog>
+                                      <AlertDialogTrigger asChild>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="absolute right-0 top-0 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </Button>
+                                      </AlertDialogTrigger>
+                                      <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                          <AlertDialogTitle>Delete Department</AlertDialogTitle>
+                                          <AlertDialogDescription>
+                                            Are you sure you want to delete the "{displayName}" department? This will also remove all associated notes and cannot be undone.
+                                          </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                          <AlertDialogAction
+                                            onClick={() => removeDepartment(key)}
+                                            className="bg-red-600 hover:bg-red-700 text-white"
+                                          >
+                                            Delete Department
+                                          </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                      </AlertDialogContent>
+                                    </AlertDialog>
                                   </div>
                                   <ReportNotesManager 
                                     reportId={5} 
