@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 import InlineFormattingToolbar from "./inline-formatting-toolbar";
 
 interface EditableFieldHeadingProps {
   content: string;
   onChange: (newContent: string) => void;
   className?: string;
+  projectId: string;
   onApplyToAll?: () => void;
 }
 
@@ -13,13 +16,80 @@ export default function EditableFieldHeading({
   content, 
   onChange, 
   className = "text-sm font-medium text-gray-700 mb-1",
+  projectId,
   onApplyToAll
 }: EditableFieldHeadingProps) {
   const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Debug: Log when component mounts with onApplyToAll prop
   console.log('🔍 EditableFieldHeading mounted with onApplyToAll:', !!onApplyToAll);
+
+  // Query to fetch show settings including field header formatting
+  const { data: showSettings } = useQuery({
+    queryKey: [`/api/projects/${projectId}/settings`],
+    enabled: !!projectId
+  });
+
+  // Apply saved field header formatting when component mounts or settings change
+  useEffect(() => {
+    if (showSettings?.fieldHeaderFormatting) {
+      const formatting = showSettings.fieldHeaderFormatting;
+      console.log('Applying saved field header formatting:', formatting);
+      
+      // Apply formatting to all field headers
+      const fieldHeaders = document.querySelectorAll('[data-field-heading]');
+      fieldHeaders.forEach((element) => {
+        const htmlElement = element as HTMLElement;
+        Object.entries(formatting).forEach(([property, value]) => {
+          if (value) {
+            const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
+            htmlElement.style.setProperty(cssProperty, value as string);
+          }
+        });
+      });
+    }
+  }, [showSettings?.fieldHeaderFormatting]);
+
+  // Field header formatting mutation
+  const updateFieldHeaderFormattingMutation = useMutation({
+    mutationFn: async ({ formatting, applyToAll = false }: { formatting: any; applyToAll?: boolean }) => {
+      const response = await fetch(`/api/projects/${projectId}/settings/field-header-formatting`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          formatting,
+          applyToAll
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update field header formatting');
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate and refetch the project settings
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      toast({
+        title: "Success",
+        description: "Field header formatting updated successfully"
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating field header formatting:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update field header formatting",
+        variant: "destructive"
+      });
+    }
+  });
 
   const applyFormattingToAllHeaders = () => {
     console.log('🔥🔥🔥 FIELD HEADING APPLY TO ALL CLICKED!!! 🔥🔥🔥');
@@ -37,7 +107,7 @@ export default function EditableFieldHeading({
 
     // Get all computed styles from the current element
     const computedStyle = window.getComputedStyle(editingElement);
-    const styles = {
+    const formatting = {
       fontWeight: computedStyle.fontWeight,
       fontStyle: computedStyle.fontStyle,
       textDecoration: computedStyle.textDecoration,
@@ -48,39 +118,13 @@ export default function EditableFieldHeading({
       backgroundColor: computedStyle.backgroundColor,
     };
 
-    console.log('Apply to All: Extracted styles:', styles);
+    console.log('Apply to All: Extracted formatting:', formatting);
 
-    // Find only header elements: field headings, department headers, template headers/footers
-    const headerSelectors = [
-      '[data-field-heading]',           // Field headings
-      '[data-department-header]',       // Department headers
-      '[data-template-header]',         // Template headers
-      '[data-template-footer]',         // Template footers
-      '.editable-field-heading',        // Field heading class
-      '.editable-department-header'     // Department header class
-    ];
-    
-    let totalUpdated = 0;
-    headerSelectors.forEach(selector => {
-      const headerElements = document.querySelectorAll(selector);
-      console.log(`Apply to All: Found ${headerElements.length} elements for selector "${selector}"`);
-      
-      headerElements.forEach((element) => {
-        if (element !== editingElement) {
-          const htmlElement = element as HTMLElement;
-          console.log('Apply to All: Updating element:', htmlElement);
-          Object.entries(styles).forEach(([property, value]) => {
-            const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
-            htmlElement.style.setProperty(cssProperty, value);
-            console.log(`Apply to All: Set ${cssProperty} = ${value}`);
-          });
-          totalUpdated++;
-        }
-      });
+    // Use the database-backed mutation to apply formatting to all field headers
+    updateFieldHeaderFormattingMutation.mutate({ 
+      formatting, 
+      applyToAll: true 
     });
-
-    console.log(`Apply to All: Updated ${totalUpdated} header elements`);
-    alert(`Updated ${totalUpdated} header elements`);
   };
 
   return (

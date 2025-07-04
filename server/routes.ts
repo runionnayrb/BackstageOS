@@ -2030,6 +2030,47 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Field header formatting endpoints
+  app.put("/api/projects/:id/settings/field-header-formatting", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { formatting, applyToAll } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      let updatedFieldHeaderFormatting;
+      
+      if (applyToAll) {
+        // Apply formatting to all field headers
+        updatedFieldHeaderFormatting = formatting;
+      } else {
+        // For now, field headers use global formatting
+        updatedFieldHeaderFormatting = formatting;
+      }
+
+      // Update the settings
+      const updatedSettings = await storage.updateShowSettings(projectId, {
+        fieldHeaderFormatting: updatedFieldHeaderFormatting
+      });
+
+      res.json({
+        success: true,
+        fieldHeaderFormatting: updatedSettings.fieldHeaderFormatting
+      });
+    } catch (error) {
+      console.error("Error updating field header formatting:", error);
+      res.status(500).json({ message: "Failed to update field header formatting" });
+    }
+  });
+
   // Department order endpoint
   app.put("/api/projects/:id/settings/department-order", isAuthenticated, async (req: any, res) => {
     try {
