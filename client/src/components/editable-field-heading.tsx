@@ -193,23 +193,15 @@ export default function EditableFieldHeading({
       <InlineFormattingToolbar
         targetElement={editingElement}
         isVisible={showToolbar}
-        onSave={() => {
+        onAutoSave={() => {
           if (editingElement) {
             const content = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
             onChange(content);
           }
-          setShowToolbar(false);
-          setEditingElement(null);
-        }}
-        onCancel={() => {
-          setShowToolbar(false);
-          setEditingElement(null);
-          if (editingElement) {
-            editingElement.blur();
-          }
         }}
         onApplyToAll={onApplyToAll || applyFormattingToAllHeaders}
         showVariables={false}
+        onClose={() => setShowToolbar(false)}
       />
     </>
   );

@@ -21,21 +21,21 @@ import {
 interface InlineFormattingToolbarProps {
   targetElement: HTMLElement | null;
   isVisible: boolean;
-  onSave: () => void;
-  onCancel: () => void;
   onApplyToAll?: () => void;
   applyToAllText?: string;
   showVariables?: boolean;
+  onAutoSave?: () => void;
+  onClose?: () => void;
 }
 
 export default function InlineFormattingToolbar({
   targetElement,
   isVisible,
-  onSave,
-  onCancel,
   onApplyToAll,
   applyToAllText = "Apply to All",
   showVariables = true,
+  onAutoSave,
+  onClose,
 }: InlineFormattingToolbarProps) {
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const [activeStates, setActiveStates] = useState({
@@ -85,26 +85,33 @@ export default function InlineFormattingToolbar({
     };
   }, [targetElement, isVisible]);
 
+  // Auto-save when toolbar becomes hidden
   useEffect(() => {
+    if (!isVisible && onAutoSave) {
+      onAutoSave();
+    }
+  }, [isVisible, onAutoSave]);
+
+  // Click outside to close toolbar
+  useEffect(() => {
+    if (!isVisible || !onClose) return;
+
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        isVisible &&
         toolbarRef.current &&
         !toolbarRef.current.contains(event.target as Node) &&
         targetElement &&
         !targetElement.contains(event.target as Node)
       ) {
-        onCancel();
+        onClose();
       }
     };
 
-    if (isVisible) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [isVisible, onCancel, targetElement]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isVisible, onClose, targetElement]);
 
   const updateActiveStates = () => {
     if (!targetElement) return;
@@ -149,6 +156,10 @@ export default function InlineFormattingToolbar({
       document.execCommand(command, false, value);
       // Update active states after command execution
       setTimeout(updateActiveStates, 10);
+      // Trigger auto-save after formatting change
+      if (onAutoSave) {
+        setTimeout(onAutoSave, 100);
+      }
     }
   };
 
@@ -435,23 +446,6 @@ export default function InlineFormattingToolbar({
           <div className="w-px h-6 bg-gray-300 mx-1" />
         </>
       )}
-
-      {/* Save/Cancel */}
-      <Button
-        size="sm"
-        onClick={onSave}
-        className="h-8 w-8 p-0"
-      >
-        <Check className="h-4 w-4" />
-      </Button>
-      <Button
-        size="sm"
-        variant="ghost"
-        onClick={onCancel}
-        className="h-8 w-8 p-0"
-      >
-        <X className="h-4 w-4" />
-      </Button>
     </div>
   );
 }

@@ -124,7 +124,9 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   };
 
   const updateFormatting = (key: keyof HeaderFormatting, value: any) => {
-    setFormatting(prev => ({ ...prev, [key]: value }));
+    const newFormatting = { ...formatting, [key]: value };
+    setFormatting(newFormatting);
+    handleAutoSave();
   };
 
   const updateDepartmentNameMutation = useMutation({
@@ -213,7 +215,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     }
   }, [formatting, isEditingText]);
 
-  // Click outside to close toolbar
+  // Click outside to close toolbar (with auto-save)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -223,7 +225,8 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
         editableRef.current &&
         !editableRef.current.contains(event.target as Node)
       ) {
-        handleCancel();
+        setShowToolbar(false);
+        setIsEditingText(false);
       }
     };
 
@@ -235,21 +238,13 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     }
   }, [showToolbar]);
 
-  const handleSave = () => {
+  const handleAutoSave = () => {
     if (editableRef.current) {
       const newText = editableRef.current.textContent?.trim() || '';
-      if (newText === '') {
-        toast({
-          title: "Invalid name",
-          description: "Department name cannot be empty.",
-          variant: "destructive",
-        });
-        return;
+      if (newText && newText !== displayName) {
+        setEditValue(newText);
+        updateDepartmentNameMutation.mutate(newText);
       }
-      setEditValue(newText);
-      
-      // Save both name and formatting
-      updateDepartmentNameMutation.mutate(newText);
       updateFormattingMutation.mutate({ formatting, applyToAll: false });
     }
   };
@@ -258,12 +253,6 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
     updateFormattingMutation.mutate({ formatting, applyToAll: true });
     // Keep the toolbar open so user can continue making changes
     // setShowToolbar(false); // Removed this line
-  };
-
-  const handleCancel = () => {
-    setEditValue(displayName);
-    setIsEditingText(false);
-    setShowToolbar(false);
   };
 
   const handleHeaderClick = () => {
@@ -519,27 +508,6 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
             >
               <Copy className="h-4 w-4 mr-1" />
               Apply to All
-            </Button>
-
-            <div className="w-px h-6 bg-gray-300 mx-1" />
-
-            {/* Save/Cancel */}
-            <Button
-              size="sm"
-              onClick={handleSave}
-              disabled={updateDepartmentNameMutation.isPending || updateFormattingMutation.isPending}
-              className="h-8 w-8 p-0"
-            >
-              <Check className="h-4 w-4" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleCancel}
-              disabled={updateDepartmentNameMutation.isPending}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
             </Button>
           </div>
         )}

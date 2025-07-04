@@ -183,23 +183,15 @@ export default function EditableHeaderFooter({
       <InlineFormattingToolbar
         targetElement={editingElement}
         isVisible={showToolbar}
-        onSave={() => {
+        onAutoSave={() => {
           if (editingElement) {
             const content = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
             onChange(content);
           }
-          setShowToolbar(false);
-          setEditingElement(null);
-        }}
-        onCancel={() => {
-          setShowToolbar(false);
-          setEditingElement(null);
-          if (editingElement) {
-            editingElement.blur();
-          }
         }}
         onApplyToAll={applyFormatting}
         applyToAllText={`Apply to All ${type.charAt(0).toUpperCase() + type.slice(1)}s`}
+        onClose={() => setShowToolbar(false)}
       />
     </>
   );
