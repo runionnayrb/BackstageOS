@@ -260,8 +260,7 @@ export default function InlineFormattingToolbar({
   return (
     <div
       ref={toolbarRef}
-      className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap items-center gap-1 min-w-max"
-      style={{ top: position.top, left: position.left }}
+      className="absolute -top-16 left-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap items-center gap-1 min-w-max"
     >
       {/* Text Style Controls */}
       <Button
