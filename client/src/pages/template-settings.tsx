@@ -701,19 +701,42 @@ export default function TemplateSettings() {
                     {/* Fields Preview */}
                     {selectedPhase === 'tech' ? (
                       /* Flexible Layout Editor for entire tech template */
-                      <FlexibleLayoutEditor
-                        projectId={parseInt(params.id)}
-                        reportType="tech"
-                        isEditing={true}
-                        template={template}
-                        onTemplateUpdate={(updatedTemplate) => {
-                          setTemplates(prev => ({
-                            ...prev,
-                            [phase]: updatedTemplate
-                          }));
-                          saveTemplate.mutate(updatedTemplate);
-                        }}
-                      />
+                      <div className="space-y-6">
+                        <FlexibleLayoutEditor
+                          projectId={parseInt(params.id)}
+                          reportType="tech"
+                          isEditing={true}
+                          template={template}
+                          onTemplateUpdate={(updatedTemplate) => {
+                            setTemplates(prev => ({
+                              ...prev,
+                              [phase]: updatedTemplate
+                            }));
+                            saveTemplate.mutate(updatedTemplate);
+                          }}
+                        />
+                        
+                        {/* Footer - Inline Editable for Tech Template */}
+                        <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
+                          <EditableHeaderFooter
+                            content={template.footer}
+                            onChange={(newFooter) => {
+                              const updatedTemplate = {
+                                ...template,
+                                footer: newFooter
+                              };
+                              setTemplates(prev => ({
+                                ...prev,
+                                [phase]: updatedTemplate
+                              }));
+                              saveTemplate.mutate(updatedTemplate);
+                            }}
+                            className="text-sm text-gray-600 text-center"
+                            projectId={projectId}
+                            type="footer"
+                          />
+                        </div>
+                      </div>
                     ) : (
                       /* Standard layout for other templates */
                       <div className="space-y-6">
