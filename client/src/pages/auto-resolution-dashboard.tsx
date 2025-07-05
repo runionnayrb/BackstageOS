@@ -59,9 +59,9 @@ export default function AutoResolutionDashboard() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center space-x-4 mb-8">
+        <div className="mb-8">
           <Link href="/admin?tab=errors">
-            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+            <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900 mb-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Error Logs
             </Button>
