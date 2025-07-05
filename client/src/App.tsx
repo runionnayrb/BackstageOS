@@ -177,6 +177,8 @@ function Router() {
         <Route path="/shows/:id/settings" component={ShowSettings} />
         <Route path="/profile" component={ProfileSettings} />
         <Route path="/feedback" component={FeedbackPage} />
+        <Route path="/auth" component={AuthPage} />
+        <Route path="/login" component={AuthPage} />
 
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/pages" component={PageManager} />
