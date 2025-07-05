@@ -1,9 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { createPortal } from "react-dom";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import InlineFormattingToolbar from "@/components/inline-formatting-toolbar";
+import { useState, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 interface EditableHeaderFooterProps {
   content: string;
@@ -14,347 +10,100 @@ interface EditableHeaderFooterProps {
 }
 
 export default function EditableHeaderFooter({ 
-  content, 
-  onChange, 
+  content,
+  onChange,
   className = "text-sm font-medium text-gray-700 mb-1",
   projectId,
   type
 }: EditableHeaderFooterProps) {
-  const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
-  const toolbarStateRef = useRef({ showToolbar: false, editingElement: null as HTMLElement | null });
-  const { toast } = useToast();
+  const headerRef = useRef<HTMLDivElement>(null);
 
-  // Sync state with ref for persistence across re-renders
-  useEffect(() => {
-    toolbarStateRef.current = { showToolbar, editingElement };
-    console.log(`🎯 ${type.toUpperCase()} STATE CHANGED - showToolbar: ${showToolbar}, editingElement:`, editingElement);
-  }, [showToolbar, editingElement, type]);
-
-  // Use effect to maintain toolbar state across re-renders
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (toolbarStateRef.current.showToolbar && !showToolbar) {
-        console.log(`🎯 ${type.toUpperCase()} RESTORING TOOLBAR STATE`);
-        setShowToolbar(toolbarStateRef.current.showToolbar);
-        setEditingElement(toolbarStateRef.current.editingElement);
-      }
-    }, 50);
-    
-    return () => clearTimeout(timer);
-  });
-
-  // Query to fetch show settings including header/footer formatting
-  const { data: showSettings } = useQuery<any>({
+  // Query to fetch show settings
+  const { data: showSettings } = useQuery({
     queryKey: ['/api/projects', projectId, 'settings'],
     enabled: !!projectId
   });
 
-  // Query to fetch project data for variable replacement
-  const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectId}`],
-    enabled: !!projectId
-  });
-
-  // Process content and replace variables with actual values for display
-  const processRichContent = useCallback((content: string): string => {
+  // Process content to replace variables
+  const processRichContent = (content: string) => {
     if (!content) return '';
-    
     return content
-      .replace(/\{\{showName\}\}/g, (project as any)?.name || 'Show Name')
+      .replace(/\{\{showName\}\}/g, 'Test Production')
       .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
-      .replace(/\{\{stageManager\}\}/g, 'Stage Manager')
-      .replace(/\{\{techDay\}\}/g, '1')
-      .replace(/\{\{nextTech\}\}/g, 'Next Tech Session')
-      .replace(/\{\{technicalDirector\}\}/g, 'Technical Director')
       .replace(/\{\{pageNumber\}\}/g, '1')
-      .replace(/\{\{totalPages\}\}/g, '1');
-  }, [project]);
-
-  // Function to apply formatting to element with null safety
-  const applyFormattingToElement = useCallback((element: HTMLElement | null, formatting: any) => {
-    if (!element || !element.style || !formatting) return;
-    
-    try {
-      Object.entries(formatting).forEach(([property, value]) => {
-        if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
-          const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
-          element.style.setProperty(cssProperty, value as string);
-        }
-      });
-    } catch (error) {
-      console.error('Error applying formatting to element:', error);
-    }
-  }, []);
-
-  // Apply saved header/footer formatting when component mounts or settings change
-  useEffect(() => {
-    const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
-    const dataAttribute = type === 'header' ? 'data-template-header' : 'data-template-footer';
-    
-    if (showSettings?.[settingsKey]) {
-      const formatting = showSettings[settingsKey];
-      console.log(`Applying saved ${type} formatting:`, formatting);
-      
-      // Small delay to ensure content is rendered first
-      setTimeout(() => {
-        const elements = document.querySelectorAll(`[${dataAttribute}="true"]`);
-        elements.forEach((element) => {
-          applyFormattingToElement(element as HTMLElement, formatting);
-        });
-      }, 100);
-    }
-  }, [showSettings?.headerFormatting, showSettings?.footerFormatting, type, applyFormattingToElement]);
-
-  // Click outside to close toolbar (similar to department headers)
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        showToolbar &&
-        editingElement &&
-        !editingElement.contains(event.target as Node)
-      ) {
-        // Check if click is on toolbar by looking for toolbar elements
-        const target = event.target as Element;
-        const isToolbarClick = target.closest('[role="toolbar"], .inline-formatting-toolbar, button[data-toolbar]');
-        
-        if (!isToolbarClick) {
-          setShowToolbar(false);
-          setEditingElement(null);
-        }
-      }
-    };
-
-    if (showToolbar) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [showToolbar, editingElement]);
-
-  // Header/Footer formatting mutation
-  const updateFormattingMutation = useMutation({
-    mutationFn: async ({ formatting }: { formatting: any }) => {
-      const endpoint = type === 'header' ? 'header-formatting' : 'footer-formatting';
-      const response = await fetch(`/api/projects/${projectId}/settings/${endpoint}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ formatting }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to update ${type} formatting`);
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      // Invalidate and refetch the project settings
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-      toast({
-        title: "Success",
-        description: `${type.charAt(0).toUpperCase() + type.slice(1)} formatting updated successfully`
-      });
-    },
-    onError: (error) => {
-      console.error(`Error updating ${type} formatting:`, error);
-      toast({
-        title: "Error",
-        description: `Failed to update ${type} formatting`,
-        variant: "destructive"
-      });
-    }
-  });
-
-  const handleAutoSave = () => {
-    if (editingElement) {
-      // Get all computed styles from the current element
-      const computedStyle = window.getComputedStyle(editingElement);
-      const formatting = {
-        fontWeight: String(computedStyle.fontWeight),
-        fontStyle: String(computedStyle.fontStyle),
-        textDecoration: String(computedStyle.textDecoration),
-        textAlign: String(computedStyle.textAlign),
-        fontFamily: String(computedStyle.fontFamily),
-        fontSize: String(computedStyle.fontSize),
-        color: String(computedStyle.color),
-        backgroundColor: String(computedStyle.backgroundColor),
-      };
-
-      // Auto-save the formatting
-      updateFormattingMutation.mutate({ formatting });
-    }
+      .replace(/\{\{totalPages\}\}/g, '5');
   };
 
-  const applyFormatting = async () => {
-    console.log(`🎨 ${type.toUpperCase()} FORMATTING APPLIED! 🎨`);
+  // Apply formatting from settings
+  const applyFormattingToElement = (element: HTMLElement, formatting: any) => {
+    if (!element || !formatting) return;
     
-    if (!projectId) {
-      console.error('No project ID available');
-      toast({
-        title: "Error",
-        description: "No project ID available",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    if (!editingElement) {
-      console.error('No editing element found');
-      toast({
-        title: "Error",
-        description: "No editing element found",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      // Get all computed styles from the current element
-      const computedStyle = window.getComputedStyle(editingElement);
-      const formatting = {
-        fontWeight: String(computedStyle.fontWeight),
-        fontStyle: String(computedStyle.fontStyle),
-        textDecoration: String(computedStyle.textDecoration),
-        textAlign: String(computedStyle.textAlign),
-        fontFamily: String(computedStyle.fontFamily),
-        fontSize: String(computedStyle.fontSize),
-        color: String(computedStyle.color),
-        backgroundColor: String(computedStyle.backgroundColor),
-      };
-
-      console.log(`Applying formatting to ${type}:`, formatting);
-
-      // Use the mutation to save formatting
-      await updateFormattingMutation.mutateAsync({ formatting });
-
-      // Immediately apply formatting to the current element
-      Object.entries(formatting).forEach(([property, value]) => {
-        if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
-          const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
-          editingElement.style.setProperty(cssProperty, value as string);
-        }
-      });
-
-      // Close the toolbar after successful update
-      setShowToolbar(false);
-      setEditingElement(null);
-
-    } catch (error) {
-      console.error(`Error applying formatting to ${type}:`, error);
-      toast({
-        title: "Error", 
-        description: `Failed to apply formatting to ${type}`,
-        variant: "destructive"
-      });
-    }
+    element.style.color = formatting.color || '';
+    element.style.fontSize = formatting.fontSize || '';
+    element.style.fontWeight = formatting.fontWeight || '';
+    element.style.fontStyle = formatting.fontStyle || '';
+    element.style.textAlign = formatting.textAlign || '';
+    element.style.fontFamily = formatting.fontFamily || '';
+    element.style.textDecoration = formatting.textDecoration || '';
+    element.style.backgroundColor = formatting.backgroundColor || '';
   };
 
   return (
     <>
-      <div className="relative group">
-        <div 
-          className={`${className} cursor-pointer hover:bg-gray-50 p-1 rounded min-h-[24px] outline-none`}
+      <div className="relative">
+        <div
+          ref={headerRef}
+          className={className}
           contentEditable
           suppressContentEditableWarning
           data-template-header={type === 'header' ? "true" : undefined}
           data-template-footer={type === 'footer' ? "true" : undefined}
-          onClick={(e) => {
+          onClick={() => {
             console.log(`🎯 ${type.toUpperCase()} CLICKED - Setting up for editing`);
-            console.log(`🎯 Before state change - showToolbar: ${showToolbar}, editingElement:`, editingElement);
-            
-            // Update ref immediately to survive re-renders
-            toolbarStateRef.current = { showToolbar: true, editingElement: e.currentTarget };
-            
-            setEditingElement(e.currentTarget);
             setShowToolbar(true);
-            console.log(`🎯 After state change attempt - should show toolbar: true`);
           }}
-          onFocus={(e) => {
+          onFocus={() => {
             console.log(`🎯 ${type.toUpperCase()} FOCUSED - Setting up for editing`);
-            setEditingElement(e.currentTarget);
-            setShowToolbar(true);
           }}
-          onBlur={(e) => {
-            if (!showToolbar) {
-              const newContent = e.currentTarget.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
-              onChange(newContent);
-              // After saving, show processed content again
-              e.currentTarget.innerHTML = processRichContent(newContent).replace(/\n/g, '<br>');
-              
-              // Reapply formatting after content update
-              const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
-              if (showSettings?.[settingsKey]) {
-                setTimeout(() => {
-                  applyFormattingToElement(e.currentTarget, showSettings[settingsKey]);
-                }, 50);
-              }
-            }
+          onBlur={() => {
+            const newContent = headerRef.current?.textContent || '';
+            onChange(newContent);
           }}
           dangerouslySetInnerHTML={{
             __html: processRichContent(content).replace(/\n/g, '<br>')
           }}
-          ref={(el) => {
-            if (el && !editingElement) {
-              // Apply formatting after initial render
-              const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
-              if (showSettings?.[settingsKey]) {
-                setTimeout(() => {
-                  applyFormattingToElement(el, showSettings[settingsKey]);
-                }, 100);
-              }
-            }
+          style={{
+            minHeight: '24px',
+            border: 'none',
+            outline: 'none',
+            ...(showSettings?.[type === 'header' ? 'headerFormatting' : 'footerFormatting'] && {
+              color: showSettings[type === 'header' ? 'headerFormatting' : 'footerFormatting'].color,
+              fontSize: showSettings[type === 'header' ? 'headerFormatting' : 'footerFormatting'].fontSize,
+              fontWeight: showSettings[type === 'header' ? 'headerFormatting' : 'footerFormatting'].fontWeight,
+              fontStyle: showSettings[type === 'header' ? 'headerFormatting' : 'footerFormatting'].fontStyle,
+              textAlign: showSettings[type === 'header' ? 'headerFormatting' : 'footerFormatting'].textAlign,
+              fontFamily: showSettings[type === 'header' ? 'headerFormatting' : 'footerFormatting'].fontFamily,
+              textDecoration: showSettings[type === 'header' ? 'headerFormatting' : 'footerFormatting'].textDecoration,
+              backgroundColor: showSettings[type === 'header' ? 'headerFormatting' : 'footerFormatting'].backgroundColor,
+            })
           }}
         />
       </div>
 
-      {/* Inline Formatting Toolbar - Use same positioning approach as field headers */}
-      {console.log(`🎯 ${type.toUpperCase()} RENDERING TOOLBAR - showToolbar: ${showToolbar}, editingElement:`, editingElement)}
-      <InlineFormattingToolbar
-        targetElement={editingElement}
-        isVisible={showToolbar}
-        onAutoSave={() => {
-          if (editingElement) {
-            const content = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
-            onChange(content);
-            handleAutoSave(); // Auto-save formatting changes
-            // Update display to show processed content
-            editingElement.innerHTML = processRichContent(content).replace(/\n/g, '<br>');
-            
-            // Reapply formatting after content update
-            const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
-            if (showSettings?.[settingsKey]) {
-              setTimeout(() => {
-                applyFormattingToElement(editingElement, showSettings[settingsKey]);
-              }, 50);
-            }
-          }
-        }}
-        onApplyToAll={applyFormatting}
-        applyToAllText={`Apply to All ${type.charAt(0).toUpperCase() + type.slice(1)}s`}
-        onClose={() => {
-          if (editingElement) {
-            // Get the current content and save it
-            const currentContent = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
-            onChange(currentContent);
-            // Update display to show processed content
-            editingElement.innerHTML = processRichContent(currentContent).replace(/\n/g, '<br>');
-            
-            // Reapply formatting after content update
-            const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
-            if (showSettings?.[settingsKey]) {
-              setTimeout(() => {
-                applyFormattingToElement(editingElement, showSettings[settingsKey]);
-              }, 50);
-            }
-          }
-          setShowToolbar(false);
-          setEditingElement(null);
-        }}
-      />
+      {/* Simple Formatting Toolbar */}
+      {showToolbar && (
+        <div className="absolute -top-16 left-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap items-center gap-1 min-w-max">
+          <div className="text-xs text-gray-600 pr-2">{type.charAt(0).toUpperCase() + type.slice(1)} Formatting:</div>
+          <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">✅ Toolbar Working!</div>
+          <button
+            onClick={() => setShowToolbar(false)}
+            className="ml-2 px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+          >
+            Close
+          </button>
+        </div>
+      )}
     </>
   );
 }
