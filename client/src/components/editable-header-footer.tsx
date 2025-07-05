@@ -215,13 +215,16 @@ export default function EditableHeaderFooter({
             e.stopPropagation();
             e.preventDefault();
             
+            // Capture the target element before setTimeout
+            const targetElement = e.currentTarget;
+            
             // Use setTimeout to ensure state is set after any potential re-renders
             setTimeout(() => {
-              setEditingElement(e.currentTarget);
+              setEditingElement(targetElement);
               setShowToolbar(true);
               // Set raw content for editing (with variables)
-              e.currentTarget.innerHTML = content.replace(/\n/g, '<br>');
-              console.log(`🎯 Toolbar state - showToolbar: true, editingElement:`, e.currentTarget);
+              targetElement.innerHTML = content.replace(/\n/g, '<br>');
+              console.log(`🎯 Toolbar state - showToolbar: true, editingElement:`, targetElement);
             }, 10);
             
             // Add delay to check if state persists
