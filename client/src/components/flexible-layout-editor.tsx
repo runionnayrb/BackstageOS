@@ -863,7 +863,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Reset Layout</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to reset to default settings? This will remove all your custom layout changes and restore the original two-department layout (Scenic and Lighting). This action cannot be undone.
+              Are you sure you want to reset to default settings? This will remove all your custom layout changes. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
