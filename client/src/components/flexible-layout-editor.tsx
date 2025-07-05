@@ -32,7 +32,7 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 // Type definitions for layout items
 export interface LayoutItem {
   id: string;
-  type: 'department-header' | 'field-header' | 'notes' | 'empty-space';
+  type: 'department-header' | 'field-header' | 'notes' | 'empty-space' | 'grouped-section';
   content?: any;
   x: number;
   y: number;
@@ -44,6 +44,8 @@ export interface LayoutItem {
   maxH?: number;
   isResizable?: boolean;
   isDraggable?: boolean;
+  groupId?: string; // For items that should move together
+  children?: LayoutItem[]; // For grouped sections
 }
 
 export interface FlexibleLayoutConfiguration {
@@ -131,6 +133,23 @@ const LayoutItemRenderer: React.FC<{
   isEditMode: boolean;
 }> = ({ item, projectId, reportId, reportType, isEditMode }) => {
   switch (item.type) {
+    case 'grouped-section':
+      return (
+        <div className="w-full h-full space-y-1">
+          {item.children?.map((child, index) => (
+            <div key={child.id} className={index === 0 ? "mb-1" : ""}>
+              <LayoutItemRenderer
+                item={child}
+                projectId={projectId}
+                reportId={reportId}
+                reportType={reportType}
+                isEditMode={isEditMode}
+              />
+            </div>
+          ))}
+        </div>
+      );
+
     case 'department-header':
       return (
         <EditableDepartmentHeader
@@ -144,7 +163,7 @@ const LayoutItemRenderer: React.FC<{
     case 'field-header':
       return (
         <EditableFieldHeading
-          content={item.content?.content || 'Field Header'}
+          content={item.content?.label || 'Field Header'}
           onChange={(newContent) => {
             // Handle field header content changes
             console.log('Field header changed:', newContent);
@@ -204,38 +223,56 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   const [isEditMode, setIsEditMode] = useState(isEditing);
   const [layouts, setLayouts] = useState<Layouts>({});
   
-  // Generate layout from template data
+  // Generate layout from template data with grouped sections
   const generateLayoutFromTemplate = useCallback(() => {
     if (!template) {
-      // Fallback to basic layout
+      // Fallback to basic layout with grouped sections
       return [
         {
-          id: 'scenic-header',
-          type: 'department-header' as const,
+          id: 'scenic-section',
+          type: 'grouped-section' as const,
           content: { department: 'scenic', displayName: 'Scenic' },
-          x: 0, y: 0, w: 6, h: 2,
-          minW: 2, minH: 1
+          x: 0, y: 0, w: 6, h: 3,
+          minW: 4, minH: 3,
+          children: [
+            {
+              id: 'scenic-header',
+              type: 'department-header' as const,
+              content: { department: 'scenic', displayName: 'Scenic' },
+              x: 0, y: 0, w: 6, h: 1,
+              minW: 2, minH: 1
+            },
+            {
+              id: 'scenic-notes',
+              type: 'notes' as const,
+              content: { department: 'scenic' },
+              x: 0, y: 1, w: 6, h: 2,
+              minW: 3, minH: 2
+            }
+          ]
         },
         {
-          id: 'lighting-header', 
-          type: 'department-header' as const,
+          id: 'lighting-section',
+          type: 'grouped-section' as const,
           content: { department: 'lighting', displayName: 'Lighting' },
-          x: 6, y: 0, w: 6, h: 2,
-          minW: 2, minH: 1
-        },
-        {
-          id: 'scenic-notes',
-          type: 'notes' as const,
-          content: { department: 'scenic' },
-          x: 0, y: 2, w: 6, h: 4,
-          minW: 3, minH: 2
-        },
-        {
-          id: 'lighting-notes',
-          type: 'notes' as const, 
-          content: { department: 'lighting' },
-          x: 6, y: 2, w: 6, h: 4,
-          minW: 3, minH: 2
+          x: 6, y: 0, w: 6, h: 3,
+          minW: 4, minH: 3,
+          children: [
+            {
+              id: 'lighting-header',
+              type: 'department-header' as const,
+              content: { department: 'lighting', displayName: 'Lighting' },
+              x: 0, y: 0, w: 6, h: 1,
+              minW: 2, minH: 1
+            },
+            {
+              id: 'lighting-notes',
+              type: 'notes' as const,
+              content: { department: 'lighting' },
+              x: 0, y: 1, w: 6, h: 2,
+              minW: 3, minH: 2
+            }
+          ]
         }
       ];
     }
@@ -243,55 +280,69 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     const items: LayoutItem[] = [];
     let currentY = 0;
     
-    // Add all template fields as draggable field headers with notes
+    // Add all template fields as grouped sections
     const templateFields = template.fields
       .filter((field: any) => !field.id.includes('Notes') || field.id === 'notes')
       .sort((a: any, b: any) => a.order - b.order);
     
     templateFields.forEach((field: any, index: number) => {
-      // Field header
+      // Create grouped section containing field header and notes
       items.push({
-        id: `field-header-${field.id}`,
-        type: 'field-header' as const,
+        id: `field-section-${field.id}`,
+        type: 'grouped-section' as const,
         content: { fieldId: field.id, label: field.label },
-        x: 0, y: currentY, w: 12, h: 1,
-        minW: 3, minH: 1
+        x: 0, y: currentY, w: 12, h: 3,
+        minW: 6, minH: 3,
+        children: [
+          {
+            id: `field-header-${field.id}`,
+            type: 'field-header' as const,
+            content: { fieldId: field.id, label: field.label },
+            x: 0, y: 0, w: 12, h: 1,
+            minW: 3, minH: 1
+          },
+          {
+            id: `field-notes-${field.id}`,
+            type: 'notes' as const,
+            content: { fieldId: field.id, placeholder: field.placeholder || "Sample content..." },
+            x: 0, y: 1, w: 12, h: 2,
+            minW: 3, minH: 1
+          }
+        ]
       });
       
-      // Field notes area
-      items.push({
-        id: `field-notes-${field.id}`,
-        type: 'notes' as const,
-        content: { fieldId: field.id, placeholder: field.placeholder || "Sample content..." },
-        x: 0, y: currentY + 1, w: 12, h: 2,
-        minW: 3, minH: 1
-      });
-      
-      currentY += 3;
+      currentY += 4;
     });
     
-    // Add department headers and notes (typically for tech templates)
+    // Add department sections (typically for tech templates)
     const departments = ['scenic', 'lighting', 'audio', 'video', 'props'];
     departments.forEach((dept, index) => {
       const xPos = (index % 2) * 6; // Alternate between left (0) and right (6)
-      const yPos = currentY + Math.floor(index / 2) * 3;
+      const yPos = currentY + Math.floor(index / 2) * 4;
       
-      // Department header
+      // Create grouped section containing department header and notes
       items.push({
-        id: `dept-header-${dept}`,
-        type: 'department-header' as const,
+        id: `dept-section-${dept}`,
+        type: 'grouped-section' as const,
         content: { department: dept, displayName: dept.charAt(0).toUpperCase() + dept.slice(1) },
-        x: xPos, y: yPos, w: 6, h: 1,
-        minW: 2, minH: 1
-      });
-      
-      // Department notes
-      items.push({
-        id: `dept-notes-${dept}`,
-        type: 'notes' as const,
-        content: { department: dept },
-        x: xPos, y: yPos + 1, w: 6, h: 2,
-        minW: 3, minH: 1
+        x: xPos, y: yPos, w: 6, h: 3,
+        minW: 4, minH: 3,
+        children: [
+          {
+            id: `dept-header-${dept}`,
+            type: 'department-header' as const,
+            content: { department: dept, displayName: dept.charAt(0).toUpperCase() + dept.slice(1) },
+            x: 0, y: 0, w: 6, h: 1,
+            minW: 2, minH: 1
+          },
+          {
+            id: `dept-notes-${dept}`,
+            type: 'notes' as const,
+            content: { department: dept },
+            x: 0, y: 1, w: 6, h: 2,
+            minW: 3, minH: 1
+          }
+        ]
       });
     });
     
@@ -396,7 +447,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     }
   });
 
-  // Handle layout changes from react-grid-layout
+  // Handle layout changes from react-grid-layout (simplified for grouped sections)
   const handleLayoutChange = (layout: Layout[], allLayouts: Layouts) => {
     if (!isEditMode) return;
 
@@ -423,28 +474,68 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     onConfigurationChange?.(newConfig);
   };
 
-  // Add new item to layout
+  // Add new item to layout (creates grouped sections)
   const addNewItem = (type: LayoutItem['type']) => {
-    const newItem: LayoutItem = {
-      id: `${type}-${Date.now()}`,
-      type,
-      content: type === 'department-header' ? { department: 'audio', displayName: 'Audio' } :
-               type === 'notes' ? { department: 'audio' } : {},
-      x: 0,
-      y: Math.max(...configuration.items.map(i => i.y + i.h), 0),
-      w: type === 'empty-space' ? 2 : 6,
-      h: type === 'department-header' ? 2 : type === 'notes' ? 4 : 2,
-      minW: type === 'empty-space' ? 1 : 2,
-      minH: 1
-    };
+    if (type === 'department-header') {
+      // Create a new department section with header and notes
+      const deptName = 'new-dept';
+      const newItem: LayoutItem = {
+        id: `dept-section-${deptName}-${Date.now()}`,
+        type: 'grouped-section',
+        content: { department: deptName, displayName: 'New Department' },
+        x: 0,
+        y: Math.max(...configuration.items.map(i => i.y + i.h), 0),
+        w: 6,
+        h: 3,
+        minW: 4,
+        minH: 3,
+        children: [
+          {
+            id: `dept-header-${deptName}-${Date.now()}`,
+            type: 'department-header' as const,
+            content: { department: deptName, displayName: 'New Department' },
+            x: 0, y: 0, w: 6, h: 1,
+            minW: 2, minH: 1
+          },
+          {
+            id: `dept-notes-${deptName}-${Date.now()}`,
+            type: 'notes' as const,
+            content: { department: deptName },
+            x: 0, y: 1, w: 6, h: 2,
+            minW: 3, minH: 1
+          }
+        ]
+      };
+      
+      const newConfig = {
+        ...configuration,
+        items: [...configuration.items, newItem]
+      };
 
-    const newConfig = {
-      ...configuration,
-      items: [...configuration.items, newItem]
-    };
+      setConfiguration(newConfig);
+      onConfigurationChange?.(newConfig);
+    } else if (type === 'empty-space') {
+      // Create a simple empty space item
+      const newItem: LayoutItem = {
+        id: `empty-space-${Date.now()}`,
+        type: 'empty-space',
+        content: {},
+        x: 0,
+        y: Math.max(...configuration.items.map(i => i.y + i.h), 0),
+        w: 2,
+        h: 2,
+        minW: 1,
+        minH: 1
+      };
 
-    setConfiguration(newConfig);
-    onConfigurationChange?.(newConfig);
+      const newConfig = {
+        ...configuration,
+        items: [...configuration.items, newItem]
+      };
+
+      setConfiguration(newConfig);
+      onConfigurationChange?.(newConfig);
+    }
   };
 
   // Remove item from layout
@@ -458,37 +549,55 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     onConfigurationChange?.(newConfig);
   };
 
-  // Reset to default layout
+  // Reset to default layout with grouped sections
   const resetLayout = () => {
     const defaultConfig: FlexibleLayoutConfiguration = {
       items: [
         {
-          id: 'scenic-header',
-          type: 'department-header',
+          id: 'scenic-section',
+          type: 'grouped-section',
           content: { department: 'scenic', displayName: 'Scenic' },
-          x: 0, y: 0, w: 6, h: 2,
-          minW: 2, minH: 1
+          x: 0, y: 0, w: 6, h: 3,
+          minW: 4, minH: 3,
+          children: [
+            {
+              id: 'scenic-header',
+              type: 'department-header',
+              content: { department: 'scenic', displayName: 'Scenic' },
+              x: 0, y: 0, w: 6, h: 1,
+              minW: 2, minH: 1
+            },
+            {
+              id: 'scenic-notes',
+              type: 'notes',
+              content: { department: 'scenic' },
+              x: 0, y: 1, w: 6, h: 2,
+              minW: 3, minH: 2
+            }
+          ]
         },
         {
-          id: 'lighting-header',
-          type: 'department-header', 
+          id: 'lighting-section',
+          type: 'grouped-section',
           content: { department: 'lighting', displayName: 'Lighting' },
-          x: 6, y: 0, w: 6, h: 2,
-          minW: 2, minH: 1
-        },
-        {
-          id: 'scenic-notes',
-          type: 'notes',
-          content: { department: 'scenic' },
-          x: 0, y: 2, w: 6, h: 4,
-          minW: 3, minH: 2
-        },
-        {
-          id: 'lighting-notes',
-          type: 'notes',
-          content: { department: 'lighting' },
-          x: 6, y: 2, w: 6, h: 4,
-          minW: 3, minH: 2
+          x: 6, y: 0, w: 6, h: 3,
+          minW: 4, minH: 3,
+          children: [
+            {
+              id: 'lighting-header',
+              type: 'department-header', 
+              content: { department: 'lighting', displayName: 'Lighting' },
+              x: 0, y: 0, w: 6, h: 1,
+              minW: 2, minH: 1
+            },
+            {
+              id: 'lighting-notes',
+              type: 'notes',
+              content: { department: 'lighting' },
+              x: 0, y: 1, w: 6, h: 2,
+              minW: 3, minH: 2
+            }
+          ]
         }
       ],
       gridCols: 12,
