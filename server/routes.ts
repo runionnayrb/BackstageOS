@@ -693,6 +693,25 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Separate multer config for BIMI logos (SVG only)
+  const bimiUpload = multer({
+    dest: uploadsDir,
+    limits: {
+      fileSize: 10 * 1024 * 1024 // 10MB limit for BIMI logos
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = /svg/;
+      const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+      const mimetype = file.mimetype === 'image/svg+xml';
+      
+      if (mimetype && extname) {
+        cb(null, true);
+      } else {
+        cb(new Error('BIMI logo must be an SVG file'));
+      }
+    }
+  });
+
   // Image upload endpoint
   app.post('/api/upload-image', isAuthenticated, requireAdmin, upload.single('image'), async (req: any, res) => {
     try {
@@ -4512,7 +4531,7 @@ Respond with valid JSON only.`;
   });
 
   // BIMI configuration endpoints
-  app.post('/api/seo-settings/:id/bimi/upload-logo', requireAdmin, upload.single('logo'), async (req: any, res) => {
+  app.post('/api/seo-settings/:id/bimi/upload-logo', requireAdmin, bimiUpload.single('logo'), async (req: any, res) => {
     try {
       console.log('🔵 BIMI Upload endpoint hit');
       console.log('📋 Settings ID:', req.params.id);
