@@ -742,8 +742,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                 size="sm"
                 onClick={() => setIsEditMode(!isEditMode)}
               >
-                {isEditMode ? <Lock className="h-4 w-4 mr-2" /> : <Unlock className="h-4 w-4 mr-2" />}
-                {isEditMode ? 'Lock Layout' : 'Edit Layout'}
+                {isEditMode ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
               </Button>
               
               {isEditMode && (
