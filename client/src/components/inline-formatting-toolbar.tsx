@@ -49,6 +49,7 @@ export default function InlineFormattingToolbar({
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    console.log(`🔧 Toolbar visibility changed - isVisible: ${isVisible}, targetElement:`, targetElement);
     if (isVisible && targetElement) {
       // Wait for toolbar to be rendered before calculating position
       const calculatePosition = () => {
@@ -68,6 +69,7 @@ export default function InlineFormattingToolbar({
           const maxLeft = window.innerWidth - toolbarRect.width - 8;
           const finalLeft = Math.min(left, maxLeft);
           
+          console.log(`🔧 Toolbar position calculated - top: ${top}, left: ${finalLeft}`);
           setPosition({ top, left: finalLeft });
         } else {
           // If toolbar not yet rendered, set default position based on target element
@@ -255,7 +257,12 @@ export default function InlineFormattingToolbar({
   return (
     <div
       ref={toolbarRef}
-      className="absolute -top-16 left-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap items-center gap-1 min-w-max"
+      className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap items-center gap-1 min-w-max"
+      style={{ 
+        top: `${position.top}px`, 
+        left: `${position.left}px`,
+        maxWidth: 'calc(100vw - 16px)'
+      }}
     >
       {/* Text Style Controls */}
       <Button

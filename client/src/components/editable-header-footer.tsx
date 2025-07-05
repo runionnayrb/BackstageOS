@@ -209,10 +209,12 @@ export default function EditableHeaderFooter({
           data-template-header={type === 'header' ? "true" : undefined}
           data-template-footer={type === 'footer' ? "true" : undefined}
           onClick={(e) => {
+            console.log(`🎯 ${type.toUpperCase()} CLICKED - Setting up toolbar`);
             setEditingElement(e.currentTarget);
             setShowToolbar(true);
             // Set raw content for editing (with variables)
             e.currentTarget.innerHTML = content.replace(/\n/g, '<br>');
+            console.log(`🎯 Toolbar state - showToolbar: true, editingElement:`, e.currentTarget);
           }}
           onBlur={(e) => {
             if (!showToolbar) {
