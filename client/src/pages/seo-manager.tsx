@@ -174,23 +174,36 @@ function SeoManagerContent() {
 
   // BIMI management functions
   const handleBimiUpload = (settingsId: number) => {
+    console.log('🔵 BIMI Upload starting for settings ID:', settingsId);
+    
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.svg';
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
+      if (!file) {
+        console.log('❌ No file selected');
+        return;
+      }
+
+      console.log('📁 File selected:', file.name, file.type, file.size);
 
       const formData = new FormData();
       formData.append('logo', file);
 
       try {
+        console.log('🚀 Sending upload request to:', `/api/seo-settings/${settingsId}/bimi/upload-logo`);
+        
         const res = await fetch(`/api/seo-settings/${settingsId}/bimi/upload-logo`, {
           method: 'POST',
           body: formData,
         });
         
+        console.log('📡 Response status:', res.status);
+        console.log('📡 Response headers:', Object.fromEntries(res.headers.entries()));
+        
         const result = await res.json();
+        console.log('📊 Response data:', result);
         
         if (res.ok) {
           queryClient.invalidateQueries({ queryKey: ['/api/seo-settings'] });
@@ -199,6 +212,7 @@ function SeoManagerContent() {
           throw new Error(result.message);
         }
       } catch (error: any) {
+        console.error('❌ Upload error:', error);
         toast({ 
           title: "Error", 
           description: error.message || "Failed to upload BIMI logo",

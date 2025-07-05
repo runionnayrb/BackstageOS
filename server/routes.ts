@@ -4514,9 +4514,15 @@ Respond with valid JSON only.`;
   // BIMI configuration endpoints
   app.post('/api/seo-settings/:id/bimi/upload-logo', requireAdmin, upload.single('logo'), async (req: any, res) => {
     try {
+      console.log('🔵 BIMI Upload endpoint hit');
+      console.log('📋 Settings ID:', req.params.id);
+      console.log('📁 File received:', req.file ? req.file.filename : 'No file');
+      console.log('👤 User ID:', req.user?.id);
+      
       const settingsId = parseInt(req.params.id);
       
       if (!req.file) {
+        console.log('❌ No file provided');
         return res.status(400).json({ message: "No logo file provided" });
       }
 
