@@ -23,7 +23,6 @@ export default function EditableHeaderFooter({
   const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
   const { toast } = useToast();
-  const toolbarRef = useRef<HTMLDivElement>(null);
 
   // Query to fetch show settings including header/footer formatting
   const { data: showSettings } = useQuery<any>({
@@ -86,13 +85,17 @@ export default function EditableHeaderFooter({
     const handleClickOutside = (event: MouseEvent) => {
       if (
         showToolbar &&
-        toolbarRef.current &&
-        !toolbarRef.current.contains(event.target as Node) &&
         editingElement &&
         !editingElement.contains(event.target as Node)
       ) {
-        setShowToolbar(false);
-        setEditingElement(null);
+        // Check if click is on toolbar by looking for toolbar elements
+        const target = event.target as Element;
+        const isToolbarClick = target.closest('[role="toolbar"], .inline-formatting-toolbar, button[data-toolbar]');
+        
+        if (!isToolbarClick) {
+          setShowToolbar(false);
+          setEditingElement(null);
+        }
       }
     };
 
@@ -233,14 +236,21 @@ export default function EditableHeaderFooter({
           suppressContentEditableWarning
           data-template-header={type === 'header' ? "true" : undefined}
           data-template-footer={type === 'footer' ? "true" : undefined}
-          onClick={(e) => {
-            console.log(`🎯 ${type.toUpperCase()} CLICKED - Setting up toolbar`);
-            // Immediate state setting without setTimeout to avoid re-render conflicts
+          onFocus={(e) => {
+            console.log(`🎯 ${type.toUpperCase()} FOCUSED - Setting up for editing`);
             setEditingElement(e.currentTarget);
-            setShowToolbar(true);
             // Set raw content for editing (with variables)
             e.currentTarget.innerHTML = content.replace(/\n/g, '<br>');
-            console.log(`🎯 Toolbar state - showToolbar: true, editingElement:`, e.currentTarget);
+          }}
+          onMouseUp={(e) => {
+            // Only show toolbar when user has actually selected text
+            setTimeout(() => {
+              const selection = window.getSelection();
+              if (selection && selection.toString().length > 0) {
+                console.log(`🎯 ${type.toUpperCase()} TEXT SELECTED - Setting up toolbar`);
+                setShowToolbar(true);
+              }
+            }, 10);
           }}
           onBlur={(e) => {
             if (!showToolbar) {
@@ -277,7 +287,6 @@ export default function EditableHeaderFooter({
 
       {/* Inline Formatting Toolbar - Use same positioning approach as field headers */}
       <InlineFormattingToolbar
-        ref={toolbarRef}
         targetElement={editingElement}
         isVisible={showToolbar}
         onAutoSave={() => {
