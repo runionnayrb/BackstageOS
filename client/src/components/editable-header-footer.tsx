@@ -1,5 +1,8 @@
 import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Bold, Italic, Underline, Type, Palette } from 'lucide-react';
 
 interface EditableHeaderFooterProps {
   content: string;
@@ -91,83 +94,67 @@ export default function EditableHeaderFooter({
         />
       </div>
 
-      {/* Formatting Toolbar with actual formatting controls */}
-      {showToolbar && (
-        <div className="absolute top-full left-0 mt-2 z-[9999] bg-white border border-gray-200 rounded-lg shadow-lg p-3 flex flex-wrap items-center gap-2 min-w-[500px]">
-          {/* Bold Button */}
-          <button
-            onClick={() => {
-              document.execCommand('bold');
-              console.log(`🎯 ${type.toUpperCase()} BOLD APPLIED`);
+      {/* Formatting Toolbar using Popover like department headers */}
+      <Popover open={showToolbar} onOpenChange={setShowToolbar}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="absolute -top-8 right-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowToolbar(true);
             }}
-            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 border rounded font-bold"
           >
-            B
-          </button>
-          
-          {/* Italic Button */}
-          <button
-            onClick={() => {
-              document.execCommand('italic');
-              console.log(`🎯 ${type.toUpperCase()} ITALIC APPLIED`);
-            }}
-            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 border rounded italic"
-          >
-            I
-          </button>
-          
-          {/* Underline Button */}
-          <button
-            onClick={() => {
-              document.execCommand('underline');
-              console.log(`🎯 ${type.toUpperCase()} UNDERLINE APPLIED`);
-            }}
-            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 border rounded underline"
-          >
-            U
-          </button>
-          
-          <div className="h-4 w-px bg-gray-300 mx-2"></div>
-          
-          {/* Font Size */}
-          <select 
-            onChange={(e) => {
-              document.execCommand('fontSize', false, e.target.value);
-              console.log(`🎯 ${type.toUpperCase()} FONT SIZE ${e.target.value} APPLIED`);
-            }}
-            className="px-2 py-1 text-sm border rounded"
-          >
-            <option value="1">Small</option>
-            <option value="3" selected>Normal</option>
-            <option value="5">Large</option>
-            <option value="7">X-Large</option>
-          </select>
-          
-          {/* Text Color */}
-          <input
-            type="color"
-            onChange={(e) => {
-              document.execCommand('foreColor', false, e.target.value);
-              console.log(`🎯 ${type.toUpperCase()} COLOR ${e.target.value} APPLIED`);
-            }}
-            className="w-8 h-8 border rounded cursor-pointer"
-            title="Text Color"
-          />
-          
-          <div className="h-4 w-px bg-gray-300 mx-2"></div>
-          
-          {/* Close Button */}
-          <button
-            onClick={() => {
-              console.log(`🎯 ${type.toUpperCase()} TOOLBAR CLOSED`);
-              setShowToolbar(false);
-            }}
-            className="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600"
-          >
-            Done
-          </button>
-        </div>
-      )}
+            <Type className="h-3 w-3" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 p-3" align="start">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => document.execCommand('bold')}
+                className="px-2"
+              >
+                <Bold className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => document.execCommand('italic')}
+                className="px-2"
+              >
+                <Italic className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => document.execCommand('underline')}
+                className="px-2"
+              >
+                <Underline className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                onChange={(e) => document.execCommand('foreColor', false, e.target.value)}
+                className="w-8 h-8 border rounded cursor-pointer"
+                title="Text Color"
+              />
+              <Button
+                onClick={() => setShowToolbar(false)}
+                variant="outline"
+                size="sm"
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
       
       {/* Debug info */}
       <div className="text-xs text-gray-500 mt-1">
