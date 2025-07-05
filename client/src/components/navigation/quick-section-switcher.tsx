@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, FileText, Calendar, BookOpen, Package, Users } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
@@ -8,7 +8,6 @@ interface Section {
   id: string;
   title: string;
   href: string;
-  icon: any;
 }
 
 interface QuickSectionSwitcherProps {
@@ -28,61 +27,52 @@ export default function QuickSectionSwitcher({
     {
       id: "reports",
       title: "Reports",
-      href: `/shows/${currentShowId}/reports`,
-      icon: FileText
+      href: `/shows/${currentShowId}/reports`
     },
     {
       id: "calendar",
       title: "Calendar", 
-      href: `/shows/${currentShowId}/calendar`,
-      icon: Calendar
+      href: `/shows/${currentShowId}/calendar`
     },
     {
       id: "script",
       title: "Script",
-      href: `/shows/${currentShowId}/script`,
-      icon: BookOpen
+      href: `/shows/${currentShowId}/script`
     },
     {
       id: "props",
       title: "Props",
-      href: `/shows/${currentShowId}/props`,
-      icon: Package
+      href: `/shows/${currentShowId}/props`
     },
     {
       id: "contacts",
       title: "Contacts",
-      href: `/shows/${currentShowId}/contacts`,
-      icon: Users
+      href: `/shows/${currentShowId}/contacts`
     }
   ];
 
   const currentSectionData = sections.find(s => s.id === currentSection);
-  const CurrentIcon = currentSectionData?.icon || FileText;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="flex items-center gap-2 text-gray-700 hover:text-gray-900">
-          <CurrentIcon className="h-4 w-4" />
           <span className="font-medium">{currentSectionData?.title || "Navigate"}</span>
           <ChevronDown className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-48">
         {sections.map((section) => {
-          const Icon = section.icon;
           const isActive = section.id === currentSection;
           
           return (
             <DropdownMenuItem 
               key={section.id}
               onClick={() => setLocation(section.href)}
-              className={`flex items-center gap-2 cursor-pointer ${
+              className={`cursor-pointer ${
                 isActive ? 'bg-blue-50 text-blue-700' : ''
               }`}
             >
-              <Icon className="h-4 w-4" />
               <span>{section.title}</span>
             </DropdownMenuItem>
           );
