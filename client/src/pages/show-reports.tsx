@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Plus, FileText } from "lucide-react";
+import ContextAwareBackButton from "@/components/navigation/context-aware-back-button";
 
 interface ShowReportsParams {
   id: string;
@@ -68,15 +69,9 @@ export default function ShowReports() {
     <div className="w-full">
       <div className="px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}/reports`)}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Reports
-          </Button>
+          <ContextAwareBackButton 
+            showName={project?.name}
+          />
           
           <Button onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/new`)}>
             <Plus className="h-4 w-4 mr-2" />

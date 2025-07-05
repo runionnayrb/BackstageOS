@@ -1,4 +1,4 @@
-import Header from "./header";
+import EnhancedHeader from "../navigation/enhanced-header";
 import VersionFooter from "../version-footer";
 
 interface LayoutProps {
@@ -8,7 +8,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen bg-white flex flex-col">
-      <Header />
+      <EnhancedHeader />
       <main className="flex-1">
         {children}
       </main>

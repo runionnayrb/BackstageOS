@@ -73,6 +73,7 @@ export default function EnhancedHeader() {
   const { data: showData } = useQuery({
     queryKey: [`/api/projects/${navContext.showId}`],
     enabled: !!navContext.showId,
+    select: (data: any) => data || {},
   });
 
   // Generate breadcrumbs based on current location
@@ -86,7 +87,7 @@ export default function EnhancedHeader() {
         href: '/'
       });
       
-      if (showData) {
+      if (showData?.name) {
         breadcrumbs.push({
           label: showData.name,
           href: `/shows/${pathParts[2]}`
@@ -248,7 +249,7 @@ export default function EnhancedHeader() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64">
                   <div className="px-3 py-2 text-sm text-gray-500">
-                    {user.profileType?.charAt(0).toUpperCase() + user.profileType?.slice(1)} • {user.betaAccess?.charAt(0).toUpperCase() + user.betaAccess?.slice(1)} Access
+                    {user.profileType ? user.profileType.charAt(0).toUpperCase() + user.profileType.slice(1) : 'Unknown'} • {user.betaAccess ? user.betaAccess.charAt(0).toUpperCase() + user.betaAccess.slice(1) : 'None'} Access
                   </div>
                   
                   <DropdownMenuSeparator />
