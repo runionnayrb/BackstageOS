@@ -1,4 +1,4 @@
-import { ChevronRight, Home } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 
@@ -16,15 +16,9 @@ interface BreadcrumbNavigationProps {
 export default function BreadcrumbNavigation({ items, className = "" }: BreadcrumbNavigationProps) {
   return (
     <nav className={`flex items-center space-x-1 text-sm text-gray-600 ${className}`} aria-label="Breadcrumb">
-      <Link href="/">
-        <Button variant="ghost" size="sm" className="h-6 px-2 text-gray-600 hover:text-gray-900">
-          <Home className="h-3 w-3" />
-        </Button>
-      </Link>
-      
       {items.map((item, index) => (
         <div key={index} className="flex items-center space-x-1">
-          <ChevronRight className="h-3 w-3 text-gray-400" />
+          {index > 0 && <ChevronRight className="h-3 w-3 text-gray-400" />}
           {item.href && !item.isCurrentPage ? (
             <Link href={item.href}>
               <Button variant="ghost" size="sm" className="h-6 px-2 text-gray-600 hover:text-gray-900">
