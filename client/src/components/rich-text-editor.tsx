@@ -149,7 +149,7 @@ export function RichTextEditor({
       const paragraph = document.createElement('p');
       paragraph.style.margin = '0';
       paragraph.style.fontWeight = 'normal';
-      paragraph.style.fontSize = '12px';
+      paragraph.style.fontSize = '14px';
       
       // If we're in a block element, replace it
       if (blockElement && blockElement.nodeType === Node.ELEMENT_NODE) {
