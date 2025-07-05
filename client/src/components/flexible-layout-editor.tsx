@@ -24,6 +24,7 @@ import {
 import EditableDepartmentHeader from './editable-department-header';
 import EditableFieldHeading from './editable-field-heading';
 import ReportNotesManager from './report-notes-manager';
+import EditableHeaderFooter from './editable-header-footer';
 import { cn } from '@/lib/utils';
 
 // Make ResponsiveGridLayout responsive to container width changes
@@ -32,7 +33,7 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 // Type definitions for layout items
 export interface LayoutItem {
   id: string;
-  type: 'department-header' | 'field-header' | 'notes' | 'empty-space' | 'grouped-section';
+  type: 'department-header' | 'field-header' | 'notes' | 'empty-space' | 'grouped-section' | 'footer';
   content?: any;
   x: number;
   y: number;
@@ -185,6 +186,20 @@ const LayoutItemRenderer: React.FC<{
         </div>
       );
     
+    case 'footer':
+      return (
+        <EditableHeaderFooter
+          content={item.content?.text || 'Click to edit footer'}
+          onChange={(newContent: string) => {
+            // Handle footer content changes
+            console.log('🎯 FOOTER CONTENT CHANGED:', newContent);
+          }}
+          className="text-sm text-gray-600 text-center"
+          projectId={String(projectId)}
+          type="footer"
+        />
+      );
+
     case 'empty-space':
       return (
         <div className={cn(
@@ -340,6 +355,17 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           }
         ]
       });
+    });
+    
+    // Add footer at the bottom (full width)
+    const maxYPosition = Math.max(...items.map(item => item.y + item.h), 0);
+    items.push({
+      id: 'template-footer',
+      type: 'footer' as const,
+      content: { text: template.footer || 'Click to edit footer' },
+      x: 0, y: maxYPosition + 1, w: 12, h: 2,
+      minW: 6, minH: 1,
+      isResizable: true
     });
     
     return items;
