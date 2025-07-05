@@ -91,19 +91,40 @@ export default function EditableHeaderFooter({
         />
       </div>
 
-      {/* Simple Formatting Toolbar */}
+      {/* Simple Formatting Toolbar - Debug version */}
       {showToolbar && (
-        <div className="absolute -top-16 left-0 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap items-center gap-1 min-w-max">
-          <div className="text-xs text-gray-600 pr-2">{type.charAt(0).toUpperCase() + type.slice(1)} Formatting:</div>
-          <div className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">✅ Toolbar Working!</div>
+        <div 
+          className="fixed top-10 left-10 z-[9999] bg-red-500 text-white border-4 border-yellow-400 rounded-lg shadow-2xl p-4 flex flex-wrap items-center gap-2"
+          style={{
+            position: 'fixed',
+            top: '40px',
+            left: '40px',
+            zIndex: 9999,
+            backgroundColor: 'red',
+            color: 'white',
+            padding: '16px',
+            border: '4px solid yellow',
+            borderRadius: '8px'
+          }}
+        >
+          <div className="text-lg font-bold">{type.charAt(0).toUpperCase() + type.slice(1)} Formatting Toolbar</div>
+          <div className="text-lg bg-green-300 text-black px-3 py-2 rounded font-bold">✅ TOOLBAR IS WORKING!</div>
           <button
-            onClick={() => setShowToolbar(false)}
-            className="ml-2 px-2 py-1 text-xs bg-gray-500 text-white rounded hover:bg-gray-600"
+            onClick={() => {
+              console.log(`🎯 ${type.toUpperCase()} TOOLBAR CLOSE CLICKED`);
+              setShowToolbar(false);
+            }}
+            className="ml-2 px-3 py-2 text-lg bg-blue-600 text-white rounded hover:bg-blue-700 font-bold"
           >
-            Close
+            CLOSE
           </button>
         </div>
       )}
+      
+      {/* Debug info */}
+      <div className="text-xs text-gray-500 mt-1">
+        Debug: showToolbar = {showToolbar.toString()}, type = {type}
+      </div>
     </>
   );
 }
