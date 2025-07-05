@@ -91,22 +91,9 @@ export default function EditableHeaderFooter({
         />
       </div>
 
-      {/* Simple Formatting Toolbar - Debug version */}
+      {/* Debug Formatting Toolbar - positioned relative to footer */}
       {showToolbar && (
-        <div 
-          className="fixed top-10 left-10 z-[9999] bg-red-500 text-white border-4 border-yellow-400 rounded-lg shadow-2xl p-4 flex flex-wrap items-center gap-2"
-          style={{
-            position: 'fixed',
-            top: '40px',
-            left: '40px',
-            zIndex: 9999,
-            backgroundColor: 'red',
-            color: 'white',
-            padding: '16px',
-            border: '4px solid yellow',
-            borderRadius: '8px'
-          }}
-        >
+        <div className="absolute top-full left-0 mt-2 z-[9999] bg-red-500 text-white border-4 border-yellow-400 rounded-lg shadow-2xl p-4 flex flex-wrap items-center gap-2 min-w-[400px]">
           <div className="text-lg font-bold">{type.charAt(0).toUpperCase() + type.slice(1)} Formatting Toolbar</div>
           <div className="text-lg bg-green-300 text-black px-3 py-2 rounded font-bold">✅ TOOLBAR IS WORKING!</div>
           <button
