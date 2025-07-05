@@ -846,15 +846,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           )}
         </div>
 
-        {/* Layout Info */}
-        {isEditMode && (
-          <div className="text-xs text-gray-500 p-2 bg-gray-50 rounded">
-            <div className="flex justify-between">
-              <span>Grid: {configuration.gridCols} columns × {configuration.gridRows} rows</span>
-              <span>Gap: {configuration.gridGap}px</span>
-            </div>
-          </div>
-        )}
+
       </div>
 
       {/* Reset Confirmation Dialog */}
