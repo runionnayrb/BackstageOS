@@ -745,7 +745,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           <div className="flex items-center justify-between p-4 bg-gray-50 border rounded-lg">
             <div className="flex items-center gap-2">
               <Button
-                variant={isEditMode ? "default" : "outline"}
+                variant="ghost"
                 size="sm"
                 onClick={() => setIsEditMode(!isEditMode)}
               >
@@ -755,7 +755,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
               {isEditMode && (
                 <>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => addNewItem('department-header')}
                   >
@@ -763,7 +763,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                   </Button>
                   
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => addNewItem('empty-space')}
                   >
@@ -777,7 +777,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
               {isEditMode && (
                 <>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={handleResetClick}
                   >
