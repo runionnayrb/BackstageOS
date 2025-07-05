@@ -50,14 +50,23 @@ export default function InlineFormattingToolbar({
 
   useEffect(() => {
     if (isVisible && targetElement && toolbarRef.current) {
-      const rect = targetElement.getBoundingClientRect();
-      const toolbarRect = toolbarRef.current.getBoundingClientRect();
-      
-      // Position above the element
-      setPosition({
-        top: rect.top - toolbarRect.height - 8,
-        left: rect.left + (rect.width - toolbarRect.width) / 2,
-      });
+      // Wait for toolbar to be rendered before calculating position
+      const calculatePosition = () => {
+        const rect = targetElement.getBoundingClientRect();
+        const toolbarRect = toolbarRef.current?.getBoundingClientRect();
+        
+        if (toolbarRect) {
+          // Position above the element with some padding
+          const top = rect.top - toolbarRect.height - 8;
+          const left = Math.max(8, rect.left + (rect.width - toolbarRect.width) / 2);
+          
+          setPosition({ top, left });
+        }
+      };
+
+      // Calculate position immediately and after a short delay for layout
+      calculatePosition();
+      setTimeout(calculatePosition, 10);
 
       // Update active states when toolbar becomes visible
       updateActiveStates();
