@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>BackstageOS Features List</title>
+    <style>
+        @page {
+            margin: 1in;
+            size: A4;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0;
+        }
+        
+        h1 {
+            color: #1a365d;
+            border-bottom: 3px solid #3182ce;
+            padding-bottom: 10px;
+            font-size: 2.5em;
+            margin-top: 0;
+            text-align: center;
+        }
+        
+        .subtitle {
+            text-align: center;
+            font-style: italic;
+            color: #718096;
+            margin-bottom: 2em;
+            font-size: 1.1em;
+        }
+        
+        h2 {
+            color: #2d3748;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+            margin-top: 2em;
+            font-size: 1.8em;
+            page-break-after: avoid;
+        }
+        
+        h3 {
+            color: #4a5568;
+            margin-top: 1.5em;
+            font-size: 1.3em;
+            page-break-after: avoid;
+        }
+        
+        h4 {
+            color: #718096;
+            margin-top: 1.2em;
+            page-break-after: avoid;
+        }
+        
+        p {
+            margin-bottom: 1em;
+        }
+        
+        ul, ol {
+            margin-bottom: 1em;
+            padding-left: 1.5em;
+        }
+        
+        li {
+            margin-bottom: 0.5em;
+        }
+        
+        strong {
+            color: #2d3748;
+            font-weight: 600;
+        }
+        
+        code {
+            background-color: #f7fafc;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #e2e8f0;
+            margin: 2em 0;
+            page-break-after: avoid;
+        }
+        
+        .feature-section {
+            page-break-inside: avoid;
+            margin-bottom: 1.5em;
+        }
+        
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2em;
+            margin: 1em 0;
+        }
+        
+        .architecture-box {
+            border: 1px solid #e2e8f0;
+            padding: 1em;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .page-break {
+                page-break-before: always;
+            }
+            
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            
+            .feature-section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>BackstageOS - Complete Feature List</h1>
+    <div class="subtitle">
+        <strong>Professional Stage Management Software</strong><br>
+        <em>Version 26.5.0 - January 2025</em>
+    </div>
+
+    <hr>
+
+    <h2>Overview</h2>
+    <p>BackstageOS is a comprehensive theater management platform specifically designed for professional stage managers to streamline production workflows. The platform provides show-centric organization with complete data isolation between productions, ensuring no cross-contamination of information.</p>
+
+    <hr>
+
+    <h2>CURRENT FEATURES (Implemented)</h2>
+
+    <div class="feature-section">
+        <h3>Core Platform</h3>
+        <ul>
+            <li><strong>Show-Centric Organization</strong>: Complete data isolation between productions - no cross-contamination</li>
+            <li><strong>Professional Authentication</strong>: Custom email/password system with user profiles (freelance vs full-time)</li>
+            <li><strong>Responsive Design</strong>: Clean, minimal interface optimized for theater professionals</li>
+            <li><strong>Version Tracking</strong>: Complete changelog with release notes accessible from footer</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <h3>Production Management</h3>
+        <ul>
+            <li><strong>Show Overview</strong>: Streamlined show cards with name, venue, date range, and last updated</li>
+            <li><strong>Hierarchical Navigation</strong>: Click-through interface from shows → sections → specific items</li>
+            <li><strong>Team Member Management</strong>: Invite and manage team members with role-based permissions</li>
+            <li><strong>Secure Sharing</strong>: Generate secure shareable links for external collaborators</li>
+            <li><strong>Important Dates</strong>: Track 7 production milestones (Prep, First Rehearsal, Designer Run, First Tech, First Preview, Opening, Closing)</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <h3>Report System</h3>
+        <ul>
+            <li><strong>Four Report Types</strong>: Rehearsal, tech, performance, and meeting reports</li>
+            <li><strong>Custom Templates</strong>: Advanced template builder with drag-drop field reordering</li>
+            <li><strong>Rich Text Editor</strong>: Google Docs-style interface with page numbering controls</li>
+            <li><strong>Template Customization</strong>: Phase-specific templates (prep, rehearsal, tech, previews, performance)</li>
+            <li><strong>Document-Style Interface</strong>: Borderless, clean editing experience</li>
+            <li><strong>Auto-Save</strong>: Automatic saving with visual status indicators</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <h3>Script Editor (Advanced)</h3>
+        <ul>
+            <li><strong>Google Docs-like Interface</strong>: Real-time collaborative editing</li>
+            <li><strong>Theater Script Formatting</strong>: Proper stage play conventions (ACT/SCENE, character names, stage directions)</li>
+            <li><strong>File Import</strong>: Support for .txt, .rtf, .html, .docx, .doc, and .pdf files</li>
+            <li><strong>Version Control</strong>: Complete version history with publish/revert capabilities</li>
+            <li><strong>Page Management</strong>: Smart page system with automatic content flow</li>
+            <li><strong>Professional Layout</strong>: Separate page boxes with proper margins and spacing</li>
+            <li><strong>Headers & Footers</strong>: Rich text editing with variable insertion ({{showName}}, {{date}}, etc.)</li>
+            <li><strong>Page Setup</strong>: Comprehensive margin controls and page numbering options</li>
+            <li><strong>Comments System</strong>: Inline commenting with threaded replies</li>
+            <li><strong>Auto-Format</strong>: Intelligent recognition of play titles, authors, and script elements</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <h3>Production Tools</h3>
+        <ul>
+            <li><strong>Props Tracker</strong>: Scene/character organization with status tracking and sourcing notes</li>
+            <li><strong>Costume Tracker</strong>: Quick-change timing, repair tracking, character-based organization</li>
+            <li><strong>Availability Management</strong>: Visual drag-and-drop scheduling system for contact availability</li>
+            <li><strong>Contact Management</strong>: Complete contact system with team and company organization</li>
+            <li><strong>Contact Sheets</strong>: Professional contact lists with role-based filtering</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <h3>Scheduling System</h3>
+        <ul>
+            <li><strong>Weekly Schedule View</strong>: Drag-and-drop event management</li>
+            <li><strong>Team Availability</strong>: Visual availability tracking with drag-and-drop interface</li>
+            <li><strong>Location Availability</strong>: Venue and space availability management</li>
+            <li><strong>Time Increment Controls</strong>: Flexible time grid options (15, 30, 60 minutes)</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <h3>Admin & Management</h3>
+        <ul>
+            <li><strong>Admin Dashboard</strong>: Complete user management accessible via header dropdown</li>
+            <li><strong>Beta Access Control</strong>: Three-tier system (none, limited, full) with granular feature permissions</li>
+            <li><strong>Feature Rollout</strong>: Controlled deployment of new functionality to beta testers</li>
+            <li><strong>Error Logging System</strong>: Comprehensive error tracking and analysis</li>
+            <li><strong>Auto-Resolution Dashboard</strong>: Intelligent error resolution with pattern detection</li>
+            <li><strong>Advanced Analytics</strong>: Error trends, user satisfaction, and feature stability metrics</li>
+            <li><strong>Feedback System</strong>: Built-in user feedback with categorization and admin management</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <h3>SEO & Domain Management</h3>
+        <ul>
+            <li><strong>SEO Manager</strong>: Comprehensive search engine optimization with 20+ configuration fields</li>
+            <li><strong>Domain Manager</strong>: Complete domain routing and configuration</li>
+            <li><strong>DNS Manager</strong>: Full CRUD operations for DNS records via Cloudflare API</li>
+            <li><strong>Email Alias Management</strong>: Complete email forwarding setup</li>
+            <li><strong>BIMI Configuration</strong>: Email branding with custom logos for supported email clients</li>
+            <li><strong>Page Manager</strong>: Descriptive routing options and page management</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <h3>Email System (Partial)</h3>
+        <ul>
+            <li><strong>Waitlist System</strong>: Complete waitlist with position tracking and auto-conversion</li>
+            <li><strong>Email Templates</strong>: Rich text email templates with variable replacement</li>
+            <li><strong>SendGrid Integration</strong>: Domain authentication and professional email delivery</li>
+            <li><strong>Email Aliases</strong>: Professional BackstageOS email forwarding (sm@backstageos.com)</li>
+        </ul>
+    </div>
+
+    <div class="page-break"></div>
+
+    <h2>PLANNED FEATURES (Documented for Implementation)</h2>
+
+    <div class="feature-section">
+        <h3>Calendar System</h3>
+        <ul>
+            <li>Drag-drop scheduling with daily call sheet generation</li>
+            <li>Rehearsal and performance calendar integration</li>
+            <li>Advanced scheduling features</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <h3>Cast Management</h3>
+        <ul>
+            <li>Character breakdowns with scene appearances and requirements</li>
+            <li>Casting requirements and understudy management</li>
+            <li>Character-based organization</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <h3>Task Management</h3>
+        <ul>
+            <li>List and board views for production tasks</li>
+            <li>Assignment and tracking systems</li>
+            <li>Deadline management</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <h3>Show Documents</h3>
+        <ul>
+            <li>Scene shift plots</li>
+            <li>Line set schedules</li>
+            <li>Stage plots and ground plans</li>
+            <li>Technical documentation</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <h3>Advanced Features</h3>
+        <ul>
+            <li>Mobile optimization for backstage use</li>
+            <li>Offline capabilities for critical features</li>
+            <li>PDF generation for reports and documents</li>
+            <li>Integration APIs for industry-standard theater software</li>
+        </ul>
+    </div>
+
+    <div class="feature-section">
+        <h3>Complete Email System (Planned Implementation)</h3>
+        <p><strong>Timeline: 7-12 weeks for complete system</strong></p>
+        
+        <h4>Phase 1: Database Schema & Core Architecture (2-3 weeks)</h4>
+        <ul>
+            <li>Email messages storage with threading support</li>
+            <li>Email folders/labels management</li>
+            <li>Email attachments handling</li>
+            <li>Email rules/filters system</li>
+            <li>Background job system for email processing</li>
+        </ul>
+
+        <h4>Phase 2: Backend Email Processing (2-3 weeks)</h4>
+        <ul>
+            <li>IMAP integration for syncing existing emails (Gmail, Outlook, Yahoo, custom servers)</li>
+            <li>Enhanced SMTP system beyond current SendGrid integration</li>
+            <li>Two-way email sync (read status, deletions, folder moves)</li>
+            <li>Email queue system for reliable delivery</li>
+            <li>Bounce and delivery tracking</li>
+        </ul>
+
+        <h4>Phase 3: Frontend Email Client (2-3 weeks)</h4>
+        <ul>
+            <li>Complete email interface (Inbox, Sent, Drafts, Folders)</li>
+            <li>Email composer using existing rich text editor</li>
+            <li>Threaded conversation view</li>
+            <li>Advanced search and filtering</li>
+            <li>Contact auto-complete integration with existing contacts system</li>
+        </ul>
+
+        <h4>Phase 4: Theater-Specific Features (2-4 weeks)</h4>
+        <ul>
+            <li>Show-centric email organization and auto-categorization</li>
+            <li>Production email templates (call sheets, rehearsal notes)</li>
+            <li>Bulk email to cast/crew by role or category</li>
+            <li>Email rules engine for auto-filing by production</li>
+            <li>Integration with scheduling system for email reminders</li>
+        </ul>
+
+        <h4>Phase 5: Advanced Integration (1-2 weeks)</h4>
+        <ul>
+            <li>Shared inboxes for production teams</li>
+            <li>Email delegation and assignment</li>
+            <li>Team collaboration on email threads</li>
+            <li>Email archiving by show completion</li>
+        </ul>
+    </div>
+
+    <hr>
+
+    <h2>Technical Architecture</h2>
+
+    <div class="architecture-grid">
+        <div class="architecture-box">
+            <h3>Frontend</h3>
+            <ul>
+                <li><strong>Framework</strong>: React 18 with TypeScript</li>
+                <li><strong>Build Tool</strong>: Vite</li>
+                <li><strong>UI Library</strong>: Shadcn/UI components</li>
+                <li><strong>Styling</strong>: Tailwind CSS</li>
+                <li><strong>State Management</strong>: TanStack Query</li>
+                <li><strong>Routing</strong>: Wouter</li>
+            </ul>
+        </div>
+
+        <div class="architecture-box">
+            <h3>Backend</h3>
+            <ul>
+                <li><strong>Runtime</strong>: Node.js with Express.js</li>
+                <li><strong>Language</strong>: TypeScript with ES modules</li>
+                <li><strong>Database ORM</strong>: Drizzle ORM</li>
+                <li><strong>Authentication</strong>: Custom email/password</li>
+                <li><strong>Session Management</strong>: Express session</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="architecture-box">
+        <h3>Database</h3>
+        <ul>
+            <li><strong>Database</strong>: PostgreSQL (Neon serverless)</li>
+            <li><strong>Schema Management</strong>: Drizzle Kit for migrations</li>
+            <li><strong>Data Isolation</strong>: All content tied to specific projects via foreign keys</li>
+        </ul>
+    </div>
+
+    <hr>
+
+    <h2>Key Advantages</h2>
+
+    <ol>
+        <li><strong>Show-Centric Design</strong>: Everything tied to specific shows/projects with no data crossover</li>
+        <li><strong>Professional Security</strong>: Role-based permissions and secure sharing</li>
+        <li><strong>Theater-Specific</strong>: Built by stage managers for stage managers</li>
+        <li><strong>Collaborative</strong>: Real-time editing and team coordination</li>
+        <li><strong>Comprehensive</strong>: Complete production workflow from prep to closing</li>
+        <li><strong>Scalable</strong>: Modern architecture supporting growth and new features</li>
+    </ol>
+
+    <hr>
+
+    <h2>Target Users</h2>
+
+    <ul>
+        <li><strong>Primary</strong>: Professional Stage Managers</li>
+        <li><strong>Secondary</strong>: Assistant Stage Managers, Production Managers</li>
+        <li><strong>Freelance</strong>: Independent theater professionals</li>
+        <li><strong>Full-time</strong>: Resident theater company staff</li>
+    </ul>
+
+    <hr>
+
+    <p style="text-align: center; font-style: italic; color: #718096; margin-top: 2em;">
+        <em>This feature list represents the current state and planned roadmap for BackstageOS as of January 2025. The platform continues to evolve based on user feedback and industry needs.</em>
+    </p>
+
+</body>
+</html>
