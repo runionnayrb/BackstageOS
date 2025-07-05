@@ -409,6 +409,11 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     gridGap: 8
   }));
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
+  
+  // Auto-save functionality
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -419,7 +424,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     enabled: !!projectId
   });
 
-  // Save layout configuration mutation (declared early to avoid dependency issues)
+  // Auto-save layout configuration mutation
   const saveLayoutMutation = useMutation({
     mutationFn: async (newConfig: FlexibleLayoutConfiguration) => {
       const response = await fetch(`/api/projects/${projectId}/settings/layout-configuration`, {
@@ -434,22 +439,46 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       
       return response.json();
     },
+    onMutate: () => {
+      setIsSaving(true);
+    },
     onSuccess: () => {
-      toast({
-        title: "Layout saved",
-        description: "Your layout configuration has been saved successfully"
-      });
+      setIsSaving(false);
+      setLastSaved(new Date());
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
     },
     onError: (error) => {
+      setIsSaving(false);
       toast({
-        title: "Error saving layout",
-        description: "Failed to save the layout configuration",
+        title: "Auto-save failed",
+        description: "Failed to auto-save layout changes",
         variant: "destructive"
       });
-      console.error('Failed to save layout:', error);
+      console.error('Failed to auto-save layout:', error);
     }
   });
+
+  // Auto-save function with debouncing
+  const autoSaveLayout = useCallback((newConfig: FlexibleLayoutConfiguration) => {
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    // Set new timeout for 2 seconds
+    saveTimeoutRef.current = setTimeout(() => {
+      saveLayoutMutation.mutate(newConfig);
+    }, 2000);
+  }, [saveLayoutMutation]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // Initialize layout when template is available
   useEffect(() => {
@@ -524,7 +553,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     setLayouts(convertToGridLayouts(configuration.items));
   }, [configuration, convertToGridLayouts]);
 
-  // Handle layout changes from react-grid-layout (simplified for grouped sections)
+  // Handle layout changes from react-grid-layout with auto-save
   const handleLayoutChange = (layout: Layout[], allLayouts: Layouts) => {
     if (!isEditMode) return;
 
@@ -549,6 +578,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
     setConfiguration(newConfig);
     onConfigurationChange?.(newConfig);
+    
+    // Trigger auto-save
+    autoSaveLayout(newConfig);
   };
 
   // Add new item to layout (creates grouped sections)
@@ -591,6 +623,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
       setConfiguration(newConfig);
       onConfigurationChange?.(newConfig);
+      
+      // Trigger auto-save
+      autoSaveLayout(newConfig);
     } else if (type === 'empty-space') {
       // Create a simple empty space item
       const newItem: LayoutItem = {
@@ -612,6 +647,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
       setConfiguration(newConfig);
       onConfigurationChange?.(newConfig);
+      
+      // Trigger auto-save
+      autoSaveLayout(newConfig);
     }
   };
 
@@ -624,6 +662,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
     setConfiguration(newConfig);
     onConfigurationChange?.(newConfig);
+    
+    // Trigger auto-save
+    autoSaveLayout(newConfig);
   };
 
   // Reset to default layout with grouped sections
@@ -733,16 +774,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                   >
                     <RotateCcw className="h-4 w-4 mr-2" />
                     Reset
-                  </Button>
-                  
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => saveLayoutMutation.mutate(configuration)}
-                    disabled={saveLayoutMutation.isPending}
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    {saveLayoutMutation.isPending ? 'Saving...' : 'Save Layout'}
                   </Button>
                 </>
               )}
