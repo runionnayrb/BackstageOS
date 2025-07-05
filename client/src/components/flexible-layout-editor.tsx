@@ -716,15 +716,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => addNewItem('notes')}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Notes
-                  </Button>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
                     onClick={() => addNewItem('empty-space')}
                   >
                     <Plus className="h-4 w-4 mr-2" />
