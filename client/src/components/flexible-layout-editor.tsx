@@ -717,8 +717,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                     size="sm"
                     onClick={() => addNewItem('empty-space')}
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Space
+                    Space
                   </Button>
                 </>
               )}
