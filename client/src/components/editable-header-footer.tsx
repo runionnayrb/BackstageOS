@@ -61,10 +61,11 @@ export default function EditableHeaderFooter({
           data-template-header={type === 'header' ? "true" : undefined}
           data-template-footer={type === 'footer' ? "true" : undefined}
           onClick={() => {
+            console.log(`🎯 ${type.toUpperCase()} CLICKED - Setting up for editing`);
             setShowToolbar(true);
           }}
           onFocus={() => {
-            // Focus handling
+            console.log(`🎯 ${type.toUpperCase()} FOCUSED - Setting up for editing`);
           }}
           onBlur={() => {
             const newContent = headerRef.current?.textContent || '';
@@ -93,7 +94,7 @@ export default function EditableHeaderFooter({
 
       {/* Use the working InlineFormattingToolbar */}
       <InlineFormattingToolbar
-        targetElement={showToolbar && headerRef.current ? headerRef.current : null}
+        targetElement={showToolbar ? headerRef.current : null}
         isVisible={showToolbar}
         onAutoSave={() => {
           if (headerRef.current) {
@@ -104,6 +105,11 @@ export default function EditableHeaderFooter({
         showVariables={type === 'header'} // Only show variables for headers, not footers
         onClose={() => setShowToolbar(false)}
       />
+      
+      {/* Debug info */}
+      <div className="text-xs text-gray-500 mt-1">
+        Debug: showToolbar = {showToolbar.toString()}, type = {type}
+      </div>
     </>
   );
 }
