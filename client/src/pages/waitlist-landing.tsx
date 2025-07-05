@@ -252,30 +252,31 @@ export default function WaitlistLanding() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary to-secondary text-white">
-        <div className="max-w-7xl mx-auto px-4 py-24">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              BackstageOS
-            </h1>
-            <p className="text-xl lg:text-2xl mb-8 opacity-90 leading-relaxed">
-              The redefining stage management platform that's transforming how we collaborate, organize, and execute productions.
-            </p>
-            <div className="flex justify-center space-x-2 mb-4">
-              <Star className="h-5 w-5 text-yellow-400 fill-current" />
-              <Star className="h-5 w-5 text-yellow-400 fill-current" />
-              <Star className="h-5 w-5 text-yellow-400 fill-current" />
-              <Star className="h-5 w-5 text-yellow-400 fill-current" />
-              <Star className="h-5 w-5 text-yellow-400 fill-current" />
-            </div>
-            <p className="text-lg mb-8">Loved by professional stage managers worldwide</p>
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="mb-8">
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary mb-6">
+              <Star className="h-4 w-4 mr-2" />
+              Revolutionizing Stage Management
+            </span>
+          </div>
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            The Complete Platform for
+            <span className="text-primary block">Professional Stage Managers</span>
+          </h1>
+          <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
+            Streamline your entire production workflow with our comprehensive suite of tools designed specifically for theater professionals. From rehearsal reports to scheduling, we've got you covered.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button 
               size="lg" 
-              className="bg-white text-primary hover:bg-gray-100 text-lg px-8 py-4"
+              className="text-lg px-8 py-3"
               onClick={() => document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Join the Waitlist
-              <ArrowRight className="ml-2 h-5 w-5" />
+              Join the Waitlist <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+            <Button size="lg" variant="outline" className="text-lg px-8 py-3">
+              Learn More
             </Button>
           </div>
         </div>
