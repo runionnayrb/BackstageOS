@@ -271,11 +271,11 @@ export default function EnhancedHeader() {
                         <Shield className="h-4 w-4 mr-2" />
                         Admin Dashboard
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setLocation('/seo-manager')}>
+                      <DropdownMenuItem onClick={() => setLocation('/admin/seo')}>
                         <Globe className="h-4 w-4 mr-2" />
                         SEO Manager
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setLocation('/dns-manager')}>
+                      <DropdownMenuItem onClick={() => setLocation('/admin/dns')}>
                         <Bot className="h-4 w-4 mr-2" />
                         DNS Manager
                       </DropdownMenuItem>
