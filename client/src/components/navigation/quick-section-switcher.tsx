@@ -22,12 +22,6 @@ export default function QuickSectionSwitcher({
   currentSection 
 }: QuickSectionSwitcherProps) {
   const [, setLocation] = useLocation();
-  
-  console.log('🚀 QuickSectionSwitcher Debug:', {
-    currentShowId,
-    currentShowName,
-    currentSection
-  });
 
   const sections: Section[] = [
     {
@@ -75,11 +69,11 @@ export default function QuickSectionSwitcher({
             <DropdownMenuItem 
               key={section.id}
               onClick={() => setLocation(section.href)}
-              className={`cursor-pointer ${
+              className={`cursor-pointer px-3 py-2 ${
                 isActive ? 'bg-blue-50 text-blue-700' : ''
               }`}
             >
-              <span>{section.title}</span>
+              {section.title}
             </DropdownMenuItem>
           );
         })}
