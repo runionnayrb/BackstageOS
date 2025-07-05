@@ -54,7 +54,7 @@ export default function EditableHeaderFooter({
 
   return (
     <>
-      <div className="relative">
+      <div className="relative group">
         <div
           ref={headerRef}
           className={className}
