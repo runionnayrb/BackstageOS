@@ -22,6 +22,12 @@ export default function QuickSectionSwitcher({
   currentSection 
 }: QuickSectionSwitcherProps) {
   const [, setLocation] = useLocation();
+  
+  console.log('🚀 QuickSectionSwitcher Debug:', {
+    currentShowId,
+    currentShowName,
+    currentSection
+  });
 
   const sections: Section[] = [
     {
