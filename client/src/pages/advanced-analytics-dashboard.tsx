@@ -169,9 +169,6 @@ export default function AdvancedAnalyticsDashboard() {
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
                 Advanced Analytics Dashboard
               </h1>
-              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">
-                Phase 5: Comprehensive error analysis, business impact assessment, and user satisfaction metrics
-              </p>
             </div>
           </div>
           
