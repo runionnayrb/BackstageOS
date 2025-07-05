@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -210,11 +211,23 @@ export default function EditableHeaderFooter({
           data-template-footer={type === 'footer' ? "true" : undefined}
           onClick={(e) => {
             console.log(`🎯 ${type.toUpperCase()} CLICKED - Setting up toolbar`);
-            setEditingElement(e.currentTarget);
-            setShowToolbar(true);
-            // Set raw content for editing (with variables)
-            e.currentTarget.innerHTML = content.replace(/\n/g, '<br>');
-            console.log(`🎯 Toolbar state - showToolbar: true, editingElement:`, e.currentTarget);
+            // Prevent event bubbling that might trigger re-renders
+            e.stopPropagation();
+            e.preventDefault();
+            
+            // Use setTimeout to ensure state is set after any potential re-renders
+            setTimeout(() => {
+              setEditingElement(e.currentTarget);
+              setShowToolbar(true);
+              // Set raw content for editing (with variables)
+              e.currentTarget.innerHTML = content.replace(/\n/g, '<br>');
+              console.log(`🎯 Toolbar state - showToolbar: true, editingElement:`, e.currentTarget);
+            }, 10);
+            
+            // Add delay to check if state persists
+            setTimeout(() => {
+              console.log(`🎯 ${type.toUpperCase()} State check after 200ms - showToolbar:`, showToolbar);
+            }, 200);
           }}
           onBlur={(e) => {
             if (!showToolbar) {
@@ -249,49 +262,52 @@ export default function EditableHeaderFooter({
         />
       </div>
 
-      {/* Inline Formatting Toolbar */}
-      <InlineFormattingToolbar
-        targetElement={editingElement}
-        isVisible={showToolbar}
-        onAutoSave={() => {
-          if (editingElement) {
-            const content = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
-            onChange(content);
-            handleAutoSave(); // Auto-save formatting changes
-            // Update display to show processed content
-            editingElement.innerHTML = processRichContent(content).replace(/\n/g, '<br>');
-            
-            // Reapply formatting after content update
-            const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
-            if (showSettings?.[settingsKey]) {
-              setTimeout(() => {
-                applyFormattingToElement(editingElement, showSettings[settingsKey]);
-              }, 50);
+      {/* Inline Formatting Toolbar - Rendered in Portal to prevent re-render issues */}
+      {showToolbar && typeof document !== 'undefined' && createPortal(
+        <InlineFormattingToolbar
+          targetElement={editingElement}
+          isVisible={showToolbar}
+          onAutoSave={() => {
+            if (editingElement) {
+              const content = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
+              onChange(content);
+              handleAutoSave(); // Auto-save formatting changes
+              // Update display to show processed content
+              editingElement.innerHTML = processRichContent(content).replace(/\n/g, '<br>');
+              
+              // Reapply formatting after content update
+              const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
+              if (showSettings?.[settingsKey]) {
+                setTimeout(() => {
+                  applyFormattingToElement(editingElement, showSettings[settingsKey]);
+                }, 50);
+              }
             }
-          }
-        }}
-        onApplyToAll={applyFormatting}
-        applyToAllText={`Apply to All ${type.charAt(0).toUpperCase() + type.slice(1)}s`}
-        onClose={() => {
-          if (editingElement) {
-            // Get the current content and save it
-            const currentContent = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
-            onChange(currentContent);
-            // Update display to show processed content
-            editingElement.innerHTML = processRichContent(currentContent).replace(/\n/g, '<br>');
-            
-            // Reapply formatting after content update
-            const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
-            if (showSettings?.[settingsKey]) {
-              setTimeout(() => {
-                applyFormattingToElement(editingElement, showSettings[settingsKey]);
-              }, 50);
+          }}
+          onApplyToAll={applyFormatting}
+          applyToAllText={`Apply to All ${type.charAt(0).toUpperCase() + type.slice(1)}s`}
+          onClose={() => {
+            if (editingElement) {
+              // Get the current content and save it
+              const currentContent = editingElement.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, '');
+              onChange(currentContent);
+              // Update display to show processed content
+              editingElement.innerHTML = processRichContent(currentContent).replace(/\n/g, '<br>');
+              
+              // Reapply formatting after content update
+              const settingsKey = type === 'header' ? 'headerFormatting' : 'footerFormatting';
+              if (showSettings?.[settingsKey]) {
+                setTimeout(() => {
+                  applyFormattingToElement(editingElement, showSettings[settingsKey]);
+                }, 50);
+              }
             }
-          }
-          setShowToolbar(false);
-          setEditingElement(null);
-        }}
-      />
+            setShowToolbar(false);
+            setEditingElement(null);
+          }}
+        />,
+        document.body
+      )}
     </>
   );
 }
