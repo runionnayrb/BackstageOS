@@ -646,16 +646,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
       >
         {displayName}
       </div>
-      {isEditing && (
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={handleHeaderClick}
-          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity absolute top-1 right-1"
-        >
-          <Edit2 className="h-3 w-3" />
-        </Button>
-      )}
+
     </div>
   );
 };
