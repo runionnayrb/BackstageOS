@@ -56,9 +56,9 @@ export default function InlineFormattingToolbar({
       const scrollY = window.pageYOffset || document.documentElement.scrollTop;
       const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
       
-      // Use simple relative positioning like department headers: absolute -top-16 left-0
+      // Fixed position that doesn't change with scroll - always at top of viewport
       setPosition({ 
-        top: rect.top - 64, // 64px above the header (same as -top-16 = 4rem = 64px)
+        top: 20, // Fixed 20px from top of viewport
         left: rect.left // Aligned to left edge of header
       });
 
