@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import InlineFormattingToolbar from './inline-formatting-toolbar';
 
 interface EditableHeaderFooterProps {
@@ -96,10 +97,43 @@ export default function EditableHeaderFooter({
       <InlineFormattingToolbar
         targetElement={showToolbar ? headerRef.current : null}
         isVisible={showToolbar}
-        onAutoSave={() => {
+        onAutoSave={async () => {
           if (headerRef.current) {
             const newContent = headerRef.current.textContent || '';
             onChange(newContent);
+            
+            // Capture and save formatting to database
+            const computedStyle = window.getComputedStyle(headerRef.current);
+            const formatting = {
+              color: computedStyle.color,
+              fontSize: computedStyle.fontSize,
+              fontWeight: computedStyle.fontWeight,
+              fontStyle: computedStyle.fontStyle,
+              textAlign: computedStyle.textAlign,
+              fontFamily: computedStyle.fontFamily,
+              textDecoration: computedStyle.textDecoration,
+              backgroundColor: computedStyle.backgroundColor,
+            };
+            
+            // Save formatting to database
+            try {
+              const endpoint = type === 'header' ? 'header-formatting' : 'footer-formatting';
+              const response = await fetch(`/api/projects/${projectId}/settings/${endpoint}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ formatting })
+              });
+              
+              if (response.ok) {
+                console.log(`${type} formatting saved successfully`);
+                // Invalidate cache to reload updated formatting
+                queryClient.invalidateQueries({
+                  queryKey: ['/api/projects', projectId, 'settings']
+                });
+              }
+            } catch (error) {
+              console.error(`Error saving ${type} formatting:`, error);
+            }
           }
         }}
         showVariables={type === 'header'} // Only show variables for headers, not footers
