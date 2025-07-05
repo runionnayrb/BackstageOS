@@ -744,7 +744,7 @@ export default function TemplateSettings() {
                                 projectId={projectId}
                                 onApplyToAll={applyFormattingToAllFieldHeaders}
                               />
-                              <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px]">
+                              <div className="px-3 py-2 bg-white text-sm min-h-[40px]">
                                 {field.placeholder || "Sample content..."}
                               </div>
                             </div>
