@@ -254,7 +254,7 @@ export default function EnhancedHeader() {
                   
                   <DropdownMenuSeparator />
                   
-                  <DropdownMenuItem onClick={() => setLocation('/profile-settings')}>
+                  <DropdownMenuItem onClick={() => setLocation('/profile')}>
                     <Settings className="h-4 w-4 mr-2" />
                     Profile Settings
                   </DropdownMenuItem>
