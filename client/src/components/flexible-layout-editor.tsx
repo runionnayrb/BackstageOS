@@ -80,11 +80,7 @@ const DraggableGridItem: React.FC<{
 
   return (
     <div 
-      className={cn(
-        "relative border-2 border-dashed border-transparent transition-all duration-200",
-        isEditMode && "hover:border-blue-300 hover:bg-blue-50/50",
-        isHovered && isEditMode && "shadow-lg"
-      )}
+      className="relative transition-all duration-200"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
