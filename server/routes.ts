@@ -1771,24 +1771,7 @@ Respond with valid JSON only.`;
   });
 
   // Report template routes (show-specific)
-  app.get('/api/projects/:projectId/templates', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id.toString();
-      const projectId = parseInt(req.params.projectId);
-      
-      // Verify project ownership
-      const project = await storage.getProjectById(projectId);
-      if (!project || project.ownerId !== userId) {
-        return res.status(403).json({ message: "Access denied" });
-      }
-
-      const templates = await storage.getReportTemplatesByProjectId(projectId);
-      res.json(templates);
-    } catch (error) {
-      console.error("Error fetching templates:", error);
-      res.status(500).json({ message: "Failed to fetch templates" });
-    }
-  });
+  // This duplicate route is removed - the correct route is at line 2990 using :id parameter
 
   app.get('/api/templates/:id', isAuthenticated, async (req: any, res) => {
     try {

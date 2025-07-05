@@ -37,8 +37,9 @@ export const getQueryFn: <T>(options: {
         url = queryKey[0];
       } else {
         // Array query key like ['/api/projects', projectId, 'settings']
-        // Join the parts to create the full URL
-        url = queryKey.join('/');
+        // Join the parts to create the full URL, filtering out undefined values
+        const pathParts = queryKey.filter(part => part !== undefined && part !== null);
+        url = pathParts.join('/');
       }
     } else {
       // Fallback to original behavior for non-API keys
@@ -65,11 +66,89 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes instead of Infinity for better data freshness
+      retry: (failureCount, error) => {
+        // Enhanced retry logic for better error handling
+        if (error instanceof Error) {
+          const errorMessage = error.message.toLowerCase();
+          
+          // Check for HTTP status codes
+          const statusMatch = error.message.match(/(\d{3})/);
+          if (statusMatch) {
+            const status = parseInt(statusMatch[1]);
+            
+            // Never retry on authentication/authorization errors
+            if (status === 401 || status === 403) {
+              return false;
+            }
+            
+            // Don't retry on client errors (400-499) except for specific cases
+            if (status >= 400 && status < 500) {
+              // Retry on 408 (timeout), 429 (rate limit), and network issues
+              if (status === 408 || status === 429 || status === 503) {
+                return failureCount < 2;
+              }
+              return false;
+            }
+            
+            // Retry on server errors (500+) up to 3 times
+            if (status >= 500 && failureCount < 3) {
+              return true;
+            }
+          }
+          
+          // Retry on network-related errors
+          if (errorMessage.includes('network') || 
+              errorMessage.includes('fetch') || 
+              errorMessage.includes('timeout') ||
+              errorMessage.includes('connection')) {
+            return failureCount < 2;
+          }
+        }
+        
+        return false;
+      },
+      retryDelay: (attemptIndex) => {
+        // Exponential backoff with jitter
+        const baseDelay = 1000;
+        const maxDelay = 30000;
+        const exponentialDelay = Math.min(baseDelay * Math.pow(2, attemptIndex), maxDelay);
+        const jitter = Math.random() * 0.1 * exponentialDelay;
+        return exponentialDelay + jitter;
+      },
     },
     mutations: {
-      retry: false,
+      retry: (failureCount, error) => {
+        // Enhanced mutation retry logic
+        if (error instanceof Error) {
+          const statusMatch = error.message.match(/(\d{3})/);
+          if (statusMatch) {
+            const status = parseInt(statusMatch[1]);
+            
+            // Never retry on client errors (400-499)
+            if (status >= 400 && status < 500) {
+              return false;
+            }
+            
+            // Retry on server errors (500+) up to 2 times
+            if (status >= 500 && failureCount < 2) {
+              return true;
+            }
+          }
+          
+          // Retry on network errors only once for mutations
+          const errorMessage = error.message.toLowerCase();
+          if ((errorMessage.includes('network') || 
+               errorMessage.includes('fetch') || 
+               errorMessage.includes('timeout')) && 
+              failureCount < 1) {
+            return true;
+          }
+        }
+        
+        return false;
+      },
+      retryDelay: (attemptIndex) => Math.min(1000 * Math.pow(2, attemptIndex), 10000),
     },
   },
 });

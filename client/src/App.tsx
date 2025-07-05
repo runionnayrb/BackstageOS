@@ -8,6 +8,7 @@ import { useSessionHeartbeat } from "@/hooks/useSessionHeartbeat";
 import { errorLogger } from "@/lib/errorLogger";
 import { useSEO } from "@/hooks/useSEO";
 import { useEffect } from "react";
+import ErrorBoundary from "@/components/error-boundary";
 import AuthPage from "@/pages/auth-page";
 import ProfileSelection from "@/pages/profile-selection";
 import Layout from "@/components/layout/layout";
@@ -150,8 +151,9 @@ function Router() {
   }
 
   return (
-    <Layout>
-      <Switch>
+    <ErrorBoundary>
+      <Layout>
+        <Switch>
         <Route path="/" component={Projects} />
         <Route path="/create-project" component={CreateProject} />
         <Route path="/shows/:id" component={ShowDetail} />
@@ -190,8 +192,9 @@ function Router() {
         <Route path="/test-notes" component={TestNotesPage} />
         <Route path="/navigation-demo" component={NavigationDemo} />
         <Route component={NotFound} />
-      </Switch>
-    </Layout>
+        </Switch>
+      </Layout>
+    </ErrorBoundary>
   );
 }
 
