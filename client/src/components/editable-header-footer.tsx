@@ -94,7 +94,7 @@ export default function EditableHeaderFooter({
 
       {/* Use the working InlineFormattingToolbar */}
       <InlineFormattingToolbar
-        targetElement={showToolbar ? headerRef.current : null}
+        targetElement={showToolbar && headerRef.current ? headerRef.current : null}
         isVisible={showToolbar}
         onAutoSave={() => {
           if (headerRef.current) {
