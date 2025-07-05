@@ -269,6 +269,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 }) => {
   const [isEditMode, setIsEditMode] = useState(isEditing);
   const [layouts, setLayouts] = useState<Layouts>({});
+  const [showResetDialog, setShowResetDialog] = useState(false);
   
   // Generate layout from template data with grouped sections
   const generateLayoutFromTemplate = useCallback(() => {
@@ -670,6 +671,11 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     autoSaveLayout(newConfig);
   };
 
+  // Show reset confirmation dialog
+  const handleResetClick = () => {
+    setShowResetDialog(true);
+  };
+
   // Reset to default layout with grouped sections
   const resetLayout = () => {
     const defaultConfig: FlexibleLayoutConfiguration = {
@@ -728,6 +734,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
     setConfiguration(defaultConfig);
     onConfigurationChange?.(defaultConfig);
+    setShowResetDialog(false); // Close the dialog
   };
 
   return (
@@ -772,7 +779,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={resetLayout}
+                    onClick={handleResetClick}
                   >
                     <RotateCcw className="h-4 w-4" />
                   </Button>
@@ -849,6 +856,24 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           </div>
         )}
       </div>
+
+      {/* Reset Confirmation Dialog */}
+      <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Layout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to reset to default settings? This will remove all your custom layout changes and restore the original two-department layout (Scenic and Lighting). This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={resetLayout} className="bg-red-600 hover:bg-red-700">
+              Reset Layout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DndProvider>
   );
 };
