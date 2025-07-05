@@ -77,6 +77,9 @@ interface FlexibleLayoutEditorProps {
   onConfigurationChange?: (config: FlexibleLayoutConfiguration) => void;
   template?: any;
   onTemplateUpdate?: (template: any) => void;
+  // Auto-save state from parent
+  setIsSaving?: (saving: boolean) => void;
+  setLastSaved?: (date: Date) => void;
 }
 
 // Draggable component wrapper for grid items
@@ -260,7 +263,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   isEditing = true,
   onConfigurationChange,
   template,
-  onTemplateUpdate
+  onTemplateUpdate,
+  setIsSaving,
+  setLastSaved
 }) => {
   const [isEditMode, setIsEditMode] = useState(isEditing);
   const [layouts, setLayouts] = useState<Layouts>({});
@@ -412,8 +417,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   
   // Auto-save functionality
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -440,15 +443,15 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       return response.json();
     },
     onMutate: () => {
-      setIsSaving(true);
+      if (setIsSaving) setIsSaving(true);
     },
     onSuccess: () => {
-      setIsSaving(false);
-      setLastSaved(new Date());
+      if (setIsSaving) setIsSaving(false);
+      if (setLastSaved) setLastSaved(new Date());
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
     },
     onError: (error) => {
-      setIsSaving(false);
+      if (setIsSaving) setIsSaving(false);
       toast({
         title: "Auto-save failed",
         description: "Failed to auto-save layout changes",

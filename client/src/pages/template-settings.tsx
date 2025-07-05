@@ -713,6 +713,8 @@ export default function TemplateSettings() {
                           }));
                           saveTemplate.mutate(updatedTemplate);
                         }}
+                        setIsSaving={setIsSaving}
+                        setLastSaved={setLastSaved}
                       />
                     ) : (
                       /* Standard layout for other templates */
