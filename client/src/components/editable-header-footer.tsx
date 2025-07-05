@@ -119,7 +119,7 @@ export default function EditableHeaderFooter({
             try {
               const endpoint = type === 'header' ? 'header-formatting' : 'footer-formatting';
               const response = await fetch(`/api/projects/${projectId}/settings/${endpoint}`, {
-                method: 'PATCH',
+                method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ formatting })
               });
