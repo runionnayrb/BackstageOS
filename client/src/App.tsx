@@ -8,6 +8,7 @@ import { useSessionHeartbeat } from "@/hooks/useSessionHeartbeat";
 import { errorLogger } from "@/lib/errorLogger";
 import { useSEO } from "@/hooks/useSEO";
 import { useEffect } from "react";
+import { ThemeProvider } from "@/components/theme-provider";
 import AuthPage from "@/pages/auth-page";
 import ProfileSelection from "@/pages/profile-selection";
 import Layout from "@/components/layout/layout";
@@ -198,12 +199,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </AuthProvider>
+      <ThemeProvider defaultTheme="light" storageKey="backstageos-theme">
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

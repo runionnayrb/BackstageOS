@@ -49,49 +49,85 @@
 
 
 :root {
-  --background: hsl(0, 0%, 100%);
-  --foreground: hsl(20, 14.3%, 4.1%);
-  --muted: hsl(60, 4.8%, 95.9%);
-  --muted-foreground: hsl(25, 5.3%, 44.7%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(20, 14.3%, 4.1%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(20, 14.3%, 4.1%);
-  --border: hsl(20, 5.9%, 90%);
-  --input: hsl(20, 5.9%, 90%);
-  --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(211, 100%, 99%);
-  --secondary: hsl(259, 72%, 56%);
-  --secondary-foreground: hsl(211, 100%, 99%);
-  --accent: hsl(60, 4.8%, 95.9%);
-  --accent-foreground: hsl(24, 9.8%, 10%);
-  --destructive: hsl(0, 84.2%, 60.2%);
-  --destructive-foreground: hsl(60, 9.1%, 97.8%);
-  --ring: hsl(20, 14.3%, 4.1%);
-  --radius: 0.5rem;
+  /* Notion-inspired color system */
+  --background: #ffffff;
+  --foreground: #37352f;
+  --text-heading: #2f3437;
+  --text-body: #37352f;
+  --text-muted: #898989;
+  
+  /* Neutral grayscale */
+  --muted: #f8f9fa;
+  --muted-foreground: #898989;
+  --popover: #ffffff;
+  --popover-foreground: #37352f;
+  --card: #ffffff;
+  --card-foreground: #37352f;
+  
+  /* Borders and dividers */
+  --border: #e1e1e1;
+  --border-light: #ebeced;
+  --input: #e1e1e1;
+  
+  /* Accent color - muted blue */
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #f8f9fa;
+  --secondary-foreground: #37352f;
+  --accent: #f8f9fa;
+  --accent-foreground: #37352f;
+  
+  /* Status colors */
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  
+  /* Focus and ring */
+  --ring: #3b82f6;
+  --radius: 6px;
+  
+  /* Notion-specific spacing */
+  --spacing-container: 24px;
+  --spacing-section: 16px;
+  --spacing-element: 12px;
+  --spacing-base: 8px;
 }
 
 .dark {
-  --background: hsl(240, 10%, 3.9%);
-  --foreground: hsl(0, 0%, 98%);
-  --muted: hsl(240, 3.7%, 15.9%);
-  --muted-foreground: hsl(240, 5%, 64.9%);
-  --popover: hsl(240, 10%, 3.9%);
-  --popover-foreground: hsl(0, 0%, 98%);
-  --card: hsl(240, 10%, 3.9%);
-  --card-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 3.7%, 15.9%);
-  --input: hsl(240, 3.7%, 15.9%);
-  --primary: hsl(207, 90%, 54%);
-  --primary-foreground: hsl(211, 100%, 99%);
-  --secondary: hsl(259, 72%, 56%);
-  --secondary-foreground: hsl(211, 100%, 99%);
-  --accent: hsl(240, 3.7%, 15.9%);
-  --accent-foreground: hsl(0, 0%, 98%);
-  --destructive: hsl(0, 62.8%, 30.6%);
-  --destructive-foreground: hsl(0, 0%, 98%);
-  --ring: hsl(240, 4.9%, 83.9%);
-  --radius: 0.5rem;
+  /* Notion dark mode colors */
+  --background: #1d1d1f;
+  --foreground: #f5f5f5;
+  --text-heading: #ffffff;
+  --text-body: #f5f5f5;
+  --text-muted: #a0a0a0;
+  
+  /* Dark neutrals */
+  --muted: #2d2d2f;
+  --muted-foreground: #a0a0a0;
+  --popover: #2d2d2f;
+  --popover-foreground: #f5f5f5;
+  --card: #2d2d2f;
+  --card-foreground: #f5f5f5;
+  
+  /* Dark borders */
+  --border: #3a3a3c;
+  --border-light: #2d2d2f;
+  --input: #3a3a3c;
+  
+  /* Dark mode accent */
+  --primary: #4e9af1;
+  --primary-foreground: #ffffff;
+  --secondary: #2d2d2f;
+  --secondary-foreground: #f5f5f5;
+  --accent: #2d2d2f;
+  --accent-foreground: #f5f5f5;
+  
+  /* Dark status colors */
+  --destructive: #ff4757;
+  --destructive-foreground: #ffffff;
+  
+  /* Dark focus */
+  --ring: #4e9af1;
+  --radius: 6px;
 }
 
 @layer base {
@@ -101,6 +137,159 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    line-height: 1.4;
+    color: var(--text-body);
+  }
+
+  /* Notion-style typography */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-heading);
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0;
+  }
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+
+  h4 {
+    font-size: 1.125rem;
+  }
+
+  p {
+    color: var(--text-body);
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  /* Focus styles - subtle and accessible */
+  *:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Remove default focus styles */
+  *:focus {
+    outline: none;
+  }
+}
+
+/* Notion-style component utilities */
+@layer components {
+  /* Container styles */
+  .notion-container {
+    padding-left: var(--spacing-container);
+    padding-right: var(--spacing-container);
+  }
+
+  .notion-section {
+    margin-bottom: var(--spacing-section);
+  }
+
+  .notion-element {
+    margin-bottom: var(--spacing-element);
+  }
+
+  /* Card styles */
+  .notion-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+  }
+
+  .notion-card:hover {
+    background: var(--muted);
+    border-color: var(--border);
+  }
+
+  /* Button styles */
+  .notion-button {
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    font-size: 0.875rem;
+  }
+
+  .notion-button-primary {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
+
+  .notion-button-primary:hover {
+    opacity: 0.9;
+  }
+
+  .notion-button-secondary {
+    background: transparent;
+    color: var(--foreground);
+    border: 1px solid var(--border);
+  }
+
+  .notion-button-secondary:hover {
+    background: var(--muted);
+  }
+
+  /* Input styles */
+  .notion-input {
+    border: 1px solid var(--input);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    background: var(--background);
+    color: var(--foreground);
+    font-size: 0.875rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .notion-input:focus {
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  /* Animation utilities */
+  .notion-fade-in {
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  .notion-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 

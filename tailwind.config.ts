@@ -5,10 +5,33 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          "Inter",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "Roboto",
+          "Oxygen",
+          "Ubuntu",
+          "Cantarell",
+          "Fira Sans",
+          "Droid Sans",
+          "Helvetica Neue",
+          "sans-serif",
+        ],
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        notion: "6px",
+      },
+      spacing: {
+        'notion-container': 'var(--spacing-container)',
+        'notion-section': 'var(--spacing-section)',
+        'notion-element': 'var(--spacing-element)',
+        'notion-base': 'var(--spacing-base)',
       },
       colors: {
         background: "var(--background)",
@@ -44,6 +67,11 @@ export default {
         border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
+        // Notion-specific colors
+        'text-heading': 'var(--text-heading)',
+        'text-body': 'var(--text-body)',
+        'text-muted': 'var(--text-muted)',
+        'border-light': 'var(--border-light)',
         chart: {
           "1": "var(--chart-1)",
           "2": "var(--chart-2)",

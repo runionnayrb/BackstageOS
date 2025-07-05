@@ -52,12 +52,12 @@ export default function Projects() {
 
   if (isLoading) {
     return (
-      <div className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="notion-container py-notion-section">
+        <div className="animate-pulse space-y-notion-element">
+          <div className="h-8 bg-muted rounded-notion w-1/4"></div>
+          <div className="space-y-2">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-48 bg-gray-200 rounded-lg"></div>
+              <div key={i} className="h-16 bg-muted rounded-notion"></div>
             ))}
           </div>
         </div>
@@ -68,25 +68,31 @@ export default function Projects() {
   return (
     <div className="min-h-screen bg-background">
       <div className="w-full">
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center mb-2">
+        <div className="notion-container py-notion-section">
+          <div className="flex justify-between items-center mb-notion-element">
             <div>
-              <h1 className="text-3xl font-bold">{projectLabel}</h1>
+              <h1 className="text-3xl font-semibold text-text-heading">{projectLabel}</h1>
             </div>
-            <Button onClick={() => setLocation("/create-project")}>
+            <Button 
+              onClick={() => setLocation("/create-project")}
+              className="notion-button notion-button-primary rounded-notion"
+            >
               <Plus className="w-5 h-5 mr-2" />
               New {projectSingle}
             </Button>
           </div>
         </div>
 
-        <div className="px-4 sm:px-6 lg:px-8">
+        <div className="notion-container">
           {(projects as any[]).length === 0 ? (
             <div className="text-center py-12">
-              <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No {projectLabel.toLowerCase()} yet</h3>
-              <p className="text-gray-500 mb-6">Get started by creating your first {projectSingle.toLowerCase()}</p>
-              <Button onClick={() => setLocation("/create-project")}>
+              <FolderOpen className="w-16 h-16 text-text-muted mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-text-heading mb-2">No {projectLabel.toLowerCase()} yet</h3>
+              <p className="text-text-muted mb-6">Get started by creating your first {projectSingle.toLowerCase()}</p>
+              <Button 
+                onClick={() => setLocation("/create-project")}
+                className="notion-button notion-button-primary rounded-notion"
+              >
                 <Plus className="w-5 h-5 mr-2" />
                 Create {projectSingle}
               </Button>
@@ -96,20 +102,20 @@ export default function Projects() {
               {(projects as any[]).map((project: any) => (
                 <div 
                   key={project.id} 
-                  className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="notion-card p-4 hover:bg-muted transition-colors cursor-pointer rounded-notion"
                   onClick={() => setLocation(`/shows/${project.id}`)}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold mb-0.5">{project.name}</h3>
-                      <div className="text-sm text-muted-foreground mb-1 ml-0.5">
+                      <h3 className="text-lg font-medium text-text-heading mb-0.5">{project.name}</h3>
+                      <div className="text-sm text-text-muted mb-1 ml-0.5">
                         {project.venue || "No venue set"}
                       </div>
-                      <div className="text-sm text-muted-foreground ml-0.5">
+                      <div className="text-sm text-text-muted ml-0.5">
                         {formatDateRange(project.prepStartDate, project.closingDate)}
                       </div>
                     </div>
-                    <div className="text-muted-foreground">
+                    <div className="text-text-muted">
                       →
                     </div>
                   </div>
