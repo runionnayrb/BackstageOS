@@ -139,11 +139,6 @@ export default function EditableHeaderFooter({
         showVariables={type === 'header'} // Only show variables for headers, not footers
         onClose={() => setShowToolbar(false)}
       />
-      
-      {/* Debug info */}
-      <div className="text-xs text-gray-500 mt-1">
-        Debug: showToolbar = {showToolbar.toString()}, type = {type}
-      </div>
     </>
   );
 }
