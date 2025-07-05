@@ -242,19 +242,15 @@ export default function EditableHeaderFooter({
           suppressContentEditableWarning
           data-template-header={type === 'header' ? "true" : undefined}
           data-template-footer={type === 'footer' ? "true" : undefined}
+          onClick={(e) => {
+            console.log(`🎯 ${type.toUpperCase()} CLICKED - Setting up for editing`);
+            setEditingElement(e.currentTarget);
+            setShowToolbar(true);
+          }}
           onFocus={(e) => {
             console.log(`🎯 ${type.toUpperCase()} FOCUSED - Setting up for editing`);
             setEditingElement(e.currentTarget);
-          }}
-          onMouseUp={(e) => {
-            // Only show toolbar when user has actually selected text
-            setTimeout(() => {
-              const selection = window.getSelection();
-              if (selection && selection.toString().length > 0) {
-                console.log(`🎯 ${type.toUpperCase()} TEXT SELECTED - Setting up toolbar`);
-                setShowToolbar(true);
-              }
-            }, 10);
+            setShowToolbar(true);
           }}
           onBlur={(e) => {
             if (!showToolbar) {

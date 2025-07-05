@@ -161,6 +161,10 @@ export default function InlineFormattingToolbar({
     try {
       targetElement.focus();
       document.execCommand(command, false, value);
+      // Trigger auto-save if provided
+      if (onAutoSave) {
+        setTimeout(onAutoSave, 100);
+      }
     } catch (error) {
       console.error('Error executing command:', command, error);
     }
