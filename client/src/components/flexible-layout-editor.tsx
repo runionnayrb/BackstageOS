@@ -742,7 +742,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       <div className="space-y-4">
         {/* Toolbar */}
         {isEditing && (
-          <div className="flex items-center justify-between p-4 bg-gray-50 border rounded-lg">
+          <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
