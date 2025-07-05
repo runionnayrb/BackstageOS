@@ -102,7 +102,7 @@ export default function Projects() {
               {(projects as any[]).map((project: any) => (
                 <div 
                   key={project.id} 
-                  className="notion-card p-4 hover:bg-muted transition-colors cursor-pointer rounded-notion"
+                  className="p-4 hover:bg-muted transition-colors cursor-pointer rounded-notion"
                   onClick={() => setLocation(`/shows/${project.id}`)}
                 >
                   <div className="flex justify-between items-start">
