@@ -85,13 +85,17 @@ const DraggableGridItem: React.FC<{
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Edit controls overlay */}
+      {/* Edit controls overlay with extended hover area */}
       {isEditMode && isHovered && (
-        <div className="absolute -top-8 left-0 z-50 flex gap-1">
+        <div 
+          className="absolute -top-10 left-0 z-50 flex gap-1 p-2 -m-2"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
           <Button
             size="sm"
             variant="outline"
-            className="h-6 px-2 text-xs bg-white border-blue-300"
+            className="h-6 px-2 text-xs bg-white border-blue-300 shadow-sm"
             onClick={onEdit}
           >
             <Edit3 className="h-3 w-3" />
@@ -99,7 +103,7 @@ const DraggableGridItem: React.FC<{
           <Button
             size="sm"
             variant="outline"
-            className="h-6 px-2 text-xs bg-white border-red-300 text-red-600 hover:bg-red-50"
+            className="h-6 px-2 text-xs bg-white border-red-300 text-red-600 hover:bg-red-50 shadow-sm"
             onClick={onDelete}
           >
             <Trash2 className="h-3 w-3" />
