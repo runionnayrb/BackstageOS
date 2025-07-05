@@ -56,10 +56,10 @@ export default function InlineFormattingToolbar({
       const scrollY = window.pageYOffset || document.documentElement.scrollTop;
       const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
       
-      // Use simple relative positioning like department headers: absolute -top-16 left-0
+      // Fixed position matching the screenshot - always in the same location
       setPosition({ 
-        top: rect.top - 64, // 64px above the header (same as -top-16 = 4rem = 64px)
-        left: rect.left // Aligned to left edge of header
+        top: rect.top + scrollY - 64, // 64px above the header, accounting for scroll
+        left: rect.left + scrollX // Aligned to left edge of header, accounting for scroll
       });
 
       // Update active states when toolbar becomes visible
