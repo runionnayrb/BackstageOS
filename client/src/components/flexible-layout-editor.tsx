@@ -774,16 +774,12 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                     size="sm"
                     onClick={resetLayout}
                   >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Reset
+                    <RotateCcw className="h-4 w-4" />
                   </Button>
                 </>
               )}
               
-              <Badge variant="outline" className="text-xs">
-                <Grid3x3 className="h-3 w-3 mr-1" />
-                {configuration.items.length} items
-              </Badge>
+
             </div>
           </div>
         )}
