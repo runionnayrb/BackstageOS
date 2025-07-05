@@ -30,6 +30,7 @@ interface EditableDepartmentHeaderProps {
   onNameChange?: (newName: string) => void;
   onFormattingChange?: (formatting: HeaderFormatting) => void;
   isEditing?: boolean;
+  disableEditing?: boolean; // Disable editing when in grouped sections
 }
 
 interface HeaderFormatting {
@@ -55,7 +56,8 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   displayName,
   onNameChange,
   onFormattingChange,
-  isEditing = true
+  isEditing = true,
+  disableEditing = false
 }) => {
   const [isEditingText, setIsEditingText] = useState(false);
   const [editValue, setEditValue] = useState(displayName);

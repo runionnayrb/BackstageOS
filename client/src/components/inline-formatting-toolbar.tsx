@@ -56,11 +56,19 @@ export default function InlineFormattingToolbar({
         const toolbarRect = toolbarRef.current?.getBoundingClientRect();
         
         if (toolbarRect) {
-          // Position above the element with some padding
-          const top = rect.top - toolbarRect.height - 8;
-          const left = Math.max(8, rect.left + (rect.width - toolbarRect.width) / 2);
+          // Add scroll offset to account for page scrolling
+          const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+          const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
           
-          setPosition({ top, left });
+          // Position above the element with some padding
+          const top = rect.top + scrollY - toolbarRect.height - 8;
+          const left = Math.max(8, rect.left + scrollX + (rect.width - toolbarRect.width) / 2);
+          
+          // Ensure toolbar doesn't go off-screen
+          const maxLeft = window.innerWidth - toolbarRect.width - 8;
+          const finalLeft = Math.min(left, maxLeft);
+          
+          setPosition({ top, left: finalLeft });
         }
       };
 
@@ -73,7 +81,7 @@ export default function InlineFormattingToolbar({
     }
   }, [isVisible, targetElement]);
 
-  // Add event listeners to track formatting changes
+  // Add event listeners to track formatting changes and repositioning
   useEffect(() => {
     if (!targetElement || !isVisible) return;
 
@@ -85,12 +93,37 @@ export default function InlineFormattingToolbar({
       updateActiveStates();
     };
 
+    const handleScroll = () => {
+      if (isVisible && targetElement && toolbarRef.current) {
+        const rect = targetElement.getBoundingClientRect();
+        const toolbarRect = toolbarRef.current.getBoundingClientRect();
+        
+        // Add scroll offset to account for page scrolling
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+        
+        // Position above the element with some padding
+        const top = rect.top + scrollY - toolbarRect.height - 8;
+        const left = Math.max(8, rect.left + scrollX + (rect.width - toolbarRect.width) / 2);
+        
+        // Ensure toolbar doesn't go off-screen
+        const maxLeft = window.innerWidth - toolbarRect.width - 8;
+        const finalLeft = Math.min(left, maxLeft);
+        
+        setPosition({ top, left: finalLeft });
+      }
+    };
+
     document.addEventListener('selectionchange', handleSelectionChange);
     targetElement.addEventListener('keyup', handleKeyUp);
+    window.addEventListener('scroll', handleScroll, true); // Use capture to catch all scroll events
+    window.addEventListener('resize', handleScroll);
 
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
       targetElement.removeEventListener('keyup', handleKeyUp);
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleScroll);
     };
   }, [targetElement, isVisible]);
 
