@@ -22,12 +22,27 @@ export default function EditableHeaderFooter({
 }: EditableHeaderFooterProps) {
   const [editingElement, setEditingElement] = useState<HTMLElement | null>(null);
   const [showToolbar, setShowToolbar] = useState(false);
+  const toolbarStateRef = useRef({ showToolbar: false, editingElement: null as HTMLElement | null });
   const { toast } = useToast();
 
-  // Debug state changes
+  // Sync state with ref for persistence across re-renders
   useEffect(() => {
+    toolbarStateRef.current = { showToolbar, editingElement };
     console.log(`🎯 ${type.toUpperCase()} STATE CHANGED - showToolbar: ${showToolbar}, editingElement:`, editingElement);
   }, [showToolbar, editingElement, type]);
+
+  // Use effect to maintain toolbar state across re-renders
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (toolbarStateRef.current.showToolbar && !showToolbar) {
+        console.log(`🎯 ${type.toUpperCase()} RESTORING TOOLBAR STATE`);
+        setShowToolbar(toolbarStateRef.current.showToolbar);
+        setEditingElement(toolbarStateRef.current.editingElement);
+      }
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  });
 
   // Query to fetch show settings including header/footer formatting
   const { data: showSettings } = useQuery<any>({
@@ -250,6 +265,10 @@ export default function EditableHeaderFooter({
           onClick={(e) => {
             console.log(`🎯 ${type.toUpperCase()} CLICKED - Setting up for editing`);
             console.log(`🎯 Before state change - showToolbar: ${showToolbar}, editingElement:`, editingElement);
+            
+            // Update ref immediately to survive re-renders
+            toolbarStateRef.current = { showToolbar: true, editingElement: e.currentTarget };
+            
             setEditingElement(e.currentTarget);
             setShowToolbar(true);
             console.log(`🎯 After state change attempt - should show toolbar: true`);
