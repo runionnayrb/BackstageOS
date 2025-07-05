@@ -49,13 +49,13 @@ export default function InlineFormattingToolbar({
   const toolbarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (isVisible && targetElement && toolbarRef.current) {
+    if (isVisible && targetElement) {
       // Wait for toolbar to be rendered before calculating position
       const calculatePosition = () => {
         const rect = targetElement.getBoundingClientRect();
         const toolbarRect = toolbarRef.current?.getBoundingClientRect();
         
-        if (toolbarRect) {
+        if (toolbarRect && toolbarRect.height > 0) {
           // Add scroll offset to account for page scrolling
           const scrollY = window.pageYOffset || document.documentElement.scrollTop;
           const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
@@ -69,12 +69,22 @@ export default function InlineFormattingToolbar({
           const finalLeft = Math.min(left, maxLeft);
           
           setPosition({ top, left: finalLeft });
+        } else {
+          // If toolbar not yet rendered, set default position based on target element
+          const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+          const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+          
+          setPosition({ 
+            top: rect.top + scrollY - 60, // Estimate toolbar height
+            left: rect.left + scrollX 
+          });
         }
       };
 
-      // Calculate position immediately and after a short delay for layout
+      // Calculate position immediately and after short delays for layout
       calculatePosition();
       setTimeout(calculatePosition, 10);
+      setTimeout(calculatePosition, 50);
 
       // Update active states when toolbar becomes visible
       updateActiveStates();
@@ -240,7 +250,12 @@ export default function InlineFormattingToolbar({
     }
   };
 
-  if (!isVisible) return null;
+  if (!isVisible) {
+    console.log('🚫 InlineFormattingToolbar not visible');
+    return null;
+  }
+  
+  console.log('✅ InlineFormattingToolbar rendering with position:', position);
 
   return (
     <div
