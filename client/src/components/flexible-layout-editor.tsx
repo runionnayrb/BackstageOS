@@ -368,6 +368,38 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     enabled: !!projectId
   });
 
+  // Save layout configuration mutation (declared early to avoid dependency issues)
+  const saveLayoutMutation = useMutation({
+    mutationFn: async (newConfig: FlexibleLayoutConfiguration) => {
+      const response = await fetch(`/api/projects/${projectId}/settings/layout-configuration`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ layoutConfiguration: newConfig })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save layout configuration');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Layout saved",
+        description: "Your layout configuration has been saved successfully"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error saving layout",
+        description: "Failed to save the layout configuration",
+        variant: "destructive"
+      });
+      console.error('Failed to save layout:', error);
+    }
+  });
+
   // Regenerate layout when template changes
   useEffect(() => {
     if (template && !((showSettings as any)?.layoutConfiguration)) {
@@ -391,9 +423,10 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       if (!hasGroupedSections && template) {
         // Migration needed: convert to grouped format
         console.log('Migrating layout to grouped format');
+        const newLayoutItems = generateLayoutFromTemplate();
         const newConfig = {
           ...savedConfig,
-          items: generateLayoutFromTemplate()
+          items: newLayoutItems
         };
         setConfiguration(newConfig);
         // Save the migrated configuration
@@ -402,7 +435,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
         setConfiguration(savedConfig);
       }
     }
-  }, [showSettings, template, generateLayoutFromTemplate, saveLayoutMutation]);
+  }, [showSettings, template]);
 
   // Convert configuration items to react-grid-layout format
   const convertToGridLayouts = useCallback((items: LayoutItem[]) => {
@@ -434,38 +467,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   useEffect(() => {
     setLayouts(convertToGridLayouts(configuration.items));
   }, [configuration, convertToGridLayouts]);
-
-  // Save layout configuration mutation
-  const saveLayoutMutation = useMutation({
-    mutationFn: async (newConfig: FlexibleLayoutConfiguration) => {
-      const response = await fetch(`/api/projects/${projectId}/settings/layout-configuration`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ layoutConfiguration: newConfig })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to save layout configuration');
-      }
-      
-      return response.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Layout saved",
-        description: "Your layout configuration has been saved successfully"
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error saving layout",
-        description: "Failed to save the layout configuration",
-        variant: "destructive"
-      });
-      console.error('Failed to save layout:', error);
-    }
-  });
 
   // Handle layout changes from react-grid-layout (simplified for grouped sections)
   const handleLayoutChange = (layout: Layout[], allLayouts: Layouts) => {
