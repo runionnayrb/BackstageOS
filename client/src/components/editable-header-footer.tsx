@@ -239,8 +239,6 @@ export default function EditableHeaderFooter({
           onFocus={(e) => {
             console.log(`🎯 ${type.toUpperCase()} FOCUSED - Setting up for editing`);
             setEditingElement(e.currentTarget);
-            // Set raw content for editing (with variables)
-            e.currentTarget.innerHTML = content.replace(/\n/g, '<br>');
           }}
           onMouseUp={(e) => {
             // Only show toolbar when user has actually selected text
