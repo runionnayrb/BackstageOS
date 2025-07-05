@@ -135,10 +135,7 @@ const LayoutItemRenderer: React.FC<{
   switch (item.type) {
     case 'grouped-section':
       return (
-        <div className={cn(
-          "w-full h-full border-2 rounded-lg p-2 space-y-2",
-          isEditMode ? "border-dashed border-blue-300 bg-blue-50/30" : "border-transparent"
-        )}>
+        <div className="w-full h-full p-2 space-y-2">
           {item.children?.map((child, index) => (
             <div key={child.id}>
               <LayoutItemRenderer
