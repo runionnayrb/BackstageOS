@@ -14,6 +14,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
   Settings,
   Users,
   Share2,
@@ -29,7 +40,8 @@ import {
   Shield,
   Clock,
   Mail,
-  ArrowLeft
+  ArrowLeft,
+  Edit3
 } from "lucide-react";
 
 // Helper function to safely parse JSON with error handling
@@ -96,6 +108,8 @@ export default function ShowSettings() {
   const [, setLocation] = useLocation();
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
   const [projectUpdates, setProjectUpdates] = useState<any>({});
+  const [showBasicInfo, setShowBasicInfo] = useState<any>({});
+  const [isEditingBasicInfo, setIsEditingBasicInfo] = useState(false);
 
   const isFullTime = user?.profileType === "fulltime";
   const showLabel = isFullTime ? "Show" : "Project";
@@ -149,6 +163,49 @@ export default function ShowSettings() {
       toast({
         title: "Error",
         description: "Failed to save important dates. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateBasicInfoMutation = useMutation({
+    mutationFn: async (data: { name?: string; venue?: string; description?: string }) => {
+      return await apiRequest("PUT", `/api/projects/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      setIsEditingBasicInfo(false);
+      toast({
+        title: "Show Updated",
+        description: "Show information has been updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update show information. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteProjectMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("DELETE", `/api/projects/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      setLocation("/");
+      toast({
+        title: "Show Deleted",
+        description: "The show has been permanently deleted.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete show. Please try again.",
         variant: "destructive",
       });
     },
@@ -242,6 +299,30 @@ export default function ShowSettings() {
     });
   };
 
+  const handleBasicInfoEdit = () => {
+    if (project) {
+      setShowBasicInfo({
+        name: (project as any).name || "",
+        venue: (project as any).venue || "",
+        description: (project as any).description || "",
+      });
+      setIsEditingBasicInfo(true);
+    }
+  };
+
+  const handleBasicInfoSave = () => {
+    updateBasicInfoMutation.mutate(showBasicInfo);
+  };
+
+  const handleBasicInfoCancel = () => {
+    setIsEditingBasicInfo(false);
+    setShowBasicInfo({});
+  };
+
+  const handleDeleteShow = () => {
+    deleteProjectMutation.mutate();
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -279,8 +360,12 @@ export default function ShowSettings() {
           <p className="text-muted-foreground">{(project as any)?.name} • Configure settings and permissions</p>
         </div>
 
-      <Tabs defaultValue="team" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+      <Tabs defaultValue="general" className="w-full">
+        <TabsList className="grid w-full grid-cols-8">
+          <TabsTrigger value="general" className="flex items-center gap-2">
+            <Edit3 className="h-4 w-4" />
+            General
+          </TabsTrigger>
           <TabsTrigger value="team" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Team
@@ -310,6 +395,123 @@ export default function ShowSettings() {
             Email Settings
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="general" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Show Information</CardTitle>
+              <CardDescription>
+                Manage basic show details and settings.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {!isEditingBasicInfo ? (
+                <div className="space-y-4">
+                  <div>
+                    <Label className="text-sm font-medium">Show Name</Label>
+                    <p className="text-lg">{(project as any)?.name || "Untitled Show"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Venue</Label>
+                    <p className="text-lg">{(project as any)?.venue || "No venue specified"}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Description</Label>
+                    <p className="text-lg">{(project as any)?.description || "No description provided"}</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button onClick={handleBasicInfoEdit} className="flex items-center gap-2">
+                      <Edit3 className="h-4 w-4" />
+                      Edit Show Information
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="showName">Show Name</Label>
+                    <Input
+                      id="showName"
+                      value={showBasicInfo.name || ""}
+                      onChange={(e) => setShowBasicInfo(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Enter show name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="venue">Venue</Label>
+                    <Input
+                      id="venue"
+                      value={showBasicInfo.venue || ""}
+                      onChange={(e) => setShowBasicInfo(prev => ({ ...prev, venue: e.target.value }))}
+                      placeholder="Enter venue"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={showBasicInfo.description || ""}
+                      onChange={(e) => setShowBasicInfo(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Enter show description"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={handleBasicInfoSave}
+                      disabled={updateBasicInfoMutation.isPending}
+                      className="flex items-center gap-2"
+                    >
+                      <Save className="h-4 w-4" />
+                      {updateBasicInfoMutation.isPending ? "Saving..." : "Save Changes"}
+                    </Button>
+                    <Button variant="outline" onClick={handleBasicInfoCancel}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="text-red-600">Danger Zone</CardTitle>
+              <CardDescription>
+                Permanently delete this show and all associated data.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="flex items-center gap-2">
+                    <Trash2 className="h-4 w-4" />
+                    Delete Show
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete "{(project as any)?.name}" 
+                      and remove all show data including reports, contacts, schedules, and templates.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDeleteShow}
+                      className="bg-red-600 hover:bg-red-700"
+                      disabled={deleteProjectMutation.isPending}
+                    >
+                      {deleteProjectMutation.isPending ? "Deleting..." : "Yes, delete show"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="team" className="mt-6">
           <Card>
