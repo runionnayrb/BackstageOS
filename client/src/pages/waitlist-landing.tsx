@@ -4,9 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { useSEO } from "@/hooks/useSEO";
 import { 
   FileText, 
@@ -15,18 +13,7 @@ import {
   Clapperboard, 
   Settings, 
   Shield,
-  Play,
-  CheckCircle,
-  Clock,
-  Zap,
-  Globe,
-  Smartphone,
-  Download,
-  Upload,
-  BarChart3,
-  Lock,
-  ArrowRight,
-  Star
+  CheckCircle
 } from "lucide-react";
 
 export default function WaitlistLanding() {
@@ -118,110 +105,6 @@ export default function WaitlistLanding() {
     }
   };
 
-  const features = [
-    {
-      icon: Clapperboard,
-      title: "Show-Centric Organization",
-      description: "Every production is completely isolated with its own data, team, and workflow."
-    },
-    {
-      icon: FileText,
-      title: "Professional Reports & Templates",
-      description: "Rehearsal, tech, performance, and meeting reports with custom templates."
-    },
-    {
-      icon: Users,
-      title: "Team & Cast Management",
-      description: "Manage contacts, cast assignments, and team collaboration in one place."
-    },
-    {
-      icon: Calendar,
-      title: "Advanced Scheduling",
-      description: "Drag-and-drop calendar with automated call sheet generation, scheduling fittings, and managing availability and conflicts."
-    },
-    {
-      icon: Settings,
-      title: "Script & Cue Management",
-      description: "Built from the ground up for theatrical scripts with call script building, cue tracking, and collaborative editing designed specifically for stage managers."
-    },
-    {
-      icon: Shield,
-      title: "Secure Collaboration",
-      description: "Professional-grade security with role-based permissions, sharing controls, and integrated team chat for real-time communication."
-    },
-    {
-      icon: FileText,
-      title: "Technical Paperwork",
-      description: "Comprehensive tracking for props, costumes, scene shift plots, line set schedules, and mic assignments with detailed status monitoring."
-    },
-    {
-      icon: Clock,
-      title: "Prep",
-      description: "Complete pre-production tools including task management, character scene breakdowns, French scene analysis, production meeting reports, and cast on-boarding workflows."
-    },
-    {
-      icon: BarChart3,
-      title: "Document & Version Control",
-      description: "Professional document versioning with change tracking, collaborative commenting, PDF exports, and automated backup systems to preserve your production history."
-    }
-  ];
-
-  const workflow = [
-    {
-      icon: Upload,
-      title: "Import Your Script",
-      description: "Upload scripts in any format - PDF, Word, RTF, or plain text. Our system intelligently formats them for professional theater use."
-    },
-    {
-      icon: Users,
-      title: "Build Your Team",
-      description: "Invite cast and crew members, assign roles, and manage contact information with comprehensive contact sheets."
-    },
-    {
-      icon: Calendar,
-      title: "Schedule Everything",
-      description: "Create rehearsal schedules, tech schedules, and performance calendars with drag-and-drop simplicity."
-    },
-    {
-      icon: FileText,
-      title: "Generate Reports",
-      description: "Create professional rehearsal, tech, and performance reports with custom templates and automated formatting."
-    },
-    {
-      icon: BarChart3,
-      title: "Track Progress",
-      description: "Monitor props, costumes, cues, and production elements with comprehensive tracking systems."
-    },
-    {
-      icon: Download,
-      title: "Share & Export",
-      description: "Generate PDFs, share secure links, and export data for seamless collaboration with your entire production team."
-    }
-  ];
-
-  const technologies = [
-    {
-      icon: Zap,
-      title: "Redefining Real-Time Collaboration",
-      description: "Industry-first real-time script editing with live presence indicators, instant comments, and collaborative version control designed specifically for theater professionals."
-    },
-    {
-      icon: Globe,
-      title: "Cloud-Native Architecture",
-      description: "Built from the ground up for modern theater companies with automatic backups, universal access, and enterprise-grade reliability."
-    },
-    {
-      icon: Smartphone,
-      title: "Mobile-First Design",
-      description: "Access your production data anywhere - from rehearsal rooms to backstage areas - with our responsive design optimized for theater workflows."
-    },
-    {
-      icon: Lock,
-      title: "Professional Security",
-      description: "Bank-level encryption, secure sharing links, and role-based permissions ensure your production data stays protected and private."
-    }
-  ];
-
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center px-4">
@@ -250,266 +133,134 @@ export default function WaitlistLanding() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-500 via-purple-500 to-purple-600 min-h-screen flex items-center justify-center">
-        <div className="max-w-md mx-auto px-6 py-12 text-center">
-          <h1 className="text-4xl font-bold mb-6 leading-tight text-white">
-            BackstageOS
-          </h1>
-          <p className="text-lg mb-8 text-white/80 leading-relaxed">
-            The redefining stage management platform that's transforming how we collaborate, organize, and execute productions.
-          </p>
-          <div className="flex justify-center space-x-1 mb-4">
-            <Star className="h-5 w-5 text-yellow-400 fill-current" />
-            <Star className="h-5 w-5 text-yellow-400 fill-current" />
-            <Star className="h-5 w-5 text-yellow-400 fill-current" />
-            <Star className="h-5 w-5 text-yellow-400 fill-current" />
-            <Star className="h-5 w-5 text-yellow-400 fill-current" />
-          </div>
-          <p className="text-base mb-8 text-white/70">Loved by professional stage managers worldwide</p>
-          <Button 
-            size="lg" 
-            className="bg-white text-blue-600 hover:bg-gray-100 font-medium px-8 py-3 rounded-lg"
-            onClick={() => document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            Join the Waitlist
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Everything You Need for Professional Stage Management
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              BackstageOS provides comprehensive tools for every phase of the production process, 
-              from prep to closing night.
+    <div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center px-4">
+      <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+        {/* Hero Content */}
+        <div className="text-white space-y-8">
+          <div>
+            <h1 className="text-4xl lg:text-6xl font-bold mb-4 leading-tight">
+              BackstageOS
+            </h1>
+            <p className="text-xl lg:text-2xl opacity-90 leading-relaxed">
+              The complete stage management platform for modern theater professionals
             </p>
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="border-0 shadow-lg">
-                <CardContent className="p-8">
-                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                    <feature.icon className="h-6 w-6 text-primary" />
-                  </div>
-                  <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Workflow Section */}
-      <section className="py-24">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Your Complete Production Workflow
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              From first read-through to closing night, BackstageOS streamlines every step 
-              of your production process.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {workflow.map((step, index) => (
-              <div key={index} className="relative">
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-                    {index + 1}
-                  </div>
-                  <div>
-                    <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
-                      <step.icon className="h-4 w-4 text-primary" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-3">{step.title}</h3>
-                    <p className="text-gray-600">{step.description}</p>
-                  </div>
-                </div>
+          <div className="grid sm:grid-cols-2 gap-6 text-sm">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <Clapperboard className="h-4 w-4" />
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Technology Section */}
-      <section className="py-24 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Pioneering Technology for Stage Managers
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We're not just digitizing old workflows - we're reimagining what's possible 
-              when technology truly serves the art of theater.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-12">
-            {technologies.map((tech, index) => (
-              <div key={index} className="flex items-start space-x-6">
-                <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">
-                  <tech.icon className="h-8 w-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-2xl font-semibold mb-3">{tech.title}</h3>
-                  <p className="text-gray-600 text-lg leading-relaxed">{tech.description}</p>
-                </div>
+              <span>Show-Centric Organization</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <FileText className="h-4 w-4" />
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Waitlist Form Section */}
-      <section id="waitlist-form" className="py-24">
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Join the Beta Version
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Be among the first stage managers to experience the future of theater production management. 
-              Limited beta access is coming soon.
-            </p>
-          </div>
-
-          <Card className="max-w-2xl mx-auto">
-            <CardContent className="p-8">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName">First Name *</Label>
-                    <Input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="lastName">Last Name *</Label>
-                    <Input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="experience">Experience Level</Label>
-                  <Select onValueChange={(value) => handleSelectChange("experience", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select experience" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="professional">Professional</SelectItem>
-                      <SelectItem value="educational">Educational/Academic</SelectItem>
-                      <SelectItem value="community">Community Theater</SelectItem>
-                      <SelectItem value="student">Student</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="howHeard">How did you hear about us?</Label>
-                  <Select onValueChange={(value) => handleSelectChange("howHeard", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select an option" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="social_media">Social Media</SelectItem>
-                      <SelectItem value="referral">Referral from colleague</SelectItem>
-                      <SelectItem value="search">Search Engine</SelectItem>
-                      <SelectItem value="conference">Theater Conference</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="additionalInfo">Tell us about your biggest stage management challenges (optional)</Label>
-                  <Textarea
-                    id="additionalInfo"
-                    name="additionalInfo"
-                    value={formData.additionalInfo}
-                    onChange={handleInputChange}
-                    placeholder="What production challenges could BackstageOS help you solve?"
-                    rows={3}
-                  />
-                </div>
-
-                <Button 
-                  type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-white py-3"
-                  size="lg"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Clock className="mr-2 h-4 w-4 animate-spin" />
-                      Joining Waitlist...
-                    </>
-                  ) : (
-                    <>
-                      Join the Waitlist
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-
-                <p className="text-sm text-gray-500 text-center">
-                  By joining the waitlist, you agree to receive updates about BackstageOS. 
-                  We respect your privacy and will never share your information.
-                </p>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center">
-            <h3 className="text-2xl font-bold mb-4">BackstageOS</h3>
-            <p className="text-gray-400 max-w-2xl mx-auto">
-              Redefining stage management for the modern stage manager.
-            </p>
-            <div className="mt-8 text-sm text-gray-500">
-              © 2025 BackstageOS. All rights reserved.
+              <span>Professional Reports & Templates</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <Users className="h-4 w-4" />
+              </div>
+              <span>Team & Cast Management</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <Calendar className="h-4 w-4" />
+              </div>
+              <span>Scheduling & Call Sheets</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <Settings className="h-4 w-4" />
+              </div>
+              <span>Script & Cue Management</span>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                <Shield className="h-4 w-4" />
+              </div>
+              <span>Secure Collaboration</span>
             </div>
           </div>
         </div>
-      </footer>
+
+        {/* Waitlist Card */}
+        <Card className="max-w-md mx-auto w-full">
+          <CardContent className="p-8">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">Join the Waitlist</h2>
+              <p className="text-gray-600">Be first to access the future of stage management</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="firstName">First Name *</Label>
+                  <Input
+                    id="firstName"
+                    name="firstName"
+                    type="text"
+                    required
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Input
+                    id="lastName"
+                    name="lastName"
+                    type="text"
+                    required
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="experience">Experience Level *</Label>
+                <Select onValueChange={(value) => handleSelectChange('experience', value)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select your experience level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="student">Student/Training</SelectItem>
+                    <SelectItem value="emerging">Emerging Professional (0-2 years)</SelectItem>
+                    <SelectItem value="experienced">Experienced (3-10 years)</SelectItem>
+                    <SelectItem value="senior">Senior Professional (10+ years)</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Joining..." : "Join the Waitlist"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
