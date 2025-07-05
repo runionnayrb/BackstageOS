@@ -70,9 +70,6 @@ export default function AutoResolutionDashboard() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Automatic Resolution Dashboard
             </h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">
-              Phase 4: Advanced error analytics and intelligent resolution tracking
-            </p>
           </div>
         </div>
 
