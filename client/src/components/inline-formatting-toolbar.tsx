@@ -159,21 +159,42 @@ export default function InlineFormattingToolbar({
     if (!targetElement) return;
     
     try {
-      // Ensure element is focused and can receive commands
-      targetElement.focus();
-      
-      // Create a selection if none exists
-      const selection = window.getSelection();
-      if (!selection || selection.rangeCount === 0) {
-        const range = document.createRange();
-        range.selectNodeContents(targetElement);
-        selection?.removeAllRanges();
-        selection?.addRange(range);
+      // Apply CSS styling directly instead of using deprecated execCommand
+      switch (command) {
+        case 'bold':
+          const currentWeight = targetElement.style.fontWeight;
+          targetElement.style.fontWeight = (currentWeight === 'bold' || currentWeight === '700') ? 'normal' : 'bold';
+          break;
+        case 'italic':
+          targetElement.style.fontStyle = targetElement.style.fontStyle === 'italic' ? 'normal' : 'italic';
+          break;
+        case 'underline':
+          targetElement.style.textDecoration = targetElement.style.textDecoration === 'underline' ? 'none' : 'underline';
+          break;
+        case 'justifyLeft':
+          targetElement.style.textAlign = 'left';
+          break;
+        case 'justifyCenter':
+          targetElement.style.textAlign = 'center';
+          break;
+        case 'justifyRight':
+          targetElement.style.textAlign = 'right';
+          break;
+        case 'fontSize':
+          if (value) targetElement.style.fontSize = value;
+          break;
+        case 'fontName':
+          if (value) targetElement.style.fontFamily = value;
+          break;
+        case 'foreColor':
+          if (value) targetElement.style.color = value;
+          break;
+        case 'backColor':
+          if (value) targetElement.style.backgroundColor = value;
+          break;
       }
       
-      // Execute the formatting command
-      const success = document.execCommand(command, false, value);
-      console.log(`Command ${command} executed:`, success);
+      console.log(`Applied ${command} formatting to element`);
       
       // Trigger auto-save if provided
       if (onAutoSave) {
