@@ -91,19 +91,80 @@ export default function EditableHeaderFooter({
         />
       </div>
 
-      {/* Debug Formatting Toolbar - positioned relative to footer */}
+      {/* Formatting Toolbar with actual formatting controls */}
       {showToolbar && (
-        <div className="absolute top-full left-0 mt-2 z-[9999] bg-red-500 text-white border-4 border-yellow-400 rounded-lg shadow-2xl p-4 flex flex-wrap items-center gap-2 min-w-[400px]">
-          <div className="text-lg font-bold">{type.charAt(0).toUpperCase() + type.slice(1)} Formatting Toolbar</div>
-          <div className="text-lg bg-green-300 text-black px-3 py-2 rounded font-bold">✅ TOOLBAR IS WORKING!</div>
+        <div className="absolute top-full left-0 mt-2 z-[9999] bg-white border border-gray-200 rounded-lg shadow-lg p-3 flex flex-wrap items-center gap-2 min-w-[500px]">
+          {/* Bold Button */}
           <button
             onClick={() => {
-              console.log(`🎯 ${type.toUpperCase()} TOOLBAR CLOSE CLICKED`);
+              document.execCommand('bold');
+              console.log(`🎯 ${type.toUpperCase()} BOLD APPLIED`);
+            }}
+            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 border rounded font-bold"
+          >
+            B
+          </button>
+          
+          {/* Italic Button */}
+          <button
+            onClick={() => {
+              document.execCommand('italic');
+              console.log(`🎯 ${type.toUpperCase()} ITALIC APPLIED`);
+            }}
+            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 border rounded italic"
+          >
+            I
+          </button>
+          
+          {/* Underline Button */}
+          <button
+            onClick={() => {
+              document.execCommand('underline');
+              console.log(`🎯 ${type.toUpperCase()} UNDERLINE APPLIED`);
+            }}
+            className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 border rounded underline"
+          >
+            U
+          </button>
+          
+          <div className="h-4 w-px bg-gray-300 mx-2"></div>
+          
+          {/* Font Size */}
+          <select 
+            onChange={(e) => {
+              document.execCommand('fontSize', false, e.target.value);
+              console.log(`🎯 ${type.toUpperCase()} FONT SIZE ${e.target.value} APPLIED`);
+            }}
+            className="px-2 py-1 text-sm border rounded"
+          >
+            <option value="1">Small</option>
+            <option value="3" selected>Normal</option>
+            <option value="5">Large</option>
+            <option value="7">X-Large</option>
+          </select>
+          
+          {/* Text Color */}
+          <input
+            type="color"
+            onChange={(e) => {
+              document.execCommand('foreColor', false, e.target.value);
+              console.log(`🎯 ${type.toUpperCase()} COLOR ${e.target.value} APPLIED`);
+            }}
+            className="w-8 h-8 border rounded cursor-pointer"
+            title="Text Color"
+          />
+          
+          <div className="h-4 w-px bg-gray-300 mx-2"></div>
+          
+          {/* Close Button */}
+          <button
+            onClick={() => {
+              console.log(`🎯 ${type.toUpperCase()} TOOLBAR CLOSED`);
               setShowToolbar(false);
             }}
-            className="ml-2 px-3 py-2 text-lg bg-blue-600 text-white rounded hover:bg-blue-700 font-bold"
+            className="px-3 py-1 text-sm bg-gray-500 text-white rounded hover:bg-gray-600"
           >
-            CLOSE
+            Done
           </button>
         </div>
       )}
