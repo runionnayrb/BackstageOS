@@ -24,6 +24,11 @@ export default function EditableHeaderFooter({
   const [showToolbar, setShowToolbar] = useState(false);
   const { toast } = useToast();
 
+  // Debug state changes
+  useEffect(() => {
+    console.log(`🎯 ${type.toUpperCase()} STATE CHANGED - showToolbar: ${showToolbar}, editingElement:`, editingElement);
+  }, [showToolbar, editingElement, type]);
+
   // Query to fetch show settings including header/footer formatting
   const { data: showSettings } = useQuery<any>({
     queryKey: ['/api/projects', projectId, 'settings'],
@@ -244,8 +249,10 @@ export default function EditableHeaderFooter({
           data-template-footer={type === 'footer' ? "true" : undefined}
           onClick={(e) => {
             console.log(`🎯 ${type.toUpperCase()} CLICKED - Setting up for editing`);
+            console.log(`🎯 Before state change - showToolbar: ${showToolbar}, editingElement:`, editingElement);
             setEditingElement(e.currentTarget);
             setShowToolbar(true);
+            console.log(`🎯 After state change attempt - should show toolbar: true`);
           }}
           onFocus={(e) => {
             console.log(`🎯 ${type.toUpperCase()} FOCUSED - Setting up for editing`);
@@ -286,6 +293,7 @@ export default function EditableHeaderFooter({
       </div>
 
       {/* Inline Formatting Toolbar - Use same positioning approach as field headers */}
+      {console.log(`🎯 ${type.toUpperCase()} RENDERING TOOLBAR - showToolbar: ${showToolbar}, editingElement:`, editingElement)}
       <InlineFormattingToolbar
         targetElement={editingElement}
         isVisible={showToolbar}
