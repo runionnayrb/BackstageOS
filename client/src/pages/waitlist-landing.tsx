@@ -252,32 +252,30 @@ export default function WaitlistLanding() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary to-secondary text-white">
-        <div className="max-w-7xl mx-auto px-4 py-24">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-5xl lg:text-7xl font-bold mb-6 leading-tight">
-              BackstageOS
-            </h1>
-            <p className="text-xl lg:text-2xl mb-8 opacity-90 leading-relaxed">
-              The redefining stage management platform that's transforming how we collaborate, organize, and execute productions.
-            </p>
-            <div className="flex justify-center space-x-2 mb-4">
-              <Star className="h-5 w-5 text-yellow-400 fill-current" />
-              <Star className="h-5 w-5 text-yellow-400 fill-current" />
-              <Star className="h-5 w-5 text-yellow-400 fill-current" />
-              <Star className="h-5 w-5 text-yellow-400 fill-current" />
-              <Star className="h-5 w-5 text-yellow-400 fill-current" />
-            </div>
-            <p className="text-lg mb-8">Loved by professional stage managers worldwide</p>
-            <Button 
-              size="lg" 
-              className="bg-white text-primary hover:bg-gray-100 text-lg px-8 py-4"
-              onClick={() => document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Join the Waitlist
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+      <section className="bg-gradient-to-br from-blue-500 via-purple-500 to-purple-600 text-white min-h-screen flex items-center justify-center">
+        <div className="max-w-md mx-auto px-6 py-12 text-center">
+          <h1 className="text-4xl font-bold mb-6 leading-tight">
+            BackstageOS
+          </h1>
+          <p className="text-lg mb-8 opacity-90 leading-relaxed">
+            The redefining stage management platform that's transforming how we collaborate, organize, and execute productions.
+          </p>
+          <div className="flex justify-center space-x-1 mb-4">
+            <Star className="h-5 w-5 text-yellow-400 fill-current" />
+            <Star className="h-5 w-5 text-yellow-400 fill-current" />
+            <Star className="h-5 w-5 text-yellow-400 fill-current" />
+            <Star className="h-5 w-5 text-yellow-400 fill-current" />
+            <Star className="h-5 w-5 text-yellow-400 fill-current" />
           </div>
+          <p className="text-base mb-8 opacity-90">Loved by professional stage managers worldwide</p>
+          <Button 
+            size="lg" 
+            className="bg-white text-blue-600 hover:bg-gray-100 font-medium px-8 py-3 rounded-lg"
+            onClick={() => document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth' })}
+          >
+            Join the Waitlist
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
         </div>
       </section>
 
