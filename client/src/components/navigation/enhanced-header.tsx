@@ -255,12 +255,10 @@ export default function EnhancedHeader() {
                   <DropdownMenuSeparator />
                   
                   <DropdownMenuItem onClick={() => setLocation('/profile')}>
-                    <Settings className="h-4 w-4 mr-2" />
                     Profile Settings
                   </DropdownMenuItem>
 
                   <DropdownMenuItem onClick={() => setLocation('/feedback')}>
-                    <MessageSquare className="h-4 w-4 mr-2" />
                     Send Feedback
                   </DropdownMenuItem>
 
@@ -268,15 +266,12 @@ export default function EnhancedHeader() {
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => setLocation('/admin')}>
-                        <Shield className="h-4 w-4 mr-2" />
                         Admin Dashboard
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setLocation('/admin/seo')}>
-                        <Globe className="h-4 w-4 mr-2" />
                         SEO Manager
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setLocation('/admin/dns')}>
-                        <Bot className="h-4 w-4 mr-2" />
                         DNS Manager
                       </DropdownMenuItem>
                     </>
@@ -288,7 +283,6 @@ export default function EnhancedHeader() {
                     onClick={() => logoutMutation.mutate()}
                     className="text-red-600 hover:text-red-700"
                   >
-                    <LogOut className="h-4 w-4 mr-2" />
                     Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
