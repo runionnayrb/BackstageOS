@@ -126,9 +126,9 @@ function Router() {
     return <WaitlistLanding />;
   }
   
-  // For dev environment, only show waitlist when explicitly visiting root path AND not authenticated
-  if (isDevEnvironment && window.location.pathname === '/' && !user && !isLoading) {
-    return <WaitlistLanding />;
+  // For dev environment, show authentication page if not authenticated (except for explicit waitlist routes)
+  if (isDevEnvironment && !user && !isLoading && window.location.pathname !== '/landing') {
+    return <AuthPage />;
   }
 
   if (isLoading) {
