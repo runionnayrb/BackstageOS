@@ -252,12 +252,12 @@ export default function WaitlistLanding() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-500 via-purple-500 to-purple-600 text-white min-h-screen flex items-center justify-center">
+      <section className="bg-gradient-to-br from-blue-500 via-purple-500 to-purple-600 min-h-screen flex items-center justify-center">
         <div className="max-w-md mx-auto px-6 py-12 text-center">
-          <h1 className="text-4xl font-bold mb-6 leading-tight">
+          <h1 className="text-4xl font-bold mb-6 leading-tight text-white">
             BackstageOS
           </h1>
-          <p className="text-lg mb-8 opacity-90 leading-relaxed">
+          <p className="text-lg mb-8 text-white/80 leading-relaxed">
             The redefining stage management platform that's transforming how we collaborate, organize, and execute productions.
           </p>
           <div className="flex justify-center space-x-1 mb-4">
@@ -267,7 +267,7 @@ export default function WaitlistLanding() {
             <Star className="h-5 w-5 text-yellow-400 fill-current" />
             <Star className="h-5 w-5 text-yellow-400 fill-current" />
           </div>
-          <p className="text-base mb-8 opacity-90">Loved by professional stage managers worldwide</p>
+          <p className="text-base mb-8 text-white/70">Loved by professional stage managers worldwide</p>
           <Button 
             size="lg" 
             className="bg-white text-blue-600 hover:bg-gray-100 font-medium px-8 py-3 rounded-lg"
