@@ -62,7 +62,9 @@ export default function EditableHeaderFooter({
           data-template-footer={type === 'footer' ? "true" : undefined}
           onClick={() => {
             console.log(`🎯 ${type.toUpperCase()} CLICKED - Setting up for editing`);
+            console.log(`🎯 Before setState: showToolbar = ${showToolbar}`);
             setShowToolbar(true);
+            console.log(`🎯 After setState call (showToolbar should become true)`);
           }}
           onFocus={() => {
             console.log(`🎯 ${type.toUpperCase()} FOCUSED - Setting up for editing`);
@@ -103,8 +105,18 @@ export default function EditableHeaderFooter({
           }
         }}
         showVariables={type === 'header'} // Only show variables for headers, not footers
-        onClose={() => setShowToolbar(false)}
+        onClose={() => {
+          console.log(`🎯 ${type.toUpperCase()} TOOLBAR CLOSED`);
+          setShowToolbar(false);
+        }}
       />
+      
+      {/* Debug info for footer state */}
+      {showToolbar && (
+        <div className="text-xs text-red-500 mt-1">
+          🎯 TOOLBAR ACTIVE: showToolbar={showToolbar.toString()}, type={type}, hasElement={!!headerRef.current}
+        </div>
+      )}
       
       {/* Debug info */}
       <div className="text-xs text-gray-500 mt-1">
