@@ -709,8 +709,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                     size="sm"
                     onClick={() => addNewItem('department-header')}
                   >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Header
+                    <Plus className="h-4 w-4" />
                   </Button>
                   
                   <Button
