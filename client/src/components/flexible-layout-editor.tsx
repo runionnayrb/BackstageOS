@@ -804,10 +804,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                     <DraggableGridItem
                       item={item}
                       isEditMode={isEditMode}
-                      onEdit={() => {
-                        // Handle edit action
-                        console.log('Edit item:', item.id);
-                      }}
                       onDelete={() => removeItem(item.id)}
                     >
                       <LayoutItemRenderer
