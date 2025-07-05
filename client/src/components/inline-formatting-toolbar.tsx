@@ -56,12 +56,12 @@ export default function InlineFormattingToolbar({
       const scrollY = window.pageYOffset || document.documentElement.scrollTop;
       const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
       
-      // Position toolbar centered inside the header
-      // Use viewport-relative positioning (no scroll offset needed for fixed positioning)
+      // Position toolbar above header, centered on the page
       const toolbarWidth = 400; // Approximate toolbar width
+      const viewportWidth = window.innerWidth;
       setPosition({ 
-        top: rect.top + (rect.height / 2) - 20, // Center vertically within header
-        left: rect.left + (rect.width / 2) - (toolbarWidth / 2) // Center horizontally within header
+        top: rect.top - 64, // 64px above the header
+        left: (viewportWidth / 2) - (toolbarWidth / 2) // Center horizontally on viewport
       });
 
       // Update active states when toolbar becomes visible
