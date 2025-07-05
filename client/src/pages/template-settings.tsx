@@ -672,13 +672,13 @@ export default function TemplateSettings() {
                 </CardHeader>
                 <CardContent className="p-8">
                   {/* Document-style Preview */}
-                  <div className="bg-white min-h-[500px] shadow-lg border border-gray-200 mx-auto" style={{ 
+                  <div className="bg-white min-h-[500px] mx-auto" style={{ 
                     width: "8.5in", 
                     padding: "1in",
                     fontFamily: "Arial, sans-serif"
                   }}>
                     {/* Header - Inline Editable */}
-                    <div className="text-center mb-6 pb-4 border-b">
+                    <div className="text-center mb-6 pb-4">
                       <EditableHeaderFooter
                         content={template.header}
                         onChange={(newHeader) => {
@@ -744,7 +744,7 @@ export default function TemplateSettings() {
                                 projectId={projectId}
                                 onApplyToAll={applyFormattingToAllFieldHeaders}
                               />
-                              <div className="border rounded-md px-3 py-2 bg-white text-sm min-h-[40px]">
+                              <div className="px-3 py-2 bg-transparent text-sm min-h-[40px]">
                                 {field.placeholder || "Sample content..."}
                               </div>
                             </div>
@@ -753,7 +753,7 @@ export default function TemplateSettings() {
                     )}
 
                     {/* Footer - Inline Editable */}
-                    <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
+                    <div className="mt-8 pt-4 text-center text-sm text-gray-600">
                       <EditableHeaderFooter
                         content={template.footer}
                         onChange={(newFooter) => {
