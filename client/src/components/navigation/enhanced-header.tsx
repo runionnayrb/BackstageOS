@@ -1,5 +1,4 @@
 import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -184,14 +183,14 @@ export default function EnhancedHeader() {
   const breadcrumbs = getBreadcrumbs();
 
   return (
-    <div className="bg-background border-b border-border-light">
+    <div className="bg-white border-b border-gray-200">
       {/* Main Header */}
-      <div className="notion-container">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo and Navigation */}
           <div className="flex items-center gap-6">
             <div 
-              className="text-xl font-semibold text-text-heading cursor-pointer hover:opacity-75 transition-opacity"
+              className="text-xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
               onClick={() => setLocation('/')}
             >
               BackstageOS
@@ -218,12 +217,10 @@ export default function EnhancedHeader() {
           </div>
 
           {/* Right side - User menu and admin controls */}
-          <div className="flex items-center gap-2">
-            {/* Theme Toggle */}
-            <ThemeToggle />
+          <div className="flex items-center gap-4">
             {/* Admin View As Controls */}
             {isAdmin(user) && switchStatus?.isViewingAs && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-orange-50 text-orange-800 rounded-notion border border-orange-200 text-sm">
+              <div className="flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-800 rounded-md text-sm">
                 <UserCheck className="h-4 w-4" />
                 <span>Viewing as {switchStatus.viewingUser?.firstName || 'User'}</span>
                 <Button
@@ -231,7 +228,7 @@ export default function EnhancedHeader() {
                   size="sm"
                   onClick={() => switchBackMutation.mutate()}
                   disabled={switchBackMutation.isPending}
-                  className="h-6 px-2 ml-2 text-orange-700 hover:bg-orange-100 rounded-notion"
+                  className="h-6 px-2 ml-2 text-orange-700 hover:text-orange-900"
                 >
                   Switch Back
                 </Button>
@@ -242,7 +239,7 @@ export default function EnhancedHeader() {
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2 text-text-body hover:bg-muted rounded-notion transition-colors">
+                  <Button variant="ghost" className="flex items-center gap-2">
                     <span className="font-medium">
                       {user.firstName} {user.lastName}
                       {isAdmin(user) && " - Admin"}
@@ -250,14 +247,14 @@ export default function EnhancedHeader() {
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 notion-fade-in border-border rounded-notion">
-                  <div className="px-3 py-2 text-sm text-text-muted">
+                <DropdownMenuContent align="end" className="w-64">
+                  <div className="px-3 py-2 text-sm text-gray-500">
                     {user.profileType ? user.profileType.charAt(0).toUpperCase() + user.profileType.slice(1) : 'Unknown'} • {user.betaAccess ? user.betaAccess.charAt(0).toUpperCase() + user.betaAccess.slice(1) : 'None'} Access
                   </div>
                   
                   <DropdownMenuSeparator />
                   
-                  <DropdownMenuItem onClick={() => setLocation('/profile')}>
+                  <DropdownMenuItem onClick={() => setLocation('/profile-settings')}>
                     <Settings className="h-4 w-4 mr-2" />
                     Profile Settings
                   </DropdownMenuItem>
