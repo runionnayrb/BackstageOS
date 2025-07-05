@@ -57,13 +57,9 @@ export default function InlineFormattingToolbar({
         const toolbarRect = toolbarRef.current?.getBoundingClientRect();
         
         if (toolbarRect && toolbarRect.height > 0) {
-          // Add scroll offset to account for page scrolling
-          const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-          const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-          
-          // Position above the element with some padding
-          const top = rect.top + scrollY - toolbarRect.height - 8;
-          const left = Math.max(8, rect.left + scrollX + (rect.width - toolbarRect.width) / 2);
+          // Use fixed positioning relative to viewport for stability
+          const top = rect.top - toolbarRect.height - 8;
+          const left = Math.max(8, rect.left + (rect.width - toolbarRect.width) / 2);
           
           // Ensure toolbar doesn't go off-screen
           const maxLeft = window.innerWidth - toolbarRect.width - 8;
