@@ -159,8 +159,22 @@ export default function InlineFormattingToolbar({
     if (!targetElement) return;
     
     try {
+      // Ensure element is focused and can receive commands
       targetElement.focus();
-      document.execCommand(command, false, value);
+      
+      // Create a selection if none exists
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) {
+        const range = document.createRange();
+        range.selectNodeContents(targetElement);
+        selection?.removeAllRanges();
+        selection?.addRange(range);
+      }
+      
+      // Execute the formatting command
+      const success = document.execCommand(command, false, value);
+      console.log(`Command ${command} executed:`, success);
+      
       // Trigger auto-save if provided
       if (onAutoSave) {
         setTimeout(onAutoSave, 100);
