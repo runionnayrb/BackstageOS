@@ -56,10 +56,10 @@ export default function InlineFormattingToolbar({
       const scrollY = window.pageYOffset || document.documentElement.scrollTop;
       const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
       
-      // Fixed position matching the screenshot - always in the same location
+      // Absolute position that stays with the header regardless of scroll
       setPosition({ 
-        top: rect.top + scrollY - 64, // 64px above the header, accounting for scroll
-        left: rect.left + scrollX // Aligned to left edge of header, accounting for scroll
+        top: rect.top + scrollY - 64, // 64px above the header in document coordinates
+        left: rect.left + scrollX // Aligned to left edge of header in document coordinates
       });
 
       // Update active states when toolbar becomes visible
@@ -235,7 +235,7 @@ export default function InlineFormattingToolbar({
   return (
     <div
       ref={toolbarRef}
-      className="fixed z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap items-center gap-1 min-w-max"
+      className="absolute z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap items-center gap-1 min-w-max"
       style={{ 
         top: `${position.top}px`, 
         left: `${position.left}px`,
