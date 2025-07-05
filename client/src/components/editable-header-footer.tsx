@@ -1,8 +1,6 @@
 import { useState, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Bold, Italic, Underline, Type, Palette } from 'lucide-react';
+import InlineFormattingToolbar from './inline-formatting-toolbar';
 
 interface EditableHeaderFooterProps {
   content: string;
@@ -94,67 +92,19 @@ export default function EditableHeaderFooter({
         />
       </div>
 
-      {/* Formatting Toolbar using Popover like department headers */}
-      <Popover open={showToolbar} onOpenChange={setShowToolbar}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="absolute -top-8 right-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 h-6 w-6"
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowToolbar(true);
-            }}
-          >
-            <Type className="h-3 w-3" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80 p-3" align="start">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => document.execCommand('bold')}
-                className="px-2"
-              >
-                <Bold className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => document.execCommand('italic')}
-                className="px-2"
-              >
-                <Italic className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => document.execCommand('underline')}
-                className="px-2"
-              >
-                <Underline className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="color"
-                onChange={(e) => document.execCommand('foreColor', false, e.target.value)}
-                className="w-8 h-8 border rounded cursor-pointer"
-                title="Text Color"
-              />
-              <Button
-                onClick={() => setShowToolbar(false)}
-                variant="outline"
-                size="sm"
-              >
-                Done
-              </Button>
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
+      {/* Use the working InlineFormattingToolbar */}
+      <InlineFormattingToolbar
+        targetElement={showToolbar ? headerRef.current : null}
+        isVisible={showToolbar}
+        onAutoSave={() => {
+          if (headerRef.current) {
+            const newContent = headerRef.current.textContent || '';
+            onChange(newContent);
+          }
+        }}
+        showVariables={type === 'header'} // Only show variables for headers, not footers
+        onClose={() => setShowToolbar(false)}
+      />
       
       {/* Debug info */}
       <div className="text-xs text-gray-500 mt-1">
