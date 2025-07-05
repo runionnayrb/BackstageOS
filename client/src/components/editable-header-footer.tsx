@@ -51,14 +51,20 @@ export default function EditableHeaderFooter({
       .replace(/\{\{totalPages\}\}/g, '1');
   }, [project]);
 
-  // Function to apply formatting to element
-  const applyFormattingToElement = useCallback((element: HTMLElement, formatting: any) => {
-    Object.entries(formatting).forEach(([property, value]) => {
-      if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
-        const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
-        element.style.setProperty(cssProperty, value as string);
-      }
-    });
+  // Function to apply formatting to element with null safety
+  const applyFormattingToElement = useCallback((element: HTMLElement | null, formatting: any) => {
+    if (!element || !element.style || !formatting) return;
+    
+    try {
+      Object.entries(formatting).forEach(([property, value]) => {
+        if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'none' && value !== 'start' && value !== 'normal') {
+          const cssProperty = property.replace(/([A-Z])/g, '-$1').toLowerCase();
+          element.style.setProperty(cssProperty, value as string);
+        }
+      });
+    } catch (error) {
+      console.error('Error applying formatting to element:', error);
+    }
   }, []);
 
   // Apply saved header/footer formatting when component mounts or settings change

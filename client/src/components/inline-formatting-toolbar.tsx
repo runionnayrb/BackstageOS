@@ -132,45 +132,37 @@ export default function InlineFormattingToolbar({
     if (!targetElement) return;
     
     try {
+      // Simple default state - avoid complex DOM queries that can fail
       setActiveStates({
-        bold: document.queryCommandState('bold'),
-        italic: document.queryCommandState('italic'),
-        underline: document.queryCommandState('underline'),
-        justifyLeft: document.queryCommandState('justifyLeft'),
-        justifyCenter: document.queryCommandState('justifyCenter'),
-        justifyRight: document.queryCommandState('justifyRight')
+        bold: false,
+        italic: false,
+        underline: false,
+        justifyLeft: false,
+        justifyCenter: false,
+        justifyRight: false
       });
-    } catch {
-      // Fallback: check computed styles if queryCommandState fails
-      if (targetElement) {
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
-          const container = range.commonAncestorContainer;
-          const element = container.nodeType === Node.TEXT_NODE ? container.parentElement : container as HTMLElement;
-          
-          if (element) {
-            const computedStyle = window.getComputedStyle(element);
-            setActiveStates({
-              bold: computedStyle.fontWeight === 'bold' || parseInt(computedStyle.fontWeight) >= 700,
-              italic: computedStyle.fontStyle === 'italic',
-              underline: computedStyle.textDecoration.includes('underline'),
-              justifyLeft: computedStyle.textAlign === 'left' || computedStyle.textAlign === 'start',
-              justifyCenter: computedStyle.textAlign === 'center',
-              justifyRight: computedStyle.textAlign === 'right' || computedStyle.textAlign === 'end'
-            });
-          }
-        }
-      }
+    } catch (error) {
+      console.error('Error updating active states:', error);
+      // Set safe defaults if anything fails
+      setActiveStates({
+        bold: false,
+        italic: false,
+        underline: false,
+        justifyLeft: false,
+        justifyCenter: false,
+        justifyRight: false
+      });
     }
   };
 
   const executeCommand = (command: string, value?: string) => {
-    if (targetElement) {
+    if (!targetElement) return;
+    
+    try {
       targetElement.focus();
       document.execCommand(command, false, value);
-      // Update active states after command execution
-      setTimeout(updateActiveStates, 10);
+    } catch (error) {
+      console.error('Error executing command:', command, error);
     }
   };
 
