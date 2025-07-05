@@ -346,7 +346,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   }, [template]);
 
   const [configuration, setConfiguration] = useState<FlexibleLayoutConfiguration>(() => ({
-    items: generateLayoutFromTemplate(),
+    items: [],
     gridCols: 12,
     gridRows: 20,
     gridGap: 8
@@ -393,17 +393,18 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     }
   });
 
-  // Regenerate layout when template changes
+  // Initialize layout when template is available
   useEffect(() => {
-    if (template && !((showSettings as any)?.layoutConfiguration)) {
-      setConfiguration({
+    if (template && configuration.items.length === 0) {
+      const initialConfig = {
         items: generateLayoutFromTemplate(),
         gridCols: 12,
         gridRows: 20,
         gridGap: 8
-      });
+      };
+      setConfiguration(initialConfig);
     }
-  }, [template, generateLayoutFromTemplate, showSettings]);
+  }, [template, generateLayoutFromTemplate, configuration.items.length]);
 
   // Load configuration from settings (with migration to grouped format)
   useEffect(() => {
@@ -708,45 +709,48 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           "border rounded-lg p-4 bg-white",
           isEditMode && "bg-gray-50/50"
         )}>
-          <ResponsiveGridLayout
-            className="layout"
-            layouts={layouts}
-            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-            cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-            rowHeight={30}
-            width={1200}
-            margin={[8, 8]}
-            containerPadding={[0, 0]}
-            isDraggable={isEditMode}
-            isResizable={isEditMode}
-            onLayoutChange={handleLayoutChange}
-            draggableHandle=".drag-handle"
-            useCSSTransforms={true}
-            compactType="vertical"
-            preventCollision={false}
-          >
-            {configuration.items.map((item) => (
-              <div key={item.id} className="group">
-                <DraggableGridItem
-                  item={item}
-                  isEditMode={isEditMode}
-                  onEdit={() => {
-                    // Handle edit action
-                    console.log('Edit item:', item.id);
-                  }}
-                  onDelete={() => removeItem(item.id)}
-                >
-                  <LayoutItemRenderer
+          {configuration && (
+            <ResponsiveGridLayout
+              className="layout"
+              layouts={layouts}
+              breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+              cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+              rowHeight={30}
+              width={1200}
+              margin={[8, 8]}
+              containerPadding={[0, 0]}
+              isDraggable={isEditMode}
+              isResizable={isEditMode}
+              onLayoutChange={handleLayoutChange}
+              draggableHandle=".drag-handle"
+              useCSSTransforms={false}
+              compactType="vertical"
+              preventCollision={false}
+              style={{ minHeight: '400px' }}
+            >
+              {configuration.items.map((item) => (
+                <div key={item.id} className="group">
+                  <DraggableGridItem
                     item={item}
-                    projectId={projectId}
-                    reportId={reportId}
-                    reportType={reportType}
                     isEditMode={isEditMode}
-                  />
-                </DraggableGridItem>
-              </div>
-            ))}
-          </ResponsiveGridLayout>
+                    onEdit={() => {
+                      // Handle edit action
+                      console.log('Edit item:', item.id);
+                    }}
+                    onDelete={() => removeItem(item.id)}
+                  >
+                    <LayoutItemRenderer
+                      item={item}
+                      projectId={projectId}
+                      reportId={reportId}
+                      reportType={reportType}
+                      isEditMode={isEditMode}
+                    />
+                  </DraggableGridItem>
+                </div>
+              ))}
+            </ResponsiveGridLayout>
+          )}
         </div>
 
         {/* Layout Info */}

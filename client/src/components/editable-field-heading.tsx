@@ -240,7 +240,7 @@ export default function EditableFieldHeading({
             // Only handle click if no text is currently selected
             const selection = window.getSelection();
             if (!selection || selection.toString().length === 0) {
-              console.log('🎯 Field header clicked, setting toolbar visible');
+
               setEditingElement(e.currentTarget);
               setShowToolbar(true);
               // Set content for editing

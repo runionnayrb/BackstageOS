@@ -250,12 +250,7 @@ export default function InlineFormattingToolbar({
     }
   };
 
-  if (!isVisible) {
-    console.log('🚫 InlineFormattingToolbar not visible');
-    return null;
-  }
-  
-  console.log('✅ InlineFormattingToolbar rendering with position:', position);
+  if (!isVisible) return null;
 
   return (
     <div
