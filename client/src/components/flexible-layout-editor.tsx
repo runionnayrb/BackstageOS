@@ -8,6 +8,16 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { 
   Move, 
   RotateCcw, 
@@ -78,6 +88,7 @@ const DraggableGridItem: React.FC<{
   onDelete?: () => void;
 }> = ({ item, children, isEditMode, onEdit, onDelete }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   return (
     <div 
@@ -96,7 +107,7 @@ const DraggableGridItem: React.FC<{
             size="sm"
             variant="ghost"
             className="h-6 w-6 p-0 text-white hover:text-red-500 hover:bg-transparent"
-            onClick={onDelete}
+            onClick={() => setShowDeleteConfirm(true)}
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -113,6 +124,30 @@ const DraggableGridItem: React.FC<{
       )}
 
       {children}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Element</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this element? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDelete?.();
+                setShowDeleteConfirm(false);
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
