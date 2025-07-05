@@ -51,45 +51,22 @@ export default function InlineFormattingToolbar({
   useEffect(() => {
     console.log(`🔧 Toolbar visibility changed - isVisible: ${isVisible}, targetElement:`, targetElement);
     if (isVisible && targetElement) {
-      // Wait for toolbar to be rendered before calculating position
-      const calculatePosition = () => {
-        const rect = targetElement.getBoundingClientRect();
-        const toolbarRect = toolbarRef.current?.getBoundingClientRect();
-        
-        if (toolbarRect && toolbarRect.height > 0) {
-          // Use fixed positioning relative to viewport for stability
-          const top = rect.top - toolbarRect.height - 8;
-          const left = Math.max(8, rect.left + (rect.width - toolbarRect.width) / 2);
-          
-          // Ensure toolbar doesn't go off-screen
-          const maxLeft = window.innerWidth - toolbarRect.width - 8;
-          const finalLeft = Math.min(left, maxLeft);
-          
-          console.log(`🔧 Toolbar position calculated - top: ${top}, left: ${finalLeft}`);
-          setPosition({ top, left: finalLeft });
-        } else {
-          // If toolbar not yet rendered, set default position based on target element
-          const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-          const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-          
-          setPosition({ 
-            top: rect.top + scrollY - 60, // Estimate toolbar height
-            left: rect.left + scrollX 
-          });
-        }
-      };
-
-      // Calculate position immediately and after short delays for layout
-      calculatePosition();
-      setTimeout(calculatePosition, 10);
-      setTimeout(calculatePosition, 50);
+      // Simple positioning without complex calculations
+      const rect = targetElement.getBoundingClientRect();
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+      
+      setPosition({ 
+        top: rect.top + scrollY - 64, // Simple offset above element
+        left: rect.left + scrollX 
+      });
 
       // Update active states when toolbar becomes visible
       updateActiveStates();
     }
   }, [isVisible, targetElement]);
 
-  // Add event listeners to track formatting changes and repositioning
+  // Add event listeners to track formatting changes only
   useEffect(() => {
     if (!targetElement || !isVisible) return;
 
@@ -101,46 +78,16 @@ export default function InlineFormattingToolbar({
       updateActiveStates();
     };
 
-    const handleScroll = () => {
-      if (isVisible && targetElement && toolbarRef.current) {
-        const rect = targetElement.getBoundingClientRect();
-        const toolbarRect = toolbarRef.current.getBoundingClientRect();
-        
-        // Add scroll offset to account for page scrolling
-        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
-        
-        // Position above the element with some padding
-        const top = rect.top + scrollY - toolbarRect.height - 8;
-        const left = Math.max(8, rect.left + scrollX + (rect.width - toolbarRect.width) / 2);
-        
-        // Ensure toolbar doesn't go off-screen
-        const maxLeft = window.innerWidth - toolbarRect.width - 8;
-        const finalLeft = Math.min(left, maxLeft);
-        
-        setPosition({ top, left: finalLeft });
-      }
-    };
-
     document.addEventListener('selectionchange', handleSelectionChange);
     targetElement.addEventListener('keyup', handleKeyUp);
-    window.addEventListener('scroll', handleScroll, true); // Use capture to catch all scroll events
-    window.addEventListener('resize', handleScroll);
 
     return () => {
       document.removeEventListener('selectionchange', handleSelectionChange);
       targetElement.removeEventListener('keyup', handleKeyUp);
-      window.removeEventListener('scroll', handleScroll, true);
-      window.removeEventListener('resize', handleScroll);
     };
   }, [targetElement, isVisible]);
 
-  // Auto-save when toolbar becomes hidden
-  useEffect(() => {
-    if (!isVisible && onAutoSave) {
-      onAutoSave();
-    }
-  }, [isVisible, onAutoSave]);
+  // Removed auto-save to prevent infinite loops
 
   // Handle click outside to close toolbar
   useEffect(() => {
@@ -224,10 +171,6 @@ export default function InlineFormattingToolbar({
       document.execCommand(command, false, value);
       // Update active states after command execution
       setTimeout(updateActiveStates, 10);
-      // Trigger auto-save after formatting change
-      if (onAutoSave) {
-        setTimeout(onAutoSave, 100);
-      }
     }
   };
 
