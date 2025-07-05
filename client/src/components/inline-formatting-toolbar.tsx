@@ -132,14 +132,16 @@ export default function InlineFormattingToolbar({
     if (!targetElement) return;
     
     try {
-      // Simple default state - avoid complex DOM queries that can fail
+      // Check the computed styles of the target element to show current formatting
+      const computedStyle = window.getComputedStyle(targetElement);
+      
       setActiveStates({
-        bold: false,
-        italic: false,
-        underline: false,
-        justifyLeft: false,
-        justifyCenter: false,
-        justifyRight: false
+        bold: computedStyle.fontWeight === 'bold' || computedStyle.fontWeight === '700' || parseInt(computedStyle.fontWeight) >= 600,
+        italic: computedStyle.fontStyle === 'italic',
+        underline: computedStyle.textDecoration.includes('underline'),
+        justifyLeft: computedStyle.textAlign === 'left' || computedStyle.textAlign === 'start',
+        justifyCenter: computedStyle.textAlign === 'center',
+        justifyRight: computedStyle.textAlign === 'right' || computedStyle.textAlign === 'end'
       });
     } catch (error) {
       console.error('Error updating active states:', error);
@@ -195,6 +197,11 @@ export default function InlineFormattingToolbar({
       }
       
       console.log(`Applied ${command} formatting to element`);
+      
+      // Update active states after formatting change
+      setTimeout(() => {
+        updateActiveStates();
+      }, 50);
       
       // Trigger auto-save if provided
       if (onAutoSave) {
