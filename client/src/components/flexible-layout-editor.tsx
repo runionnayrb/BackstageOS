@@ -135,9 +135,12 @@ const LayoutItemRenderer: React.FC<{
   switch (item.type) {
     case 'grouped-section':
       return (
-        <div className="w-full h-full space-y-1">
+        <div className={cn(
+          "w-full h-full border-2 rounded-lg p-2 space-y-2",
+          isEditMode ? "border-dashed border-blue-300 bg-blue-50/30" : "border-transparent"
+        )}>
           {item.children?.map((child, index) => (
-            <div key={child.id} className={index === 0 ? "mb-1" : ""}>
+            <div key={child.id}>
               <LayoutItemRenderer
                 item={child}
                 projectId={projectId}
@@ -280,7 +283,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     const items: LayoutItem[] = [];
     let currentY = 0;
     
-    // Add all template fields as grouped sections
+    // Add all template fields as grouped sections (full width)
     const templateFields = template.fields
       .filter((field: any) => !field.id.includes('Notes') || field.id === 'notes')
       .sort((a: any, b: any) => a.order - b.order);
@@ -291,8 +294,8 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
         id: `field-section-${field.id}`,
         type: 'grouped-section' as const,
         content: { fieldId: field.id, label: field.label },
-        x: 0, y: currentY, w: 12, h: 3,
-        minW: 6, minH: 3,
+        x: 0, y: currentY, w: 12, h: 4,
+        minW: 8, minH: 4,
         children: [
           {
             id: `field-header-${field.id}`,
@@ -305,28 +308,28 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
             id: `field-notes-${field.id}`,
             type: 'notes' as const,
             content: { fieldId: field.id, placeholder: field.placeholder || "Sample content..." },
-            x: 0, y: 1, w: 12, h: 2,
-            minW: 3, minH: 1
+            x: 0, y: 1, w: 12, h: 3,
+            minW: 3, minH: 2
           }
         ]
       });
       
-      currentY += 4;
+      currentY += 5;
     });
     
-    // Add department sections (typically for tech templates)
+    // Add department sections (wider for better visibility)
     const departments = ['scenic', 'lighting', 'audio', 'video', 'props'];
     departments.forEach((dept, index) => {
       const xPos = (index % 2) * 6; // Alternate between left (0) and right (6)
-      const yPos = currentY + Math.floor(index / 2) * 4;
+      const yPos = currentY + Math.floor(index / 2) * 5;
       
       // Create grouped section containing department header and notes
       items.push({
         id: `dept-section-${dept}`,
         type: 'grouped-section' as const,
         content: { department: dept, displayName: dept.charAt(0).toUpperCase() + dept.slice(1) },
-        x: xPos, y: yPos, w: 6, h: 3,
-        minW: 4, minH: 3,
+        x: xPos, y: yPos, w: 6, h: 4,
+        minW: 5, minH: 4,
         children: [
           {
             id: `dept-header-${dept}`,
@@ -339,8 +342,8 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
             id: `dept-notes-${dept}`,
             type: 'notes' as const,
             content: { department: dept },
-            x: 0, y: 1, w: 6, h: 2,
-            minW: 3, minH: 1
+            x: 0, y: 1, w: 6, h: 3,
+            minW: 3, minH: 2
           }
         ]
       });
@@ -377,12 +380,29 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     }
   }, [template, generateLayoutFromTemplate, showSettings]);
 
-  // Load configuration from settings
+  // Load configuration from settings (with migration to grouped format)
   useEffect(() => {
     if ((showSettings as any)?.layoutConfiguration) {
-      setConfiguration((showSettings as any).layoutConfiguration);
+      const savedConfig = (showSettings as any).layoutConfiguration;
+      
+      // Check if saved config uses old format (individual items) or new format (grouped sections)
+      const hasGroupedSections = savedConfig.items?.some((item: any) => item.type === 'grouped-section');
+      
+      if (!hasGroupedSections && template) {
+        // Migration needed: convert to grouped format
+        console.log('Migrating layout to grouped format');
+        const newConfig = {
+          ...savedConfig,
+          items: generateLayoutFromTemplate()
+        };
+        setConfiguration(newConfig);
+        // Save the migrated configuration
+        saveLayoutMutation.mutate(newConfig);
+      } else {
+        setConfiguration(savedConfig);
+      }
     }
-  }, [showSettings]);
+  }, [showSettings, template, generateLayoutFromTemplate, saveLayoutMutation]);
 
   // Convert configuration items to react-grid-layout format
   const convertToGridLayouts = useCallback((items: LayoutItem[]) => {
