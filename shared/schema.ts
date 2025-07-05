@@ -1280,6 +1280,13 @@ export const seoSettings = pgTable("seo_settings", {
   languageCode: varchar("language_code").default("en-US"), // language for AI understanding
   geoTargeting: varchar("geo_targeting"), // geographic targeting info
   
+  // BIMI (Brand Indicators for Message Identification) Configuration
+  bimiLogoUrl: varchar("bimi_logo_url"), // URL to SVG logo for BIMI
+  bimiLogoAlt: varchar("bimi_logo_alt"), // Alt text for BIMI logo
+  bimiVmcUrl: varchar("bimi_vmc_url"), // URL to Verified Mark Certificate (optional)
+  bimiSelector: varchar("bimi_selector").default("default"), // BIMI selector (usually "default")
+  bimiEnabled: boolean("bimi_enabled").default(false), // Enable/disable BIMI record creation
+  
   isActive: boolean("is_active").default(true),
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),

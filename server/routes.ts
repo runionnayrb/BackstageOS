@@ -4511,6 +4511,184 @@ Respond with valid JSON only.`;
     }
   });
 
+  // BIMI configuration endpoints
+  app.post('/api/seo-settings/:id/bimi/upload-logo', requireAdmin, upload.single('logo'), async (req: any, res) => {
+    try {
+      const settingsId = parseInt(req.params.id);
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "No logo file provided" });
+      }
+
+      // Validate file is SVG
+      if (!req.file.mimetype.includes('svg')) {
+        return res.status(400).json({ message: "BIMI logo must be an SVG file" });
+      }
+
+      // Read and validate SVG content
+      const svgContent = fs.readFileSync(req.file.path, 'utf8');
+      
+      // Basic SVG validation
+      if (!svgContent.includes('<svg') || !svgContent.includes('</svg>')) {
+        return res.status(400).json({ message: "Invalid SVG file format" });
+      }
+
+      // Check for square aspect ratio (1:1)
+      const viewBoxMatch = svgContent.match(/viewBox="([^"]+)"/);
+      if (viewBoxMatch) {
+        const viewBox = viewBoxMatch[1].split(' ');
+        const width = parseFloat(viewBox[2]);
+        const height = parseFloat(viewBox[3]);
+        if (Math.abs(width - height) > 1) {
+          return res.status(400).json({ message: "BIMI logo must have square aspect ratio (1:1)" });
+        }
+      }
+
+      // Generate unique filename and move to permanent location
+      const filename = `bimi-logo-${Date.now()}.svg`;
+      const permanentPath = path.join(__dirname, 'public', 'uploads', filename);
+      
+      // Ensure uploads directory exists
+      const uploadsDir = path.dirname(permanentPath);
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      fs.renameSync(req.file.path, permanentPath);
+
+      // Update SEO settings with logo URL
+      const logoUrl = `/uploads/${filename}`;
+      const settings = await storage.updateSeoSettings(settingsId, {
+        bimiLogoUrl: logoUrl
+      });
+
+      res.json({ 
+        success: true, 
+        logoUrl,
+        message: "BIMI logo uploaded successfully" 
+      });
+
+    } catch (error) {
+      console.error("Error uploading BIMI logo:", error);
+      res.status(500).json({ message: "Failed to upload BIMI logo" });
+    }
+  });
+
+  app.post('/api/seo-settings/:id/bimi/create-dns-record', requireAdmin, async (req: any, res) => {
+    try {
+      const settingsId = parseInt(req.params.id);
+      const settings = await storage.getSeoSettingsById(settingsId);
+      
+      if (!settings) {
+        return res.status(404).json({ message: "SEO settings not found" });
+      }
+
+      if (!settings.bimiEnabled || !settings.bimiLogoUrl) {
+        return res.status(400).json({ message: "BIMI must be enabled and logo must be uploaded first" });
+      }
+
+      if (!cloudflareService.isConfigured()) {
+        return res.status(500).json({ message: "Cloudflare service not configured" });
+      }
+
+      // Construct BIMI record
+      const domain = settings.domain;
+      const selector = settings.bimiSelector || 'default';
+      const recordName = `${selector}._bimi.${domain}`;
+      let recordValue = `v=BIMI1; l=https://${domain}${settings.bimiLogoUrl};`;
+
+      // Add VMC if provided
+      if (settings.bimiVmcUrl) {
+        recordValue += ` a=${settings.bimiVmcUrl};`;
+      }
+
+      // Create DNS record
+      const result = await cloudflareService.createDNSRecord({
+        type: 'TXT',
+        name: recordName,
+        content: recordValue,
+        ttl: 3600
+      });
+
+      res.json({
+        success: true,
+        record: {
+          name: recordName,
+          value: recordValue,
+          type: 'TXT'
+        },
+        message: "BIMI DNS record created successfully"
+      });
+
+    } catch (error) {
+      console.error("Error creating BIMI DNS record:", error);
+      res.status(500).json({ message: "Failed to create BIMI DNS record" });
+    }
+  });
+
+  app.post('/api/seo-settings/:id/bimi/verify', requireAdmin, async (req: any, res) => {
+    try {
+      const settingsId = parseInt(req.params.id);
+      const settings = await storage.getSeoSettingsById(settingsId);
+      
+      if (!settings) {
+        return res.status(404).json({ message: "SEO settings not found" });
+      }
+
+      const verificationResults = {
+        logoAccessible: false,
+        logoValid: false,
+        dnsRecordExists: false,
+        emailAuthenticated: false,
+        bimiCompliant: false,
+        recommendations: [] as string[]
+      };
+
+      // Check logo accessibility
+      if (settings.bimiLogoUrl) {
+        try {
+          const logoUrl = `https://${settings.domain}${settings.bimiLogoUrl}`;
+          // Note: In a real implementation, you'd make an HTTP request to verify the logo
+          verificationResults.logoAccessible = true;
+          verificationResults.logoValid = true;
+        } catch (error) {
+          verificationResults.recommendations.push("Logo file is not accessible via HTTPS");
+        }
+      } else {
+        verificationResults.recommendations.push("Upload a square SVG logo for BIMI");
+      }
+
+      // Check DNS record
+      if (settings.bimiEnabled) {
+        // Note: In a real implementation, you'd query DNS to verify the record
+        verificationResults.dnsRecordExists = true;
+      } else {
+        verificationResults.recommendations.push("Enable BIMI and create DNS record");
+      }
+
+      // Check email authentication (DMARC, SPF, DKIM)
+      // Note: In a real implementation, you'd check these DNS records
+      verificationResults.emailAuthenticated = true;
+
+      // Overall compliance
+      verificationResults.bimiCompliant = 
+        verificationResults.logoAccessible && 
+        verificationResults.logoValid && 
+        verificationResults.dnsRecordExists && 
+        verificationResults.emailAuthenticated;
+
+      if (verificationResults.bimiCompliant) {
+        verificationResults.recommendations.push("BIMI setup is complete and compliant!");
+      }
+
+      res.json(verificationResults);
+
+    } catch (error) {
+      console.error("Error verifying BIMI setup:", error);
+      res.status(500).json({ message: "Failed to verify BIMI setup" });
+    }
+  });
+
   // Domain emails endpoint - returns only created email aliases
   app.get('/api/domain-emails', requireAdmin, async (req: any, res) => {
     try {

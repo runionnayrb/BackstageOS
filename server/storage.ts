@@ -261,6 +261,7 @@ export interface IStorage {
 
   // SEO settings operations
   getSeoSettings(domain: string): Promise<SeoSettings | undefined>;
+  getSeoSettingsById(id: number): Promise<SeoSettings | undefined>;
   getAllSeoSettings(): Promise<SeoSettings[]>;
   createSeoSettings(settings: InsertSeoSettings): Promise<SeoSettings>;
   updateSeoSettings(id: number, settings: Partial<InsertSeoSettings>): Promise<SeoSettings>;
@@ -1101,6 +1102,15 @@ export class DatabaseStorage implements IStorage {
     const result = await db.select()
       .from(seoSettings)
       .where(eq(seoSettings.domain, domain))
+      .limit(1);
+    
+    return result[0];
+  }
+
+  async getSeoSettingsById(id: number): Promise<SeoSettings | undefined> {
+    const result = await db.select()
+      .from(seoSettings)
+      .where(eq(seoSettings.id, id))
       .limit(1);
     
     return result[0];

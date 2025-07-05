@@ -37,6 +37,11 @@ const formSchema = insertSeoSettingsSchema.transform((data) => ({
   functionalityTags: data.functionalityTags ?? "",
   canonicalUrl: data.canonicalUrl ?? "",
   geoTargeting: data.geoTargeting ?? "",
+  bimiLogoUrl: data.bimiLogoUrl ?? "",
+  bimiLogoAlt: data.bimiLogoAlt ?? "",
+  bimiVmcUrl: data.bimiVmcUrl ?? "",
+  bimiSelector: data.bimiSelector ?? "default",
+  bimiEnabled: data.bimiEnabled ?? false,
 }));
 
 type FormData = z.infer<typeof formSchema>;
@@ -100,6 +105,11 @@ function SeoManagerContent() {
       canonicalUrl: "",
       languageCode: "en-US",
       geoTargeting: "",
+      bimiLogoUrl: "",
+      bimiLogoAlt: "",
+      bimiVmcUrl: "",
+      bimiSelector: "default",
+      bimiEnabled: false,
       isActive: true
     }
   });
@@ -161,6 +171,82 @@ function SeoManagerContent() {
       });
     }
   });
+
+  // BIMI management functions
+  const handleBimiUpload = (settingsId: number) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.svg';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('logo', file);
+
+      try {
+        const res = await fetch(`/api/seo-settings/${settingsId}/bimi/upload-logo`, {
+          method: 'POST',
+          body: formData,
+        });
+        
+        const result = await res.json();
+        
+        if (res.ok) {
+          queryClient.invalidateQueries({ queryKey: ['/api/seo-settings'] });
+          toast({ title: "BIMI logo uploaded successfully" });
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (error: any) {
+        toast({ 
+          title: "Error", 
+          description: error.message || "Failed to upload BIMI logo",
+          variant: "destructive" 
+        });
+      }
+    };
+    input.click();
+  };
+
+  const handleBimiCreateDNS = async (settingsId: number) => {
+    try {
+      const res = await apiRequest('POST', `/api/seo-settings/${settingsId}/bimi/create-dns-record`);
+      const result = await res.json();
+      
+      toast({ 
+        title: "BIMI DNS record created",
+        description: `Created TXT record: ${result.record.name}`
+      });
+    } catch (error: any) {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to create BIMI DNS record",
+        variant: "destructive" 
+      });
+    }
+  };
+
+  const handleBimiVerify = async (settingsId: number) => {
+    try {
+      const res = await apiRequest('POST', `/api/seo-settings/${settingsId}/bimi/verify`);
+      const result = await res.json();
+      
+      const status = result.bimiCompliant ? "✅ BIMI Setup Complete" : "⚠️ BIMI Issues Found";
+      const details = result.recommendations.join(', ');
+      
+      toast({ 
+        title: status,
+        description: details
+      });
+    } catch (error: any) {
+      toast({ 
+        title: "Error", 
+        description: error.message || "Failed to verify BIMI setup",
+        variant: "destructive" 
+      });
+    }
+  };
 
   const onSubmit = (data: FormData) => {
     if (selectedSettings) {
@@ -953,6 +1039,103 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                         />
                       </div>
 
+                      {/* BIMI Configuration */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium flex items-center">
+                          <Image className="mr-2 h-5 w-5" />
+                          BIMI (Brand Indicators for Message Identification)
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Configure your brand logo to appear in email clients like Gmail and Apple Mail.
+                        </p>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="bimiEnabled"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                <div className="space-y-0.5">
+                                  <FormLabel className="text-base">Enable BIMI</FormLabel>
+                                  <FormDescription>
+                                    Activate BIMI for this domain
+                                  </FormDescription>
+                                </div>
+                                <FormControl>
+                                  <input
+                                    type="checkbox"
+                                    checked={field.value}
+                                    onChange={field.onChange}
+                                    className="h-4 w-4"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="bimiSelector"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>BIMI Selector</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="default" {...field} value={field.value || "default"} />
+                                </FormControl>
+                                <FormDescription>DNS selector for BIMI record (usually "default")</FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <FormField
+                          control={form.control}
+                          name="bimiLogoUrl"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>BIMI Logo URL</FormLabel>
+                              <FormControl>
+                                <Input placeholder="/uploads/bimi-logo.svg" {...field} value={field.value || ""} />
+                              </FormControl>
+                              <FormDescription>Square SVG logo accessible via HTTPS</FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="bimiLogoAlt"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Logo Alt Text</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="BackstageOS Logo" {...field} value={field.value || ""} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="bimiVmcUrl"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>VMC URL (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="https://certificate-authority.com/vmc.pem" {...field} value={field.value || ""} />
+                                </FormControl>
+                                <FormDescription>Verified Mark Certificate URL</FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
                       <div className="flex justify-end space-x-4">
                         <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                           Cancel
@@ -1084,6 +1267,53 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                               <Bot className="h-3 w-3" />
                               <span>Industry: {settings.industryVertical}</span>
                             </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-medium mb-2">BIMI Configuration</h4>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex items-center space-x-2">
+                              <Image className="h-3 w-3" />
+                              <span>Status: {settings.bimiEnabled ? "Enabled" : "Disabled"}</span>
+                            </div>
+                            {settings.bimiLogoUrl && (
+                              <div className="flex items-center space-x-2">
+                                <Image className="h-3 w-3" />
+                                <span>Logo: {settings.bimiLogoUrl}</span>
+                              </div>
+                            )}
+                            {settings.bimiEnabled && (
+                              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-2">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleBimiUpload(settings.id)}
+                                  className="w-full sm:w-auto"
+                                >
+                                  <Upload className="h-3 w-3 mr-1" />
+                                  Upload Logo
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleBimiCreateDNS(settings.id)}
+                                  className="w-full sm:w-auto"
+                                >
+                                  <Settings className="h-3 w-3 mr-1" />
+                                  Create DNS
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleBimiVerify(settings.id)}
+                                  className="w-full sm:w-auto"
+                                >
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  Verify
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
