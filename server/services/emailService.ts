@@ -1,5 +1,5 @@
 import { and, eq, desc, sql, count, or } from "drizzle-orm";
-import { db } from "../storage.js";
+import { db } from "../db.js";
 import {
   emailAccounts,
   emailThreads,
