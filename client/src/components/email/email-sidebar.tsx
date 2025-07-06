@@ -1,28 +1,26 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { 
-  Inbox, 
-  Send, 
-  Trash2, 
-  Archive, 
-  Clock, 
-  Star,
+import {
+  Mail,
+  Send,
+  Archive,
+  Trash2,
+  ArrowLeft,
+  ChevronDown,
   Plus,
   Settings,
-  Mail,
   Edit,
-  ChevronDown,
-  ArrowLeft
+  Inbox,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 interface EmailAccount {
   id: number;
@@ -62,15 +60,13 @@ export function EmailSidebar({
   onCompose,
   isCollapsed,
   onToggleCollapse,
-  accountStats
+  accountStats,
 }: EmailSidebarProps) {
   const [activeFolder, setActiveFolder] = useState("inbox");
 
   const folders = [
     { id: "inbox", name: "Inbox", icon: Inbox, count: accountStats?.unreadMessages || 0 },
     { id: "sent", name: "Sent", icon: Send, count: 0 },
-    { id: "drafts", name: "Drafts", icon: Clock, count: accountStats?.draftCount || 0 },
-    { id: "starred", name: "Starred", icon: Star, count: 0 },
     { id: "archive", name: "Archive", icon: Archive, count: 0 },
     { id: "trash", name: "Trash", icon: Trash2, count: 0 },
   ];
@@ -100,60 +96,60 @@ export function EmailSidebar({
         {/* Account Selector */}
         {selectedAccount && (
           <div className="space-y-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <div className="flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors hover:bg-gray-50">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {selectedAccount.displayName}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">
-                      {selectedAccount.emailAddress}
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <ChevronDown className="h-4 w-4 text-gray-400" />
-                    <div
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onCompose();
-                      }}
-                      className="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 hover:text-blue-600 cursor-pointer"
-                    >
-                      <Edit className="h-4 w-4" />
+            <div className="relative">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="flex items-center justify-between p-2 pr-12 rounded-md cursor-pointer transition-colors hover:bg-gray-50">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {selectedAccount.displayName}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {selectedAccount.emailAddress}
+                      </p>
+                    </div>
+                    <div className="flex items-center">
+                      <ChevronDown className="h-4 w-4 text-gray-400" />
                     </div>
                   </div>
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-64" align="start">
-                {emailAccounts.map((account) => (
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-64" align="start">
+                  {emailAccounts.map((account) => (
+                    <DropdownMenuItem
+                      key={account.id}
+                      onClick={() => onAccountSelect(account)}
+                      className={cn(
+                        "flex flex-col items-start space-y-1 p-3",
+                        selectedAccount?.id === account.id && "bg-gray-50"
+                      )}
+                    >
+                      <p className="text-sm font-medium text-gray-900">
+                        {account.displayName}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {account.emailAddress}
+                      </p>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    key={account.id}
-                    onClick={() => onAccountSelect(account)}
-                    className={cn(
-                      "flex flex-col items-start space-y-1 p-3",
-                      selectedAccount?.id === account.id && "bg-gray-50"
-                    )}
+                    onClick={onCreateAccount}
+                    className="flex items-center space-x-2 p-3"
                   >
-                    <p className="text-sm font-medium text-gray-900">
-                      {account.displayName}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {account.emailAddress}
-                    </p>
+                    <Plus className="h-4 w-4" />
+                    <span className="text-sm">Add new account</span>
                   </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={onCreateAccount}
-                  className="flex items-center space-x-2 p-3"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span className="text-sm">Add new account</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              {/* Compose button positioned absolutely */}
+              <div
+                onClick={onCompose}
+                className="absolute top-2 right-2 h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 hover:text-blue-600 cursor-pointer z-10"
+              >
+                <Edit className="h-4 w-4" />
+              </div>
+            </div>
           </div>
         )}
       </div>
