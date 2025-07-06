@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,16 @@ export default function EmailManager() {
     queryKey: ['/api/email/accounts'],
     enabled: setupCompleted,
   });
+
+  // Auto-select default account or first account when available
+  useEffect(() => {
+    if (emailAccounts.length > 0 && !selectedAccount) {
+      // Find default account or use first account
+      const defaultAccount = emailAccounts.find((account: EmailAccount) => account.isDefault);
+      const accountToSelect = defaultAccount || emailAccounts[0];
+      setSelectedAccount(accountToSelect);
+    }
+  }, [emailAccounts, selectedAccount]);
 
   const { data: emailStats, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/email/accounts', selectedAccount?.id, 'stats'],
@@ -289,95 +299,46 @@ export default function EmailManager() {
           </Dialog>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Email Accounts List */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="w-5 h-5" />
-                  Email Accounts
-                </CardTitle>
-                <CardDescription>
-                  Your @backstageos.com email addresses
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {accountsLoading ? (
-                  <div className="space-y-3">
-                    {[...Array(3)].map((_, i) => (
-                      <div key={i} className="animate-pulse">
-                        <div className="h-16 bg-gray-200 rounded"></div>
-                      </div>
-                    ))}
-                  </div>
-                ) : emailAccounts.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <Mail className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p>No email accounts yet</p>
-                    <p className="text-sm">Create your first @backstageos.com address</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {emailAccounts.map((account: EmailAccount) => (
-                      <div
-                        key={account.id}
-                        onClick={() => setSelectedAccount(account)}
-                        className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                          selectedAccount?.id === account.id
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium text-gray-900 truncate">
-                              {account.displayName}
-                            </p>
-                            <p className="text-sm text-gray-600 truncate">
-                              {account.emailAddress}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant={account.accountType === 'personal' ? 'default' : 'secondary'}>
-                                {account.accountType}
-                              </Badge>
-                              {account.isDefault && (
-                                <Badge variant="outline">Default</Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+        {/* Main Content - Full Width Email Interface */}
+        {accountsLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading email system...</p>
+            </div>
           </div>
-
-          {/* Email Interface */}
-          <div className="lg:col-span-2">
-            {selectedAccount ? (
-              <EmailInterface 
-                selectedAccount={selectedAccount} 
-                onBack={() => setSelectedAccount(null)}
-              />
-            ) : (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <Mail className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Select an Email Account
-                  </h3>
-                  <p className="text-gray-500">
-                    Choose an email account from the left to view your inbox
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+        ) : (emailAccounts as EmailAccount[]).length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Mail className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No Email Accounts Yet
+              </h3>
+              <p className="text-gray-500 mb-4">
+                Create your first @backstageos.com address to get started
+              </p>
+              <Button 
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Create Your First Account
+              </Button>
+            </CardContent>
+          </Card>
+        ) : selectedAccount ? (
+          <EmailInterface 
+            selectedAccount={selectedAccount} 
+            onBack={() => setSelectedAccount(null)}
+          />
+        ) : (
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading inbox...</p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
