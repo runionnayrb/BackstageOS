@@ -85,31 +85,22 @@ export function EmailSidebar({
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-100">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Email</h2>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleCollapse}
-            className="h-8 w-8 p-0 hover:bg-gray-100"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </div>
-
         {/* Account Selector */}
         {selectedAccount && (
           <div className="space-y-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <div className="flex items-center space-x-2 p-2 rounded-md cursor-pointer transition-colors hover:bg-gray-50">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {selectedAccount.displayName}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">
-                      {selectedAccount.emailAddress}
-                    </p>
+                <div className="flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors hover:bg-gray-50">
+                  <div className="flex items-center space-x-3">
+                    <h2 className="text-lg font-semibold text-gray-900">Email</h2>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {selectedAccount.displayName}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {selectedAccount.emailAddress}
+                      </p>
+                    </div>
                   </div>
                   <div className="flex items-center space-x-1">
                     <ChevronDown className="h-4 w-4 text-gray-400" />
@@ -123,6 +114,17 @@ export function EmailSidebar({
                       className="h-8 w-8 p-0 hover:text-blue-600"
                     >
                       <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleCollapse();
+                      }}
+                      className="h-8 w-8 p-0 hover:bg-gray-100"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
