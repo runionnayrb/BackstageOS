@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { 
   Inbox, 
   Send, 
@@ -11,7 +18,8 @@ import {
   Plus,
   Settings,
   Mail,
-  Edit
+  Edit,
+  ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -89,38 +97,63 @@ export function EmailSidebar({
         </div>
 
         {/* Account Selector */}
-        {emailAccounts.length > 0 && (
+        {selectedAccount && (
           <div className="space-y-2">
-            {emailAccounts.map((account) => (
-              <div
-                key={account.id}
-                onClick={() => onAccountSelect(account)}
-                className={cn(
-                  "flex items-center space-x-2 p-2 rounded-md cursor-pointer transition-colors",
-                  "hover:bg-gray-50"
-                )}
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {account.displayName}
-                  </p>
-                  <p className="text-xs text-gray-500 truncate">
-                    {account.emailAddress}
-                  </p>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className="flex items-center space-x-2 p-2 rounded-md cursor-pointer transition-colors hover:bg-gray-50">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {selectedAccount.displayName}
+                    </p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {selectedAccount.emailAddress}
+                    </p>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onCompose();
+                      }}
+                      className="h-8 w-8 p-0 hover:text-blue-600"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <ChevronDown className="h-4 w-4 text-gray-400" />
+                  </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCompose();
-                  }}
-                  className="h-8 w-8 p-0 hover:text-blue-600"
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64" align="start">
+                {emailAccounts.map((account) => (
+                  <DropdownMenuItem
+                    key={account.id}
+                    onClick={() => onAccountSelect(account)}
+                    className={cn(
+                      "flex flex-col items-start space-y-1 p-3",
+                      selectedAccount?.id === account.id && "bg-gray-50"
+                    )}
+                  >
+                    <p className="text-sm font-medium text-gray-900">
+                      {account.displayName}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {account.emailAddress}
+                    </p>
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={onCreateAccount}
+                  className="flex items-center space-x-2 p-3"
                 >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+                  <Plus className="h-4 w-4" />
+                  <span className="text-sm">Add new account</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         )}
       </div>
