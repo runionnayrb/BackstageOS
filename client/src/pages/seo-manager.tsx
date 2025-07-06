@@ -605,7 +605,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
                 size="default"
               >
                 <Globe className="mr-2 h-4 w-4" />
-                <span className="hidden sm:inline">Test SEO & </span>Connectivity
+                Test SEO & Connectivity
               </Button>
               <Button
                 variant={viewMode === 'list' ? 'default' : 'outline'}
