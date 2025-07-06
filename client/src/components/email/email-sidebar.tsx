@@ -117,7 +117,7 @@ export function EmailSidebar({
                     e.stopPropagation();
                     onCompose();
                   }}
-                  className="h-8 w-8 p-0 opacity-60 hover:opacity-100 hover:bg-blue-50"
+                  className="h-8 w-8 p-0"
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
