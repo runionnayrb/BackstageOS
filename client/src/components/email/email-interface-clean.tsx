@@ -112,7 +112,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
 
 
         {/* Search Bar */}
-        <div className="p-4 border-b">
+        <div className="p-4 border-b flex justify-end">
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
