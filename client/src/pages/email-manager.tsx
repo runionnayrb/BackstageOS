@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from "@/hooks/use-toast";
 import { Mail, Plus, Settings, FolderOpen, Users, BarChart3, Inbox, Send, Trash2, Archive, Clock, Menu, X } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
-import { EmailInterface } from "@/components/email/email-interface";
+import { EmailInterface } from "@/components/email/email-interface-clean";
 import { EmailSidebar } from "@/components/email/email-sidebar";
 
 interface EmailAccount {
