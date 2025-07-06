@@ -340,6 +340,11 @@ class CloudflareService {
     }
   }
 
+  async createEmailRule(emailAddress: string, destination: string): Promise<any> {
+    // Alias for createEmailForward to match EmailService interface
+    return this.createEmailForward(emailAddress.split('@')[0], destination);
+  }
+
   isConfigured(): boolean {
     return !!((this.apiToken || (this.apiEmail && this.apiKey)) && this.zoneId);
   }

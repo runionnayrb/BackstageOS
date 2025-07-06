@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { toast } from "@/hooks/use-toast";
 import { Mail, Plus, Settings, FolderOpen, Users, BarChart3, Inbox, Send, Trash2, Archive, Clock } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { EmailInterface } from "@/components/email/email-interface";
 
 interface EmailAccount {
   id: number;
@@ -339,129 +340,10 @@ export default function EmailManager() {
           {/* Email Interface */}
           <div className="lg:col-span-2">
             {selectedAccount ? (
-              <div className="space-y-6">
-                {/* Account Overview */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings className="w-5 h-5" />
-                      {selectedAccount.displayName}
-                    </CardTitle>
-                    <CardDescription>
-                      {selectedAccount.emailAddress}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-4 bg-blue-50 rounded-lg">
-                        <Inbox className="w-6 h-6 mx-auto mb-2 text-blue-600" />
-                        <div className="text-2xl font-bold text-blue-900">
-                          {statsLoading ? "..." : emailStats?.unreadMessages || 0}
-                        </div>
-                        <div className="text-sm text-blue-700">Unread</div>
-                      </div>
-                      
-                      <div className="text-center p-4 bg-green-50 rounded-lg">
-                        <Send className="w-6 h-6 mx-auto mb-2 text-green-600" />
-                        <div className="text-2xl font-bold text-green-900">
-                          {statsLoading ? "..." : emailStats?.totalMessages || 0}
-                        </div>
-                        <div className="text-sm text-green-700">Total</div>
-                      </div>
-                      
-                      <div className="text-center p-4 bg-purple-50 rounded-lg">
-                        <FolderOpen className="w-6 h-6 mx-auto mb-2 text-purple-600" />
-                        <div className="text-2xl font-bold text-purple-900">
-                          {statsLoading ? "..." : emailStats?.threadsCount || 0}
-                        </div>
-                        <div className="text-sm text-purple-700">Threads</div>
-                      </div>
-                      
-                      <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                        <Clock className="w-6 h-6 mx-auto mb-2 text-yellow-600" />
-                        <div className="text-2xl font-bold text-yellow-900">
-                          {statsLoading ? "..." : emailStats?.draftCount || 0}
-                        </div>
-                        <div className="text-sm text-yellow-700">Drafts</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Email Folders */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <FolderOpen className="w-5 h-5" />
-                      Email Folders
-                    </CardTitle>
-                    <CardDescription>
-                      Organize your email communications
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                      {[
-                        { name: "Inbox", icon: Inbox, color: "blue" },
-                        { name: "Sent", icon: Send, color: "green" },
-                        { name: "Drafts", icon: Clock, color: "yellow" },
-                        { name: "Archive", icon: Archive, color: "gray" },
-                        { name: "Trash", icon: Trash2, color: "red" },
-                      ].map((folder) => (
-                        <div
-                          key={folder.name}
-                          className={`p-4 border rounded-lg cursor-pointer hover:bg-${folder.color}-50 transition-colors`}
-                        >
-                          <folder.icon className={`w-6 h-6 mb-2 text-${folder.color}-600`} />
-                          <div className="font-medium">{folder.name}</div>
-                          <div className="text-sm text-gray-500">0 messages</div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Quick Actions */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Quick Actions</CardTitle>
-                    <CardDescription>
-                      Common email tasks for stage managers
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Button variant="outline" className="justify-start h-auto p-4">
-                        <div className="text-left">
-                          <div className="font-medium">Compose Email</div>
-                          <div className="text-sm text-gray-500">Send a new message</div>
-                        </div>
-                      </Button>
-                      
-                      <Button variant="outline" className="justify-start h-auto p-4">
-                        <div className="text-left">
-                          <div className="font-medium">Call Sheet Email</div>
-                          <div className="text-sm text-gray-500">Send daily call sheet to cast/crew</div>
-                        </div>
-                      </Button>
-                      
-                      <Button variant="outline" className="justify-start h-auto p-4">
-                        <div className="text-left">
-                          <div className="font-medium">Rehearsal Notes</div>
-                          <div className="text-sm text-gray-500">Email rehearsal reports</div>
-                        </div>
-                      </Button>
-                      
-                      <Button variant="outline" className="justify-start h-auto p-4">
-                        <div className="text-left">
-                          <div className="font-medium">Show Updates</div>
-                          <div className="text-sm text-gray-500">Broadcast production updates</div>
-                        </div>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <EmailInterface 
+                selectedAccount={selectedAccount} 
+                onBack={() => setSelectedAccount(null)}
+              />
             ) : (
               <Card>
                 <CardContent className="text-center py-12">
@@ -470,7 +352,7 @@ export default function EmailManager() {
                     Select an Email Account
                   </h3>
                   <p className="text-gray-500">
-                    Choose an email account from the left to view details and manage messages
+                    Choose an email account from the left to view your inbox
                   </p>
                 </CardContent>
               </Card>
