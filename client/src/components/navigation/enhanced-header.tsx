@@ -1,4 +1,4 @@
-import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot } from "lucide-react";
+import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -189,6 +189,48 @@ export default function EnhancedHeader() {
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo and Navigation */}
           <div className="flex items-center gap-6">
+            {/* Mobile Navigation Menu */}
+            <div className="lg:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Navigation menu</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64">
+                  <div className="px-3 py-2 text-sm font-semibold text-gray-900">
+                    Navigation
+                  </div>
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem onClick={() => setLocation('/')}>
+                    <FolderOpen className="h-4 w-4 mr-2" />
+                    All Shows
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem onClick={() => setLocation('/create-project')}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    New Show
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem onClick={() => setLocation('/email')}>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Email Manager
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem onClick={() => setLocation('/feedback')}>
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Send Feedback
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
             <div 
               className="text-xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
               onClick={() => setLocation('/')}
