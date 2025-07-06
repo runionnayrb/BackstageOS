@@ -164,7 +164,7 @@ export default function PersonnelCategory() {
               {categoryContacts.map((contact: Contact) => (
                 <div
                   key={contact.id}
-                  className="group p-4 cursor-pointer transition-colors hover:bg-gray-50 border rounded-lg bg-white shadow-sm"
+                  className="group p-4 cursor-pointer transition-colors hover:bg-gray-50 rounded-lg"
                   onClick={() => handleContactClick(contact)}
                 >
                   <div className="flex justify-between items-start">
