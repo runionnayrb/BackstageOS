@@ -70,7 +70,7 @@ export function EmailComposer({
       bccAddresses?: string[];
       replyToMessageId?: string;
     }) => {
-      return await apiRequest('/api/email/send', 'POST', emailData);
+      return await apiRequest('POST', '/api/email/send', emailData);
     },
     onSuccess: () => {
       toast({
@@ -108,13 +108,14 @@ export function EmailComposer({
     }) => {
       if (draftData.id) {
         // Update existing draft
-        return await apiRequest(`/api/email/drafts/${draftData.id}`, 'PUT', draftData);
+        return await apiRequest('PUT', `/api/email/drafts/${draftData.id}`, draftData);
       } else {
         // Create new draft
-        return await apiRequest('/api/email/drafts', 'POST', draftData);
+        return await apiRequest('POST', '/api/email/drafts', draftData);
       }
     },
-    onSuccess: (data) => {
+    onSuccess: async (response) => {
+      const data = await response.json();
       if (!currentDraftId && data?.id) {
         setCurrentDraftId(data.id);
       }
@@ -138,7 +139,7 @@ export function EmailComposer({
       ccAddresses?: string[];
       bccAddresses?: string[];
     }) => {
-      return await apiRequest('/api/email/drafts', 'POST', draftData);
+      return await apiRequest('POST', '/api/email/drafts', draftData);
     },
     onSuccess: () => {
       toast({
