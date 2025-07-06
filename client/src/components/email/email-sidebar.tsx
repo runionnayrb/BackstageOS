@@ -10,7 +10,8 @@ import {
   Star,
   Plus,
   Settings,
-  Mail
+  Mail,
+  Edit
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,7 @@ interface EmailSidebarProps {
   selectedAccount: EmailAccount | null;
   onAccountSelect: (account: EmailAccount) => void;
   onCreateAccount: () => void;
+  onCompose: () => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   accountStats?: EmailStats;
@@ -48,6 +50,7 @@ export function EmailSidebar({
   selectedAccount,
   onAccountSelect,
   onCreateAccount,
+  onCompose,
   isCollapsed,
   onToggleCollapse,
   accountStats
@@ -107,6 +110,17 @@ export function EmailSidebar({
                     {account.emailAddress}
                   </p>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCompose();
+                  }}
+                  className="h-8 w-8 p-0 opacity-60 hover:opacity-100 hover:bg-blue-50"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
               </div>
             ))}
           </div>

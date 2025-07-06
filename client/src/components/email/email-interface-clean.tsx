@@ -33,13 +33,14 @@ interface EmailAccount {
 interface EmailInterfaceProps {
   selectedAccount: EmailAccount;
   onBack?: () => void;
+  showCompose?: boolean;
+  onShowComposeChange?: (show: boolean) => void;
 }
 
-export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps) {
+export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange }: EmailInterfaceProps) {
   const [selectedFolder, setSelectedFolder] = useState('inbox');
   const [selectedThread, setSelectedThread] = useState<EmailThread | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showCompose, setShowCompose] = useState(false);
   const [showConfiguration, setShowConfiguration] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [modalEmail, setModalEmail] = useState<EmailThread | null>(null);
@@ -124,7 +125,7 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
             </div>
             <div className="flex items-center gap-2">
               <Button 
-                onClick={() => setShowCompose(true)}
+                onClick={() => onShowComposeChange?.(true)}
                 className="flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />
@@ -342,7 +343,7 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
       {showCompose && (
         <EmailComposer
           isOpen={showCompose}
-          onClose={() => setShowCompose(false)}
+          onClose={() => onShowComposeChange?.(false)}
           fromAccountId={selectedAccount.id}
           fromEmail={selectedAccount.emailAddress}
         />

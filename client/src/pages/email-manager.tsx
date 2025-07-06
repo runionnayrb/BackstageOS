@@ -36,6 +36,7 @@ export default function EmailManager() {
   const [selectedAccount, setSelectedAccount] = useState<EmailAccount | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [showCompose, setShowCompose] = useState(false);
   const queryClient = useQueryClient();
 
   // Check if email system is set up
@@ -148,6 +149,7 @@ export default function EmailManager() {
         selectedAccount={selectedAccount}
         onAccountSelect={setSelectedAccount}
         onCreateAccount={() => setIsCreateDialogOpen(true)}
+        onCompose={() => setShowCompose(true)}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         accountStats={accountStats as EmailStats}
@@ -291,6 +293,8 @@ export default function EmailManager() {
             <EmailInterface 
               selectedAccount={selectedAccount} 
               onBack={() => setSelectedAccount(null)}
+              showCompose={showCompose}
+              onShowComposeChange={setShowCompose}
             />
           ) : (
             <div className="flex justify-center items-center h-64">
