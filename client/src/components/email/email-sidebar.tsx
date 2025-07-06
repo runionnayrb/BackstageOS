@@ -86,7 +86,7 @@ export function EmailSidebar({
       {/* Header */}
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Email</h2>
+          <h2 className="text-lg font-semibold text-gray-900 ml-2">Email</h2>
           <Button
             variant="ghost"
             size="sm"
