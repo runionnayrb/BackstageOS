@@ -62,11 +62,7 @@ export function EmailComposer({
       bccAddresses?: string[];
       replyToMessageId?: string;
     }) => {
-      return await apiRequest('/api/email/send', {
-        method: 'POST',
-        body: JSON.stringify(emailData),
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return await apiRequest('/api/email/send', 'POST', emailData);
     },
     onSuccess: () => {
       toast({
@@ -101,11 +97,7 @@ export function EmailComposer({
       ccAddresses?: string[];
       bccAddresses?: string[];
     }) => {
-      return await apiRequest('/api/email/drafts', {
-        method: 'POST',
-        body: JSON.stringify(draftData),
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return await apiRequest('/api/email/drafts', 'POST', draftData);
     },
     onSuccess: () => {
       toast({
