@@ -236,18 +236,62 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
             <>
               <DialogHeader className="border-b pb-4">
                 <DialogTitle className="text-xl font-semibold">{modalEmail.subject}</DialogTitle>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>From: {modalEmail.participants.join(', ')}</span>
-                  <Separator orientation="vertical" className="h-4" />
-                  <span>{modalEmail.lastMessageTime}</span>
-                  {modalEmail.hasAttachments && (
-                    <>
-                      <Separator orientation="vertical" className="h-4" />
-                      <span className="flex items-center gap-1">
-                        📎 Attachments
-                      </span>
-                    </>
-                  )}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <span>From: {modalEmail.participants.join(', ')}</span>
+                    <Separator orientation="vertical" className="h-4" />
+                    <span>{modalEmail.lastMessageTime}</span>
+                    {modalEmail.hasAttachments && (
+                      <>
+                        <Separator orientation="vertical" className="h-4" />
+                        <span className="flex items-center gap-1">
+                          📎 Attachments
+                        </span>
+                      </>
+                    )}
+                  </div>
+                  
+                  {/* Action Icons */}
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleReply} 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-8 w-8 hover:bg-transparent hover:text-blue-600"
+                    >
+                      <Reply className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-8 w-8 hover:bg-transparent hover:text-blue-600"
+                    >
+                      <Reply className="h-4 w-4 scale-x-[-1]" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-8 w-8 hover:bg-transparent hover:text-blue-600"
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      onClick={handleArchive} 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-8 w-8 hover:bg-transparent hover:text-blue-600"
+                    >
+                      <Archive className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      onClick={handleDelete} 
+                      variant="ghost" 
+                      size="icon"
+                      className="h-8 w-8 hover:bg-transparent hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </DialogHeader>
 
@@ -267,52 +311,7 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
                 </div>
               </div>
 
-              {/* Action Toolbar */}
-              <div className="border-t pt-4 flex items-center justify-between">
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={handleReply} 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-10 w-10 hover:bg-transparent hover:text-blue-600"
-                  >
-                    <Reply className="h-5 w-5" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-10 w-10 hover:bg-transparent hover:text-blue-600"
-                  >
-                    <Reply className="h-5 w-5 scale-x-[-1]" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-10 w-10 hover:bg-transparent hover:text-blue-600"
-                  >
-                    <Send className="h-5 w-5" />
-                  </Button>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={handleArchive} 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-10 w-10 hover:bg-transparent hover:text-blue-600"
-                  >
-                    <Archive className="h-5 w-5" />
-                  </Button>
-                  <Button 
-                    onClick={handleDelete} 
-                    variant="ghost" 
-                    size="icon"
-                    className="h-10 w-10 hover:bg-transparent hover:text-red-600"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
+
 
               {/* Reply Composer */}
               {showReplyComposer && (
