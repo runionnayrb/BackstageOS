@@ -177,6 +177,13 @@ export default function PersonnelCategory() {
                       )}
                     </div>
                     <div className="flex gap-2 ml-3">
+                      <Calendar 
+                        className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLocation(`/shows/${projectId}/availability/${contact.id}`);
+                        }}
+                      />
                       {contact.email ? (
                         <Mail 
                           className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
@@ -188,13 +195,6 @@ export default function PersonnelCategory() {
                       ) : (
                         <Mail className="h-4 w-4 text-gray-300" />
                       )}
-                      <Calendar 
-                        className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setLocation(`/shows/${projectId}/availability/${contact.id}`);
-                        }}
-                      />
                       {contact.phone ? (
                         <Phone 
                           className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
