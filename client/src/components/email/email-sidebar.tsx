@@ -100,6 +100,16 @@ export function EmailSidebar({
         {/* Account Selector */}
         {selectedAccount && (
           <div className="space-y-2">
+            {/* Compose Button - Separate from dropdown */}
+            <Button
+              onClick={onCompose}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white mb-3"
+              size="sm"
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Compose
+            </Button>
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors hover:bg-gray-50">
@@ -113,17 +123,6 @@ export function EmailSidebar({
                   </div>
                   <div className="flex items-center space-x-1">
                     <ChevronDown className="h-4 w-4 text-gray-400" />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onCompose();
-                      }}
-                      className="h-8 w-8 p-0 hover:text-blue-600"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
                   </div>
                 </div>
               </DropdownMenuTrigger>
