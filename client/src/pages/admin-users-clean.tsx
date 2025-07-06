@@ -5,11 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Edit2, Save, X } from "lucide-react";
+import { ArrowLeft, Edit2, Save, X, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import AdminGuard from "@/components/admin-guard";
 import { apiRequest } from "@/lib/queryClient";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface User {
   id: string;
@@ -65,6 +76,23 @@ function AdminUsersContent() {
     }
   });
 
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      return await apiRequest('DELETE', `/api/admin/users/${userId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      toast({ title: "User deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to delete user", 
+        description: error.message || "Could not delete user. They may have existing data or be the last admin.",
+        variant: "destructive" 
+      });
+    }
+  });
+
   const startEdit = (user: User) => {
     setEditingUser(user.id);
     setEditForm({
@@ -86,6 +114,10 @@ function AdminUsersContent() {
   const cancelEdit = () => {
     setEditingUser(null);
     setEditForm({ profileType: '', betaAccess: '', betaFeatures: [] });
+  };
+
+  const handleDeleteUser = (userId: string) => {
+    deleteUserMutation.mutate(userId);
   };
 
   const toggleBetaFeature = (featureId: string) => {
@@ -176,6 +208,32 @@ function AdminUsersContent() {
                         <Button size="sm" variant="outline" onClick={cancelEdit}>
                           <X className="h-4 w-4" />
                         </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="destructive" disabled={deleteUserMutation.isPending}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete User</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to permanently delete user "{user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email}"? 
+                                This action cannot be undone and will remove all user data including their shows, reports, and settings.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteUser(user.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                                disabled={deleteUserMutation.isPending}
+                              >
+                                {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     ) : (
                       <Button size="sm" variant="outline" onClick={() => startEdit(user)}>
