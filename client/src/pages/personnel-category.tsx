@@ -4,7 +4,13 @@ import { ArrowLeft, Plus, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { ContactForm } from "@/components/contact-form";
-import { ContactDetail } from "@/components/contact-detail";
+import { ContactDetailModal } from "@/components/contact-detail-modal";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface PersonnelCategoryParams {
   id: string;
@@ -38,7 +44,9 @@ export default function PersonnelCategory() {
   const projectId = params.id;
   const category = params.category;
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+
+  const [showFormModal, setShowFormModal] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const queryClient = useQueryClient();
 
@@ -67,26 +75,34 @@ export default function PersonnelCategory() {
 
   const handleContactClick = (contact: Contact) => {
     setSelectedContact(contact);
-    setShowForm(false);
-    setEditingContact(null);
+    setShowContactModal(true);
   };
 
   const handleAddContact = () => {
-    setShowForm(true);
-    setSelectedContact(null);
     setEditingContact(null);
+    setShowFormModal(true);
   };
 
   const handleEditContact = (contact: Contact) => {
     setEditingContact(contact);
-    setShowForm(true);
+    setShowContactModal(false);
+    setShowFormModal(true);
+  };
+
+  const handleContactModalClose = () => {
+    setShowContactModal(false);
     setSelectedContact(null);
   };
 
-  const handleFormClose = () => {
-    setShowForm(false);
+  const handleFormModalClose = () => {
+    setShowFormModal(false);
     setEditingContact(null);
-    setSelectedContact(null);
+  };
+
+  const handleFormSuccess = () => {
+    setShowFormModal(false);
+    setEditingContact(null);
+    queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
   };
 
   if (isLoading) {
@@ -134,80 +150,78 @@ export default function PersonnelCategory() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Contact List */}
-          <div className="space-y-4">
-
-            {categoryContacts.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 mb-4">No contacts in this category yet</p>
-                <Button onClick={handleAddContact} variant="outline">
-                  Add First Contact
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {categoryContacts.map((contact: Contact) => (
-                  <div
-                    key={contact.id}
-                    className={`p-4 cursor-pointer transition-colors hover:bg-gray-50 ${
-                      selectedContact?.id === contact.id ? 'bg-blue-50' : ''
-                    }`}
-                    onClick={() => handleContactClick(contact)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium text-gray-900">
-                          {contact.firstName} {contact.lastName}
-                        </h3>
-                        {contact.role && (
-                          <p className="text-sm text-gray-600">{contact.role}</p>
-                        )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditContact(contact);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+        {/* Contact List */}
+        <div className="max-w-4xl mx-auto">
+          {categoryContacts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">No contacts in this category yet</p>
+              <Button onClick={handleAddContact} variant="outline">
+                Add First Contact
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {categoryContacts.map((contact: Contact) => (
+                <div
+                  key={contact.id}
+                  className="group p-4 cursor-pointer transition-colors hover:bg-gray-50 border rounded-lg bg-white shadow-sm"
+                  onClick={() => handleContactClick(contact)}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">
+                        {contact.firstName} {contact.lastName}
+                      </h3>
+                      {contact.role && (
+                        <p className="text-sm text-gray-600 mt-1">{contact.role}</p>
+                      )}
+                      {contact.email && (
+                        <p className="text-xs text-gray-500 mt-1 truncate">{contact.email}</p>
+                      )}
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditContact(contact);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Detail/Form Panel */}
-          <div className="lg:col-span-2 lg:border-l lg:pl-6">
-            {showForm ? (
-              <ContactForm
-                projectId={projectId}
-                category={category}
-                contact={editingContact}
-                onClose={handleFormClose}
-                onSuccess={() => {
-                  handleFormClose();
-                  queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
-                }}
-              />
-            ) : selectedContact ? (
-              <ContactDetail
-                contact={selectedContact}
-                onEdit={() => handleEditContact(selectedContact)}
-                onClose={() => setSelectedContact(null)}
-              />
-            ) : (
-              <div className="flex items-center justify-center h-64 text-gray-500">
-                <p>Select a contact to view details or add a new contact</p>
-              </div>
-            )}
-          </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
+
+        {/* Contact Detail Modal */}
+        <ContactDetailModal
+          contact={selectedContact}
+          isOpen={showContactModal}
+          onClose={handleContactModalClose}
+          onEdit={handleEditContact}
+        />
+
+        {/* Contact Form Modal */}
+        <Dialog open={showFormModal} onOpenChange={setShowFormModal}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingContact ? "Edit Contact" : "Add New Contact"}
+              </DialogTitle>
+            </DialogHeader>
+            <ContactForm
+              projectId={projectId}
+              category={category}
+              contact={editingContact}
+              onClose={handleFormModalClose}
+              onSuccess={handleFormSuccess}
+            />
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
