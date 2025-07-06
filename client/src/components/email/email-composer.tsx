@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Send, Save, Paperclip, Bold, Italic, Underline } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,7 @@ interface EmailComposerProps {
     fromAddress: string;
     content: string;
   };
+  existingDraftId?: number;
 }
 
 export function EmailComposer({ 
@@ -26,7 +27,8 @@ export function EmailComposer({
   onClose, 
   fromAccountId, 
   fromEmail,
-  replyToMessage 
+  replyToMessage,
+  existingDraftId 
 }: EmailComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -45,6 +47,12 @@ export function EmailComposer({
       `\n\n--- Original Message ---\nFrom: ${replyToMessage.fromAddress}\nSubject: ${replyToMessage.subject}\n\n${replyToMessage.content}` : 
       ''
   );
+
+  // Draft state
+  const [currentDraftId, setCurrentDraftId] = useState<number | null>(existingDraftId || null);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Editor state
   const [isBold, setIsBold] = useState(false);
@@ -87,6 +95,39 @@ export function EmailComposer({
     }
   });
 
+  // Auto-save draft mutation
+  const autoSaveDraftMutation = useMutation({
+    mutationFn: async (draftData: {
+      id?: number;
+      accountId: number;
+      toAddresses: string[];
+      subject: string;
+      content: string;
+      ccAddresses?: string[];
+      bccAddresses?: string[];
+    }) => {
+      if (draftData.id) {
+        // Update existing draft
+        return await apiRequest(`/api/email/drafts/${draftData.id}`, 'PUT', draftData);
+      } else {
+        // Create new draft
+        return await apiRequest('/api/email/drafts', 'POST', draftData);
+      }
+    },
+    onSuccess: (data) => {
+      if (!currentDraftId && data?.id) {
+        setCurrentDraftId(data.id);
+      }
+      setLastSaved(new Date());
+      setIsAutoSaving(false);
+      queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', fromAccountId, 'drafts'] });
+    },
+    onError: (error) => {
+      console.error('Error auto-saving draft:', error);
+      setIsAutoSaving(false);
+    }
+  });
+
   // Save draft mutation
   const saveDraftMutation = useMutation({
     mutationFn: async (draftData: {
@@ -123,10 +164,63 @@ export function EmailComposer({
     setBccAddresses('');
     setSubject('');
     setContent('');
+    setCurrentDraftId(null);
+    setLastSaved(null);
     setIsBold(false);
     setIsItalic(false);
     setIsUnderline(false);
   };
+
+  // Auto-save function
+  const triggerAutoSave = () => {
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Only auto-save if there's content
+    if (!toAddresses.trim() && !subject.trim() && !content.trim()) {
+      return;
+    }
+
+    // Set new timeout for auto-save
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      setIsAutoSaving(true);
+      
+      const toArray = toAddresses.split(',').map(email => email.trim()).filter(Boolean);
+      const ccArray = ccAddresses.split(',').map(email => email.trim()).filter(Boolean);
+      const bccArray = bccAddresses.split(',').map(email => email.trim()).filter(Boolean);
+
+      autoSaveDraftMutation.mutate({
+        id: currentDraftId || undefined,
+        accountId: fromAccountId,
+        toAddresses: toArray,
+        ccAddresses: ccArray.length > 0 ? ccArray : undefined,
+        bccAddresses: bccArray.length > 0 ? bccArray : undefined,
+        subject,
+        content,
+      });
+    }, 2000); // Auto-save after 2 seconds of inactivity
+  };
+
+  // Auto-save effects
+  useEffect(() => {
+    triggerAutoSave();
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [toAddresses, ccAddresses, bccAddresses, subject, content]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSend = () => {
     if (!toAddresses.trim()) {
@@ -296,7 +390,13 @@ export function EmailComposer({
           {/* Action buttons */}
           <div className="flex items-center justify-between pt-2 border-t">
             <div className="text-xs text-muted-foreground">
-              Tip: Use @backstageos.com addresses for internal messaging
+              {isAutoSaving ? (
+                "Auto-saving draft..."
+              ) : lastSaved ? (
+                `Auto-saved ${lastSaved.toLocaleTimeString()}`
+              ) : (
+                "Tip: Use @backstageos.com addresses for internal messaging"
+              )}
             </div>
             <div className="flex gap-2">
               <Button
