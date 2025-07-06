@@ -94,8 +94,12 @@ export default function EmailManager() {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     
+    const emailPrefix = formData.get('emailAddress') as string;
+    const fullEmailAddress = `${emailPrefix}@backstageos.com`;
+    
     const accountData = {
       displayName: formData.get('displayName'),
+      emailAddress: fullEmailAddress,
       accountType: formData.get('accountType'),
       isDefault: formData.get('isDefault') === 'on',
     };
@@ -199,9 +203,28 @@ export default function EmailManager() {
                     <Input
                       id="displayName"
                       name="displayName"
-                      placeholder="e.g., John Smith"
+                      placeholder="e.g., Bryan Runion"
                       required
                     />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="emailAddress">Email Address</Label>
+                    <div className="flex">
+                      <Input
+                        id="emailAddress"
+                        name="emailAddress"
+                        placeholder="bryan"
+                        className="rounded-r-none"
+                        required
+                      />
+                      <div className="bg-gray-100 border border-l-0 rounded-r-md px-3 py-2 text-sm text-gray-600 flex items-center">
+                        @backstageos.com
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Enter the part before @backstageos.com (e.g., "bryan" for bryan@backstageos.com)
+                    </p>
                   </div>
                   
                   <div>
@@ -211,9 +234,9 @@ export default function EmailManager() {
                         <SelectValue placeholder="Select account type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="personal">Personal (firstname.lastname@backstageos.com)</SelectItem>
-                        <SelectItem value="role">Role-based (stage.manager@backstageos.com)</SelectItem>
-                        <SelectItem value="show">Show-specific (showname@backstageos.com)</SelectItem>
+                        <SelectItem value="personal">Personal</SelectItem>
+                        <SelectItem value="role">Role-based</SelectItem>
+                        <SelectItem value="show">Show-specific</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
