@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Mail, Send, Inbox, FileText, Archive, Search, Plus, MoreHorizontal, ArrowLeft, Settings, Reply, Trash2, Star, Clock, CornerUpLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
+import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2 } from 'lucide-react';
 import { EmailAccountConfig } from './email-account-config';
 import { EmailComposer } from './email-composer';
 
@@ -22,6 +19,39 @@ interface EmailThread {
   messageCount: number;
   hasAttachments: boolean;
 }
+
+const mockThreads: EmailThread[] = [
+  {
+    id: 1,
+    subject: "Tech Rehearsal Notes - Week 3",
+    participants: ["Sarah Johnson", "Mike Chen"],
+    lastMessage: "The lighting changes for Act II Scene 2 look great. Just need to adjust...",
+    lastMessageTime: "2:30 PM",
+    isRead: false,
+    messageCount: 4,
+    hasAttachments: true
+  },
+  {
+    id: 2,
+    subject: "Costume Fittings Tomorrow",
+    participants: ["Emily Rodriguez"],
+    lastMessage: "Reminder that we have costume fittings scheduled for tomorrow at 10 AM...",
+    lastMessageTime: "1:15 PM",
+    isRead: true,
+    messageCount: 1,
+    hasAttachments: false
+  },
+  {
+    id: 3,
+    subject: "Script Updates - Page 47",
+    participants: ["David Kim", "Alex Thompson"],
+    lastMessage: "Thanks for the quick turnaround on those line changes. The actors...",
+    lastMessageTime: "11:45 AM",
+    isRead: false,
+    messageCount: 6,
+    hasAttachments: false
+  }
+];
 
 interface EmailAccount {
   id: number;
@@ -38,47 +68,10 @@ interface EmailInterfaceProps {
 }
 
 export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange }: EmailInterfaceProps) {
-  const [selectedFolder, setSelectedFolder] = useState('inbox');
-  const [selectedThread, setSelectedThread] = useState<EmailThread | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showConfiguration, setShowConfiguration] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [modalEmail, setModalEmail] = useState<EmailThread | null>(null);
-  const [showReplyComposer, setShowReplyComposer] = useState(false);
-
-  // Mock data for now - will be replaced with real API calls in Phase 2
-  const mockThreads: EmailThread[] = [
-    {
-      id: 1,
-      subject: "Production Meeting Notes - Macbeth",
-      participants: ["director@theater.com", "producer@theater.com"],
-      lastMessage: "Thanks for the detailed notes from today's meeting...",
-      lastMessageTime: "2 hours ago",
-      isRead: false,
-      messageCount: 3,
-      hasAttachments: true
-    },
-    {
-      id: 2,
-      subject: "Rehearsal Schedule Update",
-      participants: ["assistant@theater.com"],
-      lastMessage: "The rehearsal schedule for next week has been updated...",
-      lastMessageTime: "4 hours ago",
-      isRead: true,
-      messageCount: 1,
-      hasAttachments: false
-    },
-    {
-      id: 3,
-      subject: "Props List Review",
-      participants: ["props@theater.com", "set@theater.com"],
-      lastMessage: "I've reviewed the props list and have a few suggestions...",
-      lastMessageTime: "Yesterday",
-      isRead: true,
-      messageCount: 5,
-      hasAttachments: true
-    }
-  ];
+  const [showConfiguration, setShowConfiguration] = useState(false);
 
   const filteredThreads = mockThreads.filter(thread =>
     thread.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -92,7 +85,18 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   };
 
   const handleReply = () => {
-    setShowReplyComposer(true);
+    // Reply logic here
+    setShowEmailModal(false);
+  };
+
+  const handleReplyAll = () => {
+    // Reply all logic here
+    setShowEmailModal(false);
+  };
+
+  const handleForward = () => {
+    // Forward logic here
+    setShowEmailModal(false);
   };
 
   const handleArchive = () => {
@@ -106,94 +110,103 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   };
 
   return (
-    <div className="flex h-[calc(100vh-120px)] bg-background">
-      {/* Main Content - Full Width */}
-      <div className="flex-1 flex flex-col">
-        {/* Search Bar */}
-        <div className="p-4 border-b flex justify-end">
-          <div className="relative max-w-md">
+    <>
+      <div className="relative h-[calc(100vh-120px)] bg-background">
+        {/* Full-Width Header */}
+        <div className="absolute top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center gap-6 px-4 z-50">
+          <h1 className="text-lg font-semibold text-gray-900 ml-2 flex-shrink-0">Email</h1>
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 w-full"
             />
           </div>
         </div>
 
-        {/* Full-Width Email List */}
-        <ScrollArea className="flex-1">
-          <div className="space-y-1">
-            {filteredThreads.map((thread) => (
-              <button
-                key={thread.id}
-                onClick={() => handleEmailClick(thread)}
-                className="w-full p-4 text-left hover:bg-muted transition-colors border-b border-border last:border-b-0"
-              >
-                <div className="flex items-center justify-between">
-                  {/* Left side - Email details */}
-                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                    <div className={`w-3 h-3 rounded-full flex-shrink-0 ${thread.isRead ? 'bg-transparent' : 'bg-blue-500'}`} />
-                    
+        {/* Content Area */}
+        <div className="pt-16 h-full">
+          {/* Full-Width Email List */}
+          <ScrollArea className="h-full">
+            <div className="space-y-1">
+              {filteredThreads.map((thread) => (
+                <button
+                  key={thread.id}
+                  onClick={() => handleEmailClick(thread)}
+                  className="w-full block text-left hover:bg-muted/50 focus:bg-muted/50 focus:outline-none group px-4 py-3 border-b border-muted-foreground/10"
+                >
+                  <div className="flex items-start justify-between">
+                    {/* Left side - Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className={`font-medium text-sm truncate ${!thread.isRead ? 'font-semibold' : ''}`}>
-                          {thread.subject}
-                        </span>
-                        {thread.hasAttachments && (
-                          <Badge variant="outline" className="h-5 text-xs px-2">
-                            📎
-                          </Badge>
-                        )}
-                        {thread.messageCount > 1 && (
-                          <Badge variant="secondary" className="h-5 text-xs px-2">
-                            {thread.messageCount}
-                          </Badge>
+                      <div className="flex items-center gap-2 mb-1">
+                        {!thread.isRead && (
+                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                         )}
                       </div>
                       
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span className="truncate">{thread.participants.join(', ')}</span>
-                        <span>•</span>
-                        <span className="truncate flex-1">{thread.lastMessage}</span>
+                      <div className="flex items-start gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-1">
+                            <span className={`font-medium text-sm truncate ${!thread.isRead ? 'font-semibold' : ''}`}>
+                              {thread.subject}
+                            </span>
+                            {thread.hasAttachments && (
+                              <Badge variant="outline" className="h-5 text-xs px-2">
+                                📎
+                              </Badge>
+                            )}
+                            {thread.messageCount > 1 && (
+                              <Badge variant="secondary" className="h-5 text-xs px-2">
+                                {thread.messageCount}
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span className="truncate">{thread.participants.join(', ')}</span>
+                            <span>•</span>
+                            <span className="truncate flex-1">{thread.lastMessage}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right side - Time and icons */}
+                      <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+                        <span className="text-xs text-muted-foreground">{thread.lastMessageTime}</span>
+                        <div className="flex items-center gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-muted-foreground/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Handle star
+                            }}
+                          >
+                            <Star className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-muted-foreground/10"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleArchive();
+                            }}
+                          >
+                            <Archive className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
-
-                  {/* Right side - Time and icons */}
-                  <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-                    <span className="text-xs text-muted-foreground">{thread.lastMessageTime}</span>
-                    <div className="flex items-center gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-muted-foreground/10"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Handle star
-                        }}
-                      >
-                        <Star className="h-3 w-3" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-muted-foreground/10"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleArchive();
-                        }}
-                      >
-                        <Archive className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </ScrollArea>
+                </button>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
       </div>
 
       {/* Email Modal */}
@@ -217,95 +230,91 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       </>
                     )}
                   </div>
-                  
-                  {/* Action Icons */}
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={handleReply} 
-                      variant="ghost" 
-                      size="icon"
-                      className="h-8 w-8 hover:bg-transparent hover:text-blue-600"
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleReply}
+                      className="h-8 px-3"
                     >
-                      <Reply className="h-4 w-4" />
+                      <Reply className="h-4 w-4 mr-1" />
+                      Reply
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="h-8 w-8 hover:bg-transparent hover:text-blue-600"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleReplyAll}
+                      className="h-8 px-3"
                     >
-                      <div className="relative">
-                        <Reply className="h-4 w-4" />
-                        <Reply className="h-3 w-3 absolute -top-0.5 left-2" />
-                      </div>
+                      <ReplyAll className="h-4 w-4 mr-1" />
+                      Reply All
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      className="h-8 w-8 hover:bg-transparent hover:text-blue-600"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleForward}
+                      className="h-8 px-3"
                     >
-                      <Reply className="h-4 w-4 scale-x-[-1]" />
+                      <Forward className="h-4 w-4 mr-1" />
+                      Forward
                     </Button>
-                    <Button 
-                      onClick={handleArchive} 
-                      variant="ghost" 
-                      size="icon"
-                      className="h-8 w-8 hover:bg-transparent hover:text-blue-600"
+                    <Separator orientation="vertical" className="h-6" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleArchive}
+                      className="h-8 px-3"
                     >
-                      <Archive className="h-4 w-4" />
+                      <Archive className="h-4 w-4 mr-1" />
+                      Archive
                     </Button>
-                    <Button 
-                      onClick={handleDelete} 
-                      variant="ghost" 
-                      size="icon"
-                      className="h-8 w-8 hover:bg-transparent hover:text-red-600"
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleDelete}
+                      className="h-8 px-3 text-destructive hover:text-destructive"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete
                     </Button>
                   </div>
                 </div>
               </DialogHeader>
-
-              <div className="flex-1 overflow-y-auto p-6">
-                <div className="space-y-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="font-medium">{modalEmail.participants[0]}</span>
-                      <span className="text-sm text-muted-foreground">{modalEmail.lastMessageTime}</span>
+              
+              <ScrollArea className="flex-1 p-6">
+                <div className="space-y-6">
+                  <div className="border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                          {modalEmail.participants[0]?.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="font-medium">{modalEmail.participants[0]}</div>
+                          <div className="text-sm text-muted-foreground">{modalEmail.lastMessageTime}</div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="prose prose-sm max-w-none">
-                      <p>{modalEmail.lastMessage}</p>
-                      <p>This is a sample email message that would contain the full content of the conversation. In the actual implementation, this would be loaded from the email server and display the complete message thread with proper formatting, attachments, and conversation history.</p>
-                      <p>The modal provides a clean, focused reading experience with all the necessary actions available through the toolbar below.</p>
+                    <div className="prose max-w-none">
+                      <p>
+                        {modalEmail.lastMessage}
+                      </p>
+                      <p>
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                      </p>
+                      <p>
+                        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                      </p>
                     </div>
                   </div>
                 </div>
-              </div>
-
-
-
-              {/* Reply Composer */}
-              {showReplyComposer && (
-                <div className="border-t pt-4 mt-4">
-                  <EmailComposer
-                    isOpen={true}
-                    onClose={() => setShowReplyComposer(false)}
-                    fromAccountId={selectedAccount.id}
-                    fromEmail={selectedAccount.emailAddress}
-                    replyToMessage={{
-                      id: modalEmail.id.toString(),
-                      subject: modalEmail.subject,
-                      fromAddress: modalEmail.participants[0],
-                      content: modalEmail.lastMessage
-                    }}
-                  />
-                </div>
-              )}
+              </ScrollArea>
             </>
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Email Composer Modal */}
+      {/* Email Composer */}
       {showCompose && (
         <EmailComposer
           isOpen={showCompose}
@@ -315,13 +324,13 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         />
       )}
 
-      {/* Account Configuration Modal */}
+      {/* Email Account Configuration */}
       {showConfiguration && (
         <EmailAccountConfig
           accountId={selectedAccount.id}
           onClose={() => setShowConfiguration(false)}
         />
       )}
-    </div>
+    </>
   );
 }
