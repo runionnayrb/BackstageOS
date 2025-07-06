@@ -58,11 +58,11 @@ export class StandaloneEmailService {
           threadId = replyMessage[0].threadId;
         } else {
           // Create new thread if reply message doesn't have one
-          threadId = await this.createThread(subject, [sender.emailAddress, ...toAddresses]);
+          threadId = await this.createThread(subject, [sender.emailAddress, ...toAddresses], sender.id);
         }
       } else {
         // Create new thread for new conversation
-        threadId = await this.createThread(subject, [sender.emailAddress, ...toAddresses]);
+        threadId = await this.createThread(subject, [sender.emailAddress, ...toAddresses], sender.id);
       }
 
       // Generate unique message ID
@@ -74,18 +74,15 @@ export class StandaloneEmailService {
         threadId,
         messageId,
         subject,
-        fromAddress: sender.emailAddress,
-        toAddresses,
-        ccAddresses: ccAddresses || [],
-        bccAddresses: bccAddresses || [],
+        senderEmail: sender.emailAddress,
+        recipients: toAddresses,
+        ccRecipients: ccAddresses || [],
+        bccRecipients: bccAddresses || [],
         content,
-        htmlContent: htmlContent || content,
         isRead: true, // Sender's copy is automatically read
         isDraft: false,
         isSent: true,
-        dateSent: new Date(),
-        dateReceived: new Date(),
-        inReplyTo: replyToMessageId || null,
+        sentAt: new Date(),
       };
 
       const [sentMessage] = await db.insert(emailMessages).values(outgoingMessage).returning();
@@ -93,13 +90,16 @@ export class StandaloneEmailService {
       // Send to external recipients via SendGrid if they're not @backstageos.com addresses
       for (const toAddress of toAddresses) {
         if (!toAddress.endsWith('@backstageos.com')) {
-          await sendEmail(
-            toAddress,
+          await sendEmail({
+            to: [toAddress],
             subject,
-            content,
-            htmlContent,
-            sender.emailAddress
-          );
+            html: htmlContent || content,
+            text: content,
+            from: {
+              email: sender.emailAddress,
+              name: sender.displayName
+            }
+          });
         }
       }
 
@@ -107,13 +107,16 @@ export class StandaloneEmailService {
       if (ccAddresses) {
         for (const ccAddress of ccAddresses) {
           if (!ccAddress.endsWith('@backstageos.com')) {
-            await sendEmail(
-              ccAddress,
+            await sendEmail({
+              to: [ccAddress],
               subject,
-              content,
-              htmlContent,
-              sender.emailAddress
-            );
+              html: htmlContent || content,
+              text: content,
+              from: {
+                email: sender.emailAddress,
+                name: sender.displayName
+              }
+            });
           }
         }
       }
@@ -152,19 +155,16 @@ export class StandaloneEmailService {
             threadId,
             messageId: `${messageId}-to-${recipient.id}`,
             subject,
-            fromAddress: sender.emailAddress,
-            toAddresses: [recipientAddress],
-            ccAddresses: ccAddresses || [],
-            bccAddresses: bccAddresses || [],
+            senderEmail: sender.emailAddress,
+            recipients: [recipientAddress],
+            ccRecipients: ccAddresses || [],
+            bccRecipients: bccAddresses || [],
             content,
-            htmlContent: htmlContent || content,
             isRead: false,
             isDraft: false,
             isSent: false,
-            dateSent: new Date(),
-            dateReceived: new Date(),
+            sentAt: new Date(),
             folderId: inboxFolder.length ? inboxFolder[0].id : null,
-            inReplyTo: replyToMessageId || null,
           };
 
           await db.insert(emailMessages).values(incomingMessage);
@@ -181,8 +181,9 @@ export class StandaloneEmailService {
   /**
    * Create a new email thread
    */
-  private async createThread(subject: string, participants: string[]): Promise<number> {
+  private async createThread(subject: string, participants: string[], accountId: number): Promise<number> {
     const threadData: InsertEmailThread = {
+      accountId,
       subject,
       participants,
       lastMessageAt: new Date(),
@@ -211,7 +212,7 @@ export class StandaloneEmailService {
           )
         )
       )
-      .orderBy(desc(emailMessages.dateReceived))
+      .orderBy(desc(emailMessages.sentAt))
       .limit(limit)
       .offset(offset);
   }
@@ -229,7 +230,7 @@ export class StandaloneEmailService {
           eq(emailMessages.isSent, true)
         )
       )
-      .orderBy(desc(emailMessages.dateSent))
+      .orderBy(desc(emailMessages.sentAt))
       .limit(limit)
       .offset(offset);
   }
@@ -309,18 +310,18 @@ export class StandaloneEmailService {
       
       const draftData: InsertEmailMessage = {
         accountId,
+        threadId: 0, // Will be filled when sending
         messageId,
         subject,
-        fromAddress: '', // Will be filled when sending
-        toAddresses,
-        ccAddresses: ccAddresses || [],
-        bccAddresses: bccAddresses || [],
+        senderEmail: '', // Will be filled when sending
+        recipients: toAddresses,
+        ccRecipients: ccAddresses || [],
+        bccRecipients: bccAddresses || [],
         content,
-        htmlContent: htmlContent || content,
         isRead: true,
         isDraft: true,
         isSent: false,
-        dateReceived: new Date(),
+        sentAt: new Date(),
       };
 
       if (draftId) {
@@ -360,7 +361,7 @@ export class StandaloneEmailService {
           eq(emailMessages.accountId, accountId)
         )
       )
-      .orderBy(emailMessages.dateSent);
+      .orderBy(emailMessages.sentAt);
   }
 
   /**
@@ -380,11 +381,11 @@ export class StandaloneEmailService {
           or(
             sql`${emailMessages.subject} ILIKE ${`%${query}%`}`,
             sql`${emailMessages.content} ILIKE ${`%${query}%`}`,
-            sql`${emailMessages.fromAddress} ILIKE ${`%${query}%`}`
+            sql`${emailMessages.senderEmail} ILIKE ${`%${query}%`}`
           )
         )
       )
-      .orderBy(desc(emailMessages.dateReceived))
+      .orderBy(desc(emailMessages.sentAt))
       .limit(limit);
   }
 }
