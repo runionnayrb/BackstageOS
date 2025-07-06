@@ -21,17 +21,10 @@ export default function ContactAvailability() {
   });
 
   const { data: contact, isLoading: isLoadingContact } = useQuery({
-    queryKey: [`/api/projects/${projectId}/contacts/${contactId}`],
+    queryKey: [`/api/contacts/${contactId}`],
   });
 
-  // Debug logging
-  console.log('Contact availability page debug:', {
-    projectId,
-    contactId,
-    project,
-    contact,
-    isLoadingContact
-  });
+  // Debug logging removed - contact should load properly now
 
   if (isLoadingContact || !project || !contact) {
     return (
