@@ -19,7 +19,8 @@ import {
   Settings,
   Mail,
   Edit,
-  ChevronDown
+  ChevronDown,
+  ArrowLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -84,8 +85,16 @@ export function EmailSidebar({
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-100">
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">Email</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onToggleCollapse}
+            className="h-8 w-8 p-0 hover:bg-gray-100"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
         </div>
 
         {/* Account Selector */}
