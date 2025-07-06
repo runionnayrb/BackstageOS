@@ -177,8 +177,28 @@ export default function PersonnelCategory() {
                       )}
                     </div>
                     <div className="flex gap-2 ml-3">
-                      <Mail className="h-4 w-4 text-gray-400" />
-                      <Phone className="h-4 w-4 text-gray-400" />
+                      {contact.email ? (
+                        <Mail 
+                          className="h-4 w-4 text-blue-500 hover:text-blue-700 cursor-pointer" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `mailto:${contact.email}`;
+                          }}
+                        />
+                      ) : (
+                        <Mail className="h-4 w-4 text-gray-300" />
+                      )}
+                      {contact.phone ? (
+                        <Phone 
+                          className="h-4 w-4 text-green-500 hover:text-green-700 cursor-pointer" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `tel:${contact.phone}`;
+                          }}
+                        />
+                      ) : (
+                        <Phone className="h-4 w-4 text-gray-300" />
+                      )}
                     </div>
                   </div>
                 </div>
