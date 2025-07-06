@@ -115,6 +115,28 @@ export default function EmailManager() {
     createAccountMutation.mutate(accountData);
   };
 
+  // Show loading state while checking setup status
+  if (setupLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="border-b border-gray-200 pb-4">
+            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+              <Mail className="w-8 h-8 text-blue-600" />
+              Email Manager
+            </h1>
+            <p className="mt-2 text-gray-600">
+              Loading email system...
+            </p>
+          </div>
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!setupCompleted) {
     return (
       <div className="min-h-screen bg-gray-50 p-6">
