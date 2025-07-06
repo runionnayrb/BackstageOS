@@ -24,7 +24,7 @@ export default function ContactAvailability() {
     queryKey: [`/api/contacts/${contactId}`],
   });
 
-  // Debug logging removed - contact should load properly now
+
 
   if (isLoadingContact || !project || !contact) {
     return (
