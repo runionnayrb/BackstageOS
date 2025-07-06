@@ -20,11 +20,20 @@ export default function ContactAvailability() {
     queryKey: [`/api/projects/${projectId}`],
   });
 
-  const { data: contact } = useQuery({
+  const { data: contact, isLoading: isLoadingContact } = useQuery({
     queryKey: [`/api/projects/${projectId}/contacts/${contactId}`],
   });
 
-  if (!project || !contact) {
+  // Debug logging
+  console.log('Contact availability page debug:', {
+    projectId,
+    contactId,
+    project,
+    contact,
+    isLoadingContact
+  });
+
+  if (isLoadingContact || !project || !contact) {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto p-6">
