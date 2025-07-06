@@ -264,6 +264,21 @@ Required environment variables:
 
 **Implementation Status:** Starting with Phase 1 - Proactive Monitoring & Enhanced Context
 
+## Planned Subscription System
+
+**Subscription Tiers**:
+- **Monthly**: $97/month - Standard features, individual user, month-to-month billing
+- **Annual**: $119/year - Same features as monthly with 87% savings, annual commitment  
+- **Theatre**: Custom pricing - Base price for first user + additional per-user pricing for theater companies
+
+**Access Control Strategy**:
+- Current beta users can be grandfathered with permanent free access
+- Complimentary access available for trusted testers and partnerships
+- Trial period for new users before subscription requirement
+- Admin dashboard manages all access types (paid, free, trial, grandfathered)
+
+**Implementation Plan**: Database schema extension → Access control integration → Admin dashboard enhancement → Payment integration → Beta-to-production migration with grandfathered pricing for early adopters
+
 ## Recent Changes
 - July 6, 2025: **COMPLETE USER DELETION FUNCTIONALITY IN ADMIN DASHBOARD**: Successfully implemented comprehensive user deletion functionality with confirmation dialog in admin user management. Delete button appears in edit mode alongside Save and Cancel buttons, includes detailed warning message about permanent data loss and removal of all user data (shows, reports, settings). Connected to existing DELETE /api/admin/users/:targetUserId endpoint with proper error handling, loading states, and cache invalidation. System provides safe user management with confirmation workflow preventing accidental deletions while allowing administrators to remove users when necessary.
 - July 5, 2025: **COMPLETE SHOW EDITING AND DELETION FUNCTIONALITY**: Successfully implemented comprehensive show management features in Show Settings with new General tab as primary interface. Features include: complete show information editing (name, venue, description) with dedicated edit mode and form validation, confirmation dialog for show deletion with detailed warning about permanent data loss, seamless integration with existing project API endpoints (PUT and DELETE), proper error handling and loading states throughout editing workflow, automatic navigation back to shows list after successful deletion, and clean card-based interface with "Danger Zone" section for destructive actions. General tab positioned as first tab in settings for immediate access to core show management. Users can now safely edit show details and delete shows accidentally created with full confirmation workflow preventing accidental data loss.
