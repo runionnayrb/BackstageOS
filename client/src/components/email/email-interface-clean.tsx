@@ -274,21 +274,21 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
                     onClick={handleReply} 
                     variant="ghost" 
                     size="icon"
-                    className="h-10 w-10 hover:bg-blue-50 hover:text-blue-600"
+                    className="h-10 w-10 hover:bg-transparent hover:text-blue-600"
                   >
                     <Reply className="h-5 w-5" />
                   </Button>
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    className="h-10 w-10 hover:bg-blue-50 hover:text-blue-600"
+                    className="h-10 w-10 hover:bg-transparent hover:text-blue-600"
                   >
                     <Reply className="h-5 w-5 scale-x-[-1]" />
                   </Button>
                   <Button 
                     variant="ghost" 
                     size="icon"
-                    className="h-10 w-10 hover:bg-blue-50 hover:text-blue-600"
+                    className="h-10 w-10 hover:bg-transparent hover:text-blue-600"
                   >
                     <Send className="h-5 w-5" />
                   </Button>
@@ -299,7 +299,7 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
                     onClick={handleArchive} 
                     variant="ghost" 
                     size="icon"
-                    className="h-10 w-10 hover:bg-blue-50 hover:text-blue-600"
+                    className="h-10 w-10 hover:bg-transparent hover:text-blue-600"
                   >
                     <Archive className="h-5 w-5" />
                   </Button>
@@ -307,7 +307,7 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
                     onClick={handleDelete} 
                     variant="ghost" 
                     size="icon"
-                    className="h-10 w-10 hover:bg-red-50 hover:text-red-600"
+                    className="h-10 w-10 hover:bg-transparent hover:text-red-600"
                   >
                     <Trash2 className="h-5 w-5" />
                   </Button>
