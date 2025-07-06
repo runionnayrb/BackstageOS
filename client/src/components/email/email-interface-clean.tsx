@@ -109,9 +109,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     <div className="flex h-[calc(100vh-120px)] bg-background">
       {/* Main Content - Full Width */}
       <div className="flex-1 flex flex-col">
-        {/* Header with title and search */}
-        <div className="p-4 border-b flex justify-between items-center">
-          <h1 className="text-lg font-semibold text-gray-900">Email</h1>
+        {/* Search Bar */}
+        <div className="p-4 border-b flex justify-end">
           <div className="relative max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
