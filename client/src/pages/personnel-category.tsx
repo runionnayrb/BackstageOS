@@ -167,7 +167,7 @@ export default function PersonnelCategory() {
                   className="group p-4 cursor-pointer transition-colors hover:bg-gray-50 rounded-lg"
                   onClick={() => handleContactClick(contact)}
                 >
-                  <div className="flex justify-between items-start">
+                  <div className="flex justify-between items-center">
                     <div className="flex-1">
                       <h3 className="font-medium text-gray-900">
                         {contact.firstName} {contact.lastName}
@@ -179,7 +179,7 @@ export default function PersonnelCategory() {
                     <div className="flex gap-2 ml-3">
                       {contact.email ? (
                         <Mail 
-                          className="h-4 w-4 text-blue-500 hover:text-blue-700 cursor-pointer" 
+                          className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
                           onClick={(e) => {
                             e.stopPropagation();
                             window.location.href = `mailto:${contact.email}`;
@@ -190,7 +190,7 @@ export default function PersonnelCategory() {
                       )}
                       {contact.phone ? (
                         <Phone 
-                          className="h-4 w-4 text-green-500 hover:text-green-700 cursor-pointer" 
+                          className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
                           onClick={(e) => {
                             e.stopPropagation();
                             window.location.href = `tel:${contact.phone}`;
