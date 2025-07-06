@@ -231,7 +231,7 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
 
       {/* Email Modal */}
       <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
-        <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-6xl h-[95vh] flex flex-col">
           {modalEmail && (
             <>
               <DialogHeader className="border-b pb-4">
