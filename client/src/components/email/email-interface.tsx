@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { EmailAccountConfig } from './email-account-config';
+import { EmailComposer } from './email-composer';
 
 interface EmailThread {
   id: number;
@@ -316,7 +317,13 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
         )}
       </div>
 
-      {/* Compose Dialog would go here when showCompose is true */}
+      {/* Email Composer */}
+      <EmailComposer
+        isOpen={showCompose}
+        onClose={() => setShowCompose(false)}
+        fromAccountId={selectedAccount.id}
+        fromEmail={selectedAccount.emailAddress}
+      />
       
       {/* Configuration Modal */}
       {showConfiguration && (

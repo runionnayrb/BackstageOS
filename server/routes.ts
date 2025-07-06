@@ -5713,6 +5713,196 @@ Respond with valid JSON only.`;
     }
   });
 
+  // ========== STANDALONE EMAIL SYSTEM ==========
+
+  // Send internal email
+  app.post('/api/email/send', isAuthenticated, async (req: any, res) => {
+    try {
+      const {
+        fromAccountId,
+        toAddresses,
+        subject,
+        content,
+        htmlContent,
+        ccAddresses,
+        bccAddresses,
+        replyToMessageId
+      } = req.body;
+
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      
+      const result = await standaloneEmailService.sendInternalEmail(
+        fromAccountId,
+        toAddresses,
+        subject,
+        content,
+        htmlContent,
+        ccAddresses,
+        bccAddresses,
+        replyToMessageId
+      );
+
+      if (result.success) {
+        res.json({ success: true, messageId: result.messageId });
+      } else {
+        res.status(400).json({ success: false, error: result.error });
+      }
+    } catch (error) {
+      console.error("Error sending internal email:", error);
+      res.status(500).json({ message: "Failed to send email" });
+    }
+  });
+
+  // Get inbox messages
+  app.get('/api/email/accounts/:accountId/inbox', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const limit = parseInt(req.query.limit) || 50;
+      const offset = parseInt(req.query.offset) || 0;
+
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      const messages = await standaloneEmailService.getInboxMessages(accountId, limit, offset);
+
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching inbox messages:", error);
+      res.status(500).json({ message: "Failed to fetch inbox messages" });
+    }
+  });
+
+  // Get sent messages
+  app.get('/api/email/accounts/:accountId/sent', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const limit = parseInt(req.query.limit) || 50;
+      const offset = parseInt(req.query.offset) || 0;
+
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      const messages = await standaloneEmailService.getSentMessages(accountId, limit, offset);
+
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching sent messages:", error);
+      res.status(500).json({ message: "Failed to fetch sent messages" });
+    }
+  });
+
+  // Get draft messages
+  app.get('/api/email/accounts/:accountId/drafts', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      const messages = await standaloneEmailService.getDraftMessages(accountId);
+
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching draft messages:", error);
+      res.status(500).json({ message: "Failed to fetch draft messages" });
+    }
+  });
+
+  // Mark message as read
+  app.put('/api/email/messages/:messageId/read', isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const { accountId } = req.body;
+
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      const success = await standaloneEmailService.markAsRead(messageId, accountId);
+
+      res.json({ success });
+    } catch (error) {
+      console.error("Error marking message as read:", error);
+      res.status(500).json({ message: "Failed to mark message as read" });
+    }
+  });
+
+  // Delete message
+  app.delete('/api/email/messages/:messageId', isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const { accountId } = req.body;
+
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      const success = await standaloneEmailService.deleteMessage(messageId, accountId);
+
+      res.json({ success });
+    } catch (error) {
+      console.error("Error deleting message:", error);
+      res.status(500).json({ message: "Failed to delete message" });
+    }
+  });
+
+  // Save draft
+  app.post('/api/email/drafts', isAuthenticated, async (req: any, res) => {
+    try {
+      const {
+        accountId,
+        toAddresses,
+        subject,
+        content,
+        htmlContent,
+        ccAddresses,
+        bccAddresses,
+        draftId
+      } = req.body;
+
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      const result = await standaloneEmailService.saveDraft(
+        accountId,
+        toAddresses,
+        subject,
+        content,
+        htmlContent,
+        ccAddresses,
+        bccAddresses,
+        draftId
+      );
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error saving draft:", error);
+      res.status(500).json({ message: "Failed to save draft" });
+    }
+  });
+
+  // Get thread messages
+  app.get('/api/email/threads/:threadId/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const threadId = parseInt(req.params.threadId);
+      const { accountId } = req.query;
+
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      const messages = await standaloneEmailService.getThreadMessages(threadId, parseInt(accountId));
+
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching thread messages:", error);
+      res.status(500).json({ message: "Failed to fetch thread messages" });
+    }
+  });
+
+  // Search messages
+  app.get('/api/email/accounts/:accountId/search', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const { q: query, limit = 50 } = req.query;
+
+      if (!query) {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      const messages = await standaloneEmailService.searchMessages(accountId, query as string, parseInt(limit as string));
+
+      res.json(messages);
+    } catch (error) {
+      console.error("Error searching messages:", error);
+      res.status(500).json({ message: "Failed to search messages" });
+    }
+  });
+
   const server = createServer(app);
   return server;
 }
