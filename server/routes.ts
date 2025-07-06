@@ -5300,7 +5300,7 @@ Respond with valid JSON only.`;
 
       // Create tables using direct SQL to avoid migration timeout
       const { sql } = await import('drizzle-orm');
-      const { db } = await import('./storage.js');
+      const { db } = await import('./db.js');
 
       await db.execute(sql`
         CREATE TABLE IF NOT EXISTS email_accounts (
