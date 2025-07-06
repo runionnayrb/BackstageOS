@@ -189,8 +189,8 @@ export default function EnhancedHeader() {
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo and Navigation */}
           <div className="flex items-center gap-6">
-            {/* Mobile Navigation Menu */}
-            <div className="lg:hidden">
+            {/* Navigation Menu */}
+            <div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="flex items-center gap-2">
