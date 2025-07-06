@@ -267,8 +267,8 @@ Required environment variables:
 ## Planned Subscription System
 
 **Subscription Tiers**:
-- **Monthly**: $97/month - Standard features, individual user, month-to-month billing
-- **Annual**: $119/year - Same features as monthly with 87% savings, annual commitment  
+- **Monthly**: $119/month - Standard features, individual user, month-to-month billing
+- **Annual**: $97/year - Same features as monthly with 32% savings, annual commitment  
 - **Theatre**: Custom pricing - Base price for first user + additional per-user pricing for theater companies
 
 **Access Control Strategy**:
