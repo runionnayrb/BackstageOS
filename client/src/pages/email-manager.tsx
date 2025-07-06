@@ -33,14 +33,16 @@ interface EmailStats {
 export default function EmailManager() {
   const [selectedAccount, setSelectedAccount] = useState<EmailAccount | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [setupCompleted, setSetupCompleted] = useState(false);
   const queryClient = useQueryClient();
 
-  // Queries
+  // Check if email system is set up by trying to fetch accounts
   const { data: emailAccounts = [], isLoading: accountsLoading, error: accountsError } = useQuery({
     queryKey: ['/api/email/accounts'],
-    enabled: setupCompleted,
+    retry: false,
   });
+
+  // Determine if setup is completed based on the response
+  const setupCompleted = !accountsError;
 
   const { data: emailStats, isLoading: statsLoading } = useQuery({
     queryKey: ['/api/email/accounts', selectedAccount?.id, 'stats'],
@@ -55,7 +57,6 @@ export default function EmailManager() {
         title: "Email System Setup",
         description: "Email system tables created successfully",
       });
-      setSetupCompleted(true);
       queryClient.invalidateQueries({ queryKey: ['/api/email/accounts'] });
     },
     onError: (error: any) => {
