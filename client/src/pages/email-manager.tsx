@@ -121,9 +121,8 @@ export default function EmailManager() {
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="border-b border-gray-200 pb-4">
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Mail className="w-8 h-8 text-blue-600" />
-              Email Manager
+            <h1 className="text-3xl font-bold text-gray-900">
+              Email
             </h1>
             <p className="mt-2 text-gray-600">
               Loading email system...
@@ -142,8 +141,7 @@ export default function EmailManager() {
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-4xl mx-auto space-y-6">
           <div className="border-b border-gray-200 pb-4">
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Mail className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold text-gray-900">
               Email System Setup
             </h1>
             <p className="mt-2 text-gray-600">
@@ -202,9 +200,8 @@ export default function EmailManager() {
         {/* Header */}
         <div className="border-b border-gray-200 pb-4 flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Mail className="w-8 h-8 text-blue-600" />
-              Email Manager
+            <h1 className="text-3xl font-bold text-gray-900">
+              Email
             </h1>
             <p className="mt-2 text-gray-600">
               Manage your @backstageos.com email addresses and communication
