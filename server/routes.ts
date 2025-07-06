@@ -5291,6 +5291,27 @@ Respond with valid JSON only.`;
 
   // ========== EMAIL SYSTEM ROUTES ==========
 
+  // Check if email system is set up
+  app.get('/api/email/setup-status', async (req: any, res) => {
+    try {
+      const { sql } = await import('drizzle-orm');
+      const { db } = await import('./db.js');
+      
+      // Check if email_accounts table exists
+      const result = await db.execute(sql`
+        SELECT COUNT(*) 
+        FROM information_schema.tables 
+        WHERE table_name = 'email_accounts'
+      `);
+      
+      const isSetup = result.rows[0].count > 0;
+      res.json({ isSetup });
+    } catch (error) {
+      console.error('Error checking email setup status:', error);
+      res.json({ isSetup: false });
+    }
+  });
+
   // Create email tables if they don't exist (temporary migration solution)
   app.post('/api/email/setup', isAuthenticated, async (req: any, res) => {
     try {
