@@ -253,22 +253,15 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
 
               <div className="flex-1 overflow-y-auto p-6">
                 <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback>
-                        {modalEmail.participants[0]?.charAt(0).toUpperCase() || 'U'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="font-medium">{modalEmail.participants[0]}</span>
-                        <span className="text-sm text-muted-foreground">{modalEmail.lastMessageTime}</span>
-                      </div>
-                      <div className="prose prose-sm max-w-none">
-                        <p>{modalEmail.lastMessage}</p>
-                        <p>This is a sample email message that would contain the full content of the conversation. In the actual implementation, this would be loaded from the email server and display the complete message thread with proper formatting, attachments, and conversation history.</p>
-                        <p>The modal provides a clean, focused reading experience with all the necessary actions available through the toolbar below.</p>
-                      </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="font-medium">{modalEmail.participants[0]}</span>
+                      <span className="text-sm text-muted-foreground">{modalEmail.lastMessageTime}</span>
+                    </div>
+                    <div className="prose prose-sm max-w-none">
+                      <p>{modalEmail.lastMessage}</p>
+                      <p>This is a sample email message that would contain the full content of the conversation. In the actual implementation, this would be loaded from the email server and display the complete message thread with proper formatting, attachments, and conversation history.</p>
+                      <p>The modal provides a clean, focused reading experience with all the necessary actions available through the toolbar below.</p>
                     </div>
                   </div>
                 </div>
