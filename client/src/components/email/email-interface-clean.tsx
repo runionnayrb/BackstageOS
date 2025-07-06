@@ -109,39 +109,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     <div className="flex h-[calc(100vh-120px)] bg-background">
       {/* Main Content - Full Width */}
       <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary text-primary-foreground text-sm">
-                  {selectedAccount.emailAddress.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-sm font-medium">{selectedAccount.emailAddress}</p>
-                <p className="text-xs text-muted-foreground capitalize">{selectedAccount.accountType}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button 
-                onClick={() => onShowComposeChange?.(true)}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Compose
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => setShowConfiguration(true)}
-                title="Account Settings"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
+
 
         {/* Search Bar */}
         <div className="p-4 border-b">
