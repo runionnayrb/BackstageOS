@@ -143,32 +143,66 @@ export default function EmailManager() {
 
   return (
     <div className="w-full min-h-screen bg-white relative">
-      {/* Sidebar */}
-      <EmailSidebar
-        emailAccounts={emailAccounts as EmailAccount[]}
-        selectedAccount={selectedAccount}
-        onAccountSelect={setSelectedAccount}
-        onCreateAccount={() => setIsCreateDialogOpen(true)}
-        onCompose={() => setShowCompose(true)}
-        isCollapsed={isSidebarCollapsed}
-        onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        accountStats={accountStats as EmailStats}
-      />
+      {/* Mobile: Hide Sidebar, Desktop: Show Sidebar */}
+      <div className="hidden md:block">
+        <EmailSidebar
+          emailAccounts={emailAccounts as EmailAccount[]}
+          selectedAccount={selectedAccount}
+          onAccountSelect={setSelectedAccount}
+          onCreateAccount={() => setIsCreateDialogOpen(true)}
+          onCompose={() => setShowCompose(true)}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          accountStats={accountStats as EmailStats}
+        />
+      </div>
 
-      {/* Main Content */}
+      {/* Main Content - Mobile Full Width, Desktop With Sidebar */}
       <div 
         className={`transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? "ml-0" : "ml-64"
+          isSidebarCollapsed ? "md:ml-0" : "md:ml-64"
         }`}
       >
-        <div className="px-4 sm:px-6 lg:px-8 py-6">
-          {/* Header */}
-          <div className="border-b border-gray-200 pb-4">
-            <div className="flex items-center">
+        <div className="px-2 md:px-4 lg:px-8 py-2 md:py-6">
+          {/* Header - Mobile Optimized */}
+          <div className="border-b border-gray-200 pb-2 md:pb-4">
+            <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-xl md:text-3xl font-bold text-gray-900">
                   Email
                 </h1>
+              </div>
+              {/* Mobile Actions */}
+              <div className="md:hidden flex items-center gap-2">
+                {/* Mobile Account Selector */}
+                {emailAccounts && Array.isArray(emailAccounts) && emailAccounts.length > 1 && (
+                  <Select 
+                    value={selectedAccount?.id?.toString() || ''} 
+                    onValueChange={(value) => {
+                      const account = (emailAccounts as EmailAccount[]).find(acc => acc.id.toString() === value);
+                      if (account) setSelectedAccount(account);
+                    }}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Account" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(emailAccounts as EmailAccount[]).map((account) => (
+                        <SelectItem key={account.id} value={account.id.toString()}>
+                          {account.emailAddress.split('@')[0]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+                <Button 
+                  onClick={() => setShowCompose(true)}
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Compose
+                </Button>
               </div>
             </div>
             

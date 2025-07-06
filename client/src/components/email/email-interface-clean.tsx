@@ -76,32 +76,32 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   return (
     <>
       <div className="relative h-[calc(100vh-120px)] bg-background">
-        {/* Full-Width Header - Mobile Optimized */}
-        <div className="absolute top-0 left-0 right-0 h-14 sm:h-16 bg-white border-b border-gray-200 flex items-center gap-2 sm:gap-6 px-2 sm:px-4 z-50">
-          <h1 className="text-base sm:text-lg font-semibold text-gray-900 ml-1 sm:ml-2 flex-shrink-0">Email</h1>
-          <div className="relative flex-1 max-w-md sm:max-w-none">
-            <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
+        {/* Mobile-First Header */}
+        <div className="absolute top-0 left-0 right-0 h-12 md:h-16 bg-white border-b border-gray-200 flex items-center gap-2 md:gap-6 px-2 md:px-4 z-50">
+          <h1 className="text-sm md:text-lg font-semibold text-gray-900 flex-shrink-0">Email</h1>
+          <div className="relative flex-1">
+            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             <Input
-              placeholder="Search conversations..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 sm:pl-10 w-full text-sm sm:text-base h-8 sm:h-10"
+              className="pl-7 md:pl-10 w-full text-sm h-7 md:h-10 border-gray-300"
             />
           </div>
         </div>
 
         {/* Content Area - Mobile Responsive */}
-        <div className="pt-14 sm:pt-16 h-full">
+        <div className="pt-12 md:pt-16 h-full">
           {/* Full-Width Email List */}
           <ScrollArea className="h-full">
-            <div className="space-y-0 sm:space-y-1">
+            <div className="space-y-0">
               {isLoading && (
-                <div className="p-4 text-center text-muted-foreground">
+                <div className="p-3 md:p-4 text-center text-muted-foreground text-sm">
                   Loading messages...
                 </div>
               )}
               {error && (
-                <div className="p-4 text-center text-red-600">
+                <div className="p-3 md:p-4 text-center text-red-600 text-sm">
                   Error loading messages
                 </div>
               )}
@@ -109,70 +109,63 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 <button
                   key={message.id}
                   onClick={() => handleEmailClick(message)}
-                  className="w-full block text-left hover:bg-muted/50 focus:bg-muted/50 focus:outline-none group px-3 sm:px-4 py-2 sm:py-3 border-b border-muted-foreground/10"
+                  className="w-full block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group px-3 md:px-4 py-2 md:py-3 border-b border-gray-100"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-0">
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-1 md:gap-0">
                     {/* Left side - Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-start gap-2 mb-1">
                         {!message.isRead && (
-                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                          <div className="w-2 h-2 bg-blue-600 rounded-full mt-1"></div>
                         )}
-                      </div>
-                      
-                      <div className="flex items-start gap-2 sm:gap-4">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 sm:gap-3 mb-1">
-                            <span className={`font-medium text-xs sm:text-sm truncate ${!message.isRead ? 'font-semibold' : ''}`}>
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className={`font-medium text-sm md:text-base truncate ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
                               {message.subject || 'No Subject'}
                             </span>
                             {message.hasAttachments && (
-                              <Badge variant="outline" className="h-4 sm:h-5 text-xs px-1 sm:px-2">
-                                📎
-                              </Badge>
+                              <span className="text-xs text-gray-500">📎</span>
                             )}
                             {message.isImportant && (
-                              <Badge variant="secondary" className="h-4 sm:h-5 text-xs px-1 sm:px-2">
-                                ⭐
-                              </Badge>
+                              <span className="text-xs text-yellow-500">⭐</span>
                             )}
                           </div>
                           
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+                          <div className="flex flex-col gap-0.5 text-xs md:text-sm text-gray-500">
                             <span className="truncate font-medium">{message.fromAddress}</span>
-                            <span className="hidden sm:inline">•</span>
-                            <span className="truncate flex-1 text-xs opacity-75">{message.content?.slice(0, 80) || 'No content preview'}</span>
+                            <span className="truncate text-xs opacity-75 md:hidden">{message.content?.slice(0, 50) || 'No preview'}</span>
+                            <span className="truncate text-sm opacity-75 hidden md:block">{message.content?.slice(0, 80) || 'No content preview'}</span>
                           </div>
                         </div>
                       </div>
 
-                      {/* Right side - Time and icons - Mobile Optimized */}
-                      <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3 flex-shrink-0 sm:ml-4">
-                        <span className="text-xs text-muted-foreground">
+                      {/* Right side - Time - Mobile Optimized */}
+                      <div className="flex items-center justify-end gap-1 flex-shrink-0 md:ml-4 text-right">
+                        <span className="text-xs text-gray-400">
                           {message.dateSent ? new Date(message.dateSent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                         </span>
-                        <div className="flex items-center gap-1">
+                        <div className="hidden md:flex items-center gap-1">
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-5 w-5 sm:h-6 sm:w-6 p-0 opacity-60 sm:opacity-0 group-hover:opacity-100 hover:bg-muted-foreground/10"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100"
                             onClick={(e) => {
                               e.stopPropagation();
                               // Handle star
                             }}
                           >
-                            <Star className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                            <Star className="h-3 w-3" />
                           </Button>
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-5 w-5 sm:h-6 sm:w-6 p-0 opacity-60 sm:opacity-0 group-hover:opacity-100 hover:bg-muted-foreground/10"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleArchive();
                             }}
                           >
-                            <Archive className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                            <Archive className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
@@ -187,43 +180,43 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
 
       {/* Email Modal */}
       <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
-        <DialogContent className="w-[95vw] sm:max-w-6xl h-[95vh] max-w-[95vw] sm:max-w-6xl flex flex-col">
+        <DialogContent className="w-[95vw] md:max-w-4xl h-[95vh] flex flex-col">
           {modalEmail && (
             <>
-              <DialogHeader className="border-b pb-3 sm:pb-4">
-                <DialogTitle className="text-base sm:text-xl font-semibold">{modalEmail.subject || 'No Subject'}</DialogTitle>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+              <DialogHeader className="border-b pb-3 md:pb-4">
+                <DialogTitle className="text-lg md:text-xl font-semibold pr-6">{modalEmail.subject || 'No Subject'}</DialogTitle>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
+                  <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-sm text-gray-600">
                     <span>From: {modalEmail.fromAddress}</span>
-                    <Separator orientation="vertical" className="hidden sm:block h-4" />
+                    <Separator orientation="vertical" className="hidden md:block h-4" />
                     <span>{modalEmail.dateSent ? new Date(modalEmail.dateSent).toLocaleString() : ''}</span>
                     {modalEmail.hasAttachments && (
                       <>
-                        <Separator orientation="vertical" className="hidden sm:block h-4" />
+                        <Separator orientation="vertical" className="hidden md:block h-4" />
                         <span className="flex items-center gap-1">
                           📎 Attachments
                         </span>
                       </>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 sm:gap-2">
+                  <div className="flex items-center gap-1 md:gap-2 flex-wrap">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={handleReply}
-                      className="h-8 px-3"
+                      className="h-8 px-2 md:px-3 text-xs md:text-sm"
                     >
-                      <Reply className="h-4 w-4 mr-1" />
+                      <Reply className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                       Reply
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={handleReplyAll}
-                      className="h-8 px-3"
+                      className="h-8 px-2 md:px-3 text-xs md:text-sm"
                     >
-                      <ReplyAll className="h-4 w-4 mr-1" />
-                      Reply All
+                      <ReplyAll className="h-3 w-3 md:h-4 md:w-4 mr-1" />
+                      All
                     </Button>
                     <Button
                       variant="ghost"
