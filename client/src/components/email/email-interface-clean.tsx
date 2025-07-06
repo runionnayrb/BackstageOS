@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Mail, Send, Inbox, FileText, Archive, Search, Plus, MoreHorizontal, ArrowLeft, Settings, Reply, Trash2, Star, Clock } from 'lucide-react';
+import { Mail, Send, Inbox, FileText, Archive, Search, Plus, MoreHorizontal, ArrowLeft, Settings, Reply, Trash2, Star, Clock, CornerUpLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -266,14 +266,17 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
                       size="icon"
                       className="h-8 w-8 hover:bg-transparent hover:text-blue-600"
                     >
-                      <Reply className="h-4 w-4 scale-x-[-1]" />
+                      <div className="relative">
+                        <Reply className="h-4 w-4" />
+                        <Reply className="h-3 w-3 absolute -top-0.5 left-2" />
+                      </div>
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="icon"
                       className="h-8 w-8 hover:bg-transparent hover:text-blue-600"
                     >
-                      <Send className="h-4 w-4" />
+                      <Reply className="h-4 w-4 scale-x-[-1]" />
                     </Button>
                     <Button 
                       onClick={handleArchive} 
