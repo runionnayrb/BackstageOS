@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, Plus, Edit } from "lucide-react";
+import { ArrowLeft, Plus, Edit, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { ContactForm } from "@/components/contact-form";
@@ -167,13 +167,19 @@ export default function PersonnelCategory() {
                   className="group p-4 cursor-pointer transition-colors hover:bg-gray-50 rounded-lg"
                   onClick={() => handleContactClick(contact)}
                 >
-                  <div>
-                    <h3 className="font-medium text-gray-900">
-                      {contact.firstName} {contact.lastName}
-                    </h3>
-                    {contact.role && (
-                      <p className="text-sm text-gray-600 mt-1">{contact.role}</p>
-                    )}
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">
+                        {contact.firstName} {contact.lastName}
+                      </h3>
+                      {contact.role && (
+                        <p className="text-sm text-gray-600 mt-1">{contact.role}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2 ml-3">
+                      <Mail className="h-4 w-4 text-gray-400" />
+                      <Phone className="h-4 w-4 text-gray-400" />
+                    </div>
                   </div>
                 </div>
               ))}
