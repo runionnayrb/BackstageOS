@@ -6,52 +6,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { EmailAccountConfig } from './email-account-config';
 import { EmailComposer } from './email-composer';
-
-interface EmailThread {
-  id: number;
-  subject: string;
-  participants: string[];
-  lastMessage: string;
-  lastMessageTime: string;
-  isRead: boolean;
-  messageCount: number;
-  hasAttachments: boolean;
-}
-
-const mockThreads: EmailThread[] = [
-  {
-    id: 1,
-    subject: "Tech Rehearsal Notes - Week 3",
-    participants: ["Sarah Johnson", "Mike Chen"],
-    lastMessage: "The lighting changes for Act II Scene 2 look great. Just need to adjust...",
-    lastMessageTime: "2:30 PM",
-    isRead: false,
-    messageCount: 4,
-    hasAttachments: true
-  },
-  {
-    id: 2,
-    subject: "Costume Fittings Tomorrow",
-    participants: ["Emily Rodriguez"],
-    lastMessage: "Reminder that we have costume fittings scheduled for tomorrow at 10 AM...",
-    lastMessageTime: "1:15 PM",
-    isRead: true,
-    messageCount: 1,
-    hasAttachments: false
-  },
-  {
-    id: 3,
-    subject: "Script Updates - Page 47",
-    participants: ["David Kim", "Alex Thompson"],
-    lastMessage: "Thanks for the quick turnaround on those line changes. The actors...",
-    lastMessageTime: "11:45 AM",
-    isRead: false,
-    messageCount: 6,
-    hasAttachments: false
-  }
-];
+import { EmailMessage } from '@shared/schema';
 
 interface EmailAccount {
   id: number;
@@ -70,16 +28,22 @@ interface EmailInterfaceProps {
 export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange }: EmailInterfaceProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const [modalEmail, setModalEmail] = useState<EmailThread | null>(null);
+  const [modalEmail, setModalEmail] = useState<EmailMessage | null>(null);
   const [showConfiguration, setShowConfiguration] = useState(false);
 
-  const filteredThreads = mockThreads.filter(thread =>
-    thread.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    thread.participants.some(p => p.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    thread.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
+  // Fetch inbox messages for the selected account
+  const { data: inboxMessages, isLoading, error } = useQuery<EmailMessage[]>({
+    queryKey: ['/api/email/accounts', selectedAccount.id, 'inbox'],
+    enabled: selectedAccount?.id > 0,
+  });
+
+  const filteredMessages = (inboxMessages || []).filter((message: EmailMessage) =>
+    message.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    message.fromAddress?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    message.content?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleEmailClick = (email: EmailThread) => {
+  const handleEmailClick = (email: EmailMessage) => {
     setModalEmail(email);
     setShowEmailModal(true);
   };
@@ -131,17 +95,27 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
           {/* Full-Width Email List */}
           <ScrollArea className="h-full">
             <div className="space-y-1">
-              {filteredThreads.map((thread) => (
+              {isLoading && (
+                <div className="p-4 text-center text-muted-foreground">
+                  Loading messages...
+                </div>
+              )}
+              {error && (
+                <div className="p-4 text-center text-red-600">
+                  Error loading messages
+                </div>
+              )}
+              {filteredMessages.map((message: EmailMessage) => (
                 <button
-                  key={thread.id}
-                  onClick={() => handleEmailClick(thread)}
+                  key={message.id}
+                  onClick={() => handleEmailClick(message)}
                   className="w-full block text-left hover:bg-muted/50 focus:bg-muted/50 focus:outline-none group px-4 py-3 border-b border-muted-foreground/10"
                 >
                   <div className="flex items-start justify-between">
                     {/* Left side - Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        {!thread.isRead && (
+                        {!message.isRead && (
                           <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                         )}
                       </div>
@@ -149,32 +123,34 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       <div className="flex items-start gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 mb-1">
-                            <span className={`font-medium text-sm truncate ${!thread.isRead ? 'font-semibold' : ''}`}>
-                              {thread.subject}
+                            <span className={`font-medium text-sm truncate ${!message.isRead ? 'font-semibold' : ''}`}>
+                              {message.subject || 'No Subject'}
                             </span>
-                            {thread.hasAttachments && (
+                            {message.hasAttachments && (
                               <Badge variant="outline" className="h-5 text-xs px-2">
                                 📎
                               </Badge>
                             )}
-                            {thread.messageCount > 1 && (
+                            {message.isImportant && (
                               <Badge variant="secondary" className="h-5 text-xs px-2">
-                                {thread.messageCount}
+                                ⭐
                               </Badge>
                             )}
                           </div>
                           
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span className="truncate">{thread.participants.join(', ')}</span>
+                            <span className="truncate">{message.fromAddress}</span>
                             <span>•</span>
-                            <span className="truncate flex-1">{thread.lastMessage}</span>
+                            <span className="truncate flex-1">{message.content?.slice(0, 100) || 'No content preview'}</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Right side - Time and icons */}
                       <div className="flex items-center gap-3 flex-shrink-0 ml-4">
-                        <span className="text-xs text-muted-foreground">{thread.lastMessageTime}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {message.dateSent ? new Date(message.dateSent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </span>
                         <div className="flex items-center gap-1">
                           <Button 
                             variant="ghost" 
@@ -215,12 +191,12 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
           {modalEmail && (
             <>
               <DialogHeader className="border-b pb-4">
-                <DialogTitle className="text-xl font-semibold">{modalEmail.subject}</DialogTitle>
+                <DialogTitle className="text-xl font-semibold">{modalEmail.subject || 'No Subject'}</DialogTitle>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span>From: {modalEmail.participants.join(', ')}</span>
+                    <span>From: {modalEmail.fromAddress}</span>
                     <Separator orientation="vertical" className="h-4" />
-                    <span>{modalEmail.lastMessageTime}</span>
+                    <span>{modalEmail.dateSent ? new Date(modalEmail.dateSent).toLocaleString() : ''}</span>
                     {modalEmail.hasAttachments && (
                       <>
                         <Separator orientation="vertical" className="h-4" />
@@ -287,24 +263,24 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                          {modalEmail.participants[0]?.charAt(0)}
+                          {modalEmail.fromAddress?.charAt(0)?.toUpperCase() || 'U'}
                         </div>
                         <div>
-                          <div className="font-medium">{modalEmail.participants[0]}</div>
-                          <div className="text-sm text-muted-foreground">{modalEmail.lastMessageTime}</div>
+                          <div className="font-medium">{modalEmail.fromAddress}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {modalEmail.dateSent ? new Date(modalEmail.dateSent).toLocaleString() : ''}
+                          </div>
                         </div>
                       </div>
                     </div>
                     <div className="prose max-w-none">
-                      <p>
-                        {modalEmail.lastMessage}
-                      </p>
-                      <p>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                      </p>
-                      <p>
-                        Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                      </p>
+                      {modalEmail.htmlContent ? (
+                        <div dangerouslySetInnerHTML={{ __html: modalEmail.htmlContent }} />
+                      ) : (
+                        <div style={{ whiteSpace: 'pre-wrap' }}>
+                          {modalEmail.content || 'No content available'}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

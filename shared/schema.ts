@@ -522,43 +522,32 @@ export const emailThreads = pgTable("email_threads", {
 // Email messages storage with threading support
 export const emailMessages = pgTable("email_messages", {
   id: serial("id").primaryKey(),
-  threadId: integer("thread_id").notNull().references(() => emailThreads.id, { onDelete: "cascade" }),
   accountId: integer("account_id").notNull().references(() => emailAccounts.id, { onDelete: "cascade" }),
-  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  threadId: integer("thread_id").references(() => emailThreads.id, { onDelete: "cascade" }),
   messageId: varchar("message_id").unique(), // Email Message-ID header
-  senderEmail: varchar("sender_email").notNull(),
-  senderName: varchar("sender_name"),
-  recipients: text("recipients").array().notNull(), // to field
-  ccRecipients: text("cc_recipients").array(),
-  bccRecipients: text("bcc_recipients").array(),
-  subject: varchar("subject").notNull(),
-  content: text("content").notNull(), // HTML content
-  plainTextContent: text("plain_text_content"), // Plain text version
-  messageType: varchar("message_type").notNull().default("email"), // email, draft, template
-  folderId: integer("folder_id").references(() => emailFolders.id),
+  subject: varchar("subject"),
+  fromAddress: varchar("from_address").notNull(),
+  toAddresses: text("to_addresses").array(),
+  ccAddresses: text("cc_addresses").array(),
+  bccAddresses: text("bcc_addresses").array(),
+  content: text("content"),
+  htmlContent: text("html_content"),
   isRead: boolean("is_read").default(false),
+  isDraft: boolean("is_draft").default(false),
+  isSent: boolean("is_sent").default(false),
   isStarred: boolean("is_starred").default(false),
   isImportant: boolean("is_important").default(false),
-  isSent: boolean("is_sent").default(false),
-  isDraft: boolean("is_draft").default(false),
-  isDeleted: boolean("is_deleted").default(false),
-  // Email delivery tracking
-  sentAt: timestamp("sent_at"),
-  deliveredAt: timestamp("delivered_at"),
-  readAt: timestamp("read_at"),
-  // IMAP synchronization fields
-  imapUid: integer("imap_uid"), // IMAP UID for sync
-  imapFolder: varchar("imap_folder"), // Original IMAP folder
-  syncedAt: timestamp("synced_at"),
-  lastSeenAt: timestamp("last_seen_at"),
-  // Email queue and processing
-  queueStatus: varchar("queue_status").default("none"), // 'pending', 'processing', 'sent', 'failed', 'retry'
-  queuedAt: timestamp("queued_at"),
-  processedAt: timestamp("processed_at"),
-  retryCount: integer("retry_count").default(0),
-  lastError: text("last_error"),
-  // Integration with existing systems
-  relatedReportId: integer("related_report_id").references(() => reports.id),
+  hasAttachments: boolean("has_attachments").default(false),
+  dateSent: timestamp("date_sent"),
+  dateReceived: timestamp("date_received"),
+  folderId: integer("folder_id").references(() => emailFolders.id),
+  labels: text("labels").array(),
+  priority: varchar("priority"),
+  replyTo: varchar("reply_to"),
+  inReplyTo: varchar("in_reply_to"),
+  messageReferences: text("message_references").array(),
+  sizeBytes: integer("size_bytes"),
+  relatedShowId: integer("related_show_id").references(() => projects.id),
   relatedContactId: integer("related_contact_id").references(() => contacts.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -1241,17 +1230,13 @@ export const emailMessagesRelations = relations(emailMessages, ({ one, many }) =
     fields: [emailMessages.accountId],
     references: [emailAccounts.id],
   }),
-  project: one(projects, {
-    fields: [emailMessages.projectId],
+  relatedShow: one(projects, {
+    fields: [emailMessages.relatedShowId],
     references: [projects.id],
   }),
   folder: one(emailFolders, {
     fields: [emailMessages.folderId],
     references: [emailFolders.id],
-  }),
-  relatedReport: one(reports, {
-    fields: [emailMessages.relatedReportId],
-    references: [reports.id],
   }),
   relatedContact: one(contacts, {
     fields: [emailMessages.relatedContactId],

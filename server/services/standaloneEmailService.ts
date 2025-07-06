@@ -74,15 +74,16 @@ export class StandaloneEmailService {
         threadId,
         messageId,
         subject,
-        senderEmail: sender.emailAddress,
-        recipients: toAddresses,
-        ccRecipients: ccAddresses || [],
-        bccRecipients: bccAddresses || [],
+        fromAddress: sender.emailAddress,
+        toAddresses: toAddresses,
+        ccAddresses: ccAddresses || [],
+        bccAddresses: bccAddresses || [],
         content,
+        htmlContent: content,
         isRead: true, // Sender's copy is automatically read
         isDraft: false,
         isSent: true,
-        sentAt: new Date(),
+        dateSent: new Date(),
       };
 
       const [sentMessage] = await db.insert(emailMessages).values(outgoingMessage).returning();
@@ -155,15 +156,16 @@ export class StandaloneEmailService {
             threadId,
             messageId: `${messageId}-to-${recipient.id}`,
             subject,
-            senderEmail: sender.emailAddress,
-            recipients: [recipientAddress],
-            ccRecipients: ccAddresses || [],
-            bccRecipients: bccAddresses || [],
+            fromAddress: sender.emailAddress,
+            toAddresses: [recipientAddress],
+            ccAddresses: ccAddresses || [],
+            bccAddresses: bccAddresses || [],
             content,
+            htmlContent: content,
             isRead: false,
             isDraft: false,
             isSent: false,
-            sentAt: new Date(),
+            dateSent: new Date(),
             folderId: inboxFolder.length ? inboxFolder[0].id : null,
           };
 
@@ -212,7 +214,7 @@ export class StandaloneEmailService {
           )
         )
       )
-      .orderBy(desc(emailMessages.sentAt))
+      .orderBy(desc(emailMessages.dateSent))
       .limit(limit)
       .offset(offset);
   }
@@ -230,7 +232,7 @@ export class StandaloneEmailService {
           eq(emailMessages.isSent, true)
         )
       )
-      .orderBy(desc(emailMessages.sentAt))
+      .orderBy(desc(emailMessages.dateSent))
       .limit(limit)
       .offset(offset);
   }
@@ -313,15 +315,15 @@ export class StandaloneEmailService {
         threadId: 0, // Will be filled when sending
         messageId,
         subject,
-        senderEmail: '', // Will be filled when sending
-        recipients: toAddresses,
-        ccRecipients: ccAddresses || [],
-        bccRecipients: bccAddresses || [],
+        fromAddress: '', // Will be filled when sending
+        toAddresses: toAddresses,
+        ccAddresses: ccAddresses || [],
+        bccAddresses: bccAddresses || [],
         content,
         isRead: true,
         isDraft: true,
         isSent: false,
-        sentAt: new Date(),
+        dateSent: new Date(),
       };
 
       if (draftId) {
@@ -361,7 +363,7 @@ export class StandaloneEmailService {
           eq(emailMessages.accountId, accountId)
         )
       )
-      .orderBy(emailMessages.sentAt);
+      .orderBy(emailMessages.dateSent);
   }
 
   /**
@@ -381,11 +383,11 @@ export class StandaloneEmailService {
           or(
             sql`${emailMessages.subject} ILIKE ${`%${query}%`}`,
             sql`${emailMessages.content} ILIKE ${`%${query}%`}`,
-            sql`${emailMessages.senderEmail} ILIKE ${`%${query}%`}`
+            sql`${emailMessages.fromAddress} ILIKE ${`%${query}%`}`
           )
         )
       )
-      .orderBy(desc(emailMessages.sentAt))
+      .orderBy(desc(emailMessages.dateSent))
       .limit(limit);
   }
 }
