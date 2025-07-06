@@ -268,7 +268,7 @@ Required environment variables:
 
 **Subscription Tiers**:
 - **Monthly**: $119/month - Standard features, individual user, month-to-month billing
-- **Annual**: $97/year - Same features as monthly with 32% savings, annual commitment  
+- **Annual**: $97/month billed annually ($1,164/year) - Same features as monthly with 18% savings, annual commitment  
 - **Theatre**: Custom pricing - Base price for first user + additional per-user pricing for theater companies
 
 **Access Control Strategy**:
