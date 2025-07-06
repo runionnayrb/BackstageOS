@@ -26,7 +26,7 @@ export default function AdminDashboard() {
   return (
     <AdminGuard>
       <div className="w-full min-h-screen">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mb-4 sm:mb-6 px-6 pt-6">
+        <div className="flex flex-col space-y-4 mb-4 sm:mb-6 px-6 pt-6">
           <Link href="/">
             <Button variant="ghost" size="sm" className="w-full sm:w-auto">
               <ArrowLeft className="h-4 w-4 mr-2" />
