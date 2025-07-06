@@ -2,10 +2,21 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit2, Save, X } from "lucide-react";
+import { Edit2, Save, X, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface User {
   id: string;
@@ -181,6 +192,36 @@ export default function AdminUsersComponent() {
                       >
                         <X className="h-3 w-3" />
                       </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            disabled={deleteMutation.isPending}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete User</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to permanently delete user "{user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email}"? 
+                              This action cannot be undone and will remove all user data including their shows, reports, and settings.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => deleteMutation.mutate(user.id)}
+                              className="bg-red-600 hover:bg-red-700"
+                              disabled={deleteMutation.isPending}
+                            >
+                              {deleteMutation.isPending ? "Deleting..." : "Delete User"}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   ) : (
                     <Button
