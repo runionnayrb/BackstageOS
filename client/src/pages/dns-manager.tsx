@@ -261,13 +261,13 @@ function DNSManagerContent() {
           <Link href="/admin/pages">
             <Button variant="outline" className="w-full sm:w-auto" size="default">
               <FileText className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Page </span>Manager
+              Page Manager
             </Button>
           </Link>
           <Link href="/admin/domains">
             <Button variant="outline" className="w-full sm:w-auto" size="default">
               <Globe className="mr-2 h-4 w-4" />
-              <span className="hidden sm:inline">Domain </span>Manager
+              Domain Manager
             </Button>
           </Link>
         </div>
