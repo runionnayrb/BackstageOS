@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Mail, Plus, Settings, FolderOpen, Users, BarChart3, Inbox, Send, Trash2, Archive, Clock } from "lucide-react";
+import { Mail, Plus, Settings, FolderOpen, Users, BarChart3, Inbox, Send, Trash2, Archive, Clock, Menu, X } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { EmailInterface } from "@/components/email/email-interface";
 import { EmailSidebar } from "@/components/email/email-sidebar";
@@ -73,10 +73,7 @@ export default function EmailManager() {
   // Create account mutation
   const createAccountMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      return apiRequest('/api/email/accounts', {
-        method: 'POST',
-        body: formData,
-      });
+      return apiRequest('/api/email/accounts', 'POST', formData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/email/accounts'] });
@@ -165,13 +162,25 @@ export default function EmailManager() {
         <div className="px-4 sm:px-6 lg:px-8 py-6">
           {/* Header */}
           <div className="border-b border-gray-200 pb-4 flex justify-between items-start">
-            <div className={`transition-all duration-300 ${isSidebarCollapsed ? "ml-12" : "ml-0"}`}>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Email
-              </h1>
-              <p className="mt-2 text-gray-600">
-                Manage your @backstageos.com email addresses and communication
-              </p>
+            <div className="flex items-center space-x-4">
+              {/* Hamburger Toggle Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                className="h-8 w-8 p-0 hover:bg-gray-100 shrink-0"
+              >
+                {isSidebarCollapsed ? <Menu className="h-4 w-4" /> : <X className="h-4 w-4" />}
+              </Button>
+              
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Email
+                </h1>
+                <p className="mt-2 text-gray-600">
+                  Manage your @backstageos.com email addresses and communication
+                </p>
+              </div>
             </div>
             
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
