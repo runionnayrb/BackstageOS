@@ -97,9 +97,7 @@ export function EmailSidebar({
                 onClick={() => onAccountSelect(account)}
                 className={cn(
                   "flex items-center space-x-2 p-2 rounded-md cursor-pointer transition-colors",
-                  selectedAccount?.id === account.id
-                    ? "bg-blue-50 border border-blue-200"
-                    : "hover:bg-gray-50"
+                  "hover:bg-gray-50"
                 )}
               >
                 <div className="flex-1 min-w-0">
