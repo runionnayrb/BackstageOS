@@ -5294,9 +5294,6 @@ Respond with valid JSON only.`;
   // Create email tables if they don't exist (temporary migration solution)
   app.post('/api/email/setup', isAuthenticated, async (req: any, res) => {
     try {
-      if (!req.user.isAdmin) {
-        return res.status(403).json({ message: "Admin access required" });
-      }
 
       const { EmailService } = await import('./services/emailService.js');
       const emailService = new EmailService();
