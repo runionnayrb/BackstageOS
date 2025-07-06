@@ -99,7 +99,6 @@ export function EmailSidebar({
                     : "hover:bg-gray-50"
                 )}
               >
-                <Mail className="h-4 w-4 text-gray-500" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">
                     {account.displayName}
@@ -108,11 +107,6 @@ export function EmailSidebar({
                     {account.emailAddress}
                   </p>
                 </div>
-                {account.isDefault && (
-                  <Badge variant="secondary" className="text-xs">
-                    Default
-                  </Badge>
-                )}
               </div>
             ))}
           </div>
