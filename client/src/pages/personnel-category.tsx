@@ -175,9 +175,6 @@ export default function PersonnelCategory() {
                       {contact.role && (
                         <p className="text-sm text-gray-600 mt-1">{contact.role}</p>
                       )}
-                      {contact.email && (
-                        <p className="text-xs text-gray-500 mt-1 truncate">{contact.email}</p>
-                      )}
                     </div>
                     <Button
                       variant="ghost"
