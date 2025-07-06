@@ -349,12 +349,12 @@ export default function ShowDetail() {
               onDragOver={isReordering ? handleDragOver : undefined}
               onDrop={isReordering ? (e) => handleDrop(e, index) : undefined}
               onDragEnd={isReordering ? handleDragEnd : undefined}
-              className={`rounded-xl border transition-all duration-200 min-h-[60px] ${
+              className={`transition-all duration-200 min-h-[60px] ${
                 isReordering && draggedIndex === index 
-                  ? 'opacity-50 bg-blue-50 border-blue-300 shadow-lg scale-105' 
+                  ? 'opacity-50 bg-blue-50 shadow-lg scale-105 rounded-xl' 
                   : isReordering
-                  ? 'bg-white border-gray-300 shadow-sm'
-                  : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md active:bg-gray-50 active:scale-[0.98]'
+                  ? 'bg-white shadow-sm rounded-xl'
+                  : 'bg-transparent hover:bg-gray-50 active:bg-gray-100 active:scale-[0.98]'
               }`}
             >
               <div className={`p-4 ${isReordering ? 'py-3' : 'py-4'}`}>
