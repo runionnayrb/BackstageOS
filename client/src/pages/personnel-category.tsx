@@ -167,26 +167,13 @@ export default function PersonnelCategory() {
                   className="group p-4 cursor-pointer transition-colors hover:bg-gray-50 rounded-lg"
                   onClick={() => handleContactClick(contact)}
                 >
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">
-                        {contact.firstName} {contact.lastName}
-                      </h3>
-                      {contact.role && (
-                        <p className="text-sm text-gray-600 mt-1">{contact.role}</p>
-                      )}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditContact(contact);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                  <div>
+                    <h3 className="font-medium text-gray-900">
+                      {contact.firstName} {contact.lastName}
+                    </h3>
+                    {contact.role && (
+                      <p className="text-sm text-gray-600 mt-1">{contact.role}</p>
+                    )}
                   </div>
                 </div>
               ))}
