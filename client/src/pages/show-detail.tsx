@@ -134,13 +134,30 @@ export default function ShowDetail() {
   // Early returns after all hooks are called
   if (isLoading || projectsLoading || sections.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-6 bg-gray-200 rounded"></div>
-            <div className="h-6 bg-gray-200 rounded"></div>
-            <div className="h-6 bg-gray-200 rounded"></div>
+      <div className="w-full">
+        {/* Mobile Loading */}
+        <div className="md:hidden px-4 py-6">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-200 rounded mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-3/4 mb-6"></div>
+            <div className="space-y-3">
+              <div className="h-12 bg-gray-200 rounded-lg"></div>
+              <div className="h-12 bg-gray-200 rounded-lg"></div>
+              <div className="h-12 bg-gray-200 rounded-lg"></div>
+              <div className="h-12 bg-gray-200 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Desktop Loading */}
+        <div className="hidden md:block container mx-auto px-4 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded mb-4"></div>
+            <div className="space-y-3">
+              <div className="h-6 bg-gray-200 rounded"></div>
+              <div className="h-6 bg-gray-200 rounded"></div>
+              <div className="h-6 bg-gray-200 rounded"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -155,19 +172,42 @@ export default function ShowDetail() {
   
   if (!project) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Show Not Found</CardTitle>
-            <CardDescription>The requested show could not be found.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => setLocation("/projects")}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Shows
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="w-full">
+        {/* Mobile Error */}
+        <div className="md:hidden px-4 py-6">
+          <Card className="border-red-200">
+            <CardHeader className="text-center pb-2">
+              <CardTitle className="text-lg text-red-600">Show Not Found</CardTitle>
+              <CardDescription className="text-sm">The requested show could not be found.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-2">
+              <Button 
+                onClick={() => setLocation("/projects")} 
+                className="w-full"
+                variant="outline"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Shows
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Desktop Error */}
+        <div className="hidden md:block container mx-auto px-4 py-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Show Not Found</CardTitle>
+              <CardDescription>The requested show could not be found.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button onClick={() => setLocation("/projects")}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Shows
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -210,7 +250,54 @@ export default function ShowDetail() {
 
   return (
     <div className="w-full">
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
+      {/* Mobile Header */}
+      <div className="md:hidden px-4 py-3 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation("/")}
+            className="text-gray-600 hover:text-gray-900 p-2"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          
+          <div className="flex items-center space-x-1">
+            <Button
+              variant={isReordering ? "default" : "outline"}
+              size="sm"
+              onClick={() => setIsReordering(!isReordering)}
+              className="px-3 py-2 text-xs min-h-[36px] touch-manipulation"
+            >
+              <GripVertical className="h-4 w-4 mr-1" />
+              {isReordering ? "Done" : "Edit"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm" 
+              onClick={() => setLocation(`/shows/${projectId}/settings`)}
+              className="px-3 py-2 text-xs min-h-[36px] touch-manipulation"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="text-center">
+          <h1 className="text-xl font-bold text-gray-900 leading-tight">{project.name}</h1>
+          {project.venue && (
+            <p className="text-gray-600 text-sm mt-1">{project.venue}</p>
+          )}
+          {isReordering && (
+            <div className="mt-2 px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full inline-block">
+              Drag sections to reorder
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
@@ -251,7 +338,60 @@ export default function ShowDetail() {
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8">
+      {/* Mobile Sections List */}
+      <div className="md:hidden px-4 py-3">
+        <div className="space-y-3">
+          {sections.map((section, index) => (
+            <div
+              key={section.id}
+              draggable={isReordering}
+              onDragStart={isReordering ? (e) => handleDragStart(e, index) : undefined}
+              onDragOver={isReordering ? handleDragOver : undefined}
+              onDrop={isReordering ? (e) => handleDrop(e, index) : undefined}
+              onDragEnd={isReordering ? handleDragEnd : undefined}
+              className={`rounded-xl border transition-all duration-200 min-h-[60px] ${
+                isReordering && draggedIndex === index 
+                  ? 'opacity-50 bg-blue-50 border-blue-300 shadow-lg scale-105' 
+                  : isReordering
+                  ? 'bg-white border-gray-300 shadow-sm'
+                  : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md active:bg-gray-50 active:scale-[0.98]'
+              }`}
+            >
+              <div className={`p-4 ${isReordering ? 'py-3' : 'py-4'}`}>
+                <div className="flex items-center gap-4">
+                  {isReordering && (
+                    <div className="drag-handle cursor-grab active:cursor-grabbing p-1 -m-1 touch-manipulation">
+                      <GripVertical className="h-6 w-6 text-gray-500" />
+                    </div>
+                  )}
+                  <div 
+                    className={`flex-1 flex justify-between items-center touch-manipulation ${
+                      isReordering ? 'pointer-events-none' : 'cursor-pointer'
+                    }`}
+                    onClick={!isReordering ? () => setLocation(section.href) : undefined}
+                  >
+                    <h3 className="text-lg font-semibold text-gray-900">{section.title}</h3>
+                    {!isReordering && (
+                      <span className="text-gray-400 text-2xl">→</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {isReordering && (
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800 text-center">
+              <strong>Tip:</strong> Drag and drop sections to reorder them. Tap "Done" when finished.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Sections List */}
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8">
         <div className="space-y-1">
           {sections.map((section, index) => (
             <div
