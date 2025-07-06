@@ -389,4 +389,293 @@ export class EmailService {
 
     return stats;
   }
+
+  // ========== IMAP SYNCHRONIZATION ==========
+
+  /**
+   * Configure IMAP settings for an email account
+   */
+  async configureImapSettings(
+    accountId: number,
+    imapConfig: {
+      host: string;
+      port: number;
+      username: string;
+      password: string;
+      sslEnabled?: boolean;
+    }
+  ): Promise<void> {
+    await db
+      .update(emailAccounts)
+      .set({
+        imapHost: imapConfig.host,
+        imapPort: imapConfig.port,
+        imapUsername: imapConfig.username,
+        imapPassword: imapConfig.password, // In production, encrypt this
+        imapSslEnabled: imapConfig.sslEnabled ?? true,
+        imapEnabled: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(emailAccounts.id, accountId));
+  }
+
+  /**
+   * Configure SMTP settings for an email account
+   */
+  async configureSmtpSettings(
+    accountId: number,
+    smtpConfig: {
+      host: string;
+      port: number;
+      username: string;
+      password: string;
+      sslEnabled?: boolean;
+    }
+  ): Promise<void> {
+    await db
+      .update(emailAccounts)
+      .set({
+        smtpHost: smtpConfig.host,
+        smtpPort: smtpConfig.port,
+        smtpUsername: smtpConfig.username,
+        smtpPassword: smtpConfig.password, // In production, encrypt this
+        smtpSslEnabled: smtpConfig.sslEnabled ?? true,
+        smtpEnabled: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(emailAccounts.id, accountId));
+  }
+
+  /**
+   * Test IMAP connection for an account
+   */
+  async testImapConnection(accountId: number): Promise<boolean> {
+    const [account] = await db
+      .select()
+      .from(emailAccounts)
+      .where(eq(emailAccounts.id, accountId))
+      .limit(1);
+
+    if (!account || !account.imapEnabled) {
+      throw new Error('IMAP not configured for this account');
+    }
+
+    const { ImapService } = await import('./imapService.js');
+    const imapService = new ImapService();
+
+    return await imapService.testConnection({
+      host: account.imapHost!,
+      port: account.imapPort!,
+      secure: account.imapSslEnabled!,
+      auth: {
+        user: account.imapUsername!,
+        pass: account.imapPassword!, // In production, decrypt this
+      },
+    });
+  }
+
+  /**
+   * Test SMTP connection for an account
+   */
+  async testSmtpConnection(accountId: number): Promise<boolean> {
+    const [account] = await db
+      .select()
+      .from(emailAccounts)
+      .where(eq(emailAccounts.id, accountId))
+      .limit(1);
+
+    if (!account || !account.smtpEnabled) {
+      throw new Error('SMTP not configured for this account');
+    }
+
+    const { SmtpService } = await import('./smtpService.js');
+    const smtpService = new SmtpService();
+
+    return await smtpService.testConnection({
+      host: account.smtpHost!,
+      port: account.smtpPort!,
+      secure: account.smtpSslEnabled!,
+      auth: {
+        user: account.smtpUsername!,
+        pass: account.smtpPassword!, // In production, decrypt this
+      },
+    });
+  }
+
+  /**
+   * Sync emails from IMAP for an account
+   */
+  async syncEmailsFromImap(accountId: number, folderName = 'INBOX', isFullSync = false): Promise<any> {
+    const [account] = await db
+      .select()
+      .from(emailAccounts)
+      .where(eq(emailAccounts.id, accountId))
+      .limit(1);
+
+    if (!account || !account.imapEnabled) {
+      throw new Error('IMAP not configured for this account');
+    }
+
+    const { ImapService } = await import('./imapService.js');
+    const imapService = new ImapService();
+
+    // Connect to IMAP
+    await imapService.connect({
+      host: account.imapHost!,
+      port: account.imapPort!,
+      secure: account.imapSslEnabled!,
+      auth: {
+        user: account.imapUsername!,
+        pass: account.imapPassword!, // In production, decrypt this
+      },
+    });
+
+    try {
+      // Sync the folder
+      const result = await imapService.syncFolder(accountId, folderName, isFullSync);
+      return result;
+    } finally {
+      await imapService.disconnect();
+    }
+  }
+
+  /**
+   * Get IMAP folders for an account
+   */
+  async getImapFolders(accountId: number): Promise<any[]> {
+    const [account] = await db
+      .select()
+      .from(emailAccounts)
+      .where(eq(emailAccounts.id, accountId))
+      .limit(1);
+
+    if (!account || !account.imapEnabled) {
+      throw new Error('IMAP not configured for this account');
+    }
+
+    const { ImapService } = await import('./imapService.js');
+    const imapService = new ImapService();
+
+    await imapService.connect({
+      host: account.imapHost!,
+      port: account.imapPort!,
+      secure: account.imapSslEnabled!,
+      auth: {
+        user: account.imapUsername!,
+        pass: account.imapPassword!,
+      },
+    });
+
+    try {
+      const folders = await imapService.getFolders();
+      return folders;
+    } finally {
+      await imapService.disconnect();
+    }
+  }
+
+  // ========== EMAIL SENDING ==========
+
+  /**
+   * Send email via SMTP
+   */
+  async sendEmail(accountId: number, emailData: {
+    to: string[];
+    cc?: string[];
+    bcc?: string[];
+    subject: string;
+    html?: string;
+    text?: string;
+    attachments?: any[];
+  }): Promise<any> {
+    const [account] = await db
+      .select()
+      .from(emailAccounts)
+      .where(eq(emailAccounts.id, accountId))
+      .limit(1);
+
+    if (!account || !account.smtpEnabled) {
+      throw new Error('SMTP not configured for this account');
+    }
+
+    const { SmtpService } = await import('./smtpService.js');
+    const smtpService = new SmtpService();
+
+    await smtpService.createTransporter({
+      host: account.smtpHost!,
+      port: account.smtpPort!,
+      secure: account.smtpSslEnabled!,
+      auth: {
+        user: account.smtpUsername!,
+        pass: account.smtpPassword!,
+      },
+    });
+
+    return await smtpService.sendEmail(accountId, emailData);
+  }
+
+  /**
+   * Queue email for background sending
+   */
+  async queueEmail(accountId: number, emailData: {
+    to: string[];
+    cc?: string[];
+    bcc?: string[];
+    subject: string;
+    html?: string;
+    text?: string;
+    attachments?: any[];
+  }, priority = 5, scheduledAt?: Date): Promise<number> {
+    const { SmtpService } = await import('./smtpService.js');
+    const smtpService = new SmtpService();
+
+    return await smtpService.queueEmail(accountId, emailData, priority, scheduledAt);
+  }
+
+  /**
+   * Process email queue
+   */
+  async processEmailQueue(accountId?: number): Promise<number> {
+    const { SmtpService } = await import('./smtpService.js');
+    const smtpService = new SmtpService();
+
+    return await smtpService.processQueue(accountId);
+  }
+
+  /**
+   * Get email queue statistics
+   */
+  async getQueueStats(accountId?: number): Promise<any> {
+    const { SmtpService } = await import('./smtpService.js');
+    const smtpService = new SmtpService();
+
+    return await smtpService.getQueueStats(accountId);
+  }
+
+  /**
+   * Create draft email
+   */
+  async createDraft(accountId: number, draftData: {
+    to?: string[];
+    cc?: string[];
+    bcc?: string[];
+    subject?: string;
+    html?: string;
+    text?: string;
+  }): Promise<number> {
+    const { SmtpService } = await import('./smtpService.js');
+    const smtpService = new SmtpService();
+
+    return await smtpService.createDraft(accountId, draftData);
+  }
+
+  /**
+   * Send draft email
+   */
+  async sendDraft(messageId: number, priority = 5): Promise<number> {
+    const { SmtpService } = await import('./smtpService.js');
+    const smtpService = new SmtpService();
+
+    return await smtpService.sendDraft(messageId, priority);
+  }
 }

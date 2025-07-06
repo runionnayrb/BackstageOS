@@ -5492,6 +5492,227 @@ Respond with valid JSON only.`;
     }
   });
 
+  // ========== PHASE 2 IMAP/SMTP EMAIL INTEGRATION ==========
+
+  // Configure IMAP settings for an email account
+  app.post('/api/email/accounts/:accountId/imap-config', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const { host, port, username, password, sslEnabled } = req.body;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      await emailService.configureImapSettings(accountId, {
+        host,
+        port,
+        username,
+        password,
+        sslEnabled
+      });
+      
+      res.json({ message: "IMAP settings configured successfully" });
+    } catch (error) {
+      console.error("Error configuring IMAP settings:", error);
+      res.status(500).json({ message: "Failed to configure IMAP settings" });
+    }
+  });
+
+  // Configure SMTP settings for an email account
+  app.post('/api/email/accounts/:accountId/smtp-config', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const { host, port, username, password, sslEnabled } = req.body;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      await emailService.configureSmtpSettings(accountId, {
+        host,
+        port,
+        username,
+        password,
+        sslEnabled
+      });
+      
+      res.json({ message: "SMTP settings configured successfully" });
+    } catch (error) {
+      console.error("Error configuring SMTP settings:", error);
+      res.status(500).json({ message: "Failed to configure SMTP settings" });
+    }
+  });
+
+  // Test IMAP connection
+  app.post('/api/email/accounts/:accountId/test-imap', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const isConnected = await emailService.testImapConnection(accountId);
+      res.json({ connected: isConnected });
+    } catch (error) {
+      console.error("Error testing IMAP connection:", error);
+      res.status(500).json({ message: "Failed to test IMAP connection", connected: false });
+    }
+  });
+
+  // Test SMTP connection
+  app.post('/api/email/accounts/:accountId/test-smtp', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const isConnected = await emailService.testSmtpConnection(accountId);
+      res.json({ connected: isConnected });
+    } catch (error) {
+      console.error("Error testing SMTP connection:", error);
+      res.status(500).json({ message: "Failed to test SMTP connection", connected: false });
+    }
+  });
+
+  // Sync emails from IMAP
+  app.post('/api/email/accounts/:accountId/sync', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const { folderName = 'INBOX', isFullSync = false } = req.body;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const result = await emailService.syncEmailsFromImap(accountId, folderName, isFullSync);
+      res.json(result);
+    } catch (error) {
+      console.error("Error syncing emails:", error);
+      res.status(500).json({ message: "Failed to sync emails" });
+    }
+  });
+
+  // Get IMAP folders
+  app.get('/api/email/accounts/:accountId/imap-folders', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const folders = await emailService.getImapFolders(accountId);
+      res.json(folders);
+    } catch (error) {
+      console.error("Error fetching IMAP folders:", error);
+      res.status(500).json({ message: "Failed to fetch IMAP folders" });
+    }
+  });
+
+  // Send email via SMTP
+  app.post('/api/email/accounts/:accountId/send', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const emailData = req.body;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const result = await emailService.sendEmail(accountId, emailData);
+      res.json(result);
+    } catch (error) {
+      console.error("Error sending email:", error);
+      res.status(500).json({ message: "Failed to send email" });
+    }
+  });
+
+  // Queue email for background sending
+  app.post('/api/email/accounts/:accountId/queue', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const { emailData, priority = 5, scheduledAt } = req.body;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const queueId = await emailService.queueEmail(
+        accountId, 
+        emailData, 
+        priority, 
+        scheduledAt ? new Date(scheduledAt) : undefined
+      );
+      
+      res.json({ queueId });
+    } catch (error) {
+      console.error("Error queueing email:", error);
+      res.status(500).json({ message: "Failed to queue email" });
+    }
+  });
+
+  // Process email queue
+  app.post('/api/email/process-queue', isAuthenticated, async (req: any, res) => {
+    try {
+      const { accountId } = req.body;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const processed = await emailService.processEmailQueue(accountId);
+      res.json({ processed });
+    } catch (error) {
+      console.error("Error processing email queue:", error);
+      res.status(500).json({ message: "Failed to process email queue" });
+    }
+  });
+
+  // Get email queue statistics
+  app.get('/api/email/queue-stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = req.query.accountId ? parseInt(req.query.accountId as string) : undefined;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const stats = await emailService.getQueueStats(accountId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching queue statistics:", error);
+      res.status(500).json({ message: "Failed to fetch queue statistics" });
+    }
+  });
+
+  // Create draft email
+  app.post('/api/email/accounts/:accountId/drafts', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const draftData = req.body;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const draftId = await emailService.createDraft(accountId, draftData);
+      res.json({ draftId });
+    } catch (error) {
+      console.error("Error creating draft:", error);
+      res.status(500).json({ message: "Failed to create draft" });
+    }
+  });
+
+  // Send draft email
+  app.post('/api/email/drafts/:messageId/send', isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const { priority = 5 } = req.body;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const queueId = await emailService.sendDraft(messageId, priority);
+      res.json({ queueId });
+    } catch (error) {
+      console.error("Error sending draft:", error);
+      res.status(500).json({ message: "Failed to send draft" });
+    }
+  });
+
   const server = createServer(app);
   return server;
 }

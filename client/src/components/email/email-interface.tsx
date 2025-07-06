@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Mail, Send, Inbox, SentIcon, FileText, Archive, Search, Plus, MoreHorizontal, ArrowLeft } from 'lucide-react';
+import { Mail, Send, Inbox, FileText, Archive, Search, Plus, MoreHorizontal, ArrowLeft, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { EmailAccountConfig } from './email-account-config';
 
 interface EmailThread {
   id: number;
@@ -37,6 +38,7 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
   const [selectedThread, setSelectedThread] = useState<EmailThread | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showCompose, setShowCompose] = useState(false);
+  const [showConfiguration, setShowConfiguration] = useState(false);
 
   // Mock data for now - will be replaced with real API calls in Phase 2
   const mockThreads: EmailThread[] = [
@@ -106,6 +108,15 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
               <p className="text-sm font-medium truncate">{selectedAccount.emailAddress}</p>
               <p className="text-xs text-muted-foreground capitalize">{selectedAccount.accountType}</p>
             </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setShowConfiguration(true)}
+              className="h-8 w-8 p-0"
+              title="Account Settings"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
@@ -306,6 +317,18 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
       </div>
 
       {/* Compose Dialog would go here when showCompose is true */}
+      
+      {/* Configuration Modal */}
+      {showConfiguration && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg shadow-lg max-w-5xl w-full max-h-[90vh] overflow-auto">
+            <EmailAccountConfig
+              accountId={selectedAccount.id}
+              onClose={() => setShowConfiguration(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

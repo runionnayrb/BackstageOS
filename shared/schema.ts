@@ -483,7 +483,22 @@ export const emailAccounts = pgTable("email_accounts", {
   imapUsername: varchar("imap_username"),
   imapPassword: varchar("imap_password"), // encrypted
   imapEnabled: boolean("imap_enabled").default(false),
+  imapSslEnabled: boolean("imap_ssl_enabled").default(true),
   lastSyncAt: timestamp("last_sync_at"),
+  nextSyncAt: timestamp("next_sync_at"),
+  syncIntervalMinutes: integer("sync_interval_minutes").default(15),
+  // SMTP settings for sending emails
+  smtpHost: varchar("smtp_host"),
+  smtpPort: integer("smtp_port"),
+  smtpUsername: varchar("smtp_username"),
+  smtpPassword: varchar("smtp_password"), // encrypted
+  smtpEnabled: boolean("smtp_enabled").default(false),
+  smtpSslEnabled: boolean("smtp_ssl_enabled").default(true),
+  // Email delivery tracking
+  sentCount: integer("sent_count").default(0),
+  receivedCount: integer("received_count").default(0),
+  lastDeliveryStatus: varchar("last_delivery_status"), // 'success', 'failed', 'bounced'
+  lastDeliveryAt: timestamp("last_delivery_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -531,6 +546,17 @@ export const emailMessages = pgTable("email_messages", {
   sentAt: timestamp("sent_at"),
   deliveredAt: timestamp("delivered_at"),
   readAt: timestamp("read_at"),
+  // IMAP synchronization fields
+  imapUid: integer("imap_uid"), // IMAP UID for sync
+  imapFolder: varchar("imap_folder"), // Original IMAP folder
+  syncedAt: timestamp("synced_at"),
+  lastSeenAt: timestamp("last_seen_at"),
+  // Email queue and processing
+  queueStatus: varchar("queue_status").default("none"), // 'pending', 'processing', 'sent', 'failed', 'retry'
+  queuedAt: timestamp("queued_at"),
+  processedAt: timestamp("processed_at"),
+  retryCount: integer("retry_count").default(0),
+  lastError: text("last_error"),
   // Integration with existing systems
   relatedReportId: integer("related_report_id").references(() => reports.id),
   relatedContactId: integer("related_contact_id").references(() => contacts.id),
@@ -610,6 +636,39 @@ export const emailSignatures = pgTable("email_signatures", {
   name: varchar("name").notNull(),
   content: text("content").notNull(), // HTML signature
   isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Email sync jobs for background IMAP synchronization
+export const emailSyncJobs = pgTable("email_sync_jobs", {
+  id: serial("id").primaryKey(),
+  accountId: integer("account_id").notNull().references(() => emailAccounts.id, { onDelete: "cascade" }),
+  jobType: varchar("job_type").notNull(), // 'full_sync', 'incremental_sync', 'folder_sync'
+  status: varchar("status").notNull().default("pending"), // 'pending', 'running', 'completed', 'failed'
+  progress: integer("progress").default(0), // percentage
+  totalItems: integer("total_items").default(0),
+  processedItems: integer("processed_items").default(0),
+  lastSyncedUid: integer("last_synced_uid"),
+  errorMessage: text("error_message"),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Email delivery queue for reliable sending
+export const emailQueue = pgTable("email_queue", {
+  id: serial("id").primaryKey(),
+  accountId: integer("account_id").notNull().references(() => emailAccounts.id, { onDelete: "cascade" }),
+  messageId: integer("message_id").references(() => emailMessages.id, { onDelete: "cascade" }),
+  priority: integer("priority").default(5), // 1 = highest, 10 = lowest
+  status: varchar("status").notNull().default("pending"), // 'pending', 'processing', 'sent', 'failed', 'retry'
+  attempts: integer("attempts").default(0),
+  maxAttempts: integer("max_attempts").default(3),
+  scheduledAt: timestamp("scheduled_at").defaultNow(),
+  processedAt: timestamp("processed_at"),
+  errorMessage: text("error_message"),
+  deliveryData: jsonb("delivery_data"), // SMTP config, recipients, etc.
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -1751,6 +1810,17 @@ export const insertEmailSignatureSchema = createInsertSchema(emailSignatures).om
   updatedAt: true,
 });
 
+export const insertEmailSyncJobSchema = createInsertSchema(emailSyncJobs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertEmailQueueSchema = createInsertSchema(emailQueue).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Email System Types
 export type EmailAccount = typeof emailAccounts.$inferSelect;
 export type InsertEmailAccount = z.infer<typeof insertEmailAccountSchema>;
@@ -1768,3 +1838,7 @@ export type EmailTemplate = typeof emailTemplates.$inferSelect;
 export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
 export type EmailSignature = typeof emailSignatures.$inferSelect;
 export type InsertEmailSignature = z.infer<typeof insertEmailSignatureSchema>;
+export type EmailSyncJob = typeof emailSyncJobs.$inferSelect;
+export type InsertEmailSyncJob = z.infer<typeof insertEmailSyncJobSchema>;
+export type EmailQueueItem = typeof emailQueue.$inferSelect;
+export type InsertEmailQueueItem = z.infer<typeof insertEmailQueueSchema>;
