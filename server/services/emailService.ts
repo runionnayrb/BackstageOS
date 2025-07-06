@@ -26,13 +26,13 @@ import {
   type EmailSignature,
   type InsertEmailSignature,
 } from "../../shared/schema.js";
-import { CloudflareService } from "./cloudflareService.js";
+import { cloudflareService } from "./cloudflareService.js";
 
 export class EmailService {
-  private cloudflareService: CloudflareService;
+  private cloudflareService: typeof cloudflareService;
 
   constructor() {
-    this.cloudflareService = new CloudflareService();
+    this.cloudflareService = cloudflareService;
   }
 
   // ========== EMAIL ACCOUNT MANAGEMENT ==========
