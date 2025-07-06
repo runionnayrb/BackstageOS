@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Mail, Send, Inbox, FileText, Archive, Search, Plus, MoreHorizontal, ArrowLeft, Settings, Reply, Trash2, Star, Clock, X } from 'lucide-react';
+import { Mail, Send, Inbox, FileText, Archive, Search, Plus, MoreHorizontal, ArrowLeft, Settings, Reply, Trash2, Star, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -90,24 +90,18 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
     setShowEmailModal(true);
   };
 
-  const handleCloseModal = () => {
-    setShowEmailModal(false);
-    setModalEmail(null);
-    setShowReplyComposer(false);
-  };
-
   const handleReply = () => {
     setShowReplyComposer(true);
   };
 
   const handleArchive = () => {
     // Archive logic here
-    handleCloseModal();
+    setShowEmailModal(false);
   };
 
   const handleDelete = () => {
     // Delete logic here  
-    handleCloseModal();
+    setShowEmailModal(false);
   };
 
   return (
@@ -241,17 +235,7 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
           {modalEmail && (
             <>
               <DialogHeader className="border-b pb-4">
-                <div className="flex items-center justify-between">
-                  <DialogTitle className="text-xl font-semibold">{modalEmail.subject}</DialogTitle>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={handleCloseModal}
-                    className="h-8 w-8 p-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
+                <DialogTitle className="text-xl font-semibold">{modalEmail.subject}</DialogTitle>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>From: {modalEmail.participants.join(', ')}</span>
                   <Separator orientation="vertical" className="h-4" />
