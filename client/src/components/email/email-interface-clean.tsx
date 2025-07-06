@@ -270,28 +270,46 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
               {/* Action Toolbar */}
               <div className="border-t pt-4 flex items-center justify-between">
                 <div className="flex gap-2">
-                  <Button onClick={handleReply} className="flex items-center gap-2">
-                    <Reply className="h-4 w-4" />
-                    Reply
+                  <Button 
+                    onClick={handleReply} 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-10 w-10 hover:bg-blue-50 hover:text-blue-600"
+                  >
+                    <Reply className="h-5 w-5" />
                   </Button>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Reply className="h-4 w-4 scale-x-[-1]" />
-                    Reply All
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-10 w-10 hover:bg-blue-50 hover:text-blue-600"
+                  >
+                    <Reply className="h-5 w-5 scale-x-[-1]" />
                   </Button>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Send className="h-4 w-4" />
-                    Forward
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-10 w-10 hover:bg-blue-50 hover:text-blue-600"
+                  >
+                    <Send className="h-5 w-5" />
                   </Button>
                 </div>
                 
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={handleArchive} className="flex items-center gap-2">
-                    <Archive className="h-4 w-4" />
-                    Archive
+                  <Button 
+                    onClick={handleArchive} 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-10 w-10 hover:bg-blue-50 hover:text-blue-600"
+                  >
+                    <Archive className="h-5 w-5" />
                   </Button>
-                  <Button variant="outline" onClick={handleDelete} className="flex items-center gap-2 text-red-600 hover:text-red-700">
-                    <Trash2 className="h-4 w-4" />
-                    Delete
+                  <Button 
+                    onClick={handleDelete} 
+                    variant="ghost" 
+                    size="icon"
+                    className="h-10 w-10 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
