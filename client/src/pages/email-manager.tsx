@@ -49,7 +49,7 @@ export default function EmailManager() {
 
   // Mutations
   const setupMutation = useMutation({
-    mutationFn: () => apiRequest('/api/email/setup', 'POST', {}),
+    mutationFn: () => apiRequest('POST', '/api/email/setup', {}),
     onSuccess: () => {
       toast({
         title: "Email System Setup",
@@ -68,7 +68,7 @@ export default function EmailManager() {
   });
 
   const createAccountMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/email/accounts', 'POST', data),
+    mutationFn: (data: any) => apiRequest('POST', '/api/email/accounts', data),
     onSuccess: () => {
       toast({
         title: "Email Account Created",
