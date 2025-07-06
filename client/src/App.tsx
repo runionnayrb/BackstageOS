@@ -55,6 +55,7 @@ import SeoManager from "@/pages/seo-manager";
 import SEOTest from "@/pages/seo-test";
 import TestNotesPage from "@/pages/test-notes";
 import NavigationDemo from "@/components/navigation/navigation-demo";
+import ContactAvailability from "@/pages/contact-availability";
 
 
 function Router() {
@@ -172,6 +173,7 @@ function Router() {
         <Route path="/shows/:id/contact-sheet" component={ContactSheet} />
         <Route path="/shows/:id/company-list" component={CompanyList} />
         <Route path="/shows/:id/contacts/:category" component={PersonnelCategory} />
+        <Route path="/shows/:id/contacts/:contactId/availability" component={ContactAvailability} />
         <Route path="/shows/:id/templates/new" component={TemplateBuilder} />
         <Route path="/shows/:id/templates/:templateId/edit" component={TemplateBuilder} />
         <Route path="/shows/:id/templates" component={TemplateSettings} />

@@ -181,7 +181,7 @@ export default function PersonnelCategory() {
                         className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
                         onClick={(e) => {
                           e.stopPropagation();
-                          setLocation(`/shows/${projectId}/calendar`);
+                          setLocation(`/shows/${projectId}/contacts/${contact.id}/availability`);
                         }}
                       />
                       {contact.email ? (
