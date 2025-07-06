@@ -205,7 +205,7 @@ export default function EmailManager() {
   }
 
   return (
-    <div className="w-full min-h-screen bg-gray-50">
+    <div className="w-full min-h-screen bg-white">
       <div className="px-4 sm:px-6 lg:px-8 py-6">
         {/* Header */}
         <div className="border-b border-gray-200 pb-4 flex justify-between items-start">
