@@ -293,8 +293,11 @@ function DNSManagerContent() {
               </div>
               <div>
                 <p className="text-sm font-medium">Status</p>
-                <Badge variant={(zoneInfo as ZoneInfo).status === 'active' ? 'default' : 'secondary'}>
-                  {(zoneInfo as ZoneInfo).status}
+                <Badge 
+                  variant={(zoneInfo as ZoneInfo).status === 'active' ? 'default' : 'secondary'}
+                  className={(zoneInfo as ZoneInfo).status === 'active' ? 'bg-green-600 hover:bg-green-700' : ''}
+                >
+                  {(zoneInfo as ZoneInfo).status === 'active' ? 'Active' : (zoneInfo as ZoneInfo).status}
                 </Badge>
               </div>
             </div>
