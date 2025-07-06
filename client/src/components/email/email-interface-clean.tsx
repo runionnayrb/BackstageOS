@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Mail, Send, Inbox, FileText, Archive, Search, Plus, MoreHorizontal, ArrowLeft, Settings } from 'lucide-react';
+import { Mail, Send, Inbox, FileText, Archive, Search, Plus, MoreHorizontal, ArrowLeft, Settings, Reply, Trash2, Star, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { EmailAccountConfig } from './email-account-config';
 import { EmailComposer } from './email-composer';
 
@@ -40,6 +41,9 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
   const [searchQuery, setSearchQuery] = useState('');
   const [showCompose, setShowCompose] = useState(false);
   const [showConfiguration, setShowConfiguration] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [modalEmail, setModalEmail] = useState<EmailThread | null>(null);
+  const [showReplyComposer, setShowReplyComposer] = useState(false);
 
   // Mock data for now - will be replaced with real API calls in Phase 2
   const mockThreads: EmailThread[] = [
@@ -81,6 +85,31 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
     thread.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleEmailClick = (email: EmailThread) => {
+    setModalEmail(email);
+    setShowEmailModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowEmailModal(false);
+    setModalEmail(null);
+    setShowReplyComposer(false);
+  };
+
+  const handleReply = () => {
+    setShowReplyComposer(true);
+  };
+
+  const handleArchive = () => {
+    // Archive logic here
+    handleCloseModal();
+  };
+
+  const handleDelete = () => {
+    // Delete logic here  
+    handleCloseModal();
+  };
+
   return (
     <div className="flex h-[calc(100vh-120px)] bg-background">
       {/* Main Content - Full Width */}
@@ -119,130 +148,198 @@ export function EmailInterface({ selectedAccount, onBack }: EmailInterfaceProps)
           </div>
         </div>
 
-        <div className="flex flex-1">
-          {/* Thread List */}
-          <div className="w-80 border-r flex flex-col">
-            {/* Search */}
-            <div className="p-4 border-b">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search conversations..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            {/* Thread List */}
-            <ScrollArea className="flex-1">
-              <div className="p-2 space-y-1">
-                {filteredThreads.map((thread) => (
-                  <button
-                    key={thread.id}
-                    onClick={() => setSelectedThread(thread)}
-                    className={`w-full p-3 text-left rounded-lg border transition-colors ${
-                      selectedThread?.id === thread.id
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'hover:bg-muted border-transparent'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${thread.isRead ? 'bg-transparent' : 'bg-blue-500'}`} />
-                        <span className="font-medium text-sm truncate">{thread.subject}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground">{thread.lastMessageTime}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-1">
-                      {thread.participants.join(', ')}
-                    </p>
-                    <p className="text-xs text-muted-foreground line-clamp-2">
-                      {thread.lastMessage}
-                    </p>
-                    <div className="flex items-center gap-2 mt-2">
-                      {thread.messageCount > 1 && (
-                        <Badge variant="secondary" className="h-4 text-xs">
-                          {thread.messageCount}
-                        </Badge>
-                      )}
-                      {thread.hasAttachments && (
-                        <Badge variant="outline" className="h-4 text-xs">
-                          📎
-                        </Badge>
-                      )}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
-          </div>
-
-          {/* Message Content */}
-          <div className="flex-1 flex flex-col">
-            {selectedThread ? (
-              <div className="flex-1 p-6">
-                <div className="max-w-4xl mx-auto">
-                  <div className="mb-6">
-                    <h1 className="text-2xl font-semibold mb-2">{selectedThread.subject}</h1>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>From: {selectedThread.participants.join(', ')}</span>
-                      <Separator orientation="vertical" className="h-4" />
-                      <span>{selectedThread.lastMessageTime}</span>
-                    </div>
-                  </div>
-                  
-                  <Card className="p-6">
-                    <div className="space-y-4">
-                      <div className="flex items-start gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback>
-                            {selectedThread.participants[0]?.charAt(0).toUpperCase() || 'U'}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-medium">{selectedThread.participants[0]}</span>
-                            <span className="text-sm text-muted-foreground">{selectedThread.lastMessageTime}</span>
-                          </div>
-                          <div className="prose prose-sm max-w-none">
-                            <p>{selectedThread.lastMessage}</p>
-                            <p>This is a sample email message that would contain the full content of the conversation. In the actual implementation, this would be loaded from the email server and display the complete message thread.</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                  
-                  <div className="mt-6 flex gap-2">
-                    <Button variant="outline" size="sm">
-                      Reply
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Reply All
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Forward
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
-                  <Mail className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
-                  <p className="text-muted-foreground">Choose a conversation from the list to read messages</p>
-                </div>
-              </div>
-            )}
+        {/* Search Bar */}
+        <div className="p-4 border-b">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </div>
+
+        {/* Full-Width Email List */}
+        <ScrollArea className="flex-1">
+          <div className="space-y-1">
+            {filteredThreads.map((thread) => (
+              <button
+                key={thread.id}
+                onClick={() => handleEmailClick(thread)}
+                className="w-full p-4 text-left hover:bg-muted transition-colors border-b border-border last:border-b-0"
+              >
+                <div className="flex items-center justify-between">
+                  {/* Left side - Email details */}
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className={`w-3 h-3 rounded-full flex-shrink-0 ${thread.isRead ? 'bg-transparent' : 'bg-blue-500'}`} />
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className={`font-medium text-sm truncate ${!thread.isRead ? 'font-semibold' : ''}`}>
+                          {thread.subject}
+                        </span>
+                        {thread.hasAttachments && (
+                          <Badge variant="outline" className="h-5 text-xs px-2">
+                            📎
+                          </Badge>
+                        )}
+                        {thread.messageCount > 1 && (
+                          <Badge variant="secondary" className="h-5 text-xs px-2">
+                            {thread.messageCount}
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="truncate">{thread.participants.join(', ')}</span>
+                        <span>•</span>
+                        <span className="truncate flex-1">{thread.lastMessage}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right side - Time and icons */}
+                  <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+                    <span className="text-xs text-muted-foreground">{thread.lastMessageTime}</span>
+                    <div className="flex items-center gap-1">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-muted-foreground/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Handle star
+                        }}
+                      >
+                        <Star className="h-3 w-3" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-muted-foreground/10"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleArchive();
+                        }}
+                      >
+                        <Archive className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </ScrollArea>
       </div>
+
+      {/* Email Modal */}
+      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
+          {modalEmail && (
+            <>
+              <DialogHeader className="border-b pb-4">
+                <div className="flex items-center justify-between">
+                  <DialogTitle className="text-xl font-semibold">{modalEmail.subject}</DialogTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleCloseModal}
+                    className="h-8 w-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>From: {modalEmail.participants.join(', ')}</span>
+                  <Separator orientation="vertical" className="h-4" />
+                  <span>{modalEmail.lastMessageTime}</span>
+                  {modalEmail.hasAttachments && (
+                    <>
+                      <Separator orientation="vertical" className="h-4" />
+                      <span className="flex items-center gap-1">
+                        📎 Attachments
+                      </span>
+                    </>
+                  )}
+                </div>
+              </DialogHeader>
+
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarFallback>
+                        {modalEmail.participants[0]?.charAt(0).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="font-medium">{modalEmail.participants[0]}</span>
+                        <span className="text-sm text-muted-foreground">{modalEmail.lastMessageTime}</span>
+                      </div>
+                      <div className="prose prose-sm max-w-none">
+                        <p>{modalEmail.lastMessage}</p>
+                        <p>This is a sample email message that would contain the full content of the conversation. In the actual implementation, this would be loaded from the email server and display the complete message thread with proper formatting, attachments, and conversation history.</p>
+                        <p>The modal provides a clean, focused reading experience with all the necessary actions available through the toolbar below.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Toolbar */}
+              <div className="border-t pt-4 flex items-center justify-between">
+                <div className="flex gap-2">
+                  <Button onClick={handleReply} className="flex items-center gap-2">
+                    <Reply className="h-4 w-4" />
+                    Reply
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Reply className="h-4 w-4 scale-x-[-1]" />
+                    Reply All
+                  </Button>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Send className="h-4 w-4" />
+                    Forward
+                  </Button>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={handleArchive} className="flex items-center gap-2">
+                    <Archive className="h-4 w-4" />
+                    Archive
+                  </Button>
+                  <Button variant="outline" onClick={handleDelete} className="flex items-center gap-2 text-red-600 hover:text-red-700">
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+
+              {/* Reply Composer */}
+              {showReplyComposer && (
+                <div className="border-t pt-4 mt-4">
+                  <EmailComposer
+                    isOpen={true}
+                    onClose={() => setShowReplyComposer(false)}
+                    fromAccountId={selectedAccount.id}
+                    fromEmail={selectedAccount.emailAddress}
+                    replyToMessage={{
+                      id: modalEmail.id.toString(),
+                      subject: modalEmail.subject,
+                      fromAddress: modalEmail.participants[0],
+                      content: modalEmail.lastMessage
+                    }}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Email Composer Modal */}
       {showCompose && (

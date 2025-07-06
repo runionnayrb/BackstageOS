@@ -191,6 +191,7 @@ function Router() {
         <Route path="/admin/domains" component={DomainManager} />
         <Route path="/admin/seo" component={SeoManager} />
         <Route path="/email" component={EmailManager} />
+        <Route path="/email-manager" component={EmailManager} />
         <Route path="/auto-resolution-dashboard" component={AutoResolutionDashboard} />
         <Route path="/advanced-analytics-dashboard" component={AdvancedAnalyticsDashboard} />
         <Route path="/test-notes" component={TestNotesPage} />
