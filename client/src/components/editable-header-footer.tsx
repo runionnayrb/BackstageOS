@@ -136,7 +136,7 @@ export default function EditableHeaderFooter({
             }
           }
         }}
-        showVariables={type === 'header'} // Only show variables for headers, not footers
+        showVariables={true} // Show variables for both headers and footers
         onClose={() => setShowToolbar(false)}
       />
     </>
