@@ -282,11 +282,8 @@ export function EmailComposer({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle className="flex items-center justify-between">
-            <span>{replyToMessage ? 'Reply' : 'New Message'}</span>
-            <Button variant="ghost" size="sm" onClick={handleClose} className="h-6 w-6 p-0">
-              <X className="h-4 w-4" />
-            </Button>
+          <DialogTitle>
+            {replyToMessage ? 'Reply' : 'New Message'}
           </DialogTitle>
         </DialogHeader>
 
