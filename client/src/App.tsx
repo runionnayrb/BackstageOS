@@ -56,6 +56,7 @@ import SEOTest from "@/pages/seo-test";
 import TestNotesPage from "@/pages/test-notes";
 import NavigationDemo from "@/components/navigation/navigation-demo";
 import ContactAvailability from "@/pages/contact-availability";
+import EmailManager from "@/pages/email-manager";
 
 
 function Router() {
@@ -189,6 +190,7 @@ function Router() {
         <Route path="/admin/dns" component={DNSManager} />
         <Route path="/admin/domains" component={DomainManager} />
         <Route path="/admin/seo" component={SeoManager} />
+        <Route path="/email" component={EmailManager} />
         <Route path="/auto-resolution-dashboard" component={AutoResolutionDashboard} />
         <Route path="/advanced-analytics-dashboard" component={AdvancedAnalyticsDashboard} />
         <Route path="/test-notes" component={TestNotesPage} />

@@ -465,6 +465,155 @@ export const locationAvailability = pgTable("location_availability", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ========== EMAIL SYSTEM TABLES ==========
+
+// Email accounts (user@backstageos.com, showname@backstageos.com)
+export const emailAccounts = pgTable("email_accounts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }), // null for personal accounts
+  emailAddress: varchar("email_address").notNull().unique(),
+  displayName: varchar("display_name").notNull(),
+  accountType: varchar("account_type").notNull(), // 'personal', 'show', 'role'
+  isDefault: boolean("is_default").default(false),
+  isActive: boolean("is_active").default(true),
+  // IMAP sync settings for existing email accounts
+  imapHost: varchar("imap_host"),
+  imapPort: integer("imap_port"),
+  imapUsername: varchar("imap_username"),
+  imapPassword: varchar("imap_password"), // encrypted
+  imapEnabled: boolean("imap_enabled").default(false),
+  lastSyncAt: timestamp("last_sync_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Email threads for conversation grouping
+export const emailThreads = pgTable("email_threads", {
+  id: serial("id").primaryKey(),
+  accountId: integer("account_id").notNull().references(() => emailAccounts.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  subject: varchar("subject").notNull(),
+  participants: text("participants").array(), // email addresses
+  lastMessageAt: timestamp("last_message_at").notNull(),
+  messageCount: integer("message_count").default(1),
+  isRead: boolean("is_read").default(false),
+  isArchived: boolean("is_archived").default(false),
+  isImportant: boolean("is_important").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Email messages storage with threading support
+export const emailMessages = pgTable("email_messages", {
+  id: serial("id").primaryKey(),
+  threadId: integer("thread_id").notNull().references(() => emailThreads.id, { onDelete: "cascade" }),
+  accountId: integer("account_id").notNull().references(() => emailAccounts.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  messageId: varchar("message_id").unique(), // Email Message-ID header
+  senderEmail: varchar("sender_email").notNull(),
+  senderName: varchar("sender_name"),
+  recipients: text("recipients").array().notNull(), // to field
+  ccRecipients: text("cc_recipients").array(),
+  bccRecipients: text("bcc_recipients").array(),
+  subject: varchar("subject").notNull(),
+  content: text("content").notNull(), // HTML content
+  plainTextContent: text("plain_text_content"), // Plain text version
+  messageType: varchar("message_type").notNull().default("email"), // email, draft, template
+  folderId: integer("folder_id").references(() => emailFolders.id),
+  isRead: boolean("is_read").default(false),
+  isStarred: boolean("is_starred").default(false),
+  isImportant: boolean("is_important").default(false),
+  isSent: boolean("is_sent").default(false),
+  isDraft: boolean("is_draft").default(false),
+  isDeleted: boolean("is_deleted").default(false),
+  // Email delivery tracking
+  sentAt: timestamp("sent_at"),
+  deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
+  // Integration with existing systems
+  relatedReportId: integer("related_report_id").references(() => reports.id),
+  relatedContactId: integer("related_contact_id").references(() => contacts.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Email folders/labels for organization
+export const emailFolders = pgTable("email_folders", {
+  id: serial("id").primaryKey(),
+  accountId: integer("account_id").notNull().references(() => emailAccounts.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  folderType: varchar("folder_type").notNull(), // 'system', 'custom', 'project'
+  color: varchar("color").default("#3b82f6"),
+  parentId: integer("parent_id").references(() => emailFolders.id),
+  sortOrder: integer("sort_order").default(0),
+  isHidden: boolean("is_hidden").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Email attachments handling
+export const emailAttachments = pgTable("email_attachments", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").notNull().references(() => emailMessages.id, { onDelete: "cascade" }),
+  filename: varchar("filename").notNull(),
+  originalFilename: varchar("original_filename").notNull(),
+  contentType: varchar("content_type").notNull(),
+  fileSize: integer("file_size").notNull(),
+  filePath: varchar("file_path").notNull(), // storage path
+  isInline: boolean("is_inline").default(false),
+  contentId: varchar("content_id"), // for inline images
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Email rules/filters system for automation
+export const emailRules = pgTable("email_rules", {
+  id: serial("id").primaryKey(),
+  accountId: integer("account_id").notNull().references(() => emailAccounts.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  isEnabled: boolean("is_enabled").default(true),
+  priority: integer("priority").default(0),
+  // Rule conditions (JSON structure)
+  conditions: jsonb("conditions").notNull(), // {field: 'subject', operator: 'contains', value: 'rehearsal'}
+  // Rule actions (JSON structure)  
+  actions: jsonb("actions").notNull(), // {action: 'move_to_folder', folderId: 123}
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Email templates for theater-specific communications
+export const emailTemplates = pgTable("email_templates", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  templateType: varchar("template_type").notNull(), // 'call_sheet', 'rehearsal_notes', 'general'
+  subject: varchar("subject").notNull(),
+  content: text("content").notNull(), // HTML content with variables
+  variables: text("variables").array(), // available template variables
+  isShared: boolean("is_shared").default(false),
+  usageCount: integer("usage_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Email signatures for professional communication
+export const emailSignatures = pgTable("email_signatures", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  accountId: integer("account_id").references(() => emailAccounts.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  content: text("content").notNull(), // HTML signature
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
@@ -481,6 +630,11 @@ export const usersRelations = relations(users, ({ many }) => ({
   contacts: many(contacts),
   submittedFeedback: many(feedback, { relationName: "submittedFeedback" }),
   assignedFeedback: many(feedback, { relationName: "assignedFeedback" }),
+  // Email system relations
+  emailAccounts: many(emailAccounts),
+  emailTemplates: many(emailTemplates),
+  emailSignatures: many(emailSignatures),
+  emailRules: many(emailRules),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -502,6 +656,13 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   contacts: many(contacts),
   eventLocations: many(eventLocations),
   reportNotes: many(reportNotes),
+  // Email system relations
+  emailAccounts: many(emailAccounts),
+  emailThreads: many(emailThreads),
+  emailMessages: many(emailMessages),
+  emailFolders: many(emailFolders),
+  emailRules: many(emailRules),
+  emailTemplates: many(emailTemplates),
 }));
 
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
@@ -982,7 +1143,124 @@ export const errorLogsRelations = relations(errorLogs, ({ one }) => ({
   }),
 }));
 
+// ========== EMAIL SYSTEM RELATIONS ==========
 
+export const emailAccountsRelations = relations(emailAccounts, ({ one, many }) => ({
+  user: one(users, {
+    fields: [emailAccounts.userId],
+    references: [users.id],
+  }),
+  project: one(projects, {
+    fields: [emailAccounts.projectId],
+    references: [projects.id],
+  }),
+  threads: many(emailThreads),
+  messages: many(emailMessages),
+  folders: many(emailFolders),
+  rules: many(emailRules),
+  signatures: many(emailSignatures),
+}));
+
+export const emailThreadsRelations = relations(emailThreads, ({ one, many }) => ({
+  account: one(emailAccounts, {
+    fields: [emailThreads.accountId],
+    references: [emailAccounts.id],
+  }),
+  project: one(projects, {
+    fields: [emailThreads.projectId],
+    references: [projects.id],
+  }),
+  messages: many(emailMessages),
+}));
+
+export const emailMessagesRelations = relations(emailMessages, ({ one, many }) => ({
+  thread: one(emailThreads, {
+    fields: [emailMessages.threadId],
+    references: [emailThreads.id],
+  }),
+  account: one(emailAccounts, {
+    fields: [emailMessages.accountId],
+    references: [emailAccounts.id],
+  }),
+  project: one(projects, {
+    fields: [emailMessages.projectId],
+    references: [projects.id],
+  }),
+  folder: one(emailFolders, {
+    fields: [emailMessages.folderId],
+    references: [emailFolders.id],
+  }),
+  relatedReport: one(reports, {
+    fields: [emailMessages.relatedReportId],
+    references: [reports.id],
+  }),
+  relatedContact: one(contacts, {
+    fields: [emailMessages.relatedContactId],
+    references: [contacts.id],
+  }),
+  attachments: many(emailAttachments),
+}));
+
+export const emailFoldersRelations = relations(emailFolders, ({ one, many }) => ({
+  account: one(emailAccounts, {
+    fields: [emailFolders.accountId],
+    references: [emailAccounts.id],
+  }),
+  project: one(projects, {
+    fields: [emailFolders.projectId],
+    references: [projects.id],
+  }),
+  parent: one(emailFolders, {
+    fields: [emailFolders.parentId],
+    references: [emailFolders.id],
+  }),
+  children: many(emailFolders),
+  messages: many(emailMessages),
+}));
+
+export const emailAttachmentsRelations = relations(emailAttachments, ({ one }) => ({
+  message: one(emailMessages, {
+    fields: [emailAttachments.messageId],
+    references: [emailMessages.id],
+  }),
+}));
+
+export const emailRulesRelations = relations(emailRules, ({ one }) => ({
+  account: one(emailAccounts, {
+    fields: [emailRules.accountId],
+    references: [emailAccounts.id],
+  }),
+  project: one(projects, {
+    fields: [emailRules.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [emailRules.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const emailTemplatesRelations = relations(emailTemplates, ({ one }) => ({
+  user: one(users, {
+    fields: [emailTemplates.userId],
+    references: [users.id],
+  }),
+  project: one(projects, {
+    fields: [emailTemplates.projectId],
+    references: [projects.id],
+  }),
+}));
+
+export const emailSignaturesRelations = relations(emailSignatures, ({ one }) => ({
+  user: one(users, {
+    fields: [emailSignatures.userId],
+    references: [users.id],
+  }),
+  account: one(emailAccounts, {
+    fields: [emailSignatures.accountId],
+    references: [emailAccounts.id],
+  }),
+}));
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users); // TODO: Fix omit type issue later
@@ -1422,3 +1700,71 @@ export type WaitlistEmailSettings = typeof waitlistEmailSettings.$inferSelect;
 export type InsertWaitlistEmailSettings = z.infer<typeof insertWaitlistEmailSettingsSchema>;
 export type ApiSettings = typeof apiSettings.$inferSelect;
 export type InsertApiSettings = z.infer<typeof insertApiSettingsSchema>;
+
+// ========== EMAIL SYSTEM ZODS AND TYPES ==========
+
+// Email Account Schemas
+export const insertEmailAccountSchema = createInsertSchema(emailAccounts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEmailThreadSchema = createInsertSchema(emailThreads).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEmailMessageSchema = createInsertSchema(emailMessages).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEmailFolderSchema = createInsertSchema(emailFolders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEmailAttachmentSchema = createInsertSchema(emailAttachments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertEmailRuleSchema = createInsertSchema(emailRules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEmailTemplateSchema = createInsertSchema(emailTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEmailSignatureSchema = createInsertSchema(emailSignatures).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Email System Types
+export type EmailAccount = typeof emailAccounts.$inferSelect;
+export type InsertEmailAccount = z.infer<typeof insertEmailAccountSchema>;
+export type EmailThread = typeof emailThreads.$inferSelect;
+export type InsertEmailThread = z.infer<typeof insertEmailThreadSchema>;
+export type EmailMessage = typeof emailMessages.$inferSelect;
+export type InsertEmailMessage = z.infer<typeof insertEmailMessageSchema>;
+export type EmailFolder = typeof emailFolders.$inferSelect;
+export type InsertEmailFolder = z.infer<typeof insertEmailFolderSchema>;
+export type EmailAttachment = typeof emailAttachments.$inferSelect;
+export type InsertEmailAttachment = z.infer<typeof insertEmailAttachmentSchema>;
+export type EmailRule = typeof emailRules.$inferSelect;
+export type InsertEmailRule = z.infer<typeof insertEmailRuleSchema>;
+export type EmailTemplate = typeof emailTemplates.$inferSelect;
+export type InsertEmailTemplate = z.infer<typeof insertEmailTemplateSchema>;
+export type EmailSignature = typeof emailSignatures.$inferSelect;
+export type InsertEmailSignature = z.infer<typeof insertEmailSignatureSchema>;

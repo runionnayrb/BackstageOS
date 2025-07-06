@@ -12,6 +12,7 @@ import {
   Edit3,
   Settings,
   Calendar,
+  Mail,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -46,6 +47,12 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       items: [
         { name: "Team Members", href: "/team", icon: Users },
         { name: "Invite Members", href: "/invitations", icon: UserPlus },
+      ],
+    },
+    {
+      title: "Communication",
+      items: [
+        { name: "Email Manager", href: "/email", icon: Mail },
       ],
     },
     {

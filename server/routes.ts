@@ -5289,6 +5289,191 @@ Respond with valid JSON only.`;
     }
   });
 
+  // ========== EMAIL SYSTEM ROUTES ==========
+
+  // Create email tables if they don't exist (temporary migration solution)
+  app.post('/api/email/setup', isAuthenticated, async (req: any, res) => {
+    try {
+      if (!req.user.isAdmin) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+
+      // Create tables using direct SQL to avoid migration timeout
+      const { sql } = await import('drizzle-orm');
+      const { db } = await import('./storage.js');
+
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS email_accounts (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+          project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+          email_address VARCHAR NOT NULL UNIQUE,
+          display_name VARCHAR NOT NULL,
+          account_type VARCHAR NOT NULL,
+          is_default BOOLEAN DEFAULT false,
+          is_active BOOLEAN DEFAULT true,
+          imap_host VARCHAR,
+          imap_port INTEGER,
+          imap_username VARCHAR,
+          imap_password VARCHAR,
+          imap_enabled BOOLEAN DEFAULT false,
+          last_sync_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS email_threads (
+          id SERIAL PRIMARY KEY,
+          account_id INTEGER NOT NULL REFERENCES email_accounts(id) ON DELETE CASCADE,
+          project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+          subject VARCHAR NOT NULL,
+          participants TEXT[],
+          last_message_at TIMESTAMP NOT NULL,
+          message_count INTEGER DEFAULT 1,
+          is_read BOOLEAN DEFAULT false,
+          is_archived BOOLEAN DEFAULT false,
+          is_important BOOLEAN DEFAULT false,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      await db.execute(sql`
+        CREATE TABLE IF NOT EXISTS email_folders (
+          id SERIAL PRIMARY KEY,
+          account_id INTEGER NOT NULL REFERENCES email_accounts(id) ON DELETE CASCADE,
+          project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
+          name VARCHAR NOT NULL,
+          folder_type VARCHAR NOT NULL,
+          color VARCHAR DEFAULT '#3b82f6',
+          parent_id INTEGER REFERENCES email_folders(id),
+          sort_order INTEGER DEFAULT 0,
+          is_hidden BOOLEAN DEFAULT false,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      res.json({ message: "Email system tables created successfully" });
+    } catch (error) {
+      console.error("Error setting up email system:", error);
+      res.status(500).json({ message: "Failed to setup email system" });
+    }
+  });
+
+  // Get user's email accounts
+  app.get('/api/email/accounts', isAuthenticated, async (req: any, res) => {
+    try {
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const accounts = await emailService.getUserEmailAccounts(req.user.id);
+      res.json(accounts);
+    } catch (error) {
+      console.error("Error fetching email accounts:", error);
+      res.status(500).json({ message: "Failed to fetch email accounts" });
+    }
+  });
+
+  // Create new email account
+  app.post('/api/email/accounts', isAuthenticated, async (req: any, res) => {
+    try {
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const accountData = {
+        ...req.body,
+        userId: req.user.id,
+      };
+
+      const account = await emailService.createEmailAccount(accountData);
+      res.status(201).json(account);
+    } catch (error) {
+      console.error("Error creating email account:", error);
+      res.status(500).json({ message: "Failed to create email account" });
+    }
+  });
+
+  // Get project email accounts
+  app.get('/api/projects/:id/email/accounts', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      // Check project access
+      const project = await storage.getProjectById(projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const accounts = await emailService.getProjectEmailAccounts(projectId);
+      res.json(accounts);
+    } catch (error) {
+      console.error("Error fetching project email accounts:", error);
+      res.status(500).json({ message: "Failed to fetch project email accounts" });
+    }
+  });
+
+  // Get email threads for an account
+  app.get('/api/email/accounts/:accountId/threads', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const folderId = req.query.folderId ? parseInt(req.query.folderId as string) : undefined;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const threads = await emailService.getEmailThreads(accountId, folderId);
+      res.json(threads);
+    } catch (error) {
+      console.error("Error fetching email threads:", error);
+      res.status(500).json({ message: "Failed to fetch email threads" });
+    }
+  });
+
+  // Get folders for an account
+  app.get('/api/email/accounts/:accountId/folders', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const folders = await emailService.getAccountFolders(accountId);
+      res.json(folders);
+    } catch (error) {
+      console.error("Error fetching email folders:", error);
+      res.status(500).json({ message: "Failed to fetch email folders" });
+    }
+  });
+
+  // Get email statistics
+  app.get('/api/email/accounts/:accountId/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const stats = await emailService.getEmailStats(accountId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching email statistics:", error);
+      res.status(500).json({ message: "Failed to fetch email statistics" });
+    }
+  });
+
   const server = createServer(app);
   return server;
 }
