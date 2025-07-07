@@ -23,17 +23,18 @@ interface EmailInterfaceProps {
   onBack?: () => void;
   showCompose?: boolean;
   onShowComposeChange?: (show: boolean) => void;
+  activeFolder?: string;
 }
 
-export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange }: EmailInterfaceProps) {
+export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange, activeFolder = "inbox" }: EmailInterfaceProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [modalEmail, setModalEmail] = useState<EmailMessage | null>(null);
   const [showConfiguration, setShowConfiguration] = useState(false);
 
-  // Fetch inbox messages for the selected account
+  // Fetch messages for the selected account and folder
   const { data: inboxMessages, isLoading, error } = useQuery<EmailMessage[]>({
-    queryKey: ['/api/email/accounts', selectedAccount.id, 'inbox'],
+    queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder],
     enabled: selectedAccount?.id > 0,
   });
 

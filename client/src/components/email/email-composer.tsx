@@ -270,20 +270,10 @@ export function EmailComposer({
   };
 
   const handleExitClick = () => {
-    console.log('Exit clicked, checking content:', {
-      toAddresses: toAddresses.trim(),
-      subject: subject.trim(),
-      content: content.trim(),
-      ccAddresses: ccAddresses.trim(),
-      bccAddresses: bccAddresses.trim()
-    });
-    
     // Check if there's any content to save
     if (toAddresses.trim() || subject.trim() || content.trim() || ccAddresses.trim() || bccAddresses.trim()) {
-      console.log('Content found, showing exit dialog');
       setShowExitDialog(true);
     } else {
-      console.log('No content, closing directly');
       handleClose();
     }
   };

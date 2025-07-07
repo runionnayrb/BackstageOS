@@ -50,6 +50,8 @@ interface EmailSidebarProps {
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   accountStats?: EmailStats;
+  activeFolder?: string;
+  onFolderChange?: (folder: string) => void;
 }
 
 export function EmailSidebar({
@@ -61,8 +63,9 @@ export function EmailSidebar({
   isCollapsed,
   onToggleCollapse,
   accountStats,
+  activeFolder = "inbox",
+  onFolderChange,
 }: EmailSidebarProps) {
-  const [activeFolder, setActiveFolder] = useState("inbox");
 
   const folders = [
     { id: "inbox", name: "Inbox", icon: Inbox, count: accountStats?.unreadMessages || 0 },
@@ -164,7 +167,7 @@ export function EmailSidebar({
                 key={folder.id}
                 variant={activeFolder === folder.id ? "secondary" : "ghost"}
                 size="sm"
-                onClick={() => setActiveFolder(folder.id)}
+                onClick={() => onFolderChange?.(folder.id)}
                 className="w-full justify-start"
               >
                 <IconComponent className="h-4 w-4 mr-2" />

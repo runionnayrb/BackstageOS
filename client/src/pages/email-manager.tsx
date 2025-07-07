@@ -46,6 +46,7 @@ export default function EmailManager() {
   const [showCompose, setShowCompose] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeFolder, setActiveFolder] = useState("inbox");
   const queryClient = useQueryClient();
 
   // Fetch email accounts
@@ -154,6 +155,8 @@ export default function EmailManager() {
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           accountStats={accountStats as EmailStats}
+          activeFolder={activeFolder}
+          onFolderChange={setActiveFolder}
         />
       </div>
 
@@ -253,6 +256,7 @@ export default function EmailManager() {
               onBack={() => setSelectedAccount(null)}
               showCompose={showCompose}
               onShowComposeChange={setShowCompose}
+              activeFolder={activeFolder}
             />
           ) : (
             <div className="flex justify-center items-center h-64">
@@ -422,7 +426,14 @@ export default function EmailManager() {
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 mb-3">Folders</h3>
                     <div className="space-y-1">
-                      <Button variant="ghost" className="w-full justify-start text-left">
+                      <Button 
+                        variant={activeFolder === "inbox" ? "default" : "ghost"} 
+                        className="w-full justify-start text-left"
+                        onClick={() => {
+                          setActiveFolder("inbox");
+                          setIsMobileMenuOpen(false);
+                        }}
+                      >
                         <Inbox className="w-4 h-4 mr-2" />
                         Inbox
                         {accountStats && (accountStats as any).unreadMessages > 0 && (
@@ -431,15 +442,36 @@ export default function EmailManager() {
                           </Badge>
                         )}
                       </Button>
-                      <Button variant="ghost" className="w-full justify-start">
+                      <Button 
+                        variant={activeFolder === "sent" ? "default" : "ghost"} 
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setActiveFolder("sent");
+                          setIsMobileMenuOpen(false);
+                        }}
+                      >
                         <Send className="w-4 h-4 mr-2" />
                         Sent
                       </Button>
-                      <Button variant="ghost" className="w-full justify-start">
+                      <Button 
+                        variant={activeFolder === "archive" ? "default" : "ghost"} 
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setActiveFolder("archive");
+                          setIsMobileMenuOpen(false);
+                        }}
+                      >
                         <Archive className="w-4 h-4 mr-2" />
                         Archive
                       </Button>
-                      <Button variant="ghost" className="w-full justify-start">
+                      <Button 
+                        variant={activeFolder === "trash" ? "default" : "ghost"} 
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setActiveFolder("trash");
+                          setIsMobileMenuOpen(false);
+                        }}
+                      >
                         <Trash2 className="w-4 h-4 mr-2" />
                         Trash
                       </Button>
