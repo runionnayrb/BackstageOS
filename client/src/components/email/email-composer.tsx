@@ -166,9 +166,6 @@ export function EmailComposer({
     setContent('');
     setCurrentDraftId(null);
     setLastSaved(null);
-    setIsBold(false);
-    setIsItalic(false);
-    setIsUnderline(false);
   };
 
   // Auto-save function
