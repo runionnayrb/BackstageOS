@@ -757,7 +757,9 @@ export class EmailService {
       console.log("🔍 emailData:", emailData);
       // Create email thread if not provided
       let threadId = emailData.threadId;
+      console.log("🔍 Initial threadId:", threadId);
       if (!threadId) {
+        console.log("🔍 Creating new email thread...");
         const thread = await this.createEmailThread({
           accountId,
           subject: emailData.subject,
@@ -766,6 +768,7 @@ export class EmailService {
           isRead: false,
         });
         threadId = thread.id;
+        console.log("✅ Email thread created with ID:", threadId);
       }
 
       // Get account details for fromAddress
