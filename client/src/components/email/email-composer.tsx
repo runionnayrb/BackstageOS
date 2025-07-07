@@ -257,7 +257,7 @@ export function EmailComposer({
       
       console.log('Native touch move', { currentY, startYPos, deltaY });
       
-      // Only allow downward dragging with highly amplified movement
+      // Allow full downward dragging to hide sheet completely
       if (deltaY > 0) {
         // Much more aggressive amplification for mobile responsiveness
         const amplifiedDelta = deltaY * 4; // 4x amplification
@@ -273,10 +273,15 @@ export function EmailComposer({
       currentDragging = false;
       setIsDragging(false);
       
-      // If dragged down more than 100px, close the sheet (reduced threshold for easier closing)
-      if (sheetPosition > 100) {
-        console.log('Closing sheet due to swipe');
-        handleExitClick();
+      // If dragged down more than 150px, animate it completely off-screen then close
+      if (sheetPosition > 150) {
+        console.log('Closing sheet due to swipe - animating off screen');
+        // Animate to completely off-screen (full height of viewport)
+        setSheetPosition(window.innerHeight);
+        // Close after animation completes
+        setTimeout(() => {
+          handleExitClick();
+        }, 300);
       } else {
         console.log('Snapping back to position 0');
         // Snap back to original position
