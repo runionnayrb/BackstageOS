@@ -22,6 +22,12 @@ import {
   Clock,
 } from "lucide-react";
 import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface EmailAccount {
   id: number;
@@ -75,6 +81,49 @@ export function EmailSidebar({
     { id: "archive", name: "Archive", icon: Archive, count: 0 },
     { id: "trash", name: "Trash", icon: Trash2, count: 0 },
   ];
+
+  const [showEditAccount, setShowEditAccount] = useState(false);
+  const [editDisplayName, setEditDisplayName] = useState(selectedAccount?.displayName || '');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Mutation for updating account display name
+  const updateAccountMutation = useMutation({
+    mutationFn: async (data: { displayName: string }) => {
+      return apiRequest(`/api/email/accounts/${selectedAccount?.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/email/accounts'] });
+      setShowEditAccount(false);
+      toast({
+        title: "Display name updated",
+        description: "Your email display name has been successfully updated.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating display name:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update display name. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleSaveDisplayName = () => {
+    if (!editDisplayName.trim()) {
+      toast({
+        title: "Error",
+        description: "Display name cannot be empty.",
+        variant: "destructive",
+      });
+      return;
+    }
+    updateAccountMutation.mutate({ displayName: editDisplayName.trim() });
+  };
 
   return (
     <div
@@ -138,6 +187,16 @@ export function EmailSidebar({
                   ))}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
+                    onClick={() => {
+                      setEditDisplayName(selectedAccount?.displayName || '');
+                      setShowEditAccount(true);
+                    }}
+                    className="flex items-center space-x-2"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span>Edit Display Name</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
                     onClick={onCreateAccount}
                     className="flex items-center space-x-2 p-3"
                   >
@@ -192,6 +251,51 @@ export function EmailSidebar({
           Settings
         </Button>
       </div>
+
+      {/* Edit Display Name Dialog */}
+      <Dialog open={showEditAccount} onOpenChange={setShowEditAccount}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Display Name</DialogTitle>
+            <DialogDescription>
+              Change how your name appears in emails you send from {selectedAccount?.emailAddress}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Display Name</Label>
+              <Input
+                id="displayName"
+                value={editDisplayName}
+                onChange={(e) => setEditDisplayName(e.target.value)}
+                placeholder="Your display name"
+                className="w-full"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !updateAccountMutation.isPending) {
+                    e.preventDefault();
+                    handleSaveDisplayName();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowEditAccount(false)}
+                disabled={updateAccountMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveDisplayName}
+                disabled={updateAccountMutation.isPending}
+              >
+                {updateAccountMutation.isPending ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

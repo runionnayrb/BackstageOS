@@ -83,6 +83,22 @@ export class EmailService {
   }
 
   /**
+   * Update an email account
+   */
+  async updateEmailAccount(accountId: number, updates: Partial<Pick<EmailAccount, 'displayName'>>): Promise<EmailAccount> {
+    const [updatedAccount] = await db
+      .update(emailAccounts)
+      .set({
+        ...updates,
+        updatedAt: new Date(),
+      })
+      .where(eq(emailAccounts.id, accountId))
+      .returning();
+
+    return updatedAccount;
+  }
+
+  /**
    * Generate email address based on account type
    */
   private async generateEmailAddress(accountData: InsertEmailAccount): Promise<string> {

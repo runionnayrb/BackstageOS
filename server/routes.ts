@@ -5417,6 +5417,23 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Update email account
+  app.put('/api/email/accounts/:accountId', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const { displayName } = req.body;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const updatedAccount = await emailService.updateEmailAccount(accountId, { displayName });
+      res.json(updatedAccount);
+    } catch (error) {
+      console.error("Error updating email account:", error);
+      res.status(500).json({ message: "Failed to update email account" });
+    }
+  });
+
   // Get project email accounts
   app.get('/api/projects/:id/email/accounts', isAuthenticated, async (req: any, res) => {
     try {
