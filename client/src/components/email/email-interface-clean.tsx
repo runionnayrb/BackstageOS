@@ -36,7 +36,27 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   // Fetch messages for the selected account and folder
   const { data: inboxMessages, isLoading, error } = useQuery<EmailMessage[]>({
     queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder],
+    queryFn: async () => {
+      let endpoint;
+      switch (activeFolder) {
+        case 'sent':
+          endpoint = `/api/email/accounts/${selectedAccount.id}/sent`;
+          break;
+        case 'drafts':
+          endpoint = `/api/email/accounts/${selectedAccount.id}/drafts`;
+          break;
+        default:
+          endpoint = `/api/email/accounts/${selectedAccount.id}/inbox`;
+      }
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ${activeFolder} messages`);
+      }
+      return response.json();
+    },
     enabled: selectedAccount?.id > 0,
+    staleTime: 0, // Force fresh data on every request
+    cacheTime: 0, // Don't cache the results
   });
 
   const filteredMessages = (inboxMessages || []).filter((message: EmailMessage) =>
