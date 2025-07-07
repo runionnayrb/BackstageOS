@@ -66,13 +66,22 @@ export class SimpleEmailQueueService {
         try {
           console.log(`📤 Sending email: ${emailJob.subject} to ${emailJob.to.join(', ')}`);
           
-          // Send the email using the email service
-          await this.emailService.sendEmail(emailJob.accountId, {
+          // Send the email using SendGrid directly (skip SMTP configuration)
+          const { sendEmail } = await import('./sendgridService.js');
+          
+          // Get account details for from address
+          const account = await this.emailService.getEmailAccountById(emailJob.accountId);
+          if (!account) {
+            throw new Error(`Email account ${emailJob.accountId} not found`);
+          }
+          
+          await sendEmail({
             to: emailJob.to,
             cc: emailJob.cc,
             bcc: emailJob.bcc,
             subject: emailJob.subject,
-            message: emailJob.message,
+            html: emailJob.message,
+            from: account.emailAddress,
             replyTo: emailJob.replyTo,
           });
           
