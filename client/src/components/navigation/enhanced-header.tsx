@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import BreadcrumbNavigation from "./breadcrumb-navigation";
 import QuickSectionSwitcher from "./quick-section-switcher";
-import RecentShowsSwitcher from "./recent-shows-switcher";
 
 interface SwitchStatus {
   isViewingAs: boolean;
@@ -240,13 +239,6 @@ export default function EnhancedHeader() {
 
             {/* Context-aware navigation */}
             <div className="flex items-center gap-4">
-              {/* Recent Shows Switcher - only show if not on home page */}
-              {location !== '/' && (
-                <RecentShowsSwitcher 
-                  currentShowId={navContext.showId}
-                />
-              )}
-
               {/* Quick Section Switcher - only show when in a show */}
               {navContext.showId && showData && (
                 <QuickSectionSwitcher
