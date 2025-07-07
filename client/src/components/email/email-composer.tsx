@@ -44,6 +44,25 @@ export function EmailComposer({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Prevent body scroll when mobile sheet is open
+  useEffect(() => {
+    if (isMobile && isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [isMobile, isOpen]);
+
   // Form state
   const [toAddresses, setToAddresses] = useState<string>('');
   const [ccAddresses, setCcAddresses] = useState<string>('');
@@ -209,12 +228,17 @@ export function EmailComposer({
 
   // Mobile touch handlers
   const handleTouchStart = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
     setStartY(e.touches[0].clientY);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!isDragging) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
     
     const currentY = e.touches[0].clientY;
     const deltaY = currentY - startY;
@@ -225,7 +249,9 @@ export function EmailComposer({
     }
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
     
     // If dragged down more than 150px, close the sheet
@@ -306,14 +332,15 @@ export function EmailComposer({
           transform: `translateY(${sheetPosition}px)`
         }}
       >
-        {/* Handle bar for swipe gesture */}
+        {/* Handle bar for swipe gesture - larger touch area */}
         <div 
-          className="flex justify-center py-3 cursor-grab active:cursor-grabbing"
+          className="flex justify-center py-4 px-4 cursor-grab active:cursor-grabbing touch-none"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          style={{ touchAction: 'none' }}
         >
-          <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
+          <div className="w-12 h-1.5 bg-gray-400 rounded-full"></div>
         </div>
         
         {/* Header */}
