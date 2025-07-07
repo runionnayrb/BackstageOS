@@ -766,12 +766,24 @@ export class EmailService {
         threadId = thread.id;
       }
 
+      // Get account details for fromAddress
+      const account = await this.getEmailAccount(accountId);
+      if (!account) {
+        throw new Error(`Email account ${accountId} not found`);
+      }
+
+      // Generate unique Message-ID for email
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substring(2, 8);
+      const messageId = `<${timestamp}.${randomId}@backstageos.com>`;
+
       // Create email message record
       const messageData: InsertEmailMessage = {
         accountId,
         threadId,
+        messageId,
         subject: emailData.subject,
-        fromAddress: '', // Will be set from account
+        fromAddress: account.emailAddress,
         toAddresses: emailData.to,
         ccAddresses: emailData.cc || [],
         bccAddresses: emailData.bcc || [],

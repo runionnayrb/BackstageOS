@@ -524,7 +524,7 @@ export const emailMessages = pgTable("email_messages", {
   id: serial("id").primaryKey(),
   accountId: integer("account_id").notNull().references(() => emailAccounts.id, { onDelete: "cascade" }),
   threadId: integer("thread_id").references(() => emailThreads.id, { onDelete: "cascade" }),
-  messageId: varchar("message_id").unique(), // Email Message-ID header
+  messageId: varchar("message_id").notNull().unique(), // Email Message-ID header
   subject: varchar("subject"),
   fromAddress: varchar("from_address").notNull(),
   toAddresses: text("to_addresses").array(),
