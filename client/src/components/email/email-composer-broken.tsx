@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, X, Send } from 'lucide-react';
+import { Plus, X, Send, ChevronDown, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Drawer } from "vaul";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -30,7 +31,7 @@ export function EmailComposer({
 }: EmailComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
+  
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
   
@@ -250,24 +251,132 @@ export function EmailComposer({
     }
   };
 
-  // iOS-style mobile bottom sheet content
-  const MobileContent = () => (
-    <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/50 z-40"
-        onClick={handleExitClick}
-      />
-      
-      {/* Bottom sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-[20px] h-[85vh] flex flex-col animate-in slide-in-from-bottom-full duration-300">
-        {/* Handle bar */}
-        <div className="flex justify-center py-2">
-          <div className="w-8 h-1 bg-gray-300 rounded-full"></div>
-        </div>
-        
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+  // Mobile composer component
+  const MobileComposer = () => (
+    <Drawer.Root open={isOpen} onOpenChange={handleClose}>
+      <Drawer.Portal>
+        <Drawer.Overlay className="fixed inset-0 bg-black/40" />
+        <Drawer.Content className="bg-white flex flex-col rounded-t-[10px] h-[85vh] mt-24 fixed bottom-0 left-0 right-0">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+            <Button 
+              variant="ghost" 
+              onClick={handleExitClick}
+              className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            <Drawer.Title className="text-lg font-semibold text-black">
+              {replyToMessage ? 'Reply' : 'New Message'}
+            </Drawer.Title>
+            <Button
+              variant="ghost"
+              onClick={handleSend}
+              disabled={sendEmailMutation.isPending || !toAddresses.trim() || !subject.trim()}
+              className="text-blue-500 hover:text-blue-600 p-1 h-auto disabled:opacity-50"
+            >
+              <Send className="h-6 w-6" />
+            </Button>
+          </div>
+
+        <div className="flex-1 flex flex-col bg-white overflow-y-auto">
+          {/* Apple Mail Style Fields */}
+          <div className="px-4">
+            {/* To field */}
+            <div className="flex items-center py-3 border-b border-gray-200">
+              <span className="text-gray-500 w-12 text-sm">To:</span>
+              <input
+                type="text"
+                placeholder=""
+                value={toAddresses}
+                onChange={(e) => setToAddresses(e.target.value)}
+                className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
+                style={{ fontSize: '16px', boxShadow: 'none' }}
+              />
+              <Button variant="ghost" size="sm" className="text-blue-500 p-0 h-auto ml-2">
+                <Plus className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* CC field */}
+            {showCc && (
+              <div className="flex items-center py-3 border-b border-gray-200">
+                <span className="text-gray-500 w-12 text-sm">Cc:</span>
+                <input
+                  type="text"
+                  placeholder=""
+                  value={ccAddresses}
+                  onChange={(e) => setCcAddresses(e.target.value)}
+                  className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
+                  style={{ fontSize: '16px', boxShadow: 'none' }}
+                />
+              </div>
+            )}
+
+            {/* BCC field */}
+            {showBcc && (
+              <div className="flex items-center py-3 border-b border-gray-200">
+                <span className="text-gray-500 w-12 text-sm">Bcc:</span>
+                <input
+                  type="text"
+                  placeholder=""
+                  value={bccAddresses}
+                  onChange={(e) => setBccAddresses(e.target.value)}
+                  className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
+                  style={{ fontSize: '16px', boxShadow: 'none' }}
+                />
+              </div>
+            )}
+
+            {/* From field */}
+            <div className="flex items-center py-3 border-b border-gray-200">
+              <span className="text-gray-500 w-12 text-sm">From:</span>
+              <span className="text-black text-base">{fromEmail}</span>
+            </div>
+
+            {/* Subject field */}
+            <div className="flex items-center py-3 border-b border-gray-200">
+              <span className="text-gray-500 w-12 text-sm">Subject:</span>
+              <input
+                type="text"
+                placeholder=""
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
+                style={{ fontSize: '16px', boxShadow: 'none' }}
+              />
+            </div>
+          </div>
+
+          {/* Message content */}
+          <div className="flex-1 p-4">
+            <textarea
+              placeholder="Compose your message..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="w-full h-full bg-transparent border-0 outline-none resize-none text-base focus:ring-0 focus:outline-none"
+              style={{ fontSize: '16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
+            />
+          </div>
+
+          {/* Auto-save status */}
+          <div className="px-4 pb-4">
+            {autoSaveStatus && (
+              <p className="text-xs text-gray-500 text-center">
+                {autoSaveStatus}
+              </p>
+            )}
+          </div>
+        </Drawer.Content>
+      </Drawer.Portal>
+    </Drawer.Root>
+  );
+
+  // Desktop composer component  
+  const DesktopComposer = () => (
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="w-[95vw] max-w-4xl h-[95vh] max-h-[90vh] flex flex-col p-0 border bg-white [&>button]:hidden">
+        {/* Apple Mail Style Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
           <Button 
             variant="ghost" 
             onClick={handleExitClick}
@@ -288,9 +397,8 @@ export function EmailComposer({
           </Button>
         </div>
 
-        {/* Email form content */}
-        <div className="flex-1 flex flex-col overflow-y-auto">
-          {/* Fields */}
+        <div className="flex-1 flex flex-col bg-white overflow-y-auto">
+          {/* Apple Mail Style Fields */}
           <div className="px-4">
             {/* To field */}
             <div className="flex items-center py-3 border-b border-gray-200">
@@ -378,138 +486,13 @@ export function EmailComposer({
             )}
           </div>
         </div>
-      </div>
-    </>
-  );
-
-  // Desktop modal content (existing structure)
-  const DesktopContent = () => (
-    <DialogContent className="w-[95vw] max-w-4xl h-[95vh] max-h-[90vh] flex flex-col p-0 border bg-white [&>button]:hidden">
-      {/* Apple Mail Style Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
-        <Button 
-          variant="ghost" 
-          onClick={handleExitClick}
-          className="text-gray-500 hover:text-gray-700 p-1 h-auto"
-        >
-          <X className="h-5 w-5" />
-        </Button>
-        <h1 className="text-lg font-semibold text-black">
-          {replyToMessage ? 'Reply' : 'New Message'}
-        </h1>
-        <Button
-          variant="ghost"
-          onClick={handleSend}
-          disabled={sendEmailMutation.isPending || !toAddresses.trim() || !subject.trim()}
-          className="text-blue-500 hover:text-blue-600 p-1 h-auto disabled:opacity-50"
-        >
-          <Send className="h-6 w-6" />
-        </Button>
-      </div>
-
-      <div className="flex-1 flex flex-col bg-white overflow-y-auto">
-        {/* Apple Mail Style Fields */}
-        <div className="px-4">
-          {/* To field */}
-          <div className="flex items-center py-3 border-b border-gray-200">
-            <span className="text-gray-500 w-12 text-sm">To:</span>
-            <input
-              type="text"
-              placeholder=""
-              value={toAddresses}
-              onChange={(e) => setToAddresses(e.target.value)}
-              className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
-              style={{ fontSize: '16px', boxShadow: 'none' }}
-            />
-            <Button variant="ghost" size="sm" className="text-blue-500 p-0 h-auto ml-2">
-              <Plus className="h-5 w-5" />
-            </Button>
-          </div>
-
-          {/* CC field */}
-          {showCc && (
-            <div className="flex items-center py-3 border-b border-gray-200">
-              <span className="text-gray-500 w-12 text-sm">Cc:</span>
-              <input
-                type="text"
-                placeholder=""
-                value={ccAddresses}
-                onChange={(e) => setCcAddresses(e.target.value)}
-                className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
-                style={{ fontSize: '16px', boxShadow: 'none' }}
-              />
-            </div>
-          )}
-
-          {/* BCC field */}
-          {showBcc && (
-            <div className="flex items-center py-3 border-b border-gray-200">
-              <span className="text-gray-500 w-12 text-sm">Bcc:</span>
-              <input
-                type="text"
-                placeholder=""
-                value={bccAddresses}
-                onChange={(e) => setBccAddresses(e.target.value)}
-                className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
-                style={{ fontSize: '16px', boxShadow: 'none' }}
-              />
-            </div>
-          )}
-
-          {/* From field */}
-          <div className="flex items-center py-3 border-b border-gray-200">
-            <span className="text-gray-500 w-12 text-sm">From:</span>
-            <span className="text-black text-base">{fromEmail}</span>
-          </div>
-
-          {/* Subject field */}
-          <div className="flex items-center py-3 border-b border-gray-200">
-            <span className="text-gray-500 w-12 text-sm">Subject:</span>
-            <input
-              type="text"
-              placeholder=""
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
-              style={{ fontSize: '16px', boxShadow: 'none' }}
-            />
-          </div>
-        </div>
-
-        {/* Message content */}
-        <div className="flex-1 p-4">
-          <textarea
-            placeholder="Compose your message..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="w-full h-full bg-transparent border-0 outline-none resize-none text-base focus:ring-0 focus:outline-none"
-            style={{ fontSize: '16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
-          />
-        </div>
-
-        {/* Auto-save status */}
-        <div className="px-4 pb-4">
-          {autoSaveStatus && (
-            <p className="text-xs text-gray-500 text-center">
-              {autoSaveStatus}
-            </p>
-          )}
-        </div>
-      </div>
-    </DialogContent>
+      </DialogContent>
+    </Dialog>
   );
 
   return (
     <>
-      {/* Mobile: iOS-style bottom sheet */}
-      {isMobile && isOpen && <MobileContent />}
-      
-      {/* Desktop: Regular modal */}
-      {!isMobile && (
-        <Dialog open={isOpen} onOpenChange={handleClose}>
-          <DesktopContent />
-        </Dialog>
-      )}
+      {isMobile ? <MobileComposer /> : <DesktopComposer />}
       
       {/* Exit confirmation dialog */}
       <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
