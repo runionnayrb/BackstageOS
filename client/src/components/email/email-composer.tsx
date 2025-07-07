@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -292,9 +292,9 @@ export function EmailComposer({
           <Button
             onClick={handleSend}
             disabled={sendEmailMutation.isPending || !toAddresses.trim() || !subject.trim()}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-1 h-auto rounded-full"
+            className="bg-blue-500 hover:bg-blue-600 text-white p-2 h-auto rounded-full disabled:opacity-50"
           >
-            {sendEmailMutation.isPending ? 'Sending...' : 'Send'}
+            <Send className="h-5 w-5" />
           </Button>
         </div>
 
