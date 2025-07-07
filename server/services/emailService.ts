@@ -769,7 +769,7 @@ export class EmailService {
       }
 
       // Get account details for fromAddress
-      const account = await this.getEmailAccount(accountId);
+      const account = await this.getEmailAccountById(accountId);
       if (!account) {
         throw new Error(`Email account ${accountId} not found`);
       }
