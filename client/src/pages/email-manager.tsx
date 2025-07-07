@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { Mail, Plus, Settings, FolderOpen, Users, BarChart3, Inbox, Send, Trash2, Archive, Clock } from "lucide-react";
+import { Mail, Plus, Settings, FolderOpen, Users, BarChart3, Inbox, Send, Trash2, Archive, Clock, Menu, X } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { EmailInterface } from "@/components/email/email-interface-clean";
 import { EmailSidebar } from "@/components/email/email-sidebar";
@@ -37,6 +37,7 @@ export default function EmailManager() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showCompose, setShowCompose] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // Check if email system is set up
@@ -174,6 +175,16 @@ export default function EmailManager() {
               </div>
               {/* Mobile Actions */}
               <div className="md:hidden flex items-center gap-2">
+                {/* Mobile Menu Button */}
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="p-2"
+                >
+                  <Menu className="w-5 h-5" />
+                </Button>
+                
                 {/* Mobile Account Selector */}
                 {emailAccounts && Array.isArray(emailAccounts) && emailAccounts.length > 1 && (
                   <Select 
@@ -321,6 +332,136 @@ export default function EmailManager() {
           )}
         </div>
       </div>
+
+      {/* Mobile Navigation Overlay */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          
+          {/* Mobile Menu Panel */}
+          <div className="absolute left-0 top-0 h-full w-80 max-w-[90vw] bg-white shadow-xl">
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">Navigation</h2>
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+              
+              {/* Navigation Content */}
+              <div className="flex-1 p-4 space-y-4">
+                {/* Email Accounts Section */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-3">Email Accounts</h3>
+                  <div className="space-y-2">
+                    {emailAccounts && Array.isArray(emailAccounts) && emailAccounts.length > 0 ? (
+                      (emailAccounts as EmailAccount[]).map((account) => (
+                        <button
+                          key={account.id}
+                          onClick={() => {
+                            setSelectedAccount(account);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors ${
+                            selectedAccount?.id === account.id 
+                              ? 'bg-blue-50 border border-blue-200' 
+                              : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                              <Mail className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">{account.displayName}</p>
+                              <p className="text-sm text-gray-500">{account.emailAddress}</p>
+                            </div>
+                          </div>
+                          {account.isDefault && (
+                            <Badge variant="secondary" className="text-xs">Default</Badge>
+                          )}
+                        </button>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-sm">No email accounts found</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Quick Actions */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-3">Quick Actions</h3>
+                  <div className="space-y-2">
+                    <Button 
+                      onClick={() => {
+                        setShowCompose(true);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full justify-start"
+                      variant="ghost"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Compose Email
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => {
+                        setIsCreateDialogOpen(true);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="w-full justify-start"
+                      variant="ghost"
+                    >
+                      <Mail className="w-4 h-4 mr-2" />
+                      Create Account
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Folders Section */}
+                {selectedAccount && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500 mb-3">Folders</h3>
+                    <div className="space-y-1">
+                      <Button variant="ghost" className="w-full justify-start text-left">
+                        <Inbox className="w-4 h-4 mr-2" />
+                        Inbox
+                        {accountStats && (accountStats as any).unreadMessages > 0 && (
+                          <Badge variant="secondary" className="ml-auto text-xs">
+                            {(accountStats as any).unreadMessages}
+                          </Badge>
+                        )}
+                      </Button>
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Send className="w-4 h-4 mr-2" />
+                        Sent
+                      </Button>
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Archive className="w-4 h-4 mr-2" />
+                        Archive
+                      </Button>
+                      <Button variant="ghost" className="w-full justify-start">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Trash
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
