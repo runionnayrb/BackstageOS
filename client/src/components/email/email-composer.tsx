@@ -270,10 +270,20 @@ export function EmailComposer({
   };
 
   const handleExitClick = () => {
+    console.log('Exit clicked, checking content:', {
+      toAddresses: toAddresses.trim(),
+      subject: subject.trim(),
+      content: content.trim(),
+      ccAddresses: ccAddresses.trim(),
+      bccAddresses: bccAddresses.trim()
+    });
+    
     // Check if there's any content to save
     if (toAddresses.trim() || subject.trim() || content.trim() || ccAddresses.trim() || bccAddresses.trim()) {
+      console.log('Content found, showing exit dialog');
       setShowExitDialog(true);
     } else {
+      console.log('No content, closing directly');
       handleClose();
     }
   };
@@ -296,6 +306,7 @@ export function EmailComposer({
   };
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="w-[100vw] h-[100vh] md:w-[95vw] md:max-w-4xl md:h-[95vh] md:max-h-[90vh] flex flex-col p-0 md:p-6 border-0 md:border bg-white [&>button]:hidden">
         {/* Apple Mail Style Header */}
@@ -437,36 +448,37 @@ export function EmailComposer({
           )}
         </div>
       </DialogContent>
-
-      {/* Exit Confirmation Dialog */}
-      <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
-        <DialogContent className="w-[90vw] max-w-md">
-          <DialogHeader>
-            <DialogTitle>Save Draft?</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <p className="text-sm text-gray-600">
-              Do you want to save this message as a draft before exiting?
-            </p>
-          </div>
-          <div className="flex gap-3 justify-end">
-            <Button
-              variant="outline"
-              onClick={handleDeleteDraft}
-              className="text-red-600 border-red-200 hover:bg-red-50"
-            >
-              Delete
-            </Button>
-            <Button
-              onClick={handleSaveDraftAndExit}
-              disabled={saveDraftMutation.isPending}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              {saveDraftMutation.isPending ? 'Saving...' : 'Save Draft'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </Dialog>
+
+    {/* Exit Confirmation Dialog - Separate from main dialog */}
+    <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+      <DialogContent className="w-[90vw] max-w-md">
+        <DialogHeader>
+          <DialogTitle>Save Draft?</DialogTitle>
+        </DialogHeader>
+        <div className="py-4">
+          <p className="text-sm text-gray-600">
+            Do you want to save this message as a draft before exiting?
+          </p>
+        </div>
+        <div className="flex gap-3 justify-end">
+          <Button
+            variant="outline"
+            onClick={handleDeleteDraft}
+            className="text-red-600 border-red-200 hover:bg-red-50"
+          >
+            Delete
+          </Button>
+          <Button
+            onClick={handleSaveDraftAndExit}
+            disabled={saveDraftMutation.isPending}
+            className="bg-blue-500 hover:bg-blue-600 text-white"
+          >
+            {saveDraftMutation.isPending ? 'Saving...' : 'Save Draft'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </>
   );
 }
