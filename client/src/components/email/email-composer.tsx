@@ -226,49 +226,73 @@ export function EmailComposer({
     };
   }, []);
 
-  // Mobile touch handlers with debugging
-  const handleTouchStart = (e: React.TouchEvent) => {
-    console.log('Touch start detected', e.touches[0].clientY);
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-    setStartY(e.touches[0].clientY);
-  };
+  // Native DOM touch handlers for better mobile support
+  useEffect(() => {
+    if (!isMobile || !isOpen) return;
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const currentY = e.touches[0].clientY;
-    const deltaY = currentY - startY;
-    
-    console.log('Touch move', { currentY, startY, deltaY });
-    
-    // Only allow downward dragging
-    if (deltaY > 0) {
-      setSheetPosition(deltaY);
-      console.log('Setting sheet position to', deltaY);
-    }
-  };
+    const handleElement = sheetRef.current?.querySelector('.handle-area');
+    if (!handleElement) return;
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    console.log('Touch end', { sheetPosition });
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-    
-    // If dragged down more than 150px, close the sheet
-    if (sheetPosition > 150) {
-      console.log('Closing sheet due to swipe');
-      handleExitClick();
-    } else {
-      console.log('Snapping back to position 0');
-      // Snap back to original position
-      setSheetPosition(0);
-    }
-  };
+    let startYPos = 0;
+    let currentDragging = false;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      console.log('Native touch start detected', e.touches[0].clientY);
+      e.preventDefault();
+      e.stopPropagation();
+      currentDragging = true;
+      startYPos = e.touches[0].clientY;
+      setIsDragging(true);
+      setStartY(e.touches[0].clientY);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!currentDragging) return;
+      
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const currentY = e.touches[0].clientY;
+      const deltaY = currentY - startYPos;
+      
+      console.log('Native touch move', { currentY, startYPos, deltaY });
+      
+      // Only allow downward dragging
+      if (deltaY > 0) {
+        setSheetPosition(deltaY);
+        console.log('Setting sheet position to', deltaY);
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      console.log('Native touch end', { sheetPosition });
+      e.preventDefault();
+      e.stopPropagation();
+      currentDragging = false;
+      setIsDragging(false);
+      
+      // If dragged down more than 150px, close the sheet
+      if (sheetPosition > 150) {
+        console.log('Closing sheet due to swipe');
+        handleExitClick();
+      } else {
+        console.log('Snapping back to position 0');
+        // Snap back to original position
+        setSheetPosition(0);
+      }
+    };
+
+    // Add native event listeners
+    handleElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+    handleElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+    handleElement.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+    return () => {
+      handleElement.removeEventListener('touchstart', handleTouchStart);
+      handleElement.removeEventListener('touchmove', handleTouchMove);
+      handleElement.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isMobile, isOpen, sheetPosition]);
 
   const handleSend = () => {
     sendEmailMutation.mutate();
@@ -341,10 +365,7 @@ export function EmailComposer({
       >
         {/* Handle bar for swipe gesture - larger touch area */}
         <div 
-          className="flex justify-center py-4 px-4 cursor-grab active:cursor-grabbing touch-none"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
+          className="handle-area flex justify-center py-4 px-4 cursor-grab active:cursor-grabbing touch-none"
           style={{ touchAction: 'none' }}
         >
           <div className="w-12 h-1.5 bg-gray-400 rounded-full"></div>
