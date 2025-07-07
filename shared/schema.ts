@@ -549,6 +549,14 @@ export const emailMessages = pgTable("email_messages", {
   sizeBytes: integer("size_bytes"),
   relatedShowId: integer("related_show_id").references(() => projects.id),
   relatedContactId: integer("related_contact_id").references(() => contacts.id),
+  // Delivery tracking fields
+  deliveryStatus: varchar("delivery_status").default("pending"), // pending, sent, delivered, failed, bounced
+  sendGridMessageId: varchar("sendgrid_message_id"),
+  deliveredAt: timestamp("delivered_at"),
+  deliveryError: text("delivery_error"),
+  retryCount: integer("retry_count").default(0),
+  bounced: boolean("bounced").default(false),
+  bounceReason: text("bounce_reason"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -694,4 +694,286 @@ export class EmailService {
 
     return await smtpService.sendDraft(messageId, priority);
   }
+
+  // ========== ENHANCED EMAIL PROCESSING & DELIVERY TRACKING ==========
+
+  /**
+   * Get email account by ID
+   */
+  async getEmailAccountById(accountId: number): Promise<EmailAccount | null> {
+    const accounts = await db
+      .select()
+      .from(emailAccounts)
+      .where(eq(emailAccounts.id, accountId))
+      .limit(1);
+
+    return accounts[0] || null;
+  }
+
+  /**
+   * Update message delivery status
+   */
+  async updateMessageDeliveryStatus(messageId: number, status: {
+    success: boolean;
+    deliveredAt?: Date;
+    sendGridMessageId?: string;
+    errorMessage?: string;
+    bounced?: boolean;
+    retryCount?: number;
+  }): Promise<void> {
+    const updateData: any = {
+      deliveryStatus: status.success ? 'delivered' : 'failed',
+      updatedAt: new Date(),
+    };
+
+    if (status.deliveredAt) updateData.deliveredAt = status.deliveredAt;
+    if (status.sendGridMessageId) updateData.sendGridMessageId = status.sendGridMessageId;
+    if (status.errorMessage) updateData.deliveryError = status.errorMessage;
+    if (status.bounced !== undefined) updateData.bounced = status.bounced;
+    if (status.retryCount !== undefined) updateData.retryCount = status.retryCount;
+
+    await db
+      .update(emailMessages)
+      .set(updateData)
+      .where(eq(emailMessages.id, messageId));
+  }
+
+  /**
+   * Enhanced send email with queue integration
+   */
+  async sendEmailWithQueue(accountId: number, emailData: {
+    to: string[];
+    cc?: string[];
+    bcc?: string[];
+    subject: string;
+    message: string;
+    replyTo?: string;
+    threadId?: number;
+    priority?: number;
+    scheduledAt?: Date;
+  }): Promise<{ messageId: number; jobId: string }> {
+    try {
+      // Create email thread if not provided
+      let threadId = emailData.threadId;
+      if (!threadId) {
+        const thread = await this.createEmailThread({
+          accountId,
+          subject: emailData.subject,
+          lastMessageAt: new Date(),
+          messageCount: 1,
+          isRead: false,
+        });
+        threadId = thread.id;
+      }
+
+      // Create email message record
+      const messageData: InsertEmailMessage = {
+        accountId,
+        threadId,
+        subject: emailData.subject,
+        fromAddress: '', // Will be set from account
+        toAddresses: emailData.to,
+        ccAddresses: emailData.cc || [],
+        bccAddresses: emailData.bcc || [],
+        htmlContent: emailData.message,
+        isDraft: false,
+        isSent: true,
+        dateSent: new Date(),
+        replyTo: emailData.replyTo,
+        deliveryStatus: 'pending',
+      };
+
+      const messages = await db
+        .insert(emailMessages)
+        .values(messageData)
+        .returning();
+
+      const message = messages[0];
+
+      // Queue email for background processing
+      const { emailQueueService } = await import('./emailQueueService.js');
+      const jobId = await emailQueueService.queueEmail({
+        accountId,
+        to: emailData.to,
+        cc: emailData.cc,
+        bcc: emailData.bcc,
+        subject: emailData.subject,
+        message: emailData.message,
+        replyTo: emailData.replyTo,
+        messageId: message.id,
+        threadId,
+        priority: emailData.priority,
+        scheduledAt: emailData.scheduledAt,
+      });
+
+      console.log(`📬 Email queued: Message ID ${message.id}, Job ID ${jobId}`);
+
+      return {
+        messageId: message.id,
+        jobId,
+      };
+
+    } catch (error) {
+      console.error('❌ Error sending email:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Move email to folder
+   */
+  async moveEmailToFolder(messageId: number, folderId: number): Promise<void> {
+    await db
+      .update(emailMessages)
+      .set({
+        folderId,
+        updatedAt: new Date(),
+      })
+      .where(eq(emailMessages.id, messageId));
+
+    console.log(`📁 Moved message ${messageId} to folder ${folderId}`);
+  }
+
+  /**
+   * Archive email
+   */
+  async archiveEmail(messageId: number): Promise<void> {
+    // Get archive folder for the account
+    const message = await db
+      .select()
+      .from(emailMessages)
+      .where(eq(emailMessages.id, messageId))
+      .limit(1);
+
+    if (!message[0]) {
+      throw new Error('Message not found');
+    }
+
+    const archiveFolders = await db
+      .select()
+      .from(emailFolders)
+      .where(
+        and(
+          eq(emailFolders.accountId, message[0].accountId),
+          eq(emailFolders.name, 'Archive')
+        )
+      )
+      .limit(1);
+
+    if (archiveFolders[0]) {
+      await this.moveEmailToFolder(messageId, archiveFolders[0].id);
+    }
+  }
+
+  /**
+   * Delete email (move to trash)
+   */
+  async deleteEmail(messageId: number): Promise<void> {
+    // Get trash folder for the account
+    const message = await db
+      .select()
+      .from(emailMessages)
+      .where(eq(emailMessages.id, messageId))
+      .limit(1);
+
+    if (!message[0]) {
+      throw new Error('Message not found');
+    }
+
+    const trashFolders = await db
+      .select()
+      .from(emailFolders)
+      .where(
+        and(
+          eq(emailFolders.accountId, message[0].accountId),
+          eq(emailFolders.name, 'Trash')
+        )
+      )
+      .limit(1);
+
+    if (trashFolders[0]) {
+      await this.moveEmailToFolder(messageId, trashFolders[0].id);
+    }
+  }
+
+  /**
+   * Mark email as read/unread
+   */
+  async markEmailAsRead(messageId: number, isRead = true): Promise<void> {
+    await db
+      .update(emailMessages)
+      .set({
+        isRead,
+        updatedAt: new Date(),
+      })
+      .where(eq(emailMessages.id, messageId));
+  }
+
+  /**
+   * Get delivery statistics for an account
+   */
+  async getDeliveryStats(accountId: number): Promise<{
+    total: number;
+    delivered: number;
+    failed: number;
+    pending: number;
+    bounced: number;
+  }> {
+    const stats = await db
+      .select({
+        status: emailMessages.deliveryStatus,
+        bounced: emailMessages.bounced,
+        count: count(),
+      })
+      .from(emailMessages)
+      .where(eq(emailMessages.accountId, accountId))
+      .groupBy(emailMessages.deliveryStatus, emailMessages.bounced);
+
+    const result = {
+      total: 0,
+      delivered: 0,
+      failed: 0,
+      pending: 0,
+      bounced: 0,
+    };
+
+    stats.forEach(stat => {
+      const countValue = parseInt(stat.count.toString());
+      result.total += countValue;
+
+      if (stat.bounced) {
+        result.bounced += countValue;
+      } else {
+        switch (stat.status) {
+          case 'delivered':
+            result.delivered += countValue;
+            break;
+          case 'failed':
+            result.failed += countValue;
+            break;
+          case 'pending':
+            result.pending += countValue;
+            break;
+        }
+      }
+    });
+
+    return result;
+  }
+
+  /**
+   * Get enhanced queue statistics
+   */
+  async getEnhancedQueueStats(): Promise<any> {
+    const { emailQueueService } = await import('./emailQueueService.js');
+    return await emailQueueService.getQueueStats();
+  }
+
+  /**
+   * Retry failed email deliveries
+   */
+  async retryFailedEmails(): Promise<number> {
+    const { emailQueueService } = await import('./emailQueueService.js');
+    return await emailQueueService.retryFailedJobs();
+  }
 }

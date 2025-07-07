@@ -5900,6 +5900,179 @@ Respond with valid JSON only.`;
     }
   });
 
+  // ========== ENHANCED EMAIL QUEUE & DELIVERY TRACKING ROUTES ==========
+
+  // Send email with queue integration
+  app.post('/api/email/send-with-queue', isAuthenticated, async (req: any, res) => {
+    try {
+      const { accountId, to, cc, bcc, subject, message, replyTo, threadId, priority, scheduledAt } = req.body;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const result = await emailService.sendEmailWithQueue(accountId, {
+        to,
+        cc,
+        bcc,
+        subject,
+        message,
+        replyTo,
+        threadId,
+        priority,
+        scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("Error sending email with queue:", error);
+      res.status(500).json({ message: "Failed to send email" });
+    }
+  });
+
+  // Move email to folder
+  app.post('/api/email/messages/:messageId/move', isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const { folderId } = req.body;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      await emailService.moveEmailToFolder(messageId, folderId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error moving email to folder:", error);
+      res.status(500).json({ message: "Failed to move email" });
+    }
+  });
+
+  // Archive email
+  app.post('/api/email/messages/:messageId/archive', isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      await emailService.archiveEmail(messageId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error archiving email:", error);
+      res.status(500).json({ message: "Failed to archive email" });
+    }
+  });
+
+  // Delete email (move to trash)
+  app.post('/api/email/messages/:messageId/delete', isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      await emailService.deleteEmail(messageId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting email:", error);
+      res.status(500).json({ message: "Failed to delete email" });
+    }
+  });
+
+  // Mark email as read/unread
+  app.post('/api/email/messages/:messageId/read', isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const { isRead = true } = req.body;
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      await emailService.markEmailAsRead(messageId, isRead);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking email as read:", error);
+      res.status(500).json({ message: "Failed to update read status" });
+    }
+  });
+
+  // Get delivery statistics for an account
+  app.get('/api/email/accounts/:accountId/delivery-stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const stats = await emailService.getDeliveryStats(accountId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching delivery stats:", error);
+      res.status(500).json({ message: "Failed to fetch delivery statistics" });
+    }
+  });
+
+  // Get queue statistics
+  app.get('/api/email/queue-stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const stats = await emailService.getEnhancedQueueStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching queue stats:", error);
+      res.status(500).json({ message: "Failed to fetch queue statistics" });
+    }
+  });
+
+  // Retry failed email deliveries
+  app.post('/api/email/retry-failed', isAuthenticated, async (req: any, res) => {
+    try {
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const retriedCount = await emailService.retryFailedEmails();
+      res.json({ retriedCount });
+    } catch (error) {
+      console.error("Error retrying failed emails:", error);
+      res.status(500).json({ message: "Failed to retry failed emails" });
+    }
+  });
+
+  // Update message delivery status (webhook endpoint for SendGrid)
+  app.post('/api/email/delivery-webhook', async (req: any, res) => {
+    try {
+      const events = req.body;
+      
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+
+      // Process SendGrid webhook events
+      for (const event of events) {
+        const { sg_message_id, event: eventType, timestamp } = event;
+        
+        if (sg_message_id) {
+          const deliveryStatus = {
+            success: eventType === 'delivered',
+            deliveredAt: eventType === 'delivered' ? new Date(timestamp * 1000) : undefined,
+            sendGridMessageId: sg_message_id,
+            errorMessage: eventType === 'bounce' || eventType === 'dropped' ? event.reason : undefined,
+            bounced: eventType === 'bounce',
+          };
+
+          // Find message by SendGrid message ID and update status
+          // Note: This would require a database query to find the message
+          console.log(`📬 Delivery webhook received: ${eventType} for ${sg_message_id}`);
+        }
+      }
+
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("Error processing delivery webhook:", error);
+      res.status(500).json({ message: "Failed to process delivery webhook" });
+    }
+  });
+
   // Search messages
   app.get('/api/email/accounts/:accountId/search', isAuthenticated, async (req: any, res) => {
     try {

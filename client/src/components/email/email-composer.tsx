@@ -58,7 +58,7 @@ export function EmailComposer({
 
   // Remove unused editor state for Apple Mail simplicity
 
-  // Send email mutation
+  // Send email mutation with queue integration
   const sendEmailMutation = useMutation({
     mutationFn: async (emailData: {
       fromAccountId: number;
@@ -69,12 +69,23 @@ export function EmailComposer({
       bccAddresses?: string[];
       replyToMessageId?: string;
     }) => {
-      return await apiRequest('POST', '/api/email/send', emailData);
+      // Use the enhanced queue-based sending endpoint
+      return await apiRequest('POST', '/api/email/send-with-queue', {
+        accountId: emailData.fromAccountId,
+        to: emailData.toAddresses,
+        cc: emailData.ccAddresses,
+        bcc: emailData.bccAddresses,
+        subject: emailData.subject,
+        message: emailData.content,
+        replyTo: undefined, // Could be enhanced later
+        threadId: undefined, // Auto-created if not provided
+        priority: 5, // Normal priority
+      });
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       toast({
-        title: "Email sent",
-        description: "Your email has been sent successfully.",
+        title: "Email queued",
+        description: "Your email has been queued for delivery and will be sent shortly.",
       });
       
       // Invalidate email queries to refresh the inbox
