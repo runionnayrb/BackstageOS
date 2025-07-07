@@ -38,6 +38,7 @@ export function EmailComposer({
   const [bccAddresses, setBccAddresses] = useState<string>('');
   const [showCc, setShowCc] = useState(false);
   const [showBcc, setShowBcc] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
   const [subject, setSubject] = useState(
     replyToMessage ? 
       (replyToMessage.subject.startsWith('Re: ') ? replyToMessage.subject : `Re: ${replyToMessage.subject}`) : 
@@ -267,13 +268,34 @@ export function EmailComposer({
   };
 
   const handleClose = () => {
-    if (toAddresses || subject || content) {
-      if (confirm('You have unsaved changes. Do you want to save as draft before closing?')) {
-        handleSaveDraft();
-      }
-    }
     resetForm();
     onClose();
+  };
+
+  const handleExitClick = () => {
+    // Check if there's any content to save
+    if (toAddresses.trim() || subject.trim() || content.trim() || ccAddresses.trim() || bccAddresses.trim()) {
+      setShowExitDialog(true);
+    } else {
+      handleClose();
+    }
+  };
+
+  const handleDeleteDraft = () => {
+    setShowExitDialog(false);
+    handleClose();
+  };
+
+  const handleSaveDraftAndExit = async () => {
+    try {
+      await saveDraftMutation.mutateAsync();
+      setShowExitDialog(false);
+      handleClose();
+    } catch (error) {
+      // If save fails, still close
+      setShowExitDialog(false);
+      handleClose();
+    }
   };
 
   return (
@@ -283,7 +305,7 @@ export function EmailComposer({
         <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
           <Button 
             variant="ghost" 
-            onClick={handleClose}
+            onClick={handleExitClick}
             className="text-gray-500 hover:text-gray-700 p-1 h-auto"
           >
             <X className="h-5 w-5" />
@@ -418,6 +440,36 @@ export function EmailComposer({
           )}
         </div>
       </DialogContent>
+
+      {/* Exit Confirmation Dialog */}
+      <Dialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <DialogContent className="w-[90vw] max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save Draft?</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-gray-600">
+              Do you want to save this message as a draft before exiting?
+            </p>
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button
+              variant="outline"
+              onClick={handleDeleteDraft}
+              className="text-red-600 border-red-200 hover:bg-red-50"
+            >
+              Delete
+            </Button>
+            <Button
+              onClick={handleSaveDraftAndExit}
+              disabled={saveDraftMutation.isPending}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              {saveDraftMutation.isPending ? 'Saving...' : 'Save Draft'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 }
