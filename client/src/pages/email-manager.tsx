@@ -19,6 +19,7 @@ import {
   Send,
   Archive,
   Trash2,
+  Edit,
 } from "lucide-react";
 
 interface EmailAccount {
@@ -452,6 +453,22 @@ export default function EmailManager() {
                       >
                         <Send className="w-4 h-4 mr-2" />
                         Sent
+                      </Button>
+                      <Button 
+                        variant={activeFolder === "drafts" ? "default" : "ghost"} 
+                        className="w-full justify-start"
+                        onClick={() => {
+                          setActiveFolder("drafts");
+                          setIsMobileMenuOpen(false);
+                        }}
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Drafts
+                        {accountStats && (accountStats as any).draftCount > 0 && (
+                          <Badge variant="secondary" className="ml-auto text-xs">
+                            {(accountStats as any).draftCount}
+                          </Badge>
+                        )}
                       </Button>
                       <Button 
                         variant={activeFolder === "archive" ? "default" : "ghost"} 

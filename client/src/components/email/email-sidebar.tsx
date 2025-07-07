@@ -19,6 +19,7 @@ import {
   Settings,
   Edit,
   Inbox,
+  Clock,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -70,6 +71,7 @@ export function EmailSidebar({
   const folders = [
     { id: "inbox", name: "Inbox", icon: Inbox, count: accountStats?.unreadMessages || 0 },
     { id: "sent", name: "Sent", icon: Send, count: 0 },
+    { id: "drafts", name: "Drafts", icon: Clock, count: accountStats?.draftCount || 0 },
     { id: "archive", name: "Archive", icon: Archive, count: 0 },
     { id: "trash", name: "Trash", icon: Trash2, count: 0 },
   ];
