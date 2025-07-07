@@ -84,8 +84,8 @@ export function EmailComposer({
     },
     onSuccess: (response) => {
       toast({
-        title: "Email queued",
-        description: "Your email has been queued for delivery and will be sent shortly.",
+        title: "Email sent",
+        description: "Your email has been sent successfully.",
       });
       
       // Invalidate email queries to refresh the inbox

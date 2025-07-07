@@ -38,8 +38,6 @@ export class SimpleEmailQueueService {
   async queueEmail(emailData: EmailJob): Promise<string> {
     const jobId = `job-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
-    console.log(`📬 Email queued with job ID: ${jobId}`);
-    
     // Add to queue
     this.queue.push(emailData);
     
@@ -58,14 +56,11 @@ export class SimpleEmailQueueService {
     }
 
     this.processing = true;
-    console.log(`🔄 Processing ${this.queue.length} emails in queue`);
 
     while (this.queue.length > 0) {
       const emailJob = this.queue.shift();
       if (emailJob) {
         try {
-          console.log(`📤 Sending email: ${emailJob.subject} to ${emailJob.to.join(', ')}`);
-          
           // Send the email using SendGrid directly (skip SMTP configuration)
           const { sendEmail } = await import('./sendgridService.js');
           
@@ -85,16 +80,13 @@ export class SimpleEmailQueueService {
             replyTo: emailJob.replyTo,
           });
           
-          console.log(`✅ Email sent successfully: ${emailJob.subject}`);
-          
         } catch (error) {
-          console.error(`❌ Failed to send email: ${emailJob.subject}`, error);
+          console.error(`Failed to send email: ${emailJob.subject}`, error);
         }
       }
     }
 
     this.processing = false;
-    console.log(`✅ Queue processing complete`);
   }
 
   /**
