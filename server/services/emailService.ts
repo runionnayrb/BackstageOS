@@ -783,6 +783,7 @@ export class EmailService {
       const messageId = `<${timestamp}.${randomId}@backstageos.com>`;
 
       // Create email message record
+      console.log("🔍 Final threadId before database insertion:", threadId);
       const messageData: InsertEmailMessage = {
         accountId,
         threadId,

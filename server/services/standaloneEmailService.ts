@@ -322,7 +322,7 @@ export class StandaloneEmailService {
       
       const draftData: InsertEmailMessage = {
         accountId,
-        threadId: 0, // Will be filled when sending
+        threadId: null, // Will be filled when sending
         messageId,
         subject,
         fromAddress: '', // Will be filled when sending
