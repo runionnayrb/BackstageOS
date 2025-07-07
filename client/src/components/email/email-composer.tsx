@@ -68,6 +68,12 @@ export function EmailComposer({
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [draftId, setDraftId] = useState<number | null>(existingDraftId || null);
 
+  // Mobile swipe state
+  const [sheetPosition, setSheetPosition] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const sheetRef = useRef<HTMLDivElement>(null);
+
   // Send email mutation
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
@@ -201,6 +207,36 @@ export function EmailComposer({
     };
   }, []);
 
+  // Mobile touch handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartY(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - startY;
+    
+    // Only allow downward dragging
+    if (deltaY > 0) {
+      setSheetPosition(deltaY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    
+    // If dragged down more than 150px, close the sheet
+    if (sheetPosition > 150) {
+      handleExitClick();
+    } else {
+      // Snap back to original position
+      setSheetPosition(0);
+    }
+  };
+
   const handleSend = () => {
     sendEmailMutation.mutate();
   };
@@ -216,6 +252,7 @@ export function EmailComposer({
     setAutoSaveStatus('');
     setLastSaved(null);
     setDraftId(null);
+    setSheetPosition(0);
     
     if (autoSaveTimerRef.current) {
       clearTimeout(autoSaveTimerRef.current);
@@ -259,11 +296,24 @@ export function EmailComposer({
         onClick={handleExitClick}
       />
       
-      {/* Bottom sheet */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-[20px] h-[85vh] flex flex-col animate-in slide-in-from-bottom-full duration-300">
-        {/* Handle bar */}
-        <div className="flex justify-center py-2">
-          <div className="w-8 h-1 bg-gray-300 rounded-full"></div>
+      {/* Bottom sheet - extends to just below header */}
+      <div 
+        ref={sheetRef}
+        className="fixed left-0 right-0 z-50 bg-white rounded-t-[20px] flex flex-col transition-transform duration-300 ease-out"
+        style={{ 
+          top: '60px', // Just below the BackstageOS header
+          bottom: '0',
+          transform: `translateY(${sheetPosition}px)`
+        }}
+      >
+        {/* Handle bar for swipe gesture */}
+        <div 
+          className="flex justify-center py-3 cursor-grab active:cursor-grabbing"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div className="w-10 h-1 bg-gray-300 rounded-full"></div>
         </div>
         
         {/* Header */}
