@@ -259,10 +259,15 @@ export function EmailComposer({
       
       // Allow full downward dragging to hide sheet completely
       if (deltaY > 0) {
-        // Much more aggressive amplification for mobile responsiveness
-        const amplifiedDelta = deltaY * 4; // 4x amplification
+        // Much more aggressive amplification for mobile responsiveness  
+        const amplifiedDelta = deltaY * 6; // Increased to 6x amplification for easier movement
         setSheetPosition(amplifiedDelta);
         console.log('Setting sheet position to', amplifiedDelta, 'from original', deltaY);
+        
+        // If the sheet is dragged more than halfway down the screen, it's effectively hidden
+        if (amplifiedDelta > window.innerHeight * 0.6) {
+          console.log('Sheet dragged beyond 60% of screen height - effectively hidden');
+        }
       }
     };
 
@@ -273,8 +278,8 @@ export function EmailComposer({
       currentDragging = false;
       setIsDragging(false);
       
-      // If dragged down more than 150px, animate it completely off-screen then close
-      if (sheetPosition > 150) {
+      // If dragged down more than 80px, animate it completely off-screen then close
+      if (sheetPosition > 80) {
         console.log('Closing sheet due to swipe - animating off screen');
         // Animate to completely off-screen (full height of viewport)
         setSheetPosition(window.innerHeight);
