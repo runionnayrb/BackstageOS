@@ -310,8 +310,8 @@ export function EmailComposer({
                 placeholder=""
                 value={toAddresses}
                 onChange={(e) => setToAddresses(e.target.value)}
-                className="flex-1 bg-transparent border-0 outline-0 text-base focus:ring-0 p-0"
-                style={{ fontSize: '16px' }}
+                className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
+                style={{ fontSize: '16px', boxShadow: 'none' }}
               />
               <Button variant="ghost" size="sm" className="text-blue-500 p-0 h-auto ml-2">
                 <Plus className="h-5 w-5" />
@@ -332,8 +332,8 @@ export function EmailComposer({
                 placeholder=""
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
-                className="flex-1 bg-transparent border-0 outline-0 text-base focus:ring-0 p-0"
-                style={{ fontSize: '16px' }}
+                className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
+                style={{ fontSize: '16px', boxShadow: 'none' }}
               />
             </div>
           </div>
@@ -345,11 +345,12 @@ export function EmailComposer({
               placeholder=""
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full h-full min-h-[300px] resize-none border-0 outline-0 bg-transparent text-base focus:ring-0 p-0"
+              className="w-full h-full min-h-[300px] resize-none border-0 outline-none bg-transparent text-base focus:ring-0 focus:outline-none p-0"
               style={{ 
                 fontSize: '16px',
                 lineHeight: '1.5',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                boxShadow: 'none'
               }}
             />
           </div>
