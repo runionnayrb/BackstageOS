@@ -5905,11 +5905,37 @@ Respond with valid JSON only.`;
   // Send email with queue integration
   app.post('/api/email/send-with-queue', isAuthenticated, async (req: any, res) => {
     try {
+      console.log("📧 Email send-with-queue request received:", {
+        accountId: req.body.accountId,
+        to: req.body.to,
+        subject: req.body.subject,
+        userId: req.user?.id
+      });
+
       const { accountId, to, cc, bcc, subject, message, replyTo, threadId, priority, scheduledAt } = req.body;
+
+      // Validate required fields
+      if (!accountId) {
+        console.error("❌ Missing accountId");
+        return res.status(400).json({ message: "Missing accountId" });
+      }
+      if (!to || !Array.isArray(to) || to.length === 0) {
+        console.error("❌ Missing or invalid 'to' addresses");
+        return res.status(400).json({ message: "Missing or invalid 'to' addresses" });
+      }
+      if (!subject) {
+        console.error("❌ Missing subject");
+        return res.status(400).json({ message: "Missing subject" });
+      }
+      if (!message) {
+        console.error("❌ Missing message");
+        return res.status(400).json({ message: "Missing message" });
+      }
 
       const { EmailService } = await import('./services/emailService.js');
       const emailService = new EmailService();
       
+      console.log("📧 Calling emailService.sendEmailWithQueue...");
       const result = await emailService.sendEmailWithQueue(accountId, {
         to,
         cc,
@@ -5922,10 +5948,15 @@ Respond with valid JSON only.`;
         scheduledAt: scheduledAt ? new Date(scheduledAt) : undefined,
       });
 
+      console.log("✅ Email sent successfully:", result);
       res.json(result);
     } catch (error) {
-      console.error("Error sending email with queue:", error);
-      res.status(500).json({ message: "Failed to send email" });
+      console.error("❌ Error sending email with queue:", error);
+      console.error("❌ Error stack:", error instanceof Error ? error.stack : 'No stack trace');
+      res.status(500).json({ 
+        message: "Failed to send email",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 

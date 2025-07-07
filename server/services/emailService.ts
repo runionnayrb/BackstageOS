@@ -753,6 +753,8 @@ export class EmailService {
     scheduledAt?: Date;
   }): Promise<{ messageId: number; jobId: string }> {
     try {
+      console.log("🔍 sendEmailWithQueue called with accountId:", accountId);
+      console.log("🔍 emailData:", emailData);
       // Create email thread if not provided
       let threadId = emailData.threadId;
       if (!threadId) {
@@ -795,14 +797,17 @@ export class EmailService {
         deliveryStatus: 'pending',
       };
 
+      console.log("🔍 About to insert email message into database...");
       const messages = await db
         .insert(emailMessages)
         .values(messageData)
         .returning();
 
       const message = messages[0];
+      console.log("✅ Email message inserted successfully:", { id: message.id, messageId: message.messageId });
 
       // Queue email for background processing
+      console.log("🔍 Importing emailQueueService...");
       const { emailQueueService } = await import('./emailQueueService.js');
       const jobId = await emailQueueService.queueEmail({
         accountId,
