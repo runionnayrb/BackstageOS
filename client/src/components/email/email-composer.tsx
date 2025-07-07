@@ -257,10 +257,12 @@ export function EmailComposer({
       
       console.log('Native touch move', { currentY, startYPos, deltaY });
       
-      // Only allow downward dragging
+      // Only allow downward dragging with amplified movement for better sensitivity
       if (deltaY > 0) {
-        setSheetPosition(deltaY);
-        console.log('Setting sheet position to', deltaY);
+        // Amplify small movements for better responsiveness
+        const amplifiedDelta = Math.max(deltaY * 1.5, deltaY + 10);
+        setSheetPosition(amplifiedDelta);
+        console.log('Setting sheet position to', amplifiedDelta, 'from original', deltaY);
       }
     };
 
@@ -356,11 +358,12 @@ export function EmailComposer({
       {/* Bottom sheet - extends to just below header */}
       <div 
         ref={sheetRef}
-        className="fixed left-0 right-0 z-50 bg-white rounded-t-[20px] flex flex-col transition-transform duration-300 ease-out"
+        className="fixed left-0 right-0 z-50 bg-white rounded-t-[20px] flex flex-col"
         style={{ 
           top: '60px', // Just below the BackstageOS header
           bottom: '0',
-          transform: `translateY(${sheetPosition}px)`
+          transform: `translateY(${sheetPosition}px)`,
+          transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)'
         }}
       >
         {/* Handle bar for swipe gesture - larger touch area */}
