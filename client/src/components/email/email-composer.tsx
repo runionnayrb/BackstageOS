@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { X, Send, Save, Paperclip, Bold, Italic, Underline } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -54,10 +53,7 @@ export function EmailComposer({
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Editor state
-  const [isBold, setIsBold] = useState(false);
-  const [isItalic, setIsItalic] = useState(false);
-  const [isUnderline, setIsUnderline] = useState(false);
+  // Remove unused editor state for Apple Mail simplicity
 
   // Send email mutation
   const sendEmailMutation = useMutation({
@@ -280,158 +276,95 @@ export function EmailComposer({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] max-w-4xl h-[95vh] md:max-h-[90vh] flex flex-col">
-        <DialogHeader className="flex-shrink-0">
-          <DialogTitle>
+      <DialogContent className="w-[100vw] h-[100vh] md:w-[95vw] md:max-w-4xl md:h-[95vh] md:max-h-[90vh] flex flex-col p-0 md:p-6 border-0 md:border bg-white">
+        {/* Apple Mail Style Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+          <Button 
+            variant="ghost" 
+            onClick={handleClose}
+            className="text-blue-500 hover:text-blue-600 font-medium p-0 h-auto"
+          >
+            Cancel
+          </Button>
+          <h1 className="text-lg font-semibold text-black">
             {replyToMessage ? 'Reply' : 'New Message'}
-          </DialogTitle>
-        </DialogHeader>
+          </h1>
+          <Button
+            onClick={handleSend}
+            disabled={sendEmailMutation.isPending || !toAddresses.trim() || !subject.trim()}
+            className="bg-blue-500 hover:bg-blue-600 text-white font-medium px-4 py-1 h-auto rounded-full"
+          >
+            {sendEmailMutation.isPending ? 'Sending...' : 'Send'}
+          </Button>
+        </div>
 
-        <div className="flex-1 flex flex-col gap-3 md:gap-4 overflow-y-auto">
-          {/* From field */}
-          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
-            <label className="text-sm font-medium w-full md:w-16 flex-shrink-0">From:</label>
-            <span className="text-sm text-muted-foreground pl-0 md:pl-0">{fromEmail}</span>
+        <div className="flex-1 flex flex-col bg-white overflow-y-auto">
+          {/* Apple Mail Style Fields */}
+          <div className="px-4">
+            {/* To field */}
+            <div className="flex items-center py-3 border-b border-gray-200">
+              <span className="text-gray-500 w-12 text-sm">To:</span>
+              <input
+                type="text"
+                placeholder=""
+                value={toAddresses}
+                onChange={(e) => setToAddresses(e.target.value)}
+                className="flex-1 bg-transparent border-0 outline-0 text-base focus:ring-0 p-0"
+                style={{ fontSize: '16px' }}
+              />
+              <Button variant="ghost" size="sm" className="text-blue-500 p-0 h-auto ml-2">
+                <Plus className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* CC/BCC field */}
+            <div className="flex items-center py-3 border-b border-gray-200">
+              <span className="text-gray-500 w-20 text-sm">Cc/Bcc, From:</span>
+              <span className="flex-1 text-gray-500 text-sm">{fromEmail}</span>
+            </div>
+
+            {/* Subject field */}
+            <div className="flex items-center py-3 border-b border-gray-200">
+              <span className="text-gray-500 w-12 text-sm">Subject:</span>
+              <input
+                type="text"
+                placeholder=""
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                className="flex-1 bg-transparent border-0 outline-0 text-base focus:ring-0 p-0"
+                style={{ fontSize: '16px' }}
+              />
+            </div>
           </div>
 
-          {/* To field */}
-          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
-            <label className="text-sm font-medium w-full md:w-16 flex-shrink-0">To:</label>
-            <Input
-              placeholder="Enter email addresses separated by commas"
-              value={toAddresses}
-              onChange={(e) => setToAddresses(e.target.value)}
-              className="flex-1 touch-manipulation"
-              readOnly={false}
-              disabled={false}
-            />
-          </div>
-
-          {/* CC field */}
-          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
-            <label className="text-sm font-medium w-full md:w-16 flex-shrink-0">CC:</label>
-            <Input
-              placeholder="Optional"
-              value={ccAddresses}
-              onChange={(e) => setCcAddresses(e.target.value)}
-              className="flex-1 touch-manipulation"
-              readOnly={false}
-              disabled={false}
-            />
-          </div>
-
-          {/* BCC field */}
-          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
-            <label className="text-sm font-medium w-full md:w-16 flex-shrink-0">BCC:</label>
-            <Input
-              placeholder="Optional"
-              value={bccAddresses}
-              onChange={(e) => setBccAddresses(e.target.value)}
-              className="flex-1 touch-manipulation"
-              readOnly={false}
-              disabled={false}
-            />
-          </div>
-
-          {/* Subject field */}
-          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
-            <label className="text-sm font-medium w-full md:w-16 flex-shrink-0">Subject:</label>
-            <Input
-              placeholder="Enter subject"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="flex-1 touch-manipulation"
-              readOnly={false}
-              disabled={false}
-            />
-          </div>
-
-          {/* Formatting toolbar */}
-          <div className="flex items-center gap-1 border-b pb-2 overflow-x-auto">
-            <Button
-              variant={isBold ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setIsBold(!isBold)}
-              className="h-9 w-9 md:h-8 md:w-8 p-0 flex-shrink-0"
-            >
-              <Bold className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={isItalic ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setIsItalic(!isItalic)}
-              className="h-9 w-9 md:h-8 md:w-8 p-0 flex-shrink-0"
-            >
-              <Italic className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={isUnderline ? "default" : "ghost"}
-              size="sm"
-              onClick={() => setIsUnderline(!isUnderline)}
-              className="h-9 w-9 md:h-8 md:w-8 p-0 flex-shrink-0"
-            >
-              <Underline className="h-4 w-4" />
-            </Button>
-            <div className="w-px h-6 bg-border mx-2 flex-shrink-0" />
-            <Button variant="ghost" size="sm" className="h-9 w-9 md:h-8 md:w-8 p-0 flex-shrink-0">
-              <Paperclip className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Content field */}
-          <div className="flex-1 min-h-0">
-            <Textarea
-              placeholder="Write your message..."
+          {/* Apple Mail Style Message Area */}
+          <div className="flex-1 px-4 pt-4">
+            <div className="h-px bg-gray-200 mb-4"></div>
+            <textarea
+              placeholder=""
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full h-full min-h-[200px] md:min-h-[300px] resize-none border-0 focus-visible:ring-0 focus:ring-0 p-3 md:p-4 touch-manipulation"
-              autoFocus={false}
-              readOnly={false}
-              disabled={false}
-              onTouchStart={(e) => e.stopPropagation()}
-              onTouchEnd={(e) => e.stopPropagation()}
-              style={{
-                fontWeight: isBold ? 'bold' : 'normal',
-                fontStyle: isItalic ? 'italic' : 'normal',
-                textDecoration: isUnderline ? 'underline' : 'none',
-                touchAction: 'manipulation',
-                userSelect: 'text',
-                WebkitUserSelect: 'text'
+              className="w-full h-full min-h-[300px] resize-none border-0 outline-0 bg-transparent text-base focus:ring-0 p-0"
+              style={{ 
+                fontSize: '16px',
+                lineHeight: '1.5',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
               }}
             />
           </div>
 
-          {/* Action buttons */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-0 pt-2 border-t">
-            <div className="text-xs text-muted-foreground order-2 md:order-1">
-              {isAutoSaving ? (
-                "Auto-saving draft..."
-              ) : lastSaved ? (
-                `Auto-saved ${lastSaved.toLocaleTimeString()}`
-              ) : (
-                "Tip: Use @backstageos.com addresses for internal messaging"
-              )}
+          {/* Status and Auto-save indicator */}
+          {(isAutoSaving || lastSaved) && (
+            <div className="px-4 pb-4">
+              <div className="text-xs text-gray-500">
+                {isAutoSaving ? (
+                  "Auto-saving draft..."
+                ) : lastSaved ? (
+                  `Auto-saved ${lastSaved.toLocaleTimeString()}`
+                ) : null}
+              </div>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 order-1 md:order-2">
-              <Button
-                variant="outline"
-                onClick={handleSaveDraft}
-                disabled={saveDraftMutation.isPending}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto"
-              >
-                <Save className="h-4 w-4" />
-                {saveDraftMutation.isPending ? 'Saving...' : 'Save Draft'}
-              </Button>
-              <Button
-                onClick={handleSend}
-                disabled={sendEmailMutation.isPending}
-                className="flex items-center justify-center gap-2 w-full sm:w-auto"
-              >
-                <Send className="h-4 w-4" />
-                {sendEmailMutation.isPending ? 'Sending...' : 'Send'}
-              </Button>
-            </div>
-          </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
