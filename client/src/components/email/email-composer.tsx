@@ -280,14 +280,14 @@ export function EmailComposer({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] max-w-4xl h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="w-[95vw] max-w-4xl h-[95vh] md:max-h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>
             {replyToMessage ? 'Reply' : 'New Message'}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 flex flex-col gap-3 md:gap-4 overflow-hidden">
+        <div className="flex-1 flex flex-col gap-3 md:gap-4 overflow-y-auto">
           {/* From field */}
           <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
             <label className="text-sm font-medium w-full md:w-16 flex-shrink-0">From:</label>
@@ -301,7 +301,9 @@ export function EmailComposer({
               placeholder="Enter email addresses separated by commas"
               value={toAddresses}
               onChange={(e) => setToAddresses(e.target.value)}
-              className="flex-1"
+              className="flex-1 touch-manipulation"
+              readOnly={false}
+              disabled={false}
             />
           </div>
 
@@ -312,7 +314,9 @@ export function EmailComposer({
               placeholder="Optional"
               value={ccAddresses}
               onChange={(e) => setCcAddresses(e.target.value)}
-              className="flex-1"
+              className="flex-1 touch-manipulation"
+              readOnly={false}
+              disabled={false}
             />
           </div>
 
@@ -323,7 +327,9 @@ export function EmailComposer({
               placeholder="Optional"
               value={bccAddresses}
               onChange={(e) => setBccAddresses(e.target.value)}
-              className="flex-1"
+              className="flex-1 touch-manipulation"
+              readOnly={false}
+              disabled={false}
             />
           </div>
 
@@ -334,7 +340,9 @@ export function EmailComposer({
               placeholder="Enter subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="flex-1"
+              className="flex-1 touch-manipulation"
+              readOnly={false}
+              disabled={false}
             />
           </div>
 
@@ -376,11 +384,19 @@ export function EmailComposer({
               placeholder="Write your message..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="min-h-[200px] md:min-h-[300px] resize-none border-0 focus-visible:ring-0 p-3 md:p-4"
+              className="w-full h-full min-h-[200px] md:min-h-[300px] resize-none border-0 focus-visible:ring-0 focus:ring-0 p-3 md:p-4 touch-manipulation"
+              autoFocus={false}
+              readOnly={false}
+              disabled={false}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
               style={{
                 fontWeight: isBold ? 'bold' : 'normal',
                 fontStyle: isItalic ? 'italic' : 'normal',
-                textDecoration: isUnderline ? 'underline' : 'none'
+                textDecoration: isUnderline ? 'underline' : 'none',
+                touchAction: 'manipulation',
+                userSelect: 'text',
+                WebkitUserSelect: 'text'
               }}
             />
           </div>
