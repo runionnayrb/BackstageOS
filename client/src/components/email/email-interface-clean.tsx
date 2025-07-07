@@ -78,7 +78,6 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       <div className="relative h-[calc(100vh-120px)] bg-background">
         {/* Mobile-First Header */}
         <div className="absolute top-0 left-0 right-0 h-12 md:h-16 bg-white border-b border-gray-200 flex items-center gap-2 md:gap-6 px-2 md:px-4 z-50">
-          <h1 className="text-sm md:text-lg font-semibold text-gray-900 flex-shrink-0">Email</h1>
           <div className="relative flex-1">
             <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
             <Input
