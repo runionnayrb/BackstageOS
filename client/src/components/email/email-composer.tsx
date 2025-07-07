@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -282,9 +282,9 @@ export function EmailComposer({
           <Button 
             variant="ghost" 
             onClick={handleClose}
-            className="text-blue-500 hover:text-blue-600 font-medium p-0 h-auto"
+            className="text-gray-500 hover:text-gray-700 p-1 h-auto"
           >
-            Cancel
+            <X className="h-5 w-5" />
           </Button>
           <h1 className="text-lg font-semibold text-black">
             {replyToMessage ? 'Reply' : 'New Message'}
