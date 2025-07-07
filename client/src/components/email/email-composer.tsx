@@ -290,11 +290,12 @@ export function EmailComposer({
             {replyToMessage ? 'Reply' : 'New Message'}
           </h1>
           <Button
+            variant="ghost"
             onClick={handleSend}
             disabled={sendEmailMutation.isPending || !toAddresses.trim() || !subject.trim()}
-            className="bg-blue-500 hover:bg-blue-600 text-white p-2 h-auto rounded-full disabled:opacity-50"
+            className="text-blue-500 hover:text-blue-600 p-1 h-auto disabled:opacity-50"
           >
-            <Send className="h-5 w-5" />
+            <Send className="h-6 w-6" />
           </Button>
         </div>
 
