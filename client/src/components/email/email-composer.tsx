@@ -27,7 +27,7 @@ export function EmailComposer({
   fromAccountId, 
   fromEmail,
   replyToMessage,
-  existingDraftId 
+  existingDraftId
 }: EmailComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -88,7 +88,7 @@ export function EmailComposer({
         description: "Your email has been sent successfully.",
       });
       
-      // Invalidate email queries to refresh the inbox
+      // Invalidate email queries to refresh the inbox and sent folders
       queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', fromAccountId, 'inbox'] });
       queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', fromAccountId, 'sent'] });
       

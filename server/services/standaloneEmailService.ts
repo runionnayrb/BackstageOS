@@ -218,6 +218,7 @@ export class StandaloneEmailService {
         and(
           eq(emailMessages.accountId, accountId),
           eq(emailMessages.isDraft, false),
+          eq(emailMessages.isSent, false), // Exclude sent messages from inbox
           or(
             isNull(emailMessages.folderId),
             sql`EXISTS (SELECT 1 FROM ${emailFolders} WHERE ${emailFolders.id} = ${emailMessages.folderId} AND ${emailFolders.name} = 'Inbox')`
