@@ -189,7 +189,14 @@ export default function EnhancedHeader() {
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo and Navigation */}
           <div className="flex items-center gap-6">
-            {/* Navigation Menu */}
+            <div 
+              className="text-xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
+              onClick={() => setLocation('/')}
+            >
+              BackstageOS
+            </div>
+
+            {/* Navigation Menu - Moved after BackstageOS */}
             <div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -229,13 +236,6 @@ export default function EnhancedHeader() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-
-            <div 
-              className="text-xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
-              onClick={() => setLocation('/')}
-            >
-              BackstageOS
             </div>
 
             {/* Context-aware navigation */}
