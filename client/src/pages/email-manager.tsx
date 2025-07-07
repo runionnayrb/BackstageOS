@@ -168,23 +168,23 @@ export default function EmailManager() {
           {/* Header - Mobile Optimized */}
           <div className="border-b border-gray-200 pb-2 md:pb-4">
             <div className="flex items-center justify-between">
-              <div>
+              <div className="flex items-center gap-2">
                 <h1 className="text-xl md:text-3xl font-bold text-gray-900">
-                  Email
+                  <span className="md:hidden">BackstageOS</span>
+                  <span className="hidden md:block">Email</span>
                 </h1>
-              </div>
-              {/* Mobile Actions */}
-              <div className="md:hidden flex items-center gap-2">
-                {/* Mobile Menu Button */}
+                {/* Mobile Menu Button - Right after BackstageOS */}
                 <Button 
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsMobileMenuOpen(true)}
-                  className="p-2"
+                  className="p-2 md:hidden"
                 >
                   <Menu className="w-5 h-5" />
                 </Button>
-                
+              </div>
+              {/* Mobile Actions */}
+              <div className="md:hidden flex items-center gap-2">
                 {/* Mobile Account Selector */}
                 {emailAccounts && Array.isArray(emailAccounts) && emailAccounts.length > 1 && (
                   <Select 
