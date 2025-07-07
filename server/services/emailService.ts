@@ -811,9 +811,9 @@ export class EmailService {
       console.log("✅ Email message inserted successfully:", { id: message.id, messageId: message.messageId });
 
       // Queue email for background processing
-      console.log("🔍 Importing emailQueueService...");
-      const { emailQueueService } = await import('./emailQueueService.js');
-      console.log("✅ EmailQueueService imported successfully");
+      console.log("🔍 Importing simpleEmailQueueService...");
+      const { simpleEmailQueueService } = await import('./simpleEmailQueueService.js');
+      console.log("✅ SimpleEmailQueueService imported successfully");
       console.log("🔍 About to queue email for delivery...");
       const queueData = {
         accountId,
@@ -829,7 +829,7 @@ export class EmailService {
         scheduledAt: emailData.scheduledAt,
       };
       console.log("🔍 Queue data:", queueData);
-      const jobId = await emailQueueService.queueEmail(queueData);
+      const jobId = await simpleEmailQueueService.queueEmail(queueData);
 
       console.log(`📬 Email queued: Message ID ${message.id}, Job ID ${jobId}`);
 
