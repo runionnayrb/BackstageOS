@@ -226,8 +226,9 @@ export function EmailComposer({
     };
   }, []);
 
-  // Mobile touch handlers
+  // Mobile touch handlers with debugging
   const handleTouchStart = (e: React.TouchEvent) => {
+    console.log('Touch start detected', e.touches[0].clientY);
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
@@ -243,21 +244,27 @@ export function EmailComposer({
     const currentY = e.touches[0].clientY;
     const deltaY = currentY - startY;
     
+    console.log('Touch move', { currentY, startY, deltaY });
+    
     // Only allow downward dragging
     if (deltaY > 0) {
       setSheetPosition(deltaY);
+      console.log('Setting sheet position to', deltaY);
     }
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    console.log('Touch end', { sheetPosition });
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
     
     // If dragged down more than 150px, close the sheet
     if (sheetPosition > 150) {
+      console.log('Closing sheet due to swipe');
       handleExitClick();
     } else {
+      console.log('Snapping back to position 0');
       // Snap back to original position
       setSheetPosition(0);
     }
