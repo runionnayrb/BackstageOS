@@ -36,6 +36,8 @@ export function EmailComposer({
   const [toAddresses, setToAddresses] = useState<string>('');
   const [ccAddresses, setCcAddresses] = useState<string>('');
   const [bccAddresses, setBccAddresses] = useState<string>('');
+  const [showCc, setShowCc] = useState(false);
+  const [showBcc, setShowBcc] = useState(false);
   const [subject, setSubject] = useState(
     replyToMessage ? 
       (replyToMessage.subject.startsWith('Re: ') ? replyToMessage.subject : `Re: ${replyToMessage.subject}`) : 
@@ -318,10 +320,58 @@ export function EmailComposer({
               </Button>
             </div>
 
-            {/* CC/BCC field */}
+            {/* CC field (conditionally shown) */}
+            {showCc && (
+              <div className="flex items-center py-3 border-b border-gray-200">
+                <span className="text-gray-500 w-12 text-sm">Cc:</span>
+                <input
+                  type="text"
+                  placeholder=""
+                  value={ccAddresses}
+                  onChange={(e) => setCcAddresses(e.target.value)}
+                  className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
+                  style={{ fontSize: '16px', boxShadow: 'none' }}
+                />
+              </div>
+            )}
+
+            {/* BCC field (conditionally shown) */}
+            {showBcc && (
+              <div className="flex items-center py-3 border-b border-gray-200">
+                <span className="text-gray-500 w-12 text-sm">Bcc:</span>
+                <input
+                  type="text"
+                  placeholder=""
+                  value={bccAddresses}
+                  onChange={(e) => setBccAddresses(e.target.value)}
+                  className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
+                  style={{ fontSize: '16px', boxShadow: 'none' }}
+                />
+              </div>
+            )}
+
+            {/* CC/BCC/From field */}
             <div className="flex items-center py-3 border-b border-gray-200">
-              <span className="text-gray-500 w-20 text-sm">Cc/Bcc, From:</span>
-              <span className="flex-1 text-gray-500 text-sm">{fromEmail}</span>
+              <div className="flex items-center gap-2">
+                {!showCc && (
+                  <button
+                    onClick={() => setShowCc(true)}
+                    className="text-blue-500 text-sm hover:text-blue-600"
+                  >
+                    Cc
+                  </button>
+                )}
+                {!showBcc && (
+                  <button
+                    onClick={() => setShowBcc(true)}
+                    className="text-blue-500 text-sm hover:text-blue-600"
+                  >
+                    Bcc
+                  </button>
+                )}
+                <span className="text-gray-500 text-sm">From:</span>
+              </div>
+              <span className="flex-1 text-gray-500 text-sm ml-2">{fromEmail}</span>
             </div>
 
             {/* Subject field */}
