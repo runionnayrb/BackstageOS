@@ -390,7 +390,6 @@ export function EmailComposer({
 
           {/* Apple Mail Style Message Area */}
           <div className="flex-1 px-4 pt-4">
-            <div className="h-px bg-gray-200 mb-4"></div>
             <textarea
               placeholder=""
               value={content}
