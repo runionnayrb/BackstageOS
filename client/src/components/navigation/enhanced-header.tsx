@@ -231,11 +231,26 @@ export default function EnhancedHeader() {
               </DropdownMenu>
             </div>
 
-            <div 
-              className="text-xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
-              onClick={() => setLocation('/')}
-            >
-              BackstageOS
+            <div className="flex items-center gap-2">
+              <div 
+                className="text-xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
+                onClick={() => setLocation('/')}
+              >
+                BackstageOS
+              </div>
+              
+              {/* Mobile Hamburger Menu */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="md:hidden p-2"
+                onClick={() => {
+                  // Toggle mobile navigation - we'll need to add state for this
+                  console.log('Mobile menu clicked');
+                }}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
             </div>
 
             {/* Context-aware navigation */}
