@@ -1,17 +1,25 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { toast } from "@/hooks/use-toast";
-import { Mail, Plus, Settings, FolderOpen, Users, BarChart3, Inbox, Send, Trash2, Archive, Clock, Menu, X } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
-import { EmailInterface } from "@/components/email/email-interface-clean";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { EmailSidebar } from "@/components/email/email-sidebar";
+import { EmailInterface } from "@/components/email/email-interface-clean";
+import { apiRequest } from "@/lib/queryClient";
+import {
+  Mail,
+  Plus,
+  Menu,
+  X,
+  Inbox,
+  Send,
+  Archive,
+  Trash2,
+} from "lucide-react";
 
 interface EmailAccount {
   id: number;
@@ -35,98 +43,89 @@ interface EmailStats {
 export default function EmailManager() {
   const [selectedAccount, setSelectedAccount] = useState<EmailAccount | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showCompose, setShowCompose] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  // Check if email system is set up
-  const { data: setupStatus, isLoading: setupLoading } = useQuery({
-    queryKey: ['/api/email/setup-status'],
-    retry: false,
-  });
-
-  const setupCompleted = (setupStatus as any)?.isSetup === true;
-
-  // Fetch email accounts only if setup is completed
-  const { data: emailAccounts = [], isLoading: accountsLoading, error: accountsError } = useQuery({
+  // Fetch email accounts
+  const { data: emailAccounts, isLoading: accountsLoading, error: accountsError } = useQuery({
     queryKey: ['/api/email/accounts'],
-    enabled: setupCompleted,
-    retry: false,
+    enabled: true,
   });
 
-  // Auto-select default account if none selected
+  // Fetch account stats for selected account
+  const { data: accountStats } = useQuery({
+    queryKey: ['/api/email/stats', selectedAccount?.id],
+    enabled: !!selectedAccount?.id,
+  });
+
+  // Set default account when accounts load
   useEffect(() => {
-    if (emailAccounts && Array.isArray(emailAccounts) && emailAccounts.length > 0 && !selectedAccount) {
+    if (emailAccounts && Array.isArray(emailAccounts) && (emailAccounts as EmailAccount[]).length > 0 && !selectedAccount) {
       const defaultAccount = (emailAccounts as EmailAccount[]).find((account: EmailAccount) => account.isDefault);
       if (defaultAccount) {
         setSelectedAccount(defaultAccount);
+      } else {
+        setSelectedAccount((emailAccounts as EmailAccount[])[0]);
       }
     }
   }, [emailAccounts, selectedAccount]);
 
-  // Fetch stats for selected account
-  const { data: accountStats } = useQuery({
-    queryKey: ['/api/email/accounts', selectedAccount?.id, 'stats'],
-    enabled: !!selectedAccount,
-    retry: false,
-  });
-
   // Create account mutation
   const createAccountMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      return apiRequest('/api/email/accounts', 'POST', formData);
+      const data = Object.fromEntries(formData.entries());
+      const response = await fetch('/api/email/accounts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          displayName: data.displayName,
+          emailPrefix: data.emailPrefix,
+          accountType: data.accountType,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to create account');
+      }
+      return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (newAccount: EmailAccount) => {
       queryClient.invalidateQueries({ queryKey: ['/api/email/accounts'] });
+      setSelectedAccount(newAccount);
       setIsCreateDialogOpen(false);
-      toast({
-        title: "Email Account Created",
-        description: "Your new email account is ready to use",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to create email account",
-        variant: "destructive",
-      });
     },
   });
 
-  const handleCreateAccount = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Handle form submission
+  const handleCreateAccount = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     createAccountMutation.mutate(formData);
   };
 
-  // Show loading state during setup check
-  if (setupLoading) {
+  // Loading state
+  if (accountsLoading) {
     return (
-      <div className="w-full min-h-screen bg-white">
-        <div className="px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex justify-center items-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading email system...</p>
-            </div>
-          </div>
+      <div className="w-full min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading email system...</p>
         </div>
       </div>
     );
   }
 
-  // Show setup required message if system is not set up
-  if (!setupCompleted) {
+  // Error state
+  if (accountsError) {
     return (
-      <div className="w-full min-h-screen bg-white">
-        <div className="px-4 sm:px-6 lg:px-8 py-6">
-          <Card className="max-w-md mx-auto">
+      <div className="w-full min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <Card>
             <CardHeader>
-              <CardTitle>Email System Setup Required</CardTitle>
-              <CardDescription>
-                The email system has not been initialized yet. Please contact your administrator.
-              </CardDescription>
+              <CardTitle className="text-red-600">Email System Error</CardTitle>
             </CardHeader>
             <CardContent>
               <Button 
@@ -165,28 +164,27 @@ export default function EmailManager() {
         }`}
       >
         <div className="px-2 md:px-4 lg:px-8 py-2 md:py-6">
-          {/* Header - Mobile Optimized */}
+          {/* Header - Desktop Style on All Devices */}
           <div className="border-b border-gray-200 pb-2 md:pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-xl md:text-3xl font-bold text-gray-900">
-                  Email
-                </h1>
-              </div>
-              {/* Mobile Actions */}
-              <div className="md:hidden flex items-center gap-2">
-                {/* Mobile Menu Button */}
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsMobileMenuOpen(true)}
-                  className="p-2"
-                >
-                  <Menu className="w-5 h-5" />
-                </Button>
-                
-                {/* Mobile Account Selector */}
-                {emailAccounts && Array.isArray(emailAccounts) && emailAccounts.length > 1 && (
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-xl md:text-3xl font-bold text-gray-900">
+                Email
+              </h1>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="md:hidden h-8 w-8 p-0 hover:bg-gray-100"
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+            </div>
+
+            {/* Account Selector and Actions - Desktop Style */}
+            {selectedAccount && (
+              <div className="space-y-3">
+                {/* Account Selector */}
+                {emailAccounts && Array.isArray(emailAccounts) && (emailAccounts as EmailAccount[]).length > 1 && (
                   <Select 
                     value={selectedAccount?.id?.toString() || ''} 
                     onValueChange={(value) => {
@@ -194,98 +192,32 @@ export default function EmailManager() {
                       if (account) setSelectedAccount(account);
                     }}
                   >
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Account" />
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select account" />
                     </SelectTrigger>
                     <SelectContent>
                       {(emailAccounts as EmailAccount[]).map((account) => (
                         <SelectItem key={account.id} value={account.id.toString()}>
-                          {account.emailAddress.split('@')[0]}
+                          <div className="flex flex-col items-start">
+                            <span className="font-medium">{account.displayName}</span>
+                            <span className="text-sm text-gray-500">{account.emailAddress}</span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 )}
+
+                {/* Compose Button */}
                 <Button 
                   onClick={() => setShowCompose(true)}
-                  size="sm"
-                  className="flex items-center gap-2"
+                  className="w-full flex items-center justify-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Compose
                 </Button>
               </div>
-            </div>
-            
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogContent>
-                <form onSubmit={handleCreateAccount}>
-                  <DialogHeader>
-                    <DialogTitle>Create Email Account</DialogTitle>
-                    <DialogDescription>
-                      Create a new @backstageos.com email address for personal or show-specific use
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <div className="space-y-4 py-4">
-                    <div>
-                      <Label htmlFor="displayName">Display Name</Label>
-                      <Input
-                        id="displayName"
-                        name="displayName"
-                        placeholder="e.g., Bryan Runion"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="emailPrefix">Email Address</Label>
-                      <div className="flex items-center space-x-2">
-                        <Input
-                          id="emailPrefix"
-                          name="emailPrefix"
-                          placeholder="bryan.runion"
-                          pattern="[a-z0-9.-]+"
-                          title="Only lowercase letters, numbers, dots, and hyphens allowed"
-                          required
-                        />
-                        <span className="text-gray-500">@backstageos.com</span>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label htmlFor="accountType">Account Type</Label>
-                      <Select name="accountType" required>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select account type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="personal">Personal</SelectItem>
-                          <SelectItem value="show-specific">Show-Specific</SelectItem>
-                          <SelectItem value="department">Department</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <DialogFooter>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      onClick={() => setIsCreateDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit" 
-                      disabled={createAccountMutation.isPending}
-                    >
-                      {createAccountMutation.isPending ? "Creating..." : "Create Account"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+            )}
           </div>
 
           {/* Main Content - Email Interface */}
@@ -333,6 +265,77 @@ export default function EmailManager() {
         </div>
       </div>
 
+      {/* Create Account Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent>
+          <form onSubmit={handleCreateAccount}>
+            <DialogHeader>
+              <DialogTitle>Create Email Account</DialogTitle>
+              <DialogDescription>
+                Create a new @backstageos.com email address for personal or show-specific use
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="displayName">Display Name</Label>
+                <Input
+                  id="displayName"
+                  name="displayName"
+                  placeholder="e.g., Bryan Runion"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="emailPrefix">Email Address</Label>
+                <div className="flex items-center space-x-2">
+                  <Input
+                    id="emailPrefix"
+                    name="emailPrefix"
+                    placeholder="bryan.runion"
+                    pattern="[a-z0-9.-]+"
+                    title="Only lowercase letters, numbers, dots, and hyphens allowed"
+                    required
+                  />
+                  <span className="text-gray-500">@backstageos.com</span>
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="accountType">Account Type</Label>
+                <Select name="accountType" required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select account type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="personal">Personal</SelectItem>
+                    <SelectItem value="show-specific">Show-Specific</SelectItem>
+                    <SelectItem value="department">Department</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsCreateDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={createAccountMutation.isPending}
+              >
+                {createAccountMutation.isPending ? "Creating..." : "Create Account"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Mobile Navigation Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
@@ -364,7 +367,7 @@ export default function EmailManager() {
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 mb-3">Email Accounts</h3>
                   <div className="space-y-2">
-                    {emailAccounts && Array.isArray(emailAccounts) && emailAccounts.length > 0 ? (
+                    {emailAccounts && Array.isArray(emailAccounts) && (emailAccounts as EmailAccount[]).length > 0 ? (
                       (emailAccounts as EmailAccount[]).map((account) => (
                         <button
                           key={account.id}
@@ -372,63 +375,49 @@ export default function EmailManager() {
                             setSelectedAccount(account);
                             setIsMobileMenuOpen(false);
                           }}
-                          className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-colors ${
-                            selectedAccount?.id === account.id 
-                              ? 'bg-blue-50 border border-blue-200' 
-                              : 'bg-gray-50 hover:bg-gray-100 border border-gray-200'
+                          className={`w-full text-left p-3 rounded-md hover:bg-gray-50 border ${
+                            selectedAccount?.id === account.id ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
                           }`}
                         >
-                          <div className="flex items-center space-x-3">
-                            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                              <Mail className="w-4 h-4 text-white" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">{account.displayName}</p>
-                              <p className="text-sm text-gray-500">{account.emailAddress}</p>
-                            </div>
+                          <div className="font-medium text-gray-900 truncate">
+                            {account.displayName}
                           </div>
-                          {account.isDefault && (
-                            <Badge variant="secondary" className="text-xs">Default</Badge>
-                          )}
+                          <div className="text-sm text-gray-500 truncate">
+                            {account.emailAddress}
+                          </div>
                         </button>
                       ))
                     ) : (
-                      <p className="text-gray-500 text-sm">No email accounts found</p>
+                      <p className="text-gray-500 text-sm">No accounts available</p>
                     )}
                   </div>
                 </div>
 
-                {/* Quick Actions */}
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">Quick Actions</h3>
-                  <div className="space-y-2">
-                    <Button 
-                      onClick={() => {
-                        setShowCompose(true);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="w-full justify-start"
-                      variant="ghost"
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Compose Email
-                    </Button>
-                    
-                    <Button 
-                      onClick={() => {
-                        setIsCreateDialogOpen(true);
-                        setIsMobileMenuOpen(false);
-                      }}
-                      className="w-full justify-start"
-                      variant="ghost"
-                    >
-                      <Mail className="w-4 h-4 mr-2" />
-                      Create Account
-                    </Button>
-                  </div>
-                </div>
+                {/* Create Account Button */}
+                <Button 
+                  onClick={() => {
+                    setIsCreateDialogOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Create Account
+                </Button>
 
-                {/* Folders Section */}
+                {/* Compose Button */}
+                <Button 
+                  onClick={() => {
+                    setShowCompose(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Compose
+                </Button>
+
+                {/* Navigation Folders */}
                 {selectedAccount && (
                   <div>
                     <h3 className="text-sm font-medium text-gray-500 mb-3">Folders</h3>
