@@ -280,23 +280,23 @@ export function EmailComposer({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="w-[95vw] max-w-4xl h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>
             {replyToMessage ? 'Reply' : 'New Message'}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+        <div className="flex-1 flex flex-col gap-3 md:gap-4 overflow-hidden">
           {/* From field */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium w-12">From:</label>
-            <span className="text-sm text-muted-foreground">{fromEmail}</span>
+          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+            <label className="text-sm font-medium w-full md:w-16 flex-shrink-0">From:</label>
+            <span className="text-sm text-muted-foreground pl-0 md:pl-0">{fromEmail}</span>
           </div>
 
           {/* To field */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium w-12">To:</label>
+          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+            <label className="text-sm font-medium w-full md:w-16 flex-shrink-0">To:</label>
             <Input
               placeholder="Enter email addresses separated by commas"
               value={toAddresses}
@@ -306,8 +306,8 @@ export function EmailComposer({
           </div>
 
           {/* CC field */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium w-12">CC:</label>
+          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+            <label className="text-sm font-medium w-full md:w-16 flex-shrink-0">CC:</label>
             <Input
               placeholder="Optional"
               value={ccAddresses}
@@ -317,8 +317,8 @@ export function EmailComposer({
           </div>
 
           {/* BCC field */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium w-12">BCC:</label>
+          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+            <label className="text-sm font-medium w-full md:w-16 flex-shrink-0">BCC:</label>
             <Input
               placeholder="Optional"
               value={bccAddresses}
@@ -328,8 +328,8 @@ export function EmailComposer({
           </div>
 
           {/* Subject field */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium w-12">Subject:</label>
+          <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2">
+            <label className="text-sm font-medium w-full md:w-16 flex-shrink-0">Subject:</label>
             <Input
               placeholder="Enter subject"
               value={subject}
@@ -339,12 +339,12 @@ export function EmailComposer({
           </div>
 
           {/* Formatting toolbar */}
-          <div className="flex items-center gap-1 border-b pb-2">
+          <div className="flex items-center gap-1 border-b pb-2 overflow-x-auto">
             <Button
               variant={isBold ? "default" : "ghost"}
               size="sm"
               onClick={() => setIsBold(!isBold)}
-              className="h-8 w-8 p-0"
+              className="h-9 w-9 md:h-8 md:w-8 p-0 flex-shrink-0"
             >
               <Bold className="h-4 w-4" />
             </Button>
@@ -352,7 +352,7 @@ export function EmailComposer({
               variant={isItalic ? "default" : "ghost"}
               size="sm"
               onClick={() => setIsItalic(!isItalic)}
-              className="h-8 w-8 p-0"
+              className="h-9 w-9 md:h-8 md:w-8 p-0 flex-shrink-0"
             >
               <Italic className="h-4 w-4" />
             </Button>
@@ -360,12 +360,12 @@ export function EmailComposer({
               variant={isUnderline ? "default" : "ghost"}
               size="sm"
               onClick={() => setIsUnderline(!isUnderline)}
-              className="h-8 w-8 p-0"
+              className="h-9 w-9 md:h-8 md:w-8 p-0 flex-shrink-0"
             >
               <Underline className="h-4 w-4" />
             </Button>
-            <div className="w-px h-6 bg-border mx-2" />
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <div className="w-px h-6 bg-border mx-2 flex-shrink-0" />
+            <Button variant="ghost" size="sm" className="h-9 w-9 md:h-8 md:w-8 p-0 flex-shrink-0">
               <Paperclip className="h-4 w-4" />
             </Button>
           </div>
@@ -376,7 +376,7 @@ export function EmailComposer({
               placeholder="Write your message..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="min-h-[300px] resize-none border-0 focus-visible:ring-0 p-4"
+              className="min-h-[200px] md:min-h-[300px] resize-none border-0 focus-visible:ring-0 p-3 md:p-4"
               style={{
                 fontWeight: isBold ? 'bold' : 'normal',
                 fontStyle: isItalic ? 'italic' : 'normal',
@@ -386,8 +386,8 @@ export function EmailComposer({
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center justify-between pt-2 border-t">
-            <div className="text-xs text-muted-foreground">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-0 pt-2 border-t">
+            <div className="text-xs text-muted-foreground order-2 md:order-1">
               {isAutoSaving ? (
                 "Auto-saving draft..."
               ) : lastSaved ? (
@@ -396,12 +396,12 @@ export function EmailComposer({
                 "Tip: Use @backstageos.com addresses for internal messaging"
               )}
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2 order-1 md:order-2">
               <Button
                 variant="outline"
                 onClick={handleSaveDraft}
                 disabled={saveDraftMutation.isPending}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <Save className="h-4 w-4" />
                 {saveDraftMutation.isPending ? 'Saving...' : 'Save Draft'}
@@ -409,7 +409,7 @@ export function EmailComposer({
               <Button
                 onClick={handleSend}
                 disabled={sendEmailMutation.isPending}
-                className="flex items-center gap-2"
+                className="flex items-center justify-center gap-2 w-full sm:w-auto"
               >
                 <Send className="h-4 w-4" />
                 {sendEmailMutation.isPending ? 'Sending...' : 'Send'}
