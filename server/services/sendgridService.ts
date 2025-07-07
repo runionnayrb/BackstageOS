@@ -50,7 +50,7 @@ export class SendGridService {
       throw new Error('SendGrid not properly initialized');
     }
 
-    const msg = {
+    const msg: any = {
       to: emailData.to,
       cc: emailData.cc,
       bcc: emailData.bcc,
@@ -71,14 +71,25 @@ export class SendGridService {
     };
 
     try {
+      console.log('🚀 Attempting to send email via SendGrid to:', emailData.to);
+      console.log('📧 Email subject:', emailData.subject);
+      console.log('🔑 Using API key (last 4 chars):', this.apiKey?.slice(-4));
+      
       const response = await sgMail.send(msg);
-      console.log('Email sent successfully via SendGrid');
+      console.log('✅ Email sent successfully via SendGrid to:', emailData.to);
+      console.log('📨 SendGrid response:', response[0]?.statusCode, response[0]?.body);
       return response;
     } catch (error: any) {
-      console.error('SendGrid error:', error);
+      console.error('❌ SendGrid error details:', {
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        body: error.response?.body
+      });
       
       if (error.response?.body?.errors) {
         const sendgridError = error.response.body.errors[0];
+        console.error('❌ Specific SendGrid error:', sendgridError);
         throw new Error(`SendGrid Error: ${sendgridError.message}`);
       }
       

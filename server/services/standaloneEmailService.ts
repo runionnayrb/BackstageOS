@@ -89,18 +89,28 @@ export class StandaloneEmailService {
       const [sentMessage] = await db.insert(emailMessages).values(outgoingMessage).returning();
 
       // Send to external recipients via SendGrid if they're not @backstageos.com addresses
+      console.log('📤 Processing recipients for external delivery:', toAddresses);
       for (const toAddress of toAddresses) {
         if (!toAddress.endsWith('@backstageos.com')) {
-          await sendEmail({
-            to: [toAddress],
-            subject,
-            html: htmlContent || content,
-            text: content,
-            from: {
-              email: sender.emailAddress,
-              name: sender.displayName
-            }
-          });
+          console.log(`🌐 Sending external email to: ${toAddress}`);
+          try {
+            await sendEmail({
+              to: [toAddress],
+              subject,
+              html: htmlContent || content,
+              text: content,
+              from: {
+                email: sender.emailAddress,
+                name: sender.displayName
+              }
+            });
+            console.log(`✅ Successfully queued external email to: ${toAddress}`);
+          } catch (error) {
+            console.error(`❌ Failed to send external email to ${toAddress}:`, error);
+            throw error;
+          }
+        } else {
+          console.log(`🏠 Internal BackstageOS recipient: ${toAddress} (will handle internally)`);
         }
       }
 
