@@ -257,10 +257,10 @@ export function EmailComposer({
       
       console.log('Native touch move', { currentY, startYPos, deltaY });
       
-      // Only allow downward dragging with amplified movement for better sensitivity
+      // Only allow downward dragging with highly amplified movement
       if (deltaY > 0) {
-        // Amplify small movements for better responsiveness
-        const amplifiedDelta = Math.max(deltaY * 1.5, deltaY + 10);
+        // Much more aggressive amplification for mobile responsiveness
+        const amplifiedDelta = deltaY * 4; // 4x amplification
         setSheetPosition(amplifiedDelta);
         console.log('Setting sheet position to', amplifiedDelta, 'from original', deltaY);
       }
@@ -273,8 +273,8 @@ export function EmailComposer({
       currentDragging = false;
       setIsDragging(false);
       
-      // If dragged down more than 150px, close the sheet
-      if (sheetPosition > 150) {
+      // If dragged down more than 100px, close the sheet (reduced threshold for easier closing)
+      if (sheetPosition > 100) {
         console.log('Closing sheet due to swipe');
         handleExitClick();
       } else {
@@ -366,12 +366,12 @@ export function EmailComposer({
           transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)'
         }}
       >
-        {/* Handle bar for swipe gesture - larger touch area */}
+        {/* Handle bar for swipe gesture - much larger touch area */}
         <div 
-          className="handle-area flex justify-center py-4 px-4 cursor-grab active:cursor-grabbing touch-none"
+          className="handle-area flex justify-center py-8 px-8 cursor-grab active:cursor-grabbing touch-none"
           style={{ touchAction: 'none' }}
         >
-          <div className="w-12 h-1.5 bg-gray-400 rounded-full"></div>
+          <div className="w-16 h-2 bg-gray-400 rounded-full"></div>
         </div>
         
         {/* Header */}
