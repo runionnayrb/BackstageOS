@@ -448,6 +448,7 @@ export default function EmailManager() {
             onTheaterTemplates={() => setShowTemplateManager(true)}
             hasPersonalAccount={hasPersonalAccount}
             isAdmin={user?.isAdmin || false}
+            onSettings={() => setShowEditAccount(true)}
           />
         </div>
 

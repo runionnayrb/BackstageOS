@@ -66,6 +66,7 @@ interface EmailSidebarProps {
   onTheaterTemplates?: () => void;
   hasPersonalAccount?: boolean;
   isAdmin?: boolean;
+  onSettings?: () => void;
 }
 
 export function EmailSidebar({
@@ -83,6 +84,7 @@ export function EmailSidebar({
   onTheaterTemplates,
   hasPersonalAccount = false,
   isAdmin = false,
+  onSettings,
 }: EmailSidebarProps) {
 
   const folders = [
@@ -289,10 +291,7 @@ export function EmailSidebar({
           variant="ghost" 
           size="sm" 
           className="w-full justify-start"
-          onClick={() => {
-            setEditDisplayName(selectedAccount?.displayName || '');
-            setShowEditAccount(true);
-          }}
+          onClick={() => onSettings?.()}
         >
           <Settings className="h-4 w-4 mr-2" />
           Settings
