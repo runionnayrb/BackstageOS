@@ -229,9 +229,17 @@ export function EmailComposer({
   // Native DOM touch handlers for better mobile support
   useEffect(() => {
     if (!isMobile || !isOpen) return;
+    
+    console.log('🔍 Setting up touch events, isMobile:', isMobile, 'isOpen:', isOpen);
+    console.log('🔍 sheetRef.current:', sheetRef.current);
 
     const handleElement = sheetRef.current?.querySelector('.handle-area');
-    if (!handleElement) return;
+    console.log('🔍 Looking for handle element:', handleElement);
+    if (!handleElement) {
+      console.log('❌ Handle element not found!');
+      return;
+    }
+    console.log('✅ Handle element found, attaching touch events');
 
     let startYPos = 0;
     let currentDragging = false;
