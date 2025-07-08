@@ -425,6 +425,16 @@ export default function EmailManager() {
                   <FileText className="w-4 h-4" />
                   <span>Theater Templates</span>
                 </button>
+                <button
+                  onClick={() => {
+                    setShowEditAccount(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Settings</span>
+                </button>
               </div>
             </div>
           </div>
