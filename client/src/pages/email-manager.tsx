@@ -170,20 +170,32 @@ export default function EmailManager() {
         }`}
       >
         <div className="px-2 md:px-4 lg:px-8 py-2 md:py-6">
-          {/* Header - Desktop Style on All Devices */}
+          {/* Header - Mobile with hamburger left, search right */}
           <div className="border-b border-gray-200 pb-2 md:pb-4">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-xl md:text-3xl font-bold text-gray-900">
-                Email
-              </h1>
+            <div className="flex items-center gap-3 mb-4">
+              {/* Mobile hamburger menu - left side */}
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="md:hidden h-8 w-8 p-0 hover:bg-gray-100"
+                className="md:hidden h-8 w-8 p-0 hover:bg-gray-100 flex-shrink-0"
               >
                 <Menu className="h-4 w-4" />
               </Button>
+              
+              {/* Email title */}
+              <h1 className="text-xl md:text-3xl font-bold text-gray-900 flex-shrink-0">
+                Email
+              </h1>
+              
+              {/* Search bar - mobile and desktop */}
+              <div className="flex-1 max-w-md">
+                <Input
+                  type="text"
+                  placeholder="Search emails..."
+                  className="w-full h-8 md:h-10 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
+                />
+              </div>
             </div>
 
             {/* Account Selector and Actions - Desktop Style */}
