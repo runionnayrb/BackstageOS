@@ -379,7 +379,7 @@ export function EmailComposer({
         className="fixed left-0 right-0 z-50 bg-white rounded-t-[20px] flex flex-col"
         style={{ 
           top: '60px', // Just below the BackstageOS header
-          bottom: '0',
+          height: 'calc(100vh - 60px)', // Full height minus header
           transform: `translateY(${sheetPosition}px)`,
           transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)'
         }}
