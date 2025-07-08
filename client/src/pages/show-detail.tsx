@@ -56,6 +56,11 @@ export default function ShowDetail() {
       title: "Contacts",
       href: `/shows/${projectId}/contacts`,
     },
+    {
+      id: "theater-email",
+      title: "Theater Email",
+      href: `/shows/${projectId}/theater-email`,
+    },
   ];
 
   // State for sections - start empty to prevent flash

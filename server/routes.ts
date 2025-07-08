@@ -6424,6 +6424,245 @@ Respond with valid JSON only.`;
     }
   });
 
+  // =============================================================================
+  // THEATER EMAIL MANAGEMENT API ENDPOINTS (Phase 4 Features)
+  // =============================================================================
+
+  // Get email templates for a show
+  app.get('/api/email/templates', isAuthenticated, async (req: any, res) => {
+    try {
+      const { showId } = req.query;
+      
+      // Mock theater email templates for demonstration
+      const templates = [
+        {
+          id: 1,
+          name: "Call Sheet",
+          templateType: "call_sheet",
+          subject: `${showId ? 'Test Production - Macbeth' : 'Show'} - Call Sheet for {{date}}`,
+          content: `Dear {{recipientName}},\n\nPlease find the call sheet for ${showId ? 'Test Production - Macbeth' : 'the show'} on {{date}}.\n\nCall Time: {{callTime}}\nLocation: Studio Theater\n\nThank you,\n{{senderName}}\nStage Manager`,
+          projectId: showId ? parseInt(showId) : null,
+        },
+        {
+          id: 2,
+          name: "Tech Notes",
+          templateType: "tech_notes",
+          subject: "Tech Rehearsal Notes - {{date}}",
+          content: `Dear Team,\n\nHere are the tech notes from today's rehearsal:\n\n{{techNotes}}\n\nPlease review and implement changes for tomorrow.\n\nBest,\nStage Management`,
+          projectId: showId ? parseInt(showId) : null,
+        },
+        {
+          id: 3,
+          name: "Performance Report",
+          templateType: "performance_report",
+          subject: "Performance Report - {{date}}",
+          content: `Performance Report for ${showId ? 'Test Production - Macbeth' : 'the show'}:\n\n{{performanceNotes}}\n\nThank you,\nStage Management`,
+          projectId: showId ? parseInt(showId) : null,
+        }
+      ];
+
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching email templates:", error);
+      res.status(500).json({ message: "Failed to fetch email templates" });
+    }
+  });
+
+  // Create email template
+  app.post('/api/email/templates', isAuthenticated, async (req: any, res) => {
+    try {
+      const { name, templateType, subject, content, projectId } = req.body;
+      
+      // For demo purposes, return success with new template
+      const newTemplate = {
+        id: Date.now(), // Mock ID
+        name,
+        templateType,
+        subject,
+        content,
+        projectId,
+      };
+
+      res.status(201).json(newTemplate);
+    } catch (error) {
+      console.error("Error creating email template:", error);
+      res.status(500).json({ message: "Failed to create email template" });
+    }
+  });
+
+  // Get email rules for a show
+  app.get('/api/email/rules', isAuthenticated, async (req: any, res) => {
+    try {
+      const { accountId, showId } = req.query;
+      
+      // Mock theater email rules for demonstration
+      const rules = [
+        {
+          id: 1,
+          name: "Auto-file Cast Emails",
+          description: "Automatically organize emails from cast members",
+          isEnabled: true,
+          conditions: { from: ["cast"], keywords: ["rehearsal", "costume", "props"] },
+          actions: { folder: "Cast Communications", tag: "cast" }
+        },
+        {
+          id: 2,
+          name: "Tech Notes Organization",
+          description: "File technical emails in appropriate folders",
+          isEnabled: true,
+          conditions: { subject: ["tech", "lighting", "sound", "props"] },
+          actions: { folder: "Technical", priority: "high" }
+        },
+        {
+          id: 3,
+          name: "Call Sheet Distribution",
+          description: "Track call sheet delivery and responses",
+          isEnabled: false,
+          conditions: { subject: ["call sheet", "schedule"] },
+          actions: { track: "delivery", notify: "confirmations" }
+        }
+      ];
+
+      res.json(rules);
+    } catch (error) {
+      console.error("Error fetching email rules:", error);
+      res.status(500).json({ message: "Failed to fetch email rules" });
+    }
+  });
+
+  // Get show-specific emails
+  app.get('/api/email/shows/:showId/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const showId = parseInt(req.params.showId);
+      
+      // Mock show emails for demonstration
+      const showEmails = [
+        {
+          id: 1,
+          subject: "Call Sheet - Tech Rehearsal Day 1",
+          from: "bryan@backstageos.com",
+          to: ["cast@testproduction.com"],
+          date: new Date(),
+          isRead: true,
+          category: "call_sheet"
+        },
+        {
+          id: 2,
+          subject: "Costume Notes - Quick Changes",
+          from: "bryan@backstageos.com", 
+          to: ["wardrobe@testproduction.com"],
+          date: new Date(Date.now() - 86400000), // Yesterday
+          isRead: true,
+          category: "tech_notes"
+        }
+      ];
+
+      res.json(showEmails);
+    } catch (error) {
+      console.error("Error fetching show emails:", error);
+      res.status(500).json({ message: "Failed to fetch show emails" });
+    }
+  });
+
+  // Bulk email sending (Phase 4 feature)
+  app.post('/api/email/shows/:showId/bulk-send', isAuthenticated, async (req: any, res) => {
+    try {
+      const showId = parseInt(req.params.showId);
+      const { accountId, recipientType, subject, message } = req.body;
+
+      // Mock team members based on recipient type
+      const teamMembers = {
+        all: ['cast@show.com', 'crew@show.com', 'creative@show.com'],
+        cast: ['actor1@show.com', 'actor2@show.com', 'actor3@show.com'],
+        crew: ['technician1@show.com', 'technician2@show.com'],
+        creative: ['director@show.com', 'designer@show.com']
+      };
+
+      const recipients = teamMembers[recipientType] || [];
+      
+      // Simulate sending emails
+      const sent = recipients.length;
+      const failed = 0; // Mock success
+
+      console.log(`📧 Bulk email sent to ${recipientType} (${sent} recipients) for show ${showId}`);
+      console.log(`Subject: ${subject}`);
+      console.log(`Recipients: ${recipients.join(', ')}`);
+
+      res.json({
+        success: true,
+        sent,
+        failed,
+        recipients: recipients.length
+      });
+    } catch (error) {
+      console.error("Error sending bulk email:", error);
+      res.status(500).json({ message: "Failed to send bulk email" });
+    }
+  });
+
+  // Enhanced delivery stats (Phase 2 feature)
+  app.get('/api/email/accounts/:accountId/delivery-stats/detailed', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const { EmailDeliveryService } = await import('./services/emailDeliveryService.js');
+      const deliveryService = new EmailDeliveryService();
+      
+      const stats = await deliveryService.getDetailedDeliveryStats(accountId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching detailed delivery stats:", error);
+      res.status(500).json({ message: "Failed to fetch delivery stats" });
+    }
+  });
+
+  // Get bounce reports (Phase 2 feature)
+  app.get('/api/email/accounts/:accountId/bounce-reports', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const { limit = 50, offset = 0, bounceType } = req.query;
+      
+      const { EmailDeliveryService } = await import('./services/emailDeliveryService.js');
+      const deliveryService = new EmailDeliveryService();
+      
+      const reports = await deliveryService.getBounceReports(
+        accountId, 
+        parseInt(limit), 
+        parseInt(offset),
+        bounceType
+      );
+      res.json(reports);
+    } catch (error) {
+      console.error("Error fetching bounce reports:", error);
+      res.status(500).json({ message: "Failed to fetch bounce reports" });
+    }
+  });
+
+  // Email open tracking pixel (Phase 2 feature)
+  app.get('/api/email/track/open/:messageId', async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const ip = req.ip || req.connection.remoteAddress;
+      const userAgent = req.get('User-Agent');
+      
+      const { EmailDeliveryService } = await import('./services/emailDeliveryService.js');
+      const deliveryService = new EmailDeliveryService();
+      
+      await deliveryService.trackEmailOpen(messageId, ip, userAgent);
+      
+      // Return 1x1 transparent pixel
+      const pixel = Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64');
+      res.writeHead(200, {
+        'Content-Type': 'image/gif',
+        'Content-Length': pixel.length,
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
+      });
+      res.end(pixel);
+    } catch (error) {
+      console.error("Error tracking email open:", error);
+      res.status(500).end();
+    }
+  });
+
   const server = createServer(app);
   return server;
 }
