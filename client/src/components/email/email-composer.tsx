@@ -245,7 +245,7 @@ export function EmailComposer({
     let currentDragging = false;
 
     const handleTouchStart = (e: TouchEvent) => {
-      console.log('Native touch start detected', e.touches[0].clientY);
+      console.log('🟡 Touch start - Y position:', e.touches[0].clientY);
       e.preventDefault();
       e.stopPropagation();
       currentDragging = true;
@@ -263,7 +263,7 @@ export function EmailComposer({
       const currentY = e.touches[0].clientY;
       const deltaY = currentY - startYPos;
       
-      console.log('Native touch move', { currentY, startYPos, deltaY });
+      console.log('🔵 Touch move - Direction:', deltaY > 0 ? 'DOWN ⬇️' : 'UP ⬆️', 'Delta:', deltaY, 'Current Y:', currentY, 'Start Y:', startYPos);
       
       // Allow full downward dragging to hide sheet completely
       if (deltaY > 0) {
