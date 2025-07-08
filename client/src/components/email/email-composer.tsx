@@ -91,6 +91,7 @@ export function EmailComposer({
   const [sheetPosition, setSheetPosition] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
+  const [isClosing, setIsClosing] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
 
   // Send email mutation
@@ -228,9 +229,9 @@ export function EmailComposer({
 
   // Native DOM touch handlers for better mobile support
   useEffect(() => {
-    if (!isMobile || !isOpen) return;
+    if (!isMobile || !isOpen || isClosing) return;
     
-    console.log('🔍 Setting up touch events, isMobile:', isMobile, 'isOpen:', isOpen);
+    console.log('🔍 Setting up touch events, isMobile:', isMobile, 'isOpen:', isOpen, 'isClosing:', isClosing);
     console.log('🔍 sheetRef.current exists:', !!sheetRef.current);
 
     const handleElement = sheetRef.current?.querySelector('.handle-area');
@@ -266,15 +267,20 @@ export function EmailComposer({
       console.log('🔵 Touch move - Direction:', deltaY > 0 ? 'DOWN ⬇️' : 'UP ⬆️', 'Delta:', deltaY, 'Current Y:', currentY, 'Start Y:', startYPos);
       
       // Allow full downward dragging to hide sheet completely
-      if (deltaY > 0) {
+      if (deltaY > 0 && !isClosing) {
         // Ultra aggressive amplification - 20x for maximum sensitivity, no cap
         const amplifiedDelta = deltaY * 20;
         setSheetPosition(amplifiedDelta);
         console.log('🚀 SUPER AMPLIFIED:', amplifiedDelta, 'from finger movement:', deltaY);
         
-        // Visual feedback when sheet is being hidden
-        if (amplifiedDelta > 100) {
-          console.log('📱 SHEET IS BEING HIDDEN - POSITION:', amplifiedDelta);
+        // Trigger immediate close when threshold reached
+        if (amplifiedDelta > 150) {
+          console.log('📱 IMMEDIATE CLOSE TRIGGERED - POSITION:', amplifiedDelta);
+          setIsClosing(true);
+          setSheetPosition(window.innerHeight);
+          setTimeout(() => {
+            handleExitClick();
+          }, 200);
         }
       }
     };
@@ -312,7 +318,7 @@ export function EmailComposer({
       handleElement.removeEventListener('touchmove', handleTouchMove);
       handleElement.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [isMobile, isOpen, sheetPosition]);
+  }, [isMobile, isOpen, sheetPosition, isClosing]);
 
   const handleSend = () => {
     sendEmailMutation.mutate();
