@@ -169,11 +169,19 @@ export default function EmailManager() {
           isSidebarCollapsed ? "md:ml-0" : "md:ml-64"
         } relative`}
       >
-        {/* Mobile Navigation Panel - In-page like desktop */}
+        {/* Mobile Navigation Backdrop */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-lg">
+          <div 
+            className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+
+        {/* Mobile Navigation Panel - Side navigation */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed top-16 left-0 bottom-0 w-80 z-40 bg-white border-r border-gray-200 shadow-lg overflow-hidden">
             {/* Mobile Menu Panel */}
-            <div className="w-full bg-white p-4 space-y-4 max-h-80 overflow-y-auto">
+            <div className="w-full bg-white p-4 space-y-4 h-full overflow-y-auto">
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-gray-200">
                 <h2 className="text-lg font-semibold text-gray-900">Navigation</h2>
