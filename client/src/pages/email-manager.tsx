@@ -20,6 +20,8 @@ import {
   Archive,
   Trash2,
   Edit,
+  Users,
+  FileText,
 } from "lucide-react";
 
 interface EmailAccount {
@@ -495,6 +497,37 @@ export default function EmailManager() {
                     </div>
                   </div>
                 )}
+
+                {/* Theater Tools Section */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-3">Theater Tools</h3>
+                  <div className="space-y-1">
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start text-left"
+                      onClick={() => {
+                        setShowCompose(true);
+                        setIsMobileMenuOpen(false);
+                        // Could set theater mode context here
+                      }}
+                    >
+                      <Users className="w-4 h-4 mr-2" />
+                      Send to Groups
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        console.log('Theater templates clicked');
+                        // Could navigate to templates view
+                      }}
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      Email Templates
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
