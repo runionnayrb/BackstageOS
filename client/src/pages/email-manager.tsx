@@ -585,44 +585,42 @@ export default function EmailManager() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium">Email Groups</h3>
-              <Button onClick={() => {/* Add new group logic */}}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Group
+              <Button size="sm" variant="outline" onClick={() => {/* Add new group logic */}}>
+                <Plus className="h-4 w-4" />
               </Button>
             </div>
             
-            <div className="grid gap-4">
+            <div className="space-y-2">
               {[
                 { name: 'All Team', count: 6, description: 'Cast, crew, and creative team', emails: ['cast@show.com', 'crew@show.com', 'creative@show.com'] },
                 { name: 'Cast Only', count: 3, description: 'Actors and performers', emails: ['actor1@show.com', 'actor2@show.com', 'actor3@show.com'] },
                 { name: 'Crew Only', count: 2, description: 'Technical crew members', emails: ['technician1@show.com', 'technician2@show.com'] },
                 { name: 'Creative Team', count: 2, description: 'Director and designers', emails: ['director@show.com', 'designer@show.com'] }
               ].map((group, index) => (
-                <Card key={index}>
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Users className="h-5 w-5 text-gray-500" />
-                          <h4 className="font-medium">{group.name}</h4>
-                          <Badge variant="secondary">{group.count} people</Badge>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">{group.description}</p>
-                        <div className="text-xs text-gray-500">
-                          <strong>Members:</strong> {group.emails.join(', ')}
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button size="sm" variant="outline">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                <div 
+                  key={index}
+                  onClick={() => {/* Open group details */}}
+                  className="p-4 hover:bg-gray-50 cursor-pointer transition-colors rounded-lg"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Users className="h-5 w-5 text-gray-500" />
+                      <div>
+                        <h4 className="font-medium">{group.name}</h4>
+                        <p className="text-sm text-gray-600">{group.description}</p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className="flex items-center space-x-3">
+                      <span className="text-sm text-purple-600 font-medium">{group.count} people</span>
+                      <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700" onClick={(e) => {
+                        e.stopPropagation();
+                        /* Delete group logic */
+                      }}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
