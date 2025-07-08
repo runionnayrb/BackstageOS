@@ -73,6 +73,11 @@ export default function EmailManager() {
   const [showTemplateManager, setShowTemplateManager] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [showGroupDetails, setShowGroupDetails] = useState(false);
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [newGroupDescription, setNewGroupDescription] = useState('');
+  const [newGroupColor, setNewGroupColor] = useState('#3b82f6');
+  const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -147,6 +152,30 @@ export default function EmailManager() {
     },
   });
 
+  // Create group mutation
+  const createGroupMutation = useMutation({
+    mutationFn: (groupData: any) => apiRequest('POST', '/api/email/groups', groupData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/email/groups'] });
+      setShowCreateGroup(false);
+      setNewGroupName('');
+      setNewGroupDescription('');
+      setNewGroupColor('#3b82f6');
+      setSelectedMembers([]);
+      toast({
+        title: "Group created",
+        description: "Email group has been created successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create group. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete group mutation
   const deleteGroupMutation = useMutation({
     mutationFn: (groupId: number) => apiRequest('DELETE', `/api/email/groups/${groupId}`),
@@ -171,6 +200,25 @@ export default function EmailManager() {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     createAccountMutation.mutate(formData);
+  };
+
+  // Handle create group
+  const handleCreateGroup = () => {
+    if (!newGroupName.trim()) {
+      toast({
+        title: "Error",
+        description: "Group name is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createGroupMutation.mutate({
+      name: newGroupName,
+      description: newGroupDescription,
+      color: newGroupColor,
+      memberIds: selectedMembers,
+    });
   };
 
   // Loading state
@@ -629,7 +677,7 @@ export default function EmailManager() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-medium">Email Groups</h3>
-              <Button size="sm" variant="outline" onClick={() => {/* Add new group logic */}}>
+              <Button size="sm" variant="outline" onClick={() => setShowCreateGroup(true)}>
                 <Plus className="h-4 w-4" />
               </Button>
             </div>
@@ -829,6 +877,117 @@ export default function EmailManager() {
               </div>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Group Dialog */}
+      <Dialog open={showCreateGroup} onOpenChange={setShowCreateGroup}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create New Email Group</DialogTitle>
+            <DialogDescription>
+              Create a new email group for easy messaging to specific team members.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="groupName">Group Name *</Label>
+              <Input
+                id="groupName"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                placeholder="e.g., Cast Only, Crew Team, Creative Team"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="groupDescription">Description</Label>
+              <Input
+                id="groupDescription"
+                value={newGroupDescription}
+                onChange={(e) => setNewGroupDescription(e.target.value)}
+                placeholder="Brief description of this group"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="groupColor">Group Color</Label>
+              <Input
+                id="groupColor"
+                type="color"
+                value={newGroupColor}
+                onChange={(e) => setNewGroupColor(e.target.value)}
+                className="w-20 h-10"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Group Members</Label>
+              <div className="border border-gray-200 rounded-lg p-4 max-h-60 overflow-y-auto">
+                {contacts && contacts.length > 0 ? (
+                  <div className="space-y-2">
+                    {contacts.map((contact) => (
+                      <div key={contact.id} className="flex items-center space-x-3">
+                        <input
+                          type="checkbox"
+                          id={`contact-${contact.id}`}
+                          checked={selectedMembers.includes(contact.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedMembers([...selectedMembers, contact.id]);
+                            } else {
+                              setSelectedMembers(selectedMembers.filter(id => id !== contact.id));
+                            }
+                          }}
+                          className="h-4 w-4 text-blue-600 rounded border-gray-300"
+                        />
+                        <label htmlFor={`contact-${contact.id}`} className="flex-1 cursor-pointer">
+                          <div className="flex items-center space-x-2">
+                            <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
+                              <span className="text-xs font-medium text-gray-600">
+                                {contact.firstName?.[0]}{contact.lastName?.[0]}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">{contact.firstName} {contact.lastName}</p>
+                              <p className="text-xs text-gray-600">{contact.email}</p>
+                            </div>
+                          </div>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p>No contacts available</p>
+                    <p className="text-xs">Add contacts to your show first</p>
+                  </div>
+                )}
+              </div>
+              {selectedMembers.length > 0 && (
+                <p className="text-sm text-gray-600">
+                  {selectedMembers.length} member{selectedMembers.length === 1 ? '' : 's'} selected
+                </p>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCreateGroup(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateGroup}
+              disabled={createGroupMutation.isPending || !newGroupName.trim()}
+            >
+              {createGroupMutation.isPending ? "Creating..." : "Create Group"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
