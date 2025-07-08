@@ -98,21 +98,23 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   return (
     <>
       <div className="relative h-[calc(100vh-120px)] bg-background">
-        {/* Mobile-First Header */}
-        <div className="absolute top-0 left-0 right-0 h-12 md:h-16 bg-white border-b border-gray-200 flex items-center gap-2 md:gap-6 px-2 md:px-4 z-50">
-          <div className="relative flex-1">
-            <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-7 md:pl-10 w-full text-sm h-7 md:h-10 border-gray-300"
-            />
+        {/* Desktop-Only Search Header */}
+        <div className="hidden md:block absolute top-0 left-0 right-0 h-12 md:h-16 bg-white border-b border-gray-200 px-2 md:px-4 z-50">
+          <div className="flex items-center gap-2 md:gap-6 h-full">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-7 md:pl-10 w-full text-sm h-7 md:h-10 border-gray-300"
+              />
+            </div>
           </div>
         </div>
 
         {/* Content Area - Mobile Responsive */}
-        <div className="pt-12 md:pt-16 h-full">
+        <div className="pt-0 md:pt-16 h-full">
           {/* Email Statistics - Show only on desktop */}
           <div className="hidden md:block px-4 py-2 border-b border-gray-200">
             <EmailStats accountId={selectedAccount.id} />
