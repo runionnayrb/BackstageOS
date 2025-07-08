@@ -334,12 +334,12 @@ export function EmailSidebar({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="emailAddress">Email Address</Label>
-              <Input
-                id="emailAddress"
-                value={selectedAccount?.emailAddress || ''}
-                readOnly
-                className="w-full bg-gray-50 cursor-not-allowed"
-              />
+              <div
+                className="w-full px-3 py-2 text-sm text-gray-900 bg-transparent border-0 outline-none focus:outline-none focus:ring-0 cursor-default"
+                tabIndex={-1}
+              >
+                {selectedAccount?.emailAddress || ''}
+              </div>
               <p className="text-xs text-gray-500">
                 Email addresses cannot be changed after creation
               </p>
