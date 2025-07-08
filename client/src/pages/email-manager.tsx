@@ -209,21 +209,34 @@ export default function EmailManager() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-72">
                     {emailAccounts && Array.isArray(emailAccounts) && (emailAccounts as EmailAccount[]).length > 0 ? (
-                      (emailAccounts as EmailAccount[]).map((account) => (
+                      <>
+                        {(emailAccounts as EmailAccount[]).map((account) => (
+                          <DropdownMenuItem
+                            key={account.id}
+                            onClick={() => {
+                              setSelectedAccount(account);
+                              setIsMobileMenuOpen(false);
+                            }}
+                            className={selectedAccount?.id === account.id ? 'bg-blue-50' : ''}
+                          >
+                            <div className="w-full">
+                              <div className="font-medium">{account.displayName}</div>
+                              <div className="text-xs text-gray-500">{account.emailAddress}</div>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          key={account.id}
                           onClick={() => {
-                            setSelectedAccount(account);
+                            setIsCreateDialogOpen(true);
                             setIsMobileMenuOpen(false);
                           }}
-                          className={selectedAccount?.id === account.id ? 'bg-blue-50' : ''}
+                          className="text-blue-600 font-medium"
                         >
-                          <div className="w-full">
-                            <div className="font-medium">{account.displayName}</div>
-                            <div className="text-xs text-gray-500">{account.emailAddress}</div>
-                          </div>
+                          <Plus className="w-4 h-4 mr-2" />
+                          New Account
                         </DropdownMenuItem>
-                      ))
+                      </>
                     ) : (
                       <DropdownMenuItem disabled>No accounts found</DropdownMenuItem>
                     )}
