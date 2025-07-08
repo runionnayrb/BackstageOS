@@ -6009,6 +6009,306 @@ Respond with valid JSON only.`;
     }
   });
 
+  // ==== PHASE 4: THEATER-SPECIFIC EMAIL FEATURES ====
+
+  // Get emails for a specific show/project
+  app.get('/api/email/shows/:showId/messages', isAuthenticated, async (req: any, res) => {
+    try {
+      const showId = parseInt(req.params.showId);
+      const { accountId, limit = 50, offset = 0 } = req.query;
+
+      const { TheaterEmailService } = await import('./services/theaterEmailService.js');
+      const theaterEmailService = new TheaterEmailService();
+      
+      const messages = await theaterEmailService.getShowEmails(
+        showId, 
+        accountId ? parseInt(accountId as string) : undefined,
+        parseInt(limit as string), 
+        parseInt(offset as string)
+      );
+      
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching show emails:", error);
+      res.status(500).json({ message: "Failed to fetch show emails" });
+    }
+  });
+
+  // Auto-categorize email by show
+  app.post('/api/email/messages/:messageId/categorize', isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const { showId } = req.body;
+
+      const { TheaterEmailService } = await import('./services/theaterEmailService.js');
+      const theaterEmailService = new TheaterEmailService();
+      
+      await theaterEmailService.categorizeEmail(messageId, showId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error categorizing email:", error);
+      res.status(500).json({ message: "Failed to categorize email" });
+    }
+  });
+
+  // Get email templates for theater
+  app.get('/api/email/templates', isAuthenticated, async (req: any, res) => {
+    try {
+      const { type, showId } = req.query;
+
+      const { TheaterEmailService } = await import('./services/theaterEmailService.js');
+      const theaterEmailService = new TheaterEmailService();
+      
+      const templates = await theaterEmailService.getEmailTemplates(
+        type as string, 
+        showId ? parseInt(showId as string) : undefined
+      );
+      
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching email templates:", error);
+      res.status(500).json({ message: "Failed to fetch email templates" });
+    }
+  });
+
+  // Create email template
+  app.post('/api/email/templates', isAuthenticated, async (req: any, res) => {
+    try {
+      const templateData = {
+        ...req.body,
+        createdBy: req.user.id,
+      };
+
+      const { TheaterEmailService } = await import('./services/theaterEmailService.js');
+      const theaterEmailService = new TheaterEmailService();
+      
+      const template = await theaterEmailService.createEmailTemplate(templateData);
+      res.status(201).json(template);
+    } catch (error) {
+      console.error("Error creating email template:", error);
+      res.status(500).json({ message: "Failed to create email template" });
+    }
+  });
+
+  // Bulk email to cast/crew
+  app.post('/api/email/shows/:showId/bulk-send', isAuthenticated, async (req: any, res) => {
+    try {
+      const showId = parseInt(req.params.showId);
+      const { accountId, templateId, recipientType, customRecipients, subject, message } = req.body;
+
+      const { TheaterEmailService } = await import('./services/theaterEmailService.js');
+      const theaterEmailService = new TheaterEmailService();
+      
+      const result = await theaterEmailService.sendBulkEmail(
+        showId,
+        accountId,
+        {
+          templateId,
+          recipientType,
+          customRecipients,
+          subject,
+          message,
+        }
+      );
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error sending bulk email:", error);
+      res.status(500).json({ message: "Failed to send bulk email" });
+    }
+  });
+
+  // Email rules for auto-filing
+  app.get('/api/email/rules', isAuthenticated, async (req: any, res) => {
+    try {
+      const { accountId, showId } = req.query;
+
+      const { TheaterEmailService } = await import('./services/theaterEmailService.js');
+      const theaterEmailService = new TheaterEmailService();
+      
+      const rules = await theaterEmailService.getEmailRules(
+        accountId ? parseInt(accountId as string) : undefined,
+        showId ? parseInt(showId as string) : undefined
+      );
+      
+      res.json(rules);
+    } catch (error) {
+      console.error("Error fetching email rules:", error);
+      res.status(500).json({ message: "Failed to fetch email rules" });
+    }
+  });
+
+  // Create email rule
+  app.post('/api/email/rules', isAuthenticated, async (req: any, res) => {
+    try {
+      const ruleData = {
+        ...req.body,
+        createdBy: req.user.id,
+      };
+
+      const { TheaterEmailService } = await import('./services/theaterEmailService.js');
+      const theaterEmailService = new TheaterEmailService();
+      
+      const rule = await theaterEmailService.createEmailRule(ruleData);
+      res.status(201).json(rule);
+    } catch (error) {
+      console.error("Error creating email rule:", error);
+      res.status(500).json({ message: "Failed to create email rule" });
+    }
+  });
+
+  // Apply email rules to message
+  app.post('/api/email/messages/:messageId/apply-rules', isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+
+      const { TheaterEmailService } = await import('./services/theaterEmailService.js');
+      const theaterEmailService = new TheaterEmailService();
+      
+      const applied = await theaterEmailService.applyEmailRules(messageId);
+      res.json({ applied });
+    } catch (error) {
+      console.error("Error applying email rules:", error);
+      res.status(500).json({ message: "Failed to apply email rules" });
+    }
+  });
+
+  // ==== PHASE 2: ENHANCED DELIVERY TRACKING ====
+
+  // Get detailed delivery statistics
+  app.get('/api/email/accounts/:accountId/delivery-stats/detailed', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const { startDate, endDate } = req.query;
+
+      const { EmailDeliveryService } = await import('./services/emailDeliveryService.js');
+      const deliveryService = new EmailDeliveryService();
+      
+      const stats = await deliveryService.getDetailedDeliveryStats(
+        accountId,
+        startDate ? new Date(startDate as string) : undefined,
+        endDate ? new Date(endDate as string) : undefined
+      );
+      
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching detailed delivery stats:", error);
+      res.status(500).json({ message: "Failed to fetch detailed delivery stats" });
+    }
+  });
+
+  // Get bounce reports
+  app.get('/api/email/accounts/:accountId/bounces', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const { limit = 50, offset = 0, type } = req.query;
+
+      const { EmailDeliveryService } = await import('./services/emailDeliveryService.js');
+      const deliveryService = new EmailDeliveryService();
+      
+      const bounces = await deliveryService.getBounceReports(
+        accountId,
+        parseInt(limit as string),
+        parseInt(offset as string),
+        type as string
+      );
+      
+      res.json(bounces);
+    } catch (error) {
+      console.error("Error fetching bounce reports:", error);
+      res.status(500).json({ message: "Failed to fetch bounce reports" });
+    }
+  });
+
+  // Track email opens (pixel tracking)
+  app.get('/api/email/track/open/:messageId', async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+
+      const { EmailDeliveryService } = await import('./services/emailDeliveryService.js');
+      const deliveryService = new EmailDeliveryService();
+      
+      await deliveryService.trackEmailOpen(messageId, req.ip, req.headers['user-agent']);
+      
+      // Return 1x1 transparent pixel
+      const pixel = Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+        'base64'
+      );
+      
+      res.set('Content-Type', 'image/png');
+      res.set('Content-Length', pixel.length.toString());
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.send(pixel);
+    } catch (error) {
+      console.error("Error tracking email open:", error);
+      res.status(500).send('Error');
+    }
+  });
+
+  // Track email clicks
+  app.get('/api/email/track/click/:messageId', async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const { url } = req.query;
+
+      const { EmailDeliveryService } = await import('./services/emailDeliveryService.js');
+      const deliveryService = new EmailDeliveryService();
+      
+      await deliveryService.trackEmailClick(messageId, url as string, req.ip, req.headers['user-agent']);
+      
+      // Redirect to original URL
+      res.redirect(url as string);
+    } catch (error) {
+      console.error("Error tracking email click:", error);
+      res.status(500).json({ message: "Failed to track click" });
+    }
+  });
+
+  // Enhanced delivery webhook (replacing simple one)
+  app.post('/api/email/delivery-webhook/enhanced', async (req: any, res) => {
+    try {
+      const events = Array.isArray(req.body) ? req.body : [req.body];
+      
+      const { EmailDeliveryService } = await import('./services/emailDeliveryService.js');
+      const deliveryService = new EmailDeliveryService();
+
+      for (const event of events) {
+        await deliveryService.processDeliveryWebhook(event);
+      }
+
+      res.status(200).json({ 
+        success: true, 
+        processed: events.length 
+      });
+    } catch (error) {
+      console.error("Error processing enhanced delivery webhook:", error);
+      res.status(500).json({ message: "Failed to process delivery webhook" });
+    }
+  });
+
+  // Sync read status across clients
+  app.post('/api/email/messages/:messageId/sync-status', isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const { isRead, isStarred, isImportant } = req.body;
+
+      const { EmailDeliveryService } = await import('./services/emailDeliveryService.js');
+      const deliveryService = new EmailDeliveryService();
+      
+      await deliveryService.syncMessageStatus(messageId, {
+        isRead,
+        isStarred,
+        isImportant
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error syncing message status:", error);
+      res.status(500).json({ message: "Failed to sync message status" });
+    }
+  });
+
   // Mark email as read/unread
   app.post('/api/email/messages/:messageId/read', isAuthenticated, async (req: any, res) => {
     try {
