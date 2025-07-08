@@ -24,7 +24,7 @@ import {
   Users,
   FileText,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,6 +67,7 @@ interface EmailSidebarProps {
   hasPersonalAccount?: boolean;
   isAdmin?: boolean;
   onSettings?: () => void;
+  user?: { firstName?: string; lastName?: string; } | null;
 }
 
 export function EmailSidebar({
@@ -85,6 +86,7 @@ export function EmailSidebar({
   hasPersonalAccount = false,
   isAdmin = false,
   onSettings,
+  user,
 }: EmailSidebarProps) {
 
   const folders = [
@@ -96,9 +98,31 @@ export function EmailSidebar({
   ];
 
   const [showEditAccount, setShowEditAccount] = useState(false);
-  const [editDisplayName, setEditDisplayName] = useState(selectedAccount?.displayName || '');
+  
+  // Create placeholder text from user's name
+  const getUserNamePlaceholder = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    } else if (user?.firstName) {
+      return user.firstName;
+    } else if (user?.lastName) {
+      return user.lastName;
+    }
+    return "Your display name";
+  };
+
+  // Initialize with existing display name or user's actual name as fallback
+  const [editDisplayName, setEditDisplayName] = useState(
+    selectedAccount?.displayName || getUserNamePlaceholder()
+  );
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Update editDisplayName when selectedAccount changes
+  useEffect(() => {
+    setEditDisplayName(selectedAccount?.displayName || getUserNamePlaceholder());
+  }, [selectedAccount?.displayName, user?.firstName, user?.lastName]);
 
   // Mutation for updating account display name
   const updateAccountMutation = useMutation({
@@ -326,7 +350,7 @@ export function EmailSidebar({
                 id="displayName"
                 value={editDisplayName}
                 onChange={(e) => setEditDisplayName(e.target.value)}
-                placeholder="Your display name"
+                placeholder={getUserNamePlaceholder()}
                 className="w-full"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !updateAccountMutation.isPending) {

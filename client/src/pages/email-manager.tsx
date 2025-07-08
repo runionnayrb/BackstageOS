@@ -67,7 +67,6 @@ export default function EmailManager() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeFolder, setActiveFolder] = useState("inbox");
   const [showEditAccount, setShowEditAccount] = useState(false);
-  const [editDisplayName, setEditDisplayName] = useState('');
   const [showTheaterFeatures, setShowTheaterFeatures] = useState(false);
   const [showGroupManager, setShowGroupManager] = useState(false);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
@@ -459,6 +458,7 @@ export default function EmailManager() {
             hasPersonalAccount={hasPersonalAccount}
             isAdmin={user?.isAdmin || false}
             onSettings={() => setShowEditAccount(true)}
+            user={user}
           />
         </div>
 
@@ -650,46 +650,7 @@ export default function EmailManager() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Account Dialog */}
-      <Dialog open={showEditAccount} onOpenChange={setShowEditAccount}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Account Display Name</DialogTitle>
-            <DialogDescription>
-              Change how your name appears in sent emails.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="editDisplayName">Display Name</Label>
-              <Input
-                id="editDisplayName"
-                value={editDisplayName}
-                onChange={(e) => setEditDisplayName(e.target.value)}
-                placeholder="Enter display name"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => setShowEditAccount(false)}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              onClick={() => {
-                // TODO: Implement edit account functionality
-                setShowEditAccount(false);
-              }}
-            >
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Group Manager Dialog */}
       <Dialog open={showGroupManager} onOpenChange={setShowGroupManager}>
