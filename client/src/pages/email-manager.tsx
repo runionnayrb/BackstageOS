@@ -175,24 +175,25 @@ export default function EmailManager() {
         <div className="md:hidden fixed top-16 left-0 bottom-0 w-80 z-50 bg-white border-r border-gray-200 shadow-lg overflow-hidden">
           {/* Mobile Menu Panel */}
           <div className="w-full bg-white p-4 space-y-4 h-full overflow-y-auto">
-              {/* Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Email</h2>
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2"
-                >
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-              
-              {/* Account Selector */}
-              <div className="mb-4">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900">Email</h2>
+              <Button 
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+            
+            {/* Account Selector */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="w-full justify-between">
+                    <Button variant="outline" className="flex-1 justify-between mr-2">
                       <div className="flex items-center space-x-2">
                         <div className="text-left">
                           <div className="font-medium text-sm">
@@ -217,24 +218,9 @@ export default function EmailManager() {
                           }}
                           className={selectedAccount?.id === account.id ? 'bg-blue-50' : ''}
                         >
-                          <div className="flex items-center justify-between w-full">
-                            <div>
-                              <div className="font-medium">{account.displayName}</div>
-                              <div className="text-xs text-gray-500">{account.emailAddress}</div>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedAccount(account);
-                                setEditDisplayName(account.displayName);
-                                setShowEditAccount(true);
-                              }}
-                              className="p-1 h-6 w-6"
-                            >
-                              <Edit className="w-3 h-3" />
-                            </Button>
+                          <div className="w-full">
+                            <div className="font-medium">{account.displayName}</div>
+                            <div className="text-xs text-gray-500">{account.emailAddress}</div>
                           </div>
                         </DropdownMenuItem>
                       ))
@@ -243,75 +229,89 @@ export default function EmailManager() {
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
+                
+                {/* Edit Button */}
+                {selectedAccount && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditDisplayName(selectedAccount.displayName);
+                      setShowEditAccount(true);
+                    }}
+                    className="p-2 h-auto"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
+            </div>
 
               {/* Compose Button */}
-              <div className="mb-4">
-                <Button 
+            <div className="mb-4">
+              <Button 
+                onClick={() => {
+                  setShowCompose(true);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Compose
+              </Button>
+            </div>
+
+            {/* Folders Section */}
+            <div className="space-y-1">
+              {folders.map((folder) => (
+                <button
+                  key={folder.id}
                   onClick={() => {
-                    setShowCompose(true);
+                    setActiveFolder(folder.id);
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full"
+                  className={cn(
+                    "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
+                    activeFolder === folder.id
+                      ? 'bg-blue-50 text-blue-600'
+                      : 'hover:bg-gray-50 text-gray-700'
+                  )}
                 >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Compose
-                </Button>
-              </div>
-
-              {/* Folders Section */}
+                  <div className="flex items-center space-x-2">
+                    <folder.icon className="w-4 h-4" />
+                    <span>{folder.name}</span>
+                  </div>
+                  {folder.count > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {folder.count}
+                    </Badge>
+                  )}
+                </button>
+              ))}
+            </div>
+            
+            {/* Theater Tools Section */}
+            <div className="border-t border-gray-200 pt-4">
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Theater Tools</h3>
               <div className="space-y-1">
-                {folders.map((folder) => (
-                  <button
-                    key={folder.id}
-                    onClick={() => {
-                      setActiveFolder(folder.id);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className={cn(
-                      "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
-                      activeFolder === folder.id
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'hover:bg-gray-50 text-gray-700'
-                    )}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <folder.icon className="w-4 h-4" />
-                      <span>{folder.name}</span>
-                    </div>
-                    {folder.count > 0 && (
-                      <Badge variant="secondary" className="text-xs">
-                        {folder.count}
-                      </Badge>
-                    )}
-                  </button>
-                ))}
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Group Emailing</span>
+                </button>
+                <button
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Theater Templates</span>
+                </button>
               </div>
-              
-              {/* Theater Tools Section */}
-              <div className="border-t border-gray-200 pt-4">
-                <h3 className="text-sm font-medium text-gray-900 mb-3">Theater Tools</h3>
-                <div className="space-y-1">
-                  <button
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
-                  >
-                    <Users className="w-4 h-4" />
-                    <span>Group Emailing</span>
-                  </button>
-                  <button
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
-                  >
-                    <FileText className="w-4 h-4" />
-                    <span>Theater Templates</span>
-                  </button>
-                </div>
-              </div>
-
-
             </div>
           </div>
+        </div>
         )}
 
         {/* Desktop Sidebar */}
