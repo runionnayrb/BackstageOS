@@ -30,6 +30,7 @@ import {
   resolutionRecords,
   errorResolutionStatus,
   reportNotes,
+  emailGroups,
 
   type User,
   type UpsertUser,
@@ -87,6 +88,8 @@ import {
   type InsertSeoSettings,
   type ReportNote,
   type InsertReportNote,
+  type EmailGroup,
+  type InsertEmailGroup,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -162,6 +165,13 @@ export interface IStorage {
   updateReportNote(id: number, note: Partial<InsertReportNote>): Promise<ReportNote>;
   deleteReportNote(id: number): Promise<void>;
   reorderReportNotes(notes: { id: number; noteOrder: number }[]): Promise<void>;
+
+  // Email groups operations
+  getEmailGroups(userId: string): Promise<EmailGroup[]>;
+  getEmailGroupById(id: number): Promise<EmailGroup | undefined>;
+  createEmailGroup(group: InsertEmailGroup): Promise<EmailGroup>;
+  updateEmailGroup(id: number, group: Partial<InsertEmailGroup>): Promise<EmailGroup>;
+  deleteEmailGroup(id: number): Promise<boolean>;
 
   // Show document operations
   getShowDocumentsByProjectId(projectId: number): Promise<ShowDocument[]>;
@@ -475,6 +485,34 @@ export class DatabaseStorage implements IStorage {
         .set({ noteOrder: note.noteOrder })
         .where(eq(reportNotes.id, note.id));
     }
+  }
+
+  // Email groups operations
+  async getEmailGroups(userId: string): Promise<EmailGroup[]> {
+    const result = await db.select().from(emailGroups)
+      .where(eq(emailGroups.userId, parseInt(userId)))
+      .orderBy(emailGroups.name);
+    return result;
+  }
+
+  async getEmailGroupById(id: number): Promise<EmailGroup | undefined> {
+    const result = await db.select().from(emailGroups).where(eq(emailGroups.id, id));
+    return result[0];
+  }
+
+  async createEmailGroup(group: InsertEmailGroup): Promise<EmailGroup> {
+    const result = await db.insert(emailGroups).values(group).returning();
+    return result[0];
+  }
+
+  async updateEmailGroup(id: number, group: Partial<InsertEmailGroup>): Promise<EmailGroup> {
+    const result = await db.update(emailGroups).set(group).where(eq(emailGroups.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteEmailGroup(id: number): Promise<boolean> {
+    const result = await db.delete(emailGroups).where(eq(emailGroups.id, id));
+    return result.count > 0;
   }
 
   async getShowDocumentsByProjectId(projectId: number): Promise<ShowDocument[]> {

@@ -5460,6 +5460,86 @@ Respond with valid JSON only.`;
     }
   });
 
+  // ========== EMAIL GROUPS ENDPOINTS ==========
+
+  // Get user's email groups
+  app.get('/api/email/groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const groups = await storage.getEmailGroups(req.user.id);
+      res.json(groups);
+    } catch (error) {
+      console.error("Error fetching email groups:", error);
+      res.status(500).json({ message: "Failed to fetch email groups" });
+    }
+  });
+
+  // Create new email group
+  app.post('/api/email/groups', isAuthenticated, async (req: any, res) => {
+    try {
+      const groupData = {
+        ...req.body,
+        userId: req.user.id,
+        memberCount: req.body.memberIds ? req.body.memberIds.length : 0,
+      };
+
+      const group = await storage.createEmailGroup(groupData);
+      res.status(201).json(group);
+    } catch (error) {
+      console.error("Error creating email group:", error);
+      res.status(500).json({ message: "Failed to create email group" });
+    }
+  });
+
+  // Update email group
+  app.put('/api/email/groups/:groupId', isAuthenticated, async (req: any, res) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const updateData = {
+        ...req.body,
+        memberCount: req.body.memberIds ? req.body.memberIds.length : undefined,
+      };
+
+      const group = await storage.updateEmailGroup(groupId, updateData);
+      if (!group) {
+        return res.status(404).json({ message: "Email group not found" });
+      }
+      res.json(group);
+    } catch (error) {
+      console.error("Error updating email group:", error);
+      res.status(500).json({ message: "Failed to update email group" });
+    }
+  });
+
+  // Delete email group
+  app.delete('/api/email/groups/:groupId', isAuthenticated, async (req: any, res) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const success = await storage.deleteEmailGroup(groupId);
+      if (!success) {
+        return res.status(404).json({ message: "Email group not found" });
+      }
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting email group:", error);
+      res.status(500).json({ message: "Failed to delete email group" });
+    }
+  });
+
+  // Get email group by ID
+  app.get('/api/email/groups/:groupId', isAuthenticated, async (req: any, res) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const group = await storage.getEmailGroupById(groupId);
+      if (!group) {
+        return res.status(404).json({ message: "Email group not found" });
+      }
+      res.json(group);
+    } catch (error) {
+      console.error("Error fetching email group:", error);
+      res.status(500).json({ message: "Failed to fetch email group" });
+    }
+  });
+
   // Get email threads for an account
   app.get('/api/email/accounts/:accountId/threads', isAuthenticated, async (req: any, res) => {
     try {

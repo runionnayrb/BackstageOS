@@ -576,6 +576,21 @@ export const emailFolders = pgTable("email_folders", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Email groups for organizing contacts into mailing lists
+export const emailGroups = pgTable("email_groups", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  color: varchar("color").default("#3b82f6"),
+  memberIds: integer("member_ids").array().default([]),
+  memberCount: integer("member_count").default(0),
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Email attachments handling
 export const emailAttachments = pgTable("email_attachments", {
   id: serial("id").primaryKey(),
@@ -1314,6 +1329,17 @@ export const emailSignaturesRelations = relations(emailSignatures, ({ one }) => 
   }),
 }));
 
+export const emailGroupsRelations = relations(emailGroups, ({ one }) => ({
+  user: one(users, {
+    fields: [emailGroups.userId],
+    references: [users.id],
+  }),
+  project: one(projects, {
+    fields: [emailGroups.projectId],
+    references: [projects.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users); // TODO: Fix omit type issue later
 
@@ -1814,6 +1840,12 @@ export const insertEmailQueueSchema = createInsertSchema(emailQueue).omit({
   updatedAt: true,
 });
 
+export const insertEmailGroupSchema = createInsertSchema(emailGroups).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Email System Types
 export type EmailAccount = typeof emailAccounts.$inferSelect;
 export type InsertEmailAccount = z.infer<typeof insertEmailAccountSchema>;
@@ -1835,3 +1867,5 @@ export type EmailSyncJob = typeof emailSyncJobs.$inferSelect;
 export type InsertEmailSyncJob = z.infer<typeof insertEmailSyncJobSchema>;
 export type EmailQueueItem = typeof emailQueue.$inferSelect;
 export type InsertEmailQueueItem = z.infer<typeof insertEmailQueueSchema>;
+export type EmailGroup = typeof emailGroups.$inferSelect;
+export type InsertEmailGroup = z.infer<typeof insertEmailGroupSchema>;

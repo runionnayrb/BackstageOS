@@ -13,6 +13,7 @@ import { EmailSidebar } from "@/components/email/email-sidebar";
 import { EmailInterface } from "@/components/email/email-interface-clean";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 import {
   Mail,
   Plus,
@@ -29,6 +30,7 @@ import {
   ChevronDown,
   Theater,
   Settings,
+  ArrowLeft,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -69,7 +71,10 @@ export default function EmailManager() {
   const [showTheaterFeatures, setShowTheaterFeatures] = useState(false);
   const [showGroupManager, setShowGroupManager] = useState(false);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<any>(null);
+  const [showGroupDetails, setShowGroupDetails] = useState(false);
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Fetch email accounts
   const { data: emailAccounts, isLoading: accountsLoading, error: accountsError } = useQuery({
@@ -83,6 +88,18 @@ export default function EmailManager() {
     enabled: !!selectedAccount?.id,
   });
 
+  // Email groups data
+  const { data: emailGroups = [] } = useQuery({
+    queryKey: ['/api/email/groups'],
+    queryFn: () => apiRequest('/api/email/groups'),
+  });
+
+  // Contacts data for group management
+  const { data: contacts = [] } = useQuery({
+    queryKey: ['/api/contacts'],
+    queryFn: () => apiRequest('/api/contacts'),
+  });
+
   // Set default account when accounts load
   useEffect(() => {
     if (emailAccounts && Array.isArray(emailAccounts) && (emailAccounts as EmailAccount[]).length > 0 && !selectedAccount) {
@@ -94,6 +111,14 @@ export default function EmailManager() {
       }
     }
   }, [emailAccounts, selectedAccount]);
+
+  // Handle group selection for details view
+  useEffect(() => {
+    if (selectedGroup) {
+      setShowGroupDetails(true);
+      setShowGroupManager(false);
+    }
+  }, [selectedGroup]);
 
   // Create account mutation
   const createAccountMutation = useMutation({
@@ -119,6 +144,25 @@ export default function EmailManager() {
       queryClient.invalidateQueries({ queryKey: ['/api/email/accounts'] });
       setSelectedAccount(newAccount);
       setIsCreateDialogOpen(false);
+    },
+  });
+
+  // Delete group mutation
+  const deleteGroupMutation = useMutation({
+    mutationFn: (groupId: number) => apiRequest('DELETE', `/api/email/groups/${groupId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/email/groups'] });
+      toast({
+        title: "Group deleted",
+        description: "Email group has been deleted successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete group. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -591,30 +635,22 @@ export default function EmailManager() {
             </div>
             
             <div className="space-y-2">
-              {[
-                { name: 'All Team', count: 6, description: 'Cast, crew, and creative team', emails: ['cast@show.com', 'crew@show.com', 'creative@show.com'] },
-                { name: 'Cast Only', count: 3, description: 'Actors and performers', emails: ['actor1@show.com', 'actor2@show.com', 'actor3@show.com'] },
-                { name: 'Crew Only', count: 2, description: 'Technical crew members', emails: ['technician1@show.com', 'technician2@show.com'] },
-                { name: 'Creative Team', count: 2, description: 'Director and designers', emails: ['director@show.com', 'designer@show.com'] }
-              ].map((group, index) => (
+              {emailGroups.map((group) => (
                 <div 
-                  key={index}
-                  onClick={() => {/* Open group details */}}
+                  key={group.id}
+                  onClick={() => setSelectedGroup(group)}
                   className="p-4 hover:bg-gray-50 cursor-pointer transition-colors rounded-lg"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <Users className="h-5 w-5 text-gray-500" />
-                      <div>
-                        <h4 className="font-medium">{group.name}</h4>
-                        <p className="text-sm text-gray-600">{group.description}</p>
-                      </div>
+                    <div>
+                      <h4 className="font-medium">{group.name}</h4>
+                      <p className="text-sm text-gray-600">{group.description}</p>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <span className="text-sm text-purple-600 font-medium">{group.count} people</span>
+                      <span className="text-sm text-purple-600 font-medium">{group.memberCount || 0} people</span>
                       <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700" onClick={(e) => {
                         e.stopPropagation();
-                        /* Delete group logic */
+                        deleteGroupMutation.mutate(group.id);
                       }}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -680,6 +716,118 @@ export default function EmailManager() {
                 </Card>
               ))}
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Group Details Dialog */}
+      <Dialog open={showGroupDetails} onOpenChange={(open) => {
+        setShowGroupDetails(open);
+        if (!open) {
+          setSelectedGroup(null);
+        }
+      }}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>{selectedGroup?.name} Members</span>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setShowGroupDetails(false);
+                  setShowGroupManager(true);
+                  setSelectedGroup(null);
+                }}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Groups
+              </Button>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Manage members for {selectedGroup?.name}
+              </p>
+              <Button size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Member
+              </Button>
+            </div>
+
+            {/* Group Members List */}
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {contacts?.filter(contact => 
+                selectedGroup?.memberIds?.includes(contact.id)
+              ).map((member) => (
+                <div 
+                  key={member.id}
+                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                      <span className="text-sm font-medium text-blue-600">
+                        {member.firstName?.[0]}{member.lastName?.[0]}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium">{member.firstName} {member.lastName}</p>
+                      <p className="text-sm text-gray-600">{member.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              
+              {(!contacts || contacts.filter(contact => 
+                selectedGroup?.memberIds?.includes(contact.id)
+              ).length === 0) && (
+                <div className="text-center py-8 text-gray-500">
+                  <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>No members in this group yet</p>
+                  <p className="text-sm">Click "Add Member" to get started</p>
+                </div>
+              )}
+            </div>
+
+            {/* Available Contacts to Add */}
+            {contacts?.filter(contact => 
+              !selectedGroup?.memberIds?.includes(contact.id)
+            ).length > 0 && (
+              <div className="border-t pt-4">
+                <p className="text-sm font-medium text-gray-700 mb-3">Available Contacts</p>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {contacts.filter(contact => 
+                    !selectedGroup?.memberIds?.includes(contact.id)
+                  ).map((contact) => (
+                    <div 
+                      key={contact.id}
+                      className="flex items-center justify-between p-2 border border-gray-200 rounded-lg hover:bg-gray-50"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
+                          <span className="text-xs font-medium text-gray-600">
+                            {contact.firstName?.[0]}{contact.lastName?.[0]}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{contact.firstName} {contact.lastName}</p>
+                          <p className="text-xs text-gray-600">{contact.email}</p>
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline">
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
