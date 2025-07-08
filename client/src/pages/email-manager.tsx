@@ -382,14 +382,7 @@ export default function EmailManager() {
                   </Select>
                 )}
 
-                {/* Compose Button */}
-                <Button 
-                  onClick={() => setShowCompose(true)}
-                  className="w-full flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Compose
-                </Button>
+
               </div>
             )}
           </div>
