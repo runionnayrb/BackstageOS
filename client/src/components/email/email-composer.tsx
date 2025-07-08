@@ -234,7 +234,7 @@ export function EmailComposer({
     console.log('🔍 sheetRef.current exists:', !!sheetRef.current);
 
     const handleElement = sheetRef.current?.querySelector('.handle-area');
-    console.log('🔍 Looking for handle element:', handleElement);
+    console.log('🔍 Looking for handle element:', !!handleElement);
     if (!handleElement) {
       console.log('❌ Handle element not found!');
       return;
