@@ -315,6 +315,7 @@ export function EmailSidebar({
           size="sm" 
           className="w-full justify-start"
           onClick={() => setShowEditAccount(true)}
+          data-settings-trigger
         >
           <Settings className="h-4 w-4 mr-2" />
           Settings
