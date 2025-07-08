@@ -66,7 +66,6 @@ interface EmailSidebarProps {
   onTheaterTemplates?: () => void;
   hasPersonalAccount?: boolean;
   isAdmin?: boolean;
-  onSettings?: () => void;
   user?: { firstName?: string; lastName?: string; } | null;
 }
 
@@ -315,7 +314,7 @@ export function EmailSidebar({
           variant="ghost" 
           size="sm" 
           className="w-full justify-start"
-          onClick={() => onSettings?.()}
+          onClick={() => setShowEditAccount(true)}
         >
           <Settings className="h-4 w-4 mr-2" />
           Settings

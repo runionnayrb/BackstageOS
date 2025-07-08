@@ -66,7 +66,6 @@ export default function EmailManager() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeFolder, setActiveFolder] = useState("inbox");
-  const [showEditAccount, setShowEditAccount] = useState(false);
   const [showTheaterFeatures, setShowTheaterFeatures] = useState(false);
   const [showGroupManager, setShowGroupManager] = useState(false);
   const [showTemplateManager, setShowTemplateManager] = useState(false);
@@ -457,7 +456,6 @@ export default function EmailManager() {
             onTheaterTemplates={() => setShowTemplateManager(true)}
             hasPersonalAccount={hasPersonalAccount}
             isAdmin={user?.isAdmin || false}
-            onSettings={() => setShowEditAccount(true)}
             user={user}
           />
         </div>
