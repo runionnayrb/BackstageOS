@@ -298,7 +298,6 @@ export default function EmailManager() {
             
             {/* Theater Tools Section */}
             <div className="border-t border-gray-200 pt-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Theater Tools</h3>
               <div className="space-y-1">
                 <button
                   onClick={() => {

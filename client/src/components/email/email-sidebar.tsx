@@ -252,10 +252,6 @@ export function EmailSidebar({
 
         {/* Theater Features Section */}
         <div className="mt-6 px-4">
-          <div className="flex items-center mb-3">
-            <Theater className="h-4 w-4 mr-2 text-blue-600" />
-            <span className="text-sm font-medium text-gray-700">Theater Tools</span>
-          </div>
           <div className="space-y-1">
             <Button
               variant="ghost"
