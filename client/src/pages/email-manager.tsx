@@ -193,7 +193,7 @@ export default function EmailManager() {
               <div className="flex items-center justify-between mb-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="flex-1 justify-between mr-2">
+                    <Button variant="ghost" className="flex-1 justify-between mr-2 border-none">
                       <div className="flex items-center space-x-2">
                         <div className="text-left">
                           <div className="font-medium text-sm">
