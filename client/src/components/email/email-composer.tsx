@@ -231,7 +231,7 @@ export function EmailComposer({
     if (!isMobile || !isOpen) return;
     
     console.log('🔍 Setting up touch events, isMobile:', isMobile, 'isOpen:', isOpen);
-    console.log('🔍 sheetRef.current:', sheetRef.current);
+    console.log('🔍 sheetRef.current exists:', !!sheetRef.current);
 
     const handleElement = sheetRef.current?.querySelector('.handle-area');
     console.log('🔍 Looking for handle element:', handleElement);
