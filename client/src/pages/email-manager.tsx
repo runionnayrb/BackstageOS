@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmailSidebar } from "@/components/email/email-sidebar";
 import { EmailInterface } from "@/components/email/email-interface-clean";
 import { apiRequest } from "@/lib/queryClient";
+import { cn } from "@/lib/utils";
 import {
   Mail,
   Plus,
