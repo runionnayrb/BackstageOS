@@ -281,22 +281,42 @@ export function EmailSidebar({
 
       {/* Settings */}
       <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
-        <Button variant="ghost" size="sm" className="w-full justify-start">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full justify-start"
+          onClick={() => {
+            setEditDisplayName(selectedAccount?.displayName || '');
+            setShowEditAccount(true);
+          }}
+        >
           <Settings className="h-4 w-4 mr-2" />
           Settings
         </Button>
       </div>
 
-      {/* Edit Display Name Dialog */}
+      {/* Email Settings Dialog */}
       <Dialog open={showEditAccount} onOpenChange={setShowEditAccount}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Edit Display Name</DialogTitle>
+            <DialogTitle>Email Settings</DialogTitle>
             <DialogDescription>
-              Change how your name appears in emails you send from {selectedAccount?.emailAddress}
+              Manage your email account settings and preferences.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="emailAddress">Email Address</Label>
+              <Input
+                id="emailAddress"
+                value={selectedAccount?.emailAddress || ''}
+                readOnly
+                className="w-full bg-gray-50 cursor-not-allowed"
+              />
+              <p className="text-xs text-gray-500">
+                Email addresses cannot be changed after creation
+              </p>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="displayName">Display Name</Label>
               <Input
@@ -312,6 +332,9 @@ export function EmailSidebar({
                   }
                 }}
               />
+              <p className="text-xs text-gray-500">
+                This is how your name appears to recipients
+              </p>
             </div>
             <div className="flex justify-end space-x-2">
               <Button
