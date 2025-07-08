@@ -187,7 +187,7 @@ export default function EnhancedHeader() {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo and Navigation */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3">
             <div 
               className="text-xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
               onClick={() => setLocation('/')}

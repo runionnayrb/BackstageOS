@@ -474,7 +474,7 @@ export default function EmailManager() {
           <div className="px-2 md:px-4 lg:px-8 py-2 md:py-6">
           {/* Header - Mobile with hamburger left, search right */}
           <div className="border-b border-gray-200 pb-2 md:pb-4">
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-1.5 mb-4">
               {/* Mobile hamburger menu - left side */}
               <Button
                 variant="ghost"
