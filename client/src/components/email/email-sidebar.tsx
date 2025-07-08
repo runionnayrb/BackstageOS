@@ -62,6 +62,8 @@ interface EmailSidebarProps {
   accountStats?: EmailStats;
   activeFolder?: string;
   onFolderChange?: (folder: string) => void;
+  onTheaterGroupEmail?: () => void;
+  onTheaterTemplates?: () => void;
 }
 
 export function EmailSidebar({
@@ -75,6 +77,8 @@ export function EmailSidebar({
   accountStats,
   activeFolder = "inbox",
   onFolderChange,
+  onTheaterGroupEmail,
+  onTheaterTemplates,
 }: EmailSidebarProps) {
 
   const folders = [
@@ -257,9 +261,7 @@ export function EmailSidebar({
               variant="ghost"
               size="sm"
               onClick={() => {
-                // Open composer with theater features enabled
-                onCompose();
-                // Note: Could pass theater context here
+                onTheaterGroupEmail?.();
               }}
               className="w-full justify-start text-sm"
             >
@@ -270,8 +272,7 @@ export function EmailSidebar({
               variant="ghost"
               size="sm"
               onClick={() => {
-                // Open templates view
-                console.log('Theater templates clicked');
+                onTheaterTemplates?.();
               }}
               className="w-full justify-start text-sm"
             >

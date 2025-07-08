@@ -25,9 +25,11 @@ interface EmailInterfaceProps {
   showCompose?: boolean;
   onShowComposeChange?: (show: boolean) => void;
   activeFolder?: string;
+  showTheaterFeatures?: boolean;
+  onShowTheaterFeaturesChange?: (show: boolean) => void;
 }
 
-export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange, activeFolder = "inbox" }: EmailInterfaceProps) {
+export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange, activeFolder = "inbox", showTheaterFeatures, onShowTheaterFeaturesChange }: EmailInterfaceProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [modalEmail, setModalEmail] = useState<EmailMessage | null>(null);
@@ -315,9 +317,13 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       {showCompose && (
         <EmailComposer
           isOpen={showCompose}
-          onClose={() => onShowComposeChange?.(false)}
+          onClose={() => {
+            onShowComposeChange?.(false);
+            onShowTheaterFeaturesChange?.(false);
+          }}
           fromAccountId={selectedAccount.id}
           fromEmail={selectedAccount.emailAddress}
+          showTheaterFeatures={showTheaterFeatures}
         />
       )}
 

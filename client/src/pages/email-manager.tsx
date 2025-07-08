@@ -64,6 +64,7 @@ export default function EmailManager() {
   const [activeFolder, setActiveFolder] = useState("inbox");
   const [showEditAccount, setShowEditAccount] = useState(false);
   const [editDisplayName, setEditDisplayName] = useState('');
+  const [showTheaterFeatures, setShowTheaterFeatures] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch email accounts
@@ -296,14 +297,23 @@ export default function EmailManager() {
               <h3 className="text-sm font-medium text-gray-900 mb-3">Theater Tools</h3>
               <div className="space-y-1">
                 <button
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => {
+                    setShowCompose(true);
+                    setShowTheaterFeatures(true);
+                    setIsMobileMenuOpen(false);
+                  }}
                   className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
                 >
                   <Users className="w-4 h-4" />
                   <span>Group Emailing</span>
                 </button>
                 <button
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() => {
+                    // For now, open composer with theater features enabled
+                    setShowCompose(true);
+                    setShowTheaterFeatures(true);
+                    setIsMobileMenuOpen(false);
+                  }}
                   className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
                 >
                   <FileText className="w-4 h-4" />
@@ -328,6 +338,14 @@ export default function EmailManager() {
             accountStats={accountStats as EmailStats}
             activeFolder={activeFolder}
             onFolderChange={setActiveFolder}
+            onTheaterGroupEmail={() => {
+              setShowCompose(true);
+              setShowTheaterFeatures(true);
+            }}
+            onTheaterTemplates={() => {
+              setShowCompose(true);
+              setShowTheaterFeatures(true);
+            }}
           />
         </div>
 
@@ -434,6 +452,8 @@ export default function EmailManager() {
               showCompose={showCompose}
               onShowComposeChange={setShowCompose}
               activeFolder={activeFolder}
+              showTheaterFeatures={showTheaterFeatures}
+              onShowTheaterFeaturesChange={setShowTheaterFeatures}
             />
           ) : (
             <div className="flex justify-center items-center h-64">
