@@ -210,6 +210,13 @@ export default function EnhancedHeader() {
                   </div>
                   <DropdownMenuSeparator />
                   
+                  <DropdownMenuItem onClick={() => setLocation('/email')}>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Email
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  
                   <DropdownMenuItem onClick={() => setLocation('/')}>
                     <FolderOpen className="h-4 w-4 mr-2" />
                     All Shows
@@ -218,13 +225,6 @@ export default function EnhancedHeader() {
                   <DropdownMenuItem onClick={() => setLocation('/create-project')}>
                     <Plus className="h-4 w-4 mr-2" />
                     New Show
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuSeparator />
-                  
-                  <DropdownMenuItem onClick={() => setLocation('/email')}>
-                    <Mail className="h-4 w-4 mr-2" />
-                    Email Manager
                   </DropdownMenuItem>
                   
                   <DropdownMenuSeparator />
