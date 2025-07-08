@@ -247,19 +247,7 @@ export default function EmailManager() {
               </div>
             </div>
 
-              {/* Compose Button */}
-            <div className="mb-4">
-              <Button 
-                onClick={() => {
-                  setShowCompose(true);
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Compose
-              </Button>
-            </div>
+  
 
             {/* Folders Section */}
             <div className="space-y-1">
