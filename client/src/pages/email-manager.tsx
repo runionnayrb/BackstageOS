@@ -167,7 +167,6 @@ export default function EmailManager() {
               
               {/* Email Accounts Section */}
               <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-3">Email Accounts</h3>
                 <div className="space-y-2">
                   {emailAccounts && Array.isArray(emailAccounts) && (emailAccounts as EmailAccount[]).length > 0 ? (
                     (emailAccounts as EmailAccount[]).map((account) => (
