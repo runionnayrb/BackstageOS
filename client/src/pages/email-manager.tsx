@@ -167,9 +167,179 @@ export default function EmailManager() {
       <div 
         className={`transition-all duration-300 ease-in-out ${
           isSidebarCollapsed ? "md:ml-0" : "md:ml-64"
-        }`}
+        } relative`}
       >
-        <div className="px-2 md:px-4 lg:px-8 py-2 md:py-6">
+        {/* Mobile Navigation Panel - In-page like desktop */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden absolute top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-lg">
+            {/* Mobile Menu Panel */}
+            <div className="w-full bg-white p-4 space-y-4 max-h-96 overflow-y-auto">
+              {/* Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-gray-900">Navigation</h2>
+                <Button 
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="p-2"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+              
+              {/* Email Accounts Section */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-3">Email Accounts</h3>
+                <div className="space-y-2">
+                  {emailAccounts && Array.isArray(emailAccounts) && (emailAccounts as EmailAccount[]).length > 0 ? (
+                    (emailAccounts as EmailAccount[]).map((account) => (
+                      <button
+                        key={account.id}
+                        onClick={() => {
+                          setSelectedAccount(account);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`w-full text-left p-3 rounded-md hover:bg-gray-50 border ${
+                          selectedAccount?.id === account.id ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
+                        }`}
+                      >
+                        <div className="font-medium text-gray-900 truncate">
+                          {account.displayName}
+                        </div>
+                        <div className="text-sm text-gray-500 truncate">
+                          {account.emailAddress}
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-sm">No accounts available</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Create Account Button */}
+              <Button 
+                onClick={() => {
+                  setIsCreateDialogOpen(true);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Create Account
+              </Button>
+
+              {/* Compose Button */}
+              <Button 
+                onClick={() => {
+                  setShowCompose(true);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Compose
+              </Button>
+
+              {/* Navigation Folders */}
+              {selectedAccount && (
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-3">Folders</h3>
+                  <div className="space-y-1">
+                    <Button 
+                      variant={activeFolder === "inbox" ? "default" : "ghost"} 
+                      className="w-full justify-start text-left"
+                      onClick={() => {
+                        setActiveFolder("inbox");
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <Inbox className="w-4 h-4 mr-2" />
+                      Inbox
+                    </Button>
+                    <Button 
+                      variant={activeFolder === "sent" ? "default" : "ghost"} 
+                      className="w-full justify-start text-left"
+                      onClick={() => {
+                        setActiveFolder("sent");
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      Sent
+                    </Button>
+                    <Button 
+                      variant={activeFolder === "drafts" ? "default" : "ghost"} 
+                      className="w-full justify-start text-left"
+                      onClick={() => {
+                        setActiveFolder("drafts");
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Drafts
+                    </Button>
+                    <Button 
+                      variant={activeFolder === "archive" ? "default" : "ghost"} 
+                      className="w-full justify-start text-left"
+                      onClick={() => {
+                        setActiveFolder("archive");
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <Archive className="w-4 h-4 mr-2" />
+                      Archive
+                    </Button>
+                    <Button 
+                      variant={activeFolder === "trash" ? "default" : "ghost"} 
+                      className="w-full justify-start text-left"
+                      onClick={() => {
+                        setActiveFolder("trash");
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Trash
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Theater Tools Section */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-500 mb-3">Theater Tools</h3>
+                <div className="space-y-1">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-left"
+                    onClick={() => {
+                      // Open group email functionality
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Send to Groups
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full justify-start text-left"
+                    onClick={() => {
+                      // Open email templates functionality
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Email Templates
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className={`px-2 md:px-4 lg:px-8 py-2 md:py-6 transition-all duration-300 ${
+          isMobileMenuOpen ? 'mt-[400px] md:mt-0' : ''
+        }`}>
           {/* Header - Mobile with hamburger left, search right */}
           <div className="border-b border-gray-200 pb-2 md:pb-4">
             <div className="flex items-center gap-3 mb-4">
@@ -355,196 +525,6 @@ export default function EmailManager() {
         </DialogContent>
       </Dialog>
 
-      {/* Mobile Navigation Overlay */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black bg-opacity-50"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-          
-          {/* Mobile Menu Panel */}
-          <div className="absolute left-0 top-0 h-full w-80 max-w-[90vw] bg-white shadow-xl">
-            <div className="flex flex-col h-full">
-              {/* Header */}
-              <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Navigation</h2>
-                <Button 
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="p-2"
-                >
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-              
-              {/* Navigation Content */}
-              <div className="flex-1 p-4 space-y-4">
-                {/* Email Accounts Section */}
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">Email Accounts</h3>
-                  <div className="space-y-2">
-                    {emailAccounts && Array.isArray(emailAccounts) && (emailAccounts as EmailAccount[]).length > 0 ? (
-                      (emailAccounts as EmailAccount[]).map((account) => (
-                        <button
-                          key={account.id}
-                          onClick={() => {
-                            setSelectedAccount(account);
-                            setIsMobileMenuOpen(false);
-                          }}
-                          className={`w-full text-left p-3 rounded-md hover:bg-gray-50 border ${
-                            selectedAccount?.id === account.id ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
-                          }`}
-                        >
-                          <div className="font-medium text-gray-900 truncate">
-                            {account.displayName}
-                          </div>
-                          <div className="text-sm text-gray-500 truncate">
-                            {account.emailAddress}
-                          </div>
-                        </button>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 text-sm">No accounts available</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Create Account Button */}
-                <Button 
-                  onClick={() => {
-                    setIsCreateDialogOpen(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Create Account
-                </Button>
-
-                {/* Compose Button */}
-                <Button 
-                  onClick={() => {
-                    setShowCompose(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Compose
-                </Button>
-
-                {/* Navigation Folders */}
-                {selectedAccount && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500 mb-3">Folders</h3>
-                    <div className="space-y-1">
-                      <Button 
-                        variant={activeFolder === "inbox" ? "default" : "ghost"} 
-                        className="w-full justify-start text-left"
-                        onClick={() => {
-                          setActiveFolder("inbox");
-                          setIsMobileMenuOpen(false);
-                        }}
-                      >
-                        <Inbox className="w-4 h-4 mr-2" />
-                        Inbox
-                        {accountStats && (accountStats as any).unreadMessages > 0 && (
-                          <Badge variant="secondary" className="ml-auto text-xs">
-                            {(accountStats as any).unreadMessages}
-                          </Badge>
-                        )}
-                      </Button>
-                      <Button 
-                        variant={activeFolder === "sent" ? "default" : "ghost"} 
-                        className="w-full justify-start"
-                        onClick={() => {
-                          setActiveFolder("sent");
-                          setIsMobileMenuOpen(false);
-                        }}
-                      >
-                        <Send className="w-4 h-4 mr-2" />
-                        Sent
-                      </Button>
-                      <Button 
-                        variant={activeFolder === "drafts" ? "default" : "ghost"} 
-                        className="w-full justify-start"
-                        onClick={() => {
-                          setActiveFolder("drafts");
-                          setIsMobileMenuOpen(false);
-                        }}
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
-                        Drafts
-                        {accountStats && (accountStats as any).draftCount > 0 && (
-                          <Badge variant="secondary" className="ml-auto text-xs">
-                            {(accountStats as any).draftCount}
-                          </Badge>
-                        )}
-                      </Button>
-                      <Button 
-                        variant={activeFolder === "archive" ? "default" : "ghost"} 
-                        className="w-full justify-start"
-                        onClick={() => {
-                          setActiveFolder("archive");
-                          setIsMobileMenuOpen(false);
-                        }}
-                      >
-                        <Archive className="w-4 h-4 mr-2" />
-                        Archive
-                      </Button>
-                      <Button 
-                        variant={activeFolder === "trash" ? "default" : "ghost"} 
-                        className="w-full justify-start"
-                        onClick={() => {
-                          setActiveFolder("trash");
-                          setIsMobileMenuOpen(false);
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Trash
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Theater Tools Section */}
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">Theater Tools</h3>
-                  <div className="space-y-1">
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-start text-left"
-                      onClick={() => {
-                        setShowCompose(true);
-                        setIsMobileMenuOpen(false);
-                        // Could set theater mode context here
-                      }}
-                    >
-                      <Users className="w-4 h-4 mr-2" />
-                      Send to Groups
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-start"
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        console.log('Theater templates clicked');
-                        // Could navigate to templates view
-                      }}
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      Email Templates
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
