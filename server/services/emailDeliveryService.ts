@@ -1,4 +1,4 @@
-import { db } from '../storage.js';
+import { storage } from '../storage.js';
 import { 
   emailMessages, 
   emailQueue,
@@ -51,7 +51,7 @@ export class EmailDeliveryService {
     startDate?: Date,
     endDate?: Date
   ): Promise<DeliveryStats> {
-    const baseQuery = db
+    const baseQuery = storage.db
       .select({
         total: count(),
         delivered: sql<number>`COUNT(CASE WHEN ${emailMessages.dateSent} IS NOT NULL THEN 1 END)`,
@@ -108,7 +108,7 @@ export class EmailDeliveryService {
     offset: number = 0,
     bounceType?: string
   ): Promise<BounceReport[]> {
-    const query = db
+    const query = storage.db
       .select({
         messageId: emailMessages.id,
         subject: emailMessages.subject,
@@ -153,7 +153,7 @@ export class EmailDeliveryService {
   async trackEmailOpen(messageId: number, ip?: string, userAgent?: string): Promise<void> {
     try {
       // Mark message as read and log the open event
-      await db
+      await storage.db
         .update(emailMessages)
         .set({ 
           isRead: true,
@@ -173,7 +173,7 @@ export class EmailDeliveryService {
   async trackEmailClick(messageId: number, url: string, ip?: string, userAgent?: string): Promise<void> {
     try {
       // Update message to indicate it was clicked and log the click
-      await db
+      await storage.db
         .update(emailMessages)
         .set({ 
           priority: 'clicked', // Using priority field temporarily
@@ -200,7 +200,7 @@ export class EmailDeliveryService {
       const searchStart = new Date(eventDate.getTime() - 60000); // 1 minute before
       const searchEnd = new Date(eventDate.getTime() + 60000);   // 1 minute after
 
-      const messages = await db
+      const messages = await storage.db
         .select()
         .from(emailMessages)
         .where(
@@ -252,7 +252,7 @@ export class EmailDeliveryService {
       }
 
       if (Object.keys(updates).length > 0) {
-        await db
+        await storage.db
           .update(emailMessages)
           .set(updates)
           .where(eq(emailMessages.id, message.id));

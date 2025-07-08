@@ -20,6 +20,9 @@ import {
   Edit,
   Inbox,
   Clock,
+  Theater,
+  Users,
+  FileText,
 } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -241,6 +244,41 @@ export function EmailSidebar({
               </Button>
             );
           })}
+        </div>
+
+        {/* Theater Features Section */}
+        <div className="mt-6 px-4">
+          <div className="flex items-center mb-3">
+            <Theater className="h-4 w-4 mr-2 text-blue-600" />
+            <span className="text-sm font-medium text-gray-700">Theater Tools</span>
+          </div>
+          <div className="space-y-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                // Open composer with theater features enabled
+                onCompose();
+                // Note: Could pass theater context here
+              }}
+              className="w-full justify-start text-sm"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Send to Groups
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                // Open templates view
+                console.log('Theater templates clicked');
+              }}
+              className="w-full justify-start text-sm"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Email Templates
+            </Button>
+          </div>
         </div>
       </div>
 

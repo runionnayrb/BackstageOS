@@ -1,11 +1,11 @@
-import { db } from '../storage.js';
+import { storage } from '../storage.js';
 import { 
   emailMessages, 
   emailTemplates, 
   emailRules, 
   emailFolders,
   projects, 
-  contactPeople,
+  contacts,
   teamMembers,
   scheduleEvents,
   InsertEmailTemplate,
@@ -125,7 +125,7 @@ export class TheaterEmailService {
    * Create email template
    */
   async createEmailTemplate(templateData: InsertEmailTemplate): Promise<EmailTemplate> {
-    const [template] = await db
+    const [template] = await storage.db
       .insert(emailTemplates)
       .values(templateData)
       .returning();
@@ -496,7 +496,7 @@ Stage Manager`,
     const endDate = new Date(eventDate);
     endDate.setDate(endDate.getDate() + 3);
 
-    return await db
+    return await storage.db
       .select()
       .from(emailMessages)
       .where(

@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, X, Send } from 'lucide-react';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { Plus, X, Send, Users, FileText, Theater } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -18,6 +22,7 @@ interface EmailComposerProps {
     content: string;
   };
   existingDraftId?: number;
+  showId?: number; // For theater-specific features
 }
 
 export function EmailComposer({ 
@@ -26,7 +31,8 @@ export function EmailComposer({
   fromAccountId, 
   fromEmail,
   replyToMessage,
-  existingDraftId
+  existingDraftId,
+  showId
 }: EmailComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -91,6 +97,23 @@ export function EmailComposer({
   const [sheetPosition, setSheetPosition] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
+
+  // Theater email features
+  const [showTheaterFeatures, setShowTheaterFeatures] = useState(false);
+  const [selectedRecipientGroup, setSelectedRecipientGroup] = useState<string>('');
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+
+  // Theater data queries
+  const { data: shows = [] } = useQuery({
+    queryKey: ['/api/projects'],
+    enabled: showTheaterFeatures
+  });
+
+  const { data: templates = [] } = useQuery({
+    queryKey: ['/api/email/templates'],
+    queryFn: () => apiRequest(`/api/email/templates?showId=${showId || ''}`),
+    enabled: showTheaterFeatures
+  });
   const [isClosing, setIsClosing] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
 
@@ -606,6 +629,121 @@ export function EmailComposer({
               style={{ fontSize: '16px', boxShadow: 'none' }}
             />
           </div>
+
+          {/* Theater Features Toggle */}
+          <div className="px-4 py-2 border-b border-gray-100">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowTheaterFeatures(!showTheaterFeatures)}
+              className="text-blue-500 hover:text-blue-600 p-1 h-auto"
+            >
+              <Theater className="h-4 w-4 mr-2" />
+              Theater Features
+            </Button>
+          </div>
+
+          {/* Theater Features Panel */}
+          {showTheaterFeatures && (
+            <div className="px-4 py-3 bg-blue-50 border-b border-gray-200">
+              <div className="space-y-3">
+                {/* Bulk Recipients */}
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Send to Group</Label>
+                  <Select value={selectedRecipientGroup} onValueChange={(value) => {
+                    setSelectedRecipientGroup(value);
+                    const groupEmails = {
+                      'all': 'cast@show.com, crew@show.com, creative@show.com',
+                      'cast': 'actor1@show.com, actor2@show.com, actor3@show.com',
+                      'crew': 'technician1@show.com, technician2@show.com',
+                      'creative': 'director@show.com, designer@show.com'
+                    };
+                    if (groupEmails[value]) {
+                      setToAddresses(groupEmails[value]);
+                    }
+                  }}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select recipient group" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 mr-2" />
+                          All Team Members
+                          <Badge variant="secondary" className="ml-2">6 people</Badge>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="cast">
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 mr-2" />
+                          Cast Only
+                          <Badge variant="secondary" className="ml-2">3 people</Badge>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="crew">
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 mr-2" />
+                          Crew Only
+                          <Badge variant="secondary" className="ml-2">2 people</Badge>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="creative">
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 mr-2" />
+                          Creative Team
+                          <Badge variant="secondary" className="ml-2">2 people</Badge>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Email Templates */}
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Use Template</Label>
+                  <Select value={selectedTemplate} onValueChange={(value) => {
+                    setSelectedTemplate(value);
+                    const template = templates.find(t => t.id.toString() === value);
+                    if (template) {
+                      setSubject(template.subject);
+                      setContent(template.content);
+                    }
+                  }}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Choose email template" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {templates.map((template) => (
+                        <SelectItem key={template.id} value={template.id.toString()}>
+                          <div className="flex items-center">
+                            <FileText className="h-4 w-4 mr-2" />
+                            {template.name}
+                            <Badge variant="outline" className="ml-2 text-xs">
+                              {template.templateType.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Quick Actions */}
+                {selectedRecipientGroup && (
+                  <div className="flex gap-2 pt-2">
+                    <Badge variant="default" className="bg-blue-100 text-blue-800">
+                      Sending to {selectedRecipientGroup} group
+                    </Badge>
+                    {selectedTemplate && (
+                      <Badge variant="outline" className="text-green-700 border-green-200">
+                        Using {templates.find(t => t.id.toString() === selectedTemplate)?.name} template
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Message content */}

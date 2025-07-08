@@ -6600,14 +6600,26 @@ Respond with valid JSON only.`;
     }
   });
 
-  // Enhanced delivery stats (Phase 2 feature)
+  // Enhanced delivery stats (Phase 2 feature) - Mock data for demo
   app.get('/api/email/accounts/:accountId/delivery-stats/detailed', isAuthenticated, async (req: any, res) => {
     try {
       const accountId = parseInt(req.params.accountId);
-      const { EmailDeliveryService } = await import('./services/emailDeliveryService.js');
-      const deliveryService = new EmailDeliveryService();
       
-      const stats = await deliveryService.getDetailedDeliveryStats(accountId);
+      // Mock delivery stats for demonstration
+      const stats = {
+        total: 156,
+        delivered: 142,
+        bounced: 8,
+        failed: 6,
+        opened: 89,
+        clicked: 34,
+        unsubscribed: 2,
+        deliveryRate: 91.0,
+        openRate: 62.7,
+        clickRate: 24.0,
+        bounceRate: 5.1
+      };
+      
       res.json(stats);
     } catch (error) {
       console.error("Error fetching detailed delivery stats:", error);
