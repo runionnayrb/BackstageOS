@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { Plus, X, Send, Users, FileText, Theater } from 'lucide-react';
+import { Plus, X, Send, Users, FileText, Theater, Edit, Trash2, Settings, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -98,10 +101,15 @@ export function EmailComposer({
   const [isDragging, setIsDragging] = useState(false);
   const [startY, setStartY] = useState(0);
 
-  // Theater email features
-  const [showTheaterFeatures, setShowTheaterFeatures] = useState(false);
+  // Theater email features - always show if showId is available
+  const [showTheaterFeatures, setShowTheaterFeatures] = useState(true);
   const [selectedRecipientGroup, setSelectedRecipientGroup] = useState<string>('');
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [theaterTab, setTheaterTab] = useState('compose'); // compose, groups, templates
+  const [showGroupManager, setShowGroupManager] = useState(false);
+  const [showTemplateManager, setShowTemplateManager] = useState(false);
+  const [editingGroup, setEditingGroup] = useState<any>(null);
+  const [editingTemplate, setEditingTemplate] = useState<any>(null);
 
   // Theater data queries
   const { data: shows = [] } = useQuery({
@@ -646,102 +654,293 @@ export function EmailComposer({
           {/* Theater Features Panel */}
           {showTheaterFeatures && (
             <div className="px-4 py-3 bg-blue-50 border-b border-gray-200">
-              <div className="space-y-3">
-                {/* Bulk Recipients */}
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">Send to Group</Label>
-                  <Select value={selectedRecipientGroup} onValueChange={(value) => {
-                    setSelectedRecipientGroup(value);
-                    const groupEmails = {
-                      'all': 'cast@show.com, crew@show.com, creative@show.com',
-                      'cast': 'actor1@show.com, actor2@show.com, actor3@show.com',
-                      'crew': 'technician1@show.com, technician2@show.com',
-                      'creative': 'director@show.com, designer@show.com'
-                    };
-                    if (groupEmails[value]) {
-                      setToAddresses(groupEmails[value]);
-                    }
-                  }}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select recipient group" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-2" />
-                          All Team Members
-                          <Badge variant="secondary" className="ml-2">6 people</Badge>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="cast">
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-2" />
-                          Cast Only
-                          <Badge variant="secondary" className="ml-2">3 people</Badge>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="crew">
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-2" />
-                          Crew Only
-                          <Badge variant="secondary" className="ml-2">2 people</Badge>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="creative">
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-2" />
-                          Creative Team
-                          <Badge variant="secondary" className="ml-2">2 people</Badge>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Email Templates */}
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">Use Template</Label>
-                  <Select value={selectedTemplate} onValueChange={(value) => {
-                    setSelectedTemplate(value);
-                    const template = templates.find(t => t.id.toString() === value);
-                    if (template) {
-                      setSubject(template.subject);
-                      setContent(template.content);
-                    }
-                  }}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Choose email template" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {templates.map((template) => (
-                        <SelectItem key={template.id} value={template.id.toString()}>
+              <Tabs value={theaterTab} onValueChange={setTheaterTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="compose">Compose</TabsTrigger>
+                  <TabsTrigger value="groups">Groups</TabsTrigger>
+                  <TabsTrigger value="templates">Templates</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="compose" className="space-y-3 mt-3">
+                  {/* Bulk Recipients */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Send to Group</Label>
+                    <Select value={selectedRecipientGroup} onValueChange={(value) => {
+                      setSelectedRecipientGroup(value);
+                      const groupEmails = {
+                        'all': 'cast@show.com, crew@show.com, creative@show.com',
+                        'cast': 'actor1@show.com, actor2@show.com, actor3@show.com',
+                        'crew': 'technician1@show.com, technician2@show.com',
+                        'creative': 'director@show.com, designer@show.com'
+                      };
+                      if (groupEmails[value]) {
+                        setToAddresses(groupEmails[value]);
+                      }
+                    }}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select recipient group" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">
                           <div className="flex items-center">
-                            <FileText className="h-4 w-4 mr-2" />
-                            {template.name}
-                            <Badge variant="outline" className="ml-2 text-xs">
-                              {template.templateType.replace('_', ' ')}
-                            </Badge>
+                            <Users className="h-4 w-4 mr-2" />
+                            All Team Members
+                            <Badge variant="secondary" className="ml-2">6 people</Badge>
                           </div>
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Quick Actions */}
-                {selectedRecipientGroup && (
-                  <div className="flex gap-2 pt-2">
-                    <Badge variant="default" className="bg-blue-100 text-blue-800">
-                      Sending to {selectedRecipientGroup} group
-                    </Badge>
-                    {selectedTemplate && (
-                      <Badge variant="outline" className="text-green-700 border-green-200">
-                        Using {templates.find(t => t.id.toString() === selectedTemplate)?.name} template
-                      </Badge>
-                    )}
+                        <SelectItem value="cast">
+                          <div className="flex items-center">
+                            <Users className="h-4 w-4 mr-2" />
+                            Cast Only
+                            <Badge variant="secondary" className="ml-2">3 people</Badge>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="crew">
+                          <div className="flex items-center">
+                            <Users className="h-4 w-4 mr-2" />
+                            Crew Only
+                            <Badge variant="secondary" className="ml-2">2 people</Badge>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="creative">
+                          <div className="flex items-center">
+                            <Users className="h-4 w-4 mr-2" />
+                            Creative Team
+                            <Badge variant="secondary" className="ml-2">2 people</Badge>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
-              </div>
+
+                  {/* Email Templates */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">Use Template</Label>
+                    <Select value={selectedTemplate} onValueChange={(value) => {
+                      setSelectedTemplate(value);
+                      const template = templates.find(t => t.id.toString() === value);
+                      if (template) {
+                        setSubject(template.subject);
+                        setContent(template.content);
+                      }
+                    }}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Choose email template" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {templates.map((template) => (
+                          <SelectItem key={template.id} value={template.id.toString()}>
+                            <div className="flex items-center">
+                              <FileText className="h-4 w-4 mr-2" />
+                              {template.name}
+                              <Badge variant="outline" className="ml-2 text-xs">
+                                {template.templateType.replace('_', ' ')}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Quick Actions */}
+                  {selectedRecipientGroup && (
+                    <div className="flex gap-2 pt-2">
+                      <Badge variant="default" className="bg-blue-100 text-blue-800">
+                        Sending to {selectedRecipientGroup} group
+                      </Badge>
+                      {selectedTemplate && (
+                        <Badge variant="outline" className="text-green-700 border-green-200">
+                          Using {templates.find(t => t.id.toString() === selectedTemplate)?.name} template
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="groups" className="space-y-3 mt-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium text-gray-700">Manage Groups</Label>
+                    <Button size="sm" variant="outline" onClick={() => setEditingGroup({ name: '', emails: [], description: '' })}>
+                      <Plus className="h-4 w-4 mr-1" />
+                      New Group
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {/* Group list with edit/delete options */}
+                    {[
+                      { name: 'All Team', count: 6, description: 'Cast, crew, and creative team' },
+                      { name: 'Cast Only', count: 3, description: 'Actors and performers' },
+                      { name: 'Crew Only', count: 2, description: 'Technical crew members' },
+                      { name: 'Creative Team', count: 2, description: 'Director and designers' }
+                    ].map((group, index) => (
+                      <Card key={index} className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <Users className="h-4 w-4 text-gray-500" />
+                              <span className="font-medium text-sm">{group.name}</span>
+                              <Badge variant="secondary">{group.count} people</Badge>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">{group.description}</p>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Button size="sm" variant="ghost" onClick={() => setEditingGroup(group)}>
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="text-red-600">
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {/* Group Editor */}
+                  {editingGroup && (
+                    <Card className="p-4 border-blue-200 bg-blue-50">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-medium">
+                            {editingGroup.name ? 'Edit Group' : 'Create New Group'}
+                          </Label>
+                          <Button size="sm" variant="ghost" onClick={() => setEditingGroup(null)}>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Input 
+                            placeholder="Group name" 
+                            value={editingGroup.name} 
+                            onChange={(e) => setEditingGroup({...editingGroup, name: e.target.value})}
+                          />
+                          <Input 
+                            placeholder="Description" 
+                            value={editingGroup.description} 
+                            onChange={(e) => setEditingGroup({...editingGroup, description: e.target.value})}
+                          />
+                          <Textarea 
+                            placeholder="Email addresses (one per line)" 
+                            value={editingGroup.emails?.join('\n') || ''} 
+                            onChange={(e) => setEditingGroup({...editingGroup, emails: e.target.value.split('\n')})}
+                            rows={3}
+                          />
+                        </div>
+                        
+                        <div className="flex justify-end space-x-2">
+                          <Button size="sm" variant="outline" onClick={() => setEditingGroup(null)}>
+                            Cancel
+                          </Button>
+                          <Button size="sm">
+                            <Save className="h-4 w-4 mr-1" />
+                            Save Group
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="templates" className="space-y-3 mt-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-medium text-gray-700">Manage Templates</Label>
+                    <Button size="sm" variant="outline" onClick={() => setEditingTemplate({ name: '', subject: '', content: '', templateType: 'call_sheet' })}>
+                      <Plus className="h-4 w-4 mr-1" />
+                      New Template
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {/* Template list with edit/delete options */}
+                    {templates.map((template) => (
+                      <Card key={template.id} className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <FileText className="h-4 w-4 text-gray-500" />
+                              <span className="font-medium text-sm">{template.name}</span>
+                              <Badge variant="outline" className="text-xs">
+                                {template.templateType.replace('_', ' ')}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">{template.subject}</p>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Button size="sm" variant="ghost" onClick={() => setEditingTemplate(template)}>
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="text-red-600">
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {/* Template Editor */}
+                  {editingTemplate && (
+                    <Card className="p-4 border-blue-200 bg-blue-50">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm font-medium">
+                            {editingTemplate.id ? 'Edit Template' : 'Create New Template'}
+                          </Label>
+                          <Button size="sm" variant="ghost" onClick={() => setEditingTemplate(null)}>
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Input 
+                            placeholder="Template name" 
+                            value={editingTemplate.name} 
+                            onChange={(e) => setEditingTemplate({...editingTemplate, name: e.target.value})}
+                          />
+                          <Select 
+                            value={editingTemplate.templateType} 
+                            onValueChange={(value) => setEditingTemplate({...editingTemplate, templateType: value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Template type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="call_sheet">Call Sheet</SelectItem>
+                              <SelectItem value="rehearsal_report">Rehearsal Report</SelectItem>
+                              <SelectItem value="tech_notes">Tech Notes</SelectItem>
+                              <SelectItem value="general">General</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Input 
+                            placeholder="Subject line" 
+                            value={editingTemplate.subject} 
+                            onChange={(e) => setEditingTemplate({...editingTemplate, subject: e.target.value})}
+                          />
+                          <Textarea 
+                            placeholder="Email content" 
+                            value={editingTemplate.content} 
+                            onChange={(e) => setEditingTemplate({...editingTemplate, content: e.target.value})}
+                            rows={4}
+                          />
+                        </div>
+                        
+                        <div className="flex justify-end space-x-2">
+                          <Button size="sm" variant="outline" onClick={() => setEditingTemplate(null)}>
+                            Cancel
+                          </Button>
+                          <Button size="sm">
+                            <Save className="h-4 w-4 mr-1" />
+                            Save Template
+                          </Button>
+                        </div>
+                      </div>
+                    </Card>
+                  )}
+                </TabsContent>
+              </Tabs>
             </div>
           )}
         </div>

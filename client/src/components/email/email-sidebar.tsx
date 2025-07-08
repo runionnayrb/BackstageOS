@@ -266,7 +266,7 @@ export function EmailSidebar({
               className="w-full justify-start text-sm"
             >
               <Users className="h-4 w-4 mr-2" />
-              Send to Groups
+              Group Management
             </Button>
             <Button
               variant="ghost"
@@ -277,7 +277,7 @@ export function EmailSidebar({
               className="w-full justify-start text-sm"
             >
               <FileText className="h-4 w-4 mr-2" />
-              Email Templates
+              Template Management
             </Button>
           </div>
         </div>

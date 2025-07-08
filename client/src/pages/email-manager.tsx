@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { EmailSidebar } from "@/components/email/email-sidebar";
 import { EmailInterface } from "@/components/email/email-interface-clean";
@@ -65,6 +67,8 @@ export default function EmailManager() {
   const [showEditAccount, setShowEditAccount] = useState(false);
   const [editDisplayName, setEditDisplayName] = useState('');
   const [showTheaterFeatures, setShowTheaterFeatures] = useState(false);
+  const [showGroupManager, setShowGroupManager] = useState(false);
+  const [showTemplateManager, setShowTemplateManager] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch email accounts
@@ -298,20 +302,17 @@ export default function EmailManager() {
               <div className="space-y-1">
                 <button
                   onClick={() => {
-                    setShowCompose(true);
-                    setShowTheaterFeatures(true);
+                    setShowGroupManager(true);
                     setIsMobileMenuOpen(false);
                   }}
                   className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
                 >
                   <Users className="w-4 h-4" />
-                  <span>Group Emailing</span>
+                  <span>Group Management</span>
                 </button>
                 <button
                   onClick={() => {
-                    // For now, open composer with theater features enabled
-                    setShowCompose(true);
-                    setShowTheaterFeatures(true);
+                    setShowTemplateManager(true);
                     setIsMobileMenuOpen(false);
                   }}
                   className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
@@ -338,14 +339,8 @@ export default function EmailManager() {
             accountStats={accountStats as EmailStats}
             activeFolder={activeFolder}
             onFolderChange={setActiveFolder}
-            onTheaterGroupEmail={() => {
-              setShowCompose(true);
-              setShowTheaterFeatures(true);
-            }}
-            onTheaterTemplates={() => {
-              setShowCompose(true);
-              setShowTheaterFeatures(true);
-            }}
+            onTheaterGroupEmail={() => setShowGroupManager(true)}
+            onTheaterTemplates={() => setShowTemplateManager(true)}
           />
         </div>
 
@@ -575,6 +570,120 @@ export default function EmailManager() {
               Save Changes
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Group Manager Dialog */}
+      <Dialog open={showGroupManager} onOpenChange={setShowGroupManager}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Group Management</DialogTitle>
+            <DialogDescription>
+              Manage email groups for quick messaging to cast, crew, and creative teams.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Email Groups</h3>
+              <Button onClick={() => {/* Add new group logic */}}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Group
+              </Button>
+            </div>
+            
+            <div className="grid gap-4">
+              {[
+                { name: 'All Team', count: 6, description: 'Cast, crew, and creative team', emails: ['cast@show.com', 'crew@show.com', 'creative@show.com'] },
+                { name: 'Cast Only', count: 3, description: 'Actors and performers', emails: ['actor1@show.com', 'actor2@show.com', 'actor3@show.com'] },
+                { name: 'Crew Only', count: 2, description: 'Technical crew members', emails: ['technician1@show.com', 'technician2@show.com'] },
+                { name: 'Creative Team', count: 2, description: 'Director and designers', emails: ['director@show.com', 'designer@show.com'] }
+              ].map((group, index) => (
+                <Card key={index}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Users className="h-5 w-5 text-gray-500" />
+                          <h4 className="font-medium">{group.name}</h4>
+                          <Badge variant="secondary">{group.count} people</Badge>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{group.description}</p>
+                        <div className="text-xs text-gray-500">
+                          <strong>Members:</strong> {group.emails.join(', ')}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button size="sm" variant="outline">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Template Manager Dialog */}
+      <Dialog open={showTemplateManager} onOpenChange={setShowTemplateManager}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Template Management</DialogTitle>
+            <DialogDescription>
+              Create and manage email templates for common theater communications.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Email Templates</h3>
+              <Button onClick={() => {/* Add new template logic */}}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Template
+              </Button>
+            </div>
+            
+            <div className="grid gap-4">
+              {[
+                { name: 'Daily Call Sheet', type: 'call_sheet', subject: 'Call Sheet for {{date}}', preview: 'Today\'s schedule and important information...' },
+                { name: 'Rehearsal Report', type: 'rehearsal_report', subject: 'Rehearsal Report - {{date}}', preview: 'Summary of today\'s rehearsal progress...' },
+                { name: 'Tech Notes', type: 'tech_notes', subject: 'Tech Notes - {{date}}', preview: 'Technical notes and updates...' },
+                { name: 'General Update', type: 'general', subject: 'Production Update', preview: 'General production information...' }
+              ].map((template, index) => (
+                <Card key={index}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <FileText className="h-5 w-5 text-gray-500" />
+                          <h4 className="font-medium">{template.name}</h4>
+                          <Badge variant="outline" className="text-xs">
+                            {template.type.replace('_', ' ')}
+                          </Badge>
+                        </div>
+                        <p className="text-sm font-medium text-gray-700 mb-1">Subject: {template.subject}</p>
+                        <p className="text-sm text-gray-600">{template.preview}</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button size="sm" variant="outline">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="outline" className="text-red-600 hover:text-red-700">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
