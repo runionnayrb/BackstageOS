@@ -64,6 +64,8 @@ interface EmailSidebarProps {
   onFolderChange?: (folder: string) => void;
   onTheaterGroupEmail?: () => void;
   onTheaterTemplates?: () => void;
+  hasPersonalAccount?: boolean;
+  isAdmin?: boolean;
 }
 
 export function EmailSidebar({
@@ -79,6 +81,8 @@ export function EmailSidebar({
   onFolderChange,
   onTheaterGroupEmail,
   onTheaterTemplates,
+  hasPersonalAccount = false,
+  isAdmin = false,
 }: EmailSidebarProps) {
 
   const folders = [
@@ -208,7 +212,7 @@ export function EmailSidebar({
                     className="flex items-center space-x-2 p-3"
                   >
                     <Plus className="h-4 w-4" />
-                    <span className="text-sm">Add new account</span>
+                    <span className="text-sm">{hasPersonalAccount && !isAdmin ? "Add new team account" : "Add new account"}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

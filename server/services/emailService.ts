@@ -63,6 +63,9 @@ export class EmailService {
    * Create a new email account
    */
   async createEmailAccount(accountData: InsertEmailAccount): Promise<EmailAccount> {
+    // Check account limitations before creating
+    await this.validateAccountLimitations(accountData.userId, accountData.projectId, accountData.accountType);
+
     // Generate email address if not provided
     if (!accountData.emailAddress) {
       accountData.emailAddress = await this.generateEmailAddress(accountData);
@@ -80,6 +83,82 @@ export class EmailService {
     await this.createDefaultFolders(account.id);
 
     return account;
+  }
+
+  /**
+   * Validate account limitations (1 personal + 1 per show) - admins have unlimited access
+   */
+  private async validateAccountLimitations(userId: number, projectId: number | null, accountType: string): Promise<void> {
+    // Check if user is admin - admins can create unlimited accounts
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (user?.isAdmin) {
+      return; // Skip all limitations for admins
+    }
+
+    if (accountType === 'personal') {
+      // Check if user already has a personal account
+      const [existingPersonal] = await db
+        .select()
+        .from(emailAccounts)
+        .where(and(
+          eq(emailAccounts.userId, userId),
+          eq(emailAccounts.accountType, 'personal')
+        ))
+        .limit(1);
+
+      if (existingPersonal) {
+        throw new Error('You can only have one personal email account. Create a team account for shows instead.');
+      }
+    }
+
+    if (accountType === 'show' && projectId) {
+      // Check if project already has an email account
+      const [existingShow] = await db
+        .select()
+        .from(emailAccounts)
+        .where(and(
+          eq(emailAccounts.userId, userId),
+          eq(emailAccounts.projectId, projectId),
+          eq(emailAccounts.accountType, 'show')
+        ))
+        .limit(1);
+
+      if (existingShow) {
+        throw new Error('This show already has an email account. Each show can only have one email address.');
+      }
+    }
+  }
+
+  /**
+   * Check if user has a personal email account - admins can have multiple
+   */
+  async hasPersonalEmailAccount(userId: number): Promise<boolean> {
+    // Check if user is admin - admins can create unlimited accounts
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (user?.isAdmin) {
+      return false; // Always allow admins to create new accounts
+    }
+
+    const [existingPersonal] = await db
+      .select()
+      .from(emailAccounts)
+      .where(and(
+        eq(emailAccounts.userId, userId),
+        eq(emailAccounts.accountType, 'personal')
+      ))
+      .limit(1);
+
+    return !!existingPersonal;
   }
 
   /**

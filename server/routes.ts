@@ -5398,6 +5398,20 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Check if user has personal email account
+  app.get('/api/email/accounts/has-personal', isAuthenticated, async (req: any, res) => {
+    try {
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      const hasPersonal = await emailService.hasPersonalEmailAccount(req.user.id);
+      res.json({ hasPersonal });
+    } catch (error) {
+      console.error("Error checking personal email account:", error);
+      res.status(500).json({ message: "Failed to check personal email account" });
+    }
+  });
+
   // Create new email account
   app.post('/api/email/accounts', isAuthenticated, async (req: any, res) => {
     try {

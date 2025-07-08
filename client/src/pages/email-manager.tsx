@@ -87,6 +87,20 @@ export default function EmailManager() {
     enabled: true,
   });
 
+  // Check if user has personal account
+  const { data: hasPersonalData } = useQuery({
+    queryKey: ['/api/email/accounts/has-personal'],
+    enabled: true,
+  });
+
+  const hasPersonalAccount = hasPersonalData?.hasPersonal || false;
+
+  // Check current user info for admin status
+  const { data: user } = useQuery({
+    queryKey: ['/api/user'],
+    enabled: true,
+  });
+
   // Fetch account stats for selected account
   const { data: accountStats } = useQuery({
     queryKey: ['/api/email/stats', selectedAccount?.id],
@@ -331,7 +345,7 @@ export default function EmailManager() {
                           className="text-blue-600 font-medium"
                         >
                           <Plus className="w-4 h-4 mr-2" />
-                          New Account
+                          {hasPersonalAccount && !user?.isAdmin ? "New Team Account" : "New Account"}
                         </DropdownMenuItem>
                       </>
                     ) : (
@@ -432,6 +446,8 @@ export default function EmailManager() {
             onFolderChange={setActiveFolder}
             onTheaterGroupEmail={() => setShowGroupManager(true)}
             onTheaterTemplates={() => setShowTemplateManager(true)}
+            hasPersonalAccount={hasPersonalAccount}
+            isAdmin={user?.isAdmin || false}
           />
         </div>
 
