@@ -217,9 +217,24 @@ export default function EmailManager() {
                           }}
                           className={selectedAccount?.id === account.id ? 'bg-blue-50' : ''}
                         >
-                          <div className="w-full">
-                            <div className="font-medium">{account.displayName}</div>
-                            <div className="text-xs text-gray-500">{account.emailAddress}</div>
+                          <div className="flex items-center justify-between w-full">
+                            <div>
+                              <div className="font-medium">{account.displayName}</div>
+                              <div className="text-xs text-gray-500">{account.emailAddress}</div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedAccount(account);
+                                setEditDisplayName(account.displayName);
+                                setShowEditAccount(true);
+                              }}
+                              className="p-1 h-6 w-6"
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
                           </div>
                         </DropdownMenuItem>
                       ))
