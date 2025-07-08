@@ -147,41 +147,19 @@ export default function EmailManager() {
 
   return (
     <div className="w-full min-h-screen bg-white relative">
-      {/* Mobile: Hide Sidebar, Desktop: Show Sidebar */}
-      <div className="hidden md:block">
-        <EmailSidebar
-          emailAccounts={emailAccounts as EmailAccount[]}
-          selectedAccount={selectedAccount}
-          onAccountSelect={setSelectedAccount}
-          onCreateAccount={() => setIsCreateDialogOpen(true)}
-          onCompose={() => setShowCompose(true)}
-          isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          accountStats={accountStats as EmailStats}
-          activeFolder={activeFolder}
-          onFolderChange={setActiveFolder}
+      {/* Mobile Navigation Backdrop */}
+      {isMobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={() => setIsMobileMenuOpen(false)}
         />
-      </div>
+      )}
 
-      {/* Main Content - Mobile Full Width, Desktop With Sidebar */}
-      <div 
-        className={`transition-all duration-300 ease-in-out ${
-          isSidebarCollapsed ? "md:ml-0" : "md:ml-64"
-        } relative`}
-      >
-        {/* Mobile Navigation Backdrop */}
-        {isMobileMenuOpen && (
-          <div 
-            className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-        )}
-
-        {/* Mobile Navigation Panel - Side navigation */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden fixed top-16 left-0 bottom-0 w-80 z-40 bg-white border-r border-gray-200 shadow-lg overflow-hidden">
-            {/* Mobile Menu Panel */}
-            <div className="w-full bg-white p-4 space-y-4 h-full overflow-y-auto">
+      {/* Mobile Navigation Panel - Side navigation */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed top-16 left-0 bottom-0 w-80 z-40 bg-white border-r border-gray-200 shadow-lg overflow-hidden">
+          {/* Mobile Menu Panel */}
+          <div className="w-full bg-white p-4 space-y-4 h-full overflow-y-auto">
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-gray-200">
                 <h2 className="text-lg font-semibold text-gray-900">Navigation</h2>
@@ -345,9 +323,30 @@ export default function EmailManager() {
           </div>
         )}
 
-        <div className={`px-2 md:px-4 lg:px-8 py-2 md:py-6 transition-all duration-300 ${
-          isMobileMenuOpen ? 'mt-[400px] md:mt-0' : ''
-        }`}>
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block">
+          <EmailSidebar
+            emailAccounts={emailAccounts as EmailAccount[]}
+            selectedAccount={selectedAccount}
+            onAccountSelect={setSelectedAccount}
+            onCreateAccount={() => setIsCreateDialogOpen(true)}
+            onCompose={() => setShowCompose(true)}
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            accountStats={accountStats as EmailStats}
+            activeFolder={activeFolder}
+            onFolderChange={setActiveFolder}
+          />
+        </div>
+
+        {/* Main Content - Mobile Full Width, Desktop With Sidebar */}
+        <div 
+          className={`transition-all duration-300 ease-in-out ${
+            isSidebarCollapsed ? "md:ml-0" : "md:ml-64"
+          } relative`}
+        >
+
+          <div className="px-2 md:px-4 lg:px-8 py-2 md:py-6">
           {/* Header - Mobile with hamburger left, search right */}
           <div className="border-b border-gray-200 pb-2 md:pb-4">
             <div className="flex items-center gap-3 mb-4">
