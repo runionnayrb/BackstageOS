@@ -22,7 +22,18 @@ import {
   Edit,
   Users,
   FileText,
+  Clock,
+  ChevronDown,
+  Theater,
+  Settings,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface EmailAccount {
   id: number;
@@ -50,6 +61,8 @@ export default function EmailManager() {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeFolder, setActiveFolder] = useState("inbox");
+  const [showEditAccount, setShowEditAccount] = useState(false);
+  const [editDisplayName, setEditDisplayName] = useState('');
   const queryClient = useQueryClient();
 
   // Fetch email accounts
@@ -145,6 +158,15 @@ export default function EmailManager() {
     );
   }
 
+  // Define folders array similar to desktop sidebar
+  const folders = [
+    { id: "inbox", name: "Inbox", icon: Inbox, count: accountStats?.unreadMessages || 0 },
+    { id: "sent", name: "Sent", icon: Send, count: 0 },
+    { id: "drafts", name: "Drafts", icon: Clock, count: accountStats?.draftCount || 0 },
+    { id: "archive", name: "Archive", icon: Archive, count: 0 },
+    { id: "trash", name: "Trash", icon: Trash2, count: 0 },
+  ];
+
   return (
     <div className="w-full min-h-screen bg-white relative">
       {/* Mobile Navigation Panel - Side navigation */}
@@ -154,7 +176,7 @@ export default function EmailManager() {
           <div className="w-full bg-white p-4 space-y-4 h-full overflow-y-auto">
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">Navigation</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Email</h2>
                 <Button 
                   variant="ghost"
                   size="sm"
@@ -165,151 +187,133 @@ export default function EmailManager() {
                 </Button>
               </div>
               
-              {/* Email Accounts Section */}
-              <div>
-                <div className="space-y-2">
-                  {emailAccounts && Array.isArray(emailAccounts) && (emailAccounts as EmailAccount[]).length > 0 ? (
-                    (emailAccounts as EmailAccount[]).map((account) => (
-                      <button
-                        key={account.id}
-                        onClick={() => {
-                          setSelectedAccount(account);
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className={`w-full text-left p-3 rounded-md hover:bg-gray-50 border ${
-                          selectedAccount?.id === account.id ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
-                        }`}
-                      >
-                        <div className="font-medium text-gray-900 truncate">
-                          {account.displayName}
+              {/* Account Selector */}
+              <div className="mb-4">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between">
+                      <div className="flex items-center space-x-2">
+                        <div className="text-left">
+                          <div className="font-medium text-sm">
+                            {selectedAccount?.displayName || "Select Account"}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {selectedAccount?.emailAddress || "No account selected"}
+                          </div>
                         </div>
-                        <div className="text-sm text-gray-500 truncate">
-                          {account.emailAddress}
-                        </div>
-                      </button>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-sm">No accounts available</p>
-                  )}
-                </div>
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-72">
+                    {emailAccounts && Array.isArray(emailAccounts) && (emailAccounts as EmailAccount[]).length > 0 ? (
+                      (emailAccounts as EmailAccount[]).map((account) => (
+                        <DropdownMenuItem
+                          key={account.id}
+                          onClick={() => {
+                            setSelectedAccount(account);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className={selectedAccount?.id === account.id ? 'bg-blue-50' : ''}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <div>
+                              <div className="font-medium">{account.displayName}</div>
+                              <div className="text-xs text-gray-500">{account.emailAddress}</div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge variant="secondary" className="text-xs">
+                                {account.accountType}
+                              </Badge>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedAccount(account);
+                                  setEditDisplayName(account.displayName);
+                                  setShowEditAccount(true);
+                                }}
+                                className="p-1 h-6 w-6"
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </DropdownMenuItem>
+                      ))
+                    ) : (
+                      <DropdownMenuItem disabled>No accounts found</DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-
-              {/* Create Account Button */}
-              <Button 
-                onClick={() => {
-                  setIsCreateDialogOpen(true);
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Create Account
-              </Button>
 
               {/* Compose Button */}
-              <Button 
-                onClick={() => {
-                  setShowCompose(true);
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Compose
-              </Button>
+              <div className="mb-4">
+                <Button 
+                  onClick={() => {
+                    setShowCompose(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Compose
+                </Button>
+              </div>
 
-              {/* Navigation Folders */}
-              {selectedAccount && (
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-3">Folders</h3>
-                  <div className="space-y-1">
-                    <Button 
-                      variant={activeFolder === "inbox" ? "default" : "ghost"} 
-                      className="w-full justify-start text-left"
-                      onClick={() => {
-                        setActiveFolder("inbox");
-                        setIsMobileMenuOpen(false);
-                      }}
-                    >
-                      <Inbox className="w-4 h-4 mr-2" />
-                      Inbox
-                    </Button>
-                    <Button 
-                      variant={activeFolder === "sent" ? "default" : "ghost"} 
-                      className="w-full justify-start text-left"
-                      onClick={() => {
-                        setActiveFolder("sent");
-                        setIsMobileMenuOpen(false);
-                      }}
-                    >
-                      <Send className="w-4 h-4 mr-2" />
-                      Sent
-                    </Button>
-                    <Button 
-                      variant={activeFolder === "drafts" ? "default" : "ghost"} 
-                      className="w-full justify-start text-left"
-                      onClick={() => {
-                        setActiveFolder("drafts");
-                        setIsMobileMenuOpen(false);
-                      }}
-                    >
-                      <Edit className="w-4 h-4 mr-2" />
-                      Drafts
-                    </Button>
-                    <Button 
-                      variant={activeFolder === "archive" ? "default" : "ghost"} 
-                      className="w-full justify-start text-left"
-                      onClick={() => {
-                        setActiveFolder("archive");
-                        setIsMobileMenuOpen(false);
-                      }}
-                    >
-                      <Archive className="w-4 h-4 mr-2" />
-                      Archive
-                    </Button>
-                    <Button 
-                      variant={activeFolder === "trash" ? "default" : "ghost"} 
-                      className="w-full justify-start text-left"
-                      onClick={() => {
-                        setActiveFolder("trash");
-                        setIsMobileMenuOpen(false);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      Trash
-                    </Button>
-                  </div>
-                </div>
-              )}
-
+              {/* Folders Section */}
+              <div className="space-y-1">
+                {folders.map((folder) => (
+                  <button
+                    key={folder.id}
+                    onClick={() => {
+                      setActiveFolder(folder.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={cn(
+                      "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
+                      activeFolder === folder.id
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'hover:bg-gray-50 text-gray-700'
+                    )}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <folder.icon className="w-4 h-4" />
+                      <span>{folder.name}</span>
+                    </div>
+                    {folder.count > 0 && (
+                      <Badge variant="secondary" className="text-xs">
+                        {folder.count}
+                      </Badge>
+                    )}
+                  </button>
+                ))}
+              </div>
+              
               {/* Theater Tools Section */}
-              <div>
-                <h3 className="text-sm font-medium text-gray-500 mb-3">Theater Tools</h3>
+              <div className="border-t border-gray-200 pt-4">
+                <h3 className="text-sm font-medium text-gray-900 mb-3">Theater Tools</h3>
                 <div className="space-y-1">
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start text-left"
-                    onClick={() => {
-                      // Open group email functionality
-                      setIsMobileMenuOpen(false);
-                    }}
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
                   >
-                    <Users className="w-4 h-4 mr-2" />
-                    Send to Groups
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    className="w-full justify-start text-left"
-                    onClick={() => {
-                      // Open email templates functionality
-                      setIsMobileMenuOpen(false);
-                    }}
+                    <Users className="w-4 h-4" />
+                    <span>Group Emailing</span>
+                  </button>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
                   >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Email Templates
-                  </Button>
+                    <FileText className="w-4 h-4" />
+                    <span>Theater Templates</span>
+                  </button>
                 </div>
               </div>
+
+
             </div>
           </div>
         )}
@@ -520,6 +524,47 @@ export default function EmailManager() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Account Dialog */}
+      <Dialog open={showEditAccount} onOpenChange={setShowEditAccount}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Account Display Name</DialogTitle>
+            <DialogDescription>
+              Change how your name appears in sent emails.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="editDisplayName">Display Name</Label>
+              <Input
+                id="editDisplayName"
+                value={editDisplayName}
+                onChange={(e) => setEditDisplayName(e.target.value)}
+                placeholder="Enter display name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setShowEditAccount(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              onClick={() => {
+                // TODO: Implement edit account functionality
+                setShowEditAccount(false);
+              }}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
