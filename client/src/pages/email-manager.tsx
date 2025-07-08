@@ -230,14 +230,14 @@ export default function EmailManager() {
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
-                {/* Edit Button */}
+                {/* Compose Button */}
                 {selectedAccount && (
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => {
-                      setEditDisplayName(selectedAccount.displayName);
-                      setShowEditAccount(true);
+                      setShowCompose(true);
+                      setIsMobileMenuOpen(false);
                     }}
                     className="p-2 h-auto"
                   >
