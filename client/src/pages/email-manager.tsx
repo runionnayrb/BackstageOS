@@ -147,17 +147,9 @@ export default function EmailManager() {
 
   return (
     <div className="w-full min-h-screen bg-white relative">
-      {/* Mobile Navigation Backdrop */}
-      {isMobileMenuOpen && (
-        <div 
-          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
       {/* Mobile Navigation Panel - Side navigation */}
       {isMobileMenuOpen && (
-        <div className="md:hidden fixed top-16 left-0 bottom-0 w-80 z-40 bg-white border-r border-gray-200 shadow-lg overflow-hidden">
+        <div className="md:hidden fixed top-16 left-0 bottom-0 w-80 z-50 bg-white border-r border-gray-200 shadow-lg overflow-hidden">
           {/* Mobile Menu Panel */}
           <div className="w-full bg-white p-4 space-y-4 h-full overflow-y-auto">
               {/* Header */}
