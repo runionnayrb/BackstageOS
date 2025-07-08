@@ -171,9 +171,9 @@ export default function EmailManager() {
       >
         {/* Mobile Navigation Panel - In-page like desktop */}
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute top-0 left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-lg">
+          <div className="md:hidden absolute top-16 left-0 right-0 z-40 bg-white border-b border-gray-200 shadow-lg">
             {/* Mobile Menu Panel */}
-            <div className="w-full bg-white p-4 space-y-4 max-h-96 overflow-y-auto">
+            <div className="w-full bg-white p-4 space-y-4 max-h-80 overflow-y-auto">
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-gray-200">
                 <h2 className="text-lg font-semibold text-gray-900">Navigation</h2>
