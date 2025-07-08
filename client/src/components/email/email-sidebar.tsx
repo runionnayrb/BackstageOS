@@ -141,13 +141,13 @@ export function EmailSidebar({
   return (
     <div
       className={cn(
-        "absolute left-0 top-0 bottom-0 bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out z-40",
+        "absolute left-0 top-0 bottom-0 bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out z-40 flex flex-col",
         isCollapsed ? "-translate-x-full" : "translate-x-0",
         "w-64"
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-100">
+      <div className="p-4 border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900 ml-2">Email</h2>
           <Button
@@ -286,7 +286,7 @@ export function EmailSidebar({
       </div>
 
       {/* Settings */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-100">
+      <div className="p-4 border-t border-gray-100 flex-shrink-0">
         <Button 
           variant="ghost" 
           size="sm" 
