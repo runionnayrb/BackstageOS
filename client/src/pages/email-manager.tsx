@@ -383,17 +383,6 @@ export default function EmailManager() {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => {
-                            setShowSharedInboxes(true);
-                            setIsMobileMenuOpen(false);
-                          }}
-                          className="flex items-center space-x-2 p-3 text-blue-600"
-                        >
-                          <Users className="h-4 w-4" />
-                          <span>New Shared Inbox</span>
-                        </DropdownMenuItem>
-                        
-                        <DropdownMenuItem
-                          onClick={() => {
                             setIsCreateDialogOpen(true);
                             setIsMobileMenuOpen(false);
                           }}
@@ -401,6 +390,17 @@ export default function EmailManager() {
                         >
                           <Plus className="h-4 w-4" />
                           <span>{hasPersonalAccount && !user?.isAdmin ? "New Team Account" : "New Account"}</span>
+                        </DropdownMenuItem>
+                        
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setShowSharedInboxes(true);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="flex items-center space-x-2 p-3 text-blue-600"
+                        >
+                          <Users className="h-4 w-4" />
+                          <span>New Shared Inbox</span>
                         </DropdownMenuItem>
                       </>
                     ) : (
