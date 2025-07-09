@@ -75,9 +75,9 @@ export class StandaloneEmailService {
         messageId,
         subject,
         fromAddress: sender.emailAddress,
-        toAddresses: toAddresses,
-        ccAddresses: ccAddresses || [],
-        bccAddresses: bccAddresses || [],
+        toAddresses: Array.isArray(toAddresses) ? toAddresses : [toAddresses],
+        ccAddresses: Array.isArray(ccAddresses) ? ccAddresses : (ccAddresses ? [ccAddresses] : []),
+        bccAddresses: Array.isArray(bccAddresses) ? bccAddresses : (bccAddresses ? [bccAddresses] : []),
         content,
         htmlContent: content,
         isRead: true, // Sender's copy is automatically read
@@ -87,6 +87,14 @@ export class StandaloneEmailService {
         labels: [], // Initialize as empty array
         messageReferences: [], // Initialize as empty array
       };
+
+      console.log('DEBUG - Outgoing message data:', {
+        toAddresses: outgoingMessage.toAddresses,
+        ccAddresses: outgoingMessage.ccAddresses,
+        bccAddresses: outgoingMessage.bccAddresses,
+        labels: outgoingMessage.labels,
+        messageReferences: outgoingMessage.messageReferences
+      });
 
       const [sentMessage] = await db.insert(emailMessages).values(outgoingMessage).returning();
 
@@ -170,8 +178,8 @@ export class StandaloneEmailService {
             subject,
             fromAddress: sender.emailAddress,
             toAddresses: [recipientAddress],
-            ccAddresses: ccAddresses || [],
-            bccAddresses: bccAddresses || [],
+            ccAddresses: Array.isArray(ccAddresses) ? ccAddresses : (ccAddresses ? [ccAddresses] : []),
+            bccAddresses: Array.isArray(bccAddresses) ? bccAddresses : (bccAddresses ? [bccAddresses] : []),
             content,
             htmlContent: content,
             isRead: false,
@@ -182,6 +190,14 @@ export class StandaloneEmailService {
             labels: ['inbox'], // Initialize with inbox label
             messageReferences: [], // Initialize as empty array
           };
+
+          console.log('DEBUG - Incoming message data:', {
+            toAddresses: incomingMessage.toAddresses,
+            ccAddresses: incomingMessage.ccAddresses,
+            bccAddresses: incomingMessage.bccAddresses,
+            labels: incomingMessage.labels,
+            messageReferences: incomingMessage.messageReferences
+          });
 
           await db.insert(emailMessages).values(incomingMessage);
         }
