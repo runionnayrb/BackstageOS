@@ -91,10 +91,10 @@ export function EmailComposer({
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [draftId, setDraftId] = useState<number | null>(existingDraftId || null);
 
-  // Mobile swipe state
-  const [sheetPosition, setSheetPosition] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startY, setStartY] = useState(0);
+  // Mobile swipe state - temporarily disabled
+  // const [sheetPosition, setSheetPosition] = useState(0);
+  // const [isDragging, setIsDragging] = useState(false);
+  // const [startY, setStartY] = useState(0);
 
   // Theater email features - always show if showId is available
   const [showTheaterFeatures, setShowTheaterFeatures] = useState(true);
@@ -117,7 +117,7 @@ export function EmailComposer({
     queryFn: () => apiRequest(`/api/email/templates?showId=${showId || ''}`),
     enabled: showTheaterFeatures
   });
-  const [isClosing, setIsClosing] = useState(false);
+  // const [isClosing, setIsClosing] = useState(false); // Disabled for keyboard debugging
   const sheetRef = useRef<HTMLDivElement>(null);
 
   // Send email mutation
@@ -219,8 +219,10 @@ export function EmailComposer({
     },
   });
 
-  // Auto-save logic
+  // Auto-save logic - disabled on mobile to prevent keyboard issues
   useEffect(() => {
+    if (isMobile) return; // Skip auto-save on mobile
+    
     const hasContent = toAddresses.trim() || subject.trim() || content.trim() || ccAddresses.trim() || bccAddresses.trim();
     
     if (hasContent && isOpen) {
@@ -242,7 +244,7 @@ export function EmailComposer({
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-  }, [toAddresses, subject, content, ccAddresses, bccAddresses, isOpen]);
+  }, [toAddresses, subject, content, ccAddresses, bccAddresses, isOpen, isMobile]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -253,78 +255,8 @@ export function EmailComposer({
     };
   }, []);
 
-  // Native DOM touch handlers for better mobile support - Only on handle area
-  useEffect(() => {
-    if (!isMobile || !isOpen || isClosing) return;
-
-    const handleElement = sheetRef.current?.querySelector('.handle-area');
-    if (!handleElement) return;
-
-    let startYPos = 0;
-    let currentDragging = false;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      // Only handle touches that start on the handle area itself
-      const target = e.target as Element;
-      if (!target.closest('.handle-area')) return;
-      
-      currentDragging = true;
-      startYPos = e.touches[0].clientY;
-      setIsDragging(true);
-      setStartY(e.touches[0].clientY);
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!currentDragging) return;
-      
-      const currentY = e.touches[0].clientY;
-      const deltaY = currentY - startYPos;
-      
-      // Allow full downward dragging to hide sheet completely
-      if (deltaY > 0 && !isClosing) {
-        const amplifiedDelta = deltaY * 2; // Reduced amplification for smoother experience
-        setSheetPosition(amplifiedDelta);
-        
-        // Trigger close when threshold reached
-        if (amplifiedDelta > 150) {
-          setIsClosing(true);
-          setSheetPosition(window.innerHeight);
-          setTimeout(() => {
-            handleExitClick();
-          }, 200);
-        }
-      }
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (!currentDragging) return;
-      
-      currentDragging = false;
-      setIsDragging(false);
-      
-      // If dragged down more than 100px, close
-      if (sheetPosition > 100) {
-        setSheetPosition(window.innerHeight);
-        setTimeout(() => {
-          handleExitClick();
-        }, 300);
-      } else {
-        // Snap back to original position
-        setSheetPosition(0);
-      }
-    };
-
-    // Add event listeners with passive: true to allow other touch events
-    handleElement.addEventListener('touchstart', handleTouchStart, { passive: true });
-    document.addEventListener('touchmove', handleTouchMove, { passive: true });
-    document.addEventListener('touchend', handleTouchEnd, { passive: true });
-
-    return () => {
-      handleElement.removeEventListener('touchstart', handleTouchStart);
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [isMobile, isOpen, sheetPosition, isClosing]);
+  // Disabled touch handlers temporarily to debug keyboard issue
+  // TODO: Re-implement swipe gesture without interfering with input focus
 
   const handleSend = () => {
     sendEmailMutation.mutate();
@@ -391,17 +323,12 @@ export function EmailComposer({
         className="fixed left-0 right-0 z-50 bg-white rounded-t-[20px] flex flex-col"
         style={{ 
           top: '60px', // Just below the BackstageOS header
-          height: 'calc(100vh - 60px)', // Full height minus header
-          transform: `translateY(${sheetPosition}px)`,
-          transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)'
+          height: 'calc(100vh - 60px)' // Full height minus header
         }}
       >
-        {/* Handle bar for swipe gesture - touch area only on the handle itself */}
+        {/* Handle bar for visual indication only - swipe disabled for debugging */}
         <div className="flex justify-center py-4 px-8">
-          <div 
-            className="handle-area w-16 h-2 bg-gray-400 rounded-full cursor-grab active:cursor-grabbing"
-            style={{ touchAction: 'pan-y' }}
-          ></div>
+          <div className="w-16 h-2 bg-gray-400 rounded-full"></div>
         </div>
         
         {/* Header */}
