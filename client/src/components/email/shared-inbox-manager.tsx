@@ -50,9 +50,11 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
       toast({ title: 'Shared inbox created successfully' });
     },
     onError: (error: any) => {
+      console.error('Shared inbox creation error:', error);
+      const errorMessage = error.message || error.toString() || 'Unknown error occurred';
       toast({ 
         title: 'Error creating shared inbox', 
-        description: error.message,
+        description: errorMessage,
         variant: 'destructive'
       });
     }
@@ -109,9 +111,11 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
     
     const data = {
       name: formData.get('name'),
-      emailAddress
+      emailAddress,
+      isActive: true // Add default value
     };
 
+    console.log('Creating shared inbox with data:', data);
     createInboxMutation.mutate(data);
   };
 
