@@ -66,6 +66,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   // Bulk actions mutation
   const bulkActionMutation = useMutation({
     mutationFn: async ({ messageIds, action, targetFolder }: { messageIds: number[]; action: string; targetFolder?: string }) => {
+      console.log('🗑️ Bulk action requested:', { messageIds, action, targetFolder, accountId: selectedAccount.id });
+      
       const response = await fetch('/api/email/messages/bulk-action', {
         method: 'POST',
         headers: {
@@ -81,17 +83,22 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       if (!response.ok) {
         throw new Error('Failed to perform bulk action');
       }
-      return response.json();
+      const result = await response.json();
+      console.log('✅ Bulk action completed:', result);
+      return result;
     },
     onSuccess: () => {
       // Clear selection and exit selection mode
       setSelectedMessages(new Set());
       setIsSelectionMode(false);
       
-      // Invalidate and refetch email queries
-      queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
+      // Invalidate and refetch ALL email queries to ensure fresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', selectedAccount.id] });
       queryClient.invalidateQueries({ queryKey: ['/api/email/unread-count'] });
       queryClient.invalidateQueries({ queryKey: ['/api/email/stats', selectedAccount.id] });
+      
+      // Force refresh the current view
+      queryClient.refetchQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
     },
   });
 
