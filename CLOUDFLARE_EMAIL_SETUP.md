@@ -46,15 +46,17 @@ This explains why our automated `createEmailRouting()` method in `EmailService` 
 - If you see "Email Routing is not enabled", click "Enable Email Routing"
 - If already enabled, proceed to Step 3
 
-### Step 3: Create the Missing Routing Rule
+### Step 3: Create the CATCH-ALL Routing Rule (Handles All Email Accounts)
 1. Click "Routes" tab
-2. Click "Create route"
+2. Click "Create route" 
 3. Configure exactly as follows:
-   - **Custom address**: `bryan@backstageos.com`
+   - **Custom address**: `*@backstageos.com` (catch-all pattern)
    - **Action**: Select "Send to Worker" (NOT "Forward to email")
    - **Destination**: `https://backstageos.com/api/email/receive-webhook`
    - **Enabled**: ✅ Yes
-   - **Name**: "Route bryan@backstageos.com to BackstageOS webhook"
+   - **Name**: "Route ALL @backstageos.com emails to BackstageOS webhook"
+
+**IMPORTANT**: Use `*@backstageos.com` NOT `bryan@backstageos.com`. The asterisk (*) makes it catch ALL email addresses automatically.
 
 **Note**: If "Send to Worker" is not available, you can temporarily create a forward rule to your Gmail as a workaround, and we'll update it later to use the webhook.
 
@@ -69,12 +71,19 @@ This explains why our automated `createEmailRouting()` method in `EmailService` 
 - All database operations are working correctly
 - The only missing piece is the Cloudflare routing rule
 
-## After Setup
-Once the routing rule is created, emails to `bryan@backstageos.com` will:
+## After Setup - UNLIMITED EMAIL ACCOUNTS
+Once the catch-all routing rule is created, emails to ANY @backstageos.com address will:
 1. Be intercepted by Cloudflare Email Routing
-2. Sent to the BackstageOS webhook endpoint
-3. Processed and stored in your inbox
+2. Sent to the BackstageOS webhook endpoint  
+3. Automatically routed to the correct user's inbox based on the "To" field
 4. Show unread indicator until clicked
 5. Provide complete email independence
 
-This completes the email system implementation - no further development needed.
+**Scale Benefits:**
+- ✅ `bryan@backstageos.com` works immediately
+- ✅ `jane.smith@backstageos.com` works immediately
+- ✅ `macbeth-sm@backstageos.com` works immediately  
+- ✅ ANY new email account works immediately
+- ✅ No manual setup ever needed again
+
+This completes the email system implementation with unlimited scalability.

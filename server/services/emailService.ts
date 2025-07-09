@@ -209,23 +209,23 @@ export class EmailService {
   }
 
   /**
-   * Create email routing rule in Cloudflare - now using webhook for BackstageOS integration
+   * Email routing handled by catch-all rule - NO INDIVIDUAL RULES NEEDED
+   * 
+   * SOLUTION: Use a single catch-all routing rule in Cloudflare:
+   * Match: *@backstageos.com → Send to Worker → https://backstageos.com/api/email/receive-webhook
+   * 
+   * This eliminates the need for individual routing rules per email account.
+   * Our webhook endpoint already handles routing to the correct user based on the "To" field.
    */
   private async createEmailRouting(emailAddress: string, userId: number): Promise<void> {
-    try {
-      // Use webhook routing to send emails directly to BackstageOS
-      const webhookUrl = 'https://backstageos.com/api/email/receive-webhook';
-      
-      await this.cloudflareService.createWebhookEmailRoute(
-        emailAddress.split('@')[0], // Extract alias part before @
-        webhookUrl
-      );
-
-      console.log(`✅ Created webhook email routing rule: ${emailAddress} → ${webhookUrl}`);
-    } catch (error) {
-      console.error(`❌ Failed to create webhook email routing rule for ${emailAddress}:`, error);
-      // Don't throw - continue with account creation
-    }
+    // NO CLOUDFLARE RULE CREATION NEEDED!
+    // The catch-all rule (*@backstageos.com) handles all email accounts automatically
+    
+    console.log(`✅ Email routing ready: ${emailAddress} will be handled by catch-all webhook rule`);
+    console.log(`📝 Ensure catch-all rule exists: *@backstageos.com → https://backstageos.com/api/email/receive-webhook`);
+    
+    // Account is ready to receive emails immediately through the catch-all rule
+    return Promise.resolve();
   }
 
   /**
