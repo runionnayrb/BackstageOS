@@ -388,7 +388,7 @@ export default function EmailManager() {
                           }}
                           className="flex items-center space-x-2 p-3 text-blue-600"
                         >
-                          <Plus className="h-4 w-4" />
+                          <Users className="h-4 w-4" />
                           <span>New Shared Inbox</span>
                         </DropdownMenuItem>
                         
