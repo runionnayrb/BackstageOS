@@ -68,32 +68,43 @@ export class StandaloneEmailService {
       // Generate unique message ID
       const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@backstageos.com`;
 
-      // Create the outgoing message for sender
+      // Create the outgoing message for sender with safe array handling
+      const safeOutgoingToAddresses = Array.isArray(toAddresses) ? toAddresses : [toAddresses];
+      const safeOutgoingCcAddresses = ccAddresses ? (Array.isArray(ccAddresses) ? ccAddresses : [ccAddresses]) : [];
+      const safeOutgoingBccAddresses = bccAddresses ? (Array.isArray(bccAddresses) ? bccAddresses : [bccAddresses]) : [];
+      const safeOutgoingLabels = ['sent'];
+      const safeOutgoingMessageReferences: string[] = [];
+
       const outgoingMessage: InsertEmailMessage = {
         accountId: fromAccountId,
         threadId,
         messageId,
         subject,
         fromAddress: sender.emailAddress,
-        toAddresses: Array.isArray(toAddresses) ? toAddresses : [toAddresses],
-        ccAddresses: Array.isArray(ccAddresses) ? ccAddresses : (ccAddresses ? [ccAddresses] : []),
-        bccAddresses: Array.isArray(bccAddresses) ? bccAddresses : (bccAddresses ? [bccAddresses] : []),
+        toAddresses: safeOutgoingToAddresses,
+        ccAddresses: safeOutgoingCcAddresses,
+        bccAddresses: safeOutgoingBccAddresses,
         content,
         htmlContent: content,
         isRead: true, // Sender's copy is automatically read
         isDraft: false,
         isSent: true,
         dateSent: new Date(),
-        labels: [], // Initialize as empty array
-        messageReferences: [], // Initialize as empty array
+        labels: safeOutgoingLabels,
+        messageReferences: safeOutgoingMessageReferences,
       };
 
-      console.log('DEBUG - Outgoing message data:', {
+      console.log('DEBUG - Outgoing message data before database insert:', {
         toAddresses: outgoingMessage.toAddresses,
+        toAddressesIsArray: Array.isArray(outgoingMessage.toAddresses),
         ccAddresses: outgoingMessage.ccAddresses,
+        ccAddressesIsArray: Array.isArray(outgoingMessage.ccAddresses),
         bccAddresses: outgoingMessage.bccAddresses,
+        bccAddressesIsArray: Array.isArray(outgoingMessage.bccAddresses),
         labels: outgoingMessage.labels,
-        messageReferences: outgoingMessage.messageReferences
+        labelsIsArray: Array.isArray(outgoingMessage.labels),
+        messageReferences: outgoingMessage.messageReferences,
+        messageReferencesIsArray: Array.isArray(outgoingMessage.messageReferences)
       });
 
       const [sentMessage] = await db.insert(emailMessages).values(outgoingMessage).returning();
@@ -171,15 +182,22 @@ export class StandaloneEmailService {
             )
             .limit(1);
 
+          // Ensure all array fields are properly formatted
+          const safeToAddresses = [recipientAddress];
+          const safeCcAddresses = ccAddresses ? (Array.isArray(ccAddresses) ? ccAddresses : [ccAddresses]) : [];
+          const safeBccAddresses = bccAddresses ? (Array.isArray(bccAddresses) ? bccAddresses : [bccAddresses]) : [];
+          const safeLabels = ['inbox'];
+          const safeMessageReferences: string[] = [];
+
           const incomingMessage: InsertEmailMessage = {
             accountId: recipient.id,
             threadId,
             messageId: `${messageId}-to-${recipient.id}`,
             subject,
             fromAddress: sender.emailAddress,
-            toAddresses: [recipientAddress],
-            ccAddresses: Array.isArray(ccAddresses) ? ccAddresses : (ccAddresses ? [ccAddresses] : []),
-            bccAddresses: Array.isArray(bccAddresses) ? bccAddresses : (bccAddresses ? [bccAddresses] : []),
+            toAddresses: safeToAddresses,
+            ccAddresses: safeCcAddresses,
+            bccAddresses: safeBccAddresses,
             content,
             htmlContent: content,
             isRead: false,
@@ -187,16 +205,24 @@ export class StandaloneEmailService {
             isSent: false,
             dateSent: new Date(),
             folderId: inboxFolder.length ? inboxFolder[0].id : null,
-            labels: ['inbox'], // Initialize with inbox label
-            messageReferences: [], // Initialize as empty array
+            labels: safeLabels,
+            messageReferences: safeMessageReferences,
           };
 
-          console.log('DEBUG - Incoming message data:', {
+          console.log('DEBUG - Final message data before database insert:', {
             toAddresses: incomingMessage.toAddresses,
+            toAddressesType: typeof incomingMessage.toAddresses,
+            toAddressesIsArray: Array.isArray(incomingMessage.toAddresses),
             ccAddresses: incomingMessage.ccAddresses,
+            ccAddressesType: typeof incomingMessage.ccAddresses,
+            ccAddressesIsArray: Array.isArray(incomingMessage.ccAddresses),
             bccAddresses: incomingMessage.bccAddresses,
             labels: incomingMessage.labels,
-            messageReferences: incomingMessage.messageReferences
+            labelsType: typeof incomingMessage.labels,
+            labelsIsArray: Array.isArray(incomingMessage.labels),
+            messageReferences: incomingMessage.messageReferences,
+            messageReferencesType: typeof incomingMessage.messageReferences,
+            messageReferencesIsArray: Array.isArray(incomingMessage.messageReferences)
           });
 
           await db.insert(emailMessages).values(incomingMessage);
