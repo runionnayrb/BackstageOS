@@ -5475,6 +5475,59 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Fix missing routing rules for existing email accounts
+  app.post('/api/email/fix-routing-rules', isAuthenticated, async (req: any, res) => {
+    try {
+      const { EmailService } = await import('./services/emailService.js');
+      const emailService = new EmailService();
+      
+      // Get all user's email accounts
+      const accounts = await emailService.getUserEmailAccounts(req.user.id);
+      const results = [];
+      
+      for (const account of accounts) {
+        try {
+          // Create webhook routing rule for this account
+          const webhookUrl = 'https://backstageos.com/api/email/receive-webhook';
+          
+          const { CloudflareService } = await import('./services/cloudflareService.js');
+          const cloudflareService = new CloudflareService();
+          await cloudflareService.createWebhookEmailRoute(
+            account.emailAddress.split('@')[0], // Extract alias part before @
+            webhookUrl
+          );
+          
+          results.push({
+            emailAddress: account.emailAddress,
+            status: 'success',
+            message: `Created webhook routing rule`
+          });
+          
+          console.log(`✅ Fixed routing rule for: ${account.emailAddress}`);
+        } catch (error) {
+          results.push({
+            emailAddress: account.emailAddress,
+            status: 'error',
+            message: error.message || 'Failed to create routing rule'
+          });
+          
+          console.error(`❌ Failed to fix routing rule for ${account.emailAddress}:`, error);
+        }
+      }
+      
+      res.json({
+        message: "Routing rule fix completed",
+        results,
+        totalAccounts: accounts.length,
+        successCount: results.filter(r => r.status === 'success').length,
+        errorCount: results.filter(r => r.status === 'error').length
+      });
+    } catch (error) {
+      console.error("Error fixing routing rules:", error);
+      res.status(500).json({ message: "Failed to fix routing rules" });
+    }
+  });
+
   // Get project email accounts
   app.get('/api/projects/:id/email/accounts', isAuthenticated, async (req: any, res) => {
     try {

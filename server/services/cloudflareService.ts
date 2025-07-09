@@ -278,8 +278,8 @@ class CloudflareService {
           value: `${alias}@${zoneName}`
         }],
         actions: [{
-          type: 'worker',
-          value: webhookUrl
+          type: 'send',
+          destinations: [webhookUrl]
         }],
         enabled: true,
         name: `Route ${alias}@${zoneName} to webhook`

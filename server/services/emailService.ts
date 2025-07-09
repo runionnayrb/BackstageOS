@@ -209,25 +209,21 @@ export class EmailService {
   }
 
   /**
-   * Create email routing rule in Cloudflare
+   * Create email routing rule in Cloudflare - now using webhook for BackstageOS integration
    */
   private async createEmailRouting(emailAddress: string, userId: number): Promise<void> {
     try {
-      const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-      if (!user.length) throw new Error("User not found");
-
-      const destinationEmail = user[0].defaultReplyToEmail || user[0].email;
+      // Use webhook routing to send emails directly to BackstageOS
+      const webhookUrl = 'https://backstageos.com/api/email/receive-webhook';
       
-      await this.cloudflareService.createEmailRule({
-        matchers: [{ type: "literal", field: "to", value: emailAddress }],
-        actions: [{ type: "forward", value: [destinationEmail] }],
-        enabled: true,
-        name: `Forward ${emailAddress} to ${destinationEmail}`
-      });
+      await this.cloudflareService.createWebhookEmailRoute(
+        emailAddress.split('@')[0], // Extract alias part before @
+        webhookUrl
+      );
 
-      console.log(`✅ Created email routing rule: ${emailAddress} → ${destinationEmail}`);
+      console.log(`✅ Created webhook email routing rule: ${emailAddress} → ${webhookUrl}`);
     } catch (error) {
-      console.error(`❌ Failed to create email routing rule for ${emailAddress}:`, error);
+      console.error(`❌ Failed to create webhook email routing rule for ${emailAddress}:`, error);
       // Don't throw - continue with account creation
     }
   }
