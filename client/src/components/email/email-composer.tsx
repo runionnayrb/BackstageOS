@@ -53,22 +53,17 @@ export function EmailComposer({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Prevent body scroll when mobile sheet is open
+  // Prevent body scroll when mobile sheet is open - but allow input focus
   useEffect(() => {
     if (isMobile && isOpen) {
+      // Only prevent scrolling, don't fix position which interferes with keyboard
       document.body.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
     } else {
       document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
     }
 
     return () => {
       document.body.style.overflow = '';
-      document.body.style.position = '';
-      document.body.style.width = '';
     };
   }, [isMobile, isOpen]);
 
@@ -258,28 +253,21 @@ export function EmailComposer({
     };
   }, []);
 
-  // Native DOM touch handlers for better mobile support
+  // Native DOM touch handlers for better mobile support - Only on handle area
   useEffect(() => {
     if (!isMobile || !isOpen || isClosing) return;
-    
-    console.log('🔍 Setting up touch events, isMobile:', isMobile, 'isOpen:', isOpen, 'isClosing:', isClosing);
-    console.log('🔍 sheetRef.current exists:', !!sheetRef.current);
 
     const handleElement = sheetRef.current?.querySelector('.handle-area');
-    console.log('🔍 Looking for handle element:', !!handleElement);
-    if (!handleElement) {
-      console.log('❌ Handle element not found!');
-      return;
-    }
-    console.log('✅ Handle element found, attaching touch events');
+    if (!handleElement) return;
 
     let startYPos = 0;
     let currentDragging = false;
 
     const handleTouchStart = (e: TouchEvent) => {
-      console.log('🟡 Touch start - Y position:', e.touches[0].clientY);
-      e.preventDefault();
-      e.stopPropagation();
+      // Only handle touches that start on the handle area itself
+      const target = e.target as Element;
+      if (!target.closest('.handle-area')) return;
+      
       currentDragging = true;
       startYPos = e.touches[0].clientY;
       setIsDragging(true);
@@ -289,24 +277,16 @@ export function EmailComposer({
     const handleTouchMove = (e: TouchEvent) => {
       if (!currentDragging) return;
       
-      e.preventDefault();
-      e.stopPropagation();
-      
       const currentY = e.touches[0].clientY;
       const deltaY = currentY - startYPos;
       
-      console.log('🔵 Touch move - Direction:', deltaY > 0 ? 'DOWN ⬇️' : 'UP ⬆️', 'Delta:', deltaY, 'Current Y:', currentY, 'Start Y:', startYPos);
-      
       // Allow full downward dragging to hide sheet completely
       if (deltaY > 0 && !isClosing) {
-        // Ultra aggressive amplification - 20x for maximum sensitivity, no cap
-        const amplifiedDelta = deltaY * 20;
+        const amplifiedDelta = deltaY * 2; // Reduced amplification for smoother experience
         setSheetPosition(amplifiedDelta);
-        console.log('🚀 SUPER AMPLIFIED:', amplifiedDelta, 'from finger movement:', deltaY);
         
-        // Trigger immediate close when threshold reached
+        // Trigger close when threshold reached
         if (amplifiedDelta > 150) {
-          console.log('📱 IMMEDIATE CLOSE TRIGGERED - POSITION:', amplifiedDelta);
           setIsClosing(true);
           setSheetPosition(window.innerHeight);
           setTimeout(() => {
@@ -317,37 +297,32 @@ export function EmailComposer({
     };
 
     const handleTouchEnd = (e: TouchEvent) => {
-      console.log('Native touch end', { sheetPosition });
-      e.preventDefault();
-      e.stopPropagation();
+      if (!currentDragging) return;
+      
       currentDragging = false;
       setIsDragging(false);
       
-      // If dragged down more than 100px, animate it completely off-screen then close
+      // If dragged down more than 100px, close
       if (sheetPosition > 100) {
-        console.log('Closing sheet due to swipe - animating off screen');
-        // Animate to completely off-screen (full height of viewport)
         setSheetPosition(window.innerHeight);
-        // Close after animation completes
         setTimeout(() => {
           handleExitClick();
         }, 300);
       } else {
-        console.log('Snapping back to position 0');
         // Snap back to original position
         setSheetPosition(0);
       }
     };
 
-    // Add native event listeners
-    handleElement.addEventListener('touchstart', handleTouchStart, { passive: false });
-    handleElement.addEventListener('touchmove', handleTouchMove, { passive: false });
-    handleElement.addEventListener('touchend', handleTouchEnd, { passive: false });
+    // Add event listeners with passive: true to allow other touch events
+    handleElement.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
 
     return () => {
       handleElement.removeEventListener('touchstart', handleTouchStart);
-      handleElement.removeEventListener('touchmove', handleTouchMove);
-      handleElement.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isMobile, isOpen, sheetPosition, isClosing]);
 
@@ -421,12 +396,12 @@ export function EmailComposer({
           transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)'
         }}
       >
-        {/* Handle bar for swipe gesture - much larger touch area */}
-        <div 
-          className="handle-area flex justify-center py-8 px-8 cursor-grab active:cursor-grabbing touch-none"
-          style={{ touchAction: 'none' }}
-        >
-          <div className="w-16 h-2 bg-gray-400 rounded-full"></div>
+        {/* Handle bar for swipe gesture - touch area only on the handle itself */}
+        <div className="flex justify-center py-4 px-8">
+          <div 
+            className="handle-area w-16 h-2 bg-gray-400 rounded-full cursor-grab active:cursor-grabbing"
+            style={{ touchAction: 'pan-y' }}
+          ></div>
         </div>
         
         {/* Header */}
@@ -459,14 +434,28 @@ export function EmailComposer({
             <div className="flex items-center py-3 border-b border-gray-200">
               <span className="text-gray-500 w-12 text-sm">To:</span>
               <input
-                type="text"
+                type="email"
                 placeholder=""
                 value={toAddresses}
                 onChange={(e) => setToAddresses(e.target.value)}
                 className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
-                style={{ fontSize: '16px', boxShadow: 'none' }}
+                style={{ 
+                  fontSize: '16px', 
+                  boxShadow: 'none',
+                  WebkitAppearance: 'none',
+                  borderRadius: 0
+                }}
+                autoComplete="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
               />
-              <Button variant="ghost" size="sm" className="text-blue-500 p-0 h-auto ml-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-blue-500 p-0 h-auto ml-2"
+                onClick={() => setShowCc(!showCc)}
+              >
                 <Plus className="h-5 w-5" />
               </Button>
             </div>
@@ -476,12 +465,21 @@ export function EmailComposer({
               <div className="flex items-center py-3 border-b border-gray-200">
                 <span className="text-gray-500 w-12 text-sm">Cc:</span>
                 <input
-                  type="text"
+                  type="email"
                   placeholder=""
                   value={ccAddresses}
                   onChange={(e) => setCcAddresses(e.target.value)}
                   className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
-                  style={{ fontSize: '16px', boxShadow: 'none' }}
+                  style={{ 
+                    fontSize: '16px', 
+                    boxShadow: 'none',
+                    WebkitAppearance: 'none',
+                    borderRadius: 0
+                  }}
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                 />
               </div>
             )}
@@ -491,12 +489,21 @@ export function EmailComposer({
               <div className="flex items-center py-3 border-b border-gray-200">
                 <span className="text-gray-500 w-12 text-sm">Bcc:</span>
                 <input
-                  type="text"
+                  type="email"
                   placeholder=""
                   value={bccAddresses}
                   onChange={(e) => setBccAddresses(e.target.value)}
                   className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
-                  style={{ fontSize: '16px', boxShadow: 'none' }}
+                  style={{ 
+                    fontSize: '16px', 
+                    boxShadow: 'none',
+                    WebkitAppearance: 'none',
+                    borderRadius: 0
+                  }}
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
                 />
               </div>
             )}
@@ -516,7 +523,16 @@ export function EmailComposer({
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
-                style={{ fontSize: '16px', boxShadow: 'none' }}
+                style={{ 
+                  fontSize: '16px', 
+                  boxShadow: 'none',
+                  WebkitAppearance: 'none',
+                  borderRadius: 0
+                }}
+                autoComplete="off"
+                autoCapitalize="sentences"
+                autoCorrect="on"
+                spellCheck="true"
               />
             </div>
           </div>
@@ -528,7 +544,16 @@ export function EmailComposer({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="w-full h-full bg-transparent border-0 outline-none resize-none text-base focus:ring-0 focus:outline-none"
-              style={{ fontSize: '16px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
+              style={{ 
+                fontSize: '16px', 
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                WebkitAppearance: 'none',
+                borderRadius: 0
+              }}
+              autoComplete="off"
+              autoCapitalize="sentences"
+              autoCorrect="on"
+              spellCheck="true"
             />
           </div>
 
