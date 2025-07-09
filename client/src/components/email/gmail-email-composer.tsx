@@ -4,6 +4,16 @@ import { X, Send, ChevronDown, Paperclip, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface GmailEmailComposerProps {
   isOpen: boolean;
@@ -35,6 +45,7 @@ export function GmailEmailComposer({
   const [showCc, setShowCc] = useState(false);
   const [showBcc, setShowBcc] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
   const [subject, setSubject] = useState(
     replyToMessage ? 
       (replyToMessage.subject.startsWith('Re: ') ? replyToMessage.subject : `Re: ${replyToMessage.subject}`) : 
@@ -52,6 +63,51 @@ export function GmailEmailComposer({
       setIsAnimating(true);
     }
   }, [isOpen]);
+
+  // Check if there's any content in the email
+  const hasContent = () => {
+    return toAddresses.trim() || 
+           ccAddresses.trim() || 
+           bccAddresses.trim() || 
+           subject.trim() || 
+           content.trim();
+  };
+
+  // Save draft mutation
+  const saveDraftMutation = useMutation({
+    mutationFn: async () => {
+      const draftData = {
+        fromAccountId,
+        toAddresses: toAddresses.trim() || undefined,
+        ccAddresses: ccAddresses.trim() || undefined,
+        bccAddresses: bccAddresses.trim() || undefined,
+        subject: subject.trim() || undefined,
+        content: content.trim() || undefined,
+        isDraft: true
+      };
+
+      return apiRequest('/api/email/save-draft', {
+        method: 'POST',
+        body: JSON.stringify(draftData)
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Draft saved",
+        description: "Your email has been saved as a draft.",
+      });
+      
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['/api/email'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to save draft",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Send email mutation
   const sendEmailMutation = useMutation({
@@ -113,6 +169,16 @@ export function GmailEmailComposer({
   };
 
   const handleClose = () => {
+    // Check if there's any content, show dialog if there is
+    if (hasContent()) {
+      setShowExitDialog(true);
+    } else {
+      // No content, close immediately
+      closeWithAnimation();
+    }
+  };
+
+  const closeWithAnimation = () => {
     // Start slide-down animation
     setIsAnimating(false);
     
@@ -127,6 +193,17 @@ export function GmailEmailComposer({
       setShowBcc(false);
       onClose();
     }, 300); // Match animation duration
+  };
+
+  const handleSaveDraft = () => {
+    setShowExitDialog(false);
+    saveDraftMutation.mutate();
+    closeWithAnimation();
+  };
+
+  const handleDeleteDraft = () => {
+    setShowExitDialog(false);
+    closeWithAnimation();
   };
 
   if (!isOpen) return null;
@@ -310,6 +387,32 @@ export function GmailEmailComposer({
           </div>
         </div>
       </div>
+      
+      {/* Exit confirmation dialog */}
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent className="max-w-sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Save Draft?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You have unsaved changes. Would you like to save this email as a draft or delete it?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
+            <AlertDialogCancel 
+              onClick={handleDeleteDraft}
+              className="w-full sm:w-auto"
+            >
+              Delete
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleSaveDraft}
+              className="w-full sm:w-auto"
+            >
+              Save Draft
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
