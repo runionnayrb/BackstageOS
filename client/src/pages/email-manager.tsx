@@ -337,7 +337,7 @@ export default function EmailManager() {
                       <ChevronDown className="w-4 h-4 text-gray-500" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-72">
+                  <DropdownMenuContent align="start" className="w-64 max-w-[calc(100vw-32px)]">
                     {emailAccounts && Array.isArray(emailAccounts) && (emailAccounts as EmailAccount[]).length > 0 ? (
                       <>
                         {/* Personal Accounts */}
@@ -357,61 +357,40 @@ export default function EmailManager() {
                           </DropdownMenuItem>
                         ))}
                         
-                        {/* Shared Inboxes Submenu */}
-                        {projects && projects.length > 0 && (
+                        {/* Shared Inboxes - Flattened list */}
+                        {allSharedInboxes && allSharedInboxes.length > 0 && (
                           <>
                             <DropdownMenuSeparator />
-                            <DropdownMenuSub>
-                              <DropdownMenuSubTrigger className="flex items-center space-x-2 p-3">
-                                <Users className="h-4 w-4" />
-                                <span>Shared Inboxes</span>
-                                <ChevronRight className="h-4 w-4 ml-auto" />
-                              </DropdownMenuSubTrigger>
-                              <DropdownMenuSubContent className="w-64">
-                                {projects.map((project: any) => {
-                                  const projectInboxes = allSharedInboxes?.filter((inbox: any) => inbox.projectId === project.id) || [];
-                                  return (
-                                    <div key={project.id}>
-                                      <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
-                                        {project.name}
-                                      </div>
-                                      {projectInboxes.length > 0 ? (
-                                        projectInboxes.map((inbox: any) => (
-                                          <DropdownMenuItem
-                                            key={inbox.id}
-                                            className="flex flex-col items-start space-y-1 p-3 pl-6"
-                                          >
-                                            <p className="text-sm font-medium text-gray-900">
-                                              {inbox.name}
-                                            </p>
-                                            <p className="text-xs text-gray-500">
-                                              {inbox.emailAddress}
-                                            </p>
-                                          </DropdownMenuItem>
-                                        ))
-                                      ) : (
-                                        <div className="px-6 py-2 text-xs text-gray-400">
-                                          No shared inboxes
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setShowSharedInboxes(true);
-                                    setIsMobileMenuOpen(false);
-                                  }}
-                                  className="flex items-center space-x-2 p-3"
-                                >
-                                  <Plus className="h-4 w-4" />
-                                  <span>Manage Shared Inboxes</span>
-                                </DropdownMenuItem>
-                              </DropdownMenuSubContent>
-                            </DropdownMenuSub>
+                            <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                              Shared Inboxes
+                            </div>
+                            {allSharedInboxes.map((inbox: any) => (
+                              <DropdownMenuItem
+                                key={inbox.id}
+                                className="flex flex-col items-start space-y-1 p-3"
+                              >
+                                <p className="text-sm font-medium text-gray-900">
+                                  {inbox.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {inbox.emailAddress}
+                                </p>
+                              </DropdownMenuItem>
+                            ))}
                           </>
                         )}
+                        
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setShowSharedInboxes(true);
+                            setIsMobileMenuOpen(false);
+                          }}
+                          className="flex items-center space-x-2 p-3 text-blue-600"
+                        >
+                          <Plus className="h-4 w-4" />
+                          <span>New Shared Inbox</span>
+                        </DropdownMenuItem>
                         
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
