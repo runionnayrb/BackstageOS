@@ -188,6 +188,26 @@ async function requireAdmin(req: any, res: any, next: any) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // CRITICAL: Email webhook endpoint must be registered FIRST to avoid production routing conflicts
+  app.post('/email-webhook', async (req: any, res) => {
+    try {
+      const emailData = req.body;
+      console.log('📧 PRIORITY webhook received:', JSON.stringify(emailData, null, 2));
+      
+      const { StandaloneEmailService } = await import('./services/standaloneEmailService.js');
+      const standaloneEmailService = new StandaloneEmailService();
+      
+      // Process incoming email and store in BackstageOS
+      await standaloneEmailService.processIncomingEmail(emailData);
+      
+      console.log('✅ PRIORITY webhook processed successfully');
+      res.status(200).json({ success: true, message: "Email processed successfully" });
+    } catch (error) {
+      console.error("❌ Error processing PRIORITY webhook:", error);
+      res.status(500).json({ success: false, message: "Failed to process incoming email", error: error.message });
+    }
+  });
+
   // Initialize error clustering service
   const errorClusteringService = new ErrorClusteringService(storage);
 
@@ -6980,21 +7000,54 @@ Respond with valid JSON only.`;
     }
   });
 
-  // Cloudflare email webhook endpoint for receiving emails
-  app.post('/api/email/receive-webhook', async (req: any, res) => {
+  // Simple webhook test endpoint to verify routing
+  app.get('/api/email/webhook-test', async (req: any, res) => {
+    res.status(200).json({ 
+      success: true, 
+      message: "Webhook endpoint is working correctly",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
+
+  // Alternative webhook endpoint for production routing issues - this needs to be registered early
+  app.post('/email-webhook', async (req: any, res) => {
     try {
       const emailData = req.body;
-      console.log('📧 Incoming email webhook received:', emailData);
+      console.log('📧 Production webhook received:', JSON.stringify(emailData, null, 2));
       
       const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
       
       // Process incoming email and store in BackstageOS
       await standaloneEmailService.processIncomingEmail(emailData);
       
-      res.status(200).json({ success: true });
+      console.log('✅ Production webhook processed successfully');
+      res.status(200).json({ success: true, message: "Email processed successfully" });
     } catch (error) {
-      console.error("Error processing incoming email webhook:", error);
-      res.status(500).json({ message: "Failed to process incoming email" });
+      console.error("❌ Error processing production webhook:", error);
+      res.status(500).json({ success: false, message: "Failed to process incoming email", error: error.message });
+    }
+  });
+
+  // Cloudflare email webhook endpoint for receiving emails (no authentication needed)
+  app.post('/api/email/receive-webhook', async (req: any, res) => {
+    try {
+      const emailData = req.body;
+      console.log('📧 Incoming email webhook received:', JSON.stringify(emailData, null, 2));
+      console.log('📧 Request headers:', JSON.stringify(req.headers, null, 2));
+      console.log('📧 Request method:', req.method);
+      console.log('📧 Request URL:', req.url);
+      
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      
+      // Process incoming email and store in BackstageOS
+      await standaloneEmailService.processIncomingEmail(emailData);
+      
+      console.log('✅ Email webhook processed successfully');
+      res.status(200).json({ success: true, message: "Email processed successfully" });
+    } catch (error) {
+      console.error("❌ Error processing incoming email webhook:", error);
+      res.status(500).json({ success: false, message: "Failed to process incoming email", error: error.message });
     }
   });
 
