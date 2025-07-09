@@ -1,5 +1,6 @@
 import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus, FileText, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
@@ -42,6 +43,13 @@ export default function EnhancedHeader() {
   const [selectedBetaAccess, setSelectedBetaAccess] = useState<string>("admin");
   const [selectedProfileType, setSelectedProfileType] = useState<string>("freelance");
   const [defaultUserId, setDefaultUserId] = useState<string>("");
+
+  // Fetch total unread email count
+  const { data: unreadEmailData } = useQuery({
+    queryKey: ['/api/email/unread-count'],
+    enabled: !!user,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
 
   // Parse current location to determine navigation context
   const getNavigationContext = (): NavigationContext => {
@@ -212,6 +220,11 @@ export default function EnhancedHeader() {
                   <DropdownMenuItem onClick={() => setLocation('/email')}>
                     <Mail className="h-4 w-4 mr-2" />
                     Email
+                    {unreadEmailData?.totalUnread > 0 && (
+                      <span className="ml-auto bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                        {unreadEmailData.totalUnread}
+                      </span>
+                    )}
                   </DropdownMenuItem>
                   
                   <DropdownMenuSeparator />

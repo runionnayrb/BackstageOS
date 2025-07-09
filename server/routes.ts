@@ -5630,6 +5630,18 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Get total unread email count across all user accounts
+  app.get('/api/email/unread-count', isAuthenticated, async (req: any, res) => {
+    try {
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      const totalUnread = await standaloneEmailService.getTotalUnreadCount(req.user.id);
+      res.json({ totalUnread });
+    } catch (error) {
+      console.error("Error fetching total unread count:", error);
+      res.status(500).json({ message: "Failed to fetch unread count" });
+    }
+  });
+
   // ========== PHASE 2 IMAP/SMTP EMAIL INTEGRATION ==========
 
   // Configure IMAP settings for an email account

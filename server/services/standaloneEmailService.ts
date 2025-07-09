@@ -401,6 +401,43 @@ export class StandaloneEmailService {
       .orderBy(desc(emailMessages.dateSent))
       .limit(limit);
   }
+
+  /**
+   * Get total unread count across all user's email accounts
+   */
+  async getTotalUnreadCount(userId: number): Promise<number> {
+    try {
+      // First get all email accounts for this user
+      const userAccounts = await db
+        .select({ id: emailAccounts.id })
+        .from(emailAccounts)
+        .where(eq(emailAccounts.userId, userId));
+
+      if (!userAccounts.length) {
+        return 0;
+      }
+
+      const accountIds = userAccounts.map(account => account.id);
+      
+      // Count unread messages across all accounts (inbox only, not sent)
+      const result = await db
+        .select({ count: count() })
+        .from(emailMessages)
+        .where(
+          and(
+            sql`${emailMessages.accountId} IN (${sql.join(accountIds, sql`, `)})`,
+            eq(emailMessages.isRead, false),
+            eq(emailMessages.isSent, false), // Exclude sent messages
+            eq(emailMessages.isDraft, false) // Exclude drafts
+          )
+        );
+
+      return result[0]?.count ? parseInt(result[0].count.toString()) : 0;
+    } catch (error) {
+      console.error('Error getting total unread count:', error);
+      return 0;
+    }
+  }
 }
 
 export const standaloneEmailService = new StandaloneEmailService();
