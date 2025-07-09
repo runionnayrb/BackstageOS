@@ -477,6 +477,7 @@ export const emailAccounts = pgTable("email_accounts", {
   accountType: varchar("account_type").notNull(), // 'personal', 'show', 'role'
   isDefault: boolean("is_default").default(false),
   isActive: boolean("is_active").default(true),
+  signature: text("signature"), // Rich text signature for this email account
   // IMAP sync settings for existing email accounts
   imapHost: varchar("imap_host"),
   imapPort: integer("imap_port"),

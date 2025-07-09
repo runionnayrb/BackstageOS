@@ -11,6 +11,7 @@ import { AlertCircle, CheckCircle, Mail, Send, Inbox, Settings, TestTube, Refres
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { SignatureEditor } from './signature-editor';
 
 interface EmailAccountConfigProps {
   accountId: number;
@@ -245,8 +246,9 @@ export function EmailAccountConfig({ accountId, onClose }: EmailAccountConfigPro
 
       <CardContent>
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="signature">Signature</TabsTrigger>
             <TabsTrigger value="imap">IMAP (Receiving)</TabsTrigger>
             <TabsTrigger value="smtp">SMTP (Sending)</TabsTrigger>
             <TabsTrigger value="sync">Sync & Test</TabsTrigger>
@@ -331,6 +333,13 @@ export function EmailAccountConfig({ accountId, onClose }: EmailAccountConfigPro
                 </Button>
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="signature" className="space-y-4">
+            <SignatureEditor 
+              accountId={accountId}
+              initialSignature={account?.signature || ''}
+            />
           </TabsContent>
 
           <TabsContent value="imap" className="space-y-4">
