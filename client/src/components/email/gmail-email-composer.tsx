@@ -200,7 +200,7 @@ export function GmailEmailComposer({
           {/* CC field */}
           {showCc && (
             <div className="flex items-center px-4 py-4 border-b border-gray-100">
-              <span className="text-gray-500 text-base">Cc:  </span>
+              <span className="text-gray-500 text-base">Cc:    </span>
               <input
                 type="email"
                 value={ccAddresses}
@@ -228,7 +228,7 @@ export function GmailEmailComposer({
           {/* BCC field */}
           {showBcc && (
             <div className="flex items-center px-4 py-4 border-b border-gray-100">
-              <span className="text-gray-500 text-base">Bcc:  </span>
+              <span className="text-gray-500 text-base">Bcc:   </span>
               <input
                 type="email"
                 value={bccAddresses}
