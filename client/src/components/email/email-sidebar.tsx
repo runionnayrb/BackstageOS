@@ -302,7 +302,7 @@ export function EmailSidebar({
               className="w-full justify-start text-sm"
             >
               <FileText className="h-4 w-4 mr-2" />
-              Template Management
+              Email Templates
             </Button>
           </div>
         </div>

@@ -421,7 +421,7 @@ export default function EmailManager() {
                   className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
                 >
                   <FileText className="w-4 h-4" />
-                  <span>Theater Templates</span>
+                  <span>Email Templates</span>
                 </button>
                 <button
                   onClick={() => {
