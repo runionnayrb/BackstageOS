@@ -365,7 +365,30 @@ export default function EmailManager() {
                             {allSharedInboxes.map((inbox: any) => (
                               <DropdownMenuItem
                                 key={inbox.id}
-                                className="flex flex-col items-start space-y-1 p-3"
+                                onClick={() => {
+                                  console.log('Mobile shared inbox clicked:', inbox);
+                                  
+                                  // Convert shared inbox to EmailAccount format for selection
+                                  const sharedInboxAsAccount: EmailAccount = {
+                                    id: inbox.id + 1000, // Add offset to avoid ID conflicts with regular accounts
+                                    userId: 0, // Shared inbox doesn't have a specific user
+                                    projectId: inbox.projectId,
+                                    emailAddress: inbox.emailAddress,
+                                    displayName: inbox.name,
+                                    accountType: 'shared',
+                                    isDefault: false,
+                                    isActive: inbox.isActive,
+                                    createdAt: new Date().toISOString(),
+                                  };
+                                  
+                                  console.log('Setting selected account to shared inbox:', sharedInboxAsAccount);
+                                  setSelectedAccount(sharedInboxAsAccount);
+                                  setIsMobileMenuOpen(false);
+                                }}
+                                className={cn(
+                                  "flex flex-col items-start space-y-1 p-3 cursor-pointer",
+                                  selectedAccount?.emailAddress === inbox.emailAddress && "bg-blue-50"
+                                )}
                               >
                                 <p className="text-sm font-medium text-gray-900">
                                   {inbox.name}

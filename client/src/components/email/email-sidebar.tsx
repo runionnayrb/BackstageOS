@@ -323,10 +323,14 @@ export function EmailSidebar({
                       {allSharedInboxes.map((inbox: SharedInbox) => (
                         <DropdownMenuItem
                           key={inbox.id}
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            console.log('Shared inbox clicked:', inbox);
+                            
                             // Convert shared inbox to EmailAccount format for selection
                             const sharedInboxAsAccount: EmailAccount = {
-                              id: inbox.id,
+                              id: inbox.id + 1000, // Add offset to avoid ID conflicts with regular accounts
                               userId: 0, // Shared inbox doesn't have a specific user
                               projectId: inbox.projectId,
                               emailAddress: inbox.emailAddress,
@@ -336,10 +340,12 @@ export function EmailSidebar({
                               isActive: inbox.isActive,
                               createdAt: new Date().toISOString(),
                             };
+                            
+                            console.log('Selecting shared inbox account:', sharedInboxAsAccount);
                             onAccountSelect(sharedInboxAsAccount);
                           }}
                           className={cn(
-                            "flex flex-col items-start space-y-1 p-3",
+                            "flex flex-col items-start space-y-1 p-3 cursor-pointer",
                             selectedAccount?.emailAddress === inbox.emailAddress && "bg-gray-50"
                           )}
                         >
