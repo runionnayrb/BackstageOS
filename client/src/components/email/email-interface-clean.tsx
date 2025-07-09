@@ -562,110 +562,108 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         </div>
       </div>
 
-      {/* Email Modal */}
-      <Dialog open={showEmailModal} onOpenChange={setShowEmailModal}>
-        <DialogContent className="w-[95vw] md:max-w-4xl h-[95vh] flex flex-col">
-          {modalEmail && (
-            <>
-              <DialogHeader className="border-b pb-3 md:pb-4">
-                <DialogTitle className="text-lg md:text-xl font-semibold pr-6">{modalEmail.subject || 'No Subject'}</DialogTitle>
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-0">
-                  <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-sm text-gray-600">
-                    <span>From: {modalEmail.fromAddress}</span>
-                    <Separator orientation="vertical" className="hidden md:block h-4" />
-                    <span>{modalEmail.dateSent ? new Date(modalEmail.dateSent).toLocaleString() : ''}</span>
-                    {modalEmail.hasAttachments && (
-                      <>
-                        <Separator orientation="vertical" className="hidden md:block h-4" />
-                        <span className="flex items-center gap-1">
-                          📎 Attachments
-                        </span>
-                      </>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 md:gap-2 flex-wrap">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleReply}
-                      className="h-8 w-8 p-0"
-                      title="Reply"
-                    >
-                      <Reply className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleReplyAll}
-                      className="h-8 w-8 p-0"
-                      title="Reply All"
-                    >
-                      <ReplyAll className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleForward}
-                      className="h-8 w-8 p-0"
-                      title="Forward"
-                    >
-                      <Forward className="h-4 w-4" />
-                    </Button>
-                    <Separator orientation="vertical" className="h-6" />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleArchive}
-                      className="h-8 w-8 p-0"
-                      title="Archive"
-                    >
-                      <Archive className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleDelete}
-                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                      title="Delete"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </DialogHeader>
+      {/* Email Modal - Full Screen Style */}
+      {showEmailModal && modalEmail && (
+        <div className="fixed inset-0 z-50 bg-white flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b bg-white">
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowEmailModal(false)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleReply}
+                className="h-8 w-8 p-0"
+                title="Reply"
+              >
+                <Reply className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleReplyAll}
+                className="h-8 w-8 p-0"
+                title="Reply All"
+              >
+                <ReplyAll className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleForward}
+                className="h-8 w-8 p-0"
+                title="Forward"
+              >
+                <Forward className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleArchive}
+                className="h-8 w-8 p-0"
+                title="Archive"
+              >
+                <Archive className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDelete}
+                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                title="Delete"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Email Content */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-4">
+              {/* Subject */}
+              <h1 className="text-xl font-medium mb-4 text-gray-900">
+                {modalEmail.subject || 'No Subject'}
+              </h1>
               
-              <ScrollArea className="flex-1 p-3 sm:p-6">
-                <div className="space-y-4 sm:space-y-6">
-                  <div className="border rounded-lg p-3 sm:p-4">
-                    <div className="flex items-center justify-between mb-2 sm:mb-3">
-                      <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-medium">
-                          {modalEmail.fromAddress?.charAt(0)?.toUpperCase() || 'U'}
-                        </div>
-                        <div>
-                          <div className="font-medium text-sm sm:text-base">{modalEmail.fromAddress}</div>
-                          <div className="text-xs sm:text-sm text-muted-foreground">
-                            {modalEmail.dateSent ? new Date(modalEmail.dateSent).toLocaleString() : ''}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="prose max-w-none">
-                      {modalEmail.htmlContent ? (
-                        <div dangerouslySetInnerHTML={{ __html: modalEmail.htmlContent }} />
-                      ) : (
-                        <div style={{ whiteSpace: 'pre-wrap' }}>
-                          {modalEmail.content || 'No content available'}
-                        </div>
-                      )}
-                    </div>
+              {/* Sender Info */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium">
+                  {modalEmail.fromAddress?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-gray-900">{modalEmail.fromAddress}</span>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {modalEmail.dateSent ? new Date(modalEmail.dateSent).toLocaleString() : ''}
                   </div>
                 </div>
-              </ScrollArea>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+              </div>
+
+              {/* Email Content */}
+              <div className="prose max-w-none">
+                {modalEmail.htmlContent ? (
+                  <div dangerouslySetInnerHTML={{ __html: modalEmail.htmlContent }} />
+                ) : (
+                  <div style={{ whiteSpace: 'pre-wrap', fontSize: '16px', lineHeight: '1.5' }}>
+                    {modalEmail.content || 'No content available'}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Gmail-style Email Composer */}
       {showCompose && (
