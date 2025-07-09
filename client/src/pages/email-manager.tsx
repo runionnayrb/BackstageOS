@@ -392,16 +392,15 @@ export default function EmailManager() {
                           <span>New Shared Inbox</span>
                         </DropdownMenuItem>
                         
-                        <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => {
                             setIsCreateDialogOpen(true);
                             setIsMobileMenuOpen(false);
                           }}
-                          className="text-blue-600 font-medium"
+                          className="flex items-center space-x-2 p-3 text-blue-600"
                         >
-                          <Plus className="w-4 h-4 mr-2" />
-                          {hasPersonalAccount && !user?.isAdmin ? "New Team Account" : "New Account"}
+                          <Plus className="h-4 w-4" />
+                          <span>{hasPersonalAccount && !user?.isAdmin ? "New Team Account" : "New Account"}</span>
                         </DropdownMenuItem>
                       </>
                     ) : (
