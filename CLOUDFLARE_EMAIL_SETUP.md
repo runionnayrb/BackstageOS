@@ -46,17 +46,23 @@ This explains why our automated `createEmailRouting()` method in `EmailService` 
 - If you see "Email Routing is not enabled", click "Enable Email Routing"
 - If already enabled, proceed to Step 3
 
-### Step 3: Create the CATCH-ALL Routing Rule (Handles All Email Accounts)
-1. Click "Routes" tab
-2. Click "Create route" 
-3. Configure exactly as follows:
+### Step 3: ELIMINATE Email Forwarding and Create Webhook Rule
+**Since BackstageOS now has complete email functionality, external forwarding is unnecessary and causes conflicts.**
+
+1. **DELETE existing forwarding rules**:
+   - Look for any rules like `bryan@backstageos.com → Gmail forwarding`
+   - Delete ALL @backstageos.com forwarding rules
+   - Keep only non-@backstageos.com rules if needed
+
+2. **CREATE ONE catch-all webhook rule**:
+   - Click "Create route"
    - **Custom address**: `*@backstageos.com` (catch-all pattern)
-   - **Action**: Select "Send to Worker" (NOT "Forward to email")
+   - **Action**: Select "Send to Worker" (NOT "Forward to email") 
    - **Destination**: `https://backstageos.com/api/email/receive-webhook`
    - **Enabled**: ✅ Yes
-   - **Name**: "Route ALL @backstageos.com emails to BackstageOS webhook"
+   - **Name**: "BackstageOS Complete Email System"
 
-**IMPORTANT**: Use `*@backstageos.com` NOT `bryan@backstageos.com`. The asterisk (*) makes it catch ALL email addresses automatically.
+**RESULT**: Complete email independence - no external forwarding needed.
 
 **Note**: If "Send to Worker" is not available, you can temporarily create a forward rule to your Gmail as a workaround, and we'll update it later to use the webhook.
 
