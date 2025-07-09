@@ -1,4 +1,4 @@
-import { storage } from '../storage';
+import { db } from '../db';
 import { 
   sharedInboxes, 
   sharedInboxMembers, 
@@ -36,7 +36,7 @@ export class SharedInboxService {
       }
 
       // Create shared inbox in database
-      const result = await storage.getDb()
+      const result = await db
         .insert(sharedInboxes)
         .values(data)
         .returning();
@@ -55,7 +55,7 @@ export class SharedInboxService {
 
   async checkEmailAddressExists(emailAddress: string): Promise<boolean> {
     try {
-      const result = await storage.getDb()
+      const result = await db
         .select()
         .from(sharedInboxes)
         .where(eq(sharedInboxes.emailAddress, emailAddress))
@@ -70,7 +70,7 @@ export class SharedInboxService {
 
   async getProjectSharedInboxes(projectId: number): Promise<SharedInbox[]> {
     try {
-      return await storage.getDb()
+      return await db
         .select()
         .from(sharedInboxes)
         .where(eq(sharedInboxes.projectId, projectId))
@@ -83,7 +83,7 @@ export class SharedInboxService {
 
   async getAllSharedInboxes(): Promise<SharedInbox[]> {
     try {
-      return await storage.getDb()
+      return await db
         .select()
         .from(sharedInboxes)
         .where(eq(sharedInboxes.isActive, true))
@@ -96,7 +96,7 @@ export class SharedInboxService {
 
   async getSharedInboxById(inboxId: number): Promise<SharedInbox | null> {
     try {
-      const result = await storage.getDb()
+      const result = await db
         .select()
         .from(sharedInboxes)
         .where(eq(sharedInboxes.id, inboxId))
@@ -111,7 +111,7 @@ export class SharedInboxService {
 
   async updateSharedInbox(inboxId: number, data: Partial<InsertSharedInbox>): Promise<SharedInbox> {
     try {
-      const result = await storage.getDb()
+      const result = await db
         .update(sharedInboxes)
         .set({ ...data, updatedAt: new Date() })
         .where(eq(sharedInboxes.id, inboxId))
@@ -136,7 +136,7 @@ export class SharedInboxService {
       await this.deleteEmailRouting(inbox.emailAddress);
 
       // Delete shared inbox (cascade will handle members, assignments, etc.)
-      await storage.getDb()
+      await db
         .delete(sharedInboxes)
         .where(eq(sharedInboxes.id, inboxId));
     } catch (error) {
@@ -149,7 +149,7 @@ export class SharedInboxService {
 
   async getSharedInboxMembers(inboxId: number): Promise<SharedInboxMember[]> {
     try {
-      return await storage.getDb()
+      return await db
         .select()
         .from(sharedInboxMembers)
         .where(eq(sharedInboxMembers.inboxId, inboxId))
@@ -162,7 +162,7 @@ export class SharedInboxService {
 
   async addSharedInboxMember(data: InsertSharedInboxMember): Promise<SharedInboxMember> {
     try {
-      const result = await storage.getDb()
+      const result = await db
         .insert(sharedInboxMembers)
         .values(data)
         .returning();
@@ -176,7 +176,7 @@ export class SharedInboxService {
 
   async updateSharedInboxMember(memberId: number, data: Partial<InsertSharedInboxMember>): Promise<SharedInboxMember> {
     try {
-      const result = await storage.getDb()
+      const result = await db
         .update(sharedInboxMembers)
         .set(data)
         .where(eq(sharedInboxMembers.id, memberId))
@@ -191,7 +191,7 @@ export class SharedInboxService {
 
   async removeSharedInboxMember(memberId: number): Promise<void> {
     try {
-      await storage.getDb()
+      await db
         .delete(sharedInboxMembers)
         .where(eq(sharedInboxMembers.id, memberId));
     } catch (error) {
@@ -204,7 +204,7 @@ export class SharedInboxService {
 
   async assignEmail(data: InsertEmailAssignment): Promise<EmailAssignment> {
     try {
-      const result = await storage.getDb()
+      const result = await db
         .insert(emailAssignments)
         .values(data)
         .returning();
@@ -218,7 +218,7 @@ export class SharedInboxService {
 
   async updateEmailAssignment(assignmentId: number, data: Partial<InsertEmailAssignment>): Promise<EmailAssignment> {
     try {
-      const result = await storage.getDb()
+      const result = await db
         .update(emailAssignments)
         .set({ ...data, updatedAt: new Date() })
         .where(eq(emailAssignments.id, assignmentId))
@@ -233,7 +233,7 @@ export class SharedInboxService {
 
   async getUserEmailAssignments(userId: number): Promise<EmailAssignment[]> {
     try {
-      return await storage.getDb()
+      return await db
         .select()
         .from(emailAssignments)
         .where(eq(emailAssignments.assignedTo, userId))
@@ -248,7 +248,7 @@ export class SharedInboxService {
 
   async addThreadCollaborator(data: InsertEmailCollaboration): Promise<EmailCollaboration> {
     try {
-      const result = await storage.getDb()
+      const result = await db
         .insert(emailCollaborations)
         .values(data)
         .returning();
@@ -262,7 +262,7 @@ export class SharedInboxService {
 
   async getThreadCollaborators(threadId: number): Promise<EmailCollaboration[]> {
     try {
-      return await storage.getDb()
+      return await db
         .select()
         .from(emailCollaborations)
         .where(eq(emailCollaborations.threadId, threadId))
@@ -277,7 +277,7 @@ export class SharedInboxService {
 
   async createArchiveRule(data: InsertEmailArchiveRule): Promise<EmailArchiveRule> {
     try {
-      const result = await storage.getDb()
+      const result = await db
         .insert(emailArchiveRules)
         .values(data)
         .returning();
@@ -291,7 +291,7 @@ export class SharedInboxService {
 
   async getProjectArchiveRules(projectId: number): Promise<EmailArchiveRule[]> {
     try {
-      return await storage.getDb()
+      return await db
         .select()
         .from(emailArchiveRules)
         .where(eq(emailArchiveRules.projectId, projectId))
@@ -304,7 +304,7 @@ export class SharedInboxService {
 
   async executeArchiveRule(ruleId: number): Promise<{ success: boolean; message: string; archivedCount?: number }> {
     try {
-      const rule = await storage.getDb()
+      const rule = await db
         .select()
         .from(emailArchiveRules)
         .where(eq(emailArchiveRules.id, ruleId))
@@ -334,7 +334,7 @@ export class SharedInboxService {
       }
 
       // Update rule execution timestamp
-      await storage.getDb()
+      await db
         .update(emailArchiveRules)
         .set({ 
           lastExecuted: new Date(),
