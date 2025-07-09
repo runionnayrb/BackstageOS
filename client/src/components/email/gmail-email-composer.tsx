@@ -167,7 +167,7 @@ export function GmailEmailComposer({
               type="email"
               value={toAddresses}
               onChange={(e) => setToAddresses(e.target.value)}
-              className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 ml-0"
+              className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 py-1 px-2"
               placeholder=""
               style={{ fontSize: '16px' }}
               autoComplete="email"
@@ -205,7 +205,7 @@ export function GmailEmailComposer({
                 type="email"
                 value={ccAddresses}
                 onChange={(e) => setCcAddresses(e.target.value)}
-                className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 ml-0"
+                className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 py-1 px-2"
                 placeholder=""
                 style={{ fontSize: '16px' }}
                 autoComplete="email"
@@ -233,7 +233,7 @@ export function GmailEmailComposer({
                 type="email"
                 value={bccAddresses}
                 onChange={(e) => setBccAddresses(e.target.value)}
-                className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 ml-0"
+                className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 py-1 px-2"
                 placeholder=""
                 style={{ fontSize: '16px' }}
                 autoComplete="email"
@@ -256,7 +256,7 @@ export function GmailEmailComposer({
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400"
+              className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 py-1 px-2"
               placeholder="Subject"
               style={{ fontSize: '16px' }}
               autoComplete="off"
