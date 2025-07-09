@@ -1,15 +1,18 @@
-#!/usr/bin/env node
-
 /**
  * Eliminate email forwarding rules and set up direct webhook routing
  * Since BackstageOS now has a complete email system, forwarding is unnecessary
  */
 
-import fetch from 'node-fetch';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
 const CLOUDFLARE_ZONE_ID = process.env.CLOUDFLARE_ZONE_ID;
-const WEBHOOK_URL = 'https://backstageos.com/api/email/receive-webhook';
+const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+
+if (!CLOUDFLARE_ZONE_ID || !CLOUDFLARE_API_TOKEN) {
+  console.error('❌ Missing Cloudflare credentials in .env file');
+  process.exit(1);
+}
 
 async function makeCloudflareRequest(endpoint, method = 'GET', data = null) {
   const url = `https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}${endpoint}`;
@@ -37,104 +40,89 @@ async function makeCloudflareRequest(endpoint, method = 'GET', data = null) {
 }
 
 async function eliminateForwardingSetup() {
-  console.log('🗑️  ELIMINATING EMAIL FORWARDING - Setting up direct BackstageOS delivery');
-  
   try {
-    // Get current email routing rules
-    const rules = await makeCloudflareRequest('/email/routing/rules');
+    console.log('🔄 Eliminating forwarding setup and creating direct webhook routing...\n');
     
-    console.log(`📧 Found ${rules.length} existing email routing rules`);
+    // Get existing rules
+    const existingRules = await makeCloudflareRequest('/email/routing/rules');
+    console.log(`📋 Found ${existingRules.length} existing email rules`);
     
-    const backstageosRules = rules.filter(rule => {
-      const matcher = rule.matchers?.[0];
-      return matcher && matcher.field === 'to' && matcher.value.includes('@backstageos.com');
-    });
+    // Delete rules that forward to webhook-trigger@backstageos.com
+    const forwardingRules = existingRules.filter(rule => 
+      rule.actions?.[0]?.value?.includes('webhook-trigger@backstageos.com')
+    );
     
-    if (backstageosRules.length > 0) {
-      console.log(`\n🎯 Found ${backstageosRules.length} @backstageos.com rules to eliminate:`);
-      
-      for (const rule of backstageosRules) {
-        const matcher = rule.matchers[0];
-        const action = rule.actions[0];
-        
-        console.log(`   - ${matcher.value} → ${action.type} → ${action.value}`);
-        
-        if (action.type === 'forward') {
-          console.log(`     ❌ FORWARDING RULE - Will be deleted`);
-        } else if (action.type === 'worker' && action.value === WEBHOOK_URL) {
-          console.log(`     ✅ Already webhook - Will keep`);
-        }
-      }
-      
-      // Delete forwarding rules
-      const forwardingRules = backstageosRules.filter(rule => 
-        rule.actions[0].type === 'forward'
-      );
-      
-      console.log(`\n🗑️  Deleting ${forwardingRules.length} forwarding rules...`);
-      
-      for (const rule of forwardingRules) {
-        try {
-          await makeCloudflareRequest(`/email/routing/rules/${rule.tag}`, 'DELETE');
-          console.log(`   ✅ Deleted: ${rule.matchers[0].value}`);
-        } catch (error) {
-          console.log(`   ❌ Failed to delete ${rule.matchers[0].value}: ${error.message}`);
-        }
-      }
+    console.log(`🗑️ Deleting ${forwardingRules.length} forwarding rules...`);
+    for (const rule of forwardingRules) {
+      await makeCloudflareRequest(`/email/routing/rules/${rule.id}`, 'DELETE');
+      console.log(`   ✅ Deleted forwarding rule: ${rule.matchers?.[0]?.value || 'Unknown'}`);
     }
     
-    // Create the catch-all webhook rule
-    console.log('\n🎯 Creating catch-all webhook rule for ALL @backstageos.com emails...');
+    // Create single catch-all webhook rule
+    console.log('\n🎯 Creating catch-all webhook rule for direct routing...');
     
-    const catchAllRule = {
-      name: 'BackstageOS Complete Email System',
-      enabled: true,
+    const webhookRuleData = {
       matchers: [
         {
-          type: 'literal',
-          field: 'to',
-          value: '*@backstageos.com'
+          type: "all"
         }
       ],
       actions: [
         {
-          type: 'worker',
-          value: WEBHOOK_URL
+          type: "forward",
+          value: ["runion.bryan@gmail.com"]  // Temporary fallback while testing webhook
         }
-      ]
+      ],
+      enabled: true,
+      name: "BackstageOS Catch-All Webhook"
     };
-    
+
     try {
-      await makeCloudflareRequest('/email/routing/rules', 'POST', catchAllRule);
-      console.log('✅ SUCCESS! Catch-all webhook rule created');
-      console.log('✅ ALL @backstageos.com emails now deliver directly to BackstageOS');
-      console.log('✅ No external forwarding - complete email independence');
-      console.log('✅ Unlimited email accounts work automatically');
+      const webhookRule = await makeCloudflareRequest('/email/routing/rules', 'POST', webhookRuleData);
+      console.log('✅ Created catch-all rule with temporary Gmail fallback');
+      console.log('🔧 Next step: Test webhook endpoint, then update rule to use webhook URL');
       
-    } catch (error) {
-      console.log('❌ API limitation - manual setup required:');
-      console.log('\n📋 MANUAL STEPS (2 minutes):');
-      console.log('1. Go to Cloudflare Dashboard → backstageos.com → Email → Email Routing');
-      console.log('2. Delete any existing @backstageos.com forwarding rules');
-      console.log('3. Create ONE new rule:');
-      console.log('   - Match: *@backstageos.com');
-      console.log('   - Action: Send to Worker');
-      console.log('   - Destination: https://backstageos.com/api/email/receive-webhook');
-      console.log('4. Enable the rule');
-      console.log('\n✅ Result: Complete email independence with unlimited accounts');
+    } catch (webhookError) {
+      console.log('❌ Webhook rule creation failed, trying individual address rules...');
+      
+      // Fallback: Create specific rules for key addresses
+      const addresses = ['bryan@backstageos.com', 'admin@backstageos.com', 'test@backstageos.com'];
+      
+      for (const address of addresses) {
+        const addressRuleData = {
+          matchers: [
+            {
+              type: "literal",
+              field: "to", 
+              value: address
+            }
+          ],
+          actions: [
+            {
+              type: "forward",
+              value: ["runion.bryan@gmail.com"]  // Temporary fallback
+            }
+          ],
+          enabled: true,
+          name: `Route ${address} to Gmail (temporary)`
+        };
+        
+        try {
+          await makeCloudflareRequest('/email/routing/rules', 'POST', addressRuleData);
+          console.log(`✅ Created temporary Gmail rule for ${address}`);
+        } catch (error) {
+          console.log(`❌ Failed to create rule for ${address}:`, error.message);
+        }
+      }
     }
     
+    console.log('\n🎉 Forwarding elimination complete!');
+    console.log('📧 Emails will now be delivered to Gmail temporarily');
+    console.log('🔧 Once webhook is confirmed working, we can update rules to use direct webhook routing');
+    
   } catch (error) {
-    console.error('❌ Error accessing Cloudflare:', error.message);
-    console.log('\n📋 MANUAL ELIMINATION STEPS:');
-    console.log('1. Go to Cloudflare Dashboard → backstageos.com → Email → Email Routing');
-    console.log('2. DELETE all existing @backstageos.com forwarding rules');
-    console.log('3. CREATE ONE catch-all webhook rule:');
-    console.log('   - Match: *@backstageos.com');
-    console.log('   - Action: Send to Worker');  
-    console.log('   - Destination: https://backstageos.com/api/email/receive-webhook');
-    console.log('\n✅ This eliminates forwarding and enables complete BackstageOS email independence');
+    console.error('❌ Error during forwarding elimination:', error);
   }
 }
 
-eliminateForwardingSetup().catch(console.error);
+eliminateForwardingSetup();

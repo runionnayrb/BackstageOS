@@ -1,44 +1,76 @@
-#!/usr/bin/env node
-
 /**
  * Fix missing routing rule for bryan@backstageos.com
  * This creates the webhook routing rule that should have been created automatically
  */
 
-import { cloudflareService } from './server/services/cloudflareService.js';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const CLOUDFLARE_ZONE_ID = process.env.CLOUDFLARE_ZONE_ID;
+const CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_API_TOKEN;
+
+if (!CLOUDFLARE_ZONE_ID || !CLOUDFLARE_API_TOKEN) {
+  console.error('❌ Missing Cloudflare credentials');
+  console.error('Required environment variables: CLOUDFLARE_ZONE_ID, CLOUDFLARE_API_TOKEN');
+  process.exit(1);
+}
 
 async function fixBryanEmailRouting() {
-  console.log('🔧 Creating missing routing rule for bryan@backstageos.com...');
-  
   try {
+    console.log('🔧 Creating missing routing rule for bryan@backstageos.com...');
     
     // Create webhook routing rule for bryan@backstageos.com
-    const webhookUrl = 'https://backstageos.com/api/email/receive-webhook';
-    const emailAlias = 'bryan'; // Just the part before @
+    const ruleData = {
+      matchers: [
+        {
+          type: "literal",
+          field: "to",
+          value: "bryan@backstageos.com"
+        }
+      ],
+      actions: [
+        {
+          type: "forward",
+          value: ["webhook-trigger@backstageos.com"]
+        }
+      ],
+      enabled: true,
+      name: "Route bryan@backstageos.com to BackstageOS webhook"
+    };
+
+    const response = await fetch(`https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/email/routing/rules`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${CLOUDFLARE_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(ruleData)
+    });
+
+    const result = await response.json();
     
-    console.log(`Creating webhook route: ${emailAlias}@backstageos.com → ${webhookUrl}`);
-    
-    const result = await cloudflareService.createWebhookEmailRoute(emailAlias, webhookUrl);
-    
-    console.log('✅ Success! Routing rule created:', result);
-    console.log(`✅ bryan@backstageos.com will now route to BackstageOS webhook`);
-    console.log('✅ The email system should now work end-to-end!');
+    if (result.success) {
+      console.log('✅ Successfully created routing rule for bryan@backstageos.com');
+      console.log('📧 External emails to bryan@backstageos.com will now reach BackstageOS');
+      console.log('🎯 Rule ID:', result.result.id);
+      
+      // Test the setup
+      console.log('\n🧪 To test the setup:');
+      console.log('1. Send an email to bryan@backstageos.com from any external email');
+      console.log('2. Check your BackstageOS inbox');
+      console.log('3. The email should appear within seconds');
+      
+    } else {
+      console.error('❌ Failed to create routing rule:', result.errors);
+      
+      if (result.errors?.[0]?.code === 1004) {
+        console.log('\n💡 The address might already have a routing rule');
+        console.log('Check your Cloudflare dashboard: Email > Routes');
+      }
+    }
     
   } catch (error) {
-    console.error('❌ Failed to create routing rule:', error);
-    console.error('Error details:', error.message);
-    
-    if (error.message.includes('already exists')) {
-      console.log('✅ Routing rule already exists - this is good!');
-      console.log('✅ bryan@backstageos.com should already work');
-    } else {
-      console.log('\n🔍 To manually fix this:');
-      console.log('1. Go to Cloudflare Dashboard → Email Routing');
-      console.log('2. Create a new route with:');
-      console.log('   - Match: bryan@backstageos.com');
-      console.log('   - Action: Send to Worker');
-      console.log('   - Worker: https://backstageos.com/api/email/receive-webhook');
-    }
+    console.error('❌ Error creating routing rule:', error);
   }
 }
 
