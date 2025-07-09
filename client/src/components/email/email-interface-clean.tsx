@@ -38,6 +38,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [pendingDeleteAction, setPendingDeleteAction] = useState<{ messageIds: number[]; action: string; targetFolder?: string } | null>(null);
+  const [forwardMessage, setForwardMessage] = useState<EmailMessage | null>(null);
+  const [composeMode, setComposeMode] = useState<'compose' | 'reply' | 'replyAll' | 'forward'>('compose');
   const queryClient = useQueryClient();
 
   // Mark email as read mutation
@@ -229,15 +231,16 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const handleForward = () => {
     if (!modalEmail) return;
     
-    // Close modal and open composer with forward data
+    // Set forward message data and compose mode
+    setForwardMessage(modalEmail);
+    setComposeMode('forward');
+    
+    // Close modal and open composer
     setShowEmailModal(false);
     
     if (onShowComposeChange) {
       onShowComposeChange(true);
     }
-    
-    // TODO: Pass forward data to composer (subject with Fwd:, original message)
-    console.log('Forward:', modalEmail.subject);
   };
 
   const handleArchive = () => {
@@ -671,9 +674,20 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
           onClose={() => {
             onShowComposeChange?.(false);
             onShowTheaterFeaturesChange?.(false);
+            // Reset forward message and compose mode when closing
+            setForwardMessage(null);
+            setComposeMode('compose');
           }}
           fromAccountId={selectedAccount.id}
           fromEmail={selectedAccount.emailAddress}
+          forwardMessage={forwardMessage ? {
+            id: String(forwardMessage.id),
+            subject: forwardMessage.subject || '',
+            fromAddress: forwardMessage.fromAddress,
+            content: forwardMessage.content || '',
+            htmlContent: forwardMessage.htmlContent
+          } : undefined}
+          composeMode={composeMode}
         />
       )}
 

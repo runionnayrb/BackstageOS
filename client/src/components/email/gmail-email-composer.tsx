@@ -26,6 +26,14 @@ interface GmailEmailComposerProps {
     fromAddress: string;
     content: string;
   };
+  forwardMessage?: {
+    id: string;
+    subject: string;
+    fromAddress: string;
+    content: string;
+    htmlContent?: string;
+  };
+  composeMode?: 'compose' | 'reply' | 'replyAll' | 'forward';
 }
 
 export function GmailEmailComposer({ 
@@ -33,7 +41,9 @@ export function GmailEmailComposer({
   onClose, 
   fromAccountId, 
   fromEmail,
-  replyToMessage
+  replyToMessage,
+  forwardMessage,
+  composeMode = 'compose'
 }: GmailEmailComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -46,16 +56,25 @@ export function GmailEmailComposer({
   const [showBcc, setShowBcc] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showExitDialog, setShowExitDialog] = useState(false);
-  const [subject, setSubject] = useState(
-    replyToMessage ? 
-      (replyToMessage.subject.startsWith('Re: ') ? replyToMessage.subject : `Re: ${replyToMessage.subject}`) : 
-      ''
-  );
-  const [content, setContent] = useState(
-    replyToMessage ? 
-      `\n\n--- Original Message ---\nFrom: ${replyToMessage.fromAddress}\nSubject: ${replyToMessage.subject}\n\n${replyToMessage.content}` : 
-      ''
-  );
+  const [subject, setSubject] = useState(() => {
+    if (replyToMessage) {
+      return replyToMessage.subject.startsWith('Re: ') ? replyToMessage.subject : `Re: ${replyToMessage.subject}`;
+    }
+    if (forwardMessage) {
+      return forwardMessage.subject.startsWith('Fwd: ') ? forwardMessage.subject : `Fwd: ${forwardMessage.subject}`;
+    }
+    return '';
+  });
+  
+  const [content, setContent] = useState(() => {
+    if (replyToMessage) {
+      return `\n\n--- Original Message ---\nFrom: ${replyToMessage.fromAddress}\nSubject: ${replyToMessage.subject}\n\n${replyToMessage.content}`;
+    }
+    if (forwardMessage) {
+      return `\n\n---------- Forwarded message ----------\nFrom: ${forwardMessage.fromAddress}\nSubject: ${forwardMessage.subject}\n\n${forwardMessage.content}`;
+    }
+    return '';
+  });
 
   // Handle animation when opening
   useEffect(() => {
