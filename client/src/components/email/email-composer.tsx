@@ -40,32 +40,22 @@ export function EmailComposer({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Mobile detection
-  const [isMobile, setIsMobile] = useState(false);
-  
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  // Static mobile detection - no state changes that could cause re-renders
+  const isMobile = window.innerWidth < 768;
 
-  // Prevent body scroll when mobile sheet is open - but allow input focus
-  useEffect(() => {
-    if (isMobile && isOpen) {
-      // Only prevent scrolling, don't fix position which interferes with keyboard
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+  // Body scroll management - TEMPORARILY DISABLED FOR KEYBOARD DEBUGGING
+  // useEffect(() => {
+  //   if (isMobile && isOpen) {
+  //     // Only prevent scrolling, don't fix position which interferes with keyboard
+  //     document.body.style.overflow = 'hidden';
+  //   } else {
+  //     document.body.style.overflow = '';
+  //   }
 
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isMobile, isOpen]);
+  //   return () => {
+  //     document.body.style.overflow = '';
+  //   };
+  // }, [isMobile, isOpen]);
 
   // Form state
   const [toAddresses, setToAddresses] = useState<string>('');
@@ -217,31 +207,30 @@ export function EmailComposer({
     },
   });
 
-  // Auto-save logic - re-enabled now that touch conflicts are resolved
-  useEffect(() => {
+  // Auto-save logic - TEMPORARILY DISABLED FOR KEYBOARD DEBUGGING
+  // useEffect(() => {
+  //   const hasContent = toAddresses.trim() || subject.trim() || content.trim() || ccAddresses.trim() || bccAddresses.trim();
     
-    const hasContent = toAddresses.trim() || subject.trim() || content.trim() || ccAddresses.trim() || bccAddresses.trim();
-    
-    if (hasContent && isOpen) {
-      // Clear existing timer
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current);
-      }
+  //   if (hasContent && isOpen) {
+  //     // Clear existing timer
+  //     if (autoSaveTimerRef.current) {
+  //       clearTimeout(autoSaveTimerRef.current);
+  //     }
       
-      setAutoSaveStatus('Auto-saving draft...');
+  //     setAutoSaveStatus('Auto-saving draft...');
       
-      // Set new timer for 2 seconds
-      autoSaveTimerRef.current = setTimeout(() => {
-        saveDraftMutation.mutate();
-      }, 2000);
-    }
+  //     // Set new timer for 2 seconds
+  //     autoSaveTimerRef.current = setTimeout(() => {
+  //       saveDraftMutation.mutate();
+  //     }, 2000);
+  //   }
 
-    return () => {
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current);
-      }
-    };
-  }, [toAddresses, subject, content, ccAddresses, bccAddresses, isOpen]);
+  //   return () => {
+  //     if (autoSaveTimerRef.current) {
+  //       clearTimeout(autoSaveTimerRef.current);
+  //     }
+  //   };
+  // }, [toAddresses, subject, content, ccAddresses, bccAddresses, isOpen]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -351,25 +340,19 @@ export function EmailComposer({
         <div className="flex-1 flex flex-col overflow-y-auto">
           {/* Fields */}
           <div className="px-4">
-            {/* To field */}
+            {/* To field - SIMPLIFIED FOR DEBUGGING */}
             <div className="flex items-center py-3 border-b border-gray-200">
               <span className="text-gray-500 w-12 text-sm">To:</span>
               <input
-                type="email"
-                placeholder=""
+                type="text"
+                placeholder="Enter email address"
                 value={toAddresses}
-                onChange={(e) => setToAddresses(e.target.value)}
-                className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
-                style={{ 
-                  fontSize: '16px', 
-                  boxShadow: 'none',
-                  WebkitAppearance: 'none',
-                  borderRadius: 0
+                onChange={(e) => {
+                  console.log('To address changing:', e.target.value);
+                  setToAddresses(e.target.value);
                 }}
-                autoComplete="email"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck="false"
+                className="flex-1 border border-gray-300 p-1 text-base"
+                style={{ fontSize: '16px' }}
               />
               <Button 
                 variant="ghost" 
@@ -435,46 +418,36 @@ export function EmailComposer({
               <span className="text-black text-base">{fromEmail}</span>
             </div>
 
-            {/* Subject field */}
+            {/* Subject field - SIMPLIFIED FOR DEBUGGING */}
             <div className="flex items-center py-3 border-b border-gray-200">
               <span className="text-gray-500 w-12 text-sm">Subject:</span>
               <input
                 type="text"
-                placeholder=""
+                placeholder="Enter subject"
                 value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="flex-1 bg-transparent border-0 outline-none text-base focus:ring-0 focus:outline-none p-0"
-                style={{ 
-                  fontSize: '16px', 
-                  boxShadow: 'none',
-                  WebkitAppearance: 'none',
-                  borderRadius: 0
+                onChange={(e) => {
+                  console.log('Subject changing:', e.target.value);
+                  setSubject(e.target.value);
                 }}
-                autoComplete="off"
-                autoCapitalize="sentences"
-                autoCorrect="on"
-                spellCheck="true"
+                className="flex-1 border border-gray-300 p-1 text-base"
+                style={{ fontSize: '16px' }}
               />
             </div>
           </div>
 
-          {/* Message content */}
+          {/* Message content - SIMPLIFIED FOR DEBUGGING */}
           <div className="flex-1 p-4">
             <textarea
-              placeholder="Compose your message..."
+              placeholder="Type your message here..."
               value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="w-full h-full bg-transparent border-0 outline-none resize-none text-base focus:ring-0 focus:outline-none"
-              style={{ 
-                fontSize: '16px', 
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-                WebkitAppearance: 'none',
-                borderRadius: 0
+              onChange={(e) => {
+                console.log('Content changing:', e.target.value);
+                setContent(e.target.value);
               }}
-              autoComplete="off"
-              autoCapitalize="sentences"
-              autoCorrect="on"
-              spellCheck="true"
+              className="w-full h-full border border-gray-300 p-2 text-base"
+              style={{ 
+                fontSize: '16px'
+              }}
             />
           </div>
 
