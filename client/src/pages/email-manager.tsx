@@ -66,6 +66,24 @@ interface EmailStats {
 }
 
 export default function EmailManager() {
+  // Helper function to get folder display name
+  const getFolderDisplayName = (folder: string) => {
+    switch (folder) {
+      case 'inbox':
+        return 'Inbox';
+      case 'sent':
+        return 'Sent';
+      case 'drafts':
+        return 'Drafts';
+      case 'archive':
+        return 'Archive';
+      case 'trash':
+        return 'Trash';
+      default:
+        return 'Email';
+    }
+  };
+
   const [selectedAccount, setSelectedAccount] = useState<EmailAccount | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [showCompose, setShowCompose] = useState(false);
@@ -305,7 +323,7 @@ export default function EmailManager() {
           <div className="w-full bg-white p-4 space-y-4 h-full overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">Email</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{getFolderDisplayName(activeFolder)}</h2>
               <Button 
                 variant="ghost"
                 size="sm"
@@ -554,7 +572,7 @@ export default function EmailManager() {
               
               {/* Email title */}
               <h1 className="text-xl md:text-3xl font-bold text-gray-900 flex-shrink-0">
-                Email
+                {getFolderDisplayName(activeFolder)}
               </h1>
               
               {/* Search bar - mobile and desktop */}
