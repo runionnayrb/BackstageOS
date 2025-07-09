@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
@@ -109,8 +108,6 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
     
     const data = {
       name: formData.get('name'),
-      description: formData.get('description'),
-      inboxType: formData.get('inboxType'),
       emailAddress
     };
 
@@ -182,33 +179,9 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
                 <Input 
                   id="name" 
                   name="name" 
-                  placeholder="Production Team" 
+                  placeholder="Stage Management Team" 
                   required 
                 />
-              </div>
-              
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea 
-                  id="description" 
-                  name="description" 
-                  placeholder="Main production team communications" 
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="inboxType">Inbox Type</Label>
-                <Select name="inboxType" defaultValue="team">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="team">Team</SelectItem>
-                    <SelectItem value="vendor">Vendor</SelectItem>
-                    <SelectItem value="cast">Cast</SelectItem>
-                    <SelectItem value="crew">Crew</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               
               <div>
@@ -217,7 +190,7 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
                   <Input 
                     id="customEmailPrefix" 
                     name="customEmailPrefix" 
-                    placeholder="macbeth-cast" 
+                    placeholder="macbeth-sm" 
                     required
                     className="flex-1"
                   />
