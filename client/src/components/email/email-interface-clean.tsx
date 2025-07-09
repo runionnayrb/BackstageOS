@@ -699,7 +699,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <DialogContent className="sm:max-w-md">
+        <div className="fixed inset-0 bg-black/10 z-40" onClick={() => setShowDeleteConfirm(false)} />
+        <DialogContent className="sm:max-w-md relative z-50">
           <DialogHeader>
             <DialogTitle>Delete Messages</DialogTitle>
             <DialogDescription>
