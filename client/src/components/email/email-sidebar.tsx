@@ -67,7 +67,6 @@ interface SharedInbox {
   projectId: number;
   name: string;
   emailAddress: string;
-  inboxType: string;
   isActive: boolean;
 }
 
@@ -190,7 +189,7 @@ export function EmailSidebar({
 
   // Mutation for creating shared inbox
   const createSharedInboxMutation = useMutation({
-    mutationFn: async (data: { projectId: number; name: string; emailAddress: string; inboxType: string }) => {
+    mutationFn: async (data: { projectId: number; name: string; emailAddress: string }) => {
       return apiRequest(`/api/projects/${data.projectId}/shared-inboxes`, {
         method: 'POST',
         body: JSON.stringify(data),
@@ -240,7 +239,6 @@ export function EmailSidebar({
       projectId: selectedProjectForInbox.id,
       name: formData.get('name') as string,
       emailAddress,
-      inboxType: formData.get('inboxType') as string,
     };
 
     createSharedInboxMutation.mutate(data);
