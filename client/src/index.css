@@ -48,7 +48,12 @@
 
 /* Lighter dialog overlay */
 [data-radix-dialog-overlay] {
-  background-color: rgba(0, 0, 0, 0.1) !important;
+  background-color: rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Even lighter overlay for delete confirmation dialogs */
+[data-radix-dialog-overlay][data-state="open"] {
+  background-color: rgba(0, 0, 0, 0.03) !important;
 }
 
 :root {
