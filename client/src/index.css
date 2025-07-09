@@ -46,7 +46,10 @@
   display: none !important;
 }
 
-
+/* Lighter dialog overlay */
+[data-radix-dialog-overlay] {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
 
 :root {
   --background: hsl(0, 0%, 100%);
