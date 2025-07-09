@@ -9,7 +9,6 @@ import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2 } from 'lucide-
 import { useQuery } from '@tanstack/react-query';
 import { EmailAccountConfig } from './email-account-config';
 import { EmailComposer } from './email-composer';
-import { EmailStats } from './email-stats';
 import { EmailMessage } from '@shared/schema';
 
 interface EmailAccount {
@@ -117,11 +116,6 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
 
         {/* Content Area - Mobile Responsive */}
         <div className="pt-0 md:pt-16 h-full">
-          {/* Email Statistics - Show only on desktop */}
-          <div className="hidden md:block px-4 py-2 border-b border-gray-200">
-            <EmailStats accountId={selectedAccount.id} />
-          </div>
-          
           {/* Full-Width Email List */}
           <ScrollArea className="h-full">
             <div className="space-y-0">
