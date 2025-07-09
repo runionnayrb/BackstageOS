@@ -81,15 +81,20 @@ export function GmailEmailComposer({
         description: "Your message has been delivered.",
       });
       
-      // Clear form and close
-      setToAddresses('');
-      setCcAddresses('');
-      setBccAddresses('');
-      setSubject('');
-      setContent('');
-      setShowCc(false);
-      setShowBcc(false);
-      onClose();
+      // Start slide-down animation
+      setIsAnimating(false);
+      
+      // Wait for animation to complete, then close and clear form
+      setTimeout(() => {
+        setToAddresses('');
+        setCcAddresses('');
+        setBccAddresses('');
+        setSubject('');
+        setContent('');
+        setShowCc(false);
+        setShowBcc(false);
+        onClose();
+      }, 300); // Match animation duration
       
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['/api/email'] });
@@ -108,10 +113,20 @@ export function GmailEmailComposer({
   };
 
   const handleClose = () => {
-    setToAddresses('');
-    setSubject('');
-    setContent('');
-    onClose();
+    // Start slide-down animation
+    setIsAnimating(false);
+    
+    // Wait for animation to complete, then close and clear form
+    setTimeout(() => {
+      setToAddresses('');
+      setCcAddresses('');
+      setBccAddresses('');
+      setSubject('');
+      setContent('');
+      setShowCc(false);
+      setShowBcc(false);
+      onClose();
+    }, 300); // Match animation duration
   };
 
   if (!isOpen) return null;
