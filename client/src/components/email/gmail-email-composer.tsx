@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Send, ChevronDown, Paperclip, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,7 @@ export function GmailEmailComposer({
   const [bccAddresses, setBccAddresses] = useState<string>('');
   const [showCc, setShowCc] = useState(false);
   const [showBcc, setShowBcc] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const [subject, setSubject] = useState(
     replyToMessage ? 
       (replyToMessage.subject.startsWith('Re: ') ? replyToMessage.subject : `Re: ${replyToMessage.subject}`) : 
@@ -44,6 +45,13 @@ export function GmailEmailComposer({
       `\n\n--- Original Message ---\nFrom: ${replyToMessage.fromAddress}\nSubject: ${replyToMessage.subject}\n\n${replyToMessage.content}` : 
       ''
   );
+
+  // Handle animation when opening
+  useEffect(() => {
+    if (isOpen) {
+      setIsAnimating(true);
+    }
+  }, [isOpen]);
 
   // Send email mutation
   const sendEmailMutation = useMutation({
@@ -118,7 +126,9 @@ export function GmailEmailComposer({
       
       {/* Gmail-style composer */}
       <div 
-        className="fixed left-0 right-0 bg-white flex flex-col"
+        className={`fixed left-0 right-0 bg-white flex flex-col transition-transform duration-300 ease-out ${
+          isAnimating ? 'translate-y-0' : 'translate-y-full'
+        }`}
         style={{ 
           top: '0px', // Start from very top (URL bar area)
           height: '100vh'
