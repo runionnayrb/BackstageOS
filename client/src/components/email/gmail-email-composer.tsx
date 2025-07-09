@@ -30,6 +30,10 @@ export function GmailEmailComposer({
 
   // Form state
   const [toAddresses, setToAddresses] = useState<string>('');
+  const [ccAddresses, setCcAddresses] = useState<string>('');
+  const [bccAddresses, setBccAddresses] = useState<string>('');
+  const [showCc, setShowCc] = useState(false);
+  const [showBcc, setShowBcc] = useState(false);
   const [subject, setSubject] = useState(
     replyToMessage ? 
       (replyToMessage.subject.startsWith('Re: ') ? replyToMessage.subject : `Re: ${replyToMessage.subject}`) : 
@@ -51,6 +55,8 @@ export function GmailEmailComposer({
       const emailData = {
         fromAccountId,
         toAddresses: toAddresses.trim(),
+        ccAddresses: ccAddresses.trim() || undefined,
+        bccAddresses: bccAddresses.trim() || undefined,
         subject: subject.trim(),
         content: content.trim(),
         threadId: replyToMessage?.id ? parseInt(replyToMessage.id) : null
@@ -69,8 +75,12 @@ export function GmailEmailComposer({
       
       // Clear form and close
       setToAddresses('');
+      setCcAddresses('');
+      setBccAddresses('');
       setSubject('');
       setContent('');
+      setShowCc(false);
+      setShowBcc(false);
       onClose();
       
       // Invalidate relevant queries
@@ -152,12 +162,12 @@ export function GmailEmailComposer({
         <div className="flex-1 flex flex-col bg-white">
           {/* To field */}
           <div className="flex items-center px-4 py-4 border-b border-gray-100">
-            <span className="text-gray-500 text-base mr-3 min-w-[60px]">To</span>
+            <span className="text-gray-500 text-base">To:  </span>
             <input
               type="email"
               value={toAddresses}
               onChange={(e) => setToAddresses(e.target.value)}
-              className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400"
+              className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 ml-0"
               placeholder=""
               style={{ fontSize: '16px' }}
               autoComplete="email"
@@ -165,29 +175,89 @@ export function GmailEmailComposer({
               autoCorrect="off"
               spellCheck="false"
             />
-            <Button 
-              variant="ghost" 
-              className="text-gray-400 hover:text-gray-600 p-1 h-auto ml-2"
-            >
-              <ChevronDown className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center space-x-2">
+              {!showCc && (
+                <Button 
+                  variant="ghost" 
+                  className="text-blue-500 hover:text-blue-600 text-sm h-auto p-1"
+                  onClick={() => setShowCc(true)}
+                >
+                  Cc
+                </Button>
+              )}
+              {!showBcc && (
+                <Button 
+                  variant="ghost" 
+                  className="text-blue-500 hover:text-blue-600 text-sm h-auto p-1"
+                  onClick={() => setShowBcc(true)}
+                >
+                  Bcc
+                </Button>
+              )}
+            </div>
           </div>
+
+          {/* CC field */}
+          {showCc && (
+            <div className="flex items-center px-4 py-4 border-b border-gray-100">
+              <span className="text-gray-500 text-base">Cc:  </span>
+              <input
+                type="email"
+                value={ccAddresses}
+                onChange={(e) => setCcAddresses(e.target.value)}
+                className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 ml-0"
+                placeholder=""
+                style={{ fontSize: '16px' }}
+                autoComplete="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
+              />
+              {!showBcc && (
+                <Button 
+                  variant="ghost" 
+                  className="text-blue-500 hover:text-blue-600 text-sm h-auto p-1 ml-2"
+                  onClick={() => setShowBcc(true)}
+                >
+                  Bcc
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* BCC field */}
+          {showBcc && (
+            <div className="flex items-center px-4 py-4 border-b border-gray-100">
+              <span className="text-gray-500 text-base">Bcc:  </span>
+              <input
+                type="email"
+                value={bccAddresses}
+                onChange={(e) => setBccAddresses(e.target.value)}
+                className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 ml-0"
+                placeholder=""
+                style={{ fontSize: '16px' }}
+                autoComplete="email"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
+              />
+            </div>
+          )}
 
           {/* From field */}
           <div className="flex items-center px-4 py-4 border-b border-gray-100">
-            <span className="text-gray-500 text-base mr-3 min-w-[60px]">From</span>
+            <span className="text-gray-500 text-base">From:  </span>
             <span className="text-base text-gray-600">{fromEmail}</span>
           </div>
 
           {/* Subject field */}
           <div className="flex items-center px-4 py-4 border-b border-gray-100">
-            <span className="text-gray-500 text-base mr-3 min-w-[60px]">Subject</span>
             <input
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
               className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400"
-              placeholder=""
+              placeholder="Subject"
               style={{ fontSize: '16px' }}
               autoComplete="off"
               autoCapitalize="sentences"
