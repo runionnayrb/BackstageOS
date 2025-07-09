@@ -143,7 +143,7 @@ async function isAuthenticated(req: any, res: any, next: any) {
       // Look for the correct admin user (Bryan Runion)
       const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
       if (adminUser && adminUser.isAdmin) {
-        console.log("SAFARI ADMIN BYPASS: Allowing access for admin user");
+        console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
         req.user = adminUser;
         return next();
       }
@@ -1190,6 +1190,16 @@ Respond with valid JSON only.`;
   });
 
   // User profile routes
+  app.get('/api/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      res.json(user);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      res.status(500).json({ message: "Failed to fetch user data" });
+    }
+  });
+
   app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id.toString();
@@ -5802,8 +5812,293 @@ Respond with valid JSON only.`;
       const stats = await emailService.getQueueStats(accountId);
       res.json(stats);
     } catch (error) {
-      console.error("Error fetching queue statistics:", error);
-      res.status(500).json({ message: "Failed to fetch queue statistics" });
+      console.error("Error fetching queue stats:", error);
+      res.status(500).json({ message: "Failed to fetch queue stats" });
+    }
+  });
+
+  // ========== PHASE 5: SHARED INBOX API ENDPOINTS ==========
+
+  // Get project shared inboxes
+  app.get('/api/projects/:projectId/shared-inboxes', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const inboxes = await sharedInboxService.getProjectSharedInboxes(projectId);
+      res.json(inboxes);
+    } catch (error) {
+      console.error("Error fetching shared inboxes:", error);
+      res.status(500).json({ message: "Failed to fetch shared inboxes" });
+    }
+  });
+
+  // Create shared inbox
+  app.post('/api/projects/:projectId/shared-inboxes', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const inboxData = {
+        ...req.body,
+        projectId,
+        createdBy: req.user.id
+      };
+      
+      const inbox = await sharedInboxService.createSharedInbox(inboxData);
+      res.json(inbox);
+    } catch (error) {
+      console.error("Error creating shared inbox:", error);
+      res.status(500).json({ message: "Failed to create shared inbox" });
+    }
+  });
+
+  // Get shared inbox details
+  app.get('/api/shared-inboxes/:inboxId', isAuthenticated, async (req: any, res) => {
+    try {
+      const inboxId = parseInt(req.params.inboxId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const inbox = await sharedInboxService.getSharedInboxById(inboxId);
+      res.json(inbox);
+    } catch (error) {
+      console.error("Error fetching shared inbox:", error);
+      res.status(500).json({ message: "Failed to fetch shared inbox" });
+    }
+  });
+
+  // Update shared inbox
+  app.put('/api/shared-inboxes/:inboxId', isAuthenticated, async (req: any, res) => {
+    try {
+      const inboxId = parseInt(req.params.inboxId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const updatedInbox = await sharedInboxService.updateSharedInbox(inboxId, req.body);
+      res.json(updatedInbox);
+    } catch (error) {
+      console.error("Error updating shared inbox:", error);
+      res.status(500).json({ message: "Failed to update shared inbox" });
+    }
+  });
+
+  // Delete shared inbox
+  app.delete('/api/shared-inboxes/:inboxId', isAuthenticated, async (req: any, res) => {
+    try {
+      const inboxId = parseInt(req.params.inboxId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      await sharedInboxService.deleteSharedInbox(inboxId);
+      res.json({ message: "Shared inbox deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting shared inbox:", error);
+      res.status(500).json({ message: "Failed to delete shared inbox" });
+    }
+  });
+
+  // Get shared inbox members
+  app.get('/api/shared-inboxes/:inboxId/members', isAuthenticated, async (req: any, res) => {
+    try {
+      const inboxId = parseInt(req.params.inboxId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const members = await sharedInboxService.getSharedInboxMembers(inboxId);
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching shared inbox members:", error);
+      res.status(500).json({ message: "Failed to fetch shared inbox members" });
+    }
+  });
+
+  // Add member to shared inbox
+  app.post('/api/shared-inboxes/:inboxId/members', isAuthenticated, async (req: any, res) => {
+    try {
+      const inboxId = parseInt(req.params.inboxId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const memberData = {
+        ...req.body,
+        inboxId
+      };
+      
+      const member = await sharedInboxService.addSharedInboxMember(memberData);
+      res.json(member);
+    } catch (error) {
+      console.error("Error adding shared inbox member:", error);
+      res.status(500).json({ message: "Failed to add shared inbox member" });
+    }
+  });
+
+  // Update shared inbox member
+  app.put('/api/shared-inboxes/:inboxId/members/:memberId', isAuthenticated, async (req: any, res) => {
+    try {
+      const memberId = parseInt(req.params.memberId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const updatedMember = await sharedInboxService.updateSharedInboxMember(memberId, req.body);
+      res.json(updatedMember);
+    } catch (error) {
+      console.error("Error updating shared inbox member:", error);
+      res.status(500).json({ message: "Failed to update shared inbox member" });
+    }
+  });
+
+  // Remove member from shared inbox
+  app.delete('/api/shared-inboxes/:inboxId/members/:memberId', isAuthenticated, async (req: any, res) => {
+    try {
+      const memberId = parseInt(req.params.memberId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      await sharedInboxService.removeSharedInboxMember(memberId);
+      res.json({ message: "Member removed from shared inbox successfully" });
+    } catch (error) {
+      console.error("Error removing shared inbox member:", error);
+      res.status(500).json({ message: "Failed to remove shared inbox member" });
+    }
+  });
+
+  // Assign email to team member
+  app.post('/api/emails/:messageId/assign', isAuthenticated, async (req: any, res) => {
+    try {
+      const messageId = parseInt(req.params.messageId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const assignmentData = {
+        ...req.body,
+        messageId,
+        assignedBy: req.user.id
+      };
+      
+      const assignment = await sharedInboxService.assignEmail(assignmentData);
+      res.json(assignment);
+    } catch (error) {
+      console.error("Error assigning email:", error);
+      res.status(500).json({ message: "Failed to assign email" });
+    }
+  });
+
+  // Update email assignment
+  app.put('/api/email-assignments/:assignmentId', isAuthenticated, async (req: any, res) => {
+    try {
+      const assignmentId = parseInt(req.params.assignmentId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const updatedAssignment = await sharedInboxService.updateEmailAssignment(assignmentId, req.body);
+      res.json(updatedAssignment);
+    } catch (error) {
+      console.error("Error updating email assignment:", error);
+      res.status(500).json({ message: "Failed to update email assignment" });
+    }
+  });
+
+  // Get user's email assignments
+  app.get('/api/users/:userId/email-assignments', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const assignments = await sharedInboxService.getUserEmailAssignments(userId);
+      res.json(assignments);
+    } catch (error) {
+      console.error("Error fetching email assignments:", error);
+      res.status(500).json({ message: "Failed to fetch email assignments" });
+    }
+  });
+
+  // Add collaborator to email thread
+  app.post('/api/email-threads/:threadId/collaborators', isAuthenticated, async (req: any, res) => {
+    try {
+      const threadId = parseInt(req.params.threadId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const collaborationData = {
+        ...req.body,
+        threadId
+      };
+      
+      const collaboration = await sharedInboxService.addThreadCollaborator(collaborationData);
+      res.json(collaboration);
+    } catch (error) {
+      console.error("Error adding thread collaborator:", error);
+      res.status(500).json({ message: "Failed to add thread collaborator" });
+    }
+  });
+
+  // Get thread collaborators
+  app.get('/api/email-threads/:threadId/collaborators', isAuthenticated, async (req: any, res) => {
+    try {
+      const threadId = parseInt(req.params.threadId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const collaborators = await sharedInboxService.getThreadCollaborators(threadId);
+      res.json(collaborators);
+    } catch (error) {
+      console.error("Error fetching thread collaborators:", error);
+      res.status(500).json({ message: "Failed to fetch thread collaborators" });
+    }
+  });
+
+  // Create email archive rule
+  app.post('/api/projects/:projectId/archive-rules', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const ruleData = {
+        ...req.body,
+        projectId,
+        createdBy: req.user.id
+      };
+      
+      const rule = await sharedInboxService.createArchiveRule(ruleData);
+      res.json(rule);
+    } catch (error) {
+      console.error("Error creating archive rule:", error);
+      res.status(500).json({ message: "Failed to create archive rule" });
+    }
+  });
+
+  // Get project archive rules
+  app.get('/api/projects/:projectId/archive-rules', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const rules = await sharedInboxService.getProjectArchiveRules(projectId);
+      res.json(rules);
+    } catch (error) {
+      console.error("Error fetching archive rules:", error);
+      res.status(500).json({ message: "Failed to fetch archive rules" });
+    }
+  });
+
+  // Execute archive rule
+  app.post('/api/archive-rules/:ruleId/execute', isAuthenticated, async (req: any, res) => {
+    try {
+      const ruleId = parseInt(req.params.ruleId);
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const result = await sharedInboxService.executeArchiveRule(ruleId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error executing archive rule:", error);
+      res.status(500).json({ message: "Failed to execute archive rule" });
     }
   });
 

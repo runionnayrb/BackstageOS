@@ -64,6 +64,7 @@ interface EmailSidebarProps {
   onFolderChange?: (folder: string) => void;
   onTheaterGroupEmail?: () => void;
   onTheaterTemplates?: () => void;
+  onSharedInboxes?: () => void;
   hasPersonalAccount?: boolean;
   isAdmin?: boolean;
   user?: { firstName?: string; lastName?: string; } | null;
@@ -82,6 +83,7 @@ export function EmailSidebar({
   onFolderChange,
   onTheaterGroupEmail,
   onTheaterTemplates,
+  onSharedInboxes,
   hasPersonalAccount = false,
   isAdmin = false,
   onSettings,
@@ -282,6 +284,17 @@ export function EmailSidebar({
         {/* Theater Features Section */}
         <div className="mt-6 px-4">
           <div className="space-y-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                onSharedInboxes?.();
+              }}
+              className="w-full justify-start text-sm"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Shared Inboxes
+            </Button>
             <Button
               variant="ghost"
               size="sm"

@@ -686,6 +686,83 @@ export const emailQueue = pgTable("email_queue", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ========== PHASE 5: SHARED INBOXES & TEAM COLLABORATION ==========
+
+// Shared inboxes for production teams
+export const sharedInboxes = pgTable("shared_inboxes", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(), // "Production Team", "Vendor Communications", etc.
+  description: text("description"),
+  emailAddress: varchar("email_address").notNull().unique(), // production@backstageos.com
+  inboxType: varchar("inbox_type").notNull().default("team"), // 'team', 'vendor', 'cast', 'crew'
+  isActive: boolean("is_active").default(true),
+  autoAssignRules: jsonb("auto_assign_rules"), // Rules for automatic email assignment
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Team members with access to shared inboxes
+export const sharedInboxMembers = pgTable("shared_inbox_members", {
+  id: serial("id").primaryKey(),
+  inboxId: integer("inbox_id").notNull().references(() => sharedInboxes.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: varchar("role").notNull().default("member"), // 'admin', 'moderator', 'member', 'viewer'
+  permissions: jsonb("permissions"), // Custom permissions for this user
+  canAssignEmails: boolean("can_assign_emails").default(false),
+  canManageMembers: boolean("can_manage_members").default(false),
+  notificationSettings: jsonb("notification_settings"), // Email notification preferences
+  joinedAt: timestamp("joined_at").defaultNow(),
+  lastActiveAt: timestamp("last_active_at"),
+});
+
+// Email assignments for delegation
+export const emailAssignments = pgTable("email_assignments", {
+  id: serial("id").primaryKey(),
+  messageId: integer("message_id").notNull().references(() => emailMessages.id, { onDelete: "cascade" }),
+  inboxId: integer("inbox_id").references(() => sharedInboxes.id, { onDelete: "cascade" }),
+  assignedTo: integer("assigned_to").notNull().references(() => users.id),
+  assignedBy: integer("assigned_by").notNull().references(() => users.id),
+  status: varchar("status").notNull().default("pending"), // 'pending', 'accepted', 'completed', 'declined'
+  priority: varchar("priority").default("medium"), // 'low', 'medium', 'high', 'urgent'
+  dueDate: timestamp("due_date"),
+  notes: text("notes"),
+  completedAt: timestamp("completed_at"),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Team collaboration on email threads
+export const emailCollaborations = pgTable("email_collaborations", {
+  id: serial("id").primaryKey(),
+  threadId: integer("thread_id").notNull().references(() => emailThreads.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  inboxId: integer("inbox_id").references(() => sharedInboxes.id, { onDelete: "cascade" }),
+  role: varchar("role").notNull().default("collaborator"), // 'owner', 'collaborator', 'cc', 'viewer'
+  canReply: boolean("can_reply").default(true),
+  canAssign: boolean("can_assign").default(false),
+  lastReadAt: timestamp("last_read_at"),
+  joinedAt: timestamp("joined_at").defaultNow(),
+});
+
+// Email archiving rules for show completion
+export const emailArchiveRules = pgTable("email_archive_rules", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  ruleName: varchar("rule_name").notNull(),
+  triggerEvent: varchar("trigger_event").notNull(), // 'show_closed', 'date_passed', 'manual'
+  triggerDate: timestamp("trigger_date"),
+  archiveAction: varchar("archive_action").notNull().default("archive"), // 'archive', 'delete', 'export'
+  exportFormat: varchar("export_format"), // 'pdf', 'mbox', 'eml'
+  exportDestination: varchar("export_destination"), // Storage location for exports
+  isActive: boolean("is_active").default(true),
+  lastExecuted: timestamp("last_executed"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
@@ -707,6 +784,13 @@ export const usersRelations = relations(users, ({ many }) => ({
   emailTemplates: many(emailTemplates),
   emailSignatures: many(emailSignatures),
   emailRules: many(emailRules),
+  // Phase 5 shared inbox relations
+  sharedInboxMemberships: many(sharedInboxMembers),
+  assignedEmails: many(emailAssignments, { relationName: "assignedEmails" }),
+  emailAssignments: many(emailAssignments, { relationName: "emailAssignments" }),
+  emailCollaborations: many(emailCollaborations),
+  createdSharedInboxes: many(sharedInboxes),
+  createdArchiveRules: many(emailArchiveRules),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -735,6 +819,9 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   emailFolders: many(emailFolders),
   emailRules: many(emailRules),
   emailTemplates: many(emailTemplates),
+  // Phase 5 shared inbox relations
+  sharedInboxes: many(sharedInboxes),
+  emailArchiveRules: many(emailArchiveRules),
 }));
 
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
@@ -1243,6 +1330,8 @@ export const emailThreadsRelations = relations(emailThreads, ({ one, many }) => 
     references: [projects.id],
   }),
   messages: many(emailMessages),
+  // Phase 5 shared inbox relations
+  collaborations: many(emailCollaborations),
 }));
 
 export const emailMessagesRelations = relations(emailMessages, ({ one, many }) => ({
@@ -1267,6 +1356,8 @@ export const emailMessagesRelations = relations(emailMessages, ({ one, many }) =
     references: [contacts.id],
   }),
   attachments: many(emailAttachments),
+  // Phase 5 shared inbox relations
+  assignments: many(emailAssignments),
 }));
 
 export const emailFoldersRelations = relations(emailFolders, ({ one, many }) => ({
@@ -1338,6 +1429,78 @@ export const emailGroupsRelations = relations(emailGroups, ({ one }) => ({
   project: one(projects, {
     fields: [emailGroups.projectId],
     references: [projects.id],
+  }),
+}));
+
+// ========== PHASE 5 RELATIONS ==========
+
+export const sharedInboxesRelations = relations(sharedInboxes, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [sharedInboxes.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [sharedInboxes.createdBy],
+    references: [users.id],
+  }),
+  members: many(sharedInboxMembers),
+  assignments: many(emailAssignments),
+  collaborations: many(emailCollaborations),
+}));
+
+export const sharedInboxMembersRelations = relations(sharedInboxMembers, ({ one }) => ({
+  inbox: one(sharedInboxes, {
+    fields: [sharedInboxMembers.inboxId],
+    references: [sharedInboxes.id],
+  }),
+  user: one(users, {
+    fields: [sharedInboxMembers.userId],
+    references: [users.id],
+  }),
+}));
+
+export const emailAssignmentsRelations = relations(emailAssignments, ({ one }) => ({
+  message: one(emailMessages, {
+    fields: [emailAssignments.messageId],
+    references: [emailMessages.id],
+  }),
+  inbox: one(sharedInboxes, {
+    fields: [emailAssignments.inboxId],
+    references: [sharedInboxes.id],
+  }),
+  assignedUser: one(users, {
+    fields: [emailAssignments.assignedTo],
+    references: [users.id],
+  }),
+  assignerUser: one(users, {
+    fields: [emailAssignments.assignedBy],
+    references: [users.id],
+  }),
+}));
+
+export const emailCollaborationsRelations = relations(emailCollaborations, ({ one }) => ({
+  thread: one(emailThreads, {
+    fields: [emailCollaborations.threadId],
+    references: [emailThreads.id],
+  }),
+  user: one(users, {
+    fields: [emailCollaborations.userId],
+    references: [users.id],
+  }),
+  inbox: one(sharedInboxes, {
+    fields: [emailCollaborations.inboxId],
+    references: [sharedInboxes.id],
+  }),
+}));
+
+export const emailArchiveRulesRelations = relations(emailArchiveRules, ({ one }) => ({
+  project: one(projects, {
+    fields: [emailArchiveRules.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [emailArchiveRules.createdBy],
+    references: [users.id],
   }),
 }));
 
@@ -1847,6 +2010,36 @@ export const insertEmailGroupSchema = createInsertSchema(emailGroups).omit({
   updatedAt: true,
 });
 
+// ========== PHASE 5 SHARED INBOX SCHEMAS ==========
+
+export const insertSharedInboxSchema = createInsertSchema(sharedInboxes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSharedInboxMemberSchema = createInsertSchema(sharedInboxMembers).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertEmailAssignmentSchema = createInsertSchema(emailAssignments).omit({
+  id: true,
+  assignedAt: true,
+  updatedAt: true,
+});
+
+export const insertEmailCollaborationSchema = createInsertSchema(emailCollaborations).omit({
+  id: true,
+  joinedAt: true,
+});
+
+export const insertEmailArchiveRuleSchema = createInsertSchema(emailArchiveRules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Email System Types
 export type EmailAccount = typeof emailAccounts.$inferSelect;
 export type InsertEmailAccount = z.infer<typeof insertEmailAccountSchema>;
@@ -1870,3 +2063,16 @@ export type EmailQueueItem = typeof emailQueue.$inferSelect;
 export type InsertEmailQueueItem = z.infer<typeof insertEmailQueueSchema>;
 export type EmailGroup = typeof emailGroups.$inferSelect;
 export type InsertEmailGroup = z.infer<typeof insertEmailGroupSchema>;
+
+// ========== PHASE 5 SHARED INBOX TYPES ==========
+
+export type SharedInbox = typeof sharedInboxes.$inferSelect;
+export type InsertSharedInbox = z.infer<typeof insertSharedInboxSchema>;
+export type SharedInboxMember = typeof sharedInboxMembers.$inferSelect;
+export type InsertSharedInboxMember = z.infer<typeof insertSharedInboxMemberSchema>;
+export type EmailAssignment = typeof emailAssignments.$inferSelect;
+export type InsertEmailAssignment = z.infer<typeof insertEmailAssignmentSchema>;
+export type EmailCollaboration = typeof emailCollaborations.$inferSelect;
+export type InsertEmailCollaboration = z.infer<typeof insertEmailCollaborationSchema>;
+export type EmailArchiveRule = typeof emailArchiveRules.$inferSelect;
+export type InsertEmailArchiveRule = z.infer<typeof insertEmailArchiveRuleSchema>;

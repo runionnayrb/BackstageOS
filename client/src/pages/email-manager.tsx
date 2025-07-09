@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { EmailSidebar } from "@/components/email/email-sidebar";
 import { EmailInterface } from "@/components/email/email-interface-clean";
 import { EmailAccountConfig } from "@/components/email/email-account-config";
+import { SharedInboxManager } from "@/components/email/shared-inbox-manager";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -78,6 +79,9 @@ export default function EmailManager() {
   const [newGroupColor, setNewGroupColor] = useState('#3b82f6');
   const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
   const [showMobileSettings, setShowMobileSettings] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<any>(null);
+  const [showSharedInboxes, setShowSharedInboxes] = useState(false);
+  const [activeTab, setActiveTab] = useState("inbox");
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -98,6 +102,11 @@ export default function EmailManager() {
   // Check current user info for admin status
   const { data: user } = useQuery({
     queryKey: ['/api/user'],
+  });
+
+  // Fetch projects for shared inboxes
+  const { data: projects } = useQuery({
+    queryKey: ['/api/projects'],
     enabled: true,
   });
 
@@ -407,6 +416,16 @@ export default function EmailManager() {
               <div className="space-y-1">
                 <button
                   onClick={() => {
+                    setActiveTab("shared-inboxes");
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Shared Inboxes</span>
+                </button>
+                <button
+                  onClick={() => {
                     setShowGroupManager(true);
                     setIsMobileMenuOpen(false);
                   }}
@@ -456,6 +475,7 @@ export default function EmailManager() {
             onFolderChange={setActiveFolder}
             onTheaterGroupEmail={() => setShowGroupManager(true)}
             onTheaterTemplates={() => setShowTemplateManager(true)}
+            onSharedInboxes={() => setActiveTab("shared-inboxes")}
             hasPersonalAccount={hasPersonalAccount}
             isAdmin={user?.isAdmin || false}
             user={user}
@@ -559,15 +579,91 @@ export default function EmailManager() {
               </CardContent>
             </Card>
           ) : selectedAccount ? (
-            <EmailInterface 
-              selectedAccount={selectedAccount} 
-              onBack={() => setSelectedAccount(null)}
-              showCompose={showCompose}
-              onShowComposeChange={setShowCompose}
-              activeFolder={activeFolder}
-              showTheaterFeatures={showTheaterFeatures}
-              onShowTheaterFeaturesChange={setShowTheaterFeatures}
-            />
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="inbox">Email</TabsTrigger>
+                <TabsTrigger value="shared-inboxes">Shared Inboxes</TabsTrigger>
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="inbox" className="space-y-4">
+                <EmailInterface 
+                  selectedAccount={selectedAccount} 
+                  onBack={() => setSelectedAccount(null)}
+                  showCompose={showCompose}
+                  onShowComposeChange={setShowCompose}
+                  activeFolder={activeFolder}
+                  showTheaterFeatures={showTheaterFeatures}
+                  onShowTheaterFeaturesChange={setShowTheaterFeatures}
+                />
+              </TabsContent>
+              
+              <TabsContent value="shared-inboxes" className="space-y-4">
+                {projects && projects.length > 0 ? (
+                  <div className="space-y-4">
+                    {/* Project Selector */}
+                    <div className="max-w-md">
+                      <Label htmlFor="project-select">Select Project</Label>
+                      <Select
+                        value={selectedProject?.id?.toString() || ''}
+                        onValueChange={(value) => {
+                          const project = projects.find(p => p.id.toString() === value);
+                          setSelectedProject(project);
+                        }}
+                      >
+                        <SelectTrigger id="project-select">
+                          <SelectValue placeholder="Choose a project to manage shared inboxes" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projects.map((project) => (
+                            <SelectItem key={project.id} value={project.id.toString()}>
+                              {project.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {/* Shared Inbox Manager */}
+                    {selectedProject && (
+                      <SharedInboxManager
+                        projectId={selectedProject.id}
+                        projectName={selectedProject.name}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <Card>
+                    <CardContent className="text-center py-12">
+                      <Theater className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        No Projects Found
+                      </h3>
+                      <p className="text-gray-500 mb-4">
+                        Create a project first to set up shared inboxes for your production team
+                      </p>
+                      <Button 
+                        onClick={() => window.location.href = '/'}
+                        className="flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Create Project
+                      </Button>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="settings" className="space-y-4">
+                <EmailAccountConfig
+                  selectedAccount={selectedAccount}
+                  onAccountUpdate={(updatedAccount) => {
+                    setSelectedAccount(updatedAccount);
+                    queryClient.invalidateQueries({ queryKey: ['/api/email/accounts'] });
+                  }}
+                />
+              </TabsContent>
+            </Tabs>
           ) : (
             <div className="flex justify-center items-center h-64">
               <div className="text-center">
