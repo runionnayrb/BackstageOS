@@ -413,16 +413,7 @@ export default function EmailManager() {
                           <span>{hasPersonalAccount && !user?.isAdmin ? "New Team Account" : "New Account"}</span>
                         </DropdownMenuItem>
                         
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setShowSharedInboxes(true);
-                            setIsMobileMenuOpen(false);
-                          }}
-                          className="flex items-center space-x-2 p-3 text-blue-600"
-                        >
-                          <Users className="h-4 w-4" />
-                          <span>New Shared Inbox</span>
-                        </DropdownMenuItem>
+
                       </>
                     ) : (
                       <DropdownMenuItem disabled>No accounts found</DropdownMenuItem>
@@ -481,16 +472,7 @@ export default function EmailManager() {
             {/* Theater Tools Section */}
             <div className="border-t border-gray-200 pt-4">
               <div className="space-y-1">
-                <button
-                  onClick={() => {
-                    setActiveTab("shared-inboxes");
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
-                >
-                  <Users className="w-4 h-4" />
-                  <span>Shared Inboxes</span>
-                </button>
+
                 <button
                   onClick={() => {
                     setShowGroupManager(true);
@@ -499,7 +481,7 @@ export default function EmailManager() {
                   className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
                 >
                   <Users className="w-4 h-4" />
-                  <span>Group Management</span>
+                  <span>Distro Management</span>
                 </button>
                 <button
                   onClick={() => {
@@ -542,7 +524,7 @@ export default function EmailManager() {
             onFolderChange={setActiveFolder}
             onTheaterGroupEmail={() => setShowGroupManager(true)}
             onTheaterTemplates={() => setShowTemplateManager(true)}
-            onSharedInboxes={() => setActiveTab("shared-inboxes")}
+            onSharedInboxes={() => {}}
             hasPersonalAccount={hasPersonalAccount}
             isAdmin={user?.isAdmin || false}
             user={user}
