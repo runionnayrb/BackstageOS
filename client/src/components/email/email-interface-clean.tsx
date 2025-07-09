@@ -175,6 +175,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       bulkActionMutation.mutate(pendingDeleteAction);
       setShowDeleteConfirm(false);
       setPendingDeleteAction(null);
+      // Close email modal after successful delete
+      handleCloseEmailModal();
     }
   };
 
@@ -277,7 +279,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       targetFolder: 'trash'
     });
     setShowDeleteConfirm(true);
-    handleCloseEmailModal();
+    // Don't close the email modal - let user return to it if they cancel
   };
 
   return (
