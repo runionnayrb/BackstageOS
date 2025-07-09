@@ -33,6 +33,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const [searchQuery, setSearchQuery] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [modalEmail, setModalEmail] = useState<EmailMessage | null>(null);
+  const [emailModalClosing, setEmailModalClosing] = useState(false);
   const [showConfiguration, setShowConfiguration] = useState(false);
   const [selectedMessages, setSelectedMessages] = useState<Set<number>>(new Set());
   const [isSelectionMode, setIsSelectionMode] = useState(false);
@@ -190,6 +191,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const handleEmailClick = (email: EmailMessage) => {
     setModalEmail(email);
     setShowEmailModal(true);
+    setEmailModalClosing(false);
     
     // Mark as read if the email is unread
     if (!email.isRead) {
@@ -200,11 +202,20 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     }
   };
 
+  const handleCloseEmailModal = () => {
+    setEmailModalClosing(true);
+    setTimeout(() => {
+      setShowEmailModal(false);
+      setModalEmail(null);
+      setEmailModalClosing(false);
+    }, 300);
+  };
+
   const handleReply = () => {
     if (!modalEmail) return;
     
     // Close modal and open composer with reply data
-    setShowEmailModal(false);
+    handleCloseEmailModal();
     
     if (onShowComposeChange) {
       onShowComposeChange(true);
@@ -218,7 +229,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     if (!modalEmail) return;
     
     // Close modal and open composer with reply all data
-    setShowEmailModal(false);
+    handleCloseEmailModal();
     
     if (onShowComposeChange) {
       onShowComposeChange(true);
@@ -236,7 +247,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     setComposeMode('forward');
     
     // Close modal and open composer
-    setShowEmailModal(false);
+    handleCloseEmailModal();
     
     if (onShowComposeChange) {
       onShowComposeChange(true);
@@ -253,7 +264,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       targetFolder: 'archive'
     });
     
-    setShowEmailModal(false);
+    handleCloseEmailModal();
   };
 
   const handleDelete = () => {
@@ -266,7 +277,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       targetFolder: 'trash'
     });
     setShowDeleteConfirm(true);
-    setShowEmailModal(false);
+    handleCloseEmailModal();
   };
 
   return (
@@ -564,14 +575,18 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
 
       {/* Email Modal - Full Screen Style */}
       {showEmailModal && modalEmail && (
-        <div className="fixed inset-0 z-50 bg-white flex flex-col">
+        <div className={`fixed inset-0 z-50 bg-white flex flex-col transition-transform duration-300 ease-out ${
+          emailModalClosing 
+            ? 'animate-out slide-out-to-bottom-full' 
+            : 'animate-in slide-in-from-bottom-full'
+        }`}>
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b bg-white">
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowEmailModal(false)}
+                onClick={handleCloseEmailModal}
                 className="h-8 w-8 p-0"
               >
                 <X className="h-5 w-5" />
