@@ -549,11 +549,18 @@ export class StandaloneEmailService {
         to, 
         from, 
         subject, 
+        text, 
+        html,
         content, 
         headers = {},
         message_id,
-        date 
+        date,
+        timestamp 
       } = emailData;
+      
+      // Use text field from Cloudflare worker, fallback to content or html
+      const emailContent = text || content || html || '';
+      const emailHtml = html || content || text || '';
       
       // Handle internal webhook forwarding
       let recipientEmail = Array.isArray(to) ? to[0] : to;
@@ -622,18 +629,24 @@ export class StandaloneEmailService {
         thread = newThread;
       }
       
-      // Create the email message
+      // Create the email message with safe array handling
+      const safeToAddresses = Array.isArray(to) ? to : [to];
+      const safeCcAddresses = headers.cc ? (Array.isArray(headers.cc) ? headers.cc : [headers.cc]) : [];
+      const safeBccAddresses: string[] = [];
+      const safeLabels = ['inbox'];
+      const safeMessageReferences: string[] = [];
+
       const messageData = {
         accountId: account.id,
         threadId: thread.id,
         messageId: message_id || `incoming-${Date.now()}`,
         subject: subject || 'No Subject',
         fromAddress: from,
-        toAddresses: Array.isArray(to) ? to : [to],
-        ccAddresses: headers.cc ? (Array.isArray(headers.cc) ? headers.cc : [headers.cc]) : [],
-        bccAddresses: [],
-        content: content || '',
-        htmlContent: content || '',
+        toAddresses: safeToAddresses,
+        ccAddresses: safeCcAddresses,
+        bccAddresses: safeBccAddresses,
+        content: emailContent,
+        htmlContent: emailHtml,
         isRead: false,
         isDraft: false,
         isSent: false,
@@ -643,12 +656,12 @@ export class StandaloneEmailService {
         dateSent: new Date(date || Date.now()),
         dateReceived: new Date(),
         folderId: null,
-        labels: [],
+        labels: safeLabels,
         priority: 'normal',
         replyTo: from,
         inReplyTo: headers['in-reply-to'] || null,
-        messageReferences: [],
-        sizeBytes: content ? content.length : 0,
+        messageReferences: safeMessageReferences,
+        sizeBytes: emailContent ? emailContent.length : 0,
         relatedShowId: null,
         relatedContactId: null,
       };
