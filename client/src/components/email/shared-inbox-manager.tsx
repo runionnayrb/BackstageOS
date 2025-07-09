@@ -55,6 +55,7 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'shared-inboxes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/shared-inboxes'] }); // Also invalidate global shared inboxes
       setIsCreateOpen(false);
       toast({ title: 'Shared inbox created successfully' });
     },

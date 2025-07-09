@@ -323,7 +323,25 @@ export function EmailSidebar({
                       {allSharedInboxes.map((inbox: SharedInbox) => (
                         <DropdownMenuItem
                           key={inbox.id}
-                          className="flex flex-col items-start space-y-1 p-3"
+                          onClick={() => {
+                            // Convert shared inbox to EmailAccount format for selection
+                            const sharedInboxAsAccount: EmailAccount = {
+                              id: inbox.id,
+                              userId: 0, // Shared inbox doesn't have a specific user
+                              projectId: inbox.projectId,
+                              emailAddress: inbox.emailAddress,
+                              displayName: inbox.name,
+                              accountType: 'shared',
+                              isDefault: false,
+                              isActive: inbox.isActive,
+                              createdAt: new Date().toISOString(),
+                            };
+                            onAccountSelect(sharedInboxAsAccount);
+                          }}
+                          className={cn(
+                            "flex flex-col items-start space-y-1 p-3",
+                            selectedAccount?.emailAddress === inbox.emailAddress && "bg-gray-50"
+                          )}
                         >
                           <p className="text-sm font-medium text-gray-900">
                             {inbox.name}
