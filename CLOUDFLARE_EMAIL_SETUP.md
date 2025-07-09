@@ -12,8 +12,17 @@
 - Email read status functionality working correctly
 - All database operations working properly
 
-## The ONE Missing Piece
+## The ONE Missing Piece - CONFIRMED
 External emails sent to `bryan@backstageos.com` are not reaching the webhook because there's no Cloudflare email routing rule to direct them there.
+
+**CONFIRMED**: I checked your current email routing rules and found:
+- ✅ `macbethsm@backstageos.com` → forwards to shared inbox (working)
+- ✅ `support@backstageos.com` → forwards to Gmail
+- ✅ `sm@backstageos.com` → forwards to Gmail  
+- ✅ `hello@backstageos.com` → forwards to Gmail
+- ❌ **`bryan@backstageos.com` → NO ROUTING RULE EXISTS**
+
+This explains exactly why external emails aren't being delivered - there's no rule telling Cloudflare what to do with emails sent to your personal address.
 
 ## Manual Setup Required in Cloudflare Dashboard
 
@@ -27,7 +36,7 @@ External emails sent to `bryan@backstageos.com` are not reaching the webhook bec
 - If you see "Email Routing is not enabled", click "Enable Email Routing"
 - If already enabled, proceed to Step 3
 
-### Step 3: Create Routing Rule
+### Step 3: Create the Missing Routing Rule
 1. Click "Routes" tab
 2. Click "Create route"
 3. Configure exactly as follows:
@@ -35,6 +44,9 @@ External emails sent to `bryan@backstageos.com` are not reaching the webhook bec
    - **Action**: Select "Send to Worker" (NOT "Forward to email")
    - **Destination**: `https://backstageos.com/api/email/receive-webhook`
    - **Enabled**: ✅ Yes
+   - **Name**: "Route bryan@backstageos.com to BackstageOS webhook"
+
+**Note**: If "Send to Worker" is not available, you can temporarily create a forward rule to your Gmail as a workaround, and we'll update it later to use the webhook.
 
 ### Step 4: Test the Setup
 1. Send an email to `bryan@backstageos.com` from any external email
