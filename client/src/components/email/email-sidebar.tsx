@@ -288,7 +288,14 @@ export function EmailSidebar({
                     </div>
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64 max-w-[calc(100vw-32px)]" align="start">
+                <DropdownMenuContent 
+                  className="w-64 max-w-[calc(100vw-48px)] sm:w-64" 
+                  align="end"
+                  side="bottom"
+                  sideOffset={4}
+                  avoidCollisions={true}
+                  collisionPadding={24}
+                >
                   {/* Personal Accounts */}
                   {emailAccounts.filter(account => account.accountType === 'personal').map((account) => (
                     <DropdownMenuItem
