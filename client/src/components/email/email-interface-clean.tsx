@@ -6,7 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { EmailAccountConfig } from './email-account-config';
 import { EmailComposer } from './email-composer';
 import { EmailMessage } from '@shared/schema';
@@ -33,6 +33,30 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [modalEmail, setModalEmail] = useState<EmailMessage | null>(null);
   const [showConfiguration, setShowConfiguration] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Mark email as read mutation
+  const markAsReadMutation = useMutation({
+    mutationFn: async ({ messageId, accountId }: { messageId: number; accountId: number }) => {
+      const response = await fetch(`/api/email/messages/${messageId}/read`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ accountId }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to mark message as read');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate and refetch email queries
+      queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email/unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email/stats', selectedAccount.id] });
+    },
+  });
 
   // Fetch messages for the selected account and folder
   const { data: inboxMessages, isLoading, error } = useQuery<EmailMessage[]>({
@@ -69,6 +93,14 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const handleEmailClick = (email: EmailMessage) => {
     setModalEmail(email);
     setShowEmailModal(true);
+    
+    // Mark as read if the email is unread
+    if (!email.isRead) {
+      markAsReadMutation.mutate({
+        messageId: email.id,
+        accountId: selectedAccount.id,
+      });
+    }
   };
 
   const handleReply = () => {
