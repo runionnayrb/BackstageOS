@@ -5,7 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2, Check, X, Mail, MailOpen, FolderOpen } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { EmailAccountConfig } from './email-account-config';
 import { GmailEmailComposer } from './gmail-email-composer';
@@ -33,6 +34,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [modalEmail, setModalEmail] = useState<EmailMessage | null>(null);
   const [showConfiguration, setShowConfiguration] = useState(false);
+  const [selectedMessages, setSelectedMessages] = useState<Set<number>>(new Set());
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
   const queryClient = useQueryClient();
 
   // Mark email as read mutation
@@ -51,6 +54,38 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate and refetch email queries
+      queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email/unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/email/stats', selectedAccount.id] });
+    },
+  });
+
+  // Bulk actions mutation
+  const bulkActionMutation = useMutation({
+    mutationFn: async ({ messageIds, action, targetFolder }: { messageIds: number[]; action: string; targetFolder?: string }) => {
+      const response = await fetch('/api/email/messages/bulk-action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messageIds,
+          action,
+          accountId: selectedAccount.id,
+          targetFolder,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to perform bulk action');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      // Clear selection and exit selection mode
+      setSelectedMessages(new Set());
+      setIsSelectionMode(false);
+      
       // Invalidate and refetch email queries
       queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
       queryClient.invalidateQueries({ queryKey: ['/api/email/unread-count'] });
@@ -89,6 +124,37 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     message.fromAddress?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     message.content?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Helper functions for bulk actions
+  const toggleSelectAll = () => {
+    if (selectedMessages.size === filteredMessages.length) {
+      setSelectedMessages(new Set());
+    } else {
+      setSelectedMessages(new Set(filteredMessages.map(msg => msg.id)));
+    }
+  };
+
+  const toggleSelectMessage = (messageId: number) => {
+    const newSelection = new Set(selectedMessages);
+    if (newSelection.has(messageId)) {
+      newSelection.delete(messageId);
+    } else {
+      newSelection.add(messageId);
+    }
+    setSelectedMessages(newSelection);
+  };
+
+  const handleBulkAction = (action: string, targetFolder?: string) => {
+    const messageIds = Array.from(selectedMessages);
+    if (messageIds.length === 0) return;
+    
+    bulkActionMutation.mutate({ messageIds, action, targetFolder });
+  };
+
+  const exitSelectionMode = () => {
+    setSelectedMessages(new Set());
+    setIsSelectionMode(false);
+  };
 
   const handleEmailClick = (email: EmailMessage) => {
     setModalEmail(email);
@@ -134,20 +200,188 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         {/* Desktop-Only Search Header */}
         <div className="hidden md:block absolute top-0 left-0 right-0 h-12 md:h-16 bg-white border-b border-gray-200 px-2 md:px-4 z-50">
           <div className="flex items-center gap-2 md:gap-6 h-full">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-7 md:pl-10 w-full text-sm h-7 md:h-10 border-gray-300"
-              />
-            </div>
+            {isSelectionMode ? (
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={exitSelectionMode}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <Checkbox
+                  checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+                <span className="text-sm font-medium">
+                  {selectedMessages.size} of {filteredMessages.length} selected
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsSelectionMode(true)}
+                  className="h-8 px-3 text-sm"
+                >
+                  Select
+                </Button>
+                <div className="relative flex-1">
+                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-7 md:pl-10 w-full text-sm h-7 md:h-10 border-gray-300"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
+        {/* Bulk Actions Toolbar */}
+        {isSelectionMode && selectedMessages.size > 0 && (
+          <div className="hidden md:block absolute top-16 left-0 right-0 h-12 bg-blue-50 border-b border-blue-200 px-4 z-40">
+            <div className="flex items-center gap-2 h-full">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleBulkAction('mark-read')}
+                disabled={bulkActionMutation.isPending}
+                className="h-8 px-3 text-sm"
+              >
+                <MailOpen className="h-4 w-4 mr-1" />
+                Mark Read
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleBulkAction('mark-unread')}
+                disabled={bulkActionMutation.isPending}
+                className="h-8 px-3 text-sm"
+              >
+                <Mail className="h-4 w-4 mr-1" />
+                Mark Unread
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleBulkAction('archive')}
+                disabled={bulkActionMutation.isPending}
+                className="h-8 px-3 text-sm"
+              >
+                <Archive className="h-4 w-4 mr-1" />
+                Archive
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleBulkAction('delete')}
+                disabled={bulkActionMutation.isPending}
+                className="h-8 px-3 text-sm text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleBulkAction('move', 'trash')}
+                disabled={bulkActionMutation.isPending}
+                className="h-8 px-3 text-sm"
+              >
+                <FolderOpen className="h-4 w-4 mr-1" />
+                Move to Trash
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Bulk Actions Bar - Fixed at bottom when in selection mode */}
+        {isSelectionMode && selectedMessages.size > 0 && (
+          <div className="md:hidden fixed bottom-0 left-0 right-0 bg-blue-50 border-t border-blue-200 p-4 z-50">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-blue-900">
+                {selectedMessages.size} selected
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleBulkAction('mark-read')}
+                  disabled={bulkActionMutation.isPending}
+                  className="h-8 px-2 text-xs"
+                >
+                  <MailOpen className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleBulkAction('archive')}
+                  disabled={bulkActionMutation.isPending}
+                  className="h-8 px-2 text-xs"
+                >
+                  <Archive className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleBulkAction('delete')}
+                  disabled={bulkActionMutation.isPending}
+                  className="h-8 px-2 text-xs text-red-600"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Selection Header */}
+        <div className="md:hidden">
+          {isSelectionMode ? (
+            <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={exitSelectionMode}
+                    className="h-8 w-8 p-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                  <Checkbox
+                    checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                  <span className="text-sm font-medium">
+                    {selectedMessages.size} of {filteredMessages.length}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="border-b border-gray-200 px-4 py-3">
+              <div className="flex items-center justify-end">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsSelectionMode(true)}
+                  className="h-8 px-3 text-sm text-blue-600 hover:bg-blue-50"
+                >
+                  Select
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Content Area - Mobile Responsive */}
-        <div className="pt-0 md:pt-16 h-full">
+        <div className={`pt-0 h-full ${isSelectionMode && selectedMessages.size > 0 ? 'md:pt-28 pb-20' : 'md:pt-16'}`}>
           {/* Full-Width Email List */}
           <ScrollArea className="h-full">
             <div className="space-y-0">
@@ -164,14 +398,31 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
               {filteredMessages.map((message: EmailMessage) => (
                 <button
                   key={message.id}
-                  onClick={() => handleEmailClick(message)}
-                  className="w-full block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group px-3 md:px-4 py-2 md:py-3 border-b border-gray-100"
+                  onClick={() => {
+                    if (isSelectionMode) {
+                      toggleSelectMessage(message.id);
+                    } else {
+                      handleEmailClick(message);
+                    }
+                  }}
+                  className={`w-full block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group px-3 md:px-4 py-2 md:py-3 border-b border-gray-100 ${
+                    isSelectionMode && selectedMessages.has(message.id) ? 'bg-blue-50' : ''
+                  }`}
                 >
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-1 md:gap-0">
                     {/* Left side - Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start gap-2 mb-1">
-                        {!message.isRead && (
+                        {isSelectionMode && (
+                          <div className="mt-1">
+                            <Checkbox
+                              checked={selectedMessages.has(message.id)}
+                              onCheckedChange={() => toggleSelectMessage(message.id)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        )}
+                        {!message.isRead && !isSelectionMode && (
                           <div className="w-2 h-2 bg-blue-600 rounded-full mt-1"></div>
                         )}
                         <div className="flex-1 min-w-0">
@@ -200,30 +451,32 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         <span className="text-xs text-gray-400">
                           {message.dateSent ? new Date(message.dateSent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                         </span>
-                        <div className="hidden md:flex items-center gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Handle star
-                            }}
-                          >
-                            <Star className="h-3 w-3" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleArchive();
-                            }}
-                          >
-                            <Archive className="h-3 w-3" />
-                          </Button>
-                        </div>
+                        {!isSelectionMode && (
+                          <div className="hidden md:flex items-center gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Handle star
+                              }}
+                            >
+                              <Star className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleArchive();
+                              }}
+                            >
+                              <Archive className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

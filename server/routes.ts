@@ -6385,6 +6385,48 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Bulk operations for email messages
+  app.post('/api/email/messages/bulk-action', isAuthenticated, async (req: any, res) => {
+    try {
+      const { messageIds, action, accountId, targetFolder } = req.body;
+
+      if (!messageIds || !Array.isArray(messageIds) || messageIds.length === 0) {
+        return res.status(400).json({ message: "Message IDs are required" });
+      }
+
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      let result;
+
+      switch (action) {
+        case 'mark-read':
+          result = await standaloneEmailService.bulkMarkAsRead(messageIds, accountId);
+          break;
+        case 'mark-unread':
+          result = await standaloneEmailService.bulkMarkAsUnread(messageIds, accountId);
+          break;
+        case 'delete':
+          result = await standaloneEmailService.bulkDelete(messageIds, accountId);
+          break;
+        case 'archive':
+          result = await standaloneEmailService.bulkArchive(messageIds, accountId);
+          break;
+        case 'move':
+          if (!targetFolder) {
+            return res.status(400).json({ message: "Target folder is required for move operation" });
+          }
+          result = await standaloneEmailService.bulkMove(messageIds, accountId, targetFolder);
+          break;
+        default:
+          return res.status(400).json({ message: "Invalid action" });
+      }
+
+      res.json({ success: true, result });
+    } catch (error) {
+      console.error("Error performing bulk action:", error);
+      res.status(500).json({ message: "Failed to perform bulk action" });
+    }
+  });
+
   // Get thread messages
   app.get('/api/email/threads/:threadId/messages', isAuthenticated, async (req: any, res) => {
     try {

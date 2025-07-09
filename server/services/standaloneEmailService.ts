@@ -625,6 +625,119 @@ export class StandaloneEmailService {
       throw error;
     }
   }
+
+  /**
+   * Bulk mark messages as read
+   */
+  async bulkMarkAsRead(messageIds: number[], accountId: number): Promise<{ updated: number }> {
+    try {
+      const result = await db
+        .update(emailMessages)
+        .set({ isRead: true })
+        .where(
+          and(
+            sql`${emailMessages.id} IN (${sql.join(messageIds, sql`, `)})`,
+            eq(emailMessages.accountId, accountId)
+          )
+        );
+      
+      return { updated: messageIds.length };
+    } catch (error) {
+      console.error('Error bulk marking as read:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Bulk mark messages as unread
+   */
+  async bulkMarkAsUnread(messageIds: number[], accountId: number): Promise<{ updated: number }> {
+    try {
+      const result = await db
+        .update(emailMessages)
+        .set({ isRead: false })
+        .where(
+          and(
+            sql`${emailMessages.id} IN (${sql.join(messageIds, sql`, `)})`,
+            eq(emailMessages.accountId, accountId)
+          )
+        );
+      
+      return { updated: messageIds.length };
+    } catch (error) {
+      console.error('Error bulk marking as unread:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Bulk delete messages
+   */
+  async bulkDelete(messageIds: number[], accountId: number): Promise<{ deleted: number }> {
+    try {
+      const result = await db
+        .delete(emailMessages)
+        .where(
+          and(
+            sql`${emailMessages.id} IN (${sql.join(messageIds, sql`, `)})`,
+            eq(emailMessages.accountId, accountId)
+          )
+        );
+      
+      return { deleted: messageIds.length };
+    } catch (error) {
+      console.error('Error bulk deleting messages:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Bulk archive messages
+   */
+  async bulkArchive(messageIds: number[], accountId: number): Promise<{ archived: number }> {
+    try {
+      const result = await db
+        .update(emailMessages)
+        .set({ 
+          labels: sql`ARRAY['archived']::text[]`
+        })
+        .where(
+          and(
+            sql`${emailMessages.id} IN (${sql.join(messageIds, sql`, `)})`,
+            eq(emailMessages.accountId, accountId)
+          )
+        );
+      
+      return { archived: messageIds.length };
+    } catch (error) {
+      console.error('Error bulk archiving messages:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Bulk move messages to folder
+   */
+  async bulkMove(messageIds: number[], accountId: number, targetFolder: string): Promise<{ moved: number }> {
+    try {
+      const result = await db
+        .update(emailMessages)
+        .set({ 
+          labels: sql`ARRAY[${targetFolder}]::text[]`
+        })
+        .where(
+          and(
+            sql`${emailMessages.id} IN (${sql.join(messageIds, sql`, `)})`,
+            eq(emailMessages.accountId, accountId)
+          )
+        );
+      
+      return { moved: messageIds.length };
+    } catch (error) {
+      console.error('Error bulk moving messages:', error);
+      throw error;
+    }
+  }
 }
 
 export const standaloneEmailService = new StandaloneEmailService();
