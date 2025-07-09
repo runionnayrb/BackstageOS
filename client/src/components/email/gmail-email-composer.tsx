@@ -256,7 +256,7 @@ export function GmailEmailComposer({
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 py-1 px-2"
+              className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400"
               placeholder="Subject"
               style={{ fontSize: '16px' }}
               autoComplete="off"
