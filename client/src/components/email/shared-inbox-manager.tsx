@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 import type { SharedInbox, SharedInboxMember } from '@shared/schema';
 
 interface SharedInboxManagerProps {
@@ -39,10 +38,20 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
   // Create shared inbox mutation
   const createInboxMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest(`/api/projects/${projectId}/shared-inboxes`, {
+      const response = await fetch(`/api/projects/${projectId}/shared-inboxes`, {
         method: 'POST',
-        body: JSON.stringify(data)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || `HTTP ${response.status}`);
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'shared-inboxes'] });
@@ -63,10 +72,20 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
   // Update shared inbox mutation
   const updateInboxMutation = useMutation({
     mutationFn: async ({ inboxId, data }: { inboxId: number; data: any }) => {
-      return apiRequest(`/api/shared-inboxes/${inboxId}`, {
+      const response = await fetch(`/api/shared-inboxes/${inboxId}`, {
         method: 'PUT',
-        body: JSON.stringify(data)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || `HTTP ${response.status}`);
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'shared-inboxes'] });
@@ -85,9 +104,16 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
   // Delete shared inbox mutation
   const deleteInboxMutation = useMutation({
     mutationFn: async (inboxId: number) => {
-      return apiRequest(`/api/shared-inboxes/${inboxId}`, {
-        method: 'DELETE'
+      const response = await fetch(`/api/shared-inboxes/${inboxId}`, {
+        method: 'DELETE',
       });
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(errorData || `HTTP ${response.status}`);
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'shared-inboxes'] });
