@@ -529,9 +529,6 @@ export function EmailSidebar({
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Create Shared Inbox</DialogTitle>
-            <DialogDescription>
-              Create a shared team inbox for email collaboration on a specific show.
-            </DialogDescription>
           </DialogHeader>
           
           {!selectedProjectForInbox ? (
