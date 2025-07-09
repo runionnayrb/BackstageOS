@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -122,8 +123,6 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
     
     const data = {
       name: formData.get('name'),
-      description: formData.get('description'),
-      inboxType: formData.get('inboxType'),
       isActive: formData.get('isActive') === 'true'
     };
 
@@ -136,15 +135,7 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
     }
   };
 
-  const getInboxTypeColor = (type: string) => {
-    switch (type) {
-      case 'team': return 'bg-blue-500';
-      case 'vendor': return 'bg-green-500';
-      case 'cast': return 'bg-purple-500';
-      case 'crew': return 'bg-orange-500';
-      default: return 'bg-gray-500';
-    }
-  };
+
 
   if (isLoading) {
     return (
@@ -236,7 +227,7 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className={`w-3 h-3 rounded-full ${getInboxTypeColor(inbox.inboxType)}`} />
+                    <div className="w-3 h-3 rounded-full bg-blue-500" />
                     <div>
                       <CardTitle className="text-lg">{inbox.name}</CardTitle>
                       <CardDescription>{inbox.emailAddress}</CardDescription>
@@ -246,8 +237,8 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
                     <Badge variant={inbox.isActive ? "default" : "secondary"}>
                       {inbox.isActive ? "Active" : "Inactive"}
                     </Badge>
-                    <Badge variant="outline" className="capitalize">
-                      {inbox.inboxType}
+                    <Badge variant="outline">
+                      Stage Management
                     </Badge>
                   </div>
                 </div>
@@ -318,29 +309,7 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
                 />
               </div>
               
-              <div>
-                <Label htmlFor="edit-description">Description</Label>
-                <Textarea 
-                  id="edit-description" 
-                  name="description" 
-                  defaultValue={editingInbox.description || ''}
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="edit-inboxType">Inbox Type</Label>
-                <Select name="inboxType" defaultValue={editingInbox.inboxType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="team">Team</SelectItem>
-                    <SelectItem value="vendor">Vendor</SelectItem>
-                    <SelectItem value="cast">Cast</SelectItem>
-                    <SelectItem value="crew">Crew</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+
               
               <div>
                 <Label htmlFor="edit-isActive">Status</Label>
