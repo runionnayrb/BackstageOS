@@ -129,13 +129,11 @@ export default function EmailManager() {
   // Email groups data
   const { data: emailGroups = [] } = useQuery({
     queryKey: ['/api/email/groups'],
-    queryFn: () => apiRequest('/api/email/groups'),
   });
 
   // Contacts data for group management
   const { data: contacts = [] } = useQuery({
     queryKey: ['/api/contacts'],
-    queryFn: () => apiRequest('/api/contacts'),
   });
 
   // Set default account when accounts load
