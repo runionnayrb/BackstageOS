@@ -91,10 +91,8 @@ export function EmailComposer({
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [draftId, setDraftId] = useState<number | null>(existingDraftId || null);
 
-  // Mobile swipe state - temporarily disabled
-  // const [sheetPosition, setSheetPosition] = useState(0);
-  // const [isDragging, setIsDragging] = useState(false);
-  // const [startY, setStartY] = useState(0);
+  // Mobile state - Gmail-style interface (no swipe gestures)
+  // Simple modal with X close button only
 
   // Theater email features - always show if showId is available
   const [showTheaterFeatures, setShowTheaterFeatures] = useState(true);
@@ -219,9 +217,8 @@ export function EmailComposer({
     },
   });
 
-  // Auto-save logic - disabled on mobile to prevent keyboard issues
+  // Auto-save logic - re-enabled now that touch conflicts are resolved
   useEffect(() => {
-    if (isMobile) return; // Skip auto-save on mobile
     
     const hasContent = toAddresses.trim() || subject.trim() || content.trim() || ccAddresses.trim() || bccAddresses.trim();
     
@@ -244,7 +241,7 @@ export function EmailComposer({
         clearTimeout(autoSaveTimerRef.current);
       }
     };
-  }, [toAddresses, subject, content, ccAddresses, bccAddresses, isOpen, isMobile]);
+  }, [toAddresses, subject, content, ccAddresses, bccAddresses, isOpen]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -317,19 +314,16 @@ export function EmailComposer({
         onClick={handleExitClick}
       />
       
-      {/* Bottom sheet - extends to just below header */}
+      {/* Gmail-style full modal - no rounded corners */}
       <div 
         ref={sheetRef}
-        className="fixed left-0 right-0 z-50 bg-white rounded-t-[20px] flex flex-col"
+        className="fixed left-0 right-0 z-50 bg-white flex flex-col"
         style={{ 
           top: '60px', // Just below the BackstageOS header
           height: 'calc(100vh - 60px)' // Full height minus header
         }}
       >
-        {/* Handle bar for visual indication only - swipe disabled for debugging */}
-        <div className="flex justify-center py-4 px-8">
-          <div className="w-16 h-2 bg-gray-400 rounded-full"></div>
-        </div>
+
         
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
