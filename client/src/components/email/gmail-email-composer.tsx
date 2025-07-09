@@ -86,10 +86,7 @@ export function GmailEmailComposer({
         isDraft: true
       };
 
-      return apiRequest('/api/email/save-draft', {
-        method: 'POST',
-        body: JSON.stringify(draftData)
-      });
+      return apiRequest('POST', '/api/email/save-draft', draftData);
     },
     onSuccess: () => {
       toast({
@@ -126,10 +123,7 @@ export function GmailEmailComposer({
         threadId: replyToMessage?.id ? parseInt(replyToMessage.id) : null
       };
 
-      return apiRequest('/api/email/send', {
-        method: 'POST',
-        body: JSON.stringify(emailData)
-      });
+      return apiRequest('POST', '/api/email/send', emailData);
     },
     onSuccess: () => {
       toast({

@@ -102,7 +102,7 @@ export function EmailComposer({
 
   const { data: templates = [] } = useQuery({
     queryKey: ['/api/email/templates'],
-    queryFn: () => apiRequest(`/api/email/templates?showId=${showId || ''}`),
+    queryFn: () => apiRequest('GET', `/api/email/templates?showId=${showId || ''}`),
     enabled: showTheaterFeatures
   });
   // const [isClosing, setIsClosing] = useState(false); // Disabled for keyboard debugging
@@ -126,10 +126,7 @@ export function EmailComposer({
         originalMessageId: replyToMessage?.id
       };
 
-      return apiRequest('/api/email/send', {
-        method: 'POST',
-        body: JSON.stringify(emailData)
-      });
+      return apiRequest('POST', '/api/email/send', emailData);
     },
     onSuccess: () => {
       toast({
@@ -144,9 +141,7 @@ export function EmailComposer({
       
       // Delete the draft if it exists
       if (draftId) {
-        apiRequest(`/api/email/drafts/${draftId}`, {
-          method: 'DELETE'
-        }).catch(() => {}); // Silent fail for draft deletion
+        apiRequest('DELETE', `/api/email/drafts/${draftId}`).catch(() => {}); // Silent fail for draft deletion
       }
 
       // Invalidate relevant queries
@@ -180,16 +175,10 @@ export function EmailComposer({
 
       if (draftId) {
         // Update existing draft
-        return apiRequest(`/api/email/drafts/${draftId}`, {
-          method: 'PUT',
-          body: JSON.stringify(draftData)
-        });
+        return apiRequest('PUT', `/api/email/drafts/${draftId}`, draftData);
       } else {
         // Create new draft
-        const result = await apiRequest('/api/email/drafts', {
-          method: 'POST',
-          body: JSON.stringify(draftData)
-        });
+        const result = await apiRequest('POST', '/api/email/drafts', draftData);
         setDraftId(result.id);
         return result;
       }
