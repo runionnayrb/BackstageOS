@@ -84,6 +84,7 @@ export class StandaloneEmailService {
         isDraft: false,
         isSent: true,
         dateSent: new Date(),
+        labels: [], // Initialize as empty array
       };
 
       const [sentMessage] = await db.insert(emailMessages).values(outgoingMessage).returning();
@@ -177,6 +178,7 @@ export class StandaloneEmailService {
             isSent: false,
             dateSent: new Date(),
             folderId: inboxFolder.length ? inboxFolder[0].id : null,
+            labels: ['inbox'], // Initialize with inbox label
           };
 
           await db.insert(emailMessages).values(incomingMessage);
@@ -334,6 +336,7 @@ export class StandaloneEmailService {
         isDraft: true,
         isSent: false,
         dateSent: new Date(),
+        labels: ['drafts'], // Initialize with drafts label
       };
 
       if (draftId) {
