@@ -199,27 +199,70 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   };
 
   const handleReply = () => {
-    // Reply logic here
+    if (!modalEmail) return;
+    
+    // Close modal and open composer with reply data
     setShowEmailModal(false);
+    
+    if (onShowComposeChange) {
+      onShowComposeChange(true);
+    }
+    
+    // TODO: Pass reply data to composer (subject with Re:, original message, etc.)
+    console.log('Reply to:', modalEmail.subject);
   };
 
   const handleReplyAll = () => {
-    // Reply all logic here
+    if (!modalEmail) return;
+    
+    // Close modal and open composer with reply all data
     setShowEmailModal(false);
+    
+    if (onShowComposeChange) {
+      onShowComposeChange(true);
+    }
+    
+    // TODO: Pass reply all data to composer (include all recipients)
+    console.log('Reply All to:', modalEmail.subject);
   };
 
   const handleForward = () => {
-    // Forward logic here
+    if (!modalEmail) return;
+    
+    // Close modal and open composer with forward data
     setShowEmailModal(false);
+    
+    if (onShowComposeChange) {
+      onShowComposeChange(true);
+    }
+    
+    // TODO: Pass forward data to composer (subject with Fwd:, original message)
+    console.log('Forward:', modalEmail.subject);
   };
 
   const handleArchive = () => {
-    // Archive logic here
+    if (!modalEmail) return;
+    
+    // Archive this specific email
+    bulkActionMutation.mutate({
+      messageIds: [modalEmail.id],
+      action: 'archive',
+      targetFolder: 'archive'
+    });
+    
     setShowEmailModal(false);
   };
 
   const handleDelete = () => {
-    // Delete logic here  
+    if (!modalEmail) return;
+    
+    // Show confirmation for delete action
+    setPendingDeleteAction({
+      messageIds: [modalEmail.id],
+      action: 'delete',
+      targetFolder: 'trash'
+    });
+    setShowDeleteConfirm(true);
     setShowEmailModal(false);
   };
 
