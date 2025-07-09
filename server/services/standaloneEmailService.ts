@@ -219,10 +219,9 @@ export class StandaloneEmailService {
           eq(emailMessages.accountId, accountId),
           eq(emailMessages.isDraft, false),
           eq(emailMessages.isSent, false), // Exclude sent messages from inbox
-          or(
-            isNull(emailMessages.folderId),
-            sql`EXISTS (SELECT 1 FROM ${emailFolders} WHERE ${emailFolders.id} = ${emailMessages.folderId} AND ${emailFolders.name} = 'Inbox')`
-          )
+          // Only include emails that have 'inbox' in labels and NOT 'trash'
+          sql`${emailMessages.labels} @> ARRAY['inbox']::text[]`,
+          sql`NOT (${emailMessages.labels} @> ARRAY['trash']::text[])`
         )
       )
       .orderBy(desc(emailMessages.dateSent))
