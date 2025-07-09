@@ -588,47 +588,47 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       variant="ghost"
                       size="sm"
                       onClick={handleReply}
-                      className="h-8 px-2 md:px-3 text-xs md:text-sm"
+                      className="h-8 w-8 p-0"
+                      title="Reply"
                     >
-                      <Reply className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                      Reply
+                      <Reply className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={handleReplyAll}
-                      className="h-8 px-2 md:px-3 text-xs md:text-sm"
+                      className="h-8 w-8 p-0"
+                      title="Reply All"
                     >
-                      <ReplyAll className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                      All
+                      <ReplyAll className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={handleForward}
-                      className="h-8 px-3"
+                      className="h-8 w-8 p-0"
+                      title="Forward"
                     >
-                      <Forward className="h-4 w-4 mr-1" />
-                      Forward
+                      <Forward className="h-4 w-4" />
                     </Button>
                     <Separator orientation="vertical" className="h-6" />
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={handleArchive}
-                      className="h-8 px-3"
+                      className="h-8 w-8 p-0"
+                      title="Archive"
                     >
-                      <Archive className="h-4 w-4 mr-1" />
-                      Archive
+                      <Archive className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={handleDelete}
-                      className="h-8 px-3 text-destructive hover:text-destructive"
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      title="Delete"
                     >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Delete
+                      <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
