@@ -6427,6 +6427,35 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Email cleanup endpoints
+  app.post('/api/email/cleanup/run', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      // Only allow admins to manually run cleanup
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { emailCleanupService } = await import('./services/emailCleanupService.js');
+      const result = await emailCleanupService.cleanupOldTrashEmails();
+      res.json({ success: true, result });
+    } catch (error) {
+      console.error("Error running email cleanup:", error);
+      res.status(500).json({ message: "Failed to run email cleanup" });
+    }
+  });
+
+  app.get('/api/email/cleanup/stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const { emailCleanupService } = await import('./services/emailCleanupService.js');
+      const stats = await emailCleanupService.getTrashStatistics();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error getting cleanup stats:", error);
+      res.status(500).json({ message: "Failed to get cleanup stats" });
+    }
+  });
+
   // Get thread messages
   app.get('/api/email/threads/:threadId/messages', isAuthenticated, async (req: any, res) => {
     try {
@@ -7266,5 +7295,15 @@ Respond with valid JSON only.`;
   });
 
   const server = createServer(app);
+  
+  // Start email cleanup scheduler for automatic 30-day trash cleanup
+  try {
+    const { emailCleanupService } = await import('./services/emailCleanupService.js');
+    emailCleanupService.startCleanupScheduler();
+    console.log('✅ Email cleanup service started');
+  } catch (error) {
+    console.error('❌ Failed to start email cleanup service:', error);
+  }
+  
   return server;
 }
