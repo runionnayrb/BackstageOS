@@ -81,6 +81,19 @@ export class SharedInboxService {
     }
   }
 
+  async getAllSharedInboxes(): Promise<SharedInbox[]> {
+    try {
+      return await storage.getDb()
+        .select()
+        .from(sharedInboxes)
+        .where(eq(sharedInboxes.isActive, true))
+        .orderBy(sharedInboxes.projectId, sharedInboxes.name);
+    } catch (error) {
+      console.error('Error fetching all shared inboxes:', error);
+      throw new Error('Failed to fetch shared inboxes');
+    }
+  }
+
   async getSharedInboxById(inboxId: number): Promise<SharedInbox | null> {
     try {
       const result = await storage.getDb()

@@ -7,6 +7,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Mail,
@@ -15,6 +18,7 @@ import {
   Trash2,
   ArrowLeft,
   ChevronDown,
+  ChevronRight,
   Plus,
   Settings,
   Edit,
@@ -26,9 +30,10 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -51,6 +56,20 @@ interface EmailStats {
   draftCount: number;
 }
 
+interface Project {
+  id: number;
+  name: string;
+}
+
+interface SharedInbox {
+  id: number;
+  projectId: number;
+  name: string;
+  emailAddress: string;
+  inboxType: string;
+  isActive: boolean;
+}
+
 interface EmailSidebarProps {
   emailAccounts: EmailAccount[];
   selectedAccount: EmailAccount | null;
@@ -68,6 +87,7 @@ interface EmailSidebarProps {
   hasPersonalAccount?: boolean;
   isAdmin?: boolean;
   user?: { firstName?: string; lastName?: string; } | null;
+  onSettings?: () => void;
 }
 
 export function EmailSidebar({
@@ -98,7 +118,20 @@ export function EmailSidebar({
     { id: "trash", name: "Trash", icon: Trash2, count: 0 },
   ];
 
-  const [showEditAccount, setShowEditAccount] = useState(false);
+  const [showEmailSettings, setShowEmailSettings] = useState(false);
+  const [activeSettingsTab, setActiveSettingsTab] = useState("general");
+
+  // Fetch projects for shared inbox dropdown
+  const { data: projects } = useQuery({
+    queryKey: ['/api/projects'],
+    enabled: true,
+  });
+
+  // Fetch all shared inboxes  
+  const { data: allSharedInboxes } = useQuery({
+    queryKey: ['/api/shared-inboxes'],
+    enabled: true,
+  });
   
   // Create placeholder text from user's name
   const getUserNamePlaceholder = () => {
@@ -206,7 +239,8 @@ export function EmailSidebar({
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-64" align="start">
-                  {emailAccounts.map((account) => (
+                  {/* Personal Accounts */}
+                  {emailAccounts.filter(account => account.accountType === 'personal').map((account) => (
                     <DropdownMenuItem
                       key={account.id}
                       onClick={() => onAccountSelect(account)}
@@ -223,17 +257,64 @@ export function EmailSidebar({
                       </p>
                     </DropdownMenuItem>
                   ))}
+                  
+                  {/* Shared Inboxes Submenu */}
+                  {projects && projects.length > 0 && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger className="flex items-center space-x-2 p-3">
+                          <Users className="h-4 w-4" />
+                          <span>Shared Inboxes</span>
+                          <ChevronRight className="h-4 w-4 ml-auto" />
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent className="w-64">
+                          {projects.map((project: Project) => {
+                            const projectInboxes = allSharedInboxes?.filter((inbox: SharedInbox) => inbox.projectId === project.id) || [];
+                            return (
+                              <div key={project.id}>
+                                <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                                  {project.name}
+                                </div>
+                                {projectInboxes.length > 0 ? (
+                                  projectInboxes.map((inbox: SharedInbox) => (
+                                    <DropdownMenuItem
+                                      key={inbox.id}
+                                      className="flex flex-col items-start space-y-1 p-3 pl-6"
+                                    >
+                                      <p className="text-sm font-medium text-gray-900">
+                                        {inbox.name}
+                                      </p>
+                                      <p className="text-xs text-gray-500">
+                                        {inbox.emailAddress}
+                                      </p>
+                                    </DropdownMenuItem>
+                                  ))
+                                ) : (
+                                  <div className="px-6 py-2 text-xs text-gray-400">
+                                    No shared inboxes
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setActiveSettingsTab("shared-inboxes");
+                              setShowEmailSettings(true);
+                            }}
+                            className="flex items-center space-x-2 p-3"
+                          >
+                            <Plus className="h-4 w-4" />
+                            <span>Manage Shared Inboxes</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                    </>
+                  )}
+                  
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setEditDisplayName(selectedAccount?.displayName || '');
-                      setShowEditAccount(true);
-                    }}
-                    className="flex items-center space-x-2"
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span>Edit Display Name</span>
-                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={onCreateAccount}
                     className="flex items-center space-x-2 p-3"
@@ -280,45 +361,6 @@ export function EmailSidebar({
             );
           })}
         </div>
-
-        {/* Theater Features Section */}
-        <div className="mt-6 px-4">
-          <div className="space-y-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                onSharedInboxes?.();
-              }}
-              className="w-full justify-start text-sm"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Shared Inboxes
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                onTheaterGroupEmail?.();
-              }}
-              className="w-full justify-start text-sm"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Group Management
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                onTheaterTemplates?.();
-              }}
-              className="w-full justify-start text-sm"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Email Templates
-            </Button>
-          </div>
-        </div>
       </div>
 
       {/* Settings */}
@@ -327,7 +369,7 @@ export function EmailSidebar({
           variant="ghost" 
           size="sm" 
           className="w-full justify-start"
-          onClick={() => setShowEditAccount(true)}
+          onClick={() => setShowEmailSettings(true)}
           data-settings-trigger
         >
           <Settings className="h-4 w-4 mr-2" />
@@ -336,60 +378,118 @@ export function EmailSidebar({
       </div>
 
       {/* Email Settings Dialog */}
-      <Dialog open={showEditAccount} onOpenChange={setShowEditAccount}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={showEmailSettings} onOpenChange={setShowEmailSettings}>
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Email Settings</DialogTitle>
             <DialogDescription>
-              Manage your email account settings and preferences.
+              Manage your email accounts, shared inboxes, and preferences.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="emailAddress">Email Address</Label>
-              <div
-                className="w-full px-3 py-2 text-sm text-gray-900 bg-transparent border-0 outline-none focus:outline-none focus:ring-0 cursor-default"
-                tabIndex={-1}
-              >
-                {selectedAccount?.emailAddress || ''}
-              </div>
-              <p className="text-xs text-gray-500">
-                Email addresses cannot be changed after creation
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name</Label>
-              <Input
-                id="displayName"
-                value={editDisplayName}
-                onChange={(e) => setEditDisplayName(e.target.value)}
-                placeholder={getUserNamePlaceholder()}
-                className="w-full"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !updateAccountMutation.isPending) {
-                    e.preventDefault();
-                    handleSaveDisplayName();
-                  }
-                }}
-              />
-              <p className="text-xs text-gray-500">
-                This is how your name appears to recipients
-              </p>
-            </div>
-            <div className="flex justify-end space-x-2">
+          
+          <div className="flex space-x-6">
+            {/* Tab Navigation */}
+            <div className="w-48 space-y-1">
               <Button
-                variant="outline"
-                onClick={() => setShowEditAccount(false)}
-                disabled={updateAccountMutation.isPending}
+                variant={activeSettingsTab === "general" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setActiveSettingsTab("general")}
+                className="w-full justify-start"
               >
-                Cancel
+                <Settings className="h-4 w-4 mr-2" />
+                General
               </Button>
               <Button
-                onClick={handleSaveDisplayName}
-                disabled={updateAccountMutation.isPending}
+                variant={activeSettingsTab === "shared-inboxes" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setActiveSettingsTab("shared-inboxes")}
+                className="w-full justify-start"
               >
-                {updateAccountMutation.isPending ? "Saving..." : "Save"}
+                <Users className="h-4 w-4 mr-2" />
+                Shared Inboxes
               </Button>
+            </div>
+            
+            {/* Tab Content */}
+            <div className="flex-1">
+              {activeSettingsTab === "general" && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="emailAddress">Email Address</Label>
+                    <div className="w-full px-3 py-2 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-md cursor-default">
+                      {selectedAccount?.emailAddress || ''}
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Email addresses cannot be changed after creation
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="displayName">Display Name</Label>
+                    <Input
+                      id="displayName"
+                      value={editDisplayName}
+                      onChange={(e) => setEditDisplayName(e.target.value)}
+                      placeholder={getUserNamePlaceholder()}
+                      className="w-full"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !updateAccountMutation.isPending) {
+                          e.preventDefault();
+                          handleSaveDisplayName();
+                        }
+                      }}
+                    />
+                    <p className="text-xs text-gray-500">
+                      This is how your name appears to recipients
+                    </p>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowEmailSettings(false)}
+                      disabled={updateAccountMutation.isPending}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSaveDisplayName}
+                      disabled={updateAccountMutation.isPending}
+                    >
+                      {updateAccountMutation.isPending ? "Saving..." : "Save"}
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {activeSettingsTab === "shared-inboxes" && (
+                <div>
+                  {projects && projects.length > 0 ? (
+                    <div className="space-y-4">
+                      {projects.map((project: Project) => (
+                        <div key={project.id} className="border rounded-lg p-4">
+                          <h3 className="font-medium text-gray-900 mb-2">{project.name}</h3>
+                          <div className="text-sm text-gray-600 mb-3">
+                            Manage shared team inboxes for this production
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => onSharedInboxes?.()}
+                            className="flex items-center space-x-2"
+                          >
+                            <Users className="h-4 w-4" />
+                            <span>Manage Shared Inboxes</span>
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      <p>No shows available</p>
+                      <p className="text-sm">Create a show to set up shared inboxes</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>

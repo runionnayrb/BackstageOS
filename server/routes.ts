@@ -5871,6 +5871,20 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Get all shared inboxes (for sidebar navigation)
+  app.get('/api/shared-inboxes', isAuthenticated, async (req: any, res) => {
+    try {
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const inboxes = await sharedInboxService.getAllSharedInboxes();
+      res.json(inboxes);
+    } catch (error) {
+      console.error("Error fetching shared inboxes:", error);
+      res.status(500).json({ message: "Failed to fetch shared inboxes" });
+    }
+  });
+
   // Get shared inbox details
   app.get('/api/shared-inboxes/:inboxId', isAuthenticated, async (req: any, res) => {
     try {
