@@ -120,8 +120,8 @@ export function GmailEmailComposer({
       <div 
         className="fixed left-0 right-0 bg-white flex flex-col"
         style={{ 
-          top: '60px', // Just below BackstageOS header
-          height: 'calc(100vh - 60px)'
+          top: '0px', // Start from very top (URL bar area)
+          height: '100vh'
         }}
       >
         {/* Header with icons matching Gmail */}
