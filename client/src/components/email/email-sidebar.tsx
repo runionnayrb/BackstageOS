@@ -581,24 +581,9 @@ export function EmailSidebar({
                 <Input 
                   id="name" 
                   name="name" 
-                  placeholder="Production Team" 
+                  placeholder="Stage Management Team" 
                   required 
                 />
-              </div>
-              
-              <div>
-                <Label htmlFor="inboxType">Inbox Type</Label>
-                <Select name="inboxType" defaultValue="team">
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="team">Team</SelectItem>
-                    <SelectItem value="vendor">Vendor</SelectItem>
-                    <SelectItem value="cast">Cast</SelectItem>
-                    <SelectItem value="crew">Crew</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               
               <div>

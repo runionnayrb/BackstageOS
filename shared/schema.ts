@@ -692,10 +692,9 @@ export const emailQueue = pgTable("email_queue", {
 export const sharedInboxes = pgTable("shared_inboxes", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  name: varchar("name").notNull(), // "Production Team", "Vendor Communications", etc.
+  name: varchar("name").notNull(), // "Stage Management Team", "Production Team", etc.
   description: text("description"),
   emailAddress: varchar("email_address").notNull().unique(), // production@backstageos.com
-  inboxType: varchar("inbox_type").notNull().default("team"), // 'team', 'vendor', 'cast', 'crew'
   isActive: boolean("is_active").default(true),
   autoAssignRules: jsonb("auto_assign_rules"), // Rules for automatic email assignment
   createdBy: integer("created_by").notNull().references(() => users.id),
