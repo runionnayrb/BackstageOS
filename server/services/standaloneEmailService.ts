@@ -671,12 +671,15 @@ export class StandaloneEmailService {
   }
 
   /**
-   * Bulk delete messages
+   * Bulk delete messages (move to trash)
    */
   async bulkDelete(messageIds: number[], accountId: number): Promise<{ deleted: number }> {
     try {
       const result = await db
-        .delete(emailMessages)
+        .update(emailMessages)
+        .set({ 
+          labels: sql`ARRAY['trash']::text[]`
+        })
         .where(
           and(
             sql`${emailMessages.id} IN (${sql.join(messageIds, sql`, `)})`,

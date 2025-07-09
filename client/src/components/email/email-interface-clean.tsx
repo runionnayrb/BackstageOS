@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2, Check, X, Mail, MailOpen, FolderOpen } from 'lucide-react';
@@ -36,6 +36,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const [showConfiguration, setShowConfiguration] = useState(false);
   const [selectedMessages, setSelectedMessages] = useState<Set<number>>(new Set());
   const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [pendingDeleteAction, setPendingDeleteAction] = useState<{ messageIds: number[]; action: string; targetFolder?: string } | null>(null);
   const queryClient = useQueryClient();
 
   // Mark email as read mutation
@@ -148,7 +150,27 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     const messageIds = Array.from(selectedMessages);
     if (messageIds.length === 0) return;
     
-    bulkActionMutation.mutate({ messageIds, action, targetFolder });
+    // Show confirmation dialog for delete operations
+    if (action === 'delete') {
+      setPendingDeleteAction({ messageIds, action, targetFolder });
+      setShowDeleteConfirm(true);
+    } else {
+      // Execute other actions immediately
+      bulkActionMutation.mutate({ messageIds, action, targetFolder });
+    }
+  };
+
+  const confirmDelete = () => {
+    if (pendingDeleteAction) {
+      bulkActionMutation.mutate(pendingDeleteAction);
+      setShowDeleteConfirm(false);
+      setPendingDeleteAction(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setPendingDeleteAction(null);
   };
 
   const exitSelectionMode = () => {
@@ -612,6 +634,32 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
           onClose={() => setShowConfiguration(false)}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Messages</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {pendingDeleteAction?.messageIds.length || 0} message{(pendingDeleteAction?.messageIds.length || 0) !== 1 ? 's' : ''}? 
+              They will be moved to the trash folder and can be permanently deleted later.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={cancelDelete} className="w-full sm:w-auto">
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDelete}
+              className="w-full sm:w-auto"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
