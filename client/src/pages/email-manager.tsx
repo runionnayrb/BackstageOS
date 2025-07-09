@@ -791,15 +791,15 @@ export default function EmailManager() {
       <Dialog open={showGroupManager} onOpenChange={setShowGroupManager}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Group Management</DialogTitle>
+            <DialogTitle>Distro Management</DialogTitle>
             <DialogDescription>
-              Manage email groups for quick messaging to cast, crew, and creative teams.
+              Manage email distribution lists for quick messaging to cast, crew, and creative teams.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium">Email Groups</h3>
+              <h3 className="text-lg font-medium">Distribution Lists</h3>
               <Button size="sm" variant="outline" onClick={() => setShowCreateGroup(true)}>
                 <Plus className="h-4 w-4" />
               </Button>
@@ -912,7 +912,7 @@ export default function EmailManager() {
                 }}
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Groups
+                Back to Distros
               </Button>
             </DialogTitle>
           </DialogHeader>
