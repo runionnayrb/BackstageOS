@@ -1,4 +1,4 @@
-import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus } from "lucide-react";
+import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus, FileText, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,7 +10,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import BreadcrumbNavigation from "./breadcrumb-navigation";
-import QuickSectionSwitcher from "./quick-section-switcher";
 
 interface SwitchStatus {
   isViewingAs: boolean;
@@ -227,6 +226,36 @@ export default function EnhancedHeader() {
                     New Show
                   </DropdownMenuItem>
                   
+                  {/* Show-specific navigation - only when in a show */}
+                  {navContext.showId && showData && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <div className="px-3 py-2 text-sm font-semibold text-gray-900">
+                        {showData.name}
+                      </div>
+                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/reports`)}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Reports
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/calendar`)}>
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Calendar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/script`)}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Script
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/props`)}>
+                        <FolderOpen className="h-4 w-4 mr-2" />
+                        Props
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/contacts`)}>
+                        <Users className="h-4 w-4 mr-2" />
+                        Contacts
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  
                   <DropdownMenuSeparator />
                   
                   <DropdownMenuItem onClick={() => setLocation('/feedback')}>
@@ -237,17 +266,7 @@ export default function EnhancedHeader() {
               </DropdownMenu>
             </div>
 
-            {/* Context-aware navigation */}
-            <div className="flex items-center gap-4">
-              {/* Quick Section Switcher - only show when in a show */}
-              {navContext.showId && showData && (
-                <QuickSectionSwitcher
-                  currentShowId={navContext.showId}
-                  currentShowName={showData.name}
-                  currentSection={navContext.sectionId}
-                />
-              )}
-            </div>
+
           </div>
 
           {/* Right side - User menu and admin controls */}
