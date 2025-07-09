@@ -24,11 +24,15 @@ export class SharedInboxService {
 
   async createSharedInbox(data: InsertSharedInbox): Promise<SharedInbox> {
     try {
-      // Create email address if not provided
+      // Validate email address is provided
       if (!data.emailAddress) {
-        const projectName = await this.getProjectName(data.projectId);
-        const cleanName = projectName.toLowerCase().replace(/[^a-z0-9]/g, '');
-        data.emailAddress = `${cleanName}@backstageos.com`;
+        throw new Error('Email address is required');
+      }
+
+      // Check if email address is already in use globally
+      const existingInbox = await this.checkEmailAddressExists(data.emailAddress);
+      if (existingInbox) {
+        throw new Error('This email address is already in use by another team. Please choose a different address.');
       }
 
       // Create shared inbox in database
@@ -45,7 +49,22 @@ export class SharedInboxService {
       return sharedInbox;
     } catch (error) {
       console.error('Error creating shared inbox:', error);
-      throw new Error('Failed to create shared inbox');
+      throw error; // Re-throw to preserve specific error messages
+    }
+  }
+
+  async checkEmailAddressExists(emailAddress: string): Promise<boolean> {
+    try {
+      const result = await storage.getDb()
+        .select()
+        .from(sharedInboxes)
+        .where(eq(sharedInboxes.emailAddress, emailAddress))
+        .limit(1);
+
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error checking email address:', error);
+      return false;
     }
   }
 

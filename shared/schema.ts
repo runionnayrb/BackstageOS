@@ -708,7 +708,7 @@ export const sharedInboxMembers = pgTable("shared_inbox_members", {
   id: serial("id").primaryKey(),
   inboxId: integer("inbox_id").notNull().references(() => sharedInboxes.id, { onDelete: "cascade" }),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  role: varchar("role").notNull().default("member"), // 'admin', 'moderator', 'member', 'viewer'
+  role: varchar("role").notNull().default("viewer"), // 'admin', 'stage_manager', 'production_assistant', 'viewer'
   permissions: jsonb("permissions"), // Custom permissions for this user
   canAssignEmails: boolean("can_assign_emails").default(false),
   canManageMembers: boolean("can_manage_members").default(false),

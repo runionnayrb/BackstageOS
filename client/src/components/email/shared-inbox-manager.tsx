@@ -22,6 +22,7 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingInbox, setEditingInbox] = useState<SharedInbox | null>(null);
   const [selectedInbox, setSelectedInbox] = useState<SharedInbox | null>(null);
+  const [managingMembers, setManagingMembers] = useState<SharedInbox | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -103,11 +104,14 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     
+    const customEmailPrefix = formData.get('customEmailPrefix') as string;
+    const emailAddress = customEmailPrefix ? `${customEmailPrefix.toLowerCase().replace(/[^a-z0-9-]/g, '')}@backstageos.com` : undefined;
+    
     const data = {
       name: formData.get('name'),
       description: formData.get('description'),
       inboxType: formData.get('inboxType'),
-      emailAddress: formData.get('emailAddress') || undefined
+      emailAddress
     };
 
     createInboxMutation.mutate(data);
@@ -208,14 +212,19 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
               </div>
               
               <div>
-                <Label htmlFor="emailAddress">Email Address (optional)</Label>
-                <Input 
-                  id="emailAddress" 
-                  name="emailAddress" 
-                  placeholder="production@backstageos.com" 
-                />
+                <Label htmlFor="customEmailPrefix">Custom Email Address</Label>
+                <div className="flex items-center space-x-2">
+                  <Input 
+                    id="customEmailPrefix" 
+                    name="customEmailPrefix" 
+                    placeholder="macbeth-cast" 
+                    required
+                    className="flex-1"
+                  />
+                  <span className="text-gray-500">@backstageos.com</span>
+                </div>
                 <p className="text-sm text-gray-500 mt-1">
-                  Leave empty to auto-generate based on project name
+                  Choose a unique email address for this show's team inbox
                 </p>
               </div>
               
@@ -289,7 +298,7 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setSelectedInbox(inbox)}
+                      onClick={() => setManagingMembers(inbox)}
                     >
                       <Users className="h-4 w-4 mr-1" />
                       Manage Members
@@ -382,6 +391,73 @@ export function SharedInboxManager({ projectId, projectName }: SharedInboxManage
                 </Button>
               </div>
             </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Member Management Dialog */}
+      <Dialog open={!!managingMembers} onOpenChange={(open) => !open && setManagingMembers(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Manage Team Members - {managingMembers?.name}</DialogTitle>
+          </DialogHeader>
+          {managingMembers && (
+            <div className="space-y-6">
+              {/* Add Member Section */}
+              <div className="border rounded-lg p-4">
+                <h3 className="font-medium mb-3">Add Team Member</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="member-email">Email Address</Label>
+                    <Input 
+                      id="member-email" 
+                      placeholder="team.member@example.com" 
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="member-role">Theater Role</Label>
+                    <Select defaultValue="viewer">
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="stage_manager">Stage Manager</SelectItem>
+                        <SelectItem value="production_assistant">Production Assistant</SelectItem>
+                        <SelectItem value="viewer">Viewer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <Button size="sm">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Member
+                  </Button>
+                </div>
+              </div>
+
+              {/* Current Members List */}
+              <div>
+                <h3 className="font-medium mb-3">Current Members (0)</h3>
+                <div className="text-center py-8 text-gray-500">
+                  <Users className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No team members added yet</p>
+                  <p className="text-sm">Add your first team member above</p>
+                </div>
+              </div>
+
+              {/* Role Descriptions */}
+              <div className="border rounded-lg p-4 bg-gray-50">
+                <h4 className="font-medium mb-2">Theater Role Permissions</h4>
+                <div className="space-y-2 text-sm">
+                  <div><strong>Admin:</strong> Full inbox management, can assign emails, add/remove members</div>
+                  <div><strong>Stage Manager:</strong> Can assign emails, manage responses, and view all conversations</div>
+                  <div><strong>Production Assistant:</strong> Can respond to assigned emails and collaborate on threads</div>
+                  <div><strong>Viewer:</strong> Read-only access to shared communications</div>
+                </div>
+              </div>
+            </div>
           )}
         </DialogContent>
       </Dialog>

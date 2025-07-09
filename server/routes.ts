@@ -5851,7 +5851,23 @@ Respond with valid JSON only.`;
       res.json(inbox);
     } catch (error) {
       console.error("Error creating shared inbox:", error);
-      res.status(500).json({ message: "Failed to create shared inbox" });
+      const message = error instanceof Error ? error.message : "Failed to create shared inbox";
+      res.status(400).json({ message });
+    }
+  });
+
+  // Check email address availability
+  app.get('/api/shared-inboxes/check-email/:emailAddress', isAuthenticated, async (req: any, res) => {
+    try {
+      const emailAddress = req.params.emailAddress;
+      const { SharedInboxService } = await import('./services/sharedInboxService.js');
+      const sharedInboxService = new SharedInboxService();
+      
+      const exists = await sharedInboxService.checkEmailAddressExists(emailAddress);
+      res.json({ available: !exists, exists });
+    } catch (error) {
+      console.error("Error checking email address:", error);
+      res.status(500).json({ message: "Failed to check email address" });
     }
   });
 
