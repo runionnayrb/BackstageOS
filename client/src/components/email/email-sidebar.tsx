@@ -120,6 +120,7 @@ export function EmailSidebar({
 
   const [showEmailSettings, setShowEmailSettings] = useState(false);
   const [activeSettingsTab, setActiveSettingsTab] = useState("general");
+  const [showEditAccount, setShowEditAccount] = useState(false);
 
   // Fetch projects for shared inbox dropdown
   const { data: projects } = useQuery({
@@ -266,38 +267,42 @@ export function EmailSidebar({
                         <DropdownMenuSubTrigger className="flex items-center space-x-2 p-3">
                           <Users className="h-4 w-4" />
                           <span>Shared Inboxes</span>
-                          <ChevronRight className="h-4 w-4 ml-auto" />
                         </DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent className="w-64">
+                        <DropdownMenuSubContent className="w-56 max-w-[calc(100vw-32px)]">
                           {projects.map((project: Project) => {
                             const projectInboxes = allSharedInboxes?.filter((inbox: SharedInbox) => inbox.projectId === project.id) || [];
+                            // Only show projects that have shared inboxes
+                            if (projectInboxes.length === 0) return null;
+                            
                             return (
                               <div key={project.id}>
                                 <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
                                   {project.name}
                                 </div>
-                                {projectInboxes.length > 0 ? (
-                                  projectInboxes.map((inbox: SharedInbox) => (
-                                    <DropdownMenuItem
-                                      key={inbox.id}
-                                      className="flex flex-col items-start space-y-1 p-3 pl-6"
-                                    >
-                                      <p className="text-sm font-medium text-gray-900">
-                                        {inbox.name}
-                                      </p>
-                                      <p className="text-xs text-gray-500">
-                                        {inbox.emailAddress}
-                                      </p>
-                                    </DropdownMenuItem>
-                                  ))
-                                ) : (
-                                  <div className="px-6 py-2 text-xs text-gray-400">
-                                    No shared inboxes
-                                  </div>
-                                )}
+                                {projectInboxes.map((inbox: SharedInbox) => (
+                                  <DropdownMenuItem
+                                    key={inbox.id}
+                                    className="flex flex-col items-start space-y-1 p-3 pl-6"
+                                  >
+                                    <p className="text-sm font-medium text-gray-900">
+                                      {inbox.name}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      {inbox.emailAddress}
+                                    </p>
+                                  </DropdownMenuItem>
+                                ))}
                               </div>
                             );
                           })}
+                          
+                          {/* Show message if no shared inboxes exist */}
+                          {allSharedInboxes?.length === 0 && (
+                            <div className="px-3 py-4 text-xs text-gray-400 text-center">
+                              No shared inboxes created yet
+                            </div>
+                          )}
+                          
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => {
@@ -321,6 +326,16 @@ export function EmailSidebar({
                   >
                     <Plus className="h-4 w-4" />
                     <span className="text-sm">{hasPersonalAccount && !isAdmin ? "Add new team account" : "Add new account"}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setActiveSettingsTab("shared-inboxes");
+                      setShowEmailSettings(true);
+                    }}
+                    className="flex items-center space-x-2 p-3"
+                  >
+                    <Users className="h-4 w-4" />
+                    <span className="text-sm">New Shared Inbox</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
