@@ -8,7 +8,7 @@
 
 ## Manual Cloudflare Configuration Required
 
-Since the Cloudflare API is experiencing authentication issues, you'll need to manually configure the email routing through your Cloudflare dashboard:
+Since the Cloudflare API is experiencing authentication issues, you'll need to manually configure the email routing through your Cloudflare dashboard. **This is the final step to complete email independence:**
 
 ### Step 1: Access Email Routing
 1. Go to your Cloudflare dashboard
@@ -24,6 +24,11 @@ Since the Cloudflare API is experiencing authentication issues, you'll need to m
    - **Destination**: `https://backstageos.com/api/email/receive-webhook`
    - **Name**: "Route bryan@backstageos.com to BackstageOS"
    - **Enabled**: ✅ Yes
+
+**Important Notes:**
+- If you don't see "Send to webhook" option, use "Send to Worker" and create a worker using the script below
+- Make sure Email Routing is enabled for your domain first (there should be an "Enable" button if not already active)
+- The webhook URL must be exactly: `https://backstageos.com/api/email/receive-webhook`
 
 ### Step 3: Test the Configuration
 After creating the route, you can test it by:
