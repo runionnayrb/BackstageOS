@@ -264,6 +264,42 @@ class CloudflareService {
     }
   }
 
+  async createWebhookEmailRoute(alias: string, webhookUrl: string): Promise<any> {
+    try {
+      // First ensure email routing is enabled for the zone
+      await this.enableEmailRouting();
+      
+      // Create the email routing rule with webhook action
+      const zoneName = await this.getZoneName();
+      const requestBody = {
+        matchers: [{
+          type: 'literal',
+          field: 'to',
+          value: `${alias}@${zoneName}`
+        }],
+        actions: [{
+          type: 'worker',
+          value: webhookUrl
+        }],
+        enabled: true,
+        name: `Route ${alias}@${zoneName} to webhook`
+      };
+      
+      console.log('Email webhook routing request body:', JSON.stringify(requestBody, null, 2));
+      
+      console.log('Creating email webhook routing rule...');
+      const response = await this.makeRequest(`/zones/${this.zoneId}/email/routing/rules`, {
+        method: 'POST',
+        body: JSON.stringify(requestBody)
+      }) as any;
+
+      return response.result;
+    } catch (error: any) {
+      console.error('Error creating email webhook route:', error);
+      throw new Error(`Failed to create email webhook route: ${error.message}`);
+    }
+  }
+
   private async enableEmailRouting(): Promise<void> {
     try {
       console.log('Checking email routing status...');

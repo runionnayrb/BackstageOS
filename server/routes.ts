@@ -6852,6 +6852,53 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Cloudflare email webhook endpoint for receiving emails
+  app.post('/api/email/receive-webhook', async (req: any, res) => {
+    try {
+      const emailData = req.body;
+      console.log('📧 Incoming email webhook received:', emailData);
+      
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      
+      // Process incoming email and store in BackstageOS
+      await standaloneEmailService.processIncomingEmail(emailData);
+      
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("Error processing incoming email webhook:", error);
+      res.status(500).json({ message: "Failed to process incoming email" });
+    }
+  });
+
+  // Setup webhook email routing for user email addresses
+  app.post('/api/email/setup-webhook-routing', isAuthenticated, async (req: any, res) => {
+    try {
+      const { emailAddress } = req.body;
+      
+      if (!emailAddress) {
+        return res.status(400).json({ message: "Email address is required" });
+      }
+      
+      // Extract alias from email address (e.g., "bryan" from "bryan@backstageos.com")
+      const alias = emailAddress.split('@')[0];
+      
+      // Create webhook URL for receiving emails
+      const webhookUrl = `${req.protocol}://${req.get('host')}/api/email/receive-webhook`;
+      
+      const { CloudflareService } = await import('./services/cloudflareService.js');
+      const cloudflareService = new CloudflareService();
+      
+      // Create webhook-based email routing rule
+      const result = await cloudflareService.createWebhookEmailRoute(alias, webhookUrl);
+      
+      console.log('✅ Email webhook routing created:', result);
+      res.json({ success: true, result });
+    } catch (error) {
+      console.error("Error setting up webhook routing:", error);
+      res.status(500).json({ message: "Failed to setup webhook routing" });
+    }
+  });
+
   // Search messages
   app.get('/api/email/accounts/:accountId/search', isAuthenticated, async (req: any, res) => {
     try {

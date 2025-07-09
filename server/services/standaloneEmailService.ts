@@ -438,6 +438,124 @@ export class StandaloneEmailService {
       return 0;
     }
   }
+
+  /**
+   * Process incoming email from Cloudflare webhook
+   */
+  async processIncomingEmail(emailData: any): Promise<void> {
+    try {
+      console.log('📧 Processing incoming email:', emailData);
+      
+      // Extract email details from Cloudflare webhook payload
+      const { 
+        to, 
+        from, 
+        subject, 
+        content, 
+        headers = {},
+        message_id,
+        date 
+      } = emailData;
+      
+      // Find the email account that should receive this email
+      const recipientEmail = Array.isArray(to) ? to[0] : to;
+      const [account] = await db
+        .select()
+        .from(emailAccounts)
+        .where(eq(emailAccounts.emailAddress, recipientEmail))
+        .limit(1);
+      
+      if (!account) {
+        console.log(`❌ No account found for ${recipientEmail}`);
+        return;
+      }
+      
+      // Create or find thread for this email
+      let thread;
+      const threadSubject = subject || 'No Subject';
+      const [existingThread] = await db
+        .select()
+        .from(emailThreads)
+        .where(
+          and(
+            eq(emailThreads.accountId, account.id),
+            eq(emailThreads.subject, threadSubject)
+          )
+        )
+        .limit(1);
+      
+      if (existingThread) {
+        thread = existingThread;
+      } else {
+        const [newThread] = await db
+          .insert(emailThreads)
+          .values({
+            accountId: account.id,
+            subject: threadSubject,
+            participantCount: 1,
+            messageCount: 1,
+            lastMessageAt: new Date(date || Date.now()),
+            isRead: false,
+            isStarred: false,
+            isImportant: false,
+            labels: [],
+            relatedShowId: null,
+            relatedContactId: null,
+          })
+          .returning();
+        thread = newThread;
+      }
+      
+      // Create the email message
+      const messageData = {
+        accountId: account.id,
+        threadId: thread.id,
+        messageId: message_id || `incoming-${Date.now()}`,
+        subject: subject || 'No Subject',
+        fromAddress: from,
+        toAddresses: Array.isArray(to) ? to : [to],
+        ccAddresses: headers.cc ? (Array.isArray(headers.cc) ? headers.cc : [headers.cc]) : [],
+        bccAddresses: [],
+        content: content || '',
+        htmlContent: content || '',
+        isRead: false,
+        isDraft: false,
+        isSent: false,
+        isStarred: false,
+        isImportant: false,
+        hasAttachments: false,
+        dateSent: new Date(date || Date.now()),
+        dateReceived: new Date(),
+        folderId: null,
+        labels: [],
+        priority: 'normal',
+        replyTo: from,
+        inReplyTo: headers['in-reply-to'] || null,
+        messageReferences: [],
+        sizeBytes: content ? content.length : 0,
+        relatedShowId: null,
+        relatedContactId: null,
+      };
+      
+      await db.insert(emailMessages).values(messageData);
+      
+      // Update thread with latest message info
+      await db
+        .update(emailThreads)
+        .set({
+          messageCount: thread.messageCount + 1,
+          lastMessageAt: new Date(),
+          isRead: false,
+        })
+        .where(eq(emailThreads.id, thread.id));
+      
+      console.log(`✅ Email processed and stored for ${recipientEmail}`);
+      
+    } catch (error) {
+      console.error('❌ Error processing incoming email:', error);
+      throw error;
+    }
+  }
 }
 
 export const standaloneEmailService = new StandaloneEmailService();
