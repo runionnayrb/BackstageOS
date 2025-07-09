@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { EmailSidebar } from "@/components/email/email-sidebar";
 import { EmailInterface } from "@/components/email/email-interface-clean";
+import { EmailAccountConfig } from "@/components/email/email-account-config";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -76,6 +77,7 @@ export default function EmailManager() {
   const [newGroupDescription, setNewGroupDescription] = useState('');
   const [newGroupColor, setNewGroupColor] = useState('#3b82f6');
   const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
+  const [showMobileSettings, setShowMobileSettings] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -425,11 +427,7 @@ export default function EmailManager() {
                 </button>
                 <button
                   onClick={() => {
-                    // Trigger settings dialog from sidebar
-                    const settingsButton = document.querySelector('[data-settings-trigger]');
-                    if (settingsButton) {
-                      (settingsButton as HTMLElement).click();
-                    }
+                    setShowMobileSettings(true);
                     setIsMobileMenuOpen(false);
                   }}
                   className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
@@ -978,6 +976,25 @@ export default function EmailManager() {
               {createGroupMutation.isPending ? "Creating..." : "Create Group"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mobile Settings Dialog */}
+      <Dialog open={showMobileSettings} onOpenChange={setShowMobileSettings}>
+        <DialogContent className="sm:max-w-[95vw] max-h-[95vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Email Settings</DialogTitle>
+            <DialogDescription>
+              Manage your email account settings and preferences.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedAccount && (
+            <EmailAccountConfig 
+              account={selectedAccount}
+              onClose={() => setShowMobileSettings(false)}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
