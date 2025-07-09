@@ -403,6 +403,57 @@ export class StandaloneEmailService {
   }
 
   /**
+   * Extract original recipient from forwarded email
+   */
+  private extractOriginalRecipient(headers: any, subject: string, content: string): string | null {
+    try {
+      // Try to extract from common forwarding headers
+      const originalTo = headers['x-original-to'] || headers['x-forwarded-to'] || headers['delivered-to'];
+      
+      if (originalTo && originalTo.includes('@backstageos.com')) {
+        return originalTo;
+      }
+      
+      // Try to extract from subject line (common forwarding patterns)
+      const subjectPatterns = [
+        /Fwd:\s*(.+@backstageos\.com)/i,
+        /Forward:\s*(.+@backstageos\.com)/i,
+        /\[(.+@backstageos\.com)\]/i,
+        /To:\s*(.+@backstageos\.com)/i
+      ];
+      
+      for (const pattern of subjectPatterns) {
+        const match = subject.match(pattern);
+        if (match && match[1]) {
+          return match[1];
+        }
+      }
+      
+      // Try to extract from content (last resort)
+      const contentPatterns = [
+        /originally sent to[:\s]+(.+@backstageos\.com)/i,
+        /to[:\s]+(.+@backstageos\.com)/i,
+        /sent to[:\s]+(.+@backstageos\.com)/i
+      ];
+      
+      for (const pattern of contentPatterns) {
+        const match = content.match(pattern);
+        if (match && match[1]) {
+          return match[1];
+        }
+      }
+      
+      // Default fallback - assume it's for bryan@backstageos.com if no other recipient found
+      console.log('⚠️ No original recipient found in forwarded email, defaulting to bryan@backstageos.com');
+      return 'bryan@backstageos.com';
+      
+    } catch (error) {
+      console.error('Error extracting original recipient:', error);
+      return null;
+    }
+  }
+
+  /**
    * Get total unread count across all user's email accounts
    */
   async getTotalUnreadCount(userId: number): Promise<number> {
@@ -457,8 +508,26 @@ export class StandaloneEmailService {
         date 
       } = emailData;
       
+      // Handle internal webhook forwarding
+      let recipientEmail = Array.isArray(to) ? to[0] : to;
+      
+      // Special handling for internal forwarding via webhook-trigger@backstageos.com
+      if (recipientEmail === 'webhook-trigger@backstageos.com') {
+        console.log('🔄 Processing internal webhook forwarding');
+        
+        // Extract original recipient from headers or subject
+        const originalRecipient = this.extractOriginalRecipient(headers, subject, content);
+        
+        if (originalRecipient) {
+          console.log(`📧 Routing to original recipient: ${originalRecipient}`);
+          recipientEmail = originalRecipient;
+        } else {
+          console.log('❌ Could not determine original recipient from forwarded email');
+          return;
+        }
+      }
+      
       // Find the email account that should receive this email
-      const recipientEmail = Array.isArray(to) ? to[0] : to;
       const [account] = await db
         .select()
         .from(emailAccounts)
