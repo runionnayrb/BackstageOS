@@ -22,15 +22,40 @@ export class StandaloneEmailService {
    */
   async sendInternalEmail(
     fromAccountId: number,
-    toAddresses: string[],
+    toAddressesInput: string | string[],
     subject: string,
     content: string,
     htmlContent?: string,
-    ccAddresses?: string[],
-    bccAddresses?: string[],
+    ccAddressesInput?: string | string[],
+    bccAddressesInput?: string | string[],
     replyToMessageId?: string
   ): Promise<{ success: boolean; messageId?: number; error?: string }> {
     try {
+      // Convert string inputs to arrays by splitting on commas
+      const toAddresses = typeof toAddressesInput === 'string' 
+        ? toAddressesInput.split(',').map(addr => addr.trim()).filter(addr => addr.length > 0)
+        : toAddressesInput;
+      
+      const ccAddresses = ccAddressesInput 
+        ? (typeof ccAddressesInput === 'string' 
+          ? ccAddressesInput.split(',').map(addr => addr.trim()).filter(addr => addr.length > 0)
+          : ccAddressesInput)
+        : undefined;
+        
+      const bccAddresses = bccAddressesInput 
+        ? (typeof bccAddressesInput === 'string' 
+          ? bccAddressesInput.split(',').map(addr => addr.trim()).filter(addr => addr.length > 0)
+          : bccAddressesInput)
+        : undefined;
+
+      console.log('🔍 DEBUG - Processed email addresses:', {
+        toAddressesInput,
+        toAddresses,
+        ccAddressesInput,
+        ccAddresses,
+        bccAddressesInput,
+        bccAddresses
+      });
       // Get sender account info
       const fromAccount = await db
         .select()

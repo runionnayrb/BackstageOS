@@ -6247,6 +6247,10 @@ Respond with valid JSON only.`;
         replyToMessageId
       } = req.body;
 
+      console.log('🔍 DEBUG - Raw request body:', JSON.stringify(req.body, null, 2));
+      console.log('🔍 DEBUG - toAddresses raw:', toAddresses, 'type:', typeof toAddresses);
+      console.log('🔍 DEBUG - toAddresses length:', toAddresses?.length);
+
       const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
       
       const result = await standaloneEmailService.sendInternalEmail(
