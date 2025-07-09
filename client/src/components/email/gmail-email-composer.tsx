@@ -1,0 +1,220 @@
+import React, { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { X, Send, ChevronDown, Paperclip, MoreHorizontal } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+
+interface GmailEmailComposerProps {
+  isOpen: boolean;
+  onClose: () => void;
+  fromAccountId: number;
+  fromEmail: string;
+  replyToMessage?: {
+    id: string;
+    subject: string;
+    fromAddress: string;
+    content: string;
+  };
+}
+
+export function GmailEmailComposer({ 
+  isOpen, 
+  onClose, 
+  fromAccountId, 
+  fromEmail,
+  replyToMessage
+}: GmailEmailComposerProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Form state
+  const [toAddresses, setToAddresses] = useState<string>('');
+  const [subject, setSubject] = useState(
+    replyToMessage ? 
+      (replyToMessage.subject.startsWith('Re: ') ? replyToMessage.subject : `Re: ${replyToMessage.subject}`) : 
+      ''
+  );
+  const [content, setContent] = useState(
+    replyToMessage ? 
+      `\n\n--- Original Message ---\nFrom: ${replyToMessage.fromAddress}\nSubject: ${replyToMessage.subject}\n\n${replyToMessage.content}` : 
+      ''
+  );
+
+  // Send email mutation
+  const sendEmailMutation = useMutation({
+    mutationFn: async () => {
+      if (!toAddresses.trim() || !subject.trim()) {
+        throw new Error('To address and subject are required');
+      }
+
+      const emailData = {
+        fromAccountId,
+        toAddresses: toAddresses.trim(),
+        subject: subject.trim(),
+        content: content.trim(),
+        threadId: replyToMessage?.id ? parseInt(replyToMessage.id) : null
+      };
+
+      return apiRequest('/api/email/send', {
+        method: 'POST',
+        body: JSON.stringify(emailData)
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email sent successfully",
+        description: "Your message has been delivered.",
+      });
+      
+      // Clear form and close
+      setToAddresses('');
+      setSubject('');
+      setContent('');
+      onClose();
+      
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['/api/email'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to send email",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSend = () => {
+    sendEmailMutation.mutate();
+  };
+
+  const handleClose = () => {
+    setToAddresses('');
+    setSubject('');
+    setContent('');
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50">
+      {/* Backdrop */}
+      <div 
+        className="fixed inset-0 bg-black/50"
+        onClick={handleClose}
+      />
+      
+      {/* Gmail-style composer */}
+      <div 
+        className="fixed left-0 right-0 bg-white flex flex-col"
+        style={{ 
+          top: '60px', // Just below BackstageOS header
+          height: 'calc(100vh - 60px)'
+        }}
+      >
+        {/* Header with icons matching Gmail */}
+        <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
+          <Button 
+            variant="ghost" 
+            onClick={handleClose}
+            className="text-gray-600 hover:text-gray-800 p-2 h-auto rounded-full"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+          
+          <div className="flex items-center space-x-3">
+            <Button 
+              variant="ghost" 
+              className="text-gray-600 hover:text-gray-800 p-2 h-auto rounded-full"
+            >
+              <Paperclip className="h-5 w-5" />
+            </Button>
+            <Button
+              onClick={handleSend}
+              disabled={sendEmailMutation.isPending || !toAddresses.trim() || !subject.trim()}
+              className="text-blue-600 hover:text-blue-700 p-2 h-auto rounded-full disabled:opacity-50"
+              variant="ghost"
+            >
+              <Send className="h-5 w-5" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              className="text-gray-600 hover:text-gray-800 p-2 h-auto rounded-full"
+            >
+              <MoreHorizontal className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Email fields - Gmail style with no borders */}
+        <div className="flex-1 flex flex-col bg-white">
+          {/* To field */}
+          <div className="flex items-center px-4 py-4 border-b border-gray-100">
+            <span className="text-gray-500 text-base mr-3 min-w-[60px]">To</span>
+            <input
+              type="email"
+              value={toAddresses}
+              onChange={(e) => setToAddresses(e.target.value)}
+              className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400"
+              placeholder=""
+              style={{ fontSize: '16px' }}
+              autoComplete="email"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck="false"
+            />
+            <Button 
+              variant="ghost" 
+              className="text-gray-400 hover:text-gray-600 p-1 h-auto ml-2"
+            >
+              <ChevronDown className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* From field */}
+          <div className="flex items-center px-4 py-4 border-b border-gray-100">
+            <span className="text-gray-500 text-base mr-3 min-w-[60px]">From</span>
+            <span className="text-base text-gray-600">{fromEmail}</span>
+          </div>
+
+          {/* Subject field */}
+          <div className="flex items-center px-4 py-4 border-b border-gray-100">
+            <span className="text-gray-500 text-base mr-3 min-w-[60px]">Subject</span>
+            <input
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400"
+              placeholder=""
+              style={{ fontSize: '16px' }}
+              autoComplete="off"
+              autoCapitalize="sentences"
+              autoCorrect="on"
+              spellCheck="true"
+            />
+          </div>
+
+          {/* Message content */}
+          <div className="flex-1 px-4 py-4">
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              className="w-full h-full text-base text-gray-900 bg-transparent border-none outline-none resize-none placeholder-gray-400"
+              placeholder="Compose email"
+              style={{ 
+                fontSize: '16px',
+                fontFamily: 'system-ui, -apple-system, sans-serif'
+              }}
+              autoComplete="off"
+              autoCapitalize="sentences"
+              autoCorrect="on"
+              spellCheck="true"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

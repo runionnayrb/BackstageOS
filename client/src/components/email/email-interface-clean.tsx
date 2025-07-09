@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { EmailAccountConfig } from './email-account-config';
-import { EmailComposer } from './email-composer';
+import { GmailEmailComposer } from './gmail-email-composer';
 import { EmailMessage } from '@shared/schema';
 
 interface EmailAccount {
@@ -339,9 +339,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         </DialogContent>
       </Dialog>
 
-      {/* Email Composer */}
+      {/* Gmail-style Email Composer */}
       {showCompose && (
-        <EmailComposer
+        <GmailEmailComposer
           isOpen={showCompose}
           onClose={() => {
             onShowComposeChange?.(false);
@@ -349,7 +349,6 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
           }}
           fromAccountId={selectedAccount.id}
           fromEmail={selectedAccount.emailAddress}
-          showTheaterFeatures={showTheaterFeatures}
         />
       )}
 
