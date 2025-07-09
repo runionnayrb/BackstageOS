@@ -33,6 +33,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -121,6 +122,8 @@ export function EmailSidebar({
   const [showEmailSettings, setShowEmailSettings] = useState(false);
   const [activeSettingsTab, setActiveSettingsTab] = useState("general");
   const [showEditAccount, setShowEditAccount] = useState(false);
+  const [showCreateSharedInbox, setShowCreateSharedInbox] = useState(false);
+  const [selectedProjectForInbox, setSelectedProjectForInbox] = useState<Project | null>(null);
 
   // Fetch projects for shared inbox dropdown
   const { data: projects } = useQuery({
@@ -185,6 +188,34 @@ export function EmailSidebar({
     }
   });
 
+  // Mutation for creating shared inbox
+  const createSharedInboxMutation = useMutation({
+    mutationFn: async (data: { projectId: number; name: string; emailAddress: string; inboxType: string }) => {
+      return apiRequest(`/api/projects/${data.projectId}/shared-inboxes`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/shared-inboxes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      setShowCreateSharedInbox(false);
+      setSelectedProjectForInbox(null);
+      toast({
+        title: "Shared inbox created",
+        description: "Your shared inbox has been successfully created.",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error creating shared inbox:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create shared inbox. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleSaveDisplayName = () => {
     if (!editDisplayName.trim()) {
       toast({
@@ -195,6 +226,24 @@ export function EmailSidebar({
       return;
     }
     updateAccountMutation.mutate({ displayName: editDisplayName.trim() });
+  };
+
+  const handleCreateSharedInbox = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProjectForInbox) return;
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const customEmailPrefix = formData.get('customEmailPrefix') as string;
+    const emailAddress = `${customEmailPrefix.toLowerCase().replace(/[^a-z0-9-]/g, '')}@backstageos.com`;
+
+    const data = {
+      projectId: selectedProjectForInbox.id,
+      name: formData.get('name') as string,
+      emailAddress,
+      inboxType: formData.get('inboxType') as string,
+    };
+
+    createSharedInboxMutation.mutate(data);
   };
 
   return (
@@ -264,11 +313,13 @@ export function EmailSidebar({
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuSub>
-                        <DropdownMenuSubTrigger className="flex items-center space-x-2 p-3">
-                          <Users className="h-4 w-4" />
-                          <span>Shared Inboxes</span>
+                        <DropdownMenuSubTrigger className="flex items-center justify-between p-3">
+                          <div className="flex items-center space-x-2">
+                            <Users className="h-4 w-4" />
+                            <span>Shared Inboxes</span>
+                          </div>
                         </DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent className="w-56 max-w-[calc(100vw-32px)]">
+                        <DropdownMenuSubContent className="w-56 max-w-[calc(100vw-64px)] mr-8">
                           {projects.map((project: Project) => {
                             const projectInboxes = allSharedInboxes?.filter((inbox: SharedInbox) => inbox.projectId === project.id) || [];
                             // Only show projects that have shared inboxes
@@ -328,10 +379,7 @@ export function EmailSidebar({
                     <span className="text-sm">{hasPersonalAccount && !isAdmin ? "Add new team account" : "Add new account"}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => {
-                      setActiveSettingsTab("shared-inboxes");
-                      setShowEmailSettings(true);
-                    }}
+                    onClick={() => setShowCreateSharedInbox(true)}
                     className="flex items-center space-x-2 p-3"
                   >
                     <Users className="h-4 w-4" />
@@ -507,6 +555,125 @@ export function EmailSidebar({
               )}
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Shared Inbox Dialog */}
+      <Dialog open={showCreateSharedInbox} onOpenChange={setShowCreateSharedInbox}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create Shared Inbox</DialogTitle>
+            <DialogDescription>
+              Create a shared team inbox for email collaboration on a specific show.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {!selectedProjectForInbox ? (
+            /* Project Selection Step */
+            <div className="space-y-4">
+              <div>
+                <Label>Choose a Show</Label>
+                <div className="mt-2 space-y-2">
+                  {projects && projects.length > 0 ? (
+                    projects.map((project: Project) => (
+                      <div
+                        key={project.id}
+                        onClick={() => setSelectedProjectForInbox(project)}
+                        className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="font-medium">{project.name}</div>
+                        <div className="text-sm text-gray-500">Create shared inbox for this show</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No shows available</p>
+                      <p className="text-sm">Create a show first to set up shared inboxes</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setShowCreateSharedInbox(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            /* Shared Inbox Creation Form */
+            <form onSubmit={handleCreateSharedInbox} className="space-y-4">
+              <div className="bg-blue-50 p-3 rounded-lg">
+                <div className="text-sm font-medium text-blue-900">Creating shared inbox for:</div>
+                <div className="text-sm text-blue-700">{selectedProjectForInbox.name}</div>
+              </div>
+              
+              <div>
+                <Label htmlFor="name">Inbox Name</Label>
+                <Input 
+                  id="name" 
+                  name="name" 
+                  placeholder="Production Team" 
+                  required 
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="inboxType">Inbox Type</Label>
+                <Select name="inboxType" defaultValue="team">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="team">Team</SelectItem>
+                    <SelectItem value="vendor">Vendor</SelectItem>
+                    <SelectItem value="cast">Cast</SelectItem>
+                    <SelectItem value="crew">Crew</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="customEmailPrefix">Custom Email Address</Label>
+                <div className="flex items-center space-x-2">
+                  <Input 
+                    id="customEmailPrefix" 
+                    name="customEmailPrefix" 
+                    placeholder="macbeth-cast" 
+                    required
+                    className="flex-1"
+                  />
+                  <span className="text-gray-500 text-sm">@backstageos.com</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Choose a unique email address for this show's team inbox
+                </p>
+              </div>
+              
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => {
+                    setSelectedProjectForInbox(null);
+                    setShowCreateSharedInbox(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  onClick={() => setSelectedProjectForInbox(null)}
+                >
+                  Back
+                </Button>
+                <Button type="submit" disabled={createSharedInboxMutation.isPending}>
+                  {createSharedInboxMutation.isPending ? 'Creating...' : 'Create Inbox'}
+                </Button>
+              </div>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
     </div>
