@@ -5058,6 +5058,18 @@ Respond with valid JSON only.`;
           await sgMail.send(msg);
           emailsSent++;
           
+          // Update waitlist member status from "pending" to "contacted"
+          if (entry.status === 'pending') {
+            try {
+              await storage.updateWaitlistEntry(entry.id, {
+                status: 'contacted',
+                invitedAt: new Date()
+              });
+            } catch (updateError: any) {
+              console.error(`Failed to update status for ${entry.email}:`, updateError);
+            }
+          }
+          
         } catch (emailError: any) {
           console.error(`Failed to send email to ${entry.email}:`, emailError);
           errors.push({
@@ -5078,7 +5090,8 @@ Respond with valid JSON only.`;
         emailsSent,
         totalRecipients: activeEntries.length,
         errors: errors.length,
-        errorDetails: errors
+        errorDetails: errors,
+        statusUpdated: emailsSent // Number of members whose status was updated
       });
 
     } catch (error: any) {

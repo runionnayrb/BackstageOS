@@ -52,12 +52,15 @@ export default function WaitlistBulkEmail() {
     onSuccess: (result) => {
       toast({
         title: "Bulk Email Sent Successfully",
-        description: `Email sent to ${result.emailsSent} waitlist members.`,
+        description: `Emails sent to ${result.emailsSent} recipients. ${result.statusUpdated || 0} members updated from "pending" to "contacted".${result.errors > 0 ? ` (${result.errors} failed)` : ''}`,
       });
       setIsDialogOpen(false);
       setSubject("");
       setHtmlContent("");
       setIsConfirming(false);
+      // Invalidate stats to refresh the recipient count and status distribution
+      queryClient.invalidateQueries({ queryKey: ['/api/waitlist/stats'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/waitlist'] });
     },
     onError: (error: any) => {
       toast({
