@@ -1055,81 +1055,115 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
               Move to:
             </div>
             <div className="py-1">
-              <button
-                onClick={() => {
-                  if (moveDropdownOpen) {
-                    bulkActionMutation.mutate({
-                      messageIds: [moveDropdownOpen],
-                      action: 'move',
-                      accountId: selectedAccount.id,
-                      targetFolder: 'sent'
-                    });
-                  }
-                  setMoveDropdownOpen(null);
-                  setRevealedActions({ messageId: null, type: null });
-                }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
-              >
-                <Send className="h-4 w-4" />
-                Sent
-              </button>
+              {/* Show Inbox option if not already in inbox */}
+              {activeFolder !== 'inbox' && (
+                <button
+                  onClick={() => {
+                    if (moveDropdownOpen) {
+                      bulkActionMutation.mutate({
+                        messageIds: [moveDropdownOpen],
+                        action: 'move',
+                        accountId: selectedAccount.id,
+                        targetFolder: 'inbox'
+                      });
+                    }
+                    setMoveDropdownOpen(null);
+                    setRevealedActions({ messageId: null, type: null });
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+                >
+                  <Mail className="h-4 w-4" />
+                  Inbox
+                </button>
+              )}
               
-              <button
-                onClick={() => {
-                  if (moveDropdownOpen) {
-                    bulkActionMutation.mutate({
-                      messageIds: [moveDropdownOpen],
-                      action: 'move',
-                      accountId: selectedAccount.id,
-                      targetFolder: 'drafts'
-                    });
-                  }
-                  setMoveDropdownOpen(null);
-                  setRevealedActions({ messageId: null, type: null });
-                }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
-              >
-                <File className="h-4 w-4" />
-                Drafts
-              </button>
+              {/* Show Sent option if not already in sent */}
+              {activeFolder !== 'sent' && (
+                <button
+                  onClick={() => {
+                    if (moveDropdownOpen) {
+                      bulkActionMutation.mutate({
+                        messageIds: [moveDropdownOpen],
+                        action: 'move',
+                        accountId: selectedAccount.id,
+                        targetFolder: 'sent'
+                      });
+                    }
+                    setMoveDropdownOpen(null);
+                    setRevealedActions({ messageId: null, type: null });
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+                >
+                  <Send className="h-4 w-4" />
+                  Sent
+                </button>
+              )}
               
-              <button
-                onClick={() => {
-                  if (moveDropdownOpen) {
-                    bulkActionMutation.mutate({
-                      messageIds: [moveDropdownOpen],
-                      action: 'archive',
-                      accountId: selectedAccount.id,
-                      targetFolder: 'archive'
-                    });
-                  }
-                  setMoveDropdownOpen(null);
-                  setRevealedActions({ messageId: null, type: null });
-                }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
-              >
-                <Archive className="h-4 w-4" />
-                Archive
-              </button>
+              {/* Show Drafts option if not already in drafts */}
+              {activeFolder !== 'drafts' && (
+                <button
+                  onClick={() => {
+                    if (moveDropdownOpen) {
+                      bulkActionMutation.mutate({
+                        messageIds: [moveDropdownOpen],
+                        action: 'move',
+                        accountId: selectedAccount.id,
+                        targetFolder: 'drafts'
+                      });
+                    }
+                    setMoveDropdownOpen(null);
+                    setRevealedActions({ messageId: null, type: null });
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+                >
+                  <File className="h-4 w-4" />
+                  Drafts
+                </button>
+              )}
               
-              <button
-                onClick={() => {
-                  if (moveDropdownOpen) {
-                    bulkActionMutation.mutate({
-                      messageIds: [moveDropdownOpen],
-                      action: 'move',
-                      accountId: selectedAccount.id,
-                      targetFolder: 'trash'
-                    });
-                  }
-                  setMoveDropdownOpen(null);
-                  setRevealedActions({ messageId: null, type: null });
-                }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
-              >
-                <Trash2 className="h-4 w-4" />
-                Trash
-              </button>
+              {/* Show Archive option if not already in archive */}
+              {activeFolder !== 'archive' && (
+                <button
+                  onClick={() => {
+                    if (moveDropdownOpen) {
+                      bulkActionMutation.mutate({
+                        messageIds: [moveDropdownOpen],
+                        action: 'archive',
+                        accountId: selectedAccount.id,
+                        targetFolder: 'archive'
+                      });
+                    }
+                    setMoveDropdownOpen(null);
+                    setRevealedActions({ messageId: null, type: null });
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+                >
+                  <Archive className="h-4 w-4" />
+                  Archive
+                </button>
+              )}
+              
+              {/* Show Trash option if not already in trash */}
+              {activeFolder !== 'trash' && (
+                <button
+                  onClick={() => {
+                    if (moveDropdownOpen) {
+                      bulkActionMutation.mutate({
+                        messageIds: [moveDropdownOpen],
+                        action: 'move',
+                        accountId: selectedAccount.id,
+                        targetFolder: 'trash'
+                      });
+                    }
+                    setMoveDropdownOpen(null);
+                    setRevealedActions({ messageId: null, type: null });
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Trash
+                </button>
+              )}
             </div>
           </div>
         </>
@@ -1155,49 +1189,75 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
               Move to:
             </div>
             <div className="py-1">
-              <button
-                onClick={() => {
-                  handleBulkAction('move', 'sent');
-                  setBulkMoveDropdownOpen(false);
-                }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
-              >
-                <Send className="h-4 w-4" />
-                Sent
-              </button>
+              {/* Show Inbox option if not already in inbox */}
+              {activeFolder !== 'inbox' && (
+                <button
+                  onClick={() => {
+                    handleBulkAction('move', 'inbox');
+                    setBulkMoveDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+                >
+                  <Mail className="h-4 w-4" />
+                  Inbox
+                </button>
+              )}
               
-              <button
-                onClick={() => {
-                  handleBulkAction('move', 'drafts');
-                  setBulkMoveDropdownOpen(false);
-                }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
-              >
-                <File className="h-4 w-4" />
-                Drafts
-              </button>
+              {/* Show Sent option if not already in sent */}
+              {activeFolder !== 'sent' && (
+                <button
+                  onClick={() => {
+                    handleBulkAction('move', 'sent');
+                    setBulkMoveDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+                >
+                  <Send className="h-4 w-4" />
+                  Sent
+                </button>
+              )}
               
-              <button
-                onClick={() => {
-                  handleBulkAction('archive');
-                  setBulkMoveDropdownOpen(false);
-                }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
-              >
-                <Archive className="h-4 w-4" />
-                Archive
-              </button>
+              {/* Show Drafts option if not already in drafts */}
+              {activeFolder !== 'drafts' && (
+                <button
+                  onClick={() => {
+                    handleBulkAction('move', 'drafts');
+                    setBulkMoveDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+                >
+                  <File className="h-4 w-4" />
+                  Drafts
+                </button>
+              )}
               
-              <button
-                onClick={() => {
-                  handleBulkAction('move', 'trash');
-                  setBulkMoveDropdownOpen(false);
-                }}
-                className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
-              >
-                <Trash2 className="h-4 w-4" />
-                Trash
-              </button>
+              {/* Show Archive option if not already in archive */}
+              {activeFolder !== 'archive' && (
+                <button
+                  onClick={() => {
+                    handleBulkAction('archive');
+                    setBulkMoveDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+                >
+                  <Archive className="h-4 w-4" />
+                  Archive
+                </button>
+              )}
+              
+              {/* Show Trash option if not already in trash */}
+              {activeFolder !== 'trash' && (
+                <button
+                  onClick={() => {
+                    handleBulkAction('move', 'trash');
+                    setBulkMoveDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Trash
+                </button>
+              )}
             </div>
           </div>
         </>
