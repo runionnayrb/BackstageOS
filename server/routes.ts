@@ -752,6 +752,26 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Email attachments multer config (all file types allowed)
+  const emailAttachmentUpload = multer({
+    dest: uploadsDir,
+    limits: {
+      fileSize: 25 * 1024 * 1024, // 25MB limit for email attachments
+      files: 10 // Max 10 files per email
+    },
+    fileFilter: (req, file, cb) => {
+      // Allow all file types for email attachments
+      // Block potentially dangerous executable file types
+      const dangerousTypes = /\.(exe|scr|bat|cmd|com|pif|vbs|js|jar|app|deb|pkg|dmg)$/i;
+      
+      if (dangerousTypes.test(file.originalname)) {
+        cb(new Error('This file type is not allowed for security reasons'));
+      } else {
+        cb(null, true);
+      }
+    }
+  });
+
   // Image upload endpoint
   app.post('/api/upload-image', isAuthenticated, requireAdmin, upload.single('image'), async (req: any, res) => {
     try {
@@ -6253,8 +6273,115 @@ Respond with valid JSON only.`;
 
   // ========== STANDALONE EMAIL SYSTEM ==========
 
-  // Send internal email
-  app.post('/api/email/send', isAuthenticated, async (req: any, res) => {
+  // Send internal email with attachments
+  app.post('/api/email/send', isAuthenticated, emailAttachmentUpload.array('attachments'), async (req: any, res) => {
+    try {
+      // Check if this is a multipart request with files
+      if (req.files && req.files.length > 0) {
+        // Handle multipart form data with attachments
+        const {
+          fromAccountId,
+          toAddresses,
+          subject,
+          content,
+          htmlContent,
+          ccAddresses,
+          bccAddresses,
+          threadId
+        } = req.body;
+
+        console.log('📎 Attachment email detected:', req.files.length, 'files');
+        console.log('📎 Files:', req.files.map((f: any) => ({ name: f.originalname, size: f.size })));
+
+        // Prepare attachment data
+        const attachments = req.files.map((file: any) => ({
+          filename: file.originalname,
+          path: file.path,
+          size: file.size,
+          mimetype: file.mimetype
+        }));
+
+        const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+        
+        const result = await standaloneEmailService.sendInternalEmailWithAttachments(
+          parseInt(fromAccountId),
+          toAddresses,
+          subject,
+          content,
+          htmlContent,
+          ccAddresses,
+          bccAddresses,
+          threadId ? parseInt(threadId) : undefined,
+          attachments
+        );
+
+        // Clean up uploaded files after processing
+        for (const file of req.files as any[]) {
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+        }
+
+        if (result.success) {
+          res.json({ success: true, messageId: result.messageId });
+        } else {
+          res.status(400).json({ success: false, error: result.error });
+        }
+        return;
+      }
+      
+      // Handle regular JSON request without attachments (fallback to original logic)
+      const {
+        fromAccountId,
+        toAddresses,
+        subject,
+        content,
+        htmlContent,
+        ccAddresses,
+        bccAddresses,
+        replyToMessageId
+      } = req.body;
+
+      console.log('🔍 DEBUG - Raw request body:', JSON.stringify(req.body, null, 2));
+      console.log('🔍 DEBUG - toAddresses raw:', toAddresses, 'type:', typeof toAddresses);
+      console.log('🔍 DEBUG - toAddresses length:', toAddresses?.length);
+
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      
+      const result = await standaloneEmailService.sendInternalEmail(
+        fromAccountId,
+        toAddresses,
+        subject,
+        content,
+        htmlContent,
+        ccAddresses,
+        bccAddresses,
+        replyToMessageId
+      );
+
+      if (result.success) {
+        res.json({ success: true, messageId: result.messageId });
+      } else {
+        res.status(400).json({ success: false, error: result.error });
+      }
+    } catch (error) {
+      console.error("Error sending internal email:", error);
+      
+      // Clean up any uploaded files on error
+      if (req.files) {
+        for (const file of req.files as any[]) {
+          if (fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+        }
+      }
+      
+      res.status(500).json({ message: "Failed to send email" });
+    }
+  });
+
+  // Original send internal email (keeping for backward compatibility)
+  app.post('/api/email/send-json-only', isAuthenticated, async (req: any, res) => {
     try {
       const {
         fromAccountId,

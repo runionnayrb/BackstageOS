@@ -262,6 +262,239 @@ export class StandaloneEmailService {
   }
 
   /**
+   * Send an email with file attachments within the BackstageOS system
+   */
+  async sendInternalEmailWithAttachments(
+    fromAccountId: number,
+    toAddressesInput: string | string[],
+    subject: string,
+    content: string,
+    htmlContent?: string,
+    ccAddressesInput?: string | string[],
+    bccAddressesInput?: string | string[],
+    threadId?: number,
+    attachments?: Array<{
+      filename: string;
+      path: string;
+      size: number;
+      mimetype: string;
+    }>
+  ): Promise<{ success: boolean; messageId?: number; error?: string }> {
+    try {
+      // Convert string inputs to arrays by splitting on commas
+      const toAddresses = typeof toAddressesInput === 'string' 
+        ? toAddressesInput.split(',').map(addr => addr.trim()).filter(addr => addr.length > 0)
+        : toAddressesInput;
+      
+      const ccAddresses = ccAddressesInput 
+        ? (typeof ccAddressesInput === 'string' 
+          ? ccAddressesInput.split(',').map(addr => addr.trim()).filter(addr => addr.length > 0)
+          : ccAddressesInput)
+        : undefined;
+        
+      const bccAddresses = bccAddressesInput 
+        ? (typeof bccAddressesInput === 'string' 
+          ? bccAddressesInput.split(',').map(addr => addr.trim()).filter(addr => addr.length > 0)
+          : bccAddressesInput)
+        : undefined;
+
+      console.log('📎 DEBUG - Processing email with attachments:', {
+        toAddresses,
+        attachments: attachments?.length || 0,
+        files: attachments?.map(a => ({ name: a.filename, size: a.size }))
+      });
+
+      // Get sender account info
+      const fromAccount = await db
+        .select()
+        .from(emailAccounts)
+        .where(eq(emailAccounts.id, fromAccountId))
+        .limit(1);
+
+      if (!fromAccount.length) {
+        return { success: false, error: "Sender account not found" };
+      }
+
+      const sender = fromAccount[0];
+
+      // Use provided threadId or create new thread
+      let finalThreadId: number;
+      if (threadId) {
+        finalThreadId = threadId;
+      } else {
+        // Create new thread for new conversation
+        finalThreadId = await this.createThread(subject, [sender.emailAddress, ...toAddresses], sender.id);
+      }
+
+      // Generate unique message ID
+      const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@backstageos.com`;
+
+      // Create the outgoing message for sender with safe array handling
+      const safeOutgoingToAddresses = Array.isArray(toAddresses) ? toAddresses : [toAddresses];
+      const safeOutgoingCcAddresses = ccAddresses ? (Array.isArray(ccAddresses) ? ccAddresses : [ccAddresses]) : [];
+      const safeOutgoingBccAddresses = bccAddresses ? (Array.isArray(bccAddresses) ? bccAddresses : [bccAddresses]) : [];
+      const safeOutgoingLabels = ['sent'];
+      const safeOutgoingMessageReferences: string[] = [];
+
+      // Get sender's sent folder
+      const sentFolder = await db
+        .select()
+        .from(emailFolders)
+        .where(
+          and(
+            eq(emailFolders.accountId, sender.id),
+            eq(emailFolders.name, 'Sent')
+          )
+        )
+        .limit(1);
+
+      const outgoingMessage: InsertEmailMessage = {
+        accountId: sender.id,
+        threadId: finalThreadId,
+        messageId,
+        subject,
+        fromAddress: sender.emailAddress,
+        toAddresses: safeOutgoingToAddresses,
+        ccAddresses: safeOutgoingCcAddresses,
+        bccAddresses: safeOutgoingBccAddresses,
+        content,
+        htmlContent: htmlContent || content,
+        isRead: true,
+        isDraft: false,
+        isSent: true,
+        dateSent: new Date(),
+        folderId: sentFolder.length ? sentFolder[0].id : null,
+        labels: safeOutgoingLabels,
+        messageReferences: safeOutgoingMessageReferences,
+      };
+
+      const [sentMessage] = await db.insert(emailMessages).values(outgoingMessage).returning();
+
+      // Store attachments in database if any
+      if (attachments && attachments.length > 0) {
+        const attachmentData = attachments.map(file => ({
+          messageId: sentMessage.id,
+          filename: file.filename,
+          fileSize: file.size,
+          contentType: file.mimetype,
+          filePath: file.path // Store the file path for now
+        }));
+
+        await db.insert(emailAttachments).values(attachmentData);
+        console.log('📎 Stored', attachments.length, 'attachments in database');
+      }
+
+      // Separate internal and external recipients
+      const internalAddresses = [];
+      const externalAddresses = [];
+
+      for (const address of toAddresses) {
+        if (address.endsWith('@backstageos.com')) {
+          internalAddresses.push(address);
+        } else {
+          externalAddresses.push(address);
+        }
+      }
+
+      console.log('📧 Delivery split:', { internal: internalAddresses.length, external: externalAddresses.length });
+
+      // Handle internal delivery
+      for (const recipientAddress of internalAddresses) {
+        const recipient = await db
+          .select()
+          .from(emailAccounts)
+          .where(eq(emailAccounts.emailAddress, recipientAddress))
+          .limit(1);
+
+        if (recipient.length) {
+          // Get recipient's inbox folder
+          const inboxFolder = await db
+            .select()
+            .from(emailFolders)
+            .where(
+              and(
+                eq(emailFolders.accountId, recipient[0].id),
+                eq(emailFolders.name, 'Inbox')
+              )
+            )
+            .limit(1);
+
+          const safeToAddresses = [recipientAddress];
+          const safeCcAddresses = ccAddresses ? (Array.isArray(ccAddresses) ? ccAddresses : [ccAddresses]) : [];
+          const safeBccAddresses = bccAddresses ? (Array.isArray(bccAddresses) ? bccAddresses : [bccAddresses]) : [];
+          const safeLabels = ['inbox'];
+          const safeMessageReferences: string[] = [];
+
+          const incomingMessage: InsertEmailMessage = {
+            accountId: recipient[0].id,
+            threadId: finalThreadId,
+            messageId: `${messageId}-to-${recipient[0].id}`,
+            subject,
+            fromAddress: sender.emailAddress,
+            toAddresses: safeToAddresses,
+            ccAddresses: safeCcAddresses,
+            bccAddresses: safeBccAddresses,
+            content,
+            htmlContent: htmlContent || content,
+            isRead: false,
+            isDraft: false,
+            isSent: false,
+            dateSent: new Date(),
+            folderId: inboxFolder.length ? inboxFolder[0].id : null,
+            labels: safeLabels,
+            messageReferences: safeMessageReferences,
+          };
+
+          const [incomingMsg] = await db.insert(emailMessages).values(incomingMessage).returning();
+
+          // Copy attachments for the recipient
+          if (attachments && attachments.length > 0) {
+            const recipientAttachmentData = attachments.map(file => ({
+              messageId: incomingMsg.id,
+              filename: file.filename,
+              fileSize: file.size,
+              contentType: file.mimetype,
+              filePath: file.path
+            }));
+
+            await db.insert(emailAttachments).values(recipientAttachmentData);
+          }
+        }
+      }
+
+      // Handle external delivery via SendGrid
+      if (externalAddresses.length > 0) {
+        console.log('📤 Sending to external addresses via SendGrid:', externalAddresses);
+        
+        // Prepare attachments for SendGrid
+        const sendGridAttachments = attachments?.map(file => ({
+          filename: file.filename,
+          type: file.mimetype,
+          content: require('fs').readFileSync(file.path).toString('base64')
+        }));
+
+        await sendEmail({
+          to: externalAddresses,
+          cc: ccAddresses,
+          bcc: bccAddresses,
+          from: sender.emailAddress,
+          subject,
+          text: content,
+          html: htmlContent || content,
+          attachments: sendGridAttachments
+        });
+        
+        console.log('✅ External email sent via SendGrid with', sendGridAttachments?.length || 0, 'attachments');
+      }
+
+      return { success: true, messageId: sentMessage.id };
+    } catch (error) {
+      console.error('Error sending email with attachments:', error);
+      return { success: false, error: 'Failed to send email with attachments' };
+    }
+  }
+
+  /**
    * Create a new email thread
    */
   private async createThread(subject: string, participants: string[], accountId: number): Promise<number> {

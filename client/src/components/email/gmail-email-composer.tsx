@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { X, Send, ChevronDown, Paperclip, MoreHorizontal } from 'lucide-react';
+import { X, Send, ChevronDown, Paperclip, MoreHorizontal, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -109,6 +109,7 @@ export function GmailEmailComposer({
   const [showBcc, setShowBcc] = useState(replyRecipients.showBcc);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showExitDialog, setShowExitDialog] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
   const [subject, setSubject] = useState(() => {
     if (replyToMessage) {
       return replyToMessage.subject.startsWith('Re: ') ? replyToMessage.subject : `Re: ${replyToMessage.subject}`;
@@ -266,7 +267,8 @@ export function GmailEmailComposer({
            ccAddresses.trim() || 
            bccAddresses.trim() || 
            subject.trim() || 
-           content.trim();
+           content.trim() ||
+           attachments.length > 0;
   };
 
   // Save draft mutation
@@ -309,17 +311,45 @@ export function GmailEmailComposer({
         throw new Error('To address and subject are required');
       }
 
-      const emailData = {
-        fromAccountId,
-        toAddresses: toAddresses.trim(),
-        ccAddresses: ccAddresses.trim() || undefined,
-        bccAddresses: bccAddresses.trim() || undefined,
-        subject: subject.trim(),
-        content: content.trim(),
-        threadId: replyToMessage?.id ? parseInt(replyToMessage.id) : null
-      };
+      // If there are attachments, use FormData
+      if (attachments.length > 0) {
+        const formData = new FormData();
+        formData.append('fromAccountId', fromAccountId.toString());
+        formData.append('toAddresses', toAddresses.trim());
+        if (ccAddresses.trim()) formData.append('ccAddresses', ccAddresses.trim());
+        if (bccAddresses.trim()) formData.append('bccAddresses', bccAddresses.trim());
+        formData.append('subject', subject.trim());
+        formData.append('content', content.trim());
+        if (replyToMessage?.id) formData.append('threadId', replyToMessage.id);
+        
+        // Add each attachment
+        attachments.forEach((file, index) => {
+          formData.append(`attachments`, file);
+        });
 
-      return apiRequest('POST', '/api/email/send', emailData);
+        return fetch('/api/email/send', {
+          method: 'POST',
+          body: formData,
+        }).then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to send email');
+          }
+          return response.json();
+        });
+      } else {
+        // No attachments, use regular JSON
+        const emailData = {
+          fromAccountId,
+          toAddresses: toAddresses.trim(),
+          ccAddresses: ccAddresses.trim() || undefined,
+          bccAddresses: bccAddresses.trim() || undefined,
+          subject: subject.trim(),
+          content: content.trim(),
+          threadId: replyToMessage?.id ? parseInt(replyToMessage.id) : null
+        };
+
+        return apiRequest('POST', '/api/email/send', emailData);
+      }
     },
     onSuccess: () => {
       toast({
@@ -337,6 +367,7 @@ export function GmailEmailComposer({
         setBccAddresses('');
         setSubject('');
         setContent('');
+        setAttachments([]);
         setShowCc(false);
         setShowBcc(false);
         onClose();
@@ -381,6 +412,7 @@ export function GmailEmailComposer({
         setBccAddresses('');
         setSubject('');
         setContent('');
+        setAttachments([]);
         setShowCc(false);
         setShowBcc(false);
         onClose();
@@ -397,6 +429,40 @@ export function GmailEmailComposer({
   const handleDeleteDraft = () => {
     setShowExitDialog(false);
     closeWithAnimation();
+  };
+
+  // File attachment handler
+  const handleAttachmentClick = () => {
+    // Create invisible file input
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.multiple = true;
+    fileInput.accept = '*/*'; // Accept all file types
+    
+    fileInput.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      const files = target.files;
+      if (files) {
+        const newFiles = Array.from(files);
+        setAttachments(prev => [...prev, ...newFiles]);
+      }
+    };
+    
+    fileInput.click();
+  };
+
+  // Remove attachment handler
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // Format file size for display
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   if (!isOpen) return null;
@@ -437,6 +503,7 @@ export function GmailEmailComposer({
           <div className="flex items-center space-x-3">
             <Button 
               variant="ghost" 
+              onClick={handleAttachmentClick}
               className="text-gray-600 hover:text-gray-800 p-2 h-auto rounded-full"
             >
               <Paperclip className="h-5 w-5" />
@@ -549,6 +616,29 @@ export function GmailEmailComposer({
             <span className="text-gray-500 text-base">From:  </span>
             <span className="text-base text-gray-600">{fromEmail}</span>
           </div>
+
+          {/* Attachments display */}
+          {attachments.length > 0 && (
+            <div className="px-4 py-3 border-b border-gray-100">
+              <div className="flex flex-wrap gap-2">
+                {attachments.map((file, index) => (
+                  <div key={index} className="flex items-center bg-gray-100 rounded-lg px-3 py-2 text-sm">
+                    <FileText className="h-4 w-4 text-gray-500 mr-2" />
+                    <span className="text-gray-700 mr-2">{file.name}</span>
+                    <span className="text-gray-500 text-xs mr-2">({formatFileSize(file.size)})</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => removeAttachment(index)}
+                      className="h-4 w-4 p-0 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Subject field */}
           <div className="flex items-center px-4 py-4 border-b border-gray-100">
