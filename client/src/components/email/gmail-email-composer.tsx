@@ -51,11 +51,14 @@ export function GmailEmailComposer({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch email account with signature
-  const { data: emailAccount, isLoading: isLoadingAccount } = useQuery({
-    queryKey: [`/api/email/accounts/${fromAccountId}`],
+  // Fetch all email accounts and find the specific one
+  const { data: emailAccounts, isLoading: isLoadingAccounts } = useQuery({
+    queryKey: ['/api/email/accounts'],
     enabled: isOpen && !!fromAccountId,
   });
+
+  // Find the specific account from the accounts list
+  const emailAccount = emailAccounts?.find((account: any) => account.id === fromAccountId);
 
   // Helper function to get reply recipients based on mode
   const getReplyRecipients = () => {
@@ -164,13 +167,24 @@ export function GmailEmailComposer({
     console.log('Signature effect triggered:', {
       emailAccount,
       signature: emailAccount?.signature,
-      isLoadingAccount,
+      isLoadingAccounts,
       content,
-      composeMode
+      composeMode,
+      fromAccountId
     });
     
-    if (!emailAccount?.signature) {
-      console.log('No signature found or account not loaded yet');
+    if (isLoadingAccounts) {
+      console.log('Still loading accounts...');
+      return;
+    }
+    
+    if (!emailAccount) {
+      console.log('No email account data received');
+      return;
+    }
+    
+    if (!emailAccount.signature) {
+      console.log('Email account loaded but no signature found:', emailAccount);
       return;
     }
     
@@ -188,7 +202,7 @@ export function GmailEmailComposer({
     const newContent = getContentWithSignature(content, signature);
     console.log('New content with signature:', newContent);
     setContent(newContent);
-  }, [emailAccount?.signature, isLoadingAccount]);
+  }, [emailAccount, isLoadingAccounts]);
 
   // Check if there's any content in the email
   const hasContent = () => {
