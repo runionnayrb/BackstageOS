@@ -668,6 +668,61 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={() => handleBulkAction('mark-unread')}
+                    disabled={bulkActionMutation.isPending || selectedMessages.size === 0}
+                    className="h-9 w-9 p-0"
+                  >
+                    <Mail className="h-5 w-5 text-blue-600" />
+                  </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={bulkActionMutation.isPending || selectedMessages.size === 0}
+                        className="h-9 w-9 p-0"
+                      >
+                        <FolderOpen className="h-5 w-5 text-blue-600" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-40" align="end">
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleBulkAction('move', 'inbox')}
+                          disabled={bulkActionMutation.isPending}
+                          className="h-8 justify-start text-sm"
+                        >
+                          <Folder className="h-4 w-4 mr-2" />
+                          Inbox
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleBulkAction('move', 'archive')}
+                          disabled={bulkActionMutation.isPending}
+                          className="h-8 justify-start text-sm"
+                        >
+                          <Archive className="h-4 w-4 mr-2" />
+                          Archive
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleBulkAction('move', 'trash')}
+                          disabled={bulkActionMutation.isPending}
+                          className="h-8 justify-start text-sm"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Trash
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleBulkAction('archive')}
                     disabled={bulkActionMutation.isPending || selectedMessages.size === 0}
                     className="h-9 w-9 p-0"
@@ -683,88 +738,6 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   >
                     <Trash2 className="h-5 w-5 text-blue-600" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleBulkAction('mark-read')}
-                    disabled={bulkActionMutation.isPending || selectedMessages.size === 0}
-                    className="h-9 w-9 p-0"
-                  >
-                    <MailOpen className="h-5 w-5 text-blue-600" />
-                  </Button>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={bulkActionMutation.isPending || selectedMessages.size === 0}
-                        className="h-9 w-9 p-0"
-                      >
-                        <span className="text-blue-600 text-lg">⋯</span>
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-48" align="end">
-                      <div className="flex flex-col gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleBulkAction('mark-unread')}
-                          disabled={bulkActionMutation.isPending}
-                          className="h-9 justify-start text-sm"
-                        >
-                          <Mail className="h-4 w-4 mr-2" />
-                          Mark Unread
-                        </Button>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              disabled={bulkActionMutation.isPending}
-                              className="h-9 justify-start text-sm"
-                            >
-                              <FolderOpen className="h-4 w-4 mr-2" />
-                              Move to Folder
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-40" side="left">
-                            <div className="flex flex-col gap-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleBulkAction('move', 'inbox')}
-                                disabled={bulkActionMutation.isPending}
-                                className="h-8 justify-start text-sm"
-                              >
-                                <Folder className="h-4 w-4 mr-2" />
-                                Inbox
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleBulkAction('move', 'archive')}
-                                disabled={bulkActionMutation.isPending}
-                                className="h-8 justify-start text-sm"
-                              >
-                                <Archive className="h-4 w-4 mr-2" />
-                                Archive
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleBulkAction('move', 'trash')}
-                                disabled={bulkActionMutation.isPending}
-                                className="h-8 justify-start text-sm"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Trash
-                              </Button>
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
                 </div>
               </div>
               <div className="flex items-center gap-2 mt-2">
