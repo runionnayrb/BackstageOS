@@ -1077,27 +1077,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 </button>
               )}
               
-              {/* Show Sent option if not already in sent */}
-              {activeFolder !== 'sent' && (
-                <button
-                  onClick={() => {
-                    if (moveDropdownOpen) {
-                      bulkActionMutation.mutate({
-                        messageIds: [moveDropdownOpen],
-                        action: 'move',
-                        accountId: selectedAccount.id,
-                        targetFolder: 'sent'
-                      });
-                    }
-                    setMoveDropdownOpen(null);
-                    setRevealedActions({ messageId: null, type: null });
-                  }}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
-                >
-                  <Send className="h-4 w-4" />
-                  Sent
-                </button>
-              )}
+
               
               {/* Show Drafts option if not already in drafts */}
               {activeFolder !== 'drafts' && (
@@ -1203,19 +1183,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 </button>
               )}
               
-              {/* Show Sent option if not already in sent */}
-              {activeFolder !== 'sent' && (
-                <button
-                  onClick={() => {
-                    handleBulkAction('move', 'sent');
-                    setBulkMoveDropdownOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
-                >
-                  <Send className="h-4 w-4" />
-                  Sent
-                </button>
-              )}
+
               
               {/* Show Drafts option if not already in drafts */}
               {activeFolder !== 'drafts' && (
