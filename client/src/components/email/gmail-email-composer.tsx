@@ -206,12 +206,12 @@ export function GmailEmailComposer({
   // Update form fields when reply message or compose mode changes
   useEffect(() => {
     const newRecipients = getReplyRecipients();
-    setToAddresses(newRecipients.to);
+    setToAddresses(newRecipients.to || (composeMode === 'compose' && initialRecipient ? initialRecipient : ''));
     setCcAddresses(newRecipients.cc);
     setBccAddresses(newRecipients.bcc);
     setShowCc(newRecipients.showCc);
     setShowBcc(newRecipients.showBcc);
-  }, [replyToMessage, composeMode, fromEmail]);
+  }, [replyToMessage, composeMode, fromEmail, initialRecipient]);
 
   // Update content with signature when email account is loaded
   useEffect(() => {
@@ -547,7 +547,9 @@ export function GmailEmailComposer({
           {/* From field */}
           <div className="flex items-center px-4 py-4 border-b border-gray-100">
             <span className="text-gray-500 text-base">From:  </span>
-            <span className="text-base text-gray-600">{fromEmail}</span>
+            <span className="text-base text-gray-600">
+              {emailAccount?.displayName || emailAccount?.name || 'Loading...'} &lt;{fromEmail}&gt;
+            </span>
           </div>
 
           {/* Subject field */}

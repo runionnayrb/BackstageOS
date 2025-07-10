@@ -130,12 +130,17 @@ export default function PersonnelCategory() {
 
   // Smart email handling function
   const handleEmailContact = (contactEmail: string) => {
+    console.log('🎯 Smart email routing for:', contactEmail);
+    console.log('📧 Available shared inboxes:', sharedInboxes);
+    console.log('📧 Available email accounts:', emailAccounts);
+    
     // Priority 1: Check for team/shared inbox email for this show
     const showSharedInbox = (sharedInboxes as any[]).find(
       (inbox: any) => inbox.projectId === parseInt(projectId!)
     );
     
     if (showSharedInbox?.emailAddress) {
+      console.log('✅ Using team email:', showSharedInbox.emailAddress);
       // Open local email composer with team email as from address
       setComposerFromAccount(showSharedInbox);
       setComposerRecipient(contactEmail);
@@ -149,6 +154,7 @@ export default function PersonnelCategory() {
     );
     
     if (personalAccount?.emailAddress) {
+      console.log('✅ Using personal email:', personalAccount.emailAddress);
       // Open local email composer with personal email as from address
       setComposerFromAccount(personalAccount);
       setComposerRecipient(contactEmail);
@@ -157,6 +163,7 @@ export default function PersonnelCategory() {
     }
 
     // Priority 3: Fallback to mailto if no email system setup
+    console.log('⚠️ No email accounts found, using mailto fallback');
     window.location.href = `mailto:${contactEmail}`;
   };
 
@@ -300,7 +307,8 @@ export default function PersonnelCategory() {
           <GmailEmailComposer
             isOpen={showEmailComposer}
             onClose={handleEmailComposerClose}
-            selectedAccount={composerFromAccount}
+            fromAccountId={composerFromAccount.id}
+            fromEmail={composerFromAccount.emailAddress}
             initialRecipient={composerRecipient}
           />
         )}
