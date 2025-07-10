@@ -86,20 +86,7 @@ export function EmailAccountConfig({ account, onClose }: EmailAccountConfigProps
         </TabsContent>
 
         <TabsContent value="signature" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Email Signature
-              </CardTitle>
-              <CardDescription>
-                Create and customize your email signature with rich formatting
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <SignatureEditor accountId={account.id} />
-            </CardContent>
-          </Card>
+          <SignatureEditor accountId={account.id} />
         </TabsContent>
       </Tabs>
     </div>
