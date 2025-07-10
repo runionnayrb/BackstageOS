@@ -703,20 +703,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 </span>
               </div>
             </div>
-          ) : (
-            <div className="border-b border-gray-200 px-4 py-3">
-              <div className="flex items-center justify-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsSelectionMode(true)}
-                  className="h-8 px-3 text-sm text-blue-600 hover:bg-blue-50"
-                >
-                  Select
-                </Button>
-              </div>
-            </div>
-          )}
+          ) : null}
         </div>
 
         {/* Content Area - Mobile Responsive */}
