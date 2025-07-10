@@ -119,30 +119,21 @@ export default function PropDetail() {
                 {statusInfo.label}
               </Badge>
             </div>
-            {prop.description && (
-              <div>
-                <p className="text-gray-700">{prop.description}</p>
-              </div>
-            )}
 
             <div className="space-y-4">
-              <div className="space-y-1">
-                <span className="text-sm text-gray-500">Act & Scene</span>
-                <p className="font-medium">
-                  {prop.act && prop.scene ? `Act ${prop.act}, Scene ${prop.scene}` : 
-                   prop.act ? `Act ${prop.act}` : 
-                   prop.scene ? `Scene ${prop.scene}` : '—'}
-                </p>
-              </div>
-
               <div className="space-y-1">
                 <span className="text-sm text-gray-500">Character</span>
                 <p className="font-medium">{prop.character || "—"}</p>
               </div>
 
               <div className="space-y-1">
-                <span className="text-sm text-gray-500">Location</span>
-                <p className="font-medium">{prop.location || "—"}</p>
+                <span className="text-sm text-gray-500">Act</span>
+                <p className="font-medium">{prop.act || "—"}</p>
+              </div>
+
+              <div className="space-y-1">
+                <span className="text-sm text-gray-500">Scene</span>
+                <p className="font-medium">{prop.scene || "—"}</p>
               </div>
 
               <div className="space-y-1">
@@ -156,6 +147,13 @@ export default function PropDetail() {
                   {prop.consumableType === 'consumable' ? 'Consumable' : 'Not Consumable'}
                 </p>
               </div>
+
+              {prop.description && (
+                <div className="space-y-1">
+                  <span className="text-sm text-gray-500">Description</span>
+                  <p className="font-medium">{prop.description}</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
