@@ -3,6 +3,9 @@
 
 export default {
   async email(message, env, ctx) {
+    console.log('📧 Email received:', message.to);
+    console.log('🔍 Message object keys:', Object.keys(message));
+    
     // Forward the email to BackstageOS webhook
     const webhookUrl = 'https://backstageos.com/api/email/receive-webhook';
     
@@ -11,12 +14,15 @@ export default {
       const emailData = {
         to: message.to,
         from: message.from,
-        subject: await message.headers.get('subject'),
-        text: await message.text(),
-        html: await message.html(),
-        headers: Object.fromEntries(message.headers.entries()),
+        subject: message.headers.get('subject'),
+        text: message.text || '',
+        html: message.html || '',
+        headers: Object.fromEntries(message.headers),
         timestamp: new Date().toISOString()
       };
+
+      console.log('🔄 Forwarding to BackstageOS webhook...');
+      console.log('📧 Email data:', JSON.stringify(emailData, null, 2));
 
       // Send to BackstageOS webhook
       const response = await fetch(webhookUrl, {
@@ -28,12 +34,16 @@ export default {
       });
 
       if (response.ok) {
-        console.log('Email successfully forwarded to BackstageOS');
+        const result = await response.json();
+        console.log('✅ Email successfully forwarded to BackstageOS:', result.message);
       } else {
-        console.error('Failed to forward email:', response.status, response.statusText);
+        console.error('❌ Failed to forward email:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Error details:', errorText);
       }
     } catch (error) {
-      console.error('Error processing email:', error);
+      console.error('💥 Error processing email:', error.message);
+      console.error('Stack:', error.stack);
     }
   }
 }
