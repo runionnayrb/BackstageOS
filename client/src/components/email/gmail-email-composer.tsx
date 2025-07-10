@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { X, Send, ChevronDown, Paperclip, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -50,6 +50,13 @@ export function GmailEmailComposer({
 }: GmailEmailComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch email account with signature
+  const { data: emailAccount } = useQuery({
+    queryKey: ['/api/email/accounts', fromAccountId],
+    queryFn: () => apiRequest('GET', `/api/email/accounts/${fromAccountId}`),
+    enabled: isOpen && !!fromAccountId,
+  });
 
   // Helper function to get reply recipients based on mode
   const getReplyRecipients = () => {
@@ -108,14 +115,35 @@ export function GmailEmailComposer({
     return '';
   });
   
+  // Helper function to get content with signature
+  const getContentWithSignature = (baseContent: string = '', signature: string = '') => {
+    if (!signature) return baseContent;
+    
+    // For compose mode, start with signature
+    if (composeMode === 'compose' && !baseContent) {
+      return `\n\n${signature}`;
+    }
+    
+    // For replies/forwards, append signature after the original content
+    if (baseContent) {
+      return `${baseContent}\n\n${signature}`;
+    }
+    
+    return `\n\n${signature}`;
+  };
+
   const [content, setContent] = useState(() => {
+    const signature = emailAccount?.signature || '';
+    
     if (replyToMessage) {
-      return `\n\n--- Original Message ---\nFrom: ${replyToMessage.fromAddress}\nSubject: ${replyToMessage.subject}\n\n${replyToMessage.content}`;
+      const replyContent = `\n\n--- Original Message ---\nFrom: ${replyToMessage.fromAddress}\nSubject: ${replyToMessage.subject}\n\n${replyToMessage.content}`;
+      return getContentWithSignature(replyContent, signature);
     }
     if (forwardMessage) {
-      return `\n\n---------- Forwarded message ----------\nFrom: ${forwardMessage.fromAddress}\nSubject: ${forwardMessage.subject}\n\n${forwardMessage.content}`;
+      const forwardContent = `\n\n---------- Forwarded message ----------\nFrom: ${forwardMessage.fromAddress}\nSubject: ${forwardMessage.subject}\n\n${forwardMessage.content}`;
+      return getContentWithSignature(forwardContent, signature);
     }
-    return '';
+    return getContentWithSignature('', signature);
   });
 
   // Handle animation when opening
@@ -134,6 +162,25 @@ export function GmailEmailComposer({
     setShowCc(newRecipients.showCc);
     setShowBcc(newRecipients.showBcc);
   }, [replyToMessage, composeMode, fromEmail]);
+
+  // Update content with signature when email account is loaded
+  useEffect(() => {
+    if (!emailAccount?.signature) return;
+    
+    // Only update content if it doesn't already contain signature
+    const signature = emailAccount.signature;
+    
+    // Check if signature is already included
+    if (content.includes(signature)) return;
+    
+    // Add signature to content based on compose mode
+    if (composeMode === 'compose' && (!content || content.trim() === '')) {
+      setContent(getContentWithSignature('', signature));
+    } else if (content && !content.includes(signature)) {
+      // For replies/forwards, append signature if not already present
+      setContent(prev => getContentWithSignature(prev, signature));
+    }
+  }, [emailAccount?.signature, composeMode]);
 
   // Check if there's any content in the email
   const hasContent = () => {
