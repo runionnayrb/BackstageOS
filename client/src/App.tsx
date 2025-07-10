@@ -59,6 +59,7 @@ import NavigationDemo from "@/components/navigation/navigation-demo";
 import ContactAvailability from "@/pages/contact-availability";
 import EmailManager from "@/pages/email-manager";
 import TheaterEmail from "@/pages/theater-email";
+import TestImageUpload from "@/pages/test-image-upload";
 
 
 function Router() {
@@ -199,6 +200,7 @@ function Router() {
         <Route path="/auto-resolution-dashboard" component={AutoResolutionDashboard} />
         <Route path="/advanced-analytics-dashboard" component={AdvancedAnalyticsDashboard} />
         <Route path="/test-notes" component={TestNotesPage} />
+        <Route path="/test-image-upload" component={TestImageUpload} />
         <Route path="/navigation-demo" component={NavigationDemo} />
         <Route component={NotFound} />
         </Switch>

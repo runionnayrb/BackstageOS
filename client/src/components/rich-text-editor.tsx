@@ -257,7 +257,7 @@ export function RichTextEditor({
       formData.append('image', file);
 
       // Upload image to server
-      const response = await fetch('/api/upload/image', {
+      const response = await fetch('/api/upload-rich-text-image', {
         method: 'POST',
         body: formData
       });
@@ -266,7 +266,7 @@ export function RichTextEditor({
         throw new Error('Failed to upload image');
       }
 
-      const { imageUrl } = await response.json();
+      const { url: imageUrl } = await response.json();
 
       // Insert image into editor at cursor position
       const selection = window.getSelection();
