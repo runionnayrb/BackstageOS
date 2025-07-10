@@ -118,8 +118,8 @@ export default function WaitlistBulkEmail() {
     setIsConfirming(false);
   };
 
-  const recipientCount = stats?.total || 0;
-  const activeRecipients = (stats?.pending || 0) + (stats?.contacted || 0);
+  const recipientCount = parseInt(stats?.total as string) || 0;
+  const activeRecipients = (parseInt(stats?.pending as string) || 0) + (parseInt(stats?.contacted as string) || 0);
 
   return (
     <>
