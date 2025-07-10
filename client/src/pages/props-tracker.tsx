@@ -592,7 +592,7 @@ export default function PropsTracker() {
             resetForm();
           }
         }}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto sm:max-w-md md:max-w-2xl p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle>
                 {editingProp ? "Edit Prop" : "Add New Prop"}
@@ -601,7 +601,7 @@ export default function PropsTracker() {
                 {editingProp ? "Update the prop information." : "Add a new prop to your props list."}
               </DialogDescription>
             </DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Item Name *</label>
                 <Input
@@ -619,7 +619,7 @@ export default function PropsTracker() {
                   onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 1})}
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="sm:col-span-2">
                 <label className="text-sm font-medium">Description</label>
                 <Textarea
                   value={formData.description}
@@ -667,7 +667,7 @@ export default function PropsTracker() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="md:col-span-2">
+              <div className="sm:col-span-2">
                 <label className="text-sm font-medium">Sourcing Notes</label>
                 <Textarea
                   value={formData.sourcingNotes}
@@ -676,7 +676,7 @@ export default function PropsTracker() {
                   rows={2}
                 />
               </div>
-              <div className="md:col-span-2">
+              <div className="sm:col-span-2">
                 <label className="text-sm font-medium">Notes</label>
                 <Textarea
                   value={formData.notes}
