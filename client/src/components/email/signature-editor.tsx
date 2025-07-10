@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,11 +17,15 @@ interface SignatureEditorProps {
 export function SignatureEditor({ accountId, initialSignature = '' }: SignatureEditorProps) {
   const [signature, setSignature] = useState(initialSignature);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   useEffect(() => {
     setSignature(initialSignature);
+    if (editorRef.current) {
+      editorRef.current.innerHTML = initialSignature;
+    }
   }, [initialSignature]);
 
   const updateSignatureMutation = useMutation({
@@ -46,10 +50,10 @@ export function SignatureEditor({ accountId, initialSignature = '' }: SignatureE
   });
 
   const handleFormatCommand = (command: string, value?: string) => {
-    document.execCommand(command, false, value);
-    const editor = document.getElementById('signature-editor');
-    if (editor) {
-      setSignature(editor.innerHTML);
+    if (editorRef.current) {
+      editorRef.current.focus();
+      document.execCommand(command, false, value);
+      setSignature(editorRef.current.innerHTML);
     }
   };
 
@@ -66,6 +70,7 @@ export function SignatureEditor({ accountId, initialSignature = '' }: SignatureE
   };
 
   const handleEditorInput = (e: React.FormEvent<HTMLDivElement>) => {
+    // Simple approach - just update the state without messing with cursor position
     setSignature(e.currentTarget.innerHTML);
   };
 
@@ -213,12 +218,12 @@ export function SignatureEditor({ accountId, initialSignature = '' }: SignatureE
             </div>
           ) : (
             <div
-              id="signature-editor"
+              ref={editorRef}
               contentEditable
               className="min-h-32 border rounded-lg p-4 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              dangerouslySetInnerHTML={{ __html: signature }}
               onInput={handleEditorInput}
               style={{ minHeight: '128px' }}
+              suppressContentEditableWarning={true}
             />
           )}
         </div>
