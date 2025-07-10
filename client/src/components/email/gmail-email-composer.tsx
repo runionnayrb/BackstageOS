@@ -153,7 +153,12 @@ export function GmailEmailComposer({
       return `\n\n${plainTextSignature}`;
     }
     
-    // For replies/forwards, append signature after the original content
+    // For forwards, put signature above the forwarded content
+    if (composeMode === 'forward' && baseContent) {
+      return `\n\n${plainTextSignature}\n\n${baseContent}`;
+    }
+    
+    // For replies, append signature after the original content
     if (baseContent) {
       return `${baseContent}\n\n${plainTextSignature}`;
     }
