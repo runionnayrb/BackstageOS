@@ -209,22 +209,34 @@ export class EmailService {
   }
 
   /**
-   * Email routing handled by catch-all rule - NO INDIVIDUAL RULES NEEDED
+   * Email routing handled by automated catch-all rule setup
    * 
-   * SOLUTION: Use a single catch-all routing rule in Cloudflare:
+   * SOLUTION: Automatically ensure a single catch-all routing rule exists in Cloudflare:
    * Match: *@backstageos.com → Send to Worker → https://backstageos.com/api/email/receive-webhook
    * 
    * This eliminates the need for individual routing rules per email account.
    * Our webhook endpoint already handles routing to the correct user based on the "To" field.
    */
   private async createEmailRouting(emailAddress: string, userId: number): Promise<void> {
-    // NO CLOUDFLARE RULE CREATION NEEDED!
-    // The catch-all rule (*@backstageos.com) handles all email accounts automatically
+    try {
+      // Ensure the catch-all webhook rule exists
+      const webhookUrl = 'https://backstageos.com/api/email/receive-webhook';
+      
+      if (this.cloudflareService.isConfigured()) {
+        console.log(`🔧 Ensuring catch-all webhook rule exists for: ${emailAddress}`);
+        await this.cloudflareService.ensureCatchAllWebhookRule(webhookUrl);
+        console.log(`✅ Catch-all webhook rule verified - ${emailAddress} ready to receive emails`);
+      } else {
+        console.log(`⚠️ Cloudflare not configured - manual setup required for: ${emailAddress}`);
+        console.log(`📝 Manual setup: Create catch-all rule *@backstageos.com → ${webhookUrl}`);
+      }
+    } catch (error: any) {
+      // Don't throw error - account creation should succeed even if Cloudflare setup fails
+      console.error(`⚠️ Could not create catch-all rule for ${emailAddress}:`, error.message);
+      console.log(`📝 Manual setup required: Create catch-all rule *@backstageos.com → https://backstageos.com/api/email/receive-webhook`);
+    }
     
-    console.log(`✅ Email routing ready: ${emailAddress} will be handled by catch-all webhook rule`);
-    console.log(`📝 Ensure catch-all rule exists: *@backstageos.com → https://backstageos.com/api/email/receive-webhook`);
-    
-    // Account is ready to receive emails immediately through the catch-all rule
+    // Account is created successfully regardless of Cloudflare rule status
     return Promise.resolve();
   }
 

@@ -7010,6 +7010,50 @@ Respond with valid JSON only.`;
     });
   });
 
+  // Setup automated catch-all email routing rule (admin only)
+  app.post('/api/email/setup-catch-all-routing', isAuthenticated, async (req: any, res) => {
+    try {
+      // Check if user is admin
+      const userId = req.user.id.toString();
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+
+      const { cloudflareService } = await import('./services/cloudflareService.js');
+      const webhookUrl = 'https://backstageos.com/api/email/receive-webhook';
+      
+      if (!cloudflareService.isConfigured()) {
+        return res.status(400).json({ 
+          success: false,
+          message: "Cloudflare API not configured",
+          instructions: "Please set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID environment variables"
+        });
+      }
+
+      console.log('🚀 Setting up automated catch-all email routing...');
+      const result = await cloudflareService.ensureCatchAllWebhookRule(webhookUrl);
+      
+      res.json({
+        success: true,
+        message: "Catch-all email routing rule configured successfully",
+        rule: {
+          id: result.id,
+          name: result.name,
+          enabled: result.enabled,
+          webhookUrl: webhookUrl
+        }
+      });
+    } catch (error: any) {
+      console.error("Error setting up catch-all routing:", error);
+      res.status(500).json({ 
+        success: false,
+        message: "Failed to setup catch-all routing", 
+        error: error.message,
+        instructions: "You may need to configure this manually in Cloudflare Dashboard: Email Routing → Create catch-all rule → Send to Worker → " + 'https://backstageos.com/api/email/receive-webhook'
+      });
+    }
+  });
+
   // Alternative webhook endpoint for production routing issues - this needs to be registered early
   app.post('/email-webhook', async (req: any, res) => {
     try {

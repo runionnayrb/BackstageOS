@@ -300,6 +300,66 @@ class CloudflareService {
     }
   }
 
+  async ensureCatchAllWebhookRule(webhookUrl: string): Promise<any> {
+    try {
+      console.log('🔍 Checking for existing catch-all webhook rule...');
+      
+      // First ensure email routing is enabled
+      await this.enableEmailRouting();
+      
+      // Get all existing rules
+      const existingRules = await this.getEmailRules();
+      console.log('📋 Found existing rules:', existingRules.length);
+      
+      // Check if catch-all webhook rule already exists
+      const catchAllRule = existingRules.find((rule: any) => {
+        const hasCatchAllMatcher = rule.matchers?.some((matcher: any) => 
+          matcher.type === 'all' || 
+          (matcher.type === 'literal' && matcher.value === '*@backstageos.com')
+        );
+        const hasWebhookAction = rule.actions?.some((action: any) => 
+          action.type === 'send' && 
+          action.destinations?.includes(webhookUrl)
+        );
+        return hasCatchAllMatcher && hasWebhookAction;
+      });
+
+      if (catchAllRule) {
+        console.log('✅ Catch-all webhook rule already exists:', catchAllRule.id);
+        return catchAllRule;
+      }
+
+      console.log('🚀 Creating catch-all webhook rule...');
+      
+      // Create catch-all rule for all @backstageos.com emails
+      const requestBody = {
+        matchers: [{
+          type: 'all'
+        }],
+        actions: [{
+          type: 'send',
+          destinations: [webhookUrl]
+        }],
+        enabled: true,
+        name: 'BackstageOS Catch-All Webhook Route',
+        priority: 1000 // High priority to ensure it's processed
+      };
+      
+      console.log('📝 Catch-all rule request body:', JSON.stringify(requestBody, null, 2));
+      
+      const response = await this.makeRequest(`/zones/${this.zoneId}/email/routing/rules`, {
+        method: 'POST',
+        body: JSON.stringify(requestBody)
+      }) as any;
+
+      console.log('✅ Catch-all webhook rule created successfully!');
+      return response.result;
+    } catch (error: any) {
+      console.error('❌ Error ensuring catch-all webhook rule:', error);
+      throw new Error(`Failed to create catch-all webhook rule: ${error.message}`);
+    }
+  }
+
   private async enableEmailRouting(): Promise<void> {
     try {
       console.log('Checking email routing status...');
