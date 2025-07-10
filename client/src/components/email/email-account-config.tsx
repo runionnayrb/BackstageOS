@@ -24,11 +24,11 @@ export function EmailAccountConfig({ account, onClose }: EmailAccountConfigProps
     <div className="space-y-6">
       <Tabs defaultValue="general" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="general" className="flex items-center gap-2">
+          <TabsTrigger value="general" className="flex items-center justify-center gap-2 flex-1">
             <User className="h-4 w-4" />
             General
           </TabsTrigger>
-          <TabsTrigger value="signature" className="flex items-center gap-2">
+          <TabsTrigger value="signature" className="flex items-center justify-center gap-2 flex-1">
             <FileText className="h-4 w-4" />
             Signature
           </TabsTrigger>
