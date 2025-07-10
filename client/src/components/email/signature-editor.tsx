@@ -16,24 +16,19 @@ interface SignatureEditorProps {
 
 export function SignatureEditor({ accountId, initialSignature = '' }: SignatureEditorProps) {
   const [signature, setSignature] = useState(initialSignature);
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const editorRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Initialize signature content only once
+  // Initialize signature content
   useEffect(() => {
     if (initialSignature && signature !== initialSignature) {
       setSignature(initialSignature);
+      if (editorRef.current) {
+        editorRef.current.innerHTML = initialSignature;
+      }
     }
   }, [initialSignature]);
-
-  // Sync editor content when switching back to edit mode
-  useEffect(() => {
-    if (!isPreviewMode && editorRef.current && editorRef.current.innerHTML !== signature) {
-      editorRef.current.innerHTML = signature;
-    }
-  }, [isPreviewMode, signature]);
 
   const updateSignatureMutation = useMutation({
     mutationFn: async (signatureHtml: string) => {
@@ -72,9 +67,7 @@ export function SignatureEditor({ accountId, initialSignature = '' }: SignatureE
     handleFormatCommand('foreColor', color);
   };
 
-  const handleSave = () => {
-    updateSignatureMutation.mutate(signature);
-  };
+
 
   const handleEditorInput = (e: React.FormEvent<HTMLDivElement>) => {
     // Simple approach - just update the state without messing with cursor position
@@ -93,83 +86,63 @@ export function SignatureEditor({ accountId, initialSignature = '' }: SignatureE
         {/* Simple controls row */}
         <div className="flex items-center justify-between">
           <div className="text-sm font-medium text-gray-900">Email Signature</div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                // Capture current editor content before switching to preview
-                if (!isPreviewMode && editorRef.current) {
-                  const currentContent = editorRef.current.innerHTML;
-                  setSignature(currentContent);
-                }
-                setIsPreviewMode(!isPreviewMode);
-              }}
-              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-            >
-              {isPreviewMode ? 'Edit' : 'Preview'}
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={updateSignatureMutation.isPending}
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {updateSignatureMutation.isPending ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
+          <Button
+            onClick={() => {
+              if (editorRef.current) {
+                setSignature(editorRef.current.innerHTML);
+                updateSignatureMutation.mutate(editorRef.current.innerHTML);
+              }
+            }}
+            disabled={updateSignatureMutation.isPending}
+            size="sm"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            {updateSignatureMutation.isPending ? 'Saving...' : 'Save'}
+          </Button>
         </div>
 
-        {/* Minimal formatting toolbar - only when editing */}
-        {!isPreviewMode && (
-          <div className="flex items-center gap-1 p-2 bg-gray-50 rounded-lg border">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleFormatCommand('bold')}
-              className="p-1 h-7 w-7 hover:bg-gray-200"
-            >
-              <Bold className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleFormatCommand('italic')}
-              className="p-1 h-7 w-7 hover:bg-gray-200"
-            >
-              <Italic className="h-3.5 w-3.5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleFormatCommand('underline')}
-              className="p-1 h-7 w-7 hover:bg-gray-200"
-            >
-              <Underline className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        )}
+        {/* Minimal formatting toolbar */}
+        <div className="flex items-center gap-1 p-2 bg-gray-50 rounded-lg border">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleFormatCommand('bold')}
+            className="p-1 h-7 w-7 hover:bg-gray-200"
+          >
+            <Bold className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleFormatCommand('italic')}
+            className="p-1 h-7 w-7 hover:bg-gray-200"
+          >
+            <Italic className="h-3.5 w-3.5" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleFormatCommand('underline')}
+            className="p-1 h-7 w-7 hover:bg-gray-200"
+          >
+            <Underline className="h-3.5 w-3.5" />
+          </Button>
+        </div>
 
         {/* Signature input */}
-        {isPreviewMode ? (
-          <div className="min-h-24 rounded-lg p-3 bg-gray-50 border border-gray-200">
-            <div dangerouslySetInnerHTML={{ __html: signature || '<span class="text-gray-500">No signature set</span>' }} />
-          </div>
-        ) : (
-          <div
-            ref={editorRef}
-            contentEditable
-            className="min-h-24 rounded-lg p-3 bg-white border border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
-            onInput={handleEditorInput}
-            style={{ 
-              minHeight: '96px',
-              fontSize: '16px', // Prevents zoom on iOS
-              lineHeight: '1.4'
-            }}
-            suppressContentEditableWarning={true}
-            placeholder="Enter your email signature..."
-          />
-        )}
+        <div
+          ref={editorRef}
+          contentEditable
+          className="min-h-24 rounded-lg p-3 bg-white border border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm"
+          onInput={handleEditorInput}
+          style={{ 
+            minHeight: '96px',
+            fontSize: '16px', // Prevents zoom on iOS
+            lineHeight: '1.4'
+          }}
+          suppressContentEditableWarning={true}
+          placeholder="Enter your email signature..."
+        />
 
         <div className="text-xs text-gray-500">
           Keep it professional and include your name, title, and contact information.
