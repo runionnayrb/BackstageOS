@@ -593,7 +593,7 @@ export class StandaloneEmailService {
             eq(emailMessages.isRead, false),
             eq(emailMessages.isSent, false), // Exclude sent messages
             eq(emailMessages.isDraft, false), // Exclude drafts
-            sql`NOT (${emailMessages.labels} @> ${'["trash"]'})` // Exclude trash folder
+            sql`NOT (${emailMessages.labels} @> ${sql.raw("'{\"trash\"}'")})`
           )
         );
 
