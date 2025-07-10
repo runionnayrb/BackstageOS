@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { ContactForm } from "@/components/contact-form";
 import { ContactDetailModal } from "@/components/contact-detail-modal";
+import { GmailEmailComposer } from "@/components/email/gmail-email-composer";
 import {
   Dialog,
   DialogContent,
@@ -49,6 +50,11 @@ export default function PersonnelCategory() {
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
   const queryClient = useQueryClient();
+
+  // Email composer state
+  const [showEmailComposer, setShowEmailComposer] = useState(false);
+  const [composerRecipient, setComposerRecipient] = useState('');
+  const [composerFromAccount, setComposerFromAccount] = useState<any>(null);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -116,6 +122,12 @@ export default function PersonnelCategory() {
     queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
   };
 
+  const handleEmailComposerClose = () => {
+    setShowEmailComposer(false);
+    setComposerRecipient('');
+    setComposerFromAccount(null);
+  };
+
   // Smart email handling function
   const handleEmailContact = (contactEmail: string) => {
     // Priority 1: Check for team/shared inbox email for this show
@@ -124,8 +136,10 @@ export default function PersonnelCategory() {
     );
     
     if (showSharedInbox?.emailAddress) {
-      // Open native email composer with team email as from address
-      setLocation(`/email?compose=true&from=${encodeURIComponent(showSharedInbox.emailAddress)}&to=${encodeURIComponent(contactEmail)}`);
+      // Open local email composer with team email as from address
+      setComposerFromAccount(showSharedInbox);
+      setComposerRecipient(contactEmail);
+      setShowEmailComposer(true);
       return;
     }
 
@@ -135,8 +149,10 @@ export default function PersonnelCategory() {
     );
     
     if (personalAccount?.emailAddress) {
-      // Open native email composer with personal email as from address
-      setLocation(`/email?compose=true&from=${encodeURIComponent(personalAccount.emailAddress)}&to=${encodeURIComponent(contactEmail)}`);
+      // Open local email composer with personal email as from address
+      setComposerFromAccount(personalAccount);
+      setComposerRecipient(contactEmail);
+      setShowEmailComposer(true);
       return;
     }
 
@@ -278,6 +294,16 @@ export default function PersonnelCategory() {
             />
           </DialogContent>
         </Dialog>
+
+        {/* Email Composer */}
+        {showEmailComposer && composerFromAccount && (
+          <GmailEmailComposer
+            isOpen={showEmailComposer}
+            onClose={handleEmailComposerClose}
+            selectedAccount={composerFromAccount}
+            initialRecipient={composerRecipient}
+          />
+        )}
       </div>
     </div>
   );
