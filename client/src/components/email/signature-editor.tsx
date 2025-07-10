@@ -32,11 +32,7 @@ export function SignatureEditor({ accountId, initialSignature = '' }: SignatureE
 
   const updateSignatureMutation = useMutation({
     mutationFn: async (signatureHtml: string) => {
-      return apiRequest(`/api/email/accounts/${accountId}/signature`, {
-        method: 'PUT',
-        body: JSON.stringify({ signature: signatureHtml }),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return apiRequest('PUT', `/api/email/accounts/${accountId}/signature`, { signature: signatureHtml });
     },
     onSuccess: () => {
       toast({ title: 'Signature updated successfully' });
