@@ -583,7 +583,7 @@ export class StandaloneEmailService {
 
       const accountIds = userAccounts.map(account => account.id);
       
-      // Count unread messages across all accounts (inbox only, not sent)
+      // Count unread messages across all accounts (inbox only, not sent, not trash)
       const result = await db
         .select({ count: count() })
         .from(emailMessages)
@@ -592,7 +592,8 @@ export class StandaloneEmailService {
             sql`${emailMessages.accountId} IN (${sql.join(accountIds, sql`, `)})`,
             eq(emailMessages.isRead, false),
             eq(emailMessages.isSent, false), // Exclude sent messages
-            eq(emailMessages.isDraft, false) // Exclude drafts
+            eq(emailMessages.isDraft, false), // Exclude drafts
+            sql`NOT (${emailMessages.labels} @> ${'["trash"]'})` // Exclude trash folder
           )
         );
 
