@@ -113,12 +113,6 @@ export default function PropDetail() {
         {/* Main Info Card */}
         <Card>
           <CardContent className="space-y-4 pt-6">
-            {/* Status Badge */}
-            <div className="flex justify-center pb-2">
-              <Badge variant="secondary" className={`${statusInfo.color} text-base px-4 py-2`}>
-                {statusInfo.label}
-              </Badge>
-            </div>
 
             <div className="space-y-4">
               <div className="space-y-1">
