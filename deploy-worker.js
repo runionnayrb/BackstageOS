@@ -12,51 +12,8 @@ const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const CLOUDFLARE_API_EMAIL = process.env.CLOUDFLARE_API_EMAIL;
 const CLOUDFLARE_API_KEY = process.env.CLOUDFLARE_API_KEY;
 
-// Worker code for email handling
-const WORKER_CODE = `
-// BackstageOS Email Router Worker
-export default {
-  async email(message, env, ctx) {
-    console.log('📧 Email received:', message.to);
-    
-    try {
-      // Extract email data
-      const emailData = {
-        to: message.to,
-        from: message.from,
-        subject: await message.headers.get('subject'),
-        text: await message.text(),
-        html: await message.html(),
-        headers: Object.fromEntries(message.headers.entries()),
-        timestamp: new Date().toISOString()
-      };
-
-      console.log('🔄 Forwarding to BackstageOS webhook...');
-      
-      // Forward to BackstageOS
-      const response = await fetch('https://backstageos.com/api/email/receive-webhook', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(emailData)
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        console.log('✅ Email forwarded successfully:', result.message);
-      } else {
-        console.error('❌ Failed to forward email:', response.status, response.statusText);
-        const errorText = await response.text();
-        console.error('Error details:', errorText);
-      }
-    } catch (error) {
-      console.error('💥 Error processing email:', error.message);
-      console.error('Stack:', error.stack);
-    }
-  }
-}
-`;
+// Worker code using Service Worker format (compatible with Cloudflare)
+const WORKER_CODE = fs.readFileSync('cloudflare-worker-compatible.js', 'utf8');
 
 async function makeCloudflareRequest(endpoint, method = 'GET', data = null, isFormData = false) {
   const url = `https://api.cloudflare.com/client/v4${endpoint}`;
