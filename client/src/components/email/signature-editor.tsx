@@ -23,7 +23,7 @@ export function SignatureEditor({ accountId, initialSignature = '' }: SignatureE
 
   useEffect(() => {
     setSignature(initialSignature);
-    if (editorRef.current) {
+    if (editorRef.current && editorRef.current.innerHTML !== initialSignature) {
       editorRef.current.innerHTML = initialSignature;
     }
   }, [initialSignature]);
@@ -90,7 +90,13 @@ export function SignatureEditor({ accountId, initialSignature = '' }: SignatureE
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsPreviewMode(!isPreviewMode)}
+              onClick={() => {
+                // When switching from edit to preview, capture current content
+                if (!isPreviewMode && editorRef.current) {
+                  setSignature(editorRef.current.innerHTML);
+                }
+                setIsPreviewMode(!isPreviewMode);
+              }}
               className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
             >
               {isPreviewMode ? 'Edit' : 'Preview'}
