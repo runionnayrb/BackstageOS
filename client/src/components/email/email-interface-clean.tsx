@@ -652,6 +652,14 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   >
                     <X className="h-4 w-4" />
                   </Button>
+                  <Checkbox
+                    checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                    className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                  />
+                  <span className="text-sm text-gray-600">
+                    Select all
+                  </span>
                   <span className="text-lg font-medium">
                     {selectedMessages.size}
                   </span>
@@ -684,13 +692,42 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   >
                     <MailOpen className="h-5 w-5 text-blue-600" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-9 w-9 p-0"
-                  >
-                    <span className="text-blue-600">⋯</span>
-                  </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={bulkActionMutation.isPending || selectedMessages.size === 0}
+                        className="h-9 w-9 p-0"
+                      >
+                        <span className="text-blue-600 text-lg">⋯</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-48" align="end">
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleBulkAction('mark-unread')}
+                          disabled={bulkActionMutation.isPending}
+                          className="h-9 justify-start text-sm"
+                        >
+                          <Mail className="h-4 w-4 mr-2" />
+                          Mark Unread
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleBulkAction('move', 'trash')}
+                          disabled={bulkActionMutation.isPending}
+                          className="h-9 justify-start text-sm"
+                        >
+                          <FolderOpen className="h-4 w-4 mr-2" />
+                          Move to Trash
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
               <div className="flex items-center gap-2 mt-2">
