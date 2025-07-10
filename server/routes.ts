@@ -4977,6 +4977,126 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Send bulk email to waitlist endpoint
+  app.post('/api/waitlist/send-bulk-email', requireAdmin, async (req: any, res) => {
+    try {
+      const { subject, bodyHtml, bodyText } = req.body;
+      
+      if (!subject || !bodyHtml) {
+        return res.status(400).json({ message: "Subject and email content are required" });
+      }
+
+      // Get current API settings
+      const apiSettings = await storage.getApiSettings();
+      
+      if (!apiSettings?.sendgridApiKey) {
+        return res.status(400).json({ message: "SendGrid API key not configured. Please configure API settings first." });
+      }
+
+      // Configure SendGrid
+      sgMail.setApiKey(apiSettings.sendgridApiKey);
+
+      // Get all waitlist entries (pending and contacted)
+      const waitlistEntries = await storage.getWaitlistEntries();
+      const activeEntries = waitlistEntries.filter(entry => 
+        entry.status === 'pending' || entry.status === 'contacted'
+      );
+
+      if (activeEntries.length === 0) {
+        return res.status(400).json({ message: "No active waitlist members to send emails to" });
+      }
+
+      const fromEmail = apiSettings.senderEmail || "hello@backstageos.com";
+      const fromName = apiSettings.senderName || "BackstageOS";
+      
+      let emailsSent = 0;
+      let errors = [];
+
+      // Send emails to all active waitlist members
+      for (const entry of activeEntries) {
+        try {
+          // Replace variables in subject and body
+          const variables = {
+            '{{firstName}}': entry.firstName || '',
+            '{{lastName}}': entry.lastName || '',
+            '{{position}}': (entry.position || 1).toString(),
+            '{{email}}': entry.email,
+            '{{date}}': new Date().toLocaleDateString("en-US", { 
+              year: "numeric", 
+              month: "long", 
+              day: "numeric" 
+            })
+          };
+
+          let personalizedSubject = subject;
+          let personalizedBodyHtml = bodyHtml;
+          let personalizedBodyText = bodyText;
+
+          // Replace variables in subject and body
+          Object.entries(variables).forEach(([variable, value]) => {
+            personalizedSubject = personalizedSubject.replace(new RegExp(variable, 'g'), value);
+            personalizedBodyHtml = personalizedBodyHtml.replace(new RegExp(variable, 'g'), value);
+            personalizedBodyText = personalizedBodyText.replace(new RegExp(variable, 'g'), value);
+          });
+
+          const msg = {
+            to: entry.email,
+            from: {
+              email: fromEmail,
+              name: fromName
+            },
+            subject: personalizedSubject,
+            text: personalizedBodyText,
+            html: personalizedBodyHtml,
+            headers: {
+              'BIMI-Selector': 'default',
+              'X-BIMI-Selector': 'default',
+              'Authentication-Results': `mx.backstageos.com; dmarc=pass; spf=pass; dkim=pass`
+            }
+          };
+
+          await sgMail.send(msg);
+          emailsSent++;
+          
+        } catch (emailError: any) {
+          console.error(`Failed to send email to ${entry.email}:`, emailError);
+          errors.push({
+            email: entry.email,
+            error: emailError.message
+          });
+        }
+      }
+
+      console.log(`Bulk email campaign completed: ${emailsSent} emails sent, ${errors.length} errors`);
+      
+      if (errors.length > 0) {
+        console.log("Email errors:", errors);
+      }
+
+      res.json({ 
+        message: "Bulk email campaign completed",
+        emailsSent,
+        totalRecipients: activeEntries.length,
+        errors: errors.length,
+        errorDetails: errors
+      });
+
+    } catch (error: any) {
+      console.error("Error sending bulk email:", error);
+      
+      // Handle specific SendGrid errors
+      if (error.response && error.response.body && error.response.body.errors) {
+        const sendgridError = error.response.body.errors[0];
+        return res.status(400).json({ 
+          message: `SendGrid Error: ${sendgridError.message}`,
+          details: sendgridError
+        });
+      }
+      
+      res.status(500).json({ message: "Failed to send bulk email" });
+    }
+  });
+
   // Send test email endpoint
   app.post('/api/waitlist/send-test-email', requireAdmin, async (req: any, res) => {
     try {

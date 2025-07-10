@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import WaitlistEmailSettings from "./WaitlistEmailSettings";
+import WaitlistBulkEmail from "./WaitlistBulkEmail";
 import { 
   Users, 
   TrendingUp, 
@@ -22,7 +23,8 @@ import {
   Calendar,
   User,
   Trash2,
-  Settings
+  Settings,
+  Send
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -236,10 +238,14 @@ export default function WaitlistManagement() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="entries" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="entries" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Waitlist Entries
+          </TabsTrigger>
+          <TabsTrigger value="bulk-email" className="flex items-center gap-2">
+            <Send className="h-4 w-4" />
+            Bulk Email
           </TabsTrigger>
           <TabsTrigger value="email-settings" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
@@ -557,6 +563,10 @@ export default function WaitlistManagement() {
           </div>
         </DialogContent>
       </Dialog>
+        </TabsContent>
+
+        <TabsContent value="bulk-email">
+          <WaitlistBulkEmail />
         </TabsContent>
 
         <TabsContent value="email-settings">
