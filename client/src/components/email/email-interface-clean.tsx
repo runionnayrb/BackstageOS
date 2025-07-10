@@ -660,38 +660,24 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 const showLeftAction = isCurrentSwipe && swipeDistance < -50;
                 const showRightAction = isCurrentSwipe && swipeDistance > 50;
                 
-                // Calculate progress for color fill animation
-                const swipeProgress = Math.min(1, Math.abs(swipeDistance) / 200); // 0 to 1 based on 200px max
-                const fillWidth = swipeProgress * 100; // Convert to percentage
-                
                 return (
                 <div
                   key={message.id}
                   className="relative overflow-hidden"
                 >
-                  {/* Animated color fill backgrounds */}
+                  {/* Background actions that appear during swipe */}
                   {isCurrentSwipe && (
                     <>
-                      {/* Right swipe - Blue fill from left */}
-                      {swipeDistance > 0 && (
-                        <div 
-                          className="absolute inset-y-0 left-0 bg-blue-500 flex items-center justify-start pl-6 transition-all duration-100 ease-out"
-                          style={{ width: `${fillWidth}%` }}
-                        >
-                          {swipeProgress > 0.3 && (
-                            <Mail className="h-5 w-5 text-white" />
-                          )}
+                      {/* Right swipe background - Mark as unread */}
+                      {showRightAction && (
+                        <div className="absolute inset-y-0 left-0 w-20 bg-blue-500 flex items-center justify-center">
+                          <Mail className="h-5 w-5 text-white" />
                         </div>
                       )}
-                      {/* Left swipe - Green fill from right */}
-                      {swipeDistance < 0 && (
-                        <div 
-                          className="absolute inset-y-0 right-0 bg-green-500 flex items-center justify-end pr-6 transition-all duration-100 ease-out"
-                          style={{ width: `${fillWidth}%` }}
-                        >
-                          {swipeProgress > 0.3 && (
-                            <Archive className="h-5 w-5 text-white" />
-                          )}
+                      {/* Left swipe background - Archive */}
+                      {showLeftAction && (
+                        <div className="absolute inset-y-0 right-0 w-20 bg-green-500 flex items-center justify-center">
+                          <Archive className="h-5 w-5 text-white" />
                         </div>
                       )}
                     </>
