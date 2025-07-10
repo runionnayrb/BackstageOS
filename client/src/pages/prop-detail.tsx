@@ -119,10 +119,7 @@ export default function PropDetail() {
 
         {/* Main Info Card */}
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl text-center">{prop.name}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             {prop.description && (
               <div>
                 <p className="text-gray-700">{prop.description}</p>
