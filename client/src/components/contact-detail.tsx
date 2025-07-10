@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Edit, X, Save, Mail, Phone } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -41,6 +42,7 @@ interface Contact {
   allergies?: string;
   medicalNotes?: string;
   castTypes?: string[];
+  equityStatus?: string;
   createdAt?: Date | string;
   updatedAt?: Date | string;
 }
@@ -67,6 +69,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
     allergies: contact.allergies || '',
     medicalNotes: contact.medicalNotes || '',
     castTypes: contact.castTypes || [],
+    equityStatus: contact.equityStatus || '',
   });
 
   const { toast } = useToast();
@@ -297,6 +300,22 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                   </div>
                 </div>
               )}
+
+              {/* Equity Status Section - Only for Cast Category */}
+              {contact.category === 'cast' && (
+                <div>
+                  <Label>Equity Status</Label>
+                  <Select value={formData.equityStatus} onValueChange={(value) => setFormData(prev => ({ ...prev, equityStatus: value }))}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Select equity status..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="equity">Equity</SelectItem>
+                      <SelectItem value="non-equity">Non-Equity</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </>
           ) : (
             <div className="space-y-4">
@@ -320,6 +339,17 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
                   />
                 )}
               </div>
+              {contact.category === 'cast' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <ReadOnlyField 
+                    label="Equity Status" 
+                    value={contact.equityStatus 
+                      ? contact.equityStatus.charAt(0).toUpperCase() + contact.equityStatus.slice(1).replace('-', '-')
+                      : 'Not specified'
+                    } 
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -388,6 +388,8 @@ export const contacts = pgTable("contacts", {
   medicalNotes: text("medical_notes"),
   // Cast types (for cast category only)
   castTypes: text("cast_types").array(), // ["principle", "understudy", "swing", "ensemble"]
+  // Equity status (for cast category only)
+  equityStatus: varchar("equity_status"), // "equity", "non-equity", null for non-cast
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -1617,6 +1619,7 @@ export const insertContactSchema = createInsertSchema(contacts).omit({
   updatedAt: true,
 }).extend({
   castTypes: z.array(z.string()).optional(),
+  equityStatus: z.enum(["equity", "non-equity"]).optional(),
 });
 
 export const insertContactAvailabilitySchema = createInsertSchema(contactAvailability).omit({

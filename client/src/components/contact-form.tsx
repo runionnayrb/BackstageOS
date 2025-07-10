@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -26,6 +27,7 @@ interface Contact {
   allergies?: string;
   medicalNotes?: string;
   castTypes?: string[];
+  equityStatus?: string;
 }
 
 interface ContactFormProps {
@@ -77,6 +79,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
     allergies: contact?.allergies || "",
     medicalNotes: contact?.medicalNotes || "",
     castTypes: contact?.castTypes || [],
+    equityStatus: contact?.equityStatus || "",
   });
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -309,6 +312,22 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Equity Status Section - Only for Cast Category */}
+            {category === 'cast' && (
+              <div>
+                <Label>Equity Status</Label>
+                <Select value={formData.equityStatus} onValueChange={(value) => setFormData(prev => ({ ...prev, equityStatus: value }))}>
+                  <SelectTrigger className="mt-2">
+                    <SelectValue placeholder="Select equity status..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="equity">Equity</SelectItem>
+                    <SelectItem value="non-equity">Non-Equity</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             )}
 
