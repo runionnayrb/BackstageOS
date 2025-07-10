@@ -113,6 +113,15 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     isDragging: false,
     direction: null
   });
+  
+  // Keep track of revealed action states
+  const [revealedActions, setRevealedActions] = useState<{
+    messageId: number | null;
+    type: 'move' | 'archive' | 'both' | null;
+  }>({
+    messageId: null,
+    type: null
+  });
   const [forwardMessage, setForwardMessage] = useState<EmailMessage | null>(null);
   const [replyMessage, setReplyMessage] = useState<EmailMessage | null>(null);
   const [composeMode, setComposeMode] = useState<'compose' | 'reply' | 'replyAll' | 'forward'>('compose');
@@ -158,41 +167,40 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     }
     
     const deltaX = swipeState.currentX - swipeState.startX;
-    const swipeThreshold = 100; // Minimum distance to trigger action
-    const fullSwipeThreshold = 200; // Distance for full swipe action
+    const swipeThreshold = 50; // Minimum distance to reveal actions
     
     if (Math.abs(deltaX) >= swipeThreshold) {
       if (deltaX < -swipeThreshold) {
-        // Swipe left - check distance for different actions
+        // Swipe left - reveal actions for tapping
         if (Math.abs(deltaX) >= 120) {
-          // Long swipe left (120px+) - archive
-          bulkActionMutation.mutate({
-            messageIds: [swipeState.messageId],
-            action: 'archive',
-            accountId: selectedAccount.id,
-            targetFolder: 'archive'
+          // Long swipe left (120px+) - show both move and archive
+          setRevealedActions({
+            messageId: swipeState.messageId,
+            type: 'both'
           });
         } else if (Math.abs(deltaX) >= 50) {
-          // Short swipe left (50-120px) - move to folder (show folder selection)
-          // For now, move to trash as placeholder
-          bulkActionMutation.mutate({
-            messageIds: [swipeState.messageId],
-            action: 'move',
-            accountId: selectedAccount.id,
-            targetFolder: 'trash'
+          // Short swipe left (50-120px) - show only archive
+          setRevealedActions({
+            messageId: swipeState.messageId,
+            type: 'archive'
           });
         }
       } else if (deltaX > swipeThreshold) {
-        // Swipe right - mark as unread
+        // Swipe right - immediately mark as unread (no need to stay open)
         bulkActionMutation.mutate({
           messageIds: [swipeState.messageId],
           action: 'mark-unread',
           accountId: selectedAccount.id
         });
+        // Reset states
+        setRevealedActions({ messageId: null, type: null });
       }
+    } else {
+      // Small swipe - close any revealed actions
+      setRevealedActions({ messageId: null, type: null });
     }
     
-    // Reset swipe state
+    // Reset swipe state but keep revealed actions open
     setSwipeState({
       messageId: null,
       startX: 0,
@@ -661,13 +669,17 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 const showMoveAction = isCurrentSwipe && swipeDistance < -50;
                 const showArchiveAction = isCurrentSwipe && swipeDistance < -120;
                 
+                // Check if this message has revealed actions
+                const isRevealed = revealedActions.messageId === message.id;
+                const revealedType = isRevealed ? revealedActions.type : null;
+                
                 return (
                 <div
                   key={message.id}
                   className="relative overflow-hidden"
                 >
-                  {/* Background actions that appear during swipe */}
-                  {isCurrentSwipe && (
+                  {/* Background actions that appear during swipe or when revealed */}
+                  {(isCurrentSwipe || isRevealed) && (
                     <>
                       {/* Right swipe background - Mark as unread */}
                       {showRightAction && (
@@ -677,18 +689,42 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       )}
                       
                       {/* Left swipe backgrounds - Move folder then Archive */}
-                      {showMoveAction && (
+                      {(showMoveAction || revealedType === 'archive' || revealedType === 'both') && (
                         <div className="absolute inset-y-0 right-0 flex">
-                          {/* Move folder option - appears first (leftmost when both visible) */}
-                          {showArchiveAction && (
-                            <div className="w-20 bg-orange-500 flex items-center justify-center">
+                          {/* Move folder option - appears with long swipe or when both revealed */}
+                          {(showArchiveAction || revealedType === 'both') && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                bulkActionMutation.mutate({
+                                  messageIds: [message.id],
+                                  action: 'move',
+                                  accountId: selectedAccount.id,
+                                  targetFolder: 'trash'
+                                });
+                                setRevealedActions({ messageId: null, type: null });
+                              }}
+                              className="w-20 bg-orange-500 flex items-center justify-center hover:bg-orange-600 transition-colors"
+                            >
                               <Folder className="h-5 w-5 text-white" />
-                            </div>
+                            </button>
                           )}
                           {/* Archive option - always appears on the right */}
-                          <div className="w-20 bg-green-500 flex items-center justify-center">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              bulkActionMutation.mutate({
+                                messageIds: [message.id],
+                                action: 'archive',
+                                accountId: selectedAccount.id,
+                                targetFolder: 'archive'
+                              });
+                              setRevealedActions({ messageId: null, type: null });
+                            }}
+                            className="w-20 bg-green-500 flex items-center justify-center hover:bg-green-600 transition-colors"
+                          >
                             <Archive className="h-5 w-5 text-white" />
-                          </div>
+                          </button>
                         </div>
                       )}
                     </>
@@ -696,7 +732,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   
                   <button
                     onClick={() => {
-                      if (isSelectionMode) {
+                      if (isRevealed) {
+                        // Close revealed actions if clicking on email content
+                        setRevealedActions({ messageId: null, type: null });
+                      } else if (isSelectionMode) {
                         toggleSelectMessage(message.id);
                       } else {
                         handleEmailClick(message);
@@ -709,7 +748,11 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       isSelectionMode && selectedMessages.has(message.id) ? 'bg-blue-50' : ''
                     }`}
                     style={{
-                      transform: isCurrentSwipe ? `translateX(${Math.max(-160, Math.min(100, swipeDistance))}px)` : 'translateX(0)',
+                      transform: isCurrentSwipe 
+                        ? `translateX(${Math.max(-160, Math.min(100, swipeDistance))}px)` 
+                        : isRevealed 
+                          ? `translateX(${revealedType === 'both' ? '-160px' : '-80px'})` 
+                          : 'translateX(0)',
                     }}
                   >
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-1 md:gap-0">
