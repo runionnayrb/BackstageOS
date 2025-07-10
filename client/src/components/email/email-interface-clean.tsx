@@ -76,21 +76,23 @@ interface ContactPreviewProps {
 }
 
 function ContactPreview({ emailAddress, children }: ContactPreviewProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const displayName = getDisplayName(emailAddress);
   const cleanEmail = getEmailAddress(emailAddress);
   
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <button 
-          className="text-left hover:text-blue-600 transition-colors cursor-pointer"
+        <div 
+          className="hover:text-blue-600 transition-colors cursor-pointer inline-block"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
+            setIsOpen(true);
           }}
         >
           {children}
-        </button>
+        </div>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-4" align="start">
         <div className="flex items-start gap-3">
@@ -108,6 +110,7 @@ function ContactPreview({ emailAddress, children }: ContactPreviewProps) {
                   e.preventDefault();
                   e.stopPropagation();
                   window.location.href = `mailto:${cleanEmail}`;
+                  setIsOpen(false);
                 }}
                 className="h-8 px-3 text-xs"
               >
@@ -121,6 +124,7 @@ function ContactPreview({ emailAddress, children }: ContactPreviewProps) {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  setIsOpen(false);
                 }}
               >
                 <User className="h-3 w-3 mr-1" />
