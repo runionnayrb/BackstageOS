@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -84,9 +85,14 @@ export default function EmailManager() {
     }
   };
 
+  // Get URL parameters for smart email routing
+  const [location] = useLocation();
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+
   const [selectedAccount, setSelectedAccount] = useState<EmailAccount | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [showCompose, setShowCompose] = useState(false);
+  const [composeToEmail, setComposeToEmail] = useState<string>('');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeFolder, setActiveFolder] = useState("inbox");
@@ -165,6 +171,34 @@ export default function EmailManager() {
       }
     }
   }, [emailAccounts, selectedAccount]);
+
+  // Handle smart email routing from URL parameters
+  useEffect(() => {
+    const shouldCompose = urlParams.get('compose') === 'true';
+    const fromEmail = urlParams.get('from');
+    const toEmail = urlParams.get('to');
+    
+    if (shouldCompose && fromEmail && emailAccounts && Array.isArray(emailAccounts)) {
+      // Find the account that matches the from email address
+      const targetAccount = (emailAccounts as EmailAccount[]).find(
+        (account: EmailAccount) => account.emailAddress === fromEmail
+      );
+      
+      if (targetAccount) {
+        setSelectedAccount(targetAccount);
+        setShowCompose(true);
+        
+        // Set the recipient email if provided
+        if (toEmail) {
+          setComposeToEmail(toEmail);
+        }
+        
+        // Clear URL parameters after processing (clean URL)
+        const [pathname] = location.split('?');
+        window.history.replaceState({}, '', pathname);
+      }
+    }
+  }, [urlParams, emailAccounts, location]);
 
   // Handle group selection for details view
   useEffect(() => {
@@ -650,10 +684,17 @@ export default function EmailManager() {
               selectedAccount={selectedAccount} 
               onBack={() => setSelectedAccount(null)}
               showCompose={showCompose}
-              onShowComposeChange={setShowCompose}
+              onShowComposeChange={(show) => {
+                setShowCompose(show);
+                if (!show) {
+                  // Clear recipient email when closing compose
+                  setComposeToEmail('');
+                }
+              }}
               activeFolder={activeFolder}
               showTheaterFeatures={showTheaterFeatures}
               onShowTheaterFeaturesChange={setShowTheaterFeatures}
+              composeToEmail={composeToEmail}
             />
           ) : selectedAccount && showSharedInboxes ? (
             <div className="space-y-4">

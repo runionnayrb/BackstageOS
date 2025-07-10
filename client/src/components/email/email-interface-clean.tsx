@@ -28,6 +28,7 @@ interface EmailInterfaceProps {
   activeFolder?: string;
   showTheaterFeatures?: boolean;
   onShowTheaterFeaturesChange?: (show: boolean) => void;
+  composeToEmail?: string;
 }
 
 // Utility function to extract display name from email address
@@ -88,7 +89,7 @@ function ContactPreview({ emailAddress, children }: ContactPreviewProps) {
   );
 }
 
-export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange, activeFolder = "inbox", showTheaterFeatures, onShowTheaterFeaturesChange }: EmailInterfaceProps) {
+export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange, activeFolder = "inbox", showTheaterFeatures, onShowTheaterFeaturesChange, composeToEmail }: EmailInterfaceProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [modalEmail, setModalEmail] = useState<EmailMessage | null>(null);
@@ -1088,6 +1089,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
             htmlContent: forwardMessage.htmlContent
           } : undefined}
           composeMode={composeMode}
+          initialRecipient={composeToEmail}
         />
       )}
 

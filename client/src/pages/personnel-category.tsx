@@ -58,6 +58,17 @@ export default function PersonnelCategory() {
     queryKey: [`/api/projects/${projectId}/contacts`],
   });
 
+  // Query for shared inboxes (team emails) for this show
+  const { data: sharedInboxes = [] } = useQuery({
+    queryKey: ['/api/shared-inboxes'],
+  });
+
+  // Query for user's personal email accounts
+  const { data: emailAccounts = [] } = useQuery({
+    queryKey: ['/api/email/accounts'],
+    retry: false,
+  });
+
   // Filter contacts by category
   const categoryContacts = contacts.filter((contact: Contact) => contact.category === category);
 
@@ -103,6 +114,34 @@ export default function PersonnelCategory() {
     setShowFormModal(false);
     setEditingContact(null);
     queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
+  };
+
+  // Smart email handling function
+  const handleEmailContact = (contactEmail: string) => {
+    // Priority 1: Check for team/shared inbox email for this show
+    const showSharedInbox = (sharedInboxes as any[]).find(
+      (inbox: any) => inbox.projectId === parseInt(projectId!)
+    );
+    
+    if (showSharedInbox?.emailAddress) {
+      // Open native email composer with team email as from address
+      setLocation(`/email?compose=true&from=${encodeURIComponent(showSharedInbox.emailAddress)}&to=${encodeURIComponent(contactEmail)}`);
+      return;
+    }
+
+    // Priority 2: Check for personal email account
+    const personalAccount = (emailAccounts as any[]).find(
+      (account: any) => account.accountType === 'personal' || account.projectId === null
+    );
+    
+    if (personalAccount?.emailAddress) {
+      // Open native email composer with personal email as from address
+      setLocation(`/email?compose=true&from=${encodeURIComponent(personalAccount.emailAddress)}&to=${encodeURIComponent(contactEmail)}`);
+      return;
+    }
+
+    // Priority 3: Fallback to mailto if no email system setup
+    window.location.href = `mailto:${contactEmail}`;
   };
 
   if (isLoading) {
@@ -189,7 +228,7 @@ export default function PersonnelCategory() {
                           className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.location.href = `mailto:${contact.email}`;
+                            handleEmailContact(contact.email!);
                           }}
                         />
                       ) : (

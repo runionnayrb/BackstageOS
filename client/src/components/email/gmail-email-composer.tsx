@@ -37,6 +37,7 @@ interface GmailEmailComposerProps {
     htmlContent?: string;
   };
   composeMode?: 'compose' | 'reply' | 'replyAll' | 'forward';
+  initialRecipient?: string;
 }
 
 export function GmailEmailComposer({ 
@@ -46,7 +47,8 @@ export function GmailEmailComposer({
   fromEmail,
   replyToMessage,
   forwardMessage,
-  composeMode = 'compose'
+  composeMode = 'compose',
+  initialRecipient
 }: GmailEmailComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -99,8 +101,8 @@ export function GmailEmailComposer({
 
   const replyRecipients = getReplyRecipients();
 
-  // Form state - initialize with reply recipients if applicable
-  const [toAddresses, setToAddresses] = useState<string>(replyRecipients.to);
+  // Form state - initialize with reply recipients if applicable, or initial recipient for compose mode
+  const [toAddresses, setToAddresses] = useState<string>(replyRecipients.to || (composeMode === 'compose' && initialRecipient ? initialRecipient : ''));
   const [ccAddresses, setCcAddresses] = useState<string>(replyRecipients.cc);
   const [bccAddresses, setBccAddresses] = useState<string>(replyRecipients.bcc);
   const [showCc, setShowCc] = useState(replyRecipients.showCc);
