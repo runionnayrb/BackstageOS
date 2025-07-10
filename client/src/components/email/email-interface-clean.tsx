@@ -671,8 +671,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 const showMoveAction = isCurrentSwipe && swipeDistance < -50;
                 const showArchiveAction = isCurrentSwipe && swipeDistance < -120;
                 
-                // Check if this message has revealed actions
+                // Check if this message has revealed actions or if dropdown is open for this message
                 const isRevealed = revealedActions.messageId === message.id;
+                const hasDropdownOpen = moveDropdownOpen === message.id;
                 const revealedType = isRevealed ? revealedActions.type : null;
                 
                 return (
@@ -680,8 +681,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   key={message.id}
                   className="relative overflow-hidden"
                 >
-                  {/* Background actions that appear during swipe or when revealed */}
-                  {(isCurrentSwipe || isRevealed) && (
+                  {/* Background actions that appear during swipe, when revealed, or when dropdown is open */}
+                  {(isCurrentSwipe || isRevealed || hasDropdownOpen) && (
                     <>
                       {/* Right swipe background - Mark as unread */}
                       {showRightAction && (
@@ -691,10 +692,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       )}
                       
                       {/* Left swipe backgrounds - Move folder then Archive */}
-                      {(showMoveAction || revealedType === 'archive' || revealedType === 'both') && (
+                      {(showMoveAction || revealedType === 'archive' || revealedType === 'both' || hasDropdownOpen) && (
                         <div className="absolute inset-y-0 right-0 flex">
-                          {/* Move folder option - appears with long swipe or when both revealed */}
-                          {(showArchiveAction || revealedType === 'both') && (
+                          {/* Move folder option - appears with long swipe, when both revealed, or when dropdown is open */}
+                          {(showArchiveAction || revealedType === 'both' || hasDropdownOpen) && (
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -749,7 +750,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         ? `translateX(${Math.max(-160, Math.min(100, swipeDistance))}px)` 
                         : isRevealed 
                           ? `translateX(${revealedType === 'both' ? '-160px' : '-80px'})` 
-                          : 'translateX(0)',
+                          : hasDropdownOpen
+                            ? 'translateX(-160px)'
+                            : 'translateX(0)',
                     }}
                   >
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-1 md:gap-0">
@@ -1024,7 +1027,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
           {/* Backdrop to close dropdown */}
           <div 
             className="fixed inset-0 z-40" 
-            onClick={() => setMoveDropdownOpen(null)}
+            onClick={() => {
+              setMoveDropdownOpen(null);
+              setRevealedActions({ messageId: null, type: null });
+            }}
           />
           
           {/* Dropdown menu */}
@@ -1035,6 +1041,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
               transform: 'translateY(-50%)'
             }}
           >
+            <div className="px-3 py-2 border-b border-gray-100 bg-gray-50 text-sm font-medium text-gray-700">
+              Move to:
+            </div>
             <div className="py-1">
               <button
                 onClick={() => {
@@ -1047,6 +1056,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     });
                   }
                   setMoveDropdownOpen(null);
+                  setRevealedActions({ messageId: null, type: null });
                 }}
                 className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
               >
@@ -1065,6 +1075,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     });
                   }
                   setMoveDropdownOpen(null);
+                  setRevealedActions({ messageId: null, type: null });
                 }}
                 className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
               >
@@ -1083,6 +1094,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     });
                   }
                   setMoveDropdownOpen(null);
+                  setRevealedActions({ messageId: null, type: null });
                 }}
                 className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
               >
@@ -1101,6 +1113,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     });
                   }
                   setMoveDropdownOpen(null);
+                  setRevealedActions({ messageId: null, type: null });
                 }}
                 className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
               >
