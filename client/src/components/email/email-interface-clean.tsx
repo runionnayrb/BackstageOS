@@ -100,6 +100,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const [pendingDeleteAction, setPendingDeleteAction] = useState<{ messageIds: number[]; action: string; targetFolder?: string } | null>(null);
 
   const [moveDropdownOpen, setMoveDropdownOpen] = useState<number | null>(null);
+  const [bulkMoveDropdownOpen, setBulkMoveDropdownOpen] = useState(false);
   
   // Mobile swipe state
   const [swipeState, setSwipeState] = useState<{
@@ -585,6 +586,15 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   className="h-8 px-2 text-xs"
                 >
                   <MailOpen className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setBulkMoveDropdownOpen(!bulkMoveDropdownOpen)}
+                  disabled={bulkActionMutation.isPending}
+                  className="h-8 px-2 text-xs"
+                >
+                  <FolderOpen className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -1114,6 +1124,74 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   }
                   setMoveDropdownOpen(null);
                   setRevealedActions({ messageId: null, type: null });
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+              >
+                <Trash2 className="h-4 w-4" />
+                Trash
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Bulk Move Dropdown - positioned absolutely */}
+      {bulkMoveDropdownOpen && selectedMessages.size > 0 && (
+        <>
+          {/* Backdrop to close dropdown */}
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setBulkMoveDropdownOpen(false)}
+          />
+          
+          {/* Dropdown menu */}
+          <div className="fixed z-50 bg-white border border-gray-200 rounded-md shadow-lg min-w-[160px]"
+            style={{
+              right: '20px',
+              bottom: '80px'
+            }}
+          >
+            <div className="px-3 py-2 border-b border-gray-100 bg-gray-50 text-sm font-medium text-gray-700">
+              Move to:
+            </div>
+            <div className="py-1">
+              <button
+                onClick={() => {
+                  handleBulkAction('move', 'sent');
+                  setBulkMoveDropdownOpen(false);
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+              >
+                <Send className="h-4 w-4" />
+                Sent
+              </button>
+              
+              <button
+                onClick={() => {
+                  handleBulkAction('move', 'drafts');
+                  setBulkMoveDropdownOpen(false);
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+              >
+                <File className="h-4 w-4" />
+                Drafts
+              </button>
+              
+              <button
+                onClick={() => {
+                  handleBulkAction('archive');
+                  setBulkMoveDropdownOpen(false);
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
+              >
+                <Archive className="h-4 w-4" />
+                Archive
+              </button>
+              
+              <button
+                onClick={() => {
+                  handleBulkAction('move', 'trash');
+                  setBulkMoveDropdownOpen(false);
                 }}
                 className="w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center gap-2 text-sm"
               >
