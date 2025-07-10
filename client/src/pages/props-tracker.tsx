@@ -241,7 +241,8 @@ export default function PropsTracker() {
 
   return (
     <div className="w-full">
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
+      {/* Desktop Header */}
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
@@ -275,8 +276,44 @@ export default function PropsTracker() {
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8">
+      {/* Mobile Header */}
+      <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation(`/shows/${projectId}`)}
+            className="text-gray-600 hover:text-gray-900 p-1"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          
+          <h1 className="text-lg font-semibold text-gray-900">Props</h1>
+          
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className={`p-2 ${showFilters ? 'text-blue-600' : 'text-gray-600'}`}
+            >
+              <Filter className="h-5 w-5" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsAddingProp(true)}
+              className="text-blue-600 p-2"
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </div>
 
+      {/* Desktop Content */}
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8">
         {/* Filters */}
         {showFilters && (
         <Card className="mb-6">
@@ -328,9 +365,71 @@ export default function PropsTracker() {
           </CardContent>
         </Card>
         )}
+      </div>
 
-        {/* Props Table */}
-        <Card>
+      {/* Mobile Filters */}
+      {showFilters && (
+        <div className="md:hidden px-4 py-3 bg-gray-50 border-b border-gray-200">
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
+              <Input
+                placeholder="Search props..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {statusOptions.map((status) => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={sceneFilter} onValueChange={setSceneFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Scene" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Scenes</SelectItem>
+                  {uniqueScenes.map((scene) => (
+                    <SelectItem key={scene} value={scene}>
+                      {scene}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {(searchTerm || statusFilter !== "all" || sceneFilter !== "all") && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="w-full"
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                  setSceneFilter("all");
+                }}
+              >
+                Clear Filters
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Content */}
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8">
+        {/* Desktop Props Table */}
+        <Card className="mb-6">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -422,9 +521,71 @@ export default function PropsTracker() {
             </Table>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Add/Edit Prop Dialog */}
-        <Dialog open={isAddingProp || !!editingProp} onOpenChange={(open) => {
+      {/* Mobile Props List */}
+      <div className="md:hidden px-4 space-y-1">
+        {filteredProps.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-8">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No props found</p>
+              <Button
+                variant="outline"
+                className="mt-2"
+                onClick={() => setIsAddingProp(true)}
+              >
+                Add your first prop
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredProps.map((prop: Prop) => {
+            const statusInfo = getStatusInfo(prop.status);
+            
+            return (
+              <div
+                key={prop.id}
+                className="p-4 bg-white border border-transparent hover:bg-gray-50 active:bg-gray-100 transition-colors cursor-pointer"
+                onClick={() => setLocation(`/shows/${projectId}/props/${prop.id}`)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-semibold text-gray-900 truncate">{prop.name}</h3>
+                      <div className="flex items-center gap-1 text-sm text-gray-500 flex-shrink-0">
+                        <span className="text-lg font-medium">{prop.quantity}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-sm text-gray-600">
+                        {prop.character && (
+                          <span className="font-medium">{prop.character}</span>
+                        )}
+                        {prop.scene && (
+                          <span>{prop.scene}</span>
+                        )}
+                      </div>
+                      
+                      <Badge variant="secondary" className={`${statusInfo.color} text-xs px-2 py-1 flex-shrink-0`}>
+                        {statusInfo.label}
+                      </Badge>
+                    </div>
+                  </div>
+                  
+                  <div className="ml-3 text-gray-400">
+                    <span className="text-lg">→</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Add/Edit Prop Dialog */}
+      <Dialog open={isAddingProp || !!editingProp} onOpenChange={(open) => {
           if (!open) {
             setIsAddingProp(false);
             setEditingProp(null);
@@ -542,7 +703,6 @@ export default function PropsTracker() {
             </div>
           </DialogContent>
         </Dialog>
-      </div>
     </div>
   );
 }

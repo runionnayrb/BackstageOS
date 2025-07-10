@@ -25,6 +25,7 @@ import ShowDetail from "@/pages/show-detail";
 import ShowReports from "@/pages/show-reports";
 import ScriptEditor from "@/pages/script-editor";
 import PropsTracker from "@/pages/props-tracker";
+import PropDetail from "@/pages/prop-detail";
 import CostumeTracker from "@/pages/costume-tracker";
 
 import ShowSettings from "@/pages/show-settings";
@@ -170,6 +171,7 @@ function Router() {
         <Route path="/shows/:id/script" component={ScriptEditor} />
         <Route path="/shows/:id/props-costumes" component={PropsAndCostumes} />
         <Route path="/shows/:id/props" component={PropsTracker} />
+        <Route path="/shows/:id/props/:propId" component={PropDetail} />
         <Route path="/shows/:id/costumes" component={CostumeTracker} />
         <Route path="/shows/:id/contacts" component={Personnel} />
         <Route path="/shows/:id/contact-sheet" component={ContactSheet} />
