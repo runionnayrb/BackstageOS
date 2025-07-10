@@ -18,6 +18,17 @@ export default function Projects() {
     queryKey: ["/api/projects"],
   });
 
+  // Sort projects by most future closing date (descending)
+  const sortedProjects = [...(projects as any[])].sort((a, b) => {
+    // Handle cases where closingDate might be null/undefined
+    if (!a.closingDate && !b.closingDate) return 0;
+    if (!a.closingDate) return 1; // Projects without closing date go to end
+    if (!b.closingDate) return -1; // Projects without closing date go to end
+    
+    // Sort by closing date in descending order (most future first)
+    return new Date(b.closingDate).getTime() - new Date(a.closingDate).getTime();
+  });
+
   const getProjectInitial = (name: string) => name.charAt(0).toUpperCase();
 
   const getStatusColor = (status: string) => {
@@ -81,7 +92,7 @@ export default function Projects() {
         </div>
 
         <div className="px-4 sm:px-6 lg:px-8">
-          {(projects as any[]).length === 0 ? (
+          {sortedProjects.length === 0 ? (
             <div className="text-center py-12">
               <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No {projectLabel.toLowerCase()} yet</h3>
@@ -93,7 +104,7 @@ export default function Projects() {
             </div>
           ) : (
             <div className="space-y-1">
-              {(projects as any[]).map((project: any) => (
+              {sortedProjects.map((project: any) => (
                 <div 
                   key={project.id} 
                   className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
