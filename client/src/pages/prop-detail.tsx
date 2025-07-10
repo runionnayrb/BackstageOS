@@ -110,16 +110,15 @@ export default function PropDetail() {
 
       {/* Content */}
       <div className="px-4 py-4 space-y-4">
-        {/* Status Badge */}
-        <div className="flex justify-center">
-          <Badge variant="secondary" className={`${statusInfo.color} text-base px-4 py-2`}>
-            {statusInfo.label}
-          </Badge>
-        </div>
-
         {/* Main Info Card */}
         <Card>
           <CardContent className="space-y-4 pt-6">
+            {/* Status Badge */}
+            <div className="flex justify-center pb-2">
+              <Badge variant="secondary" className={`${statusInfo.color} text-base px-4 py-2`}>
+                {statusInfo.label}
+              </Badge>
+            </div>
             {prop.description && (
               <div>
                 <p className="text-gray-700">{prop.description}</p>
