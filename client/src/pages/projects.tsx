@@ -18,15 +18,36 @@ export default function Projects() {
     queryKey: ["/api/projects"],
   });
 
-  // Sort projects by most future closing date (descending)
+  // Sort projects by first rehearsal date (primary) and closing date (secondary)
   const sortedProjects = [...(projects as any[])].sort((a, b) => {
-    // Handle cases where closingDate might be null/undefined
-    if (!a.closingDate && !b.closingDate) return 0;
-    if (!a.closingDate) return 1; // Projects without closing date go to end
-    if (!b.closingDate) return -1; // Projects without closing date go to end
+    // Primary sort: first rehearsal date (most future first)
+    const aRehearsalDate = a.firstRehearsalDate ? new Date(a.firstRehearsalDate).getTime() : 0;
+    const bRehearsalDate = b.firstRehearsalDate ? new Date(b.firstRehearsalDate).getTime() : 0;
     
-    // Sort by closing date in descending order (most future first)
-    return new Date(b.closingDate).getTime() - new Date(a.closingDate).getTime();
+    // If both have rehearsal dates, sort by them (most future first)
+    if (aRehearsalDate && bRehearsalDate) {
+      const rehearsalComparison = bRehearsalDate - aRehearsalDate;
+      if (rehearsalComparison !== 0) return rehearsalComparison;
+    }
+    
+    // If only one has rehearsal date, prioritize it
+    if (aRehearsalDate && !bRehearsalDate) return -1;
+    if (!aRehearsalDate && bRehearsalDate) return 1;
+    
+    // Secondary sort: closing date (most future first)
+    const aClosingDate = a.closingDate ? new Date(a.closingDate).getTime() : 0;
+    const bClosingDate = b.closingDate ? new Date(b.closingDate).getTime() : 0;
+    
+    if (aClosingDate && bClosingDate) {
+      return bClosingDate - aClosingDate;
+    }
+    
+    // If only one has closing date, prioritize it
+    if (aClosingDate && !bClosingDate) return -1;
+    if (!aClosingDate && bClosingDate) return 1;
+    
+    // If neither has dates, maintain original order
+    return 0;
   });
 
   const getProjectInitial = (name: string) => name.charAt(0).toUpperCase();
