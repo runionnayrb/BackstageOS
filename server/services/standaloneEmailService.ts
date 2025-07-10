@@ -290,9 +290,10 @@ export class StandaloneEmailService {
           eq(emailMessages.accountId, accountId),
           eq(emailMessages.isDraft, false),
           eq(emailMessages.isSent, false), // Exclude sent messages from inbox
-          // Only include emails that have 'inbox' in labels and NOT 'trash'
+          // Only include emails that have 'inbox' in labels and NOT 'trash' or 'archived'
           sql`${emailMessages.labels} @> ARRAY['inbox']::text[]`,
-          sql`NOT (${emailMessages.labels} @> ARRAY['trash']::text[])`
+          sql`NOT (${emailMessages.labels} @> ARRAY['trash']::text[])`,
+          sql`NOT (${emailMessages.labels} @> ARRAY['archived']::text[])`
         )
       )
       .orderBy(desc(emailMessages.dateSent))
@@ -332,6 +333,46 @@ export class StandaloneEmailService {
         )
       )
       .orderBy(desc(emailMessages.updatedAt));
+  }
+
+  /**
+   * Get archived messages for an account
+   */
+  async getArchivedMessages(accountId: number, limit = 50, offset = 0): Promise<EmailMessage[]> {
+    return await db
+      .select()
+      .from(emailMessages)
+      .where(
+        and(
+          eq(emailMessages.accountId, accountId),
+          eq(emailMessages.isDraft, false),
+          // Only include emails that have 'archived' in labels
+          sql`${emailMessages.labels} @> ARRAY['archived']::text[]`
+        )
+      )
+      .orderBy(desc(emailMessages.dateSent))
+      .limit(limit)
+      .offset(offset);
+  }
+
+  /**
+   * Get trash messages for an account
+   */
+  async getTrashMessages(accountId: number, limit = 50, offset = 0): Promise<EmailMessage[]> {
+    return await db
+      .select()
+      .from(emailMessages)
+      .where(
+        and(
+          eq(emailMessages.accountId, accountId),
+          eq(emailMessages.isDraft, false),
+          // Only include emails that have 'trash' in labels
+          sql`${emailMessages.labels} @> ARRAY['trash']::text[]`
+        )
+      )
+      .orderBy(desc(emailMessages.dateSent))
+      .limit(limit)
+      .offset(offset);
   }
 
   /**

@@ -177,6 +177,12 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         case 'drafts':
           endpoint = `/api/email/accounts/${selectedAccount.id}/drafts`;
           break;
+        case 'archive':
+          endpoint = `/api/email/accounts/${selectedAccount.id}/archive`;
+          break;
+        case 'trash':
+          endpoint = `/api/email/accounts/${selectedAccount.id}/trash`;
+          break;
         default:
           endpoint = `/api/email/accounts/${selectedAccount.id}/inbox`;
       }

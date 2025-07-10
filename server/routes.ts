@@ -6344,6 +6344,40 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Get archived messages
+  app.get('/api/email/accounts/:accountId/archive', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const limit = parseInt(req.query.limit) || 50;
+      const offset = parseInt(req.query.offset) || 0;
+
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      const messages = await standaloneEmailService.getArchivedMessages(accountId, limit, offset);
+
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching archived messages:", error);
+      res.status(500).json({ message: "Failed to fetch archived messages" });
+    }
+  });
+
+  // Get trash messages
+  app.get('/api/email/accounts/:accountId/trash', isAuthenticated, async (req: any, res) => {
+    try {
+      const accountId = parseInt(req.params.accountId);
+      const limit = parseInt(req.query.limit) || 50;
+      const offset = parseInt(req.query.offset) || 0;
+
+      const { standaloneEmailService } = await import('./services/standaloneEmailService.js');
+      const messages = await standaloneEmailService.getTrashMessages(accountId, limit, offset);
+
+      res.json(messages);
+    } catch (error) {
+      console.error("Error fetching trash messages:", error);
+      res.status(500).json({ message: "Failed to fetch trash messages" });
+    }
+  });
+
   // Mark message as read
   app.put('/api/email/messages/:messageId/read', isAuthenticated, async (req: any, res) => {
     try {
