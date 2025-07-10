@@ -547,9 +547,7 @@ export function GmailEmailComposer({
           {/* From field */}
           <div className="flex items-center px-4 py-4 border-b border-gray-100">
             <span className="text-gray-500 text-base">From:  </span>
-            <span className="text-base text-gray-600">
-              {emailAccount?.displayName || emailAccount?.name || 'Loading...'} &lt;{fromEmail}&gt;
-            </span>
+            <span className="text-base text-gray-600">{fromEmail}</span>
           </div>
 
           {/* Subject field */}
