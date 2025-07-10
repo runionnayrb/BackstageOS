@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2, Check, X, Mail, MailOpen, FolderOpen, User } from 'lucide-react';
+import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2, Check, X, Mail, MailOpen, FolderOpen, User, Folder } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { EmailAccountConfig } from './email-account-config';
 import { GmailEmailComposer } from './gmail-email-composer';
@@ -163,23 +163,23 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     
     if (Math.abs(deltaX) >= swipeThreshold) {
       if (deltaX < -swipeThreshold) {
-        // Swipe left - archive or move
-        if (Math.abs(deltaX) >= fullSwipeThreshold) {
-          // Full swipe left - archive immediately
+        // Swipe left - check distance for different actions
+        if (Math.abs(deltaX) >= 120) {
+          // Long swipe left (120px+) - archive
           bulkActionMutation.mutate({
             messageIds: [swipeState.messageId],
             action: 'archive',
             accountId: selectedAccount.id,
             targetFolder: 'archive'
           });
-        } else {
-          // Partial swipe left - show action options
-          // For now, just archive
+        } else if (Math.abs(deltaX) >= 50) {
+          // Short swipe left (50-120px) - move to folder (show folder selection)
+          // For now, move to trash as placeholder
           bulkActionMutation.mutate({
             messageIds: [swipeState.messageId],
-            action: 'archive',
+            action: 'move',
             accountId: selectedAccount.id,
-            targetFolder: 'archive'
+            targetFolder: 'trash'
           });
         }
       } else if (deltaX > swipeThreshold) {
@@ -657,8 +657,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
               {filteredMessages.map((message: EmailMessage) => {
                 const isCurrentSwipe = swipeState.messageId === message.id;
                 const swipeDistance = isCurrentSwipe ? swipeState.currentX - swipeState.startX : 0;
-                const showLeftAction = isCurrentSwipe && swipeDistance < -50;
                 const showRightAction = isCurrentSwipe && swipeDistance > 50;
+                const showMoveAction = isCurrentSwipe && swipeDistance < -50;
+                const showArchiveAction = isCurrentSwipe && swipeDistance < -120;
                 
                 return (
                 <div
@@ -674,10 +675,20 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                           <Mail className="h-5 w-5 text-white" />
                         </div>
                       )}
-                      {/* Left swipe background - Archive */}
-                      {showLeftAction && (
-                        <div className="absolute inset-y-0 right-0 w-20 bg-green-500 flex items-center justify-center">
-                          <Archive className="h-5 w-5 text-white" />
+                      
+                      {/* Left swipe backgrounds - Move folder then Archive */}
+                      {showMoveAction && (
+                        <div className="absolute inset-y-0 right-0 flex">
+                          {/* Move folder option - appears first */}
+                          <div className="w-20 bg-orange-500 flex items-center justify-center">
+                            <Folder className="h-5 w-5 text-white" />
+                          </div>
+                          {/* Archive option - appears with longer swipe */}
+                          {showArchiveAction && (
+                            <div className="w-20 bg-green-500 flex items-center justify-center">
+                              <Archive className="h-5 w-5 text-white" />
+                            </div>
+                          )}
                         </div>
                       )}
                     </>
