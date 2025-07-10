@@ -52,9 +52,8 @@ export function GmailEmailComposer({
   const queryClient = useQueryClient();
 
   // Fetch email account with signature
-  const { data: emailAccount } = useQuery({
-    queryKey: ['/api/email/accounts', fromAccountId],
-    queryFn: () => apiRequest('GET', `/api/email/accounts/${fromAccountId}`),
+  const { data: emailAccount, isLoading: isLoadingAccount } = useQuery({
+    queryKey: [`/api/email/accounts/${fromAccountId}`],
     enabled: isOpen && !!fromAccountId,
   });
 
@@ -162,6 +161,14 @@ export function GmailEmailComposer({
 
   // Update content with signature when email account is loaded
   useEffect(() => {
+    console.log('Signature effect triggered:', {
+      emailAccount,
+      signature: emailAccount?.signature,
+      isLoadingAccount,
+      content,
+      composeMode
+    });
+    
     if (!emailAccount?.signature) {
       console.log('No signature found or account not loaded yet');
       return;
@@ -169,8 +176,6 @@ export function GmailEmailComposer({
     
     const signature = emailAccount.signature;
     console.log('Signature loaded:', signature);
-    console.log('Current content:', content);
-    console.log('Compose mode:', composeMode);
     
     // Check if signature is already included
     if (content.includes(signature)) {
@@ -178,15 +183,12 @@ export function GmailEmailComposer({
       return;
     }
     
-    // Add signature to content based on compose mode
-    if (composeMode === 'compose') {
-      console.log('Adding signature for compose mode');
-      setContent(getContentWithSignature(content, signature));
-    } else if (content && !content.includes(signature)) {
-      console.log('Adding signature for reply/forward mode');
-      setContent(prev => getContentWithSignature(prev, signature));
-    }
-  }, [emailAccount?.signature, composeMode, content]);
+    // Add signature to content
+    console.log('Adding signature to content');
+    const newContent = getContentWithSignature(content, signature);
+    console.log('New content with signature:', newContent);
+    setContent(newContent);
+  }, [emailAccount?.signature, isLoadingAccount]);
 
   // Check if there's any content in the email
   const hasContent = () => {
