@@ -133,17 +133,14 @@ export function GmailEmailComposer({
   };
 
   const [content, setContent] = useState(() => {
-    const signature = emailAccount?.signature || '';
-    
+    // Start with basic content without signature since emailAccount isn't loaded yet
     if (replyToMessage) {
-      const replyContent = `\n\n--- Original Message ---\nFrom: ${replyToMessage.fromAddress}\nSubject: ${replyToMessage.subject}\n\n${replyToMessage.content}`;
-      return getContentWithSignature(replyContent, signature);
+      return `\n\n--- Original Message ---\nFrom: ${replyToMessage.fromAddress}\nSubject: ${replyToMessage.subject}\n\n${replyToMessage.content}`;
     }
     if (forwardMessage) {
-      const forwardContent = `\n\n---------- Forwarded message ----------\nFrom: ${forwardMessage.fromAddress}\nSubject: ${forwardMessage.subject}\n\n${forwardMessage.content}`;
-      return getContentWithSignature(forwardContent, signature);
+      return `\n\n---------- Forwarded message ----------\nFrom: ${forwardMessage.fromAddress}\nSubject: ${forwardMessage.subject}\n\n${forwardMessage.content}`;
     }
-    return getContentWithSignature('', signature);
+    return '';
   });
 
   // Handle animation when opening
@@ -165,22 +162,31 @@ export function GmailEmailComposer({
 
   // Update content with signature when email account is loaded
   useEffect(() => {
-    if (!emailAccount?.signature) return;
+    if (!emailAccount?.signature) {
+      console.log('No signature found or account not loaded yet');
+      return;
+    }
     
-    // Only update content if it doesn't already contain signature
     const signature = emailAccount.signature;
+    console.log('Signature loaded:', signature);
+    console.log('Current content:', content);
+    console.log('Compose mode:', composeMode);
     
     // Check if signature is already included
-    if (content.includes(signature)) return;
+    if (content.includes(signature)) {
+      console.log('Signature already included in content');
+      return;
+    }
     
     // Add signature to content based on compose mode
-    if (composeMode === 'compose' && (!content || content.trim() === '')) {
-      setContent(getContentWithSignature('', signature));
+    if (composeMode === 'compose') {
+      console.log('Adding signature for compose mode');
+      setContent(getContentWithSignature(content, signature));
     } else if (content && !content.includes(signature)) {
-      // For replies/forwards, append signature if not already present
+      console.log('Adding signature for reply/forward mode');
       setContent(prev => getContentWithSignature(prev, signature));
     }
-  }, [emailAccount?.signature, composeMode]);
+  }, [emailAccount?.signature, composeMode, content]);
 
   // Check if there's any content in the email
   const hasContent = () => {
