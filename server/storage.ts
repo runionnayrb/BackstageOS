@@ -1061,14 +1061,22 @@ export class DatabaseStorage implements IStorage {
     const pending = await db.select({ count: sql<number>`count(*)` })
       .from(waitlist)
       .where(eq(waitlist.status, 'pending'));
-    const approved = await db.select({ count: sql<number>`count(*)` })
+    const contacted = await db.select({ count: sql<number>`count(*)` })
       .from(waitlist)
-      .where(eq(waitlist.status, 'approved'));
+      .where(eq(waitlist.status, 'contacted'));
+    const converted = await db.select({ count: sql<number>`count(*)` })
+      .from(waitlist)
+      .where(eq(waitlist.status, 'converted'));
+    const declined = await db.select({ count: sql<number>`count(*)` })
+      .from(waitlist)
+      .where(eq(waitlist.status, 'declined'));
     
     return {
       total: total[0]?.count || 0,
       pending: pending[0]?.count || 0,
-      approved: approved[0]?.count || 0
+      contacted: contacted[0]?.count || 0,
+      converted: converted[0]?.count || 0,
+      declined: declined[0]?.count || 0
     };
   }
 
