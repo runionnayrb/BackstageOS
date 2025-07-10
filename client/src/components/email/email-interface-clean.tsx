@@ -82,7 +82,13 @@ function ContactPreview({ emailAddress, children }: ContactPreviewProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="text-left hover:text-blue-600 transition-colors cursor-pointer">
+        <button 
+          className="text-left hover:text-blue-600 transition-colors cursor-pointer"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
           {children}
         </button>
       </PopoverTrigger>
@@ -98,7 +104,11 @@ function ContactPreview({ emailAddress, children }: ContactPreviewProps) {
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={() => window.location.href = `mailto:${cleanEmail}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.location.href = `mailto:${cleanEmail}`;
+                }}
                 className="h-8 px-3 text-xs"
               >
                 <Mail className="h-3 w-3 mr-1" />
@@ -108,6 +118,10 @@ function ContactPreview({ emailAddress, children }: ContactPreviewProps) {
                 size="sm" 
                 variant="outline"
                 className="h-8 px-3 text-xs"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
               >
                 <User className="h-3 w-3 mr-1" />
                 Add Contact
