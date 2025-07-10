@@ -50,7 +50,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-primary to-secondary flex items-center justify-center px-4 pb-12 lg:pb-0">
       <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
         {/* Hero Content */}
         <div className="text-white space-y-8 pt-6 lg:pt-16">
