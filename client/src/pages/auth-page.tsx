@@ -54,7 +54,7 @@ export default function AuthPage() {
       <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
         {/* Hero Content */}
         <div className="text-white space-y-8 pt-6 lg:pt-16">
-          <div>
+          <div className="text-center lg:text-left">
             <h1 className="text-4xl lg:text-6xl font-bold mb-4 leading-tight">
               BackstageOS
             </h1>
