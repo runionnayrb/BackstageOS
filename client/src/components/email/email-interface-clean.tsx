@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2, Check, X, Mail, MailOpen, FolderOpen, User, Folder } from 'lucide-react';
+import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2, Check, X, Mail, MailOpen, FolderOpen, User, Folder, Send, File } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { EmailAccountConfig } from './email-account-config';
 import { GmailEmailComposer } from './gmail-email-composer';
@@ -98,6 +98,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [pendingDeleteAction, setPendingDeleteAction] = useState<{ messageIds: number[]; action: string; targetFolder?: string } | null>(null);
+  const [showFolderDialog, setShowFolderDialog] = useState(false);
+  const [pendingMoveAction, setPendingMoveAction] = useState<{ messageId: number } | null>(null);
   
   // Mobile swipe state
   const [swipeState, setSwipeState] = useState<{
@@ -696,12 +698,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                bulkActionMutation.mutate({
-                                  messageIds: [message.id],
-                                  action: 'move',
-                                  accountId: selectedAccount.id,
-                                  targetFolder: 'trash'
-                                });
+                                setPendingMoveAction({ messageId: message.id });
+                                setShowFolderDialog(true);
                                 setRevealedActions({ messageId: null, type: null });
                               }}
                               className="w-20 bg-orange-500 flex items-center justify-center hover:bg-orange-600 transition-colors"
@@ -1016,6 +1014,104 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Folder Selection Dialog */}
+      <Dialog open={showFolderDialog} onOpenChange={setShowFolderDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Move Email</DialogTitle>
+            <DialogDescription>
+              Select a folder to move this email to.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {/* List of available folders */}
+            <button
+              onClick={() => {
+                if (pendingMoveAction) {
+                  bulkActionMutation.mutate({
+                    messageIds: [pendingMoveAction.messageId],
+                    action: 'move',
+                    accountId: selectedAccount.id,
+                    targetFolder: 'sent'
+                  });
+                }
+                setShowFolderDialog(false);
+                setPendingMoveAction(null);
+              }}
+              className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 flex items-center gap-2"
+            >
+              <Send className="h-4 w-4" />
+              Sent
+            </button>
+            
+            <button
+              onClick={() => {
+                if (pendingMoveAction) {
+                  bulkActionMutation.mutate({
+                    messageIds: [pendingMoveAction.messageId],
+                    action: 'move',
+                    accountId: selectedAccount.id,
+                    targetFolder: 'drafts'
+                  });
+                }
+                setShowFolderDialog(false);
+                setPendingMoveAction(null);
+              }}
+              className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 flex items-center gap-2"
+            >
+              <File className="h-4 w-4" />
+              Drafts
+            </button>
+            
+            <button
+              onClick={() => {
+                if (pendingMoveAction) {
+                  bulkActionMutation.mutate({
+                    messageIds: [pendingMoveAction.messageId],
+                    action: 'archive',
+                    accountId: selectedAccount.id,
+                    targetFolder: 'archive'
+                  });
+                }
+                setShowFolderDialog(false);
+                setPendingMoveAction(null);
+              }}
+              className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 flex items-center gap-2"
+            >
+              <Archive className="h-4 w-4" />
+              Archive
+            </button>
+            
+            <button
+              onClick={() => {
+                if (pendingMoveAction) {
+                  bulkActionMutation.mutate({
+                    messageIds: [pendingMoveAction.messageId],
+                    action: 'move',
+                    accountId: selectedAccount.id,
+                    targetFolder: 'trash'
+                  });
+                }
+                setShowFolderDialog(false);
+                setPendingMoveAction(null);
+              }}
+              className="w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Trash
+            </button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowFolderDialog(false);
+              setPendingMoveAction(null);
+            }}>
+              Cancel
             </Button>
           </DialogFooter>
         </DialogContent>
