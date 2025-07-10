@@ -180,8 +180,25 @@ export function GmailEmailComposer({
   // Handle animation when opening
   useEffect(() => {
     if (isOpen) {
+      // Prevent body scroll on mobile to reduce jitter
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      
       setIsAnimating(true);
+    } else {
+      // Restore body scroll when modal closes
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     }
+    
+    // Cleanup function to restore scroll if component unmounts
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
   }, [isOpen]);
 
   // Update form fields when reply message or compose mode changes
@@ -350,20 +367,23 @@ export function GmailEmailComposer({
   };
 
   const closeWithAnimation = () => {
-    // Start slide-down animation
+    // Start slide-down animation immediately
     setIsAnimating(false);
     
-    // Wait for animation to complete, then close and clear form
-    setTimeout(() => {
-      setToAddresses('');
-      setCcAddresses('');
-      setBccAddresses('');
-      setSubject('');
-      setContent('');
-      setShowCc(false);
-      setShowBcc(false);
-      onClose();
-    }, 300); // Match animation duration
+    // Use requestAnimationFrame to ensure smooth animation
+    requestAnimationFrame(() => {
+      // Wait for animation to complete, then close and clear form
+      setTimeout(() => {
+        setToAddresses('');
+        setCcAddresses('');
+        setBccAddresses('');
+        setSubject('');
+        setContent('');
+        setShowCc(false);
+        setShowBcc(false);
+        onClose();
+      }, 300); // Match animation duration
+    });
   };
 
   const handleSaveDraft = () => {
@@ -395,8 +415,11 @@ export function GmailEmailComposer({
           isAnimating ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{ 
-          top: '0px', // Start from very top (URL bar area)
-          height: '100vh'
+          top: '0px',
+          height: '100vh',
+          // Prevent viewport changes from affecting layout
+          position: 'fixed',
+          overflow: 'hidden'
         }}
       >
         {/* Header with icons matching Gmail */}
@@ -542,7 +565,7 @@ export function GmailEmailComposer({
           </div>
 
           {/* Message content */}
-          <div className="flex-1 px-4 py-4">
+          <div className="flex-1 px-4 py-4" style={{ overflow: 'hidden' }}>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -550,7 +573,11 @@ export function GmailEmailComposer({
               placeholder="Compose email"
               style={{ 
                 fontSize: '16px',
-                fontFamily: 'system-ui, -apple-system, sans-serif'
+                fontFamily: 'system-ui, -apple-system, sans-serif',
+                // Mobile optimization to prevent jitter
+                minHeight: '200px',
+                transform: 'translateZ(0)', // Hardware acceleration
+                backfaceVisibility: 'hidden' // Prevent flicker
               }}
               autoComplete="off"
               autoCapitalize="sentences"
