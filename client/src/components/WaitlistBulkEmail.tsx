@@ -219,16 +219,74 @@ export default function WaitlistBulkEmail() {
                   />
                 </div>
 
-                {/* Available Variables Info */}
+                {/* Variable Insertion Buttons */}
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="text-sm font-medium text-blue-900 mb-2">Available Variables</h4>
-                  <div className="grid grid-cols-2 gap-2 text-sm text-blue-800">
-                    <span><code>{"{{firstName}}"}</code> - First name</span>
-                    <span><code>{"{{lastName}}"}</code> - Last name</span>
-                    <span><code>{"{{position}}"}</code> - Waitlist position</span>
-                    <span><code>{"{{email}}"}</code> - Email address</span>
-                    <span><code>{"{{date}}"}</code> - Current date</span>
+                  <h4 className="text-sm font-medium text-blue-900 mb-3">Insert Variables</h4>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const variable = "{{firstName}}";
+                        setHtmlContent(prev => prev + variable);
+                      }}
+                      className="text-xs bg-white hover:bg-blue-100"
+                    >
+                      + First Name
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const variable = "{{lastName}}";
+                        setHtmlContent(prev => prev + variable);
+                      }}
+                      className="text-xs bg-white hover:bg-blue-100"
+                    >
+                      + Last Name
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const variable = "{{position}}";
+                        setHtmlContent(prev => prev + variable);
+                      }}
+                      className="text-xs bg-white hover:bg-blue-100"
+                    >
+                      + Position
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const variable = "{{email}}";
+                        setHtmlContent(prev => prev + variable);
+                      }}
+                      className="text-xs bg-white hover:bg-blue-100"
+                    >
+                      + Email
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const variable = "{{date}}";
+                        setHtmlContent(prev => prev + variable);
+                      }}
+                      className="text-xs bg-white hover:bg-blue-100"
+                    >
+                      + Current Date
+                    </Button>
                   </div>
+                  <p className="text-xs text-blue-700 mt-2">
+                    Click any button to insert the variable at the end of your email content. Variables will be replaced with actual values when emails are sent.
+                  </p>
                 </div>
               </div>
 
