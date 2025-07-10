@@ -59,7 +59,7 @@ export default function AuthPage() {
               BackstageOS
             </h1>
             <p className="text-xl lg:text-2xl opacity-90 leading-relaxed">
-              The complete stage management platform for modern stage managers
+              The complete stage management platform for professional stage managers
             </p>
           </div>
           <div className="grid sm:grid-cols-2 gap-6 text-sm">
