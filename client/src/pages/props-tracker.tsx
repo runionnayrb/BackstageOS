@@ -254,81 +254,41 @@ export default function PropsTracker() {
 
   return (
     <div className="w-full">
-      {/* Desktop Header */}
-      <div className="hidden md:block">
-        <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLocation(`/shows/${projectId}`)}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to {project.name}
-            </Button>
-            
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="h-4 w-4" />
-              </Button>
-              
-              <Button onClick={() => setIsAddingProp(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Prop
-              </Button>
-            </div>
-          </div>
-          
-          <div className="mb-2">
-            <h1 className="text-3xl font-bold text-gray-900">Props</h1>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Header */}
-      <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
-        <div className="flex items-center justify-between">
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setLocation(`/shows/${projectId}`)}
-            className="text-gray-600 hover:text-gray-900 p-1"
+            className="text-gray-600 hover:text-gray-900"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to {project.name}
           </Button>
           
-          <h1 className="text-xl font-semibold text-gray-900">Props</h1>
-          
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
+              className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
               onClick={() => setShowFilters(!showFilters)}
-              className={`p-2 ${showFilters ? 'text-blue-600' : 'text-gray-600'}`}
             >
-              <Filter className="h-5 w-5" />
+              <Filter className="h-4 w-4" />
             </Button>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsAddingProp(true)}
-              className="text-blue-600 p-2"
-            >
-              <Plus className="h-5 w-5" />
+            <Button onClick={() => setIsAddingProp(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Prop
             </Button>
           </div>
         </div>
+        
+        <div className="mb-2">
+          <h1 className="text-3xl font-bold text-gray-900">Props</h1>
+        </div>
       </div>
 
-      {/* Desktop Content */}
-      <div className="hidden md:block px-4 sm:px-6 lg:px-8">
+      <div className="px-4 sm:px-6 lg:px-8">
         {/* Filters */}
         {showFilters && (
         <Card className="mb-6">
@@ -380,71 +340,9 @@ export default function PropsTracker() {
           </CardContent>
         </Card>
         )}
-      </div>
 
-      {/* Mobile Filters */}
-      {showFilters && (
-        <div className="md:hidden px-4 py-3 bg-gray-50 border-b border-gray-200">
-          <div className="space-y-3">
-            <div className="relative">
-              <Search className="h-4 w-4 absolute left-3 top-3 text-muted-foreground" />
-              <Input
-                placeholder="Search props..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  {statusOptions.map((status) => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={sceneFilter} onValueChange={setSceneFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Scene" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Scenes</SelectItem>
-                  {uniqueScenes.map((scene) => (
-                    <SelectItem key={scene} value={scene}>
-                      {scene}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {(searchTerm || statusFilter !== "all" || sceneFilter !== "all") && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="w-full"
-                onClick={() => {
-                  setSearchTerm("");
-                  setStatusFilter("all");
-                  setSceneFilter("all");
-                }}
-              >
-                Clear Filters
-              </Button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Desktop Content */}
-      <div className="hidden md:block px-4 sm:px-6 lg:px-8">
         {/* Desktop Props Table */}
-        <Card className="mb-6">
+        <Card className="mb-6 hidden md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -540,10 +438,9 @@ export default function PropsTracker() {
             </Table>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Mobile Props List */}
-      <div className="md:hidden px-4 space-y-1">
+        {/* Mobile Props List */}
+        <div className="md:hidden space-y-1">
         {filteredProps.length === 0 ? (
           <Card>
             <CardContent className="text-center py-8">
@@ -605,6 +502,7 @@ export default function PropsTracker() {
             );
           })
         )}
+        </div>
       </div>
 
       {/* Add/Edit Prop Dialog */}
