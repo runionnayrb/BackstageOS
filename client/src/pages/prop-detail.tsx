@@ -161,7 +161,7 @@ export default function PropDetail() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           
-          <h1 className="text-lg font-semibold text-gray-900 truncate mx-3">
+          <h1 className="text-xl font-semibold text-gray-900 truncate mx-3">
             {prop.name}
           </h1>
           
