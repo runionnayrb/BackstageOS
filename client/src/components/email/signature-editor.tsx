@@ -21,12 +21,19 @@ export function SignatureEditor({ accountId, initialSignature = '' }: SignatureE
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Initialize signature content only once
   useEffect(() => {
-    setSignature(initialSignature);
-    if (editorRef.current && editorRef.current.innerHTML !== initialSignature) {
-      editorRef.current.innerHTML = initialSignature;
+    if (initialSignature && signature !== initialSignature) {
+      setSignature(initialSignature);
     }
   }, [initialSignature]);
+
+  // Sync editor content when switching back to edit mode
+  useEffect(() => {
+    if (!isPreviewMode && editorRef.current && editorRef.current.innerHTML !== signature) {
+      editorRef.current.innerHTML = signature;
+    }
+  }, [isPreviewMode, signature]);
 
   const updateSignatureMutation = useMutation({
     mutationFn: async (signatureHtml: string) => {
@@ -91,9 +98,10 @@ export function SignatureEditor({ accountId, initialSignature = '' }: SignatureE
               variant="ghost"
               size="sm"
               onClick={() => {
-                // When switching from edit to preview, capture current content
+                // Capture current editor content before switching to preview
                 if (!isPreviewMode && editorRef.current) {
-                  setSignature(editorRef.current.innerHTML);
+                  const currentContent = editorRef.current.innerHTML;
+                  setSignature(currentContent);
                 }
                 setIsPreviewMode(!isPreviewMode);
               }}
