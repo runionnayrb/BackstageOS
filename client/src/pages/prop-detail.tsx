@@ -125,12 +125,9 @@ export default function PropDetail() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Calendar className="h-4 w-4" />
-                  <span>Act & Scene</span>
-                </div>
+                <span className="text-sm text-gray-500">Act & Scene</span>
                 <p className="font-medium">
                   {prop.act && prop.scene ? `Act ${prop.act}, Scene ${prop.scene}` : 
                    prop.act ? `Act ${prop.act}` : 
@@ -139,38 +136,22 @@ export default function PropDetail() {
               </div>
 
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <User className="h-4 w-4" />
-                  <span>Character</span>
-                </div>
+                <span className="text-sm text-gray-500">Character</span>
                 <p className="font-medium">{prop.character || "—"}</p>
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <MapPin className="h-4 w-4" />
-                  <span>Location</span>
-                </div>
+                <span className="text-sm text-gray-500">Location</span>
                 <p className="font-medium">{prop.location || "—"}</p>
               </div>
 
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <span className="text-lg">#</span>
-                  <span>Quantity</span>
-                </div>
+                <span className="text-sm text-gray-500">Quantity</span>
                 <p className="font-medium">{prop.quantity}</p>
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 gap-4">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <FileText className="h-4 w-4" />
-                  <span>Type</span>
-                </div>
+                <span className="text-sm text-gray-500">Type</span>
                 <p className="font-medium">
                   {prop.consumableType === 'consumable' ? 'Consumable' : 'Not Consumable'}
                 </p>
