@@ -117,21 +117,48 @@ export function GmailEmailComposer({
     return '';
   });
   
+  // Helper function to convert HTML signature to plain text
+  const htmlToPlainText = (html: string) => {
+    // Convert common HTML tags to plain text equivalents
+    return html
+      .replace(/<b>/g, '')
+      .replace(/<\/b>/g, '')
+      .replace(/<i>/g, '')
+      .replace(/<\/i>/g, '')
+      .replace(/<u>/g, '')
+      .replace(/<\/u>/g, '')
+      .replace(/<div>/g, '\n')
+      .replace(/<\/div>/g, '')
+      .replace(/<br>/g, '\n')
+      .replace(/<br\/>/g, '\n')
+      .replace(/<p>/g, '')
+      .replace(/<\/p>/g, '\n')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .trim();
+  };
+
   // Helper function to get content with signature
   const getContentWithSignature = (baseContent: string = '', signature: string = '') => {
     if (!signature) return baseContent;
     
+    // Convert HTML signature to plain text for textarea
+    const plainTextSignature = htmlToPlainText(signature);
+    
     // For compose mode, start with signature
     if (composeMode === 'compose' && !baseContent) {
-      return `\n\n${signature}`;
+      return `\n\n${plainTextSignature}`;
     }
     
     // For replies/forwards, append signature after the original content
     if (baseContent) {
-      return `${baseContent}\n\n${signature}`;
+      return `${baseContent}\n\n${plainTextSignature}`;
     }
     
-    return `\n\n${signature}`;
+    return `\n\n${plainTextSignature}`;
   };
 
   const [content, setContent] = useState(() => {
@@ -191,9 +218,14 @@ export function GmailEmailComposer({
     const signature = emailAccount.signature;
     console.log('Signature loaded:', signature);
     
-    // Check if signature is already included
-    if (content.includes(signature)) {
-      console.log('Signature already included in content');
+    // Convert HTML signature to plain text for checking
+    const plainTextSignature = htmlToPlainText(signature);
+    console.log('Plain text signature:', plainTextSignature);
+    console.log('Current content:', content);
+    
+    // Check if signature is already included (check both HTML and plain text versions)
+    if (content.includes(signature) || content.includes(plainTextSignature)) {
+      console.log('Signature already included in content (HTML check:', content.includes(signature), 'Plain text check:', content.includes(plainTextSignature), ')');
       return;
     }
     
