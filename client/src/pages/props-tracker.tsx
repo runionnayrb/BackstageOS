@@ -301,7 +301,7 @@ export default function PropsTracker() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           
-          <h1 className="text-lg font-semibold text-gray-900">Props</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Props</h1>
           
           <div className="flex items-center gap-1">
             <Button
