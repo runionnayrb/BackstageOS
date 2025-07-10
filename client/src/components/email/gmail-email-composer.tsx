@@ -25,6 +25,9 @@ interface GmailEmailComposerProps {
     subject: string;
     fromAddress: string;
     content: string;
+    toAddresses?: string[];
+    ccAddresses?: string[];
+    bccAddresses?: string[];
   };
   forwardMessage?: {
     id: string;
@@ -48,12 +51,51 @@ export function GmailEmailComposer({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Form state
-  const [toAddresses, setToAddresses] = useState<string>('');
-  const [ccAddresses, setCcAddresses] = useState<string>('');
-  const [bccAddresses, setBccAddresses] = useState<string>('');
-  const [showCc, setShowCc] = useState(false);
-  const [showBcc, setShowBcc] = useState(false);
+  // Helper function to get reply recipients based on mode
+  const getReplyRecipients = () => {
+    if (!replyToMessage) return { to: '', cc: '', bcc: '', showCc: false, showBcc: false };
+    
+    if (composeMode === 'reply') {
+      // For reply: send to original sender only
+      return {
+        to: replyToMessage.fromAddress,
+        cc: '',
+        bcc: '',
+        showCc: false,
+        showBcc: false
+      };
+    } else if (composeMode === 'replyAll') {
+      // For reply all: include original sender in To, and include all original recipients in CC
+      const originalTo = replyToMessage.toAddresses || [];
+      const originalCc = replyToMessage.ccAddresses || [];
+      
+      // Remove our own email from recipients to avoid self-reply
+      const filteredTo = originalTo.filter(addr => addr !== fromEmail);
+      const filteredCc = originalCc.filter(addr => addr !== fromEmail);
+      
+      // Combine all recipients (except sender) for CC
+      const allRecipients = [...filteredTo, ...filteredCc].filter(addr => addr !== replyToMessage.fromAddress);
+      
+      return {
+        to: replyToMessage.fromAddress,
+        cc: allRecipients.join(', '),
+        bcc: '',
+        showCc: allRecipients.length > 0,
+        showBcc: false
+      };
+    }
+    
+    return { to: '', cc: '', bcc: '', showCc: false, showBcc: false };
+  };
+
+  const replyRecipients = getReplyRecipients();
+
+  // Form state - initialize with reply recipients if applicable
+  const [toAddresses, setToAddresses] = useState<string>(replyRecipients.to);
+  const [ccAddresses, setCcAddresses] = useState<string>(replyRecipients.cc);
+  const [bccAddresses, setBccAddresses] = useState<string>(replyRecipients.bcc);
+  const [showCc, setShowCc] = useState(replyRecipients.showCc);
+  const [showBcc, setShowBcc] = useState(replyRecipients.showBcc);
   const [isAnimating, setIsAnimating] = useState(false);
   const [showExitDialog, setShowExitDialog] = useState(false);
   const [subject, setSubject] = useState(() => {
@@ -82,6 +124,16 @@ export function GmailEmailComposer({
       setIsAnimating(true);
     }
   }, [isOpen]);
+
+  // Update form fields when reply message or compose mode changes
+  useEffect(() => {
+    const newRecipients = getReplyRecipients();
+    setToAddresses(newRecipients.to);
+    setCcAddresses(newRecipients.cc);
+    setBccAddresses(newRecipients.bcc);
+    setShowCc(newRecipients.showCc);
+    setShowBcc(newRecipients.showBcc);
+  }, [replyToMessage, composeMode, fromEmail]);
 
   // Check if there's any content in the email
   const hasContent = () => {

@@ -99,6 +99,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [pendingDeleteAction, setPendingDeleteAction] = useState<{ messageIds: number[]; action: string; targetFolder?: string } | null>(null);
   const [forwardMessage, setForwardMessage] = useState<EmailMessage | null>(null);
+  const [replyMessage, setReplyMessage] = useState<EmailMessage | null>(null);
   const [composeMode, setComposeMode] = useState<'compose' | 'reply' | 'replyAll' | 'forward'>('compose');
   const queryClient = useQueryClient();
 
@@ -275,28 +276,34 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const handleReply = () => {
     if (!modalEmail) return;
     
-    // Close modal and open composer with reply data
+    // Set reply message data and compose mode
+    setReplyMessage(modalEmail);
+    setComposeMode('reply');
+    
+    // Close modal and open composer
     handleCloseEmailModal();
     
     if (onShowComposeChange) {
       onShowComposeChange(true);
     }
     
-    // TODO: Pass reply data to composer (subject with Re:, original message, etc.)
     console.log('Reply to:', modalEmail.subject);
   };
 
   const handleReplyAll = () => {
     if (!modalEmail) return;
     
-    // Close modal and open composer with reply all data
+    // Set reply message data and compose mode for reply all
+    setReplyMessage(modalEmail);
+    setComposeMode('replyAll');
+    
+    // Close modal and open composer
     handleCloseEmailModal();
     
     if (onShowComposeChange) {
       onShowComposeChange(true);
     }
     
-    // TODO: Pass reply all data to composer (include all recipients)
     console.log('Reply All to:', modalEmail.subject);
   };
 
@@ -753,12 +760,22 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
           onClose={() => {
             onShowComposeChange?.(false);
             onShowTheaterFeaturesChange?.(false);
-            // Reset forward message and compose mode when closing
+            // Reset all message data and compose mode when closing
             setForwardMessage(null);
+            setReplyMessage(null);
             setComposeMode('compose');
           }}
           fromAccountId={selectedAccount.id}
           fromEmail={selectedAccount.emailAddress}
+          replyToMessage={replyMessage ? {
+            id: String(replyMessage.id),
+            subject: replyMessage.subject || '',
+            fromAddress: replyMessage.fromAddress || '',
+            content: replyMessage.content || '',
+            toAddresses: replyMessage.toAddresses || [],
+            ccAddresses: replyMessage.ccAddresses || [],
+            bccAddresses: replyMessage.bccAddresses || []
+          } : undefined}
           forwardMessage={forwardMessage ? {
             id: String(forwardMessage.id),
             subject: forwardMessage.subject || '',
