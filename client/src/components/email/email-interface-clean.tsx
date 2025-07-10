@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -117,6 +117,19 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     direction: null
   });
   
+  // Long press state for selection mode
+  const [longPressState, setLongPressState] = useState<{
+    messageId: number | null;
+    timer: NodeJS.Timeout | null;
+    startTime: number;
+    triggered: boolean;
+  }>({
+    messageId: null,
+    timer: null,
+    startTime: 0,
+    triggered: false
+  });
+  
   // Keep track of revealed action states
   const [revealedActions, setRevealedActions] = useState<{
     messageId: number | null;
@@ -130,11 +143,47 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const [composeMode, setComposeMode] = useState<'compose' | 'reply' | 'replyAll' | 'forward'>('compose');
   const queryClient = useQueryClient();
 
-  // Mobile swipe handlers
+  // Cleanup long press timer on unmount
+  useEffect(() => {
+    return () => {
+      if (longPressState.timer) {
+        clearTimeout(longPressState.timer);
+      }
+    };
+  }, [longPressState.timer]);
+
+  // Mobile swipe handlers with long press detection
   const handleTouchStart = (e: React.TouchEvent, messageId: number) => {
     if (isSelectionMode) return;
     
     const touch = e.touches[0];
+    const startTime = Date.now();
+    
+    // Clear any existing long press timer
+    if (longPressState.timer) {
+      clearTimeout(longPressState.timer);
+    }
+    
+    // Set up long press timer (500ms for long press)
+    const timer = setTimeout(() => {
+      // Trigger selection mode and select the current message
+      setIsSelectionMode(true);
+      setSelectedMessages(new Set([messageId]));
+      setLongPressState(prev => ({ ...prev, triggered: true }));
+      
+      // Add haptic feedback if available
+      if (navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    }, 500);
+    
+    setLongPressState({
+      messageId,
+      timer,
+      startTime,
+      triggered: false
+    });
+    
     setSwipeState({
       messageId,
       startX: touch.clientX,
@@ -151,6 +200,12 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     const deltaX = touch.clientX - swipeState.startX;
     const direction = deltaX < 0 ? 'left' : 'right';
     
+    // Cancel long press if the user moves their finger (indicating swipe gesture)
+    if (Math.abs(deltaX) > 10 && longPressState.timer && !longPressState.triggered) {
+      clearTimeout(longPressState.timer);
+      setLongPressState(prev => ({ ...prev, timer: null }));
+    }
+    
     setSwipeState(prev => ({
       ...prev,
       currentX: touch.clientX,
@@ -164,6 +219,19 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   };
 
   const handleTouchEnd = (e: React.TouchEvent) => {
+    // Clean up long press timer
+    if (longPressState.timer) {
+      clearTimeout(longPressState.timer);
+      setLongPressState(prev => ({ ...prev, timer: null }));
+    }
+    
+    // If long press was triggered, don't process swipe actions
+    if (longPressState.triggered) {
+      setLongPressState(prev => ({ ...prev, triggered: false, messageId: null }));
+      setSwipeState(prev => ({ ...prev, isDragging: false, messageId: null }));
+      return;
+    }
+    
     if (!swipeState.isDragging || !swipeState.messageId || isSelectionMode) {
       setSwipeState(prev => ({ ...prev, isDragging: false, messageId: null }));
       return;
@@ -570,59 +638,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
           </div>
         )}
 
-        {/* Mobile Bulk Actions Bar - Fixed at bottom when in selection mode */}
-        {isSelectionMode && selectedMessages.size > 0 && (
-          <div className="md:hidden fixed bottom-0 left-0 right-0 bg-blue-50 border-t border-blue-200 p-4 z-50">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-blue-900">
-                {selectedMessages.size} selected
-              </span>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleBulkAction('mark-read')}
-                  disabled={bulkActionMutation.isPending}
-                  className="h-8 px-2 text-xs"
-                >
-                  <MailOpen className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setBulkMoveDropdownOpen(!bulkMoveDropdownOpen)}
-                  disabled={bulkActionMutation.isPending}
-                  className="h-8 px-2 text-xs"
-                >
-                  <FolderOpen className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleBulkAction('archive')}
-                  disabled={bulkActionMutation.isPending}
-                  className="h-8 px-2 text-xs"
-                >
-                  <Archive className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleBulkAction('delete')}
-                  disabled={bulkActionMutation.isPending}
-                  className="h-8 px-2 text-xs text-red-600"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Mobile Selection Header */}
         <div className="md:hidden">
           {isSelectionMode ? (
-            <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+            <div className="bg-white border-b border-gray-200 px-4 py-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Button
@@ -633,14 +652,55 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   >
                     <X className="h-4 w-4" />
                   </Button>
-                  <Checkbox
-                    checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
-                    onCheckedChange={toggleSelectAll}
-                  />
-                  <span className="text-sm font-medium">
-                    {selectedMessages.size} of {filteredMessages.length}
+                  <span className="text-lg font-medium">
+                    {selectedMessages.size}
                   </span>
                 </div>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleBulkAction('archive')}
+                    disabled={bulkActionMutation.isPending || selectedMessages.size === 0}
+                    className="h-9 w-9 p-0"
+                  >
+                    <Archive className="h-5 w-5 text-blue-600" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleBulkAction('delete')}
+                    disabled={bulkActionMutation.isPending || selectedMessages.size === 0}
+                    className="h-9 w-9 p-0"
+                  >
+                    <Trash2 className="h-5 w-5 text-blue-600" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleBulkAction('mark-read')}
+                    disabled={bulkActionMutation.isPending || selectedMessages.size === 0}
+                    className="h-9 w-9 p-0"
+                  >
+                    <MailOpen className="h-5 w-5 text-blue-600" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 w-9 p-0"
+                  >
+                    <span className="text-blue-600">⋯</span>
+                  </Button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <Checkbox
+                  checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+                <span className="text-sm text-blue-600 font-medium">
+                  Select all
+                </span>
               </div>
             </div>
           ) : (
@@ -660,7 +720,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         </div>
 
         {/* Content Area - Mobile Responsive */}
-        <div className={`pt-0 h-full ${isSelectionMode && selectedMessages.size > 0 ? 'md:pt-28 pb-20' : 'md:pt-16'}`}>
+        <div className={`pt-0 h-full ${isSelectionMode && selectedMessages.size > 0 ? 'md:pt-28' : 'md:pt-16'}`}>
           {/* Full-Width Email List */}
           <ScrollArea className="h-full">
             <div className="space-y-0">
