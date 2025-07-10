@@ -4,7 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Type, Palette, Hash, List, ListOrdered, Heading1, Heading2, Heading3 } from "lucide-react";
+import { Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Type, Palette, Hash, List, ListOrdered, Heading1, Heading2, Heading3, Image } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 interface RichTextEditorProps {
   content: string;
@@ -26,8 +28,11 @@ export function RichTextEditor({
   onPageNumberFormatChange
 }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontSize, setShowFontSize] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (editorRef.current && editorRef.current.innerHTML !== content) {
@@ -218,6 +223,101 @@ export function RichTextEditor({
       
       handleInput();
     }
+  };
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file (PNG, JPG, GIF, etc.)",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Please select an image smaller than 5MB",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsUploadingImage(true);
+
+    try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('image', file);
+
+      // Upload image to server
+      const response = await fetch('/api/upload/image', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      const { imageUrl } = await response.json();
+
+      // Insert image into editor at cursor position
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        
+        // Create image element
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.style.display = 'block';
+        img.style.margin = '8px 0';
+        img.alt = file.name;
+
+        // Insert image
+        range.deleteContents();
+        range.insertNode(img);
+        
+        // Move cursor after image
+        range.setStartAfter(img);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+        
+        handleInput();
+      }
+
+      toast({
+        title: "Image uploaded",
+        description: "Image has been inserted into your email",
+      });
+
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      toast({
+        title: "Upload failed",
+        description: "Failed to upload image. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploadingImage(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const triggerImageUpload = () => {
+    fileInputRef.current?.click();
   };
 
 
@@ -443,6 +543,19 @@ export function RichTextEditor({
           )}
         </div>
 
+        {/* Image upload */}
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={triggerImageUpload}
+          disabled={isUploadingImage}
+          className="h-8 w-8 p-0"
+          title="Insert Image"
+        >
+          <Image className="h-4 w-4" />
+        </Button>
+
         <div className="w-px h-6 bg-gray-300 mx-1" />
 
         {/* Variable insertion */}
@@ -535,6 +648,15 @@ export function RichTextEditor({
         }}
         data-placeholder={placeholder}
         suppressContentEditableWarning={true}
+      />
+
+      {/* Hidden file input for image upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleImageUpload}
+        className="hidden"
       />
 
       {/* Click outside to close dropdowns */}

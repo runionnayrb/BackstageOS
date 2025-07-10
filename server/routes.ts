@@ -19,6 +19,38 @@ import { ErrorClusteringService } from "./errorClusteringService";
 import { z } from "zod";
 import sgMail from "@sendgrid/mail";
 
+// Configure multer for image uploads
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadDir = path.join(__dirname, '../uploads');
+      // Ensure uploads directory exists
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      // Generate unique filename with timestamp
+      const timestamp = Date.now();
+      const extension = path.extname(file.originalname);
+      const name = `image-${timestamp}${extension}`;
+      cb(null, name);
+    }
+  }),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Only allow image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
+
 // Error analysis and fixing logic - moved after helper functions
 
 function analyzeAndFixError(errorLog: any) {
@@ -804,6 +836,41 @@ Respond with valid JSON only.`;
       res.json(response);
     } catch (error) {
       console.error('Image upload error:', error);
+      
+      // Clean up uploaded file on error
+      if (req.file?.path && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      res.status(500).json({ error: 'Upload failed' });
+    }
+  });
+
+  // Rich text editor image upload endpoint
+  app.post('/api/upload-rich-text-image', isAuthenticated, requireAdmin, upload.single('image'), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      const fileExtension = path.extname(req.file.originalname);
+      const fileName = `rich-text-image-${Date.now()}${fileExtension}`;
+      const newPath = path.join(uploadsDir, fileName);
+      
+      // Move file to permanent location
+      fs.renameSync(req.file.path, newPath);
+
+      // Generate absolute URL for embedding in emails
+      const protocol = req.protocol;
+      const host = req.get('host');
+      const imageUrl = `${protocol}://${host}/uploads/${fileName}`;
+      
+      res.json({ 
+        url: imageUrl,
+        filename: fileName 
+      });
+    } catch (error) {
+      console.error('Rich text image upload error:', error);
       
       // Clean up uploaded file on error
       if (req.file?.path && fs.existsSync(req.file.path)) {
