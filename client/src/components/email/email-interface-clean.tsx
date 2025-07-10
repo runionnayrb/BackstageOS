@@ -69,72 +69,22 @@ const getEmailAddress = (emailAddress: string): string => {
   return emailAddress;
 };
 
-// Contact Preview Component
+// Simple name display with tooltip showing email address
 interface ContactPreviewProps {
   emailAddress: string;
   children: React.ReactNode;
 }
 
 function ContactPreview({ emailAddress, children }: ContactPreviewProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const displayName = getDisplayName(emailAddress);
   const cleanEmail = getEmailAddress(emailAddress);
   
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
-      <PopoverTrigger asChild>
-        <div 
-          className="hover:text-blue-600 transition-colors cursor-pointer inline-block"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsOpen(true);
-          }}
-        >
-          {children}
-        </div>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-4" align="start">
-        <div className="flex items-start gap-3">
-          <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-lg">
-            {displayName.charAt(0).toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-gray-900 truncate">{displayName}</h3>
-            <p className="text-sm text-gray-600 truncate">{cleanEmail}</p>
-            <div className="flex gap-2 mt-3">
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  window.location.href = `mailto:${cleanEmail}`;
-                  setIsOpen(false);
-                }}
-                className="h-8 px-3 text-xs"
-              >
-                <Mail className="h-3 w-3 mr-1" />
-                Email
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline"
-                className="h-8 px-3 text-xs"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsOpen(false);
-                }}
-              >
-                <User className="h-3 w-3 mr-1" />
-                Add Contact
-              </Button>
-            </div>
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
+    <span 
+      className="hover:text-blue-600 transition-colors cursor-help"
+      title={cleanEmail}
+    >
+      {children}
+    </span>
   );
 }
 
@@ -636,11 +586,13 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                           </div>
                           
                           <div className="flex flex-col gap-0.5 text-xs md:text-sm text-gray-500">
-                            <ContactPreview emailAddress={message.fromAddress || ''}>
-                              <span className="truncate font-medium hover:text-blue-600 transition-colors">
-                                {getDisplayName(message.fromAddress || '')}
-                              </span>
-                            </ContactPreview>
+                            <span className="truncate font-medium">
+                              <ContactPreview emailAddress={message.fromAddress || ''}>
+                                <span className="hover:text-blue-600 transition-colors cursor-pointer">
+                                  {getDisplayName(message.fromAddress || '')}
+                                </span>
+                              </ContactPreview>
+                            </span>
                             <span className="truncate text-xs opacity-75 md:hidden">{message.content?.slice(0, 50) || 'No preview'}</span>
                             <span className="truncate text-sm opacity-75 hidden md:block">{message.content?.slice(0, 80) || 'No content preview'}</span>
                           </div>
@@ -769,7 +721,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
               <div className="mb-6">
                 <div className="flex items-center gap-2">
                   <ContactPreview emailAddress={modalEmail.fromAddress || ''}>
-                    <span className="font-medium text-gray-900 hover:text-blue-600 transition-colors cursor-pointer">
+                    <span className="font-medium text-gray-900">
                       {getDisplayName(modalEmail.fromAddress || '')}
                     </span>
                   </ContactPreview>
