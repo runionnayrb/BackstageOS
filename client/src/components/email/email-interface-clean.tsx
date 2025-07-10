@@ -709,7 +709,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       isSelectionMode && selectedMessages.has(message.id) ? 'bg-blue-50' : ''
                     }`}
                     style={{
-                      transform: isCurrentSwipe ? `translateX(${Math.max(-100, Math.min(100, swipeDistance))}px)` : 'translateX(0)',
+                      transform: isCurrentSwipe ? `translateX(${Math.max(-160, Math.min(100, swipeDistance))}px)` : 'translateX(0)',
                     }}
                   >
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-1 md:gap-0">
