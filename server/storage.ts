@@ -714,7 +714,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateContact(id: number, contact: Partial<InsertContact>): Promise<Contact> {
-    const result = await db.update(contacts).set(contact).where(eq(contacts.id, id)).returning();
+    const result = await db.update(contacts)
+      .set({ ...contact, updatedAt: new Date() })
+      .where(eq(contacts.id, id))
+      .returning();
     return result[0];
   }
 
