@@ -1,9 +1,16 @@
 import { useAuth } from "@/hooks/useAuth";
 import { useParams, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { 
   ArrowLeft, 
   MapPin, 
@@ -51,6 +58,23 @@ export default function PropDetail() {
   const params = useParams<PropDetailParams>();
   const projectId = params.id;
   const propId = params.propId;
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    character: '',
+    act: '',
+    scene: '',
+    quantity: 1,
+    consumableType: 'not_consumable' as 'not_consumable' | 'consumable',
+    description: '',
+    notes: '',
+    sourcingNotes: '',
+    status: 'needed' as 'needed' | 'pulled' | 'rehearsal' | 'performance' | 'returned',
+    location: ''
+  });
 
   const { data: projects, isLoading: projectsLoading } = useQuery({
     queryKey: ["/api/projects"],
@@ -64,6 +88,50 @@ export default function PropDetail() {
 
   const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId || '0')) : null;
   const prop = Array.isArray(props) ? props.find((p: Prop) => p.id === parseInt(propId || '0')) : null;
+
+  const editMutation = useMutation({
+    mutationFn: async (propData: any) => {
+      return apiRequest('PUT', `/api/projects/${projectId}/props/${propId}`, propData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "props"] });
+      toast({
+        title: "Success",
+        description: "Prop updated successfully",
+      });
+      setIsEditModalOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to update prop",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEdit = () => {
+    if (prop) {
+      setEditForm({
+        name: prop.name || '',
+        character: prop.character || '',
+        act: prop.act || '',
+        scene: prop.scene || '',
+        quantity: prop.quantity || 1,
+        consumableType: prop.consumableType || 'not_consumable',
+        description: prop.description || '',
+        notes: prop.notes || '',
+        sourcingNotes: prop.sourcingNotes || '',
+        status: prop.status || 'needed',
+        location: prop.location || ''
+      });
+      setIsEditModalOpen(true);
+    }
+  };
+
+  const handleSave = () => {
+    editMutation.mutate(editForm);
+  };
 
   const getStatusInfo = (status: string) => {
     return statusOptions.find(s => s.value === status) || statusOptions[0];
@@ -100,7 +168,7 @@ export default function PropDetail() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation(`/shows/${projectId}/props`)} // In a real app, this would open an edit modal
+            onClick={handleEdit}
             className="text-blue-600 hover:text-blue-700 p-1"
           >
             <Edit3 className="h-5 w-5" />
@@ -198,6 +266,138 @@ export default function PropDetail() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="max-w-md mx-auto max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Prop</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Name */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name</label>
+              <Input
+                value={editForm.name}
+                onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Prop name"
+              />
+            </div>
+
+            {/* Character */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Character</label>
+              <Input
+                value={editForm.character}
+                onChange={(e) => setEditForm(prev => ({ ...prev, character: e.target.value }))}
+                placeholder="Character name"
+              />
+            </div>
+
+            {/* Act */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Act</label>
+              <Input
+                value={editForm.act}
+                onChange={(e) => setEditForm(prev => ({ ...prev, act: e.target.value }))}
+                placeholder="Act number"
+              />
+            </div>
+
+            {/* Scene */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Scene</label>
+              <Input
+                value={editForm.scene}
+                onChange={(e) => setEditForm(prev => ({ ...prev, scene: e.target.value }))}
+                placeholder="Scene number"
+              />
+            </div>
+
+            {/* Quantity */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Quantity</label>
+              <Input
+                type="number"
+                min="1"
+                value={editForm.quantity}
+                onChange={(e) => setEditForm(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
+              />
+            </div>
+
+            {/* Type */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Type</label>
+              <Select
+                value={editForm.consumableType}
+                onValueChange={(value: 'not_consumable' | 'consumable') => 
+                  setEditForm(prev => ({ ...prev, consumableType: value }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="not_consumable">Not Consumable</SelectItem>
+                  <SelectItem value="consumable">Consumable</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
+              <Textarea
+                value={editForm.description}
+                onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Description"
+                rows={3}
+              />
+            </div>
+
+            {/* Sourcing Notes */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Sourcing Notes</label>
+              <Textarea
+                value={editForm.sourcingNotes}
+                onChange={(e) => setEditForm(prev => ({ ...prev, sourcingNotes: e.target.value }))}
+                placeholder="Sourcing notes"
+                rows={3}
+              />
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Notes</label>
+              <Textarea
+                value={editForm.notes}
+                onChange={(e) => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Additional notes"
+                rows={3}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setIsEditModalOpen(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={editMutation.isPending}
+                className="flex-1"
+              >
+                {editMutation.isPending ? "Saving..." : "Save"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
