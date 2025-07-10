@@ -98,10 +98,109 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [pendingDeleteAction, setPendingDeleteAction] = useState<{ messageIds: number[]; action: string; targetFolder?: string } | null>(null);
+  
+  // Mobile swipe state
+  const [swipeState, setSwipeState] = useState<{
+    messageId: number | null;
+    startX: number;
+    currentX: number;
+    isDragging: boolean;
+    direction: 'left' | 'right' | null;
+  }>({
+    messageId: null,
+    startX: 0,
+    currentX: 0,
+    isDragging: false,
+    direction: null
+  });
   const [forwardMessage, setForwardMessage] = useState<EmailMessage | null>(null);
   const [replyMessage, setReplyMessage] = useState<EmailMessage | null>(null);
   const [composeMode, setComposeMode] = useState<'compose' | 'reply' | 'replyAll' | 'forward'>('compose');
   const queryClient = useQueryClient();
+
+  // Mobile swipe handlers
+  const handleTouchStart = (e: React.TouchEvent, messageId: number) => {
+    if (isSelectionMode) return;
+    
+    const touch = e.touches[0];
+    setSwipeState({
+      messageId,
+      startX: touch.clientX,
+      currentX: touch.clientX,
+      isDragging: true,
+      direction: null
+    });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!swipeState.isDragging || isSelectionMode) return;
+    
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - swipeState.startX;
+    const direction = deltaX < 0 ? 'left' : 'right';
+    
+    setSwipeState(prev => ({
+      ...prev,
+      currentX: touch.clientX,
+      direction
+    }));
+    
+    // Prevent scrolling during swipe
+    if (Math.abs(deltaX) > 10) {
+      e.preventDefault();
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!swipeState.isDragging || !swipeState.messageId || isSelectionMode) {
+      setSwipeState(prev => ({ ...prev, isDragging: false, messageId: null }));
+      return;
+    }
+    
+    const deltaX = swipeState.currentX - swipeState.startX;
+    const swipeThreshold = 100; // Minimum distance to trigger action
+    const fullSwipeThreshold = 200; // Distance for full swipe action
+    
+    if (Math.abs(deltaX) >= swipeThreshold) {
+      if (deltaX < -swipeThreshold) {
+        // Swipe left - archive or move
+        if (Math.abs(deltaX) >= fullSwipeThreshold) {
+          // Full swipe left - archive immediately
+          bulkActionMutation.mutate({
+            messageIds: [swipeState.messageId],
+            action: 'archive',
+            accountId: selectedAccount.id,
+            targetFolder: 'archive'
+          });
+        } else {
+          // Partial swipe left - show action options
+          // For now, just archive
+          bulkActionMutation.mutate({
+            messageIds: [swipeState.messageId],
+            action: 'archive',
+            accountId: selectedAccount.id,
+            targetFolder: 'archive'
+          });
+        }
+      } else if (deltaX > swipeThreshold) {
+        // Swipe right - mark as unread
+        bulkActionMutation.mutate({
+          messageIds: [swipeState.messageId],
+          action: 'mark-unread',
+          accountId: selectedAccount.id
+        });
+      }
+    }
+    
+    // Reset swipe state
+    setSwipeState({
+      messageId: null,
+      startX: 0,
+      currentX: 0,
+      isDragging: false,
+      direction: null
+    });
+  };
 
   // Mark email as read mutation
   const markAsReadMutation = useMutation({
@@ -555,20 +654,53 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   Error loading messages
                 </div>
               )}
-              {filteredMessages.map((message: EmailMessage) => (
-                <button
+              {filteredMessages.map((message: EmailMessage) => {
+                const isCurrentSwipe = swipeState.messageId === message.id;
+                const swipeDistance = isCurrentSwipe ? swipeState.currentX - swipeState.startX : 0;
+                const showLeftAction = isCurrentSwipe && swipeDistance < -50;
+                const showRightAction = isCurrentSwipe && swipeDistance > 50;
+                
+                return (
+                <div
                   key={message.id}
-                  onClick={() => {
-                    if (isSelectionMode) {
-                      toggleSelectMessage(message.id);
-                    } else {
-                      handleEmailClick(message);
-                    }
-                  }}
-                  className={`w-full block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group px-3 md:px-4 py-2 md:py-3 border-b border-gray-100 ${
-                    isSelectionMode && selectedMessages.has(message.id) ? 'bg-blue-50' : ''
-                  }`}
+                  className="relative overflow-hidden"
                 >
+                  {/* Background actions that appear during swipe */}
+                  {isCurrentSwipe && (
+                    <>
+                      {/* Right swipe background - Mark as unread */}
+                      {showRightAction && (
+                        <div className="absolute inset-y-0 left-0 w-20 bg-blue-500 flex items-center justify-center">
+                          <Mail className="h-5 w-5 text-white" />
+                        </div>
+                      )}
+                      {/* Left swipe background - Archive */}
+                      {showLeftAction && (
+                        <div className="absolute inset-y-0 right-0 w-20 bg-green-500 flex items-center justify-center">
+                          <Archive className="h-5 w-5 text-white" />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  
+                  <button
+                    onClick={() => {
+                      if (isSelectionMode) {
+                        toggleSelectMessage(message.id);
+                      } else {
+                        handleEmailClick(message);
+                      }
+                    }}
+                    onTouchStart={(e) => handleTouchStart(e, message.id)}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                    className={`w-full block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group px-3 md:px-4 py-2 md:py-3 border-b border-gray-100 transition-transform duration-100 ${
+                      isSelectionMode && selectedMessages.has(message.id) ? 'bg-blue-50' : ''
+                    }`}
+                    style={{
+                      transform: isCurrentSwipe ? `translateX(${Math.max(-100, Math.min(100, swipeDistance))}px)` : 'translateX(0)',
+                    }}
+                  >
                   <div className="flex flex-col md:flex-row md:items-start justify-between gap-1 md:gap-0">
                     {/* Left side - Content */}
                     <div className="flex-1 min-w-0">
@@ -653,7 +785,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     </div>
                   </div>
                 </button>
-              ))}
+                </div>
+              );
+              })}
             </div>
           </ScrollArea>
         </div>
