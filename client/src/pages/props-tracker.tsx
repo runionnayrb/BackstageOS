@@ -33,6 +33,7 @@ interface Prop {
   id: number;
   name: string;
   description: string;
+  act: string;
   scene: string;
   character: string;
   location: string;
@@ -70,6 +71,7 @@ export default function PropsTracker() {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    act: "",
     scene: "",
     character: "",
     location: "",
@@ -174,6 +176,7 @@ export default function PropsTracker() {
     setFormData({
       name: "",
       description: "",
+      act: "",
       scene: "",
       character: "",
       location: "",
@@ -196,7 +199,8 @@ export default function PropsTracker() {
     setFormData({
       name: prop.name,
       description: prop.description,
-      scene: prop.scene,
+      act: prop.act || "",
+      scene: prop.scene || "",
       character: prop.character,
       location: prop.location,
       status: prop.status,
@@ -478,7 +482,11 @@ export default function PropsTracker() {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium">{prop.scene}</div>
+                            <div className="font-medium">
+                              {prop.act && prop.scene ? `Act ${prop.act}, Scene ${prop.scene}` : 
+                               prop.act ? `Act ${prop.act}` : 
+                               prop.scene ? `Scene ${prop.scene}` : '—'}
+                            </div>
                             <div className="text-sm text-muted-foreground">{prop.character}</div>
                           </div>
                         </TableCell>
@@ -563,8 +571,12 @@ export default function PropsTracker() {
                         {prop.character && (
                           <span className="font-medium">{prop.character}</span>
                         )}
-                        {prop.scene && (
-                          <span>{prop.scene}</span>
+                        {(prop.act || prop.scene) && (
+                          <span>
+                            {prop.act && prop.scene ? `Act ${prop.act}, Scene ${prop.scene}` : 
+                             prop.act ? `Act ${prop.act}` : 
+                             prop.scene ? `Scene ${prop.scene}` : ''}
+                          </span>
                         )}
                       </div>
                       
@@ -629,11 +641,19 @@ export default function PropsTracker() {
                 />
               </div>
               <div>
+                <label className="text-sm font-medium">Act</label>
+                <Input
+                  value={formData.act}
+                  onChange={(e) => setFormData({...formData, act: e.target.value})}
+                  placeholder="e.g., 1, I, Act 1"
+                />
+              </div>
+              <div>
                 <label className="text-sm font-medium">Scene</label>
                 <Input
                   value={formData.scene}
                   onChange={(e) => setFormData({...formData, scene: e.target.value})}
-                  placeholder="e.g., Act 1 Scene 2"
+                  placeholder="e.g., 1, 2, Scene 1"
                 />
               </div>
               <div>

@@ -23,6 +23,7 @@ interface Prop {
   id: number;
   name: string;
   description: string;
+  act: string;
   scene: string;
   character: string;
   location: string;
@@ -131,9 +132,13 @@ export default function PropDetail() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm text-gray-500">
                   <Calendar className="h-4 w-4" />
-                  <span>Scene</span>
+                  <span>Act & Scene</span>
                 </div>
-                <p className="font-medium">{prop.scene || "—"}</p>
+                <p className="font-medium">
+                  {prop.act && prop.scene ? `Act ${prop.act}, Scene ${prop.scene}` : 
+                   prop.act ? `Act ${prop.act}` : 
+                   prop.scene ? `Scene ${prop.scene}` : '—'}
+                </p>
               </div>
 
               <div className="space-y-1">

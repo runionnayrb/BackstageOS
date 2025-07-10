@@ -261,7 +261,8 @@ export const props = pgTable("props", {
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
   name: varchar("name").notNull(),
   description: text("description"),
-  scene: varchar("scene"),
+  act: varchar("act"), // Act number (e.g., "1", "2", "Act I", "Act II")
+  scene: varchar("scene"), // Scene number within act (e.g., "1", "2", "Scene 1", "Scene 2")
   character: varchar("character"),
   location: varchar("location"),
   status: varchar("status").notNull().default("needed"), // needed, pulled, rehearsal, performance, returned
