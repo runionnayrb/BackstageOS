@@ -42,6 +42,7 @@ interface Prop {
   quantity: number;
   sourcingNotes: string;
   imageUrl?: string;
+  consumableType: 'not_consumable' | 'consumable';
   createdAt: string;
   updatedAt: string;
 }
@@ -52,6 +53,11 @@ const statusOptions = [
   { value: 'rehearsal', label: 'In Rehearsal', color: 'bg-blue-100 text-blue-800' },
   { value: 'performance', label: 'In Performance', color: 'bg-green-100 text-green-800' },
   { value: 'returned', label: 'Returned', color: 'bg-gray-100 text-gray-800' },
+];
+
+const consumableOptions = [
+  { value: 'not_consumable', label: 'Not Consumable' },
+  { value: 'consumable', label: 'Consumable' },
 ];
 
 export default function PropsTracker() {
@@ -79,6 +85,7 @@ export default function PropsTracker() {
     notes: "",
     quantity: 1,
     sourcingNotes: "",
+    consumableType: "not_consumable" as const,
   });
 
   // Redirect to home if not authenticated
@@ -184,6 +191,7 @@ export default function PropsTracker() {
       notes: "",
       quantity: 1,
       sourcingNotes: "",
+      consumableType: "not_consumable",
     });
   };
 
@@ -207,6 +215,7 @@ export default function PropsTracker() {
       notes: prop.notes,
       quantity: prop.quantity,
       sourcingNotes: prop.sourcingNotes,
+      consumableType: prop.consumableType || "not_consumable",
     });
     setEditingProp(prop);
   };
@@ -682,6 +691,21 @@ export default function PropsTracker() {
                     {statusOptions.map((status) => (
                       <SelectItem key={status.value} value={status.value}>
                         {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Type</label>
+                <Select value={formData.consumableType} onValueChange={(value: any) => setFormData({...formData, consumableType: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {consumableOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -270,6 +270,7 @@ export const props = pgTable("props", {
   quantity: integer("quantity").default(1),
   sourcingNotes: text("sourcing_notes"),
   imageUrl: varchar("image_url"),
+  consumableType: varchar("consumable_type").notNull().default("not_consumable"), // not_consumable, consumable
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

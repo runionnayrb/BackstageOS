@@ -32,6 +32,7 @@ interface Prop {
   quantity: number;
   sourcingNotes: string;
   imageUrl?: string;
+  consumableType: 'not_consumable' | 'consumable';
   createdAt: string;
   updatedAt: string;
 }
@@ -165,6 +166,18 @@ export default function PropDetail() {
                   <span>Quantity</span>
                 </div>
                 <p className="font-medium">{prop.quantity}</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <FileText className="h-4 w-4" />
+                  <span>Type</span>
+                </div>
+                <p className="font-medium">
+                  {prop.consumableType === 'consumable' ? 'Consumable' : 'Not Consumable'}
+                </p>
               </div>
             </div>
           </CardContent>
