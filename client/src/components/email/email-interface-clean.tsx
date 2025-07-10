@@ -679,16 +679,16 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                       {/* Left swipe backgrounds - Move folder then Archive */}
                       {showMoveAction && (
                         <div className="absolute inset-y-0 right-0 flex">
-                          {/* Move folder option - appears first */}
-                          <div className="w-20 bg-orange-500 flex items-center justify-center">
-                            <Folder className="h-5 w-5 text-white" />
-                          </div>
-                          {/* Archive option - appears with longer swipe */}
+                          {/* Archive option - appears with longer swipe (rightmost) */}
                           {showArchiveAction && (
                             <div className="w-20 bg-green-500 flex items-center justify-center">
                               <Archive className="h-5 w-5 text-white" />
                             </div>
                           )}
+                          {/* Move folder option - appears first (leftmost when both visible) */}
+                          <div className="w-20 bg-orange-500 flex items-center justify-center">
+                            <Folder className="h-5 w-5 text-white" />
+                          </div>
                         </div>
                       )}
                     </>
