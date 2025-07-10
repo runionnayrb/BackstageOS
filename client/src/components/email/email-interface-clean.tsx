@@ -653,17 +653,12 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
               </h1>
               
               {/* Sender Info */}
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium">
-                  {modalEmail.fromAddress?.charAt(0)?.toUpperCase() || 'U'}
+              <div className="mb-6">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-900">{modalEmail.fromAddress}</span>
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-gray-900">{modalEmail.fromAddress}</span>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {modalEmail.dateSent ? new Date(modalEmail.dateSent).toLocaleString() : ''}
-                  </div>
+                <div className="text-sm text-gray-500">
+                  {modalEmail.dateSent ? new Date(modalEmail.dateSent).toLocaleString() : ''}
                 </div>
               </div>
 
