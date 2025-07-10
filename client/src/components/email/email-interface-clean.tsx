@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2, Check, X, Mail, MailOpen, FolderOpen } from 'lucide-react';
+import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2, Check, X, Mail, MailOpen, FolderOpen, User } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { EmailAccountConfig } from './email-account-config';
 import { GmailEmailComposer } from './gmail-email-composer';
@@ -27,6 +28,96 @@ interface EmailInterfaceProps {
   activeFolder?: string;
   showTheaterFeatures?: boolean;
   onShowTheaterFeaturesChange?: (show: boolean) => void;
+}
+
+// Utility function to extract display name from email address
+const getDisplayName = (emailAddress: string): string => {
+  if (!emailAddress) return 'Unknown';
+  
+  // Check if email has display name format: "Display Name <email@domain.com>"
+  const displayNameMatch = emailAddress.match(/^(.+?)\s*<.*>$/);
+  if (displayNameMatch) {
+    return displayNameMatch[1].replace(/['"]/g, '').trim();
+  }
+  
+  // Extract name from email address before @ symbol
+  const localPart = emailAddress.split('@')[0];
+  
+  // Handle common name patterns
+  const nameParts = localPart.split(/[._-]/);
+  if (nameParts.length >= 2) {
+    // Capitalize first letter of each part
+    return nameParts
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
+  }
+  
+  // Single name - capitalize first letter
+  return localPart.charAt(0).toUpperCase() + localPart.slice(1).toLowerCase();
+};
+
+// Utility function to extract clean email address
+const getEmailAddress = (emailAddress: string): string => {
+  if (!emailAddress) return '';
+  
+  // Extract email from "Display Name <email@domain.com>" format
+  const emailMatch = emailAddress.match(/<(.+?)>/);
+  if (emailMatch) {
+    return emailMatch[1];
+  }
+  
+  return emailAddress;
+};
+
+// Contact Preview Component
+interface ContactPreviewProps {
+  emailAddress: string;
+  children: React.ReactNode;
+}
+
+function ContactPreview({ emailAddress, children }: ContactPreviewProps) {
+  const displayName = getDisplayName(emailAddress);
+  const cleanEmail = getEmailAddress(emailAddress);
+  
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="text-left hover:text-blue-600 transition-colors cursor-pointer">
+          {children}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-4" align="start">
+        <div className="flex items-start gap-3">
+          <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-lg">
+            {displayName.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-gray-900 truncate">{displayName}</h3>
+            <p className="text-sm text-gray-600 truncate">{cleanEmail}</p>
+            <div className="flex gap-2 mt-3">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => window.location.href = `mailto:${cleanEmail}`}
+                className="h-8 px-3 text-xs"
+              >
+                <Mail className="h-3 w-3 mr-1" />
+                Email
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="h-8 px-3 text-xs"
+              >
+                <User className="h-3 w-3 mr-1" />
+                Add Contact
+              </Button>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange, activeFolder = "inbox", showTheaterFeatures, onShowTheaterFeaturesChange }: EmailInterfaceProps) {
@@ -527,7 +618,11 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                           </div>
                           
                           <div className="flex flex-col gap-0.5 text-xs md:text-sm text-gray-500">
-                            <span className="truncate font-medium">{message.fromAddress}</span>
+                            <ContactPreview emailAddress={message.fromAddress || ''}>
+                              <span className="truncate font-medium hover:text-blue-600 transition-colors">
+                                {getDisplayName(message.fromAddress || '')}
+                              </span>
+                            </ContactPreview>
                             <span className="truncate text-xs opacity-75 md:hidden">{message.content?.slice(0, 50) || 'No preview'}</span>
                             <span className="truncate text-sm opacity-75 hidden md:block">{message.content?.slice(0, 80) || 'No content preview'}</span>
                           </div>
@@ -655,7 +750,11 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
               {/* Sender Info */}
               <div className="mb-6">
                 <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-900">{modalEmail.fromAddress}</span>
+                  <ContactPreview emailAddress={modalEmail.fromAddress || ''}>
+                    <span className="font-medium text-gray-900 hover:text-blue-600 transition-colors cursor-pointer">
+                      {getDisplayName(modalEmail.fromAddress || '')}
+                    </span>
+                  </ContactPreview>
                 </div>
                 <div className="text-sm text-gray-500">
                   {modalEmail.dateSent ? new Date(modalEmail.dateSent).toLocaleString() : ''}
