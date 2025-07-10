@@ -255,37 +255,39 @@ export default function PropsTracker() {
   return (
     <div className="w-full">
       {/* Desktop Header */}
-      <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}`)}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to {project.name}
-          </Button>
-          
-          <div className="flex items-center gap-2">
+      <div className="hidden md:block">
+        <div className="px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between mb-4">
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
-              onClick={() => setShowFilters(!showFilters)}
+              onClick={() => setLocation(`/shows/${projectId}`)}
+              className="text-gray-600 hover:text-gray-900"
             >
-              <Filter className="h-4 w-4" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to {project.name}
             </Button>
             
-            <Button onClick={() => setIsAddingProp(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Prop
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
+              
+              <Button onClick={() => setIsAddingProp(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Prop
+              </Button>
+            </div>
           </div>
-        </div>
-        
-        <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">Props Tracker</h1>
+          
+          <div className="mb-2">
+            <h1 className="text-3xl font-bold text-gray-900">Props</h1>
+          </div>
         </div>
       </div>
 
