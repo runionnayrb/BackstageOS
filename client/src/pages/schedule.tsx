@@ -280,8 +280,8 @@ export default function Schedule() {
                 </div>
               )}
               
-              {/* All Day Button - middle - show in weekly view too */}
-              {(viewMode === 'weekly' || viewMode === 'monthly') && (
+              {/* All Day Button - middle - show in all views */}
+              {(viewMode === 'weekly' || viewMode === 'monthly' || viewMode === 'daily') && (
                 <button
                   onClick={() => setShowAllDayEvents(!showAllDayEvents)}
                   className="p-2 h-8 border-0 bg-transparent hover:bg-gray-100 rounded-md transition-colors"
