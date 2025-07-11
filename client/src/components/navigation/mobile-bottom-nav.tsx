@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Grid3x3, Mail, MessageCircle, MoreHorizontal, Calendar, Package, Users, FileText, Settings, Edit } from "lucide-react";
+import { Grid2x2, Mail, MessageCircle, MoreHorizontal, Calendar, Package, Users, FileText, Settings, Edit } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -53,7 +53,7 @@ export default function MobileBottomNav() {
     {
       id: 'shows',
       label: 'Shows',
-      icon: Grid3x3,
+      icon: Grid2x2,
       href: '/',
     },
     {
