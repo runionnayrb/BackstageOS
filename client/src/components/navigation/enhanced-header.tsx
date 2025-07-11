@@ -176,10 +176,10 @@ export default function EnhancedHeader() {
       
       // Only allow pulling down (positive distance)
       if (distance > 0) {
-        setPullDistance(Math.min(distance, 120)); // Max 120px pull for smoother animation
+        setPullDistance(Math.min(distance, 100)); // Max 100px pull
         
-        // Show breadcrumbs when pull distance exceeds 15px (earlier trigger)
-        if (distance > 15 && !showBreadcrumbs) {
+        // Show breadcrumbs immediately when any pull down happens at top
+        if (distance > 5 && !showBreadcrumbs) {
           setShowBreadcrumbs(true);
           // Add haptic feedback if available
           if ('vibrate' in navigator) {
@@ -194,8 +194,8 @@ export default function EnhancedHeader() {
       
       setIsDragging(false);
       
-      // If pull distance is less than 40px, hide breadcrumbs (more forgiving)
-      if (pullDistance < 40) {
+      // If pull distance is less than 25px, hide breadcrumbs (very forgiving)
+      if (pullDistance < 25) {
         setShowBreadcrumbs(false);
       }
       
@@ -444,16 +444,16 @@ export default function EnhancedHeader() {
           className="overflow-hidden bg-gray-50 border-t border-gray-100"
           style={{
             height: isDragging 
-              ? `${Math.min(pullDistance * 0.8, 64)}px` 
+              ? `${Math.min(pullDistance * 1.2, 64)}px` 
               : showBreadcrumbs 
                 ? '64px' 
                 : '0px',
             opacity: isDragging 
-              ? Math.min(pullDistance / 50, 1) 
+              ? Math.min(pullDistance / 30, 1) 
               : showBreadcrumbs 
                 ? 1 
                 : 0,
-            transform: isDragging ? `translateY(${pullDistance * 0.2}px)` : 'translateY(0)',
+            transform: isDragging ? `translateY(${pullDistance * 0.3}px)` : 'translateY(0)',
             transition: isDragging ? 'none' : 'all 0.3s ease-out'
           }}
         >
