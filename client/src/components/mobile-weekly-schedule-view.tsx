@@ -161,71 +161,15 @@ export default function MobileWeeklyScheduleView({
     return filteredEvents.filter(event => event.date === dateString);
   };
 
-  // Handle scroll to update current week context - only for date tracking, no snapping
-  const handleScroll = useCallback(() => {
-    if (!scrollContainerRef.current || !isInitialized || !setCurrentDate) return;
-    
-    const container = scrollContainerRef.current;
-    const scrollLeft = container.scrollLeft;
-    const containerWidth = container.clientWidth;
-    
-    // Calculate which day is most prominently displayed (needs to be more than 60% visible)
-    const dayWidth = 200; // Fixed day width
-    const leftVisibleDayIndex = Math.floor(scrollLeft / dayWidth);
-    const rightVisibleDayIndex = Math.floor((scrollLeft + containerWidth) / dayWidth);
-    
-    // Only update if we've scrolled significantly - at least one full day width
-    const currentScrollDay = Math.floor((scrollLeft + dayWidth) / dayWidth);
-    const clampedIndex = Math.max(0, Math.min(currentScrollDay, days.length - 1));
-    
-    if (days[clampedIndex]) {
-      const newCurrentDate = days[clampedIndex];
-      // Only update if we've moved to a significantly different day (reduce sensitivity)
-      if (newCurrentDate.toDateString() !== currentDate?.toDateString()) {
-        const currentIndex = days.findIndex(day => day.toDateString() === currentDate?.toDateString());
-        // Only update if we've moved at least 2 days away to reduce flicker
-        if (Math.abs(clampedIndex - currentIndex) >= 2) {
-          setCurrentDate(newCurrentDate);
-        }
-      }
-    }
-  }, [days, setCurrentDate, isInitialized, currentDate]);
+  // Completely disabled - no date tracking to prevent any scroll interference
 
-  // Completely disable date tracking during scroll to prevent any interference
+  // Completely disable all scroll event handling to prevent interference
   useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    let scrollTimeout: NodeJS.Timeout;
-    let isScrolling = false;
-
-    const handleScrollStart = () => {
-      isScrolling = true;
-      clearTimeout(scrollTimeout);
-    };
-
-    const handleScrollEnd = () => {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        isScrolling = false;
-        // Only update date tracking after scrolling completely stops
-        if (!isScrolling) {
-          handleScroll();
-        }
-      }, 500); // Wait 500ms after scrolling stops
-    };
-
-    container.addEventListener('scroll', handleScrollStart, { passive: true });
-    container.addEventListener('scroll', handleScrollEnd, { passive: true });
-    container.addEventListener('touchend', handleScrollEnd, { passive: true });
-    
+    // Do not add any scroll listeners - let native scroll behavior handle everything
     return () => {
-      container.removeEventListener('scroll', handleScrollStart);
-      container.removeEventListener('scroll', handleScrollEnd);
-      container.removeEventListener('touchend', handleScrollEnd);
-      clearTimeout(scrollTimeout);
+      // Cleanup only
     };
-  }, [handleScroll]);
+  }, []);
 
   // Scroll to current date on mount only (not when currentDate changes from scroll)
   useEffect(() => {
@@ -340,9 +284,10 @@ export default function MobileWeeklyScheduleView({
             style={{ 
               scrollBehavior: 'auto',
               overscrollBehavior: 'none',
-              WebkitOverflowScrolling: 'auto', // Disable momentum scrolling
+              WebkitOverflowScrolling: 'auto',
               scrollSnapType: 'none',
-              scrollSnapAlign: 'none'
+              scrollSnapAlign: 'none',
+              touchAction: 'pan-x' // Only allow horizontal pan, prevent any other touch behaviors
             }}
           >
             <div className="flex h-full" style={{ width: `${days.length * 200}px` }}>
