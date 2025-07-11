@@ -127,7 +127,7 @@ export default function DailyScheduleView({
     return labels;
   }, [timeFormat, timeIncrement]);
 
-  const containerHeight = TOTAL_MINUTES + 60; // Minimal padding for full visibility
+  const containerHeight = TOTAL_MINUTES + 30; // Tight padding with midnight line
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
@@ -273,6 +273,11 @@ export default function DailyScheduleView({
                         style={{ top: `${timeLabel.position + 20}px` }}
                       />
                     ))}
+                    {/* Midnight line */}
+                    <div
+                      className="absolute left-0 right-0 border-t-2 border-gray-400"
+                      style={{ top: `${TOTAL_MINUTES + 20}px` }}
+                    />
                   </div>
 
                   {/* Events for this day */}

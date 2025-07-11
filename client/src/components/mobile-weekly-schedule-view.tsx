@@ -221,7 +221,7 @@ export default function MobileWeeklyScheduleView({
     return labels;
   }, [timeIncrement, timeFormat]);
 
-  const containerHeight = TOTAL_MINUTES + 60; // Minimal padding for full visibility
+  const containerHeight = TOTAL_MINUTES + 30; // Tight padding with midnight line
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
@@ -282,6 +282,11 @@ export default function MobileWeeklyScheduleView({
                   {timeLabel.label}
                 </div>
               ))}
+              {/* Midnight line */}
+              <div
+                className="absolute left-0 right-0 border-b-2 border-gray-400"
+                style={{ top: `${TOTAL_MINUTES + 20}px` }}
+              />
             </div>
           </div>
         </div>
@@ -397,6 +402,11 @@ export default function MobileWeeklyScheduleView({
                             style={{ top: `${timeLabel.position}px` }}
                           />
                         ))}
+                        {/* Midnight line */}
+                        <div
+                          className="absolute left-0 right-0 border-t-2 border-gray-400"
+                          style={{ top: `${TOTAL_MINUTES}px` }}
+                        />
                       </div>
 
                       {/* Events for this day */}
