@@ -224,13 +224,13 @@ export default function Schedule() {
         <div className="px-4 py-3 bg-white border-b border-gray-200">
           <div className="flex items-center justify-between">
             {/* View Mode Buttons */}
-            <div className="flex bg-gray-100 rounded-lg p-1">
+            <div className="flex gap-1">
               <button
                 onClick={() => setViewMode('monthly')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'monthly' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-blue-500 text-white' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 Month
@@ -239,8 +239,8 @@ export default function Schedule() {
                 onClick={() => setViewMode('weekly')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'weekly' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-blue-500 text-white' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 Week
@@ -249,8 +249,8 @@ export default function Schedule() {
                 onClick={() => setViewMode('daily')}
                 className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                   viewMode === 'daily' 
-                    ? 'bg-white text-gray-900 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'bg-blue-500 text-white' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 }`}
               >
                 Day
