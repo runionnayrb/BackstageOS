@@ -20,6 +20,7 @@ interface WeeklyScheduleViewProps {
   setCurrentDate?: (date: Date) => void;
   selectedContactIds: number[];
   timeIncrement: 15 | 30 | 60;
+  showAllDayEvents?: boolean;
 }
 
 interface ScheduleEvent {
@@ -64,7 +65,7 @@ const getEventColor = (type: string) => {
   return 'bg-blue-500'; // Single consistent color for all events
 };
 
-export default function WeeklyScheduleView({ projectId, onDateClick, selectedContactIds, timeIncrement }: WeeklyScheduleViewProps) {
+export default function WeeklyScheduleView({ projectId, onDateClick, selectedContactIds, timeIncrement, showAllDayEvents: propShowAllDayEvents }: WeeklyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
@@ -83,7 +84,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     endTime?: string;
   }>({ isOpen: false });
   const [scrollPosition, setScrollPosition] = useState(0);
-  const [showAllDayEvents, setShowAllDayEvents] = useState(true);
+  const [showAllDayEvents, setShowAllDayEvents] = useState(propShowAllDayEvents ?? true);
   const [dragState, setDragState] = useState<{
     isActive: boolean;
     startDay: number;

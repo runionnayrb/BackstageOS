@@ -259,18 +259,6 @@ export default function Schedule() {
 
             {/* Buttons and Settings */}
             <div className="flex items-center gap-2">
-              {/* All Day Button - only show in monthly view */}
-              {viewMode === 'monthly' && (
-                <Button 
-                  variant={showAllDayEvents ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowAllDayEvents(!showAllDayEvents)}
-                  className="p-2 h-8"
-                >
-                  <Calendar className="h-4 w-4" />
-                </Button>
-              )}
-              
               {/* New Event Button */}
               <Button 
                 size="sm"
@@ -285,7 +273,7 @@ export default function Schedule() {
                 <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
                   <SelectTrigger className="w-10 h-8 border-0 shadow-none [&_svg[data-lucide='chevron-down']]:hidden">
                     <SelectValue asChild>
-                      <Clock className="h-4 w-4" />
+                      <Clock className="h-6 w-6" />
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -294,6 +282,18 @@ export default function Schedule() {
                     <SelectItem value="60">60 min</SelectItem>
                   </SelectContent>
                 </Select>
+              )}
+              
+              {/* All Day Button - show in weekly view too */}
+              {(viewMode === 'weekly' || viewMode === 'monthly') && (
+                <Button 
+                  variant={showAllDayEvents ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowAllDayEvents(!showAllDayEvents)}
+                  className="p-2 h-8"
+                >
+                  <Calendar className="h-4 w-4" />
+                </Button>
               )}
             </div>
           </div>
@@ -329,6 +329,7 @@ export default function Schedule() {
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
             timeIncrement={timeIncrement}
+            showAllDayEvents={showAllDayEvents}
           />
         ) : (
           <DailyScheduleView 
