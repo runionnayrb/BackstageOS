@@ -73,6 +73,7 @@ export default function MobileWeeklyScheduleView({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [startDate, setStartDate] = useState<Date>(() => {
     // Start with current date, but align to start of week
     const date = currentDate || new Date();
@@ -162,27 +163,18 @@ export default function MobileWeeklyScheduleView({
 
   // Handle scroll to update current week context
   const handleScroll = useCallback(() => {
-    if (!scrollContainerRef.current) return;
+    if (!scrollContainerRef.current || !isInitialized) return;
     
     const container = scrollContainerRef.current;
     const scrollLeft = container.scrollLeft;
     const dayWidth = container.clientWidth / 2; // 2 days visible
     const currentDayIndex = Math.round(scrollLeft / dayWidth);
     
-    // Debug logging to understand the behavior
-    console.log('Scroll debug:', {
-      scrollLeft,
-      dayWidth,
-      currentDayIndex,
-      totalDays: days.length,
-      selectedDate: days[currentDayIndex]?.toDateString()
-    });
-    
     if (currentDayIndex >= 0 && currentDayIndex < days.length && setCurrentDate) {
       const newCurrentDate = days[currentDayIndex];
       setCurrentDate(newCurrentDate);
     }
-  }, [days, setCurrentDate]);
+  }, [days, setCurrentDate, isInitialized]);
 
   // Debounced scroll handler
   useEffect(() => {
@@ -202,9 +194,9 @@ export default function MobileWeeklyScheduleView({
     };
   }, [handleScroll]);
 
-  // Scroll to current date on mount and when currentDate changes
+  // Scroll to current date on mount only (not when currentDate changes from scroll)
   useEffect(() => {
-    if (!scrollContainerRef.current || !currentDate) return;
+    if (!scrollContainerRef.current || !currentDate || isInitialized) return;
     
     const currentDateIndex = days.findIndex(day => 
       day.toDateString() === currentDate.toDateString()
@@ -214,8 +206,9 @@ export default function MobileWeeklyScheduleView({
       const dayWidth = scrollContainerRef.current.clientWidth / 2;
       const scrollPosition = currentDateIndex * dayWidth;
       scrollContainerRef.current.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+      setIsInitialized(true);
     }
-  }, [days, currentDate]);
+  }, [days, currentDate, isInitialized]);
 
   // Generate time labels
   const timeLabels = useMemo(() => {
