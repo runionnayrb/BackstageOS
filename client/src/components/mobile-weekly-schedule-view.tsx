@@ -269,12 +269,18 @@ export default function MobileWeeklyScheduleView({
                       <div className="text-sm font-medium text-gray-600">
                         {day.toLocaleDateString('en-US', { weekday: 'short' })}
                       </div>
-                      <div className={`text-lg font-semibold mt-1 ${
-                        day.toDateString() === new Date().toDateString() 
-                          ? 'text-blue-600' 
-                          : 'text-gray-900'
-                      }`}>
-                        {day.getDate()}
+                      <div className="mt-1 flex items-center justify-center">
+                        {day.toDateString() === new Date().toDateString() ? (
+                          <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                            <span className="text-lg font-semibold text-white">
+                              {day.getDate()}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-lg font-semibold text-gray-900">
+                            {day.getDate()}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
