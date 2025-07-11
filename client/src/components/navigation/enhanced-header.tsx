@@ -9,7 +9,7 @@ import { isAdmin } from "@/lib/admin";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import BreadcrumbNavigation from "./breadcrumb-navigation";
 
 interface SwitchStatus {
@@ -43,6 +43,15 @@ export default function EnhancedHeader() {
   const [selectedBetaAccess, setSelectedBetaAccess] = useState<string>("admin");
   const [selectedProfileType, setSelectedProfileType] = useState<string>("freelance");
   const [defaultUserId, setDefaultUserId] = useState<string>("");
+  
+  // Pull-to-reveal breadcrumb state
+  const [showBreadcrumbs, setShowBreadcrumbs] = useState(false);
+  const [isAtTop, setIsAtTop] = useState(true);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startY = useRef(0);
+  const currentY = useRef(0);
+  const headerRef = useRef<HTMLDivElement>(null);
 
   // Fetch total unread email count
   const { data: unreadEmailData } = useQuery({
@@ -139,6 +148,77 @@ export default function EnhancedHeader() {
     }
   }, [allUsers, defaultUserId]);
 
+  // Pull-to-reveal breadcrumb functionality
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      setIsAtTop(scrollTop === 0);
+      
+      // Hide breadcrumbs if user scrolls down
+      if (scrollTop > 0 && showBreadcrumbs) {
+        setShowBreadcrumbs(false);
+        setPullDistance(0);
+      }
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (!isAtTop) return;
+      
+      startY.current = e.touches[0].clientY;
+      setIsDragging(true);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isDragging || !isAtTop) return;
+      
+      currentY.current = e.touches[0].clientY;
+      const distance = currentY.current - startY.current;
+      
+      // Only allow pulling down (positive distance)
+      if (distance > 0) {
+        setPullDistance(Math.min(distance, 100)); // Max 100px pull
+        
+        // Show breadcrumbs when pull distance exceeds 30px
+        if (distance > 30 && !showBreadcrumbs) {
+          setShowBreadcrumbs(true);
+          // Add haptic feedback if available
+          if ('vibrate' in navigator) {
+            navigator.vibrate(50);
+          }
+        }
+      }
+    };
+
+    const handleTouchEnd = () => {
+      if (!isDragging) return;
+      
+      setIsDragging(false);
+      
+      // If pull distance is less than 60px, hide breadcrumbs
+      if (pullDistance < 60) {
+        setShowBreadcrumbs(false);
+      }
+      
+      setPullDistance(0);
+    };
+
+    // Add event listeners
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('touchstart', handleTouchStart, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+
+    // Initial scroll check
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [isAtTop, showBreadcrumbs, pullDistance, isDragging]);
+
   // Fetch current switch status
   const { data: switchStatus } = useQuery<SwitchStatus>({
     queryKey: ['/api/admin/switch-status'],
@@ -189,7 +269,7 @@ export default function EnhancedHeader() {
   const breadcrumbs = getBreadcrumbs();
 
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div ref={headerRef} className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
       {/* Main Header */}
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -358,10 +438,22 @@ export default function EnhancedHeader() {
         </div>
       </div>
 
-      {/* Breadcrumb Navigation - only show when we have breadcrumbs */}
+      {/* Pull-to-reveal Breadcrumb Navigation */}
       {breadcrumbs.length > 0 && (
-        <div className="px-4 sm:px-6 lg:px-8 py-2 bg-gray-50 border-t border-gray-100">
-          <BreadcrumbNavigation items={breadcrumbs} />
+        <div 
+          className={`overflow-hidden transition-all duration-300 ease-out ${
+            showBreadcrumbs 
+              ? 'max-h-20 opacity-100' 
+              : 'max-h-0 opacity-0'
+          }`}
+          style={{
+            transform: isDragging ? `translateY(${pullDistance * 0.3}px)` : 'translateY(0)',
+            transition: isDragging ? 'none' : 'all 0.3s ease-out'
+          }}
+        >
+          <div className="px-4 sm:px-6 lg:px-8 py-2 bg-gray-50 border-t border-gray-100">
+            <BreadcrumbNavigation items={breadcrumbs} />
+          </div>
         </div>
       )}
     </div>
