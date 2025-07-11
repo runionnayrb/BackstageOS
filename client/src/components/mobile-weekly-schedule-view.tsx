@@ -269,7 +269,7 @@ export default function MobileWeeklyScheduleView({
                     style={{ height: '20px', minHeight: '20px', maxHeight: '20px' }}
                     onClick={() => onDateClick(day)}
                   >
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center justify-center space-x-1">
                       <span className="text-sm font-bold text-gray-600">
                         {day.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
                       </span>
