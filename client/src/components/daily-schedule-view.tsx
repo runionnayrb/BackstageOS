@@ -173,17 +173,17 @@ export default function DailyScheduleView({
                 onClick={() => onDateClick(selectedDate)}
               >
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">
+                  <span className="text-sm font-bold text-gray-600">
                     {selectedDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
                   </span>
                   {selectedDate.toDateString() === new Date().toDateString() ? (
                     <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                      <span className="text-sm text-white">
+                      <span className="text-sm font-bold text-white">
                         {selectedDate.getDate()}
                       </span>
                     </div>
                   ) : (
-                    <span className="text-sm text-gray-900">
+                    <span className="text-sm font-bold text-gray-900">
                       {selectedDate.getDate()}
                     </span>
                   )}
