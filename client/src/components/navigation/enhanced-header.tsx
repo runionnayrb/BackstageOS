@@ -176,10 +176,10 @@ export default function EnhancedHeader() {
       
       // Only allow pulling down (positive distance)
       if (distance > 0) {
-        setPullDistance(Math.min(distance, 100)); // Max 100px pull
+        setPullDistance(Math.min(distance, 120)); // Max 120px pull for smoother animation
         
-        // Show breadcrumbs when pull distance exceeds 30px
-        if (distance > 30 && !showBreadcrumbs) {
+        // Show breadcrumbs when pull distance exceeds 15px (earlier trigger)
+        if (distance > 15 && !showBreadcrumbs) {
           setShowBreadcrumbs(true);
           // Add haptic feedback if available
           if ('vibrate' in navigator) {
@@ -194,8 +194,8 @@ export default function EnhancedHeader() {
       
       setIsDragging(false);
       
-      // If pull distance is less than 60px, hide breadcrumbs
-      if (pullDistance < 60) {
+      // If pull distance is less than 40px, hide breadcrumbs (more forgiving)
+      if (pullDistance < 40) {
         setShowBreadcrumbs(false);
       }
       
@@ -441,17 +441,23 @@ export default function EnhancedHeader() {
       {/* Pull-to-reveal Breadcrumb Navigation */}
       {breadcrumbs.length > 0 && (
         <div 
-          className={`overflow-hidden transition-all duration-300 ease-out ${
-            showBreadcrumbs 
-              ? 'max-h-20 opacity-100' 
-              : 'max-h-0 opacity-0'
-          }`}
+          className="overflow-hidden bg-gray-50 border-t border-gray-100"
           style={{
-            transform: isDragging ? `translateY(${pullDistance * 0.3}px)` : 'translateY(0)',
+            height: isDragging 
+              ? `${Math.min(pullDistance * 0.8, 64)}px` 
+              : showBreadcrumbs 
+                ? '64px' 
+                : '0px',
+            opacity: isDragging 
+              ? Math.min(pullDistance / 50, 1) 
+              : showBreadcrumbs 
+                ? 1 
+                : 0,
+            transform: isDragging ? `translateY(${pullDistance * 0.2}px)` : 'translateY(0)',
             transition: isDragging ? 'none' : 'all 0.3s ease-out'
           }}
         >
-          <div className="px-4 sm:px-6 lg:px-8 py-2 bg-gray-50 border-t border-gray-100">
+          <div className="px-4 sm:px-6 lg:px-8 py-2 h-full flex items-center">
             <BreadcrumbNavigation items={breadcrumbs} />
           </div>
         </div>
