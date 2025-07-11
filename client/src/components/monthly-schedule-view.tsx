@@ -19,6 +19,7 @@ interface MonthlyScheduleViewProps {
   currentDate: Date;
   setCurrentDate: (date: Date) => void;
   selectedContactIds: number[];
+  onEventClick?: (event: ScheduleEvent) => void;
 }
 
 interface ScheduleEvent {
@@ -76,6 +77,7 @@ export default function MonthlyScheduleView({
   currentDate,
   setCurrentDate,
   selectedContactIds,
+  onEventClick,
 }: MonthlyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -323,7 +325,11 @@ export default function MonthlyScheduleView({
                       title={`${event.title} (${event.isAllDay ? 'All Day' : `${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)}`})`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setEditingEvent(event);
+                        if (onEventClick) {
+                          onEventClick(event);
+                        } else {
+                          setEditingEvent(event);
+                        }
                       }}
                     >
                       <span className="hidden md:inline">

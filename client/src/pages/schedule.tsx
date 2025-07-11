@@ -300,6 +300,11 @@ export default function Schedule() {
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
+            onEventClick={(event) => {
+              // Set the date to the event's date and switch to daily view
+              setCurrentDate(new Date(event.date));
+              setViewMode('daily');
+            }}
           />
         ) : viewMode === 'weekly' ? (
           <WeeklyScheduleView 
