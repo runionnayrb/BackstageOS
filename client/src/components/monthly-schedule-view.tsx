@@ -377,7 +377,8 @@ export default function MonthlyScheduleView({
             className="fixed left-0 right-0 z-50 bg-white flex flex-col"
             style={{ 
               top: '60px', // Just below the BackstageOS header
-              height: 'calc(100vh - 60px)' // Full height minus header
+              height: 'calc(100vh - 60px)', // Full height minus header
+              maxHeight: 'calc(100vh - 60px)' // Ensure it doesn't exceed viewport
             }}
             onTouchMove={(e) => {
               // Prevent background scrolling when touching the sheet
@@ -413,15 +414,20 @@ export default function MonthlyScheduleView({
             </div>
             
             {/* Sticky Footer with Buttons */}
-            <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0">
+            <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 mt-auto">
               <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={() => setCreateEventDialogData({ isOpen: false })}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setCreateEventDialogData({ isOpen: false })}
+                  className="px-4 py-2"
+                >
                   Cancel
                 </Button>
                 <Button 
                   type="submit" 
                   form="event-form"
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
                 >
                   Create Event
                 </Button>
