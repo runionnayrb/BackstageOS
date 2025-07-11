@@ -46,13 +46,47 @@
   display: none !important;
 }
 
-/* Hide Radix Select chevron icon */
+/* Hide Radix Select chevron icon - multiple approaches */
 .no-chevron [data-radix-select-icon] {
   display: none !important;
 }
 
 .no-chevron button[data-radix-select-trigger] > svg:last-child {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.no-chevron button[data-radix-select-trigger] > svg:not(.lucide-clock) {
+  display: none !important;
+}
+
+.no-chevron [data-radix-select-trigger] svg[aria-hidden="true"] {
+  display: none !important;
+}
+
+.no-chevron [data-radix-select-trigger] svg + svg {
+  display: none !important;
+}
+
+/* Force hide any second SVG in select trigger */
+.no-chevron button > svg:nth-child(2),
+.no-chevron button > span > svg:nth-child(2),
+.no-chevron button > div > svg:nth-child(2) {
+  display: none !important;
+}
+
+/* Ultra aggressive chevron hiding - position and clip */
+.no-chevron [data-radix-select-trigger] {
+  overflow: hidden !important;
+}
+
+.no-chevron [data-radix-select-trigger] svg:last-child {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 0 !important;
+  height: 0 !important;
+  clip: rect(0, 0, 0, 0) !important;
 }
 
 /* Lighter dialog overlay */
