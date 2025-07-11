@@ -266,7 +266,7 @@ export default function Schedule() {
                     <SelectTrigger className="w-12 h-8 border-0 bg-transparent shadow-none p-1 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center">
                       <Clock className="h-4 w-4 text-gray-600" />
                     </SelectTrigger>
-                    <SelectContent align="end">
+                    <SelectContent align="end" className="min-w-[80px] w-auto">
                       <SelectItem value="15">15 min</SelectItem>
                       <SelectItem value="30">30 min</SelectItem>
                       <SelectItem value="60">60 min</SelectItem>
