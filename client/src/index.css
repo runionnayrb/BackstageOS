@@ -89,6 +89,15 @@
   clip: rect(0, 0, 0, 0) !important;
 }
 
+/* Hide scrollbars for mobile weekly view */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* Lighter dialog overlay */
 [data-radix-dialog-overlay] {
   background-color: rgba(0, 0, 0, 0.05) !important;

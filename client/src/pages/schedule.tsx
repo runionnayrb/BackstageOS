@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar } from "lucide-react";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
+import MobileWeeklyScheduleView from "@/components/mobile-weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
 import MonthlyScheduleView from "@/components/monthly-schedule-view";
 import ScheduleFilter from "@/components/schedule-filter";
@@ -316,15 +317,32 @@ export default function Schedule() {
             }}
           />
         ) : viewMode === 'weekly' ? (
-          <WeeklyScheduleView 
-            projectId={parseInt(projectId)} 
-            onDateClick={handleDateClick}
-            currentDate={currentDate}
-            setCurrentDate={setCurrentDate}
-            selectedContactIds={selectedContactIds}
-            timeIncrement={timeIncrement}
-            showAllDayEvents={showAllDayEvents}
-          />
+          <>
+            {/* Desktop Weekly View */}
+            <div className="hidden md:block">
+              <WeeklyScheduleView 
+                projectId={parseInt(projectId)} 
+                onDateClick={handleDateClick}
+                currentDate={currentDate}
+                setCurrentDate={setCurrentDate}
+                selectedContactIds={selectedContactIds}
+                timeIncrement={timeIncrement}
+                showAllDayEvents={showAllDayEvents}
+              />
+            </div>
+            {/* Mobile Weekly View - 2 days with continuous scroll */}
+            <div className="md:hidden">
+              <MobileWeeklyScheduleView 
+                projectId={parseInt(projectId)} 
+                onDateClick={handleDateClick}
+                currentDate={currentDate}
+                setCurrentDate={setCurrentDate}
+                selectedContactIds={selectedContactIds}
+                timeIncrement={timeIncrement}
+                showAllDayEvents={showAllDayEvents}
+              />
+            </div>
+          </>
         ) : (
           <DailyScheduleView 
             projectId={parseInt(projectId)} 
