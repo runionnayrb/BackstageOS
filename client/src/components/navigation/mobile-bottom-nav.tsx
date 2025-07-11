@@ -129,32 +129,25 @@ export default function MobileBottomNav() {
                   )}
                 >
                   <div className="relative">
-                    <Icon className={cn("h-5 w-5 mb-1", active && "fill-current")} />
+                    <Icon className={cn("h-6 w-6", active && "fill-current")} />
                     {item.badge && (
                       <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center min-w-[20px]">
                         {item.badge > 99 ? '99+' : item.badge}
                       </span>
                     )}
                   </div>
-                  <span className={cn(
-                    "text-xs font-medium",
-                    active && "text-blue-600"
-                  )}>
-                    {item.label}
-                  </span>
                 </button>
               </Link>
             );
           })}
           
-          {/* Contextual compose button for email or More menu for other contexts */}
+          {/* Fourth button - Compose in email context, More menu in other contexts */}
           {isInEmailTab && primaryEmailAccount ? (
             <button
               onClick={() => setShowEmailComposer(true)}
               className="flex flex-col items-center justify-center py-2 px-4 min-w-[60px] transition-colors text-gray-500 hover:text-gray-700"
             >
-              <Edit className="h-5 w-5 mb-1" />
-              <span className="text-xs font-medium">Compose</span>
+              <Edit className="h-6 w-6" />
             </button>
           ) : (
             <DropdownMenu>
@@ -162,8 +155,7 @@ export default function MobileBottomNav() {
                 <button
                   className="flex flex-col items-center justify-center py-2 px-4 min-w-[60px] transition-colors text-gray-500 hover:text-gray-700"
                 >
-                  <MoreHorizontal className="h-5 w-5 mb-1" />
-                  <span className="text-xs font-medium">More</span>
+                  <MoreHorizontal className="h-6 w-6" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 mb-2">
