@@ -160,7 +160,7 @@ export default function DailyScheduleView({
             }}
           >
             {(() => {
-              const userTimeZone = timezone || "America/New_York";
+              const userTimeZone = scheduleSettings?.timeZone || "America/New_York";
               const now = new Date();
               const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
                 timeZone: userTimeZone, 
