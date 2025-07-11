@@ -264,7 +264,10 @@ export default function MobileWeeklyScheduleView({
                   className="flex-shrink-0 w-1/2 snap-start border-r border-gray-200 flex flex-col"
                 >
                   {/* Day Header */}
-                  <div className="h-16 bg-white border-b border-gray-200 flex items-center justify-center">
+                  <div 
+                    className="h-16 bg-white border-b border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => onDateClick(day)}
+                  >
                     <div className="text-center">
                       <div className="text-sm font-medium text-gray-600">
                         {day.toLocaleDateString('en-US', { weekday: 'short' })}
