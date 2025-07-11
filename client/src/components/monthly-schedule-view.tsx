@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, ChevronRight, Plus, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Calendar, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -348,23 +348,51 @@ export default function MonthlyScheduleView({
         </div>
       </div>
 
-      {/* Create Event Dialog */}
+      {/* Create Event Bottom Sheet */}
       {createEventDialogData.isOpen && (
-        <Dialog open={createEventDialogData.isOpen} onOpenChange={() => setCreateEventDialogData({ isOpen: false })}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Create New Event</DialogTitle>
-            </DialogHeader>
-            <EventForm
-              projectId={projectId}
-              contacts={contacts}
-              initialDate={createEventDialogData.date}
-              onSubmit={handleCreateEvent}
-              onCancel={() => setCreateEventDialogData({ isOpen: false })}
-              timeFormat={timeFormat}
-            />
-          </DialogContent>
-        </Dialog>
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setCreateEventDialogData({ isOpen: false })}
+          />
+          
+          {/* Bottom Sheet */}
+          <div 
+            className="fixed left-0 right-0 z-50 bg-white flex flex-col"
+            style={{ 
+              top: '60px', // Just below the BackstageOS header
+              height: 'calc(100vh - 60px)' // Full height minus header
+            }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+              <Button 
+                variant="ghost" 
+                onClick={() => setCreateEventDialogData({ isOpen: false })}
+                className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+              <h1 className="text-lg font-semibold text-black">
+                New Event
+              </h1>
+              <div className="w-9" /> {/* Spacer for center alignment */}
+            </div>
+            
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto">
+              <EventForm
+                projectId={projectId}
+                contacts={contacts}
+                initialDate={createEventDialogData.date}
+                onSubmit={handleCreateEvent}
+                onCancel={() => setCreateEventDialogData({ isOpen: false })}
+                timeFormat={timeFormat}
+              />
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
@@ -412,8 +440,8 @@ function EventForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="space-y-4 p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="title">Event Title</Label>
           <Input
@@ -440,7 +468,7 @@ function EventForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <Label htmlFor="date">Date</Label>
           <Input
