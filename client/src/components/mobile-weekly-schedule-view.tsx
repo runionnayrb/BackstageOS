@@ -74,7 +74,7 @@ export default function MobileWeeklyScheduleView({
   const queryClient = useQueryClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [shouldScrollToDate, setShouldScrollToDate] = useState(false);
+  const [isProgrammaticScroll, setIsProgrammaticScroll] = useState(false);
   const [startDate, setStartDate] = useState<Date>(() => {
     // Start with current date, but align to start of week
     const date = currentDate || new Date();
@@ -169,8 +169,17 @@ export default function MobileWeeklyScheduleView({
             
             console.log('📅 Mobile Weekly: Scrolling to position:', scrollPosition);
             
+            // Set flag to prevent scroll events from interfering
+            setIsProgrammaticScroll(true);
+            
             // Use smooth scroll for Today button navigation
             container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+            
+            // Clear the flag after scroll animation completes (500ms for smooth scroll)
+            setTimeout(() => {
+              setIsProgrammaticScroll(false);
+              console.log('📅 Mobile Weekly: Programmatic scroll flag cleared');
+            }, 600);
           }
         }
       }
@@ -211,8 +220,11 @@ export default function MobileWeeklyScheduleView({
   const [isUpdatingDateFromScroll, setIsUpdatingDateFromScroll] = useState(false);
   
   const updateCurrentDate = useCallback(() => {
-    if (!scrollContainerRef.current || !setCurrentDate || isScrolling) {
-      console.log('📅 Skipping date update - still scrolling or no container');
+    if (!scrollContainerRef.current || !setCurrentDate || isScrolling || isProgrammaticScroll) {
+      console.log('📅 Skipping date update - still scrolling, programmatic scroll, or no container', {
+        isScrolling,
+        isProgrammaticScroll
+      });
       return;
     }
     
@@ -260,12 +272,11 @@ export default function MobileWeeklyScheduleView({
       const newCurrentDate = days[clampedIndex];
       if (newCurrentDate.toDateString() !== currentDate?.toDateString()) {
         console.log('📅 Setting new current date from scroll:', newCurrentDate.toDateString());
-        // Prevent scroll-to-date when this is from manual scrolling
-        setShouldScrollToDate(false);
+        // This is from manual scrolling, not programmatic
         setCurrentDate(newCurrentDate);
       }
     }
-  }, [days, setCurrentDate, currentDate, isScrolling]);
+  }, [days, setCurrentDate, currentDate, isScrolling, isProgrammaticScroll]);
 
   // Date tracking with comprehensive debugging
   useEffect(() => {
