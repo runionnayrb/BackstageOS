@@ -172,7 +172,7 @@ export default function DailyScheduleView({
             </span>
           </div>
           <div 
-            className="relative overflow-y-auto flex-1"
+            className="relative flex-1"
           >
             <div 
               className="relative"
