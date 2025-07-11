@@ -164,6 +164,7 @@ export default function MobileWeeklyScheduleView({
   // Smart date tracking with comprehensive debugging
   const [isScrolling, setIsScrolling] = useState(false);
   const [lastManualScrollTime, setLastManualScrollTime] = useState(0);
+  const [isUpdatingDateFromScroll, setIsUpdatingDateFromScroll] = useState(false);
   
   const updateCurrentDate = useCallback(() => {
     if (!scrollContainerRef.current || !setCurrentDate) return;
@@ -191,8 +192,11 @@ export default function MobileWeeklyScheduleView({
     if (days[clampedIndex]) {
       const newCurrentDate = days[clampedIndex];
       if (newCurrentDate.toDateString() !== currentDate?.toDateString()) {
-        console.log('📅 Setting new current date:', newCurrentDate.toDateString());
+        console.log('📅 Setting new current date from scroll:', newCurrentDate.toDateString());
+        setIsUpdatingDateFromScroll(true);
         setCurrentDate(newCurrentDate);
+        // Reset flag after a brief delay
+        setTimeout(() => setIsUpdatingDateFromScroll(false), 100);
       }
     }
   }, [days, setCurrentDate, currentDate, isScrolling]);
@@ -264,7 +268,7 @@ export default function MobileWeeklyScheduleView({
     };
   }, [updateCurrentDate]);
 
-  // Programmatic scroll with debugging and manual scroll protection
+  // Programmatic scroll with comprehensive protection
   useEffect(() => {
     if (!scrollContainerRef.current || !currentDate) return;
     
@@ -275,9 +279,15 @@ export default function MobileWeeklyScheduleView({
       return;
     }
     
-    // Prevent programmatic scroll for 1 second after manual scroll
-    if (timeSinceManualScroll < 1000) {
+    // Prevent programmatic scroll for 2 seconds after manual scroll
+    if (timeSinceManualScroll < 2000) {
       console.log('⚠️ Skipping programmatic scroll - too soon after manual scroll', { timeSinceManualScroll });
+      return;
+    }
+    
+    // Don't trigger programmatic scroll if date was just updated from user scrolling
+    if (isUpdatingDateFromScroll) {
+      console.log('⚠️ Skipping programmatic scroll - date change was from user scrolling');
       return;
     }
     
@@ -290,7 +300,8 @@ export default function MobileWeeklyScheduleView({
       currentDateIndex,
       isInitialized,
       isScrolling,
-      timeSinceManualScroll
+      timeSinceManualScroll,
+      isUpdatingDateFromScroll
     });
     
     if (currentDateIndex >= 0) {
@@ -316,7 +327,7 @@ export default function MobileWeeklyScheduleView({
         setIsInitialized(true);
       }
     }
-  }, [days, currentDate, isInitialized, isScrolling, lastManualScrollTime]);
+  }, [days, currentDate, isInitialized, isScrolling, lastManualScrollTime, isUpdatingDateFromScroll]);
 
   // Generate time labels
   const timeLabels = useMemo(() => {
