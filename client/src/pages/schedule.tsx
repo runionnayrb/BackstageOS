@@ -262,7 +262,10 @@ export default function Schedule() {
               {/* Time Increment for weekly/daily views - rightmost */}
               {(viewMode === 'weekly' || viewMode === 'daily') && (
                 <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-                  <SelectTrigger className="w-10 h-8 border-0 bg-transparent shadow-none p-2 hover:bg-gray-100 rounded-md transition-colors [&>svg[data-radix-select-icon]]:hidden flex items-center justify-center">
+                  <SelectTrigger className="w-12 h-8 border-0 bg-transparent shadow-none p-1 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center overflow-hidden" style={{['--radix-select-trigger-icon-display' as any]: 'none'}}>
+                    <style>{`
+                      [data-radix-select-trigger] > svg:last-child { display: none !important; }
+                    `}</style>
                     <SelectValue>
                       <Clock className="h-4 w-4 text-gray-600" />
                     </SelectValue>
