@@ -107,7 +107,8 @@ export default function Schedule() {
 
   return (
     <div className="w-full">
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
+      {/* Desktop Header */}
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
@@ -172,10 +173,126 @@ export default function Schedule() {
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8">
+      {/* Mobile Header */}
+      <div className="md:hidden">
+        {/* Main Mobile Header */}
+        <div className="px-4 py-3 border-b border-gray-200 bg-white">
+          <div className="flex items-center justify-between">
+            {/* Month/Year Display */}
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLocation(`/shows/${projectId}/calendar`)}
+                className="p-1"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="text-xl font-semibold text-gray-900">
+                {getHeaderText()}
+              </h1>
+            </div>
+            
+            {/* Navigation Controls */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={goToPrevious}
+                className="p-2"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={goToNext}
+                className="p-2"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </div>
 
+        {/* Mobile View Mode Selector */}
+        <div className="px-4 py-3 bg-white border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            {/* View Mode Buttons */}
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('monthly')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  viewMode === 'monthly' 
+                    ? 'bg-white text-gray-900 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Month
+              </button>
+              <button
+                onClick={() => setViewMode('weekly')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  viewMode === 'weekly' 
+                    ? 'bg-white text-gray-900 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Week
+              </button>
+              <button
+                onClick={() => setViewMode('daily')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                  viewMode === 'daily' 
+                    ? 'bg-white text-gray-900 shadow-sm' 
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Day
+              </button>
+            </div>
 
+            {/* Filter and Settings */}
+            <div className="flex items-center gap-2">
+              <ScheduleFilter
+                projectId={parseInt(projectId)}
+                selectedContactIds={selectedContactIds}
+                onFilterChange={setSelectedContactIds}
+              />
+              
+              {(viewMode === 'weekly' || viewMode === 'daily') && (
+                <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
+                  <SelectTrigger className="w-10 h-8 border-0 shadow-none [&_svg[data-lucide='chevron-down']]:hidden">
+                    <SelectValue asChild>
+                      <Clock className="h-4 w-4" />
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="15">15 min</SelectItem>
+                    <SelectItem value="30">30 min</SelectItem>
+                    <SelectItem value="60">60 min</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </div>
+        </div>
 
+        {/* Mobile Today Button */}
+        <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={goToToday}
+            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-sm font-medium"
+          >
+            Today
+          </Button>
+        </div>
+      </div>
+
+      {/* Content Container - Responsive Padding */}
+      <div className="px-0 md:px-4 lg:px-8">
         {viewMode === 'monthly' ? (
           <MonthlyScheduleView 
             projectId={parseInt(projectId)} 

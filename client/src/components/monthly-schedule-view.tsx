@@ -220,8 +220,8 @@ export default function MonthlyScheduleView({
 
   return (
     <div className="space-y-4">
-      {/* Month Navigation */}
-      <div className="flex items-center justify-between">
+      {/* Desktop Month Navigation */}
+      <div className="hidden md:flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm" onClick={goToPreviousMonth}>
             <ChevronLeft className="h-4 w-4" />
@@ -256,13 +256,34 @@ export default function MonthlyScheduleView({
         </div>
       </div>
 
+      {/* Mobile Controls */}
+      <div className="md:hidden px-4 py-2 flex items-center justify-between">
+        <Button 
+          variant={showAllDayEvents ? "default" : "outline"}
+          size="sm"
+          onClick={() => setShowAllDayEvents(!showAllDayEvents)}
+          className="text-sm"
+        >
+          All Day
+        </Button>
+        
+        <Button 
+          onClick={() => setCreateEventDialog({ isOpen: true })}
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          Add Event
+        </Button>
+      </div>
+
       {/* Calendar Grid */}
-      <div className="border rounded-lg overflow-hidden bg-white">
+      <div className="border-0 md:border md:rounded-lg overflow-hidden bg-white">
         {/* Day headers */}
         <div className="grid grid-cols-7 bg-gray-50 border-b">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-            <div key={day} className="p-3 text-center border-r last:border-r-0">
-              <div className="text-sm font-medium text-gray-500">{day}</div>
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
+            <div key={day} className={`py-2 md:p-3 text-center ${index < 6 ? 'border-r border-gray-200' : ''}`}>
+              <div className="text-xs md:text-sm font-medium text-gray-500">{day}</div>
             </div>
           ))}
         </div>
@@ -273,28 +294,31 @@ export default function MonthlyScheduleView({
             const isCurrentMonth = date.getMonth() === currentDate.getMonth();
             const isToday = date.toDateString() === new Date().toDateString();
             const dayEvents = getEventsForDate(date);
+            const columnIndex = index % 7;
 
             return (
               <div
                 key={index}
-                className={`min-h-24 border-r border-b last:border-r-0 p-2 cursor-pointer hover:bg-gray-50 ${
-                  !isCurrentMonth ? 'bg-gray-100 text-gray-400' : ''
+                className={`min-h-16 md:min-h-24 ${columnIndex < 6 ? 'border-r border-gray-200' : ''} border-b border-gray-200 p-1 md:p-2 cursor-pointer transition-colors active:bg-gray-100 md:hover:bg-gray-50 ${
+                  !isCurrentMonth ? 'bg-gray-50 text-gray-400' : ''
                 } ${isToday ? 'bg-blue-50' : ''}`}
                 onClick={() => handleDateClick(date)}
               >
-                <div className={`text-sm font-medium mb-1 ${isToday ? 'text-blue-600' : ''}`}>
+                <div className={`text-sm md:text-base font-medium mb-1 text-center md:text-left ${
+                  isToday ? 'text-white bg-blue-500 rounded-full w-6 h-6 md:w-7 md:h-7 flex items-center justify-center mx-auto md:mx-0' : ''
+                }`}>
                   {date.getDate()}
                 </div>
                 
                 {/* Events for this day */}
-                <div className="space-y-1">
+                <div className="space-y-0.5 md:space-y-1">
                   {dayEvents
                     .filter(event => showAllDayEvents || !event.isAllDay)
-                    .slice(0, 3)
+                    .slice(0, 2) // Show fewer events on mobile for cleaner look
                     .map((event) => (
                     <div
                       key={event.id}
-                      className={`text-xs px-1 py-0.5 rounded text-white truncate ${
+                      className={`text-xs px-1 py-0.5 rounded text-white truncate cursor-pointer transition-transform active:scale-95 ${
                         eventTypeColors[event.type as keyof typeof eventTypeColors]
                       }`}
                       title={`${event.title} (${event.isAllDay ? 'All Day' : `${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)}`})`}
@@ -303,12 +327,17 @@ export default function MonthlyScheduleView({
                         setEditingEvent(event);
                       }}
                     >
-                      {event.isAllDay ? event.title : `${formatTimeDisplay(event.startTime, timeFormat)} ${event.title}`}
+                      <span className="hidden md:inline">
+                        {event.isAllDay ? event.title : `${formatTimeDisplay(event.startTime, timeFormat)} ${event.title}`}
+                      </span>
+                      <span className="md:hidden">
+                        {event.title}
+                      </span>
                     </div>
                   ))}
-                  {dayEvents.length > 3 && (
-                    <div className="text-xs text-gray-500">
-                      +{dayEvents.length - 3} more
+                  {dayEvents.filter(event => showAllDayEvents || !event.isAllDay).length > 2 && (
+                    <div className="text-xs text-gray-500 px-1 text-center md:text-left">
+                      +{dayEvents.filter(event => showAllDayEvents || !event.isAllDay).length - 2}
                     </div>
                   )}
                 </div>
