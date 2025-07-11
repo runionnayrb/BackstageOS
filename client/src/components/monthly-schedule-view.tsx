@@ -381,7 +381,7 @@ export default function MonthlyScheduleView({
             </div>
             
             {/* Content */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden">
               <EventForm
                 projectId={projectId}
                 contacts={contacts}
@@ -452,7 +452,7 @@ function EventForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4">
+    <form onSubmit={handleSubmit} className="space-y-4 p-4 max-w-full">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="title">Event Title</Label>
@@ -480,8 +480,8 @@ function EventForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="min-w-0">
           <Label htmlFor="startDate">Start Date</Label>
           <Input
             id="startDate"
@@ -489,9 +489,10 @@ function EventForm({
             value={formData.startDate}
             onChange={(e) => handleStartDateChange(e.target.value)}
             required
+            className="w-full"
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <Label htmlFor="endDate">End Date</Label>
           <Input
             id="endDate"
@@ -499,12 +500,13 @@ function EventForm({
             value={formData.endDate}
             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
             required
+            className="w-full"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="min-w-0">
           <Label htmlFor="startTime">Start Time</Label>
           <Input
             id="startTime"
@@ -512,9 +514,10 @@ function EventForm({
             value={formData.startTime}
             onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
             disabled={formData.isAllDay}
+            className="w-full"
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <Label htmlFor="endTime">End Time</Label>
           <Input
             id="endTime"
@@ -522,6 +525,7 @@ function EventForm({
             value={formData.endTime}
             onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
             disabled={formData.isAllDay}
+            className="w-full"
           />
         </div>
       </div>
