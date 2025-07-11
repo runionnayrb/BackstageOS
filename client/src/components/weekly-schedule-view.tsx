@@ -65,10 +65,10 @@ const getEventColor = (type: string) => {
   return 'bg-blue-500'; // Single consistent color for all events
 };
 
-export default function WeeklyScheduleView({ projectId, onDateClick, selectedContactIds, timeIncrement, showAllDayEvents: propShowAllDayEvents }: WeeklyScheduleViewProps) {
+export default function WeeklyScheduleView({ projectId, onDateClick, currentDate, setCurrentDate, selectedContactIds, timeIncrement, showAllDayEvents: propShowAllDayEvents }: WeeklyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
+  const [currentWeek, setCurrentWeek] = useState<Date>(currentDate || new Date());
   const [isDragCreating, setIsDragCreating] = useState<{
     isActive: boolean;
     startDay: number;
@@ -132,6 +132,13 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     console.log('Event #25 current data:', events.find(e => e.id === 25));
   }, [events]);
 
+  // Sync currentWeek with external currentDate prop
+  useEffect(() => {
+    if (currentDate) {
+      setCurrentWeek(currentDate);
+    }
+  }, [currentDate]);
+
 
 
   // Fetch contacts for event assignment
@@ -174,16 +181,26 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
     const prevWeek = new Date(currentWeek);
     prevWeek.setDate(prevWeek.getDate() - 7);
     setCurrentWeek(prevWeek);
+    if (setCurrentDate) {
+      setCurrentDate(prevWeek);
+    }
   };
 
   const goToNextWeek = () => {
     const nextWeek = new Date(currentWeek);
     nextWeek.setDate(nextWeek.getDate() + 7);
     setCurrentWeek(nextWeek);
+    if (setCurrentDate) {
+      setCurrentDate(nextWeek);
+    }
   };
 
   const goToToday = () => {
-    setCurrentWeek(new Date());
+    const today = new Date();
+    setCurrentWeek(today);
+    if (setCurrentDate) {
+      setCurrentDate(today);
+    }
   };
 
   // Time formatting functions
