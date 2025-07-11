@@ -161,38 +161,46 @@ export default function MobileWeeklyScheduleView({
     return filteredEvents.filter(event => event.date === dateString);
   };
 
-  // Handle scroll to update current week context smoothly
+  // Handle scroll to update current week context with reduced sensitivity
   const handleScroll = useCallback(() => {
     if (!scrollContainerRef.current || !isInitialized) return;
     
     const container = scrollContainerRef.current;
     const scrollLeft = container.scrollLeft;
     const containerWidth = container.clientWidth;
+    const totalScrollWidth = container.scrollWidth;
     
-    // Calculate which day is most visible based on scroll position
-    // Each day takes up half the container width (since we show 2 days)
-    const dayWidth = containerWidth / 2;
-    const scrolledDays = scrollLeft / dayWidth;
-    const currentDayIndex = Math.floor(scrolledDays);
+    // Calculate scroll progress more precisely to reduce sensitivity
+    const scrollProgress = scrollLeft / (totalScrollWidth - containerWidth);
+    const scrollIndex = scrollProgress * (days.length - 1);
+    const currentDayIndex = Math.round(scrollIndex);
     
-    // Only update if we're showing a different day
-    if (currentDayIndex >= 0 && currentDayIndex < days.length && setCurrentDate) {
-      const newCurrentDate = days[currentDayIndex];
+    // Clamp to valid range and only update if different
+    const clampedIndex = Math.max(0, Math.min(currentDayIndex, days.length - 1));
+    
+    if (setCurrentDate && days[clampedIndex]) {
+      const newCurrentDate = days[clampedIndex];
       if (newCurrentDate.toDateString() !== currentDate?.toDateString()) {
         setCurrentDate(newCurrentDate);
       }
     }
   }, [days, setCurrentDate, isInitialized, currentDate]);
 
-  // Immediate scroll handler for smooth response
+  // Throttled scroll handler to reduce sensitivity
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    // Use immediate scroll handling for smooth response
-    container.addEventListener('scroll', handleScroll, { passive: true });
+    let scrollTimeout: NodeJS.Timeout;
+    const throttledHandleScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScroll, 100); // Small delay to reduce sensitivity
+    };
+
+    container.addEventListener('scroll', throttledHandleScroll, { passive: true });
     return () => {
-      container.removeEventListener('scroll', handleScroll);
+      container.removeEventListener('scroll', throttledHandleScroll);
+      clearTimeout(scrollTimeout);
     };
   }, [handleScroll]);
 
@@ -207,8 +215,11 @@ export default function MobileWeeklyScheduleView({
     if (currentDateIndex >= 0) {
       const container = scrollContainerRef.current;
       const containerWidth = container.clientWidth;
-      const dayWidth = containerWidth / 2; // 2 days visible
-      const scrollPosition = currentDateIndex * dayWidth;
+      const totalScrollWidth = container.scrollWidth;
+      
+      // More precise scroll positioning
+      const scrollProgress = currentDateIndex / (days.length - 1);
+      const scrollPosition = scrollProgress * (totalScrollWidth - containerWidth);
       
       container.scrollTo({ left: scrollPosition, behavior: 'instant' });
       setIsInitialized(true);
@@ -304,13 +315,18 @@ export default function MobileWeeklyScheduleView({
           <div 
             ref={scrollContainerRef}
             className="overflow-x-auto scrollbar-hide h-full"
-            style={{ scrollBehavior: 'auto' }}
+            style={{ 
+              scrollBehavior: 'auto',
+              overscrollBehavior: 'contain',
+              WebkitOverflowScrolling: 'touch'
+            }}
           >
-            <div className="flex h-full">
+            <div className="flex h-full" style={{ width: `${days.length * 50}%` }}>
               {days.map((day, index) => (
                 <div 
                   key={day.toISOString()}
-                  className="flex-shrink-0 w-1/2 flex flex-col"
+                  className="flex-shrink-0 flex flex-col"
+                  style={{ width: `${100 / days.length}%`, minWidth: '50vw' }}
                 >
                   {/* Day Header */}
                   <div 
