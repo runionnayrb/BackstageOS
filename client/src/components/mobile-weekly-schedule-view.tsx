@@ -270,7 +270,8 @@ export default function MobileWeeklyScheduleView({
         <div className="flex-1 overflow-hidden">
           <div 
             ref={headerScrollRef}
-            className="overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+            className="overflow-x-hidden scrollbar-hide"
+            style={{ overflowX: 'hidden' }}
           >
             <div className="flex">
               {days.map((day, index) => (
