@@ -181,7 +181,7 @@ export default function Schedule() {
       {/* Mobile Header */}
       <div className="md:hidden">
         {/* Main Mobile Header */}
-        <div className="sticky top-0 z-20 px-4 py-3 border-b border-gray-200 bg-white">
+        <div className="px-4 py-3 border-b border-gray-200 bg-white">
           <div className="flex items-center justify-between">
             {/* Month/Year Display */}
             <div className="flex items-center gap-3">
@@ -352,12 +352,10 @@ export default function Schedule() {
           <DailyScheduleView 
             projectId={parseInt(projectId)} 
             selectedDate={currentDate}
-            onDateClick={setCurrentDate}
+            onBackToWeekly={() => setViewMode('weekly')}
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
-            showAllDayEvents={showAllDayEvents}
-            timeIncrement={timeIncrement}
           />
         )}
       </div>

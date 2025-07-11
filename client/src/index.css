@@ -98,8 +98,6 @@
   display: none;
 }
 
-
-
 /* Lighter dialog overlay */
 [data-radix-dialog-overlay] {
   background-color: rgba(0, 0, 0, 0.05) !important;

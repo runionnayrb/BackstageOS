@@ -1,8 +1,6 @@
-import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { formatTimeDisplay, parseScheduleSettings } from '@/lib/timeUtils';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { formatTimeDisplay } from '@/lib/timeUtils';
 
 // Constants for time grid (8 AM to midnight = 16 hours)
 const START_HOUR = 8;
@@ -16,8 +14,6 @@ interface DailyScheduleViewProps {
   projectId: number;
   selectedDate: Date;
   onDateClick?: (date: Date) => void;
-  currentDate?: Date;
-  setCurrentDate?: (date: Date) => void;
   selectedContactIds: number[];
   showAllDayEvents: boolean;
   timeIncrement: number;
@@ -59,72 +55,11 @@ export default function DailyScheduleView({
   projectId, 
   selectedDate, 
   onDateClick, 
-  currentDate,
-  setCurrentDate,
   selectedContactIds, 
   showAllDayEvents: propShowAllDayEvents, 
   timeIncrement 
 }: DailyScheduleViewProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [internalDate, setInternalDate] = useState<Date>(selectedDate);
-  const [touchStartX, setTouchStartX] = useState<number | null>(null);
-  const [touchStartY, setTouchStartY] = useState<number | null>(null);
-
-  // Use currentDate from parent if available, otherwise use internal state
-  const displayDate = currentDate || internalDate;
-
-  // Navigation functions
-  const navigateToDate = useCallback((newDate: Date) => {
-    if (setCurrentDate) {
-      setCurrentDate(newDate);
-    } else {
-      setInternalDate(newDate);
-    }
-    if (onDateClick) {
-      onDateClick(newDate);
-    }
-  }, [setCurrentDate, onDateClick]);
-
-  const goToPreviousDay = useCallback(() => {
-    const previousDay = new Date(displayDate);
-    previousDay.setDate(displayDate.getDate() - 1);
-    navigateToDate(previousDay);
-  }, [displayDate, navigateToDate]);
-
-  const goToNextDay = useCallback(() => {
-    const nextDay = new Date(displayDate);
-    nextDay.setDate(displayDate.getDate() + 1);
-    navigateToDate(nextDay);
-  }, [displayDate, navigateToDate]);
-
-  // Touch event handlers for swipe navigation
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    setTouchStartX(touch.clientX);
-    setTouchStartY(touch.clientY);
-  }, []);
-
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (touchStartX === null || touchStartY === null) return;
-
-    const touch = e.changedTouches[0];
-    const deltaX = touch.clientX - touchStartX;
-    const deltaY = touch.clientY - touchStartY;
-
-    // Only trigger swipe if horizontal movement is greater than vertical
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-      if (deltaX > 0) {
-        // Swipe right - go to previous day
-        goToPreviousDay();
-      } else {
-        // Swipe left - go to next day
-        goToNextDay();
-      }
-    }
-
-    setTouchStartX(null);
-    setTouchStartY(null);
-  }, [touchStartX, touchStartY, goToPreviousDay, goToNextDay]);
 
   // Time utilities
   const timeToMinutes = (time: string): number => {
@@ -147,9 +82,13 @@ export default function DailyScheduleView({
     queryKey: ['/api/projects', projectId, 'settings'],
   });
 
-  // Parse schedule settings with time format preference
-  const scheduleSettings = parseScheduleSettings((projectSettings as any)?.scheduleSettings);
-  const { timeFormat = '12', timezone } = scheduleSettings;
+  // Extract time format
+  const scheduleSettings = projectSettings?.scheduleSettings 
+    ? (typeof projectSettings.scheduleSettings === 'string' 
+        ? JSON.parse(projectSettings.scheduleSettings) 
+        : projectSettings.scheduleSettings)
+    : {};
+  const timeFormat = scheduleSettings.timeFormat || '12-Hour AM/PM';
 
   // Fetch events
   const { data: events = [] } = useQuery<ScheduleEvent[]>({
@@ -173,17 +112,6 @@ export default function DailyScheduleView({
     return filteredEvents;
   };
 
-  // Get timezone abbreviation
-  const getTimezoneAbbr = () => {
-    const userTimeZone = scheduleSettings?.timeZone || "America/New_York";
-    const now = new Date();
-    const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
-      timeZone: userTimeZone, 
-      timeZoneName: 'short' 
-    }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
-    return timeZoneAbbr;
-  };
-
   // Generate time labels - use same approach as mobile weekly view
   const timeLabels = useMemo(() => {
     const labels = [];
@@ -203,73 +131,25 @@ export default function DailyScheduleView({
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
-      {/* Sticky Header Row */}
-      <div className="sticky top-[60px] z-10 flex bg-gray-50">
-        {/* Timezone Header */}
-        <div 
-          className="w-16 bg-gray-100 border-r border-gray-200 flex-shrink-0"
-          style={{ 
-            height: '20px',
-            minHeight: '20px', 
-            maxHeight: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            margin: 0,
-            padding: 0,
-            boxSizing: 'border-box'
-          }}
-        >
-          <span 
+      {/* Main Content Container */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Time Labels - Fixed on left side */}
+        <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
+          <div 
             style={{ 
-              lineHeight: '14px',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              color: '#6b7280',
+              height: '20px',
+              minHeight: '20px', 
+              maxHeight: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              backgroundColor: '#f9fafb',
               margin: 0,
-              padding: 0
+              padding: 0,
+              boxSizing: 'border-box'
             }}
           >
-            {getTimezoneAbbr()}
-          </span>
-        </div>
-        
-        {/* Day Header with Navigation */}
-        <div 
-          className="flex-1 bg-gray-100 relative"
-          style={{ 
-            height: '20px',
-            minHeight: '20px', 
-            maxHeight: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            margin: 0,
-            padding: 0,
-            boxSizing: 'border-box'
-          }}
-        >
-          {/* Navigation buttons - hidden on small screens, visible on md+ */}
-          <Button
-            onClick={goToPreviousDay}
-            size="sm"
-            variant="ghost"
-            className="absolute left-1 h-4 w-4 p-0 hidden md:flex"
-            style={{ zIndex: 10 }}
-          >
-            <ChevronLeft className="h-3 w-3" />
-          </Button>
-          
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            gap: '4px',
-            height: '100%',
-            width: '100%'
-          }}>
             <span 
               style={{ 
                 lineHeight: '14px',
@@ -280,65 +160,17 @@ export default function DailyScheduleView({
                 padding: 0
               }}
             >
-              {displayDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
+              {(() => {
+                const userTimeZone = scheduleSettings?.timeZone || "America/New_York";
+                const now = new Date();
+                const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
+                  timeZone: userTimeZone, 
+                  timeZoneName: 'short' 
+                }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
+                return timeZoneAbbr;
+              })()}
             </span>
-            {displayDate.toDateString() === new Date().toDateString() ? (
-              <div 
-                className="bg-red-500 rounded-full"
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}
-              >
-                <span 
-                  style={{ 
-                    lineHeight: '12px',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    color: '#ffffff',
-                    margin: 0,
-                    padding: 0
-                  }}
-                >
-                  {displayDate.getDate()}
-                </span>
-              </div>
-            ) : (
-              <span 
-                style={{ 
-                  lineHeight: '14px',
-                  fontSize: '14px',
-                  fontWeight: 'bold',
-                  color: '#6b7280',
-                  margin: 0,
-                  padding: 0
-                }}
-              >
-                {displayDate.getDate()}
-              </span>
-            )}
           </div>
-
-          <Button
-            onClick={goToNextDay}
-            size="sm"
-            variant="ghost"
-            className="absolute right-1 h-4 w-4 p-0 hidden md:flex"
-            style={{ zIndex: 10 }}
-          >
-            <ChevronRight className="h-3 w-3" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Main Content Container */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Time Labels - Fixed on left side */}
-        <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
           <div 
             className="relative flex-1"
           >
@@ -355,24 +187,75 @@ export default function DailyScheduleView({
                   {timeLabel.label}
                 </div>
               ))}
-              {/* Midnight line */}
-              <div
-                className="absolute left-0 right-0 border-b border-gray-100"
-                style={{ top: `${TOTAL_MINUTES + 20}px` }}
-              />
             </div>
           </div>
         </div>
 
         {/* Day Container */}
         <div className="flex-1 overflow-hidden">
-          <div 
-            className="h-full"
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-            style={{ touchAction: 'pan-y', overscrollBehavior: 'none' }}
-          >
+          <div className="h-full">
             <div className="flex flex-col h-full">
+              {/* Day Header */}
+              <div 
+                style={{ 
+                  height: '20px',
+                  minHeight: '20px', 
+                  maxHeight: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  backgroundColor: '#f9fafb',
+                  margin: 0,
+                  padding: 0,
+                  boxSizing: 'border-box'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span 
+                    className="text-sm font-bold text-gray-600" 
+                    style={{ 
+                      lineHeight: '14px',
+                      fontSize: '14px'
+                    }}
+                  >
+                    {selectedDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
+                  </span>
+                  {selectedDate.toDateString() === new Date().toDateString() ? (
+                    <div 
+                      className="bg-red-500 rounded-full"
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <span 
+                        className="text-xs font-bold text-white"
+                        style={{ 
+                          lineHeight: '12px',
+                          fontSize: '12px'
+                        }}
+                      >
+                        {selectedDate.getDate()}
+                      </span>
+                    </div>
+                  ) : (
+                    <span 
+                      className="text-sm font-bold text-gray-900" 
+                      style={{ 
+                        lineHeight: '14px',
+                        fontSize: '14px'
+                      }}
+                    >
+                      {selectedDate.getDate()}
+                    </span>
+                  )}
+                </div>
+              </div>
+
               {/* Day Schedule Content */}
               <div 
                 className="relative bg-white flex-1"
@@ -398,7 +281,7 @@ export default function DailyScheduleView({
                   </div>
 
                   {/* Events for this day */}
-                  {getEventsForDate(displayDate).map((event) => {
+                  {getEventsForDate(selectedDate).map((event) => {
                     if (event.isAllDay && !propShowAllDayEvents) return null;
 
                     const startMinutes = timeToMinutes(event.startTime);
