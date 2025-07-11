@@ -161,15 +161,52 @@ export default function MobileWeeklyScheduleView({
     return filteredEvents.filter(event => event.date === dateString);
   };
 
-  // Completely disabled - no date tracking to prevent any scroll interference
+  // Handle date tracking without interfering with scroll physics
+  const handleDateTracking = useCallback(() => {
+    if (!scrollContainerRef.current || !isInitialized || !setCurrentDate) return;
+    
+    const container = scrollContainerRef.current;
+    const scrollLeft = container.scrollLeft;
+    const containerWidth = container.clientWidth;
+    
+    // Calculate which day is most visible for context tracking only
+    const dayWidth = 200; // Fixed day width
+    const centerScrollPosition = scrollLeft + containerWidth / 2;
+    const centerDayIndex = Math.floor(centerScrollPosition / dayWidth);
+    
+    const clampedIndex = Math.max(0, Math.min(centerDayIndex, days.length - 1));
+    
+    if (days[clampedIndex]) {
+      const newCurrentDate = days[clampedIndex];
+      if (newCurrentDate.toDateString() !== currentDate?.toDateString()) {
+        setCurrentDate(newCurrentDate);
+      }
+    }
+  }, [days, setCurrentDate, isInitialized, currentDate]);
 
-  // Completely disable all scroll event handling to prevent interference
+  // Add date tracking with long delay to avoid scroll interference
   useEffect(() => {
-    // Do not add any scroll listeners - let native scroll behavior handle everything
-    return () => {
-      // Cleanup only
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    let trackingTimeout: NodeJS.Timeout;
+    
+    const handleDateUpdate = () => {
+      clearTimeout(trackingTimeout);
+      // Very long delay to ensure scroll has completely finished
+      trackingTimeout = setTimeout(handleDateTracking, 1000);
     };
-  }, []);
+
+    // Only track on scroll end, never during scroll
+    container.addEventListener('scrollend', handleDateTracking, { passive: true });
+    container.addEventListener('scroll', handleDateUpdate, { passive: true });
+    
+    return () => {
+      container.removeEventListener('scrollend', handleDateTracking);
+      container.removeEventListener('scroll', handleDateUpdate);
+      clearTimeout(trackingTimeout);
+    };
+  }, [handleDateTracking]);
 
   // Scroll to current date on mount only (not when currentDate changes from scroll)
   useEffect(() => {
