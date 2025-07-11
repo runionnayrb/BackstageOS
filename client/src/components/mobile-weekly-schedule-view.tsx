@@ -222,6 +222,9 @@ export default function MobileWeeklyScheduleView({
   }, [timeIncrement, timeFormat]);
 
   const containerHeight = TOTAL_MINUTES + 200; // Add extra padding for full visibility
+  
+  // Debug logging
+  console.log('Mobile Weekly View - Container Height:', containerHeight, 'TOTAL_MINUTES:', TOTAL_MINUTES);
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
