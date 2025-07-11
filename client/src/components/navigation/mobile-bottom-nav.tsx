@@ -1,4 +1,5 @@
-import { Home, Mail, MessageCircle, MoreHorizontal, Calendar, Package, Users, FileText, Settings } from "lucide-react";
+import { useState } from "react";
+import { Home, Mail, MessageCircle, MoreHorizontal, Calendar, Package, Users, FileText, Settings, Edit } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { GmailEmailComposer } from "@/components/email/gmail-email-composer";
 
 interface NavItem {
   id: string;
@@ -28,12 +30,19 @@ interface MenuItem {
 export default function MobileBottomNav() {
   const [location] = useLocation();
   const { user } = useAuth();
+  const [showEmailComposer, setShowEmailComposer] = useState(false);
   
   // Get unread email count for badge
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['/api/email/unread-count'],
     refetchInterval: 30000, // Refresh every 30 seconds
     select: (data: any) => data?.count || 0,
+  });
+
+  // Get email accounts for composer
+  const { data: emailAccounts = [] } = useQuery({
+    queryKey: ['/api/email/accounts'],
+    enabled: location.startsWith('/email'),
   });
 
   // Parse current show ID from URL
@@ -96,6 +105,8 @@ export default function MobileBottomNav() {
   };
 
   const contextualMenuItems = getContextualMenuItems();
+  const isInEmailTab = location.startsWith('/email');
+  const primaryEmailAccount = emailAccounts && emailAccounts.length > 0 ? emailAccounts[0] : null;
 
   return (
     <>
@@ -136,32 +147,53 @@ export default function MobileBottomNav() {
             );
           })}
           
-          {/* Contextual "More" menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className="flex flex-col items-center justify-center py-2 px-4 min-w-[60px] transition-colors text-gray-500 hover:text-gray-700"
-              >
-                <MoreHorizontal className="h-5 w-5 mb-1" />
-                <span className="text-xs font-medium">More</span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 mb-2">
-              {contextualMenuItems.map((item, index) => {
-                const Icon = item.icon;
-                return (
-                  <Link key={index} href={item.href}>
-                    <DropdownMenuItem className="flex items-center space-x-2">
-                      <Icon className="h-4 w-4" />
-                      <span>{item.label}</span>
-                    </DropdownMenuItem>
-                  </Link>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Contextual compose button for email or More menu for other contexts */}
+          {isInEmailTab && primaryEmailAccount ? (
+            <button
+              onClick={() => setShowEmailComposer(true)}
+              className="flex flex-col items-center justify-center py-2 px-4 min-w-[60px] transition-colors text-gray-500 hover:text-gray-700"
+            >
+              <Edit className="h-5 w-5 mb-1" />
+              <span className="text-xs font-medium">Compose</span>
+            </button>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="flex flex-col items-center justify-center py-2 px-4 min-w-[60px] transition-colors text-gray-500 hover:text-gray-700"
+                >
+                  <MoreHorizontal className="h-5 w-5 mb-1" />
+                  <span className="text-xs font-medium">More</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 mb-2">
+                {contextualMenuItems.map((item, index) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link key={index} href={item.href}>
+                      <DropdownMenuItem className="flex items-center space-x-2">
+                        <Icon className="h-4 w-4" />
+                        <span>{item.label}</span>
+                      </DropdownMenuItem>
+                    </Link>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
+      
+      {/* Email Composer Modal */}
+      {primaryEmailAccount && (
+        <GmailEmailComposer
+          isOpen={showEmailComposer}
+          onClose={() => setShowEmailComposer(false)}
+          fromAccountId={primaryEmailAccount.id}
+          fromEmail={primaryEmailAccount.emailAddress}
+          composeMode="compose"
+        />
+      )}
       
       {/* Spacer to prevent content from being hidden behind bottom nav on mobile */}
       <div className="h-16 md:hidden" />
