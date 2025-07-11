@@ -169,6 +169,15 @@ export default function MobileWeeklyScheduleView({
     const dayWidth = container.clientWidth / 2; // 2 days visible
     const currentDayIndex = Math.round(scrollLeft / dayWidth);
     
+    // Debug logging to understand the behavior
+    console.log('Scroll debug:', {
+      scrollLeft,
+      dayWidth,
+      currentDayIndex,
+      totalDays: days.length,
+      selectedDate: days[currentDayIndex]?.toDateString()
+    });
+    
     if (currentDayIndex >= 0 && currentDayIndex < days.length && setCurrentDate) {
       const newCurrentDate = days[currentDayIndex];
       setCurrentDate(newCurrentDate);
@@ -193,7 +202,7 @@ export default function MobileWeeklyScheduleView({
     };
   }, [handleScroll]);
 
-  // Scroll to current date on mount
+  // Scroll to current date on mount and when currentDate changes
   useEffect(() => {
     if (!scrollContainerRef.current || !currentDate) return;
     
