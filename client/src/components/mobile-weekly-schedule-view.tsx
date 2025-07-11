@@ -169,31 +169,43 @@ export default function MobileWeeklyScheduleView({
     const scrollLeft = container.scrollLeft;
     const containerWidth = container.clientWidth;
     
-    // Calculate which day is most visible (for context only, no snapping)
+    // Calculate which day is most prominently displayed (needs to be more than 60% visible)
     const dayWidth = 200; // Fixed day width
-    const centerScrollPosition = scrollLeft + containerWidth / 2;
-    const centerDayIndex = Math.floor(centerScrollPosition / dayWidth);
+    const leftVisibleDayIndex = Math.floor(scrollLeft / dayWidth);
+    const rightVisibleDayIndex = Math.floor((scrollLeft + containerWidth) / dayWidth);
     
-    // Only update date context if we're viewing a different day
-    const clampedIndex = Math.max(0, Math.min(centerDayIndex, days.length - 1));
+    // Only update if we've scrolled significantly - at least one full day width
+    const currentScrollDay = Math.floor((scrollLeft + dayWidth) / dayWidth);
+    const clampedIndex = Math.max(0, Math.min(currentScrollDay, days.length - 1));
     
     if (days[clampedIndex]) {
       const newCurrentDate = days[clampedIndex];
+      // Only update if we've moved to a significantly different day (reduce sensitivity)
       if (newCurrentDate.toDateString() !== currentDate?.toDateString()) {
-        setCurrentDate(newCurrentDate);
+        const currentIndex = days.findIndex(day => day.toDateString() === currentDate?.toDateString());
+        // Only update if we've moved at least 2 days away to reduce flicker
+        if (Math.abs(clampedIndex - currentIndex) >= 2) {
+          setCurrentDate(newCurrentDate);
+        }
       }
     }
   }, [days, setCurrentDate, isInitialized, currentDate]);
 
-  // Gentle scroll handler - no throttling for smooth response
+  // Throttled scroll handler for date tracking to reduce sensitivity
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    // Use passive listener for best performance without interfering with native scroll
-    container.addEventListener('scroll', handleScroll, { passive: true });
+    let scrollTimeout: NodeJS.Timeout;
+    const throttledHandleScroll = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(handleScroll, 300); // Longer delay for date tracking
+    };
+
+    container.addEventListener('scroll', throttledHandleScroll, { passive: true });
     return () => {
-      container.removeEventListener('scroll', handleScroll);
+      container.removeEventListener('scroll', throttledHandleScroll);
+      clearTimeout(scrollTimeout);
     };
   }, [handleScroll]);
 
