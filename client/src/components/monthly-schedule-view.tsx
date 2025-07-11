@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,6 +19,10 @@ interface MonthlyScheduleViewProps {
   currentDate: Date;
   setCurrentDate: (date: Date) => void;
   selectedContactIds: number[];
+  showAllDayEvents: boolean;
+  setShowAllDayEvents: (show: boolean) => void;
+  createEventDialog: boolean;
+  setCreateEventDialog: (open: boolean) => void;
   onEventClick?: (event: ScheduleEvent) => void;
 }
 
@@ -77,16 +81,19 @@ export default function MonthlyScheduleView({
   currentDate,
   setCurrentDate,
   selectedContactIds,
+  showAllDayEvents,
+  setShowAllDayEvents,
+  createEventDialog,
+  setCreateEventDialog,
   onEventClick,
 }: MonthlyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [createEventDialog, setCreateEventDialog] = useState<{
+  const [createEventDialogData, setCreateEventDialogData] = useState<{
     isOpen: boolean;
     date?: string;
   }>({ isOpen: false });
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
-  const [showAllDayEvents, setShowAllDayEvents] = useState(true);
 
   // Get show settings
   const { data: showSettings } = useQuery({
@@ -186,7 +193,7 @@ export default function MonthlyScheduleView({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
       toast({ title: "Event created successfully" });
-      setCreateEventDialog({ isOpen: false });
+      setCreateEventDialogData({ isOpen: false });
     },
     onError: (error) => {
       toast({ 
@@ -203,11 +210,19 @@ export default function MonthlyScheduleView({
 
   const handleDateClick = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    setCreateEventDialog({ 
+    setCreateEventDialogData({ 
       isOpen: true, 
       date: dateStr 
     });
   };
+
+  // Handle new event dialog from parent
+  useEffect(() => {
+    if (createEventDialog) {
+      setCreateEventDialogData({ isOpen: true });
+      setCreateEventDialog(false);
+    }
+  }, [createEventDialog, setCreateEventDialog]);
 
   if (isLoading) {
     return (
@@ -258,26 +273,7 @@ export default function MonthlyScheduleView({
         </div>
       </div>
 
-      {/* Mobile Controls */}
-      <div className="md:hidden px-4 py-2 flex items-center justify-between">
-        <Button 
-          variant={showAllDayEvents ? "default" : "outline"}
-          size="sm"
-          onClick={() => setShowAllDayEvents(!showAllDayEvents)}
-          className="text-sm"
-        >
-          All Day
-        </Button>
-        
-        <Button 
-          onClick={() => setCreateEventDialog({ isOpen: true })}
-          size="sm"
-          className="flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Add Event
-        </Button>
-      </div>
+
 
       {/* Calendar Grid */}
       <div className="bg-white">
@@ -353,8 +349,8 @@ export default function MonthlyScheduleView({
       </div>
 
       {/* Create Event Dialog */}
-      {createEventDialog.isOpen && (
-        <Dialog open={createEventDialog.isOpen} onOpenChange={() => setCreateEventDialog({ isOpen: false })}>
+      {createEventDialogData.isOpen && (
+        <Dialog open={createEventDialogData.isOpen} onOpenChange={() => setCreateEventDialogData({ isOpen: false })}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Create New Event</DialogTitle>
@@ -362,9 +358,9 @@ export default function MonthlyScheduleView({
             <EventForm
               projectId={projectId}
               contacts={contacts}
-              initialDate={createEventDialog.date}
+              initialDate={createEventDialogData.date}
               onSubmit={handleCreateEvent}
-              onCancel={() => setCreateEventDialog({ isOpen: false })}
+              onCancel={() => setCreateEventDialogData({ isOpen: false })}
               timeFormat={timeFormat}
             />
           </DialogContent>

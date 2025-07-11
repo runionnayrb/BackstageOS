@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus } from "lucide-react";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
 import MonthlyScheduleView from "@/components/monthly-schedule-view";
@@ -22,6 +22,8 @@ export default function Schedule() {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedContactIds, setSelectedContactIds] = useState<number[]>([]);
   const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
+  const [showAllDayEvents, setShowAllDayEvents] = useState(true);
+  const [createEventDialog, setCreateEventDialog] = useState(false);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -255,8 +257,32 @@ export default function Schedule() {
               </button>
             </div>
 
-            {/* Settings */}
+            {/* Buttons and Settings */}
             <div className="flex items-center gap-2">
+              {/* All Day Button - only show in monthly view */}
+              {viewMode === 'monthly' && (
+                <Button 
+                  variant={showAllDayEvents ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setShowAllDayEvents(!showAllDayEvents)}
+                  className="text-sm h-8"
+                >
+                  All Day
+                </Button>
+              )}
+              
+              {/* New Event Button */}
+              <Button 
+                size="sm"
+                onClick={() => setCreateEventDialog(true)}
+                className="flex items-center gap-2 h-8"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">New Event</span>
+                <span className="sm:hidden">Add</span>
+              </Button>
+              
+              {/* Time Increment for weekly/daily views */}
               {(viewMode === 'weekly' || viewMode === 'daily') && (
                 <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
                   <SelectTrigger className="w-10 h-8 border-0 shadow-none [&_svg[data-lucide='chevron-down']]:hidden">
@@ -287,6 +313,10 @@ export default function Schedule() {
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
+            showAllDayEvents={showAllDayEvents}
+            setShowAllDayEvents={setShowAllDayEvents}
+            createEventDialog={createEventDialog}
+            setCreateEventDialog={setCreateEventDialog}
             onEventClick={(event) => {
               // Set the date to the event's date and switch to daily view
               setCurrentDate(new Date(event.date));
