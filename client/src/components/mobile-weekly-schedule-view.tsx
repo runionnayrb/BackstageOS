@@ -225,7 +225,7 @@ export default function MobileWeeklyScheduleView({
   const containerHeight = TOTAL_MINUTES + 15; // Small padding to show 11:30 PM
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col h-full bg-gray-50" style={{ touchAction: 'pan-x', overscrollBehavior: 'none' }}>
       {/* Sticky Header Row */}
       <div className="sticky top-[60px] z-10 flex bg-gray-50">
         {/* Timezone Header */}

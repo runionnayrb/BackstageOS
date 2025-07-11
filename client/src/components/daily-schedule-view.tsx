@@ -1,6 +1,8 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { formatTimeDisplay } from '@/lib/timeUtils';
+import { formatTimeDisplay, parseScheduleSettings } from '@/lib/timeUtils';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // Constants for time grid (8 AM to midnight = 16 hours)
 const START_HOUR = 8;
@@ -14,6 +16,8 @@ interface DailyScheduleViewProps {
   projectId: number;
   selectedDate: Date;
   onDateClick?: (date: Date) => void;
+  currentDate?: Date;
+  setCurrentDate?: (date: Date) => void;
   selectedContactIds: number[];
   showAllDayEvents: boolean;
   timeIncrement: number;
@@ -55,11 +59,72 @@ export default function DailyScheduleView({
   projectId, 
   selectedDate, 
   onDateClick, 
+  currentDate,
+  setCurrentDate,
   selectedContactIds, 
   showAllDayEvents: propShowAllDayEvents, 
   timeIncrement 
 }: DailyScheduleViewProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [internalDate, setInternalDate] = useState<Date>(selectedDate);
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+
+  // Use currentDate from parent if available, otherwise use internal state
+  const displayDate = currentDate || internalDate;
+
+  // Navigation functions
+  const navigateToDate = useCallback((newDate: Date) => {
+    if (setCurrentDate) {
+      setCurrentDate(newDate);
+    } else {
+      setInternalDate(newDate);
+    }
+    if (onDateClick) {
+      onDateClick(newDate);
+    }
+  }, [setCurrentDate, onDateClick]);
+
+  const goToPreviousDay = useCallback(() => {
+    const previousDay = new Date(displayDate);
+    previousDay.setDate(displayDate.getDate() - 1);
+    navigateToDate(previousDay);
+  }, [displayDate, navigateToDate]);
+
+  const goToNextDay = useCallback(() => {
+    const nextDay = new Date(displayDate);
+    nextDay.setDate(displayDate.getDate() + 1);
+    navigateToDate(nextDay);
+  }, [displayDate, navigateToDate]);
+
+  // Touch event handlers for swipe navigation
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setTouchStartX(touch.clientX);
+    setTouchStartY(touch.clientY);
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartX === null || touchStartY === null) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+
+    // Only trigger swipe if horizontal movement is greater than vertical
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      if (deltaX > 0) {
+        // Swipe right - go to previous day
+        goToPreviousDay();
+      } else {
+        // Swipe left - go to next day
+        goToNextDay();
+      }
+    }
+
+    setTouchStartX(null);
+    setTouchStartY(null);
+  }, [touchStartX, touchStartY, goToPreviousDay, goToNextDay]);
 
   // Time utilities
   const timeToMinutes = (time: string): number => {
@@ -82,13 +147,9 @@ export default function DailyScheduleView({
     queryKey: ['/api/projects', projectId, 'settings'],
   });
 
-  // Extract time format
-  const scheduleSettings = projectSettings?.scheduleSettings 
-    ? (typeof projectSettings.scheduleSettings === 'string' 
-        ? JSON.parse(projectSettings.scheduleSettings) 
-        : projectSettings.scheduleSettings)
-    : {};
-  const timeFormat = scheduleSettings.timeFormat || '12-Hour AM/PM';
+  // Parse schedule settings with time format preference
+  const scheduleSettings = parseScheduleSettings((projectSettings as any)?.scheduleSettings);
+  const { timeFormat = '12', timezone } = scheduleSettings;
 
   // Fetch events
   const { data: events = [] } = useQuery<ScheduleEvent[]>({
@@ -110,6 +171,17 @@ export default function DailyScheduleView({
     }
     
     return filteredEvents;
+  };
+
+  // Get timezone abbreviation
+  const getTimezoneAbbr = () => {
+    const userTimeZone = scheduleSettings?.timeZone || "America/New_York";
+    const now = new Date();
+    const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
+      timeZone: userTimeZone, 
+      timeZoneName: 'short' 
+    }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
+    return timeZoneAbbr;
   };
 
   // Generate time labels - use same approach as mobile weekly view
@@ -159,21 +231,13 @@ export default function DailyScheduleView({
               padding: 0
             }}
           >
-            {(() => {
-              const userTimeZone = scheduleSettings?.timeZone || "America/New_York";
-              const now = new Date();
-              const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
-                timeZone: userTimeZone, 
-                timeZoneName: 'short' 
-              }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
-              return timeZoneAbbr;
-            })()}
+            {getTimezoneAbbr()}
           </span>
         </div>
         
-        {/* Day Header */}
+        {/* Day Header with Navigation */}
         <div 
-          className="flex-1 bg-gray-100"
+          className="flex-1 bg-gray-100 relative"
           style={{ 
             height: '20px',
             minHeight: '20px', 
@@ -187,6 +251,17 @@ export default function DailyScheduleView({
             boxSizing: 'border-box'
           }}
         >
+          {/* Navigation buttons - hidden on small screens, visible on md+ */}
+          <Button
+            onClick={goToPreviousDay}
+            size="sm"
+            variant="ghost"
+            className="absolute left-1 h-4 w-4 p-0 hidden md:flex"
+            style={{ zIndex: 10 }}
+          >
+            <ChevronLeft className="h-3 w-3" />
+          </Button>
+          
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
@@ -205,9 +280,9 @@ export default function DailyScheduleView({
                 padding: 0
               }}
             >
-              {selectedDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
+              {displayDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
             </span>
-            {selectedDate.toDateString() === new Date().toDateString() ? (
+            {displayDate.toDateString() === new Date().toDateString() ? (
               <div 
                 className="bg-red-500 rounded-full"
                 style={{
@@ -229,7 +304,7 @@ export default function DailyScheduleView({
                     padding: 0
                   }}
                 >
-                  {selectedDate.getDate()}
+                  {displayDate.getDate()}
                 </span>
               </div>
             ) : (
@@ -243,10 +318,20 @@ export default function DailyScheduleView({
                   padding: 0
                 }}
               >
-                {selectedDate.getDate()}
+                {displayDate.getDate()}
               </span>
             )}
           </div>
+
+          <Button
+            onClick={goToNextDay}
+            size="sm"
+            variant="ghost"
+            className="absolute right-1 h-4 w-4 p-0 hidden md:flex"
+            style={{ zIndex: 10 }}
+          >
+            <ChevronRight className="h-3 w-3" />
+          </Button>
         </div>
       </div>
 
@@ -281,7 +366,12 @@ export default function DailyScheduleView({
 
         {/* Day Container */}
         <div className="flex-1 overflow-hidden">
-          <div className="h-full">
+          <div 
+            className="h-full"
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            style={{ touchAction: 'pan-y', overscrollBehavior: 'none' }}
+          >
             <div className="flex flex-col h-full">
               {/* Day Schedule Content */}
               <div 
@@ -308,7 +398,7 @@ export default function DailyScheduleView({
                   </div>
 
                   {/* Events for this day */}
-                  {getEventsForDate(selectedDate).map((event) => {
+                  {getEventsForDate(displayDate).map((event) => {
                     if (event.isAllDay && !propShowAllDayEvents) return null;
 
                     const startMinutes = timeToMinutes(event.startTime);

@@ -98,6 +98,18 @@
   display: none;
 }
 
+/* Disable pull-to-refresh and default overscroll behaviors on mobile */
+html, body {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+/* Specifically for schedule views to prevent reload swipe */
+.schedule-container {
+  overscroll-behavior: none;
+  touch-action: pan-x pan-y;
+}
+
 /* Lighter dialog overlay */
 [data-radix-dialog-overlay] {
   background-color: rgba(0, 0, 0, 0.05) !important;
