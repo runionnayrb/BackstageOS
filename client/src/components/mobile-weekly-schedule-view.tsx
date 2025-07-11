@@ -170,7 +170,7 @@ export default function MobileWeeklyScheduleView({
     const containerWidth = container.clientWidth;
     
     // Calculate which day is most visible (for context only, no snapping)
-    const dayWidth = containerWidth / 2; // 2 days visible at a time
+    const dayWidth = 200; // Fixed day width
     const centerScrollPosition = scrollLeft + containerWidth / 2;
     const centerDayIndex = Math.floor(centerScrollPosition / dayWidth);
     
@@ -207,12 +207,11 @@ export default function MobileWeeklyScheduleView({
     
     if (currentDateIndex >= 0) {
       const container = scrollContainerRef.current;
+      const dayWidth = 200;
       const containerWidth = container.clientWidth;
-      const totalScrollWidth = container.scrollWidth;
       
-      // More precise scroll positioning
-      const scrollProgress = currentDateIndex / (days.length - 1);
-      const scrollPosition = scrollProgress * (totalScrollWidth - containerWidth);
+      // Position so the current day is visible on screen
+      const scrollPosition = Math.max(0, (currentDateIndex * dayWidth) - (containerWidth / 2) + (dayWidth / 2));
       
       container.scrollTo({ left: scrollPosition, behavior: 'instant' });
       setIsInitialized(true);
@@ -315,15 +314,15 @@ export default function MobileWeeklyScheduleView({
               scrollSnapType: 'none' // Completely disable snap behavior
             }}
           >
-            <div className="flex h-full" style={{ width: `${days.length * 50}%` }}>
+            <div className="flex h-full" style={{ width: `${days.length * 200}px` }}>
               {days.map((day, index) => (
                 <div 
                   key={day.toISOString()}
                   className="flex-shrink-0 flex flex-col border-r border-gray-200"
                   style={{ 
-                    width: `${100 / days.length}%`, 
-                    minWidth: '50vw',
-                    scrollSnapAlign: 'none' // Disable individual snap points
+                    width: '200px',
+                    minWidth: '200px',
+                    maxWidth: '200px'
                   }}
                 >
                   {/* Day Header */}
