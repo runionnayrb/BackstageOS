@@ -181,7 +181,7 @@ export default function Schedule() {
       {/* Mobile Header */}
       <div className="md:hidden">
         {/* Main Mobile Header */}
-        <div className="px-4 py-3 border-b border-gray-200 bg-white">
+        <div className="sticky top-0 z-20 px-4 py-3 border-b border-gray-200 bg-white">
           <div className="flex items-center justify-between">
             {/* Month/Year Display */}
             <div className="flex items-center gap-3">
@@ -226,7 +226,7 @@ export default function Schedule() {
         </div>
 
         {/* Mobile View Mode Selector */}
-        <div className="px-4 py-3 bg-white border-b border-gray-200">
+        <div className="sticky top-[60px] z-20 px-4 py-3 bg-white border-b border-gray-200">
           <div className="flex items-center justify-between">
             {/* View Mode Buttons */}
             <div className="flex gap-1">
