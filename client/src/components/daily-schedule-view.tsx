@@ -169,11 +169,16 @@ export default function DailyScheduleView({
               {/* Day Header */}
               <div 
                 className="bg-white flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
-                style={{ height: '20px', minHeight: '20px', maxHeight: '20px' }}
+                style={{ 
+                  height: '20px', 
+                  minHeight: '20px', 
+                  maxHeight: '20px',
+                  lineHeight: '20px'
+                }}
                 onClick={() => onDateClick(selectedDate)}
               >
-                <div className="flex items-center justify-center space-x-1">
-                  <span className="text-sm font-bold text-gray-600">
+                <div className="flex items-center justify-center space-x-1" style={{ lineHeight: '20px' }}>
+                  <span className="text-sm font-bold text-gray-600" style={{ lineHeight: '20px' }}>
                     {selectedDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
                   </span>
                   {selectedDate.toDateString() === new Date().toDateString() ? (
@@ -183,7 +188,7 @@ export default function DailyScheduleView({
                       </span>
                     </div>
                   ) : (
-                    <span className="text-sm font-bold text-gray-900">
+                    <span className="text-sm font-bold text-gray-900" style={{ lineHeight: '20px' }}>
                       {selectedDate.getDate()}
                     </span>
                   )}
