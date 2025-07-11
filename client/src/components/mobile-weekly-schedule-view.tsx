@@ -133,16 +133,22 @@ export default function MobileWeeklyScheduleView({
       const previousStartDate = startDate.toDateString();
       setStartDate(currentDate);
       
-      // Only scroll if this is from Today button (external trigger) and dates are different
+      // Only scroll if initialized and dates are different
       if (isInitialized && scrollContainerRef.current && currentDate.toDateString() !== previousStartDate) {
+        console.log('📅 Mobile Weekly: Date changed from', previousStartDate, 'to', currentDate.toDateString());
+        
         // Check if this is likely from Today button by comparing if the new date is today
         const today = new Date();
         const isToday = currentDate.toDateString() === today.toDateString();
         
-        if (isToday || shouldScrollToDate) {
+        console.log('📅 Mobile Weekly: isToday:', isToday, 'shouldScrollToDate:', shouldScrollToDate);
+        
+        if (isToday) {
           const currentDateIndex = days.findIndex(day => 
             day.toDateString() === currentDate.toDateString()
           );
+          
+          console.log('📅 Mobile Weekly: Scrolling to today, index:', currentDateIndex);
           
           if (currentDateIndex >= 0) {
             const container = scrollContainerRef.current;
@@ -152,14 +158,15 @@ export default function MobileWeeklyScheduleView({
             // Position so the current day is visible on screen
             const scrollPosition = Math.max(0, (currentDateIndex * dayWidth) - (containerWidth / 2) + (dayWidth / 2));
             
+            console.log('📅 Mobile Weekly: Calculated scroll position:', scrollPosition);
+            
             // Use smooth scroll for Today button navigation
             container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
           }
-          setShouldScrollToDate(false);
         }
       }
     }
-  }, [currentDate, isInitialized, days, startDate, shouldScrollToDate]);
+  }, [currentDate, isInitialized, days, startDate]);
 
   // Time formatting functions
   const formatTime = (minutes: number) => {
