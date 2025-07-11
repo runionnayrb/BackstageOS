@@ -172,23 +172,22 @@ export default function DailyScheduleView({
                 style={{ 
                   height: '20px', 
                   minHeight: '20px', 
-                  maxHeight: '20px',
-                  lineHeight: '20px'
+                  maxHeight: '20px'
                 }}
                 onClick={() => onDateClick(selectedDate)}
               >
-                <div className="flex items-center justify-center space-x-1" style={{ lineHeight: '20px' }}>
-                  <span className="text-sm font-bold text-gray-600" style={{ lineHeight: '20px' }}>
+                <div className="flex items-center justify-center space-x-1">
+                  <span className="text-sm font-bold text-gray-600" style={{ lineHeight: '14px' }}>
                     {selectedDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
                   </span>
                   {selectedDate.toDateString() === new Date().toDateString() ? (
                     <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-bold text-white">
+                      <span className="text-sm font-bold text-white" style={{ lineHeight: '14px' }}>
                         {selectedDate.getDate()}
                       </span>
                     </div>
                   ) : (
-                    <span className="text-sm font-bold text-gray-900" style={{ lineHeight: '20px' }}>
+                    <span className="text-sm font-bold text-gray-900" style={{ lineHeight: '14px' }}>
                       {selectedDate.getDate()}
                     </span>
                   )}
