@@ -138,7 +138,7 @@ export default function DailyScheduleView({
       <div className="flex flex-1 overflow-hidden">
         {/* Time Labels - Fixed on left side */}
         <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
-          <div className="h-16 border-b border-gray-200 flex items-center justify-center">
+          <div className="h-16 flex items-center justify-center">
             <div className="text-xs font-medium text-gray-600">Time</div>
           </div>
           <div 
@@ -168,26 +168,24 @@ export default function DailyScheduleView({
             <div className="flex flex-col h-full">
               {/* Day Header */}
               <div 
-                className="h-16 bg-white border-b border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                className="h-16 bg-white flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
                 onClick={() => onDateClick(selectedDate)}
               >
-                <div className="text-center">
-                  <div className="text-sm font-medium text-gray-600">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm font-medium text-gray-600">
                     {selectedDate.toLocaleDateString('en-US', { weekday: 'short' })}
-                  </div>
-                  <div className="mt-1 flex items-center justify-center">
-                    {selectedDate.toDateString() === new Date().toDateString() ? (
-                      <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                        <span className="text-lg font-semibold text-white">
-                          {selectedDate.getDate()}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-lg font-semibold text-gray-900">
+                  </span>
+                  {selectedDate.toDateString() === new Date().toDateString() ? (
+                    <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                      <span className="text-lg font-semibold text-white">
                         {selectedDate.getDate()}
                       </span>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <span className="text-lg font-semibold text-gray-900">
+                      {selectedDate.getDate()}
+                    </span>
+                  )}
                 </div>
               </div>
 
