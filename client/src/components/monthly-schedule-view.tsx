@@ -408,7 +408,24 @@ export default function MonthlyScheduleView({
                 onSubmit={handleCreateEvent}
                 onCancel={() => setCreateEventDialogData({ isOpen: false })}
                 timeFormat={timeFormat}
+                showButtons={false}
               />
+            </div>
+            
+            {/* Sticky Footer with Buttons */}
+            <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0">
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setCreateEventDialogData({ isOpen: false })}>
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  form="event-form"
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Create Event
+                </Button>
+              </div>
             </div>
           </div>
         </>
@@ -424,7 +441,8 @@ function EventForm({
   initialDate, 
   onSubmit, 
   onCancel,
-  timeFormat 
+  timeFormat,
+  showButtons = true
 }: {
   projectId: number;
   contacts: Contact[];
@@ -432,6 +450,7 @@ function EventForm({
   onSubmit: (data: any) => void;
   onCancel: () => void;
   timeFormat: string;
+  showButtons?: boolean;
 }) {
   const [formData, setFormData] = useState({
     title: '',
@@ -471,7 +490,11 @@ function EventForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 p-4 max-w-full">
+    <form 
+      id="event-form" 
+      onSubmit={handleSubmit} 
+      className="space-y-4 p-4 max-w-full"
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="title">Event Title</Label>
@@ -576,14 +599,16 @@ function EventForm({
         />
       </div>
 
-      <div className="flex justify-end space-x-2 pb-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button type="submit">
-          Create Event
-        </Button>
-      </div>
+      {showButtons && (
+        <div className="flex justify-end space-x-2 pb-4">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit">
+            Create Event
+          </Button>
+        </div>
+      )}
     </form>
   );
 }
