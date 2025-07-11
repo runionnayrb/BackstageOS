@@ -1082,16 +1082,10 @@ Respond with valid JSON only.`;
         return res.status(400).json({ message: "Invalid profile type" });
       }
 
-      const user = await storage.upsertUser({
-        email: req.user.claims.email,
-        password: '', // OAuth users don't have passwords
-        firstName: req.user.claims.first_name,
-        lastName: req.user.claims.last_name,
-        profileImageUrl: req.user.claims.profile_image_url,
-        profileType,
-      });
+      // Update the user's profile type
+      const updatedUser = await storage.updateUser(userId, { profileType });
 
-      res.json(user);
+      res.json(updatedUser);
     } catch (error) {
       console.error("Error updating profile type:", error);
       res.status(500).json({ message: "Failed to update profile type" });

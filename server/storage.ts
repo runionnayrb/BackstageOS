@@ -101,6 +101,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: UpsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
+  updateUser(userId: string, updates: Partial<UpsertUser>): Promise<User>;
   
   // Beta access operations
   updateUserBetaAccess(userId: string, betaAccess: string, betaFeatures?: string[]): Promise<User>;
@@ -302,6 +303,14 @@ export class DatabaseStorage implements IStorage {
     } else {
       return this.createUser(user);
     }
+  }
+
+  async updateUser(userId: string, updates: Partial<UpsertUser>): Promise<User> {
+    const result = await db.update(users)
+      .set(updates)
+      .where(eq(users.id, parseInt(userId)))
+      .returning();
+    return result[0];
   }
 
   async updateUserBetaAccess(userId: string, betaAccess: string, betaFeatures?: string[]): Promise<User> {
