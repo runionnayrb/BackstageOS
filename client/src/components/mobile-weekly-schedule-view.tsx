@@ -325,7 +325,7 @@ export default function MobileWeeklyScheduleView({
               {days.map((day, index) => (
                 <div 
                   key={day.toISOString()}
-                  className="flex-shrink-0 flex flex-col"
+                  className="flex-shrink-0 flex flex-col border-r border-gray-200"
                   style={{ width: `${100 / days.length}%`, minWidth: '50vw' }}
                 >
                   {/* Day Header */}
