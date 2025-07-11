@@ -209,63 +209,144 @@ export default function MobileWeeklyScheduleView({
   const containerHeight = TOTAL_MINUTES + 15; // Small padding to show 11:30 PM
 
   return (
-    <div className="flex h-full bg-gray-50">
-      {/* Time Column */}
-      <div className="w-16 bg-gray-100 border-r border-gray-200 flex-shrink-0">
-        <div className="h-8 bg-gray-200 border-b border-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
-          Time
+    <div className="flex flex-col h-full bg-gray-50">
+      {/* Sticky Header Row */}
+      <div className="sticky top-[60px] z-10 flex bg-gray-50">
+        {/* Timezone Header */}
+        <div 
+          className="w-16 bg-gray-100 border-r border-gray-200 flex-shrink-0"
+          style={{ 
+            height: '20px',
+            minHeight: '20px', 
+            maxHeight: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            margin: 0,
+            padding: 0,
+            boxSizing: 'border-box'
+          }}
+        >
+          <span 
+            style={{ 
+              lineHeight: '14px',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              color: '#6b7280',
+              margin: 0,
+              padding: 0
+            }}
+          >
+            {(() => {
+              const userTimeZone = scheduleSettings?.timeZone || "America/New_York";
+              const now = new Date();
+              const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
+                timeZone: userTimeZone, 
+                timeZoneName: 'short' 
+              }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
+              return timeZoneAbbr;
+            })()}
+          </span>
         </div>
-        <div className="relative" style={{ height: `${containerHeight}px` }}>
-          {timeLabels.map((timeLabel) => (
-            <div
-              key={timeLabel.minutes}
-              className="absolute left-0 right-0 flex items-center justify-center text-xs text-gray-500"
-              style={{ 
-                top: `${timeLabel.position}px`,
-                height: `${timeIncrement}px`,
-                transform: 'translateY(-50%)'
-              }}
-            >
-              {timeLabel.label}
-            </div>
-          ))}
+        
+        {/* Day Headers */}
+        <div className="flex-1 overflow-hidden">
+          <div className="flex">
+            {days.map((day, index) => (
+              <div 
+                key={`header-${day.toISOString()}`}
+                className={`flex-shrink-0 w-1/2 snap-start ${index < days.length - 1 ? 'border-r border-gray-200' : ''}`}
+                style={{ 
+                  height: '20px',
+                  minHeight: '20px', 
+                  maxHeight: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  backgroundColor: '#f9fafb',
+                  cursor: 'pointer',
+                  margin: 0,
+                  padding: 0,
+                  boxSizing: 'border-box'
+                }}
+                onClick={() => onDateClick(day)}
+              >
+                <div style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  gap: '4px',
+                  height: '100%',
+                  margin: 0,
+                  padding: 0
+                }}>
+                  <span style={{ 
+                    lineHeight: '14px',
+                    fontSize: '14px',
+                    fontWeight: 'bold',
+                    color: '#374151',
+                    margin: 0,
+                    padding: 0
+                  }}>
+                    {day.toLocaleDateString('en-US', { 
+                      weekday: 'short',
+                      month: 'numeric',
+                      day: 'numeric'
+                    })}
+                  </span>
+                  {currentDate && day.toDateString() === currentDate.toDateString() && (
+                    <div 
+                      style={{
+                        width: '6px',
+                        height: '6px',
+                        borderRadius: '50%',
+                        backgroundColor: '#ef4444',
+                        margin: 0,
+                        padding: 0
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Scrollable Days Container */}
-      <div className="flex-1 overflow-hidden">
-        <div 
-          ref={scrollContainerRef}
-          className="overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full"
-        >
-          <div className="flex h-full">
-            {days.map((day, index) => (
-              <div 
-                key={day.toISOString()}
-                className={`flex-shrink-0 w-1/2 snap-start flex flex-col ${index < days.length - 1 ? 'border-r border-gray-200' : ''}`}
+      {/* Main Content */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Time Column */}
+        <div className="w-16 bg-gray-100 border-r border-gray-200 flex-shrink-0">
+          <div className="relative" style={{ height: `${containerHeight}px` }}>
+            {timeLabels.map((timeLabel) => (
+              <div
+                key={timeLabel.minutes}
+                className="absolute left-0 right-0 flex items-center justify-center text-xs text-gray-500"
+                style={{ 
+                  top: `${timeLabel.position}px`,
+                  height: `${timeIncrement}px`,
+                  transform: 'translateY(-50%)'
+                }}
               >
-                {/* Day Header */}
-                <div 
-                  className="h-8 bg-gray-200 border-b border-gray-300 flex items-center justify-center text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-300 transition-colors"
-                  onClick={() => onDateClick(day)}
-                >
-                  <div className="flex items-center gap-1">
-                    <span>
-                      {day.toLocaleDateString('en-US', { 
-                        weekday: 'short',
-                        month: 'numeric',
-                        day: 'numeric'
-                      })}
-                    </span>
-                    {currentDate && day.toDateString() === currentDate.toDateString() && (
-                      <div className="w-2 h-2 bg-red-500 rounded-full" />
-                    )}
-                  </div>
-                </div>
+                {timeLabel.label}
+              </div>
+            ))}
+          </div>
+        </div>
 
-                {/* Day Schedule Content */}
+        {/* Scrollable Days Container */}
+        <div className="flex-1 overflow-hidden">
+          <div 
+            ref={scrollContainerRef}
+            className="overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full"
+          >
+            <div className="flex h-full">
+              {days.map((day, index) => (
                 <div 
-                  className="relative bg-white flex-1"
+                  key={day.toISOString()}
+                  className={`flex-shrink-0 w-1/2 snap-start bg-white ${index < days.length - 1 ? 'border-r border-gray-200' : ''}`}
                 >
                   <div 
                     className="relative"
@@ -294,7 +375,7 @@ export default function MobileWeeklyScheduleView({
                       const startMinutes = timeToMinutes(event.startTime);
                       const endMinutes = timeToMinutes(event.endTime);
                       const top = minutesToPosition(startMinutes);
-                      const height = Math.max(30, endMinutes - startMinutes); // Minimum 30px height
+                      const height = Math.max(30, endMinutes - startMinutes);
 
                       return (
                         <div
@@ -317,8 +398,8 @@ export default function MobileWeeklyScheduleView({
                     })}
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>
