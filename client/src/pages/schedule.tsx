@@ -277,24 +277,21 @@ export default function Schedule() {
               
               {/* All Day Button - middle - show in weekly view too */}
               {(viewMode === 'weekly' || viewMode === 'monthly') && (
-                <Button 
-                  variant={showAllDayEvents ? "default" : "outline"}
-                  size="sm"
+                <button
                   onClick={() => setShowAllDayEvents(!showAllDayEvents)}
-                  className="p-2 h-8"
+                  className="p-2 h-8 border-0 bg-transparent hover:bg-gray-100 rounded-md transition-colors"
                 >
-                  <Calendar className="h-4 w-4" />
-                </Button>
+                  <Calendar className={`h-4 w-4 ${showAllDayEvents ? 'text-blue-500' : 'text-gray-600'}`} />
+                </button>
               )}
               
               {/* New Event Button - leftmost */}
-              <Button 
-                size="sm"
+              <button
                 onClick={() => setCreateEventDialog(true)}
-                className="p-2 h-8"
+                className="p-2 h-8 border-0 bg-transparent hover:bg-gray-100 rounded-md transition-colors"
               >
-                <Plus className="h-4 w-4" />
-              </Button>
+                <Plus className="h-4 w-4 text-gray-600" />
+              </button>
             </div>
           </div>
         </div>
