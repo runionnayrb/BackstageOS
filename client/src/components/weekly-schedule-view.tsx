@@ -853,15 +853,15 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
   return (
     <>
       <div className="space-y-4">
-        {/* Navigation and controls row */}
-        <div className="relative flex justify-between mb-4">
+        {/* Navigation and controls row - Desktop only */}
+        <div className="relative hidden md:flex justify-between mb-4">
           {/* Week navigation - fixed arrow positions */}
           <div className="flex items-center">
             <button onClick={goToPreviousWeek} className="p-2 hover:bg-gray-100 rounded transition-colors">
               <ChevronLeft className="h-4 w-4" />
             </button>
             
-            <div className="text-lg font-medium w-[400px] text-center hidden md:block">
+            <div className="text-lg font-medium w-[400px] text-center">
               {formatWeekRange(weekDates)}
             </div>
             
@@ -912,8 +912,6 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
             )}
           </div>
         )}
-
-
 
         {/* Main Schedule Grid */}
         <div className="border border-gray-200 rounded-lg overflow-hidden">

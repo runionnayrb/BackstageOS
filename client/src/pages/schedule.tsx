@@ -298,8 +298,6 @@ export default function Schedule() {
             </div>
           </div>
         </div>
-
-
       </div>
 
       {/* Content Container - Responsive Padding */}
