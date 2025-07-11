@@ -275,7 +275,7 @@ export default function MobileWeeklyScheduleView({
                       overflow: 'hidden',
                       backgroundColor: '#ffffff',
                       cursor: 'pointer',
-                      border: '1px solid red',
+
                       margin: 0,
                       padding: 0,
                       boxSizing: 'border-box'
@@ -350,7 +350,7 @@ export default function MobileWeeklyScheduleView({
                   >
                     <div 
                       className="relative"
-                      style={{ height: `${containerHeight}px`, paddingTop: '20px' }}
+                      style={{ height: `${containerHeight}px` }}
                     >
                       {/* Time grid background */}
                       <div className="absolute inset-0">
@@ -358,7 +358,7 @@ export default function MobileWeeklyScheduleView({
                           <div
                             key={timeLabel.minutes}
                             className="absolute left-0 right-0 border-t border-gray-100"
-                            style={{ top: `${timeLabel.position + 20}px` }}
+                            style={{ top: `${timeLabel.position}px` }}
                           />
                         ))}
                       </div>
@@ -377,7 +377,7 @@ export default function MobileWeeklyScheduleView({
                             key={event.id}
                             className="absolute left-1 right-1 bg-blue-500 text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:bg-blue-600 transition-colors"
                             style={{
-                              top: `${top + 20}px`,
+                              top: `${top}px`,
                               height: `${height}px`,
                             }}
                             onClick={() => onDateClick(day)}
