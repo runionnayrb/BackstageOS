@@ -176,7 +176,7 @@ export default function DailyScheduleView({
           </div>
           <div 
             className="relative overflow-y-auto"
-            style={{ height: `calc(100vh - 200px)` }}
+            style={{ height: `calc(100vh - 120px)` }}
           >
             <div 
               className="relative"
