@@ -127,7 +127,7 @@ export default function DailyScheduleView({
     return labels;
   }, [timeFormat, timeIncrement]);
 
-  const containerHeight = TOTAL_MINUTES + 200; // Add extra padding for full visibility
+  const containerHeight = TOTAL_MINUTES + 60; // Minimal padding for full visibility
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
