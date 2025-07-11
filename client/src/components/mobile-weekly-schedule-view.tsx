@@ -161,24 +161,23 @@ export default function MobileWeeklyScheduleView({
     return filteredEvents.filter(event => event.date === dateString);
   };
 
-  // Handle scroll to update current week context with reduced sensitivity
+  // Handle scroll to update current week context - only for date tracking, no snapping
   const handleScroll = useCallback(() => {
-    if (!scrollContainerRef.current || !isInitialized) return;
+    if (!scrollContainerRef.current || !isInitialized || !setCurrentDate) return;
     
     const container = scrollContainerRef.current;
     const scrollLeft = container.scrollLeft;
     const containerWidth = container.clientWidth;
-    const totalScrollWidth = container.scrollWidth;
     
-    // Calculate scroll progress more precisely to reduce sensitivity
-    const scrollProgress = scrollLeft / (totalScrollWidth - containerWidth);
-    const scrollIndex = scrollProgress * (days.length - 1);
-    const currentDayIndex = Math.round(scrollIndex);
+    // Calculate which day is most visible (for context only, no snapping)
+    const dayWidth = containerWidth / 2; // 2 days visible at a time
+    const centerScrollPosition = scrollLeft + containerWidth / 2;
+    const centerDayIndex = Math.floor(centerScrollPosition / dayWidth);
     
-    // Clamp to valid range and only update if different
-    const clampedIndex = Math.max(0, Math.min(currentDayIndex, days.length - 1));
+    // Only update date context if we're viewing a different day
+    const clampedIndex = Math.max(0, Math.min(centerDayIndex, days.length - 1));
     
-    if (setCurrentDate && days[clampedIndex]) {
+    if (days[clampedIndex]) {
       const newCurrentDate = days[clampedIndex];
       if (newCurrentDate.toDateString() !== currentDate?.toDateString()) {
         setCurrentDate(newCurrentDate);
@@ -186,21 +185,15 @@ export default function MobileWeeklyScheduleView({
     }
   }, [days, setCurrentDate, isInitialized, currentDate]);
 
-  // Throttled scroll handler to reduce sensitivity
+  // Gentle scroll handler - no throttling for smooth response
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    let scrollTimeout: NodeJS.Timeout;
-    const throttledHandleScroll = () => {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(handleScroll, 100); // Small delay to reduce sensitivity
-    };
-
-    container.addEventListener('scroll', throttledHandleScroll, { passive: true });
+    // Use passive listener for best performance without interfering with native scroll
+    container.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
-      container.removeEventListener('scroll', throttledHandleScroll);
-      clearTimeout(scrollTimeout);
+      container.removeEventListener('scroll', handleScroll);
     };
   }, [handleScroll]);
 
@@ -318,7 +311,8 @@ export default function MobileWeeklyScheduleView({
             style={{ 
               scrollBehavior: 'auto',
               overscrollBehavior: 'contain',
-              WebkitOverflowScrolling: 'touch'
+              WebkitOverflowScrolling: 'touch',
+              scrollSnapType: 'none' // Completely disable snap behavior
             }}
           >
             <div className="flex h-full" style={{ width: `${days.length * 50}%` }}>
@@ -326,7 +320,11 @@ export default function MobileWeeklyScheduleView({
                 <div 
                   key={day.toISOString()}
                   className="flex-shrink-0 flex flex-col border-r border-gray-200"
-                  style={{ width: `${100 / days.length}%`, minWidth: '50vw' }}
+                  style={{ 
+                    width: `${100 / days.length}%`, 
+                    minWidth: '50vw',
+                    scrollSnapAlign: 'none' // Disable individual snap points
+                  }}
                 >
                   {/* Day Header */}
                   <div 
