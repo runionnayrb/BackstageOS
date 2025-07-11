@@ -261,14 +261,33 @@ export function GmailEmailComposer({
     setContent(newContent);
   }, [emailAccount, isLoadingAccounts]);
 
-  // Check if there's any content in the email
+  // Check if there's any content in the email (excluding signature-only content)
   const hasContent = () => {
-    return toAddresses.trim() || 
-           ccAddresses.trim() || 
-           bccAddresses.trim() || 
-           subject.trim() || 
-           content.trim() ||
-           attachments.length > 0;
+    // Check basic fields first
+    if (toAddresses.trim() || ccAddresses.trim() || bccAddresses.trim() || subject.trim() || attachments.length > 0) {
+      return true;
+    }
+    
+    // For content, check if it's more than just the signature
+    const trimmedContent = content.trim();
+    if (!trimmedContent) return false;
+    
+    // If we have email account data, check if content is only signature
+    if (emailAccount?.signature) {
+      const plainTextSignature = htmlToPlainText(emailAccount.signature);
+      
+      // Remove signature from content to see if there's anything else
+      const contentWithoutSignature = trimmedContent
+        .replace(plainTextSignature, '')
+        .replace(/^\s*\n+/, '') // Remove leading newlines
+        .replace(/\n+\s*$/, '') // Remove trailing newlines
+        .trim();
+      
+      return contentWithoutSignature.length > 0;
+    }
+    
+    // If no signature data, any content counts
+    return trimmedContent.length > 0;
   };
 
   // Save draft mutation
