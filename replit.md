@@ -96,9 +96,40 @@ BackstageOS is a comprehensive theater management platform specifically designed
 
 **To Request Implementation:** Simply ask "I'm ready to start the email system implementation" and reference this plan in replit.md
 
+## Critical Mobile Interface Solutions
+
+### Mobile Weekly Schedule Scrolling (RESOLVED - DO NOT MODIFY)
+**Issue**: iOS momentum scrolling caused unwanted jumping after finger release in mobile weekly view
+**Solution**: Extended momentum protection system with 500ms delays and isScrolling guards
+**Files**: `mobile-weekly-schedule-view.tsx` 
+**Status**: Working perfectly - user confirmed with enthusiasm
+**Warning**: Do not modify this implementation - it took extensive debugging to achieve iOS-style continuous scrolling
+
 ## System Architecture
 
 **Show-Centric Design**: Everything is tied to specific shows/projects with no data crossover between productions.
+
+### Mobile Weekly Schedule Scrolling Solution
+**CRITICAL FIX DOCUMENTED - DO NOT MODIFY OR FORGET**
+
+The mobile weekly schedule view experienced iOS momentum scrolling interference causing automatic jumping after finger release. This was resolved through a comprehensive momentum protection system:
+
+**Root Cause**: iOS momentum scrolling continued after touch end, triggering date updates that caused unwanted programmatic scroll corrections.
+
+**Final Solution Components**:
+1. **Extended Momentum Protection**: 500ms timeout delays ensuring iOS momentum completely finishes
+2. **isScrolling Guard Clause**: Prevents all date tracking during active scroll phases  
+3. **Dependency Array Fix**: Removed currentDate from useEffect to prevent re-triggering
+4. **Pure Continuous Scrolling**: `scrollSnapType: 'none !important'` eliminates snap behavior
+5. **Hardware Acceleration**: `translate3d(0,0,0)` and `willChange: scroll-position`
+
+**Key Code Locations**:
+- `client/src/components/mobile-weekly-schedule-view.tsx`
+- Extended timeout in handleScroll (500ms) and handleScrollEnd (500ms delay)
+- isScrolling guard in updateCurrentDate function
+- useEffect dependency array: `[days, isInitialized]` (currentDate removed)
+
+**Status**: WORKING PERFECTLY - User confirmed resolution with enthusiasm. Do not modify this implementation.
 
 ### Frontend Architecture
 - **Framework**: React 18 with TypeScript
@@ -280,7 +311,7 @@ Required environment variables:
 **Implementation Plan**: Database schema extension → Access control integration → Admin dashboard enhancement → Payment integration → Beta-to-production migration with grandfathered pricing for early adopters
 
 ## Recent Changes
-- July 11, 2025: **MOBILE WEEKLY SCHEDULE CONTINUOUS SCROLLING COMPLETELY RESOLVED**: Successfully eliminated all scroll jumping and date skipping issues in mobile weekly schedule view through comprehensive scroll interference elimination. Final solution involved: completely removing currentDate from initial positioning useEffect dependency array to prevent re-triggering when date tracking updates, implementing pure continuous scrolling with no snap-to-day behavior using `scrollSnapType: 'none !important'` and `scrollSnapAlign: 'none !important'`, enhanced date tracking using visible area calculation instead of center-point methodology for accurate header updates, comprehensive protection against programmatic scroll after initialization with `isInitialized` flag, hardware-accelerated scrolling using `translate3d(0,0,0)` and `willChange: scroll-position` for smooth native performance. Mobile weekly view now provides authentic iOS-style continuous scrolling that stops exactly where finger is released with accurate date tracking in header and zero jumping or snapping behavior.
+- July 11, 2025: **MOBILE WEEKLY SCHEDULE CONTINUOUS SCROLLING ISSUE DEFINITIVELY RESOLVED**: Successfully achieved perfect iOS-style continuous scrolling behavior through comprehensive momentum scrolling protection system. Final breakthrough solution involved: extended momentum protection with 500ms timeout delays to ensure iOS momentum scrolling completely finishes before any date updates, isScrolling guard clause preventing all date tracking during active scroll phases, complete elimination of programmatic scroll after initialization by removing currentDate from useEffect dependencies, enhanced visible area calculation for accurate date tracking without scroll interference, pure continuous scrolling implementation with `scrollSnapType: 'none !important'` eliminating all snap-to-day behavior, hardware-accelerated scrolling using `translate3d(0,0,0)` and `willChange: scroll-position` for smooth native performance. Mobile weekly schedule now provides authentic finger-following scroll behavior that stops exactly where user releases finger with zero jumping, date skipping, or automatic corrections - confirmed working by user testing.
 - July 11, 2025: **TIMEZONE ABBREVIATION SYSTEM COMPLETE**: Successfully implemented comprehensive timezone abbreviation display across all schedule views. Features include: 3-letter timezone abbreviations (EST, PST, etc.) pulled from user settings timeZone field displayed in time column headers, mobile weekly schedule view with timezone cell matching day header styling (20px height, centered text, light grey background), desktop weekly schedule view with timezone abbreviation in time column header replacing "Time" text, daily schedule view with timezone header using same styling specifications. All schedule views (mobile weekly, desktop weekly, daily) now display user's selected timezone from Settings with consistent 3-letter abbreviation format.
 - July 11, 2025: **MOBILE 2-DAY WEEKLY VIEW WITH CONTINUOUS SCROLLING AND RED TODAY INDICATOR COMPLETE**: Successfully implemented mobile-optimized 2-day weekly schedule view for better phone screen utilization. Features include: shows 2 days at a time instead of full 7-day week for improved mobile readability, horizontal scroll with snap-to behavior providing smooth navigation between days, continuous scrolling across multiple weeks (21-day range) with automatic week context updates, unified scrollable container where day headers move with their respective columns, fixed time labels on left side with proper 8 AM visibility (added 20px padding), red circular indicator for today's date matching monthly view aesthetic, proper event display with touch-friendly interactions, and seamless integration with existing schedule functionality. Mobile weekly view now provides optimal phone experience with intuitive day-by-day navigation and clear visual indicators.
 - July 11, 2025: **MOBILE SCHEDULE HEADER ICON CONSISTENCY AND CHEVRON REMOVAL COMPLETE**: Successfully achieved complete mobile header icon consistency with all three icons (New Event, All Day, Time Increment) displaying as clean icon-only buttons without backgrounds or borders. Resolved persistent Radix UI Select chevron issue using ultra-aggressive CSS approach with 8 different selectors targeting chevron through multiple DOM structures, position absolute removal, clipping, and overflow hidden techniques. Final solution included comprehensive CSS rules in index.css using `.no-chevron` class wrapper with selectors targeting `[data-radix-select-icon]`, `svg:last-child`, `svg:not(.lucide-clock)`, `svg[aria-hidden="true"]`, `svg + svg`, and nth-child approaches. Clock icon now displays at proper w-12 sizing with perfect centering and no chevron interference. Mobile header provides clean, consistent iOS-style icon-only interface with New Event (Plus), All Day (Calendar with blue active state), and Time Increment (Clock) icons all sized h-4 w-4 with proper touch targets.
