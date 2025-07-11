@@ -199,7 +199,7 @@ export default function MobileWeeklyScheduleView({
         setTimeout(() => setIsUpdatingDateFromScroll(false), 100);
       }
     }
-  }, [days, setCurrentDate, currentDate, isScrolling]);
+  }, [days, setCurrentDate, currentDate]);
 
   // Date tracking with comprehensive debugging
   useEffect(() => {
@@ -218,7 +218,8 @@ export default function MobileWeeklyScheduleView({
     const handleScrollEnd = () => {
       console.log('🛑 Scroll ended via scrollend event');
       setIsScrolling(false);
-      updateCurrentDate();
+      // Delay date update to ensure all scroll events are processed
+      setTimeout(() => updateCurrentDate(), 100);
     };
 
     const handleScroll = (e: Event) => {
@@ -236,8 +237,9 @@ export default function MobileWeeklyScheduleView({
       scrollTimeout = setTimeout(() => {
         console.log('⏰ Scroll timeout triggered - setting isScrolling to false');
         setIsScrolling(false);
-        updateCurrentDate();
-      }, 150);
+        // Only update date after scroll completely stops
+        setTimeout(() => updateCurrentDate(), 50);
+      }, 200);
     };
 
     const handleTouchStart = () => {
@@ -268,40 +270,20 @@ export default function MobileWeeklyScheduleView({
     };
   }, [updateCurrentDate]);
 
-  // Programmatic scroll with comprehensive protection
+  // ONLY initial positioning - NO programmatic scrolling after initialization
   useEffect(() => {
-    if (!scrollContainerRef.current || !currentDate) return;
-    
-    const timeSinceManualScroll = Date.now() - lastManualScrollTime;
-    
-    if (isScrolling) {
-      console.log('⚠️ Skipping programmatic scroll - user is currently scrolling');
-      return;
-    }
-    
-    // Prevent programmatic scroll for 2 seconds after manual scroll
-    if (timeSinceManualScroll < 2000) {
-      console.log('⚠️ Skipping programmatic scroll - too soon after manual scroll', { timeSinceManualScroll });
-      return;
-    }
-    
-    // Don't trigger programmatic scroll if date was just updated from user scrolling
-    if (isUpdatingDateFromScroll) {
-      console.log('⚠️ Skipping programmatic scroll - date change was from user scrolling');
-      return;
+    if (!scrollContainerRef.current || !currentDate || isInitialized) {
+      return; // Skip all programmatic scrolling once initialized
     }
     
     const currentDateIndex = days.findIndex(day => 
       day.toDateString() === currentDate.toDateString()
     );
     
-    console.log('🎯 Programmatic scroll triggered:', {
+    console.log('🎯 Initial scroll ONLY:', {
       currentDate: currentDate.toDateString(),
       currentDateIndex,
-      isInitialized,
-      isScrolling,
-      timeSinceManualScroll,
-      isUpdatingDateFromScroll
+      isInitialized
     });
     
     if (currentDateIndex >= 0) {
@@ -312,22 +294,13 @@ export default function MobileWeeklyScheduleView({
       // Position so the current day is visible on screen
       const scrollPosition = Math.max(0, (currentDateIndex * dayWidth) - (containerWidth / 2) + (dayWidth / 2));
       
-      console.log('🎯 Scrolling to position:', {
-        scrollPosition,
-        behavior: isInitialized ? 'smooth' : 'instant'
-      });
+      console.log('🎯 Initial positioning to:', { scrollPosition });
       
-      // Use smooth scroll for external changes, instant for initial load
-      container.scrollTo({ 
-        left: scrollPosition, 
-        behavior: isInitialized ? 'smooth' : 'instant' 
-      });
-      
-      if (!isInitialized) {
-        setIsInitialized(true);
-      }
+      // Use instant scroll for initial load only
+      container.scrollTo({ left: scrollPosition, behavior: 'instant' });
+      setIsInitialized(true);
     }
-  }, [days, currentDate, isInitialized, isScrolling, lastManualScrollTime, isUpdatingDateFromScroll]);
+  }, [days, currentDate, isInitialized]);
 
   // Generate time labels
   const timeLabels = useMemo(() => {
