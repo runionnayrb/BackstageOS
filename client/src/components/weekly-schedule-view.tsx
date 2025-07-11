@@ -945,7 +945,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, currentDate
               return (
                 <div 
                   key={dayIndex} 
-                  className={`absolute top-0 bottom-0 p-3 text-sm font-medium text-center border-l border-gray-200 cursor-pointer transition-colors flex flex-col justify-center ${
+                  className={`absolute top-0 bottom-0 p-3 text-sm font-medium text-center border-l border-gray-200 cursor-pointer transition-colors ${
                     isToday 
                       ? 'bg-blue-500 text-white hover:bg-blue-600' 
                       : 'hover:bg-blue-50'
@@ -953,6 +953,10 @@ export default function WeeklyScheduleView({ projectId, onDateClick, currentDate
                   style={{
                     left: `calc(80px + (100% - 80px) * ${dayIndex} / 7)`,
                     width: `calc((100% - 80px) / 7)`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                   onClick={() => onDateClick(date)}
                 >

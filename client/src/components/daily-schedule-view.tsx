@@ -13,7 +13,7 @@ const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
 interface DailyScheduleViewProps {
   projectId: number;
   selectedDate: Date;
-  onDateClick: (date: Date) => void;
+  onDateClick?: (date: Date) => void;
   selectedContactIds: number[];
   showAllDayEvents: boolean;
   timeIncrement: number;
@@ -168,7 +168,7 @@ export default function DailyScheduleView({
             <div className="flex flex-col h-full">
               {/* Day Header */}
               <div 
-                className="bg-white cursor-pointer hover:bg-gray-50 transition-colors"
+                className="bg-white"
                 style={{ 
                   height: '20px', 
                   minHeight: '20px', 
@@ -177,7 +177,6 @@ export default function DailyScheduleView({
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}
-                onClick={() => onDateClick(selectedDate)}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span 
