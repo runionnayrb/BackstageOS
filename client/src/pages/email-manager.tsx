@@ -95,6 +95,22 @@ export default function EmailManager() {
   const [composeToEmail, setComposeToEmail] = useState<string>('');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileMenuAnimating, setIsMobileMenuAnimating] = useState(false);
+
+  // Handle mobile menu animations
+  const openMobileMenu = () => {
+    setIsMobileMenuAnimating(true);
+    setTimeout(() => {
+      setIsMobileMenuOpen(true);
+    }, 10);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+    setTimeout(() => {
+      setIsMobileMenuAnimating(false);
+    }, 300);
+  };
   const [activeFolder, setActiveFolder] = useState("inbox");
   const [showTheaterFeatures, setShowTheaterFeatures] = useState(false);
   const [showGroupManager, setShowGroupManager] = useState(false);
@@ -350,18 +366,33 @@ export default function EmailManager() {
 
   return (
     <div className="w-full min-h-screen bg-white relative">
-      {/* Mobile Navigation Panel - Side navigation */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden fixed top-16 left-0 bottom-0 w-80 z-50 bg-white border-r border-gray-200 shadow-lg overflow-hidden">
+      {/* Mobile Navigation Panel - Side navigation with backdrop */}
+      {(isMobileMenuAnimating || isMobileMenuOpen) && (
+        <div className="md:hidden fixed inset-0 z-50">
+          {/* Backdrop */}
+          <div 
+            className={cn(
+              "absolute inset-0 bg-black transition-opacity duration-300 ease-out",
+              isMobileMenuOpen ? "opacity-50" : "opacity-0"
+            )}
+            onClick={closeMobileMenu}
+          />
+          
           {/* Mobile Menu Panel */}
-          <div className="w-full bg-white p-4 space-y-4 h-full overflow-y-auto">
+          <div className={cn(
+            "fixed top-16 left-0 bottom-0 w-80 bg-white border-r border-gray-200 shadow-xl overflow-hidden transform transition-all duration-300 ease-out origin-top-left",
+            isMobileMenuOpen 
+              ? "translate-x-0 scale-100 opacity-100" 
+              : "-translate-x-full scale-75 opacity-0"
+          )}>
+            <div className="w-full bg-white p-4 space-y-4 h-full overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900">{getFolderDisplayName(activeFolder)}</h2>
               <Button 
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={closeMobileMenu}
                 className="p-2"
               >
                 <X className="w-5 h-5" />
@@ -396,7 +427,7 @@ export default function EmailManager() {
                             key={account.id}
                             onClick={() => {
                               setSelectedAccount(account);
-                              setIsMobileMenuOpen(false);
+                              closeMobileMenu();
                             }}
                             className={selectedAccount?.id === account.id ? 'bg-blue-50' : ''}
                           >
@@ -435,7 +466,7 @@ export default function EmailManager() {
                                   
                                   console.log('Setting selected account to shared inbox:', sharedInboxAsAccount);
                                   setSelectedAccount(sharedInboxAsAccount);
-                                  setIsMobileMenuOpen(false);
+                                  closeMobileMenu();
                                 }}
                                 className={cn(
                                   "flex flex-col items-start space-y-1 p-3 cursor-pointer",
@@ -457,7 +488,7 @@ export default function EmailManager() {
                         <DropdownMenuItem
                           onClick={() => {
                             setIsCreateDialogOpen(true);
-                            setIsMobileMenuOpen(false);
+                            closeMobileMenu();
                           }}
                           className="flex items-center space-x-2 p-3 text-blue-600"
                         >
@@ -480,7 +511,7 @@ export default function EmailManager() {
                     size="sm"
                     onClick={() => {
                       setShowCompose(true);
-                      setIsMobileMenuOpen(false);
+                      closeMobileMenu();
                     }}
                     className="p-2 h-auto"
                   >
@@ -499,7 +530,7 @@ export default function EmailManager() {
                   key={folder.id}
                   onClick={() => {
                     setActiveFolder(folder.id);
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                   }}
                   className={cn(
                     "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
@@ -528,7 +559,7 @@ export default function EmailManager() {
                 <button
                   onClick={() => {
                     setShowGroupManager(true);
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                   }}
                   className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
                 >
@@ -538,7 +569,7 @@ export default function EmailManager() {
                 <button
                   onClick={() => {
                     setShowTemplateManager(true);
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                   }}
                   className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
                 >
@@ -548,7 +579,7 @@ export default function EmailManager() {
                 <button
                   onClick={() => {
                     setShowMobileSettings(true);
-                    setIsMobileMenuOpen(false);
+                    closeMobileMenu();
                   }}
                   className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
                 >
@@ -557,6 +588,7 @@ export default function EmailManager() {
                 </button>
               </div>
             </div>
+          </div>
           </div>
         </div>
         )}
@@ -598,10 +630,16 @@ export default function EmailManager() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="md:hidden h-8 w-8 p-0 hover:bg-gray-100 flex-shrink-0"
+                onClick={openMobileMenu}
+                className={cn(
+                  "md:hidden h-8 w-8 p-0 hover:bg-gray-100 flex-shrink-0 transition-transform duration-300",
+                  isMobileMenuOpen && "scale-110"
+                )}
               >
-                <Menu className="h-4 w-4" />
+                <Menu className={cn(
+                  "h-4 w-4 transition-all duration-300",
+                  isMobileMenuOpen && "rotate-90 opacity-75"
+                )} />
               </Button>
               
               {/* Email title */}
