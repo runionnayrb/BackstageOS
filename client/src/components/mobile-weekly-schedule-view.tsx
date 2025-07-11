@@ -163,6 +163,7 @@ export default function MobileWeeklyScheduleView({
 
   // Smart date tracking with comprehensive debugging
   const [isScrolling, setIsScrolling] = useState(false);
+  const [lastManualScrollTime, setLastManualScrollTime] = useState(0);
   
   const updateCurrentDate = useCallback(() => {
     if (!scrollContainerRef.current || !setCurrentDate) return;
@@ -206,6 +207,7 @@ export default function MobileWeeklyScheduleView({
     const handleScrollStart = () => {
       console.log('🚀 Touch/scroll started - setting isScrolling to true');
       setIsScrolling(true);
+      setLastManualScrollTime(Date.now());
       clearTimeout(scrollTimeout);
     };
 
@@ -236,6 +238,7 @@ export default function MobileWeeklyScheduleView({
 
     const handleTouchStart = () => {
       console.log('👆 Touch start detected');
+      setLastManualScrollTime(Date.now());
       handleScrollStart();
     };
 
@@ -261,12 +264,20 @@ export default function MobileWeeklyScheduleView({
     };
   }, [updateCurrentDate]);
 
-  // Programmatic scroll with debugging
+  // Programmatic scroll with debugging and manual scroll protection
   useEffect(() => {
     if (!scrollContainerRef.current || !currentDate) return;
     
+    const timeSinceManualScroll = Date.now() - lastManualScrollTime;
+    
     if (isScrolling) {
       console.log('⚠️ Skipping programmatic scroll - user is currently scrolling');
+      return;
+    }
+    
+    // Prevent programmatic scroll for 1 second after manual scroll
+    if (timeSinceManualScroll < 1000) {
+      console.log('⚠️ Skipping programmatic scroll - too soon after manual scroll', { timeSinceManualScroll });
       return;
     }
     
@@ -278,7 +289,8 @@ export default function MobileWeeklyScheduleView({
       currentDate: currentDate.toDateString(),
       currentDateIndex,
       isInitialized,
-      isScrolling
+      isScrolling,
+      timeSinceManualScroll
     });
     
     if (currentDateIndex >= 0) {
@@ -304,7 +316,7 @@ export default function MobileWeeklyScheduleView({
         setIsInitialized(true);
       }
     }
-  }, [days, currentDate, isInitialized, isScrolling]);
+  }, [days, currentDate, isInitialized, isScrolling, lastManualScrollTime]);
 
   // Generate time labels
   const timeLabels = useMemo(() => {
