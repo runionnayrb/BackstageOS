@@ -136,11 +136,6 @@ export default function MobileWeeklyScheduleView({
       day.toDateString() === currentDate.toDateString()
     );
     
-    console.log('🎯 Initial scroll ONLY:', {
-      currentDate: currentDate.toDateString(),
-      currentDateIndex,
-      isInitialized
-    });
     
     if (currentDateIndex >= 0) {
       const container = scrollContainerRef.current;
@@ -150,7 +145,6 @@ export default function MobileWeeklyScheduleView({
       // Position so the current day is visible on screen
       const scrollPosition = Math.max(0, (currentDateIndex * dayWidth) - (containerWidth / 2) + (dayWidth / 2));
       
-      console.log('🎯 Initial positioning to:', { scrollPosition });
       
       // Use instant scroll for initial load only
       container.scrollTo({ left: scrollPosition, behavior: 'instant' });
@@ -186,7 +180,7 @@ export default function MobileWeeklyScheduleView({
     return filteredEvents.filter(event => event.date === dateString);
   };
 
-  // Simple and efficient date tracking
+  // Simple and efficient date tracking - NO currentDate dependency to prevent re-triggering
   const updateCurrentDate = useCallback(() => {
     if (!scrollContainerRef.current || !setCurrentDate) return;
     
@@ -199,10 +193,10 @@ export default function MobileWeeklyScheduleView({
     const dayIndex = Math.round(centerPosition / dayWidth);
     const clampedIndex = Math.max(0, Math.min(dayIndex, days.length - 1));
     
-    if (days[clampedIndex] && days[clampedIndex].toDateString() !== currentDate?.toDateString()) {
+    if (days[clampedIndex]) {
       setCurrentDate(days[clampedIndex]);
     }
-  }, [days, setCurrentDate, currentDate]);
+  }, [days, setCurrentDate]);
 
   // Simple, efficient scroll handling for iOS-style behavior
   useEffect(() => {
@@ -237,11 +231,6 @@ export default function MobileWeeklyScheduleView({
       day.toDateString() === currentDate.toDateString()
     );
     
-    console.log('🎯 Initial scroll ONLY:', {
-      currentDate: currentDate.toDateString(),
-      currentDateIndex,
-      isInitialized
-    });
     
     if (currentDateIndex >= 0) {
       const container = scrollContainerRef.current;
@@ -251,7 +240,6 @@ export default function MobileWeeklyScheduleView({
       // Position so the current day is visible on screen
       const scrollPosition = Math.max(0, (currentDateIndex * dayWidth) - (containerWidth / 2) + (dayWidth / 2));
       
-      console.log('🎯 Initial positioning to:', { scrollPosition });
       
       // Use instant scroll for initial load only
       container.scrollTo({ left: scrollPosition, behavior: 'instant' });
