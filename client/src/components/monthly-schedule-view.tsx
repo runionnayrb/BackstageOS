@@ -302,7 +302,7 @@ export default function MonthlyScheduleView({
                 onClick={() => handleDateClick(date)}
               >
                 <div className={`text-sm md:text-base font-medium mb-1 text-center md:text-left ${
-                  isToday ? 'text-white bg-blue-500 rounded-full w-6 h-6 md:w-7 md:h-7 flex items-center justify-center mx-auto md:mx-0' : ''
+                  isToday ? 'text-white bg-red-500 rounded-full w-6 h-6 md:w-7 md:h-7 flex items-center justify-center mx-auto md:mx-0' : ''
                 }`}>
                   {date.getDate()}
                 </div>
