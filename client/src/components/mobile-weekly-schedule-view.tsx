@@ -265,7 +265,6 @@ export default function MobileWeeklyScheduleView({
                 >
                   {/* Day Header */}
                   <div 
-                    className="bg-white cursor-pointer hover:bg-gray-50 transition-colors"
                     style={{ 
                       height: '20px', 
                       minHeight: '20px', 
@@ -273,7 +272,13 @@ export default function MobileWeeklyScheduleView({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      overflow: 'hidden'
+                      overflow: 'hidden',
+                      backgroundColor: '#ffffff',
+                      cursor: 'pointer',
+                      border: '1px solid red',
+                      margin: 0,
+                      padding: 0,
+                      boxSizing: 'border-box'
                     }}
                     onClick={() => onDateClick(day)}
                   >
