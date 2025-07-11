@@ -233,6 +233,16 @@ export default function DailyScheduleView({
               })()}
             </span>
           </div>
+
+          {/* All Day Label */}
+          {propShowAllDayEvents && (
+            <div 
+              className="bg-gray-50 border-b border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600"
+              style={{ minHeight: '40px' }}
+            >
+              All Day
+            </div>
+          )}
           <div 
             className="relative flex-1"
           >
@@ -323,6 +333,23 @@ export default function DailyScheduleView({
                 </div>
               </div>
 
+              {/* All Day Events Section */}
+              {propShowAllDayEvents && (
+                <div className="bg-gray-50 border-b border-gray-200 min-h-[40px] p-1">
+                  {getEventsForDate(selectedDate)
+                    .filter(event => event.isAllDay)
+                    .map((event) => (
+                      <div
+                        key={event.id}
+                        className="bg-blue-500 text-white rounded px-2 py-1 text-xs mb-1 cursor-pointer hover:bg-blue-600 transition-colors"
+                        onClick={() => onDateClick?.(selectedDate)}
+                      >
+                        <div className="font-medium truncate">{event.title}</div>
+                      </div>
+                    ))}
+                </div>
+              )}
+
               {/* Day Schedule Content */}
               <div 
                 className="relative bg-white flex-1"
@@ -347,34 +374,34 @@ export default function DailyScheduleView({
                     />
                   </div>
 
-                  {/* Events for this day */}
-                  {getEventsForDate(selectedDate).map((event) => {
-                    if (event.isAllDay && !propShowAllDayEvents) return null;
+                  {/* Events for this day - only non-all-day events */}
+                  {getEventsForDate(selectedDate)
+                    .filter(event => !event.isAllDay)
+                    .map((event) => {
+                      const startMinutes = timeToMinutes(event.startTime);
+                      const endMinutes = timeToMinutes(event.endTime);
+                      const top = minutesToPosition(startMinutes);
+                      const height = Math.max(30, endMinutes - startMinutes); // Minimum 30px height
 
-                    const startMinutes = timeToMinutes(event.startTime);
-                    const endMinutes = timeToMinutes(event.endTime);
-                    const top = minutesToPosition(startMinutes);
-                    const height = Math.max(30, endMinutes - startMinutes); // Minimum 30px height
-
-                    return (
-                      <div
-                        key={event.id}
-                        className="absolute left-1 right-1 bg-blue-500 text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:bg-blue-600 transition-colors"
-                        style={{
-                          top: `${top + 20}px`,
-                          height: `${height}px`,
-                        }}
-                        onClick={() => onDateClick(selectedDate)}
-                      >
-                        <div className="font-medium truncate">{event.title}</div>
-                        {height > 40 && (
-                          <div className="text-xs opacity-90 truncate">
-                            {formatTime(startMinutes)} - {formatTime(endMinutes)}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                      return (
+                        <div
+                          key={event.id}
+                          className="absolute left-1 right-1 bg-blue-500 text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:bg-blue-600 transition-colors"
+                          style={{
+                            top: `${top + 20}px`,
+                            height: `${height}px`,
+                          }}
+                          onClick={() => onDateClick?.(selectedDate)}
+                        >
+                          <div className="font-medium truncate">{event.title}</div>
+                          {height > 40 && (
+                            <div className="text-xs opacity-90 truncate">
+                              {formatTime(startMinutes)} - {formatTime(endMinutes)}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
             </div>
