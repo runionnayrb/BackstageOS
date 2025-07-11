@@ -74,6 +74,7 @@ export default function MobileWeeklyScheduleView({
   const queryClient = useQueryClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [shouldScrollToDate, setShouldScrollToDate] = useState(false);
   const [startDate, setStartDate] = useState<Date>(() => {
     // Start with current date, but align to start of week
     const date = currentDate || new Date();
@@ -129,28 +130,36 @@ export default function MobileWeeklyScheduleView({
   // Sync with external currentDate prop and scroll to it
   useEffect(() => {
     if (currentDate) {
+      const previousStartDate = startDate.toDateString();
       setStartDate(currentDate);
       
-      // If initialized, scroll to the new date (for Today button)
-      if (isInitialized && scrollContainerRef.current) {
-        const currentDateIndex = days.findIndex(day => 
-          day.toDateString() === currentDate.toDateString()
-        );
+      // Only scroll if this is from Today button (external trigger) and dates are different
+      if (isInitialized && scrollContainerRef.current && currentDate.toDateString() !== previousStartDate) {
+        // Check if this is likely from Today button by comparing if the new date is today
+        const today = new Date();
+        const isToday = currentDate.toDateString() === today.toDateString();
         
-        if (currentDateIndex >= 0) {
-          const container = scrollContainerRef.current;
-          const dayWidth = 200;
-          const containerWidth = container.clientWidth;
+        if (isToday || shouldScrollToDate) {
+          const currentDateIndex = days.findIndex(day => 
+            day.toDateString() === currentDate.toDateString()
+          );
           
-          // Position so the current day is visible on screen
-          const scrollPosition = Math.max(0, (currentDateIndex * dayWidth) - (containerWidth / 2) + (dayWidth / 2));
-          
-          // Use smooth scroll for Today button navigation
-          container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+          if (currentDateIndex >= 0) {
+            const container = scrollContainerRef.current;
+            const dayWidth = 200;
+            const containerWidth = container.clientWidth;
+            
+            // Position so the current day is visible on screen
+            const scrollPosition = Math.max(0, (currentDateIndex * dayWidth) - (containerWidth / 2) + (dayWidth / 2));
+            
+            // Use smooth scroll for Today button navigation
+            container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+          }
+          setShouldScrollToDate(false);
         }
       }
     }
-  }, [currentDate, isInitialized, days]);
+  }, [currentDate, isInitialized, days, startDate, shouldScrollToDate]);
 
   // Time formatting functions
   const formatTime = (minutes: number) => {
@@ -235,6 +244,8 @@ export default function MobileWeeklyScheduleView({
       const newCurrentDate = days[clampedIndex];
       if (newCurrentDate.toDateString() !== currentDate?.toDateString()) {
         console.log('📅 Setting new current date from scroll:', newCurrentDate.toDateString());
+        // Prevent scroll-to-date when this is from manual scrolling
+        setShouldScrollToDate(false);
         setCurrentDate(newCurrentDate);
       }
     }
