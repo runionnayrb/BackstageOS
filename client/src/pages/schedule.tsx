@@ -260,6 +260,12 @@ export default function Schedule() {
               >
                 Day
               </button>
+              <button
+                onClick={() => setCurrentDate(new Date())}
+                className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              >
+                Today
+              </button>
             </div>
 
             {/* Buttons and Settings */}
