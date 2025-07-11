@@ -173,20 +173,39 @@ export default function MobileWeeklyScheduleView({
     const scrollLeft = container.scrollLeft;
     const containerWidth = container.clientWidth;
     
-    // Calculate which day is most visible in center of viewport
+    // Calculate which day is most visible - use a more generous approach
     const dayWidth = 200;
-    const centerScrollPosition = scrollLeft + containerWidth / 2;
-    const centerDayIndex = Math.floor(centerScrollPosition / dayWidth);
     
-    const clampedIndex = Math.max(0, Math.min(centerDayIndex, days.length - 1));
+    // Find the day that has the most visible area in the viewport
+    let bestDayIndex = 0;
+    let maxVisibleArea = 0;
+    
+    for (let i = 0; i < days.length; i++) {
+      const dayLeft = i * dayWidth;
+      const dayRight = dayLeft + dayWidth;
+      const viewportLeft = scrollLeft;
+      const viewportRight = scrollLeft + containerWidth;
+      
+      // Calculate visible area of this day
+      const visibleLeft = Math.max(dayLeft, viewportLeft);
+      const visibleRight = Math.min(dayRight, viewportRight);
+      const visibleArea = Math.max(0, visibleRight - visibleLeft);
+      
+      if (visibleArea > maxVisibleArea) {
+        maxVisibleArea = visibleArea;
+        bestDayIndex = i;
+      }
+    }
+    
+    const clampedIndex = Math.max(0, Math.min(bestDayIndex, days.length - 1));
     
     console.log('📅 Date tracking:', {
       scrollLeft,
-      centerScrollPosition,
-      centerDayIndex,
+      containerWidth,
+      bestDayIndex,
       clampedIndex,
-      currentDay: days[clampedIndex]?.toDateString(),
-      isScrolling
+      maxVisibleArea,
+      currentDay: days[clampedIndex]?.toDateString()
     });
     
     if (days[clampedIndex]) {
