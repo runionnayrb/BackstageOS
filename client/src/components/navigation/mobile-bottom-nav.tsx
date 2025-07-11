@@ -53,7 +53,7 @@ export default function MobileBottomNav() {
     {
       id: 'shows',
       label: 'Shows',
-      icon: Grid2x2,
+      icon: FileText,
       href: '/',
     },
     {
