@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar } from "lucide-react";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
 import MonthlyScheduleView from "@/components/monthly-schedule-view";
@@ -265,9 +265,9 @@ export default function Schedule() {
                   variant={showAllDayEvents ? "default" : "outline"}
                   size="sm"
                   onClick={() => setShowAllDayEvents(!showAllDayEvents)}
-                  className="text-sm h-8"
+                  className="p-2 h-8"
                 >
-                  All Day
+                  <Calendar className="h-4 w-4" />
                 </Button>
               )}
               
@@ -275,11 +275,9 @@ export default function Schedule() {
               <Button 
                 size="sm"
                 onClick={() => setCreateEventDialog(true)}
-                className="flex items-center gap-2 h-8"
+                className="p-2 h-8"
               >
                 <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">New Event</span>
-                <span className="sm:hidden">Add</span>
               </Button>
               
               {/* Time Increment for weekly/daily views */}
