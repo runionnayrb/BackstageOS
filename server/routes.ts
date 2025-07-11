@@ -1356,9 +1356,7 @@ Respond with valid JSON only.`;
   app.get('/api/projects', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id.toString();
-      console.log('📊 Projects API called for userId:', userId);
       const projects = await storage.getProjectsByUserId(userId);
-      console.log('📊 Found', projects.length, 'projects for user', userId);
       res.json(projects);
     } catch (error) {
       console.error("Error fetching projects:", error);
