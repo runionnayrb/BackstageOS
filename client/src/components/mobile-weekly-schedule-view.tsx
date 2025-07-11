@@ -161,16 +161,18 @@ export default function MobileWeeklyScheduleView({
     return filteredEvents.filter(event => event.date === dateString);
   };
 
-  // Handle date tracking for navigation arrows and context updates
-  const handleDateTracking = useCallback(() => {
-    if (!scrollContainerRef.current || !isInitialized || !setCurrentDate) return;
+  // Smart date tracking using scrollend event to avoid interference
+  const [isScrolling, setIsScrolling] = useState(false);
+  
+  const updateCurrentDate = useCallback(() => {
+    if (!scrollContainerRef.current || !setCurrentDate) return;
     
     const container = scrollContainerRef.current;
     const scrollLeft = container.scrollLeft;
     const containerWidth = container.clientWidth;
     
     // Calculate which day is most visible in center of viewport
-    const dayWidth = 200; // Fixed day width
+    const dayWidth = 200;
     const centerScrollPosition = scrollLeft + containerWidth / 2;
     const centerDayIndex = Math.floor(centerScrollPosition / dayWidth);
     
@@ -182,40 +184,52 @@ export default function MobileWeeklyScheduleView({
         setCurrentDate(newCurrentDate);
       }
     }
-  }, [days, setCurrentDate, isInitialized, currentDate]);
+  }, [days, setCurrentDate, currentDate]);
 
-  // Add date tracking with delay to avoid scroll interference
+  // Date tracking that doesn't interfere with scrolling
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    let trackingTimeout: NodeJS.Timeout;
-    
-    const handleDelayedTracking = () => {
-      clearTimeout(trackingTimeout);
-      // Delay to ensure scroll has completely finished
-      trackingTimeout = setTimeout(handleDateTracking, 500);
+    let scrollTimeout: NodeJS.Timeout;
+
+    const handleScrollStart = () => {
+      setIsScrolling(true);
+      clearTimeout(scrollTimeout);
     };
 
-    // Use scrollend for immediate tracking when available, backup with delayed tracking
     const handleScrollEnd = () => {
-      clearTimeout(trackingTimeout);
-      handleDateTracking();
+      setIsScrolling(false);
+      // Update date only after scrolling completely stops
+      updateCurrentDate();
     };
 
+    const handleScroll = () => {
+      setIsScrolling(true);
+      clearTimeout(scrollTimeout);
+      // Fallback timeout in case scrollend isn't supported
+      scrollTimeout = setTimeout(() => {
+        setIsScrolling(false);
+        updateCurrentDate();
+      }, 150);
+    };
+
+    // Use scrollend for modern browsers, scroll timeout as fallback
     container.addEventListener('scrollend', handleScrollEnd, { passive: true });
-    container.addEventListener('scroll', handleDelayedTracking, { passive: true });
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    container.addEventListener('touchstart', handleScrollStart, { passive: true });
     
     return () => {
       container.removeEventListener('scrollend', handleScrollEnd);
-      container.removeEventListener('scroll', handleDelayedTracking);
-      clearTimeout(trackingTimeout);
+      container.removeEventListener('scroll', handleScroll);
+      container.removeEventListener('touchstart', handleScrollStart);
+      clearTimeout(scrollTimeout);
     };
-  }, [handleDateTracking]);
+  }, [updateCurrentDate]);
 
-  // Scroll to current date on mount and when currentDate changes externally (like arrow navigation)
+  // Scroll to current date when it changes (from arrows or initial load)
   useEffect(() => {
-    if (!scrollContainerRef.current || !currentDate) return;
+    if (!scrollContainerRef.current || !currentDate || isScrolling) return;
     
     const currentDateIndex = days.findIndex(day => 
       day.toDateString() === currentDate.toDateString()
@@ -229,7 +243,7 @@ export default function MobileWeeklyScheduleView({
       // Position so the current day is visible on screen
       const scrollPosition = Math.max(0, (currentDateIndex * dayWidth) - (containerWidth / 2) + (dayWidth / 2));
       
-      // Use smooth scrolling for arrow navigation, instant for initial load
+      // Use smooth scroll for external changes, instant for initial load
       container.scrollTo({ 
         left: scrollPosition, 
         behavior: isInitialized ? 'smooth' : 'instant' 
@@ -239,7 +253,7 @@ export default function MobileWeeklyScheduleView({
         setIsInitialized(true);
       }
     }
-  }, [days, currentDate, isInitialized]);
+  }, [days, currentDate, isInitialized, isScrolling]);
 
   // Generate time labels
   const timeLabels = useMemo(() => {
