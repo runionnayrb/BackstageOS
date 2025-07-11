@@ -270,8 +270,7 @@ export default function MobileWeeklyScheduleView({
             </span>
           </div>
           <div 
-            className="relative overflow-y-auto"
-            style={{ height: `calc(100vh - 80px)` }}
+            className="relative overflow-y-auto flex-1"
           >
             <div 
               className="relative"
@@ -387,7 +386,6 @@ export default function MobileWeeklyScheduleView({
                   {/* Day Schedule Content */}
                   <div 
                     className="relative bg-white flex-1 overflow-y-auto"
-                    style={{ height: `calc(100vh - 80px)` }}
                   >
                     <div 
                       className="relative"
