@@ -284,7 +284,7 @@ export default function MobileWeeklyScheduleView({
               ))}
               {/* Midnight line */}
               <div
-                className="absolute left-0 right-0 border-b-2 border-gray-400"
+                className="absolute left-0 right-0 border-b border-gray-100"
                 style={{ top: `${TOTAL_MINUTES + 20}px` }}
               />
             </div>
@@ -404,7 +404,7 @@ export default function MobileWeeklyScheduleView({
                         ))}
                         {/* Midnight line */}
                         <div
-                          className="absolute left-0 right-0 border-t-2 border-gray-400"
+                          className="absolute left-0 right-0 border-t border-gray-100"
                           style={{ top: `${TOTAL_MINUTES}px` }}
                         />
                       </div>

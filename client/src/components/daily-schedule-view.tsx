@@ -275,7 +275,7 @@ export default function DailyScheduleView({
                     ))}
                     {/* Midnight line */}
                     <div
-                      className="absolute left-0 right-0 border-t-2 border-gray-400"
+                      className="absolute left-0 right-0 border-t border-gray-100"
                       style={{ top: `${TOTAL_MINUTES + 20}px` }}
                     />
                   </div>
