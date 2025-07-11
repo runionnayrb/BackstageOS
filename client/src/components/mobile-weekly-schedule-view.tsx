@@ -161,36 +161,38 @@ export default function MobileWeeklyScheduleView({
     return filteredEvents.filter(event => event.date === dateString);
   };
 
-  // Handle scroll to update current week context
+  // Handle scroll to update current week context smoothly
   const handleScroll = useCallback(() => {
     if (!scrollContainerRef.current || !isInitialized) return;
     
     const container = scrollContainerRef.current;
     const scrollLeft = container.scrollLeft;
-    const dayWidth = container.clientWidth / 2; // 2 days visible
-    const currentDayIndex = Math.round(scrollLeft / dayWidth);
+    const containerWidth = container.clientWidth;
     
+    // Calculate which day is most visible based on scroll position
+    // Each day takes up half the container width (since we show 2 days)
+    const dayWidth = containerWidth / 2;
+    const scrolledDays = scrollLeft / dayWidth;
+    const currentDayIndex = Math.floor(scrolledDays);
+    
+    // Only update if we're showing a different day
     if (currentDayIndex >= 0 && currentDayIndex < days.length && setCurrentDate) {
       const newCurrentDate = days[currentDayIndex];
-      setCurrentDate(newCurrentDate);
+      if (newCurrentDate.toDateString() !== currentDate?.toDateString()) {
+        setCurrentDate(newCurrentDate);
+      }
     }
-  }, [days, setCurrentDate, isInitialized]);
+  }, [days, setCurrentDate, isInitialized, currentDate]);
 
-  // Debounced scroll handler
+  // Immediate scroll handler for smooth response
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    let scrollTimeout: NodeJS.Timeout;
-    const debouncedHandleScroll = () => {
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(handleScroll, 150);
-    };
-
-    container.addEventListener('scroll', debouncedHandleScroll);
+    // Use immediate scroll handling for smooth response
+    container.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
-      container.removeEventListener('scroll', debouncedHandleScroll);
-      clearTimeout(scrollTimeout);
+      container.removeEventListener('scroll', handleScroll);
     };
   }, [handleScroll]);
 
@@ -203,9 +205,12 @@ export default function MobileWeeklyScheduleView({
     );
     
     if (currentDateIndex >= 0) {
-      const dayWidth = scrollContainerRef.current.clientWidth / 2;
+      const container = scrollContainerRef.current;
+      const containerWidth = container.clientWidth;
+      const dayWidth = containerWidth / 2; // 2 days visible
       const scrollPosition = currentDateIndex * dayWidth;
-      scrollContainerRef.current.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+      
+      container.scrollTo({ left: scrollPosition, behavior: 'instant' });
       setIsInitialized(true);
     }
   }, [days, currentDate, isInitialized]);
@@ -298,13 +303,14 @@ export default function MobileWeeklyScheduleView({
           {/* Combined scrollable container for headers and content */}
           <div 
             ref={scrollContainerRef}
-            className="overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full"
+            className="overflow-x-auto scrollbar-hide h-full"
+            style={{ scrollBehavior: 'auto' }}
           >
             <div className="flex h-full">
               {days.map((day, index) => (
                 <div 
                   key={day.toISOString()}
-                  className="flex-shrink-0 w-1/2 snap-start flex flex-col"
+                  className="flex-shrink-0 w-1/2 flex flex-col"
                 >
                   {/* Day Header */}
                   <div 
