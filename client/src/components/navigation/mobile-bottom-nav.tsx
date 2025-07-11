@@ -2,6 +2,8 @@ import { Home, Mail, MessageCircle, MoreHorizontal, Calendar, Package, Users, Fi
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { isAdmin } from "@/lib/admin";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +27,7 @@ interface MenuItem {
 
 export default function MobileBottomNav() {
   const [location] = useLocation();
+  const { user } = useAuth();
   
   // Get unread email count for badge
   const { data: unreadCount = 0 } = useQuery({
@@ -72,10 +75,16 @@ export default function MobileBottomNav() {
       ];
     } else {
       // Global context - show general tools
-      return [
+      const generalItems: MenuItem[] = [
         { label: 'Profile', href: '/profile', icon: Settings },
-        { label: 'Admin', href: '/admin', icon: Settings },
       ];
+      
+      // Only show Admin option if user is an admin
+      if (isAdmin(user)) {
+        generalItems.push({ label: 'Admin', href: '/admin', icon: Settings });
+      }
+      
+      return generalItems;
     }
   };
 
