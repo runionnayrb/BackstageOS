@@ -60,6 +60,8 @@ import ContactAvailability from "@/pages/contact-availability";
 import EmailManager from "@/pages/email-manager";
 import TheaterEmail from "@/pages/theater-email";
 import TestImageUpload from "@/pages/test-image-upload";
+import Tools from "@/pages/tools";
+import Chat from "@/pages/chat";
 
 
 function Router() {
@@ -196,6 +198,8 @@ function Router() {
         <Route path="/admin/seo" component={SeoManager} />
         <Route path="/email" component={EmailManager} />
         <Route path="/email-manager" component={EmailManager} />
+        <Route path="/tools" component={Tools} />
+        <Route path="/chat" component={Chat} />
         <Route path="/shows/:showId/theater-email" component={TheaterEmail} />
         <Route path="/auto-resolution-dashboard" component={AutoResolutionDashboard} />
         <Route path="/advanced-analytics-dashboard" component={AdvancedAnalyticsDashboard} />
