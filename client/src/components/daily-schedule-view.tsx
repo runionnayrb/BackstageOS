@@ -168,23 +168,16 @@ export default function DailyScheduleView({
             <div className="flex flex-col h-full">
               {/* Day Header */}
               <div 
-                className="bg-white cursor-pointer hover:bg-gray-50 transition-colors relative"
+                className="bg-white cursor-pointer hover:bg-gray-50 transition-colors flex justify-center"
                 style={{ 
                   height: '20px', 
                   minHeight: '20px', 
-                  maxHeight: '20px'
+                  maxHeight: '20px',
+                  paddingTop: '3px'
                 }}
                 onClick={() => onDateClick(selectedDate)}
               >
-                <div 
-                  className="absolute inset-0 flex items-center justify-center space-x-1"
-                  style={{ 
-                    top: '50%', 
-                    left: '50%', 
-                    transform: 'translate(-50%, -50%)',
-                    lineHeight: '14px'
-                  }}
-                >
+                <div className="flex items-center space-x-1">
                   <span className="text-sm font-bold text-gray-600" style={{ lineHeight: '14px' }}>
                     {selectedDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
                   </span>
