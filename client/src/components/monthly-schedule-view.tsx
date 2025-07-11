@@ -377,8 +377,9 @@ export default function MonthlyScheduleView({
             className="fixed left-0 right-0 z-50 bg-white flex flex-col"
             style={{ 
               top: '60px', // Just below the BackstageOS header
-              height: 'calc(100vh - 60px)', // Full height minus header
-              maxHeight: 'calc(100vh - 60px)' // Ensure it doesn't exceed viewport
+              bottom: '80px', // Above mobile navigation (typically 64-80px)
+              height: 'auto',
+              maxHeight: 'calc(100vh - 140px)' // Header + mobile nav space
             }}
             onTouchMove={(e) => {
               // Prevent background scrolling when touching the sheet
