@@ -73,15 +73,6 @@ export default function MobileWeeklyScheduleView({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const headerScrollRef = useRef<HTMLDivElement>(null);
-
-  const [startDate, setStartDate] = useState<Date>(() => {
-    // Start with current date, but align to start of week
-    const date = currentDate || new Date();
-    const startOfWeek = new Date(date);
-    startOfWeek.setDate(date.getDate() - date.getDay()); // Start on Sunday
-    return startOfWeek;
-  });
 
   // Get show settings for timezone and work hours
   const { data: showSettings } = useQuery({
@@ -127,13 +118,6 @@ export default function MobileWeeklyScheduleView({
 
   const days = generateDays(currentDate || new Date());
 
-  // Sync with external currentDate prop
-  useEffect(() => {
-    if (currentDate) {
-      setStartDate(currentDate);
-    }
-  }, [currentDate]);
-
   // Time formatting functions
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -147,7 +131,6 @@ export default function MobileWeeklyScheduleView({
   };
 
   const timeToMinutes = (timeString: string) => {
-    if (!timeString) return 0;
     const [hours, minutes] = timeString.split(':').map(Number);
     return hours * 60 + minutes;
   };
@@ -176,8 +159,6 @@ export default function MobileWeeklyScheduleView({
       setCurrentDate(newCurrentDate);
     }
   }, [days, setCurrentDate]);
-
-
 
   // Debounced scroll handler
   useEffect(() => {
@@ -228,248 +209,116 @@ export default function MobileWeeklyScheduleView({
   const containerHeight = TOTAL_MINUTES + 15; // Small padding to show 11:30 PM
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
-      {/* Sticky Header Row */}
-      <div className="sticky top-[60px] z-10 flex bg-gray-50">
-        {/* Timezone Header */}
-        <div 
-          className="w-16 bg-gray-100 border-r border-gray-200 flex-shrink-0"
-          style={{ 
-            height: '20px',
-            minHeight: '20px', 
-            maxHeight: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-            margin: 0,
-            padding: 0,
-            boxSizing: 'border-box'
-          }}
-        >
-          <span 
-            style={{ 
-              lineHeight: '14px',
-              fontSize: '14px',
-              fontWeight: 'bold',
-              color: '#6b7280',
-              margin: 0,
-              padding: 0
-            }}
-          >
-            {(() => {
-              const userTimeZone = scheduleSettings?.timeZone || "America/New_York";
-              const now = new Date();
-              const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
-                timeZone: userTimeZone, 
-                timeZoneName: 'short' 
-              }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
-              return timeZoneAbbr;
-            })()}
-          </span>
+    <div className="flex h-full bg-gray-50">
+      {/* Time Column */}
+      <div className="w-16 bg-gray-100 border-r border-gray-200 flex-shrink-0">
+        <div className="h-8 bg-gray-200 border-b border-gray-300 flex items-center justify-center text-xs font-medium text-gray-600">
+          Time
         </div>
-        
-        {/* Day Headers */}
-        <div className="flex-1 overflow-hidden">
-          <div 
-            ref={headerScrollRef}
-            className="overflow-x-hidden scrollbar-hide"
-            style={{ overflowX: 'hidden' }}
-          >
-            <div className="flex">
-              {days.map((day, index) => (
-                <div 
-                  key={`header-${day.toISOString()}`}
-                  className={`flex-shrink-0 w-1/2 snap-start ${index < days.length - 1 ? 'border-r border-gray-200' : ''}`}
-                  style={{ 
-                    height: '20px',
-                    minHeight: '20px', 
-                    maxHeight: '20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'hidden',
-                    backgroundColor: '#f9fafb',
-                    cursor: 'pointer',
-                    margin: 0,
-                    padding: 0,
-                    boxSizing: 'border-box'
-                  }}
-                  onClick={() => onDateClick(day)}
-                >
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    gap: '4px',
-                    height: '100%',
-                    width: '100%'
-                  }}>
-                    <span 
-                      style={{ 
-                        lineHeight: '14px',
-                        fontSize: '14px',
-                        fontWeight: 'bold',
-                        color: '#6b7280',
-                        margin: 0,
-                        padding: 0
-                      }}
-                    >
-                      {day.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
-                    </span>
-                    {day.toDateString() === new Date().toDateString() ? (
-                      <div 
-                        className="bg-red-500 rounded-full"
-                        style={{
-                          width: '20px',
-                          height: '20px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0
-                        }}
-                      >
-                        <span 
-                          style={{ 
-                            lineHeight: '12px',
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                            color: '#ffffff',
-                            margin: 0,
-                            padding: 0
-                          }}
-                        >
-                          {day.getDate()}
-                        </span>
-                      </div>
-                    ) : (
-                      <span 
-                        style={{ 
-                          lineHeight: '14px',
-                          fontSize: '14px',
-                          fontWeight: 'bold',
-                          color: '#6b7280',
-                          margin: 0,
-                          padding: 0
-                        }}
-                      >
-                        {day.getDate()}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
+        <div className="relative" style={{ height: `${containerHeight}px` }}>
+          {timeLabels.map((timeLabel) => (
+            <div
+              key={timeLabel.minutes}
+              className="absolute left-0 right-0 flex items-center justify-center text-xs text-gray-500"
+              style={{ 
+                top: `${timeLabel.position}px`,
+                height: `${timeIncrement}px`,
+                transform: 'translateY(-50%)'
+              }}
+            >
+              {timeLabel.label}
             </div>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* Main Content Container */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Time Labels - Fixed on left side */}
-        <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
-          <div 
-            className="relative flex-1"
-          >
-            <div 
-              className="relative"
-              style={{ height: `${containerHeight}px`, paddingTop: '20px' }}
-            >
-              {timeLabels.map((timeLabel) => (
-                <div
-                  key={timeLabel.minutes}
-                  className="absolute right-2 text-xs text-gray-500"
-                  style={{ top: `${timeLabel.position + 20 - 12}px` }}
-                >
-                  {timeLabel.label}
-                </div>
-              ))}
-              {/* Midnight line */}
-              <div
-                className="absolute left-0 right-0 border-b border-gray-100"
-                style={{ top: `${TOTAL_MINUTES + 20}px` }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Scrollable Days Container */}
-        <div className="flex-1 overflow-hidden">
-          {/* Combined scrollable container for content */}
-          <div 
-            ref={scrollContainerRef}
-            className="overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full"
-            onScroll={(e) => {
-              // Sync header scroll with content scroll
-              if (headerScrollRef.current) {
-                headerScrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
-              }
-            }}
-          >
-            <div className="flex h-full">
-              {days.map((day, index) => (
+      {/* Scrollable Days Container */}
+      <div className="flex-1 overflow-hidden">
+        <div 
+          ref={scrollContainerRef}
+          className="overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full"
+        >
+          <div className="flex h-full">
+            {days.map((day, index) => (
+              <div 
+                key={day.toISOString()}
+                className={`flex-shrink-0 w-1/2 snap-start flex flex-col ${index < days.length - 1 ? 'border-r border-gray-200' : ''}`}
+              >
+                {/* Day Header */}
                 <div 
-                  key={day.toISOString()}
-                  className={`flex-shrink-0 w-1/2 snap-start flex flex-col ${index < days.length - 1 ? 'border-r border-gray-200' : ''}`}
+                  className="h-8 bg-gray-200 border-b border-gray-300 flex items-center justify-center text-xs font-medium text-gray-700 cursor-pointer hover:bg-gray-300 transition-colors"
+                  onClick={() => onDateClick(day)}
                 >
-
-                  {/* Day Schedule Content */}
-                  <div 
-                    className="relative bg-white flex-1"
-                  >
-                    <div 
-                      className="relative"
-                      style={{ height: `${containerHeight}px` }}
-                    >
-                      {/* Time grid background */}
-                      <div className="absolute inset-0">
-                        {timeLabels.map((timeLabel) => (
-                          <div
-                            key={timeLabel.minutes}
-                            className="absolute left-0 right-0 border-t border-gray-100"
-                            style={{ top: `${timeLabel.position}px` }}
-                          />
-                        ))}
-                        {/* Midnight line */}
-                        <div
-                          className="absolute left-0 right-0 border-t border-gray-100"
-                          style={{ top: `${TOTAL_MINUTES}px` }}
-                        />
-                      </div>
-
-                      {/* Events for this day */}
-                      {getEventsForDate(day).map((event) => {
-                        if (event.isAllDay && !propShowAllDayEvents) return null;
-
-                        const startMinutes = timeToMinutes(event.startTime);
-                        const endMinutes = timeToMinutes(event.endTime);
-                        const top = minutesToPosition(startMinutes);
-                        const height = Math.max(30, endMinutes - startMinutes); // Minimum 30px height
-
-                        return (
-                          <div
-                            key={event.id}
-                            className="absolute left-1 right-1 bg-blue-500 text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:bg-blue-600 transition-colors"
-                            style={{
-                              top: `${top}px`,
-                              height: `${height}px`,
-                            }}
-                            onClick={() => onDateClick(day)}
-                          >
-                            <div className="font-medium truncate">{event.title}</div>
-                            {height > 40 && (
-                              <div className="text-xs opacity-90 truncate">
-                                {formatTime(startMinutes)} - {formatTime(endMinutes)}
-                              </div>
-                            )}
-                          </div>
-                        );
+                  <div className="flex items-center gap-1">
+                    <span>
+                      {day.toLocaleDateString('en-US', { 
+                        weekday: 'short',
+                        month: 'numeric',
+                        day: 'numeric'
                       })}
-                    </div>
+                    </span>
+                    {currentDate && day.toDateString() === currentDate.toDateString() && (
+                      <div className="w-2 h-2 bg-red-500 rounded-full" />
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
+
+                {/* Day Schedule Content */}
+                <div 
+                  className="relative bg-white flex-1"
+                >
+                  <div 
+                    className="relative"
+                    style={{ height: `${containerHeight}px` }}
+                  >
+                    {/* Time grid background */}
+                    <div className="absolute inset-0">
+                      {timeLabels.map((timeLabel) => (
+                        <div
+                          key={timeLabel.minutes}
+                          className="absolute left-0 right-0 border-t border-gray-100"
+                          style={{ top: `${timeLabel.position}px` }}
+                        />
+                      ))}
+                      {/* Midnight line */}
+                      <div
+                        className="absolute left-0 right-0 border-t border-gray-100"
+                        style={{ top: `${TOTAL_MINUTES}px` }}
+                      />
+                    </div>
+
+                    {/* Events for this day */}
+                    {getEventsForDate(day).map((event) => {
+                      if (event.isAllDay && !propShowAllDayEvents) return null;
+
+                      const startMinutes = timeToMinutes(event.startTime);
+                      const endMinutes = timeToMinutes(event.endTime);
+                      const top = minutesToPosition(startMinutes);
+                      const height = Math.max(30, endMinutes - startMinutes); // Minimum 30px height
+
+                      return (
+                        <div
+                          key={event.id}
+                          className="absolute left-1 right-1 bg-blue-500 text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:bg-blue-600 transition-colors"
+                          style={{
+                            top: `${top}px`,
+                            height: `${height}px`,
+                          }}
+                          onClick={() => onDateClick(day)}
+                        >
+                          <div className="font-medium truncate">{event.title}</div>
+                          {height > 40 && (
+                            <div className="text-xs opacity-90 truncate">
+                              {formatTime(startMinutes)} - {formatTime(endMinutes)}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
