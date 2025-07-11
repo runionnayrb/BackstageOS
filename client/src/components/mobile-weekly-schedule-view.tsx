@@ -161,7 +161,7 @@ export default function MobileWeeklyScheduleView({
     return filteredEvents.filter(event => event.date === dateString);
   };
 
-  // Smart date tracking using scrollend event to avoid interference
+  // Smart date tracking with comprehensive debugging
   const [isScrolling, setIsScrolling] = useState(false);
   
   const updateCurrentDate = useCallback(() => {
@@ -178,15 +178,25 @@ export default function MobileWeeklyScheduleView({
     
     const clampedIndex = Math.max(0, Math.min(centerDayIndex, days.length - 1));
     
+    console.log('📅 Date tracking:', {
+      scrollLeft,
+      centerScrollPosition,
+      centerDayIndex,
+      clampedIndex,
+      currentDay: days[clampedIndex]?.toDateString(),
+      isScrolling
+    });
+    
     if (days[clampedIndex]) {
       const newCurrentDate = days[clampedIndex];
       if (newCurrentDate.toDateString() !== currentDate?.toDateString()) {
+        console.log('📅 Setting new current date:', newCurrentDate.toDateString());
         setCurrentDate(newCurrentDate);
       }
     }
-  }, [days, setCurrentDate, currentDate]);
+  }, [days, setCurrentDate, currentDate, isScrolling]);
 
-  // Date tracking that doesn't interfere with scrolling
+  // Date tracking with comprehensive debugging
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
@@ -194,46 +204,82 @@ export default function MobileWeeklyScheduleView({
     let scrollTimeout: NodeJS.Timeout;
 
     const handleScrollStart = () => {
+      console.log('🚀 Touch/scroll started - setting isScrolling to true');
       setIsScrolling(true);
       clearTimeout(scrollTimeout);
     };
 
     const handleScrollEnd = () => {
+      console.log('🛑 Scroll ended via scrollend event');
       setIsScrolling(false);
-      // Update date only after scrolling completely stops
       updateCurrentDate();
     };
 
-    const handleScroll = () => {
+    const handleScroll = (e: Event) => {
+      const scrollLeft = container.scrollLeft;
+      console.log('📜 Scroll event fired:', { 
+        scrollLeft, 
+        isScrolling, 
+        timestamp: Date.now() 
+      });
+      
       setIsScrolling(true);
       clearTimeout(scrollTimeout);
+      
       // Fallback timeout in case scrollend isn't supported
       scrollTimeout = setTimeout(() => {
+        console.log('⏰ Scroll timeout triggered - setting isScrolling to false');
         setIsScrolling(false);
         updateCurrentDate();
       }, 150);
     };
 
+    const handleTouchStart = () => {
+      console.log('👆 Touch start detected');
+      handleScrollStart();
+    };
+
+    const handleTouchEnd = () => {
+      console.log('👆 Touch end detected');
+    };
+
+    console.log('🎯 Setting up scroll event listeners');
+    
     // Use scrollend for modern browsers, scroll timeout as fallback
     container.addEventListener('scrollend', handleScrollEnd, { passive: true });
     container.addEventListener('scroll', handleScroll, { passive: true });
-    container.addEventListener('touchstart', handleScrollStart, { passive: true });
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
     
     return () => {
+      console.log('🧹 Cleaning up scroll event listeners');
       container.removeEventListener('scrollend', handleScrollEnd);
       container.removeEventListener('scroll', handleScroll);
-      container.removeEventListener('touchstart', handleScrollStart);
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchend', handleTouchEnd);
       clearTimeout(scrollTimeout);
     };
   }, [updateCurrentDate]);
 
-  // Scroll to current date when it changes (from arrows or initial load)
+  // Programmatic scroll with debugging
   useEffect(() => {
-    if (!scrollContainerRef.current || !currentDate || isScrolling) return;
+    if (!scrollContainerRef.current || !currentDate) return;
+    
+    if (isScrolling) {
+      console.log('⚠️ Skipping programmatic scroll - user is currently scrolling');
+      return;
+    }
     
     const currentDateIndex = days.findIndex(day => 
       day.toDateString() === currentDate.toDateString()
     );
+    
+    console.log('🎯 Programmatic scroll triggered:', {
+      currentDate: currentDate.toDateString(),
+      currentDateIndex,
+      isInitialized,
+      isScrolling
+    });
     
     if (currentDateIndex >= 0) {
       const container = scrollContainerRef.current;
@@ -242,6 +288,11 @@ export default function MobileWeeklyScheduleView({
       
       // Position so the current day is visible on screen
       const scrollPosition = Math.max(0, (currentDateIndex * dayWidth) - (containerWidth / 2) + (dayWidth / 2));
+      
+      console.log('🎯 Scrolling to position:', {
+        scrollPosition,
+        behavior: isInitialized ? 'smooth' : 'instant'
+      });
       
       // Use smooth scroll for external changes, instant for initial load
       container.scrollTo({ 
