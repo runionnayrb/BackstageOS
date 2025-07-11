@@ -860,7 +860,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
               <ChevronLeft className="h-4 w-4" />
             </button>
             
-            <div className="text-lg font-medium w-[400px] text-center">
+            <div className="text-lg font-medium w-[400px] text-center hidden md:block">
               {formatWeekRange(weekDates)}
             </div>
             
