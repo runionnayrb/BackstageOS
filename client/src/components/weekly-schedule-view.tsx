@@ -916,8 +916,8 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
         {/* Main Schedule Grid */}
         <div className="border border-gray-200 rounded-lg overflow-hidden">
-          {/* Header row */}
-          <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '60px' }}>
+          {/* Header row - hidden on mobile since navigation arrows already show dates */}
+          <div className="relative bg-gray-50 border-b border-gray-200 hidden md:block" style={{ height: '60px' }}>
             <div 
               className="absolute left-0 top-0 bottom-0 bg-gray-100 border-r border-gray-200 p-3 text-sm font-medium text-gray-600 flex items-center justify-start"
               style={{ width: '80px' }}
