@@ -319,7 +319,7 @@ export default function MobileWeeklyScheduleView({
       container.scrollTo({ left: scrollPosition, behavior: 'instant' });
       setIsInitialized(true);
     }
-  }, [days, currentDate, isInitialized]);
+  }, [days, isInitialized]); // Removed currentDate to prevent re-triggering
 
   // Generate time labels
   const timeLabels = useMemo(() => {
