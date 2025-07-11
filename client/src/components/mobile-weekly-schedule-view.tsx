@@ -191,20 +191,38 @@ export default function MobileWeeklyScheduleView({
     }
   }, [days, setCurrentDate, isInitialized, currentDate]);
 
-  // Throttled scroll handler for date tracking to reduce sensitivity
+  // Completely disable date tracking during scroll to prevent any interference
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
     let scrollTimeout: NodeJS.Timeout;
-    const throttledHandleScroll = () => {
+    let isScrolling = false;
+
+    const handleScrollStart = () => {
+      isScrolling = true;
       clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(handleScroll, 300); // Longer delay for date tracking
     };
 
-    container.addEventListener('scroll', throttledHandleScroll, { passive: true });
+    const handleScrollEnd = () => {
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        isScrolling = false;
+        // Only update date tracking after scrolling completely stops
+        if (!isScrolling) {
+          handleScroll();
+        }
+      }, 500); // Wait 500ms after scrolling stops
+    };
+
+    container.addEventListener('scroll', handleScrollStart, { passive: true });
+    container.addEventListener('scroll', handleScrollEnd, { passive: true });
+    container.addEventListener('touchend', handleScrollEnd, { passive: true });
+    
     return () => {
-      container.removeEventListener('scroll', throttledHandleScroll);
+      container.removeEventListener('scroll', handleScrollStart);
+      container.removeEventListener('scroll', handleScrollEnd);
+      container.removeEventListener('touchend', handleScrollEnd);
       clearTimeout(scrollTimeout);
     };
   }, [handleScroll]);
@@ -321,9 +339,10 @@ export default function MobileWeeklyScheduleView({
             className="overflow-x-auto scrollbar-hide h-full"
             style={{ 
               scrollBehavior: 'auto',
-              overscrollBehavior: 'contain',
-              WebkitOverflowScrolling: 'touch',
-              scrollSnapType: 'none' // Completely disable snap behavior
+              overscrollBehavior: 'none',
+              WebkitOverflowScrolling: 'auto', // Disable momentum scrolling
+              scrollSnapType: 'none',
+              scrollSnapAlign: 'none'
             }}
           >
             <div className="flex h-full" style={{ width: `${days.length * 200}px` }}>
