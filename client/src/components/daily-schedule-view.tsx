@@ -138,7 +138,7 @@ export default function DailyScheduleView({
       <div className="flex flex-1 overflow-hidden">
         {/* Time Labels - Fixed on left side */}
         <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
-          <div className="h-5 flex items-center justify-center">
+          <div className="flex items-center justify-center" style={{ height: '20px' }}>
             <div className="text-xs font-medium text-gray-600">Time</div>
           </div>
           <div 
@@ -168,7 +168,8 @@ export default function DailyScheduleView({
             <div className="flex flex-col h-full">
               {/* Day Header */}
               <div 
-                className="h-5 bg-white flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                className="bg-white flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                style={{ height: '20px' }}
                 onClick={() => onDateClick(selectedDate)}
               >
                 <div className="flex items-center space-x-2">
