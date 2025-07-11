@@ -1,7 +1,13 @@
-import { Home, Mail, Wrench, MessageCircle } from "lucide-react";
+import { Home, Mail, MessageCircle, MoreHorizontal, Calendar, Package, Users, FileText, Settings } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface NavItem {
   id: string;
@@ -9,6 +15,12 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   href: string;
   badge?: number;
+}
+
+interface MenuItem {
+  label: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 export default function MobileBottomNav() {
@@ -21,7 +33,11 @@ export default function MobileBottomNav() {
     select: (data: any) => data?.count || 0,
   });
 
-  const navItems: NavItem[] = [
+  // Parse current show ID from URL
+  const currentShowId = location.match(/\/shows\/(\d+)/)?.[1];
+  
+  // Fixed navigation items (always visible)
+  const fixedNavItems: NavItem[] = [
     {
       id: 'shows',
       label: 'Shows',
@@ -41,27 +57,44 @@ export default function MobileBottomNav() {
       icon: MessageCircle,
       href: '/chat',
     },
-    {
-      id: 'tools',
-      label: 'Tools',
-      icon: Wrench,
-      href: '/tools',
-    },
   ];
+
+  // Get contextual menu items based on current location
+  const getContextualMenuItems = (): MenuItem[] => {
+    if (currentShowId) {
+      // In a show context - show production tools
+      return [
+        { label: 'Reports', href: `/shows/${currentShowId}/reports`, icon: FileText },
+        { label: 'Calendar', href: `/shows/${currentShowId}/calendar`, icon: Calendar },
+        { label: 'Props', href: `/shows/${currentShowId}/props`, icon: Package },
+        { label: 'Contacts', href: `/shows/${currentShowId}/contacts`, icon: Users },
+        { label: 'Settings', href: `/shows/${currentShowId}/settings`, icon: Settings },
+      ];
+    } else {
+      // Global context - show general tools
+      return [
+        { label: 'Profile', href: '/profile', icon: Settings },
+        { label: 'Admin', href: '/admin', icon: Settings },
+      ];
+    }
+  };
 
   const isActive = (href: string) => {
     if (href === '/') {
-      return location === '/' || (location.startsWith('/shows') && !location.includes('/email'));
+      return location === '/' || (location.startsWith('/shows') && !location.includes('/email') && !location.includes('/chat'));
     }
     return location.startsWith(href);
   };
+
+  const contextualMenuItems = getContextualMenuItems();
 
   return (
     <>
       {/* Bottom navigation - only visible on mobile */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
         <div className="flex items-center justify-around py-2">
-          {navItems.map((item) => {
+          {/* Fixed navigation items */}
+          {fixedNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
             
@@ -93,6 +126,31 @@ export default function MobileBottomNav() {
               </Link>
             );
           })}
+          
+          {/* Contextual "More" menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="flex flex-col items-center justify-center py-2 px-4 min-w-[60px] transition-colors text-gray-500 hover:text-gray-700"
+              >
+                <MoreHorizontal className="h-5 w-5 mb-1" />
+                <span className="text-xs font-medium">More</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 mb-2">
+              {contextualMenuItems.map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <Link key={index} href={item.href}>
+                    <DropdownMenuItem className="flex items-center space-x-2">
+                      <Icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </DropdownMenuItem>
+                  </Link>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       
