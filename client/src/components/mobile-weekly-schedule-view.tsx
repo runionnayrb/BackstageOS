@@ -272,16 +272,27 @@ export default function MobileWeeklyScheduleView({
                       maxHeight: '20px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      overflow: 'hidden'
                     }}
                     onClick={() => onDateClick(day)}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      gap: '4px',
+                      height: '100%',
+                      width: '100%'
+                    }}>
                       <span 
-                        className="text-sm font-bold text-gray-600" 
                         style={{ 
                           lineHeight: '14px',
-                          fontSize: '14px'
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          color: '#6b7280',
+                          margin: 0,
+                          padding: 0
                         }}
                       >
                         {day.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
@@ -294,14 +305,18 @@ export default function MobileWeeklyScheduleView({
                             height: '20px',
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'center'
+                            justifyContent: 'center',
+                            flexShrink: 0
                           }}
                         >
                           <span 
-                            className="text-xs font-bold text-white"
                             style={{ 
                               lineHeight: '12px',
-                              fontSize: '12px'
+                              fontSize: '12px',
+                              fontWeight: 'bold',
+                              color: '#ffffff',
+                              margin: 0,
+                              padding: 0
                             }}
                           >
                             {day.getDate()}
@@ -309,10 +324,13 @@ export default function MobileWeeklyScheduleView({
                         </div>
                       ) : (
                         <span 
-                          className="text-sm font-bold text-gray-900" 
                           style={{ 
                             lineHeight: '14px',
-                            fontSize: '14px'
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            color: '#111827',
+                            margin: 0,
+                            padding: 0
                           }}
                         >
                           {day.getDate()}
