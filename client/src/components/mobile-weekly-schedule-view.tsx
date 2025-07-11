@@ -74,7 +74,6 @@ export default function MobileWeeklyScheduleView({
   const queryClient = useQueryClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isInitialized, setIsInitialized] = useState(false);
-  const [isProgrammaticScroll, setIsProgrammaticScroll] = useState(false);
   const [startDate, setStartDate] = useState<Date>(() => {
     // Start with current date, but align to start of week
     const date = currentDate || new Date();
@@ -127,64 +126,37 @@ export default function MobileWeeklyScheduleView({
 
   const days = generateDays(currentDate || new Date());
 
-  // Sync with external currentDate prop and scroll to it
+  // ONLY initial positioning - NO programmatic scrolling after initialization
   useEffect(() => {
-    console.log('📅 Mobile Weekly: useEffect triggered with:', {
-      currentDate: currentDate?.toDateString(),
-      isInitialized,
-      hasContainer: !!scrollContainerRef.current,
-      startDate: startDate.toDateString()
+    if (!scrollContainerRef.current || !currentDate || isInitialized) {
+      return; // Skip all programmatic scrolling once initialized
+    }
+    
+    const currentDateIndex = days.findIndex(day => 
+      day.toDateString() === currentDate.toDateString()
+    );
+    
+    console.log('🎯 Initial scroll ONLY:', {
+      currentDate: currentDate.toDateString(),
+      currentDateIndex,
+      isInitialized
     });
     
-    if (currentDate) {
-      const previousStartDate = startDate.toDateString();
-      setStartDate(currentDate);
+    if (currentDateIndex >= 0) {
+      const container = scrollContainerRef.current;
+      const dayWidth = 200;
+      const containerWidth = container.clientWidth;
       
-      // Always try to scroll to today when Today button is clicked
-      if (isInitialized && scrollContainerRef.current) {
-        const today = new Date();
-        const isToday = currentDate.toDateString() === today.toDateString();
-        
-        console.log('📅 Mobile Weekly: Checking scroll conditions:', {
-          isToday,
-          dateChanged: currentDate.toDateString() !== previousStartDate,
-          currentDateString: currentDate.toDateString(),
-          todayString: today.toDateString()
-        });
-        
-        if (isToday) {
-          const currentDateIndex = days.findIndex(day => 
-            day.toDateString() === currentDate.toDateString()
-          );
-          
-          console.log('📅 Mobile Weekly: Found today at index:', currentDateIndex, 'in days array of length:', days.length);
-          
-          if (currentDateIndex >= 0) {
-            const container = scrollContainerRef.current;
-            const dayWidth = 200;
-            const containerWidth = container.clientWidth;
-            
-            // Position so the current day is visible on screen
-            const scrollPosition = Math.max(0, (currentDateIndex * dayWidth) - (containerWidth / 2) + (dayWidth / 2));
-            
-            console.log('📅 Mobile Weekly: Scrolling to position:', scrollPosition);
-            
-            // Set flag to prevent scroll events from interfering
-            setIsProgrammaticScroll(true);
-            
-            // Use smooth scroll for Today button navigation
-            container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
-            
-            // Clear the flag after scroll animation completes (500ms for smooth scroll)
-            setTimeout(() => {
-              setIsProgrammaticScroll(false);
-              console.log('📅 Mobile Weekly: Programmatic scroll flag cleared');
-            }, 600);
-          }
-        }
-      }
+      // Position so the current day is visible on screen
+      const scrollPosition = Math.max(0, (currentDateIndex * dayWidth) - (containerWidth / 2) + (dayWidth / 2));
+      
+      console.log('🎯 Initial positioning to:', { scrollPosition });
+      
+      // Use instant scroll for initial load only
+      container.scrollTo({ left: scrollPosition, behavior: 'instant' });
+      setIsInitialized(true);
     }
-  }, [currentDate, isInitialized, days]);
+  }, [days, isInitialized, currentDate]);
 
   // Time formatting functions
   const formatTime = (minutes: number) => {
@@ -214,136 +186,44 @@ export default function MobileWeeklyScheduleView({
     return filteredEvents.filter(event => event.date === dateString);
   };
 
-  // Smart date tracking with comprehensive debugging
-  const [isScrolling, setIsScrolling] = useState(false);
-  const [lastManualScrollTime, setLastManualScrollTime] = useState(0);
-  const [isUpdatingDateFromScroll, setIsUpdatingDateFromScroll] = useState(false);
-  
+  // Simple and efficient date tracking
   const updateCurrentDate = useCallback(() => {
-    if (!scrollContainerRef.current || !setCurrentDate || isScrolling || isProgrammaticScroll) {
-      console.log('📅 Skipping date update - still scrolling, programmatic scroll, or no container', {
-        isScrolling,
-        isProgrammaticScroll
-      });
-      return;
-    }
+    if (!scrollContainerRef.current || !setCurrentDate) return;
     
     const container = scrollContainerRef.current;
     const scrollLeft = container.scrollLeft;
-    const containerWidth = container.clientWidth;
-    
-    // Calculate which day is most visible - use a more generous approach
     const dayWidth = 200;
     
-    // Find the day that has the most visible area in the viewport
-    let bestDayIndex = 0;
-    let maxVisibleArea = 0;
+    // Find which day is most visible (center-based)
+    const centerPosition = scrollLeft + (container.clientWidth / 2);
+    const dayIndex = Math.round(centerPosition / dayWidth);
+    const clampedIndex = Math.max(0, Math.min(dayIndex, days.length - 1));
     
-    for (let i = 0; i < days.length; i++) {
-      const dayLeft = i * dayWidth;
-      const dayRight = dayLeft + dayWidth;
-      const viewportLeft = scrollLeft;
-      const viewportRight = scrollLeft + containerWidth;
-      
-      // Calculate visible area of this day
-      const visibleLeft = Math.max(dayLeft, viewportLeft);
-      const visibleRight = Math.min(dayRight, viewportRight);
-      const visibleArea = Math.max(0, visibleRight - visibleLeft);
-      
-      if (visibleArea > maxVisibleArea) {
-        maxVisibleArea = visibleArea;
-        bestDayIndex = i;
-      }
+    if (days[clampedIndex] && days[clampedIndex].toDateString() !== currentDate?.toDateString()) {
+      setCurrentDate(days[clampedIndex]);
     }
-    
-    const clampedIndex = Math.max(0, Math.min(bestDayIndex, days.length - 1));
-    
-    console.log('📅 Date tracking:', {
-      scrollLeft,
-      containerWidth,
-      bestDayIndex,
-      clampedIndex,
-      maxVisibleArea,
-      currentDay: days[clampedIndex]?.toDateString(),
-      isScrolling
-    });
-    
-    if (days[clampedIndex]) {
-      const newCurrentDate = days[clampedIndex];
-      if (newCurrentDate.toDateString() !== currentDate?.toDateString()) {
-        console.log('📅 Setting new current date from scroll:', newCurrentDate.toDateString());
-        // This is from manual scrolling, not programmatic
-        setCurrentDate(newCurrentDate);
-      }
-    }
-  }, [days, setCurrentDate, currentDate, isScrolling, isProgrammaticScroll]);
+  }, [days, setCurrentDate, currentDate]);
 
-  // Date tracking with comprehensive debugging
+  // Simple, efficient scroll handling for iOS-style behavior
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
     let scrollTimeout: NodeJS.Timeout;
 
-    const handleScrollStart = () => {
-      console.log('🚀 Touch/scroll started - setting isScrolling to true');
-      setIsScrolling(true);
-      setLastManualScrollTime(Date.now());
+    const handleScroll = () => {
       clearTimeout(scrollTimeout);
-    };
-
-    const handleScrollEnd = () => {
-      console.log('🛑 Scroll ended via scrollend event');
-      setIsScrolling(false);
-      // Much longer delay to ensure momentum scrolling is completely finished
-      setTimeout(() => updateCurrentDate(), 500);
-    };
-
-    const handleScroll = (e: Event) => {
-      const scrollLeft = container.scrollLeft;
-      console.log('📜 Scroll event fired:', { 
-        scrollLeft, 
-        isScrolling, 
-        timestamp: Date.now() 
-      });
-      
-      setIsScrolling(true);
-      clearTimeout(scrollTimeout);
-      
-      // Much longer timeout to ensure all momentum scrolling is complete
+      // Wait for momentum scrolling to complete
       scrollTimeout = setTimeout(() => {
-        console.log('⏰ Scroll timeout triggered - setting isScrolling to false');
-        setIsScrolling(false);
-        // Longer delay to ensure momentum is completely finished
-        setTimeout(() => updateCurrentDate(), 300);
-      }, 500);
+        updateCurrentDate();
+      }, 150);
     };
 
-    const handleTouchStart = () => {
-      console.log('👆 Touch start detected');
-      setLastManualScrollTime(Date.now());
-      handleScrollStart();
-    };
-
-    const handleTouchEnd = () => {
-      console.log('👆 Touch end detected');
-    };
-
-    console.log('🎯 Setting up scroll event listeners');
-    
-    // Use scrollend for modern browsers, scroll timeout as fallback
-    container.addEventListener('scrollend', handleScrollEnd, { passive: true });
     container.addEventListener('scroll', handleScroll, { passive: true });
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
-    
+
     return () => {
-      console.log('🧹 Cleaning up scroll event listeners');
-      container.removeEventListener('scrollend', handleScrollEnd);
-      container.removeEventListener('scroll', handleScroll);
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchend', handleTouchEnd);
       clearTimeout(scrollTimeout);
+      container.removeEventListener('scroll', handleScroll);
     };
   }, [updateCurrentDate]);
 
@@ -377,7 +257,7 @@ export default function MobileWeeklyScheduleView({
       container.scrollTo({ left: scrollPosition, behavior: 'instant' });
       setIsInitialized(true);
     }
-  }, [days, isInitialized]); // Removed currentDate to prevent re-triggering
+  }, [days, isInitialized, currentDate]);
 
   // Generate time labels
   const timeLabels = useMemo(() => {
