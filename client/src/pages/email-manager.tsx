@@ -388,7 +388,7 @@ export default function EmailManager() {
             <div className="w-full bg-white p-4 space-y-4 h-full overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">{getFolderDisplayName(activeFolder)}</h2>
+              <h2 className="text-sm font-medium text-gray-900 px-3 py-2">{getFolderDisplayName(activeFolder)}</h2>
               <Button 
                 variant="ghost"
                 size="sm"
