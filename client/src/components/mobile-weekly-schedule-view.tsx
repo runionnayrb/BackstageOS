@@ -126,12 +126,31 @@ export default function MobileWeeklyScheduleView({
 
   const days = generateDays(currentDate || new Date());
 
-  // Sync with external currentDate prop
+  // Sync with external currentDate prop and scroll to it
   useEffect(() => {
     if (currentDate) {
       setStartDate(currentDate);
+      
+      // If initialized, scroll to the new date (for Today button)
+      if (isInitialized && scrollContainerRef.current) {
+        const currentDateIndex = days.findIndex(day => 
+          day.toDateString() === currentDate.toDateString()
+        );
+        
+        if (currentDateIndex >= 0) {
+          const container = scrollContainerRef.current;
+          const dayWidth = 200;
+          const containerWidth = container.clientWidth;
+          
+          // Position so the current day is visible on screen
+          const scrollPosition = Math.max(0, (currentDateIndex * dayWidth) - (containerWidth / 2) + (dayWidth / 2));
+          
+          // Use smooth scroll for Today button navigation
+          container.scrollTo({ left: scrollPosition, behavior: 'smooth' });
+        }
+      }
     }
-  }, [currentDate]);
+  }, [currentDate, isInitialized, days]);
 
   // Time formatting functions
   const formatTime = (minutes: number) => {
