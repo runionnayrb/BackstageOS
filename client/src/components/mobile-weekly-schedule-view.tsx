@@ -276,7 +276,7 @@ export default function MobileWeeklyScheduleView({
               {timeLabels.map((timeLabel) => (
                 <div
                   key={timeLabel.minutes}
-                  className="absolute right-2 text-xs text-gray-500 -translate-y-2"
+                  className="absolute right-2 text-xs text-gray-500"
                   style={{ top: `${timeLabel.position + 20}px` }}
                 >
                   {timeLabel.label}
