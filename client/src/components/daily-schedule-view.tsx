@@ -128,9 +128,6 @@ export default function DailyScheduleView({
   }, [timeFormat, timeIncrement]);
 
   const containerHeight = TOTAL_MINUTES + 200; // Add extra padding for full visibility
-  
-  // Debug logging
-  console.log('Daily View - Container Height:', containerHeight, 'TOTAL_MINUTES:', TOTAL_MINUTES);
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
@@ -175,8 +172,7 @@ export default function DailyScheduleView({
             </span>
           </div>
           <div 
-            className="relative overflow-y-auto"
-            style={{ height: `calc(100vh - 80px)` }}
+            className="relative overflow-y-auto flex-1"
           >
             <div 
               className="relative"
