@@ -228,7 +228,7 @@ export default function MobileWeeklyScheduleView({
       <div className="flex flex-1 overflow-hidden">
         {/* Time Labels - Fixed on left side */}
         <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
-          <div className="h-10"></div> {/* Header spacer */}
+          <div className="h-8"></div> {/* Header spacer */}
           <div 
             className="relative overflow-y-auto"
             style={{ height: `calc(100vh - 200px)` }}
@@ -265,7 +265,7 @@ export default function MobileWeeklyScheduleView({
                 >
                   {/* Day Header */}
                   <div 
-                    className="h-10 bg-white flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="h-8 bg-white flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
                     onClick={() => onDateClick(day)}
                   >
                     <div className="flex items-center space-x-2">
