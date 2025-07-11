@@ -168,27 +168,56 @@ export default function DailyScheduleView({
             <div className="flex flex-col h-full">
               {/* Day Header */}
               <div 
-                className="bg-white cursor-pointer hover:bg-gray-50 transition-colors flex justify-center items-center"
+                className="bg-white cursor-pointer hover:bg-gray-50 transition-colors"
                 style={{ 
                   height: '20px', 
                   minHeight: '20px', 
                   maxHeight: '20px',
-                  overflow: 'visible'
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
                 onClick={() => onDateClick(selectedDate)}
               >
-                <div className="flex items-center space-x-1">
-                  <span className="text-sm font-bold text-gray-600" style={{ lineHeight: '14px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <span 
+                    className="text-sm font-bold text-gray-600" 
+                    style={{ 
+                      lineHeight: '14px',
+                      fontSize: '14px'
+                    }}
+                  >
                     {selectedDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
                   </span>
                   {selectedDate.toDateString() === new Date().toDateString() ? (
-                    <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-                      <span className="text-xs font-bold text-white" style={{ lineHeight: '12px' }}>
+                    <div 
+                      className="bg-red-500 rounded-full"
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <span 
+                        className="text-xs font-bold text-white"
+                        style={{ 
+                          lineHeight: '12px',
+                          fontSize: '12px'
+                        }}
+                      >
                         {selectedDate.getDate()}
                       </span>
                     </div>
                   ) : (
-                    <span className="text-sm font-bold text-gray-900" style={{ lineHeight: '14px' }}>
+                    <span 
+                      className="text-sm font-bold text-gray-900" 
+                      style={{ 
+                        lineHeight: '14px',
+                        fontSize: '14px'
+                      }}
+                    >
                       {selectedDate.getDate()}
                     </span>
                   )}
