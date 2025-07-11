@@ -852,7 +852,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, selectedCon
 
   return (
     <>
-      <div className="space-y-4">
+      <div>
         {/* Navigation and controls row - Desktop only */}
         <div className="relative hidden md:flex justify-between mb-4">
           {/* Week navigation - fixed arrow positions */}

@@ -250,7 +250,7 @@ export default function MonthlyScheduleView({
   }
 
   return (
-    <div className="space-y-4">
+    <div>
       {/* Desktop Month Navigation */}
       <div className="hidden md:flex items-center justify-between">
         <div className="flex items-center space-x-2">

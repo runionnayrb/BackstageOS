@@ -299,7 +299,6 @@ export default function Schedule() {
           </div>
         </div>
       </div>
-
       {/* Content Container - Responsive Padding */}
       <div className="px-0 md:px-4 lg:px-8">
         {viewMode === 'monthly' ? (
