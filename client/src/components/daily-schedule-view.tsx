@@ -131,26 +131,70 @@ export default function DailyScheduleView({
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
-      {/* Main Content Container */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Time Labels - Fixed on left side */}
-        <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
-          <div 
-            className="sticky top-[60px] z-10"
+      {/* Sticky Header Row */}
+      <div className="sticky top-[60px] z-10 flex bg-gray-50">
+        {/* Timezone Header */}
+        <div 
+          className="w-16 bg-gray-100 border-r border-gray-200 flex-shrink-0"
+          style={{ 
+            height: '20px',
+            minHeight: '20px', 
+            maxHeight: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            margin: 0,
+            padding: 0,
+            boxSizing: 'border-box'
+          }}
+        >
+          <span 
             style={{ 
-              height: '20px',
-              minHeight: '20px', 
-              maxHeight: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              backgroundColor: '#f9fafb',
+              lineHeight: '14px',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              color: '#6b7280',
               margin: 0,
-              padding: 0,
-              boxSizing: 'border-box'
+              padding: 0
             }}
           >
+            {(() => {
+              const userTimeZone = timezone || "America/New_York";
+              const now = new Date();
+              const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
+                timeZone: userTimeZone, 
+                timeZoneName: 'short' 
+              }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
+              return timeZoneAbbr;
+            })()}
+          </span>
+        </div>
+        
+        {/* Day Header */}
+        <div 
+          className="flex-1 bg-gray-100"
+          style={{ 
+            height: '20px',
+            minHeight: '20px', 
+            maxHeight: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            margin: 0,
+            padding: 0,
+            boxSizing: 'border-box'
+          }}
+        >
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            gap: '4px',
+            height: '100%',
+            width: '100%'
+          }}>
             <span 
               style={{ 
                 lineHeight: '14px',
@@ -161,17 +205,55 @@ export default function DailyScheduleView({
                 padding: 0
               }}
             >
-              {(() => {
-                const userTimeZone = scheduleSettings?.timeZone || "America/New_York";
-                const now = new Date();
-                const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
-                  timeZone: userTimeZone, 
-                  timeZoneName: 'short' 
-                }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
-                return timeZoneAbbr;
-              })()}
+              {selectedDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
             </span>
+            {selectedDate.toDateString() === new Date().toDateString() ? (
+              <div 
+                className="bg-red-500 rounded-full"
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <span 
+                  style={{ 
+                    lineHeight: '12px',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: '#ffffff',
+                    margin: 0,
+                    padding: 0
+                  }}
+                >
+                  {selectedDate.getDate()}
+                </span>
+              </div>
+            ) : (
+              <span 
+                style={{ 
+                  lineHeight: '14px',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  color: '#6b7280',
+                  margin: 0,
+                  padding: 0
+                }}
+              >
+                {selectedDate.getDate()}
+              </span>
+            )}
           </div>
+        </div>
+      </div>
+
+      {/* Main Content Container */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Time Labels - Fixed on left side */}
+        <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
           <div 
             className="relative flex-1"
           >
@@ -188,6 +270,11 @@ export default function DailyScheduleView({
                   {timeLabel.label}
                 </div>
               ))}
+              {/* Midnight line */}
+              <div
+                className="absolute left-0 right-0 border-b border-gray-100"
+                style={{ top: `${TOTAL_MINUTES + 20}px` }}
+              />
             </div>
           </div>
         </div>
@@ -196,68 +283,6 @@ export default function DailyScheduleView({
         <div className="flex-1 overflow-hidden">
           <div className="h-full">
             <div className="flex flex-col h-full">
-              {/* Day Header */}
-              <div 
-                className="sticky top-[60px] z-10"
-                style={{ 
-                  height: '20px',
-                  minHeight: '20px', 
-                  maxHeight: '20px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                  backgroundColor: '#f9fafb',
-                  margin: 0,
-                  padding: 0,
-                  boxSizing: 'border-box'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <span 
-                    className="text-sm font-bold text-gray-600" 
-                    style={{ 
-                      lineHeight: '14px',
-                      fontSize: '14px'
-                    }}
-                  >
-                    {selectedDate.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
-                  </span>
-                  {selectedDate.toDateString() === new Date().toDateString() ? (
-                    <div 
-                      className="bg-red-500 rounded-full"
-                      style={{
-                        width: '20px',
-                        height: '20px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <span 
-                        className="text-xs font-bold text-white"
-                        style={{ 
-                          lineHeight: '12px',
-                          fontSize: '12px'
-                        }}
-                      >
-                        {selectedDate.getDate()}
-                      </span>
-                    </div>
-                  ) : (
-                    <span 
-                      className="text-sm font-bold text-gray-900" 
-                      style={{ 
-                        lineHeight: '14px',
-                        fontSize: '14px'
-                      }}
-                    >
-                      {selectedDate.getDate()}
-                    </span>
-                  )}
-                </div>
-              </div>
-
               {/* Day Schedule Content */}
               <div 
                 className="relative bg-white flex-1"

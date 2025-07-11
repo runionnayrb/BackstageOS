@@ -73,6 +73,7 @@ export default function MobileWeeklyScheduleView({
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const headerScrollRef = useRef<HTMLDivElement>(null);
   const [startDate, setStartDate] = useState<Date>(() => {
     // Start with current date, but align to start of week
     const date = currentDate || new Date();
@@ -225,48 +226,144 @@ export default function MobileWeeklyScheduleView({
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
+      {/* Sticky Header Row */}
+      <div className="sticky top-[60px] z-10 flex bg-gray-50">
+        {/* Timezone Header */}
+        <div 
+          className="w-16 bg-gray-100 border-r border-gray-200 flex-shrink-0"
+          style={{ 
+            height: '20px',
+            minHeight: '20px', 
+            maxHeight: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+            margin: 0,
+            padding: 0,
+            boxSizing: 'border-box'
+          }}
+        >
+          <span 
+            style={{ 
+              lineHeight: '14px',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              color: '#6b7280',
+              margin: 0,
+              padding: 0
+            }}
+          >
+            {(() => {
+              const userTimeZone = timezone || "America/New_York";
+              const now = new Date();
+              const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
+                timeZone: userTimeZone, 
+                timeZoneName: 'short' 
+              }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
+              return timeZoneAbbr;
+            })()}
+          </span>
+        </div>
+        
+        {/* Day Headers */}
+        <div className="flex-1 overflow-hidden">
+          <div 
+            ref={headerScrollRef}
+            className="overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+          >
+            <div className="flex">
+              {days.map((day, index) => (
+                <div 
+                  key={`header-${day.toISOString()}`}
+                  className="flex-shrink-0 w-1/2 snap-start"
+                  style={{ 
+                    height: '20px',
+                    minHeight: '20px', 
+                    maxHeight: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    backgroundColor: '#f9fafb',
+                    cursor: 'pointer',
+                    margin: 0,
+                    padding: 0,
+                    boxSizing: 'border-box'
+                  }}
+                  onClick={() => onDateClick(day)}
+                >
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    gap: '4px',
+                    height: '100%',
+                    width: '100%'
+                  }}>
+                    <span 
+                      style={{ 
+                        lineHeight: '14px',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        color: '#6b7280',
+                        margin: 0,
+                        padding: 0
+                      }}
+                    >
+                      {day.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
+                    </span>
+                    {day.toDateString() === new Date().toDateString() ? (
+                      <div 
+                        className="bg-red-500 rounded-full"
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}
+                      >
+                        <span 
+                          style={{ 
+                            lineHeight: '12px',
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                            color: '#ffffff',
+                            margin: 0,
+                            padding: 0
+                          }}
+                        >
+                          {day.getDate()}
+                        </span>
+                      </div>
+                    ) : (
+                      <span 
+                        style={{ 
+                          lineHeight: '14px',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          color: '#6b7280',
+                          margin: 0,
+                          padding: 0
+                        }}
+                      >
+                        {day.getDate()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Main Content Container */}
       <div className="flex flex-1 overflow-hidden">
         {/* Time Labels - Fixed on left side */}
         <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
-          {/* Timezone Header */}
-          <div 
-            className="sticky top-[60px] z-10"
-            style={{ 
-              height: '20px',
-              minHeight: '20px', 
-              maxHeight: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              backgroundColor: '#f9fafb',
-              margin: 0,
-              padding: 0,
-              boxSizing: 'border-box'
-            }}
-          >
-            <span 
-              style={{ 
-                lineHeight: '14px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                color: '#6b7280',
-                margin: 0,
-                padding: 0
-              }}
-            >
-              {(() => {
-                const userTimeZone = timezone || "America/New_York";
-                const now = new Date();
-                const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
-                  timeZone: userTimeZone, 
-                  timeZoneName: 'short' 
-                }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
-                return timeZoneAbbr;
-              })()}
-            </span>
-          </div>
           <div 
             className="relative flex-1"
           >
@@ -294,10 +391,16 @@ export default function MobileWeeklyScheduleView({
 
         {/* Scrollable Days Container */}
         <div className="flex-1 overflow-hidden">
-          {/* Combined scrollable container for headers and content */}
+          {/* Combined scrollable container for content */}
           <div 
             ref={scrollContainerRef}
             className="overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full"
+            onScroll={(e) => {
+              // Sync header scroll with content scroll
+              if (headerScrollRef.current) {
+                headerScrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
+              }
+            }}
           >
             <div className="flex h-full">
               {days.map((day, index) => (
@@ -305,87 +408,6 @@ export default function MobileWeeklyScheduleView({
                   key={day.toISOString()}
                   className="flex-shrink-0 w-1/2 snap-start flex flex-col"
                 >
-                  {/* Day Header */}
-                  <div 
-                    className="sticky top-[60px] z-10"
-                    style={{ 
-                      height: '20px', 
-                      minHeight: '20px', 
-                      maxHeight: '20px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      overflow: 'hidden',
-                      backgroundColor: '#f9fafb',
-                      cursor: 'pointer',
-
-                      margin: 0,
-                      padding: 0,
-                      boxSizing: 'border-box'
-                    }}
-                    onClick={() => onDateClick(day)}
-                  >
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      gap: '4px',
-                      height: '100%',
-                      width: '100%'
-                    }}>
-                      <span 
-                        style={{ 
-                          lineHeight: '14px',
-                          fontSize: '14px',
-                          fontWeight: 'bold',
-                          color: '#6b7280',
-                          margin: 0,
-                          padding: 0
-                        }}
-                      >
-                        {day.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
-                      </span>
-                      {day.toDateString() === new Date().toDateString() ? (
-                        <div 
-                          className="bg-red-500 rounded-full"
-                          style={{
-                            width: '20px',
-                            height: '20px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            flexShrink: 0
-                          }}
-                        >
-                          <span 
-                            style={{ 
-                              lineHeight: '12px',
-                              fontSize: '12px',
-                              fontWeight: 'bold',
-                              color: '#ffffff',
-                              margin: 0,
-                              padding: 0
-                            }}
-                          >
-                            {day.getDate()}
-                          </span>
-                        </div>
-                      ) : (
-                        <span 
-                          style={{ 
-                            lineHeight: '14px',
-                            fontSize: '14px',
-                            fontWeight: 'bold',
-                            color: '#111827',
-                            margin: 0,
-                            padding: 0
-                          }}
-                        >
-                          {day.getDate()}
-                        </span>
-                      )}
-                    </div>
-                  </div>
 
                   {/* Day Schedule Content */}
                   <div 
