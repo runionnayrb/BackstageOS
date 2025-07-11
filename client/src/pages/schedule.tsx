@@ -70,9 +70,7 @@ export default function Schedule() {
     setCurrentDate(newDate);
   };
 
-  const goToToday = () => {
-    setCurrentDate(new Date());
-  };
+
 
   // Format header text based on current view
   const getHeaderText = () => {
@@ -278,17 +276,7 @@ export default function Schedule() {
           </div>
         </div>
 
-        {/* Mobile Today Button */}
-        <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={goToToday}
-            className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-sm font-medium"
-          >
-            Today
-          </Button>
-        </div>
+
       </div>
 
       {/* Content Container - Responsive Padding */}
