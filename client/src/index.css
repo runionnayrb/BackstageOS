@@ -106,8 +106,26 @@ html, body {
 
 /* Specifically for schedule views to prevent reload swipe */
 .schedule-container {
-  overscroll-behavior: none;
-  touch-action: pan-x pan-y;
+  overscroll-behavior: none !important;
+  touch-action: pan-x !important;
+  -webkit-overscroll-behavior: none !important;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+/* Mobile weekly schedule container */
+.mobile-weekly-schedule {
+  overscroll-behavior: none !important;
+  -webkit-overscroll-behavior: none !important;
+  touch-action: pan-x !important;
+}
+
+/* Prevent pull-to-refresh globally on mobile schedule pages */
+@media (max-width: 768px) {
+  .schedule-page {
+    overscroll-behavior: none !important;
+    -webkit-overscroll-behavior: none !important;
+  }
 }
 
 /* Lighter dialog overlay */

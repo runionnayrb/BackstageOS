@@ -74,6 +74,7 @@ export default function MobileWeeklyScheduleView({
   const queryClient = useQueryClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const headerScrollRef = useRef<HTMLDivElement>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [startDate, setStartDate] = useState<Date>(() => {
     // Start with current date, but align to start of week
     const date = currentDate || new Date();
@@ -176,6 +177,44 @@ export default function MobileWeeklyScheduleView({
     }
   }, [days, setCurrentDate]);
 
+  // Touch event handlers to prevent pull-to-refresh
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setTouchStartY(touch.clientY);
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStartY) return;
+    
+    const touch = e.touches[0];
+    const deltaY = touch.clientY - touchStartY;
+    
+    // Prevent any vertical movement at the start of scroll
+    if (Math.abs(deltaY) > 5) {
+      e.preventDefault();
+    }
+  }, [touchStartY]);
+
+  const handleTouchEnd = useCallback(() => {
+    setTouchStartY(null);
+  }, []);
+
+  // Prevent pull-to-refresh when component mounts  
+  useEffect(() => {
+    const preventPullToRefresh = (e: TouchEvent) => {
+      // Check if we're at the top of the page and pulling down
+      if (window.scrollY === 0 && e.touches.length === 1) {
+        e.preventDefault();
+      }
+    };
+
+    document.addEventListener('touchmove', preventPullToRefresh, { passive: false });
+    
+    return () => {
+      document.removeEventListener('touchmove', preventPullToRefresh);
+    };
+  }, []);
+
   // Debounced scroll handler
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -225,7 +264,15 @@ export default function MobileWeeklyScheduleView({
   const containerHeight = TOTAL_MINUTES + 15; // Small padding to show 11:30 PM
 
   return (
-    <div className="flex flex-col h-full bg-gray-50" style={{ touchAction: 'pan-x', overscrollBehavior: 'none' }}>
+    <div 
+      className="flex flex-col h-full bg-gray-50 mobile-weekly-schedule" 
+      style={{ 
+        touchAction: 'pan-x', 
+        overscrollBehavior: 'none',
+        WebkitOverflowScrolling: 'touch',
+        position: 'relative'
+      }}
+    >
       {/* Sticky Header Row */}
       <div className="sticky top-[60px] z-10 flex bg-gray-50">
         {/* Timezone Header */}
@@ -395,13 +442,21 @@ export default function MobileWeeklyScheduleView({
           {/* Combined scrollable container for content */}
           <div 
             ref={scrollContainerRef}
-            className="overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full"
+            className="overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full schedule-container"
+            style={{ 
+              touchAction: 'pan-x',
+              overscrollBehavior: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
             onScroll={(e) => {
               // Sync header scroll with content scroll
               if (headerScrollRef.current) {
                 headerScrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
               }
             }}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
             <div className="flex h-full">
               {days.map((day, index) => (
