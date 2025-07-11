@@ -255,7 +255,7 @@ export default function MobileWeeklyScheduleView({
             }}
           >
             {(() => {
-              const userTimeZone = timezone || "America/New_York";
+              const userTimeZone = scheduleSettings?.timeZone || "America/New_York";
               const now = new Date();
               const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
                 timeZone: userTimeZone, 
@@ -276,7 +276,7 @@ export default function MobileWeeklyScheduleView({
               {days.map((day, index) => (
                 <div 
                   key={`header-${day.toISOString()}`}
-                  className="flex-shrink-0 w-1/2 snap-start"
+                  className={`flex-shrink-0 w-1/2 snap-start ${index < days.length - 1 ? 'border-r border-gray-200' : ''}`}
                   style={{ 
                     height: '20px',
                     minHeight: '20px', 
@@ -406,7 +406,7 @@ export default function MobileWeeklyScheduleView({
               {days.map((day, index) => (
                 <div 
                   key={day.toISOString()}
-                  className="flex-shrink-0 w-1/2 snap-start flex flex-col"
+                  className={`flex-shrink-0 w-1/2 snap-start flex flex-col ${index < days.length - 1 ? 'border-r border-gray-200' : ''}`}
                 >
 
                   {/* Day Schedule Content */}
