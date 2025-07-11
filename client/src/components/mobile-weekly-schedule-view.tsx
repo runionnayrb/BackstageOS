@@ -231,7 +231,7 @@ export default function MobileWeeklyScheduleView({
         <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
           {/* Timezone Header */}
           <div 
-            className="sticky top-[116px] z-10"
+            className="sticky top-[60px] z-10"
             style={{ 
               height: '20px',
               minHeight: '20px', 
@@ -307,7 +307,7 @@ export default function MobileWeeklyScheduleView({
                 >
                   {/* Day Header */}
                   <div 
-                    className="sticky top-[116px] z-10"
+                    className="sticky top-[60px] z-10"
                     style={{ 
                       height: '20px', 
                       minHeight: '20px', 

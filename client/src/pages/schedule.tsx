@@ -226,7 +226,7 @@ export default function Schedule() {
         </div>
 
         {/* Mobile View Mode Selector */}
-        <div className="sticky top-[60px] z-20 px-4 py-3 bg-white border-b border-gray-200">
+        <div className="px-4 py-3 bg-white border-b border-gray-200">
           <div className="flex items-center justify-between">
             {/* View Mode Buttons */}
             <div className="flex gap-1">

@@ -136,7 +136,7 @@ export default function DailyScheduleView({
         {/* Time Labels - Fixed on left side */}
         <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
           <div 
-            className="sticky top-[116px] z-10"
+            className="sticky top-[60px] z-10"
             style={{ 
               height: '20px',
               minHeight: '20px', 
@@ -198,7 +198,7 @@ export default function DailyScheduleView({
             <div className="flex flex-col h-full">
               {/* Day Header */}
               <div 
-                className="sticky top-[116px] z-10"
+                className="sticky top-[60px] z-10"
                 style={{ 
                   height: '20px',
                   minHeight: '20px', 
