@@ -259,16 +259,7 @@ export default function Schedule() {
 
             {/* Buttons and Settings */}
             <div className="flex items-center gap-2">
-              {/* New Event Button */}
-              <Button 
-                size="sm"
-                onClick={() => setCreateEventDialog(true)}
-                className="p-2 h-8"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-              
-              {/* Time Increment for weekly/daily views */}
+              {/* Time Increment for weekly/daily views - rightmost */}
               {(viewMode === 'weekly' || viewMode === 'daily') && (
                 <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
                   <SelectTrigger className="w-10 h-8 border-0 shadow-none [&_svg[data-lucide='chevron-down']]:hidden">
@@ -284,7 +275,7 @@ export default function Schedule() {
                 </Select>
               )}
               
-              {/* All Day Button - show in weekly view too */}
+              {/* All Day Button - middle - show in weekly view too */}
               {(viewMode === 'weekly' || viewMode === 'monthly') && (
                 <Button 
                   variant={showAllDayEvents ? "default" : "outline"}
@@ -295,6 +286,15 @@ export default function Schedule() {
                   <Calendar className="h-4 w-4" />
                 </Button>
               )}
+              
+              {/* New Event Button - leftmost */}
+              <Button 
+                size="sm"
+                onClick={() => setCreateEventDialog(true)}
+                className="p-2 h-8"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
