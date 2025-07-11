@@ -193,6 +193,11 @@ export default function Schedule() {
             
             {/* Navigation Controls */}
             <div className="flex items-center gap-2">
+              <ScheduleFilter
+                projectId={parseInt(projectId)}
+                selectedContactIds={selectedContactIds}
+                onFilterChange={setSelectedContactIds}
+              />
               <Button
                 variant="ghost"
                 size="sm"
@@ -250,14 +255,8 @@ export default function Schedule() {
               </button>
             </div>
 
-            {/* Filter and Settings */}
+            {/* Settings */}
             <div className="flex items-center gap-2">
-              <ScheduleFilter
-                projectId={parseInt(projectId)}
-                selectedContactIds={selectedContactIds}
-                onFilterChange={setSelectedContactIds}
-              />
-              
               {(viewMode === 'weekly' || viewMode === 'daily') && (
                 <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
                   <SelectTrigger className="w-10 h-8 border-0 shadow-none [&_svg[data-lucide='chevron-down']]:hidden">
