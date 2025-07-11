@@ -278,11 +278,11 @@ export default function MonthlyScheduleView({
       </div>
 
       {/* Calendar Grid */}
-      <div className="border-0 md:border md:rounded-lg overflow-hidden bg-white">
+      <div className="bg-white">
         {/* Day headers */}
-        <div className="grid grid-cols-7 bg-gray-50 border-b">
-          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
-            <div key={day} className={`py-2 md:p-3 text-center ${index < 6 ? 'border-r border-gray-200' : ''}`}>
+        <div className="grid grid-cols-7 bg-gray-50">
+          {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+            <div key={day} className="py-2 md:p-3 text-center">
               <div className="text-xs md:text-sm font-medium text-gray-500">{day}</div>
             </div>
           ))}
@@ -294,12 +294,11 @@ export default function MonthlyScheduleView({
             const isCurrentMonth = date.getMonth() === currentDate.getMonth();
             const isToday = date.toDateString() === new Date().toDateString();
             const dayEvents = getEventsForDate(date);
-            const columnIndex = index % 7;
 
             return (
               <div
                 key={index}
-                className={`min-h-16 md:min-h-24 ${columnIndex < 6 ? 'border-r border-gray-200' : ''} border-b border-gray-200 p-1 md:p-2 cursor-pointer transition-colors active:bg-gray-100 md:hover:bg-gray-50 ${
+                className={`min-h-16 md:min-h-24 p-1 md:p-2 cursor-pointer transition-colors active:bg-gray-100 md:hover:bg-gray-50 ${
                   !isCurrentMonth ? 'bg-gray-50 text-gray-400' : ''
                 } ${isToday ? 'bg-blue-50' : ''}`}
                 onClick={() => handleDateClick(date)}
