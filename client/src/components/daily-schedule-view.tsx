@@ -112,18 +112,15 @@ export default function DailyScheduleView({
     return filteredEvents;
   };
 
-  // Generate time labels
+  // Generate time labels - use same approach as mobile weekly view
   const timeLabels = useMemo(() => {
     const labels = [];
-    for (let i = 0; i <= TOTAL_HOURS; i++) {
-      const hour = START_HOUR + i;
-      const minutes = hour * 60;
-      const timeString = `${hour.toString().padStart(2, '0')}:00`;
+    for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += (timeIncrement || 30)) {
+      const timeString = formatTime(minutes);
       const label = formatTimeDisplay(timeString, timeFormat);
       labels.push({
-        hour,
-        label,
         minutes,
+        label,
         position: minutesToPosition(minutes)
       });
     }
@@ -263,6 +260,7 @@ export default function DailyScheduleView({
               {/* Day Schedule Content */}
               <div 
                 className="relative bg-white flex-1 overflow-y-auto"
+                style={{ height: `calc(100vh - 80px)` }}
               >
                 <div 
                   className="relative"

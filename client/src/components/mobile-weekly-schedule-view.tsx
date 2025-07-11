@@ -384,6 +384,7 @@ export default function MobileWeeklyScheduleView({
                   {/* Day Schedule Content */}
                   <div 
                     className="relative bg-white flex-1 overflow-y-auto"
+                    style={{ height: `calc(100vh - 80px)` }}
                   >
                     <div 
                       className="relative"
