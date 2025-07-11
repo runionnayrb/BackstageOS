@@ -417,7 +417,8 @@ function EventForm({
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    date: initialDate || '',
+    startDate: initialDate || '',
+    endDate: initialDate || '',
     startTime: '09:00',
     endTime: '10:00',
     type: 'other',
@@ -427,11 +428,22 @@ function EventForm({
     participantIds: [] as number[],
   });
 
+  // Auto-populate end date when start date changes
+  const handleStartDateChange = (newStartDate: string) => {
+    setFormData(prev => ({
+      ...prev,
+      startDate: newStartDate,
+      // Auto-update end date to match start date if it's currently empty or the same as the previous start date
+      endDate: prev.endDate === prev.startDate || !prev.endDate ? newStartDate : prev.endDate
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Clean up the form data before submission
+    // Clean up the form data before submission and map to API format
     const cleanedData = {
       ...formData,
+      date: formData.startDate, // Use startDate as the primary date for API compatibility
       location: formData.location?.trim() || undefined,
       description: formData.description?.trim() || undefined,
       notes: formData.notes?.trim() || undefined,
@@ -468,17 +480,30 @@ function EventForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="date">Date</Label>
+          <Label htmlFor="startDate">Start Date</Label>
           <Input
-            id="date"
+            id="startDate"
             type="date"
-            value={formData.date}
-            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            value={formData.startDate}
+            onChange={(e) => handleStartDateChange(e.target.value)}
             required
           />
         </div>
+        <div>
+          <Label htmlFor="endDate">End Date</Label>
+          <Input
+            id="endDate"
+            type="date"
+            value={formData.endDate}
+            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+            required
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="startTime">Start Time</Label>
           <Input
