@@ -30,6 +30,10 @@ export default function Schedule() {
     queryKey: [`/api/projects/${projectId}`],
   });
 
+  const { data: settings } = useQuery({
+    queryKey: [`/api/projects/${projectId}/settings`],
+  });
+
   if (!project) {
     return (
       <div className="min-h-screen bg-background">
@@ -340,6 +344,7 @@ export default function Schedule() {
                 selectedContactIds={selectedContactIds}
                 timeIncrement={timeIncrement}
                 showAllDayEvents={showAllDayEvents}
+                settings={settings}
               />
             </div>
           </>

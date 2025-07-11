@@ -138,8 +138,41 @@ export default function DailyScheduleView({
       <div className="flex flex-1 overflow-hidden">
         {/* Time Labels - Fixed on left side */}
         <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
-          <div className="flex items-center justify-center" style={{ height: '20px' }}>
-            <div className="text-xs font-medium text-gray-600">Time</div>
+          <div 
+            style={{ 
+              height: '20px',
+              minHeight: '20px', 
+              maxHeight: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+              backgroundColor: '#f9fafb',
+              margin: 0,
+              padding: 0,
+              boxSizing: 'border-box'
+            }}
+          >
+            <span 
+              style={{ 
+                lineHeight: '14px',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                color: '#6b7280',
+                margin: 0,
+                padding: 0
+              }}
+            >
+              {(() => {
+                const userTimeZone = scheduleSettings?.timeZone || "America/New_York";
+                const now = new Date();
+                const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
+                  timeZone: userTimeZone, 
+                  timeZoneName: 'short' 
+                }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
+                return timeZoneAbbr;
+              })()}
+            </span>
           </div>
           <div 
             className="relative overflow-y-auto"

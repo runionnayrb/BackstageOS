@@ -935,10 +935,18 @@ export default function WeeklyScheduleView({ projectId, onDateClick, currentDate
           {/* Header row */}
           <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '60px' }}>
             <div 
-              className="absolute left-0 top-0 bottom-0 bg-gray-100 border-r border-gray-200 p-3 text-sm font-medium text-gray-600 flex items-center justify-start"
+              className="absolute left-0 top-0 bottom-0 bg-gray-100 border-r border-gray-200 p-3 text-sm font-medium text-gray-600 flex items-center justify-center"
               style={{ width: '80px' }}
             >
-              Time
+              {(() => {
+                const userTimeZone = timezone || "America/New_York";
+                const now = new Date();
+                const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
+                  timeZone: userTimeZone, 
+                  timeZoneName: 'short' 
+                }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
+                return timeZoneAbbr;
+              })()}
             </div>
             {weekDates.map((date, dayIndex) => {
               const isToday = date.toDateString() === new Date().toDateString();
