@@ -167,7 +167,10 @@ export default function MobileWeeklyScheduleView({
   const [isUpdatingDateFromScroll, setIsUpdatingDateFromScroll] = useState(false);
   
   const updateCurrentDate = useCallback(() => {
-    if (!scrollContainerRef.current || !setCurrentDate) return;
+    if (!scrollContainerRef.current || !setCurrentDate || isScrolling) {
+      console.log('📅 Skipping date update - still scrolling or no container');
+      return;
+    }
     
     const container = scrollContainerRef.current;
     const scrollLeft = container.scrollLeft;
@@ -205,20 +208,18 @@ export default function MobileWeeklyScheduleView({
       bestDayIndex,
       clampedIndex,
       maxVisibleArea,
-      currentDay: days[clampedIndex]?.toDateString()
+      currentDay: days[clampedIndex]?.toDateString(),
+      isScrolling
     });
     
     if (days[clampedIndex]) {
       const newCurrentDate = days[clampedIndex];
       if (newCurrentDate.toDateString() !== currentDate?.toDateString()) {
         console.log('📅 Setting new current date from scroll:', newCurrentDate.toDateString());
-        setIsUpdatingDateFromScroll(true);
         setCurrentDate(newCurrentDate);
-        // Reset flag after a brief delay
-        setTimeout(() => setIsUpdatingDateFromScroll(false), 100);
       }
     }
-  }, [days, setCurrentDate, currentDate]);
+  }, [days, setCurrentDate, currentDate, isScrolling]);
 
   // Date tracking with comprehensive debugging
   useEffect(() => {
@@ -237,8 +238,8 @@ export default function MobileWeeklyScheduleView({
     const handleScrollEnd = () => {
       console.log('🛑 Scroll ended via scrollend event');
       setIsScrolling(false);
-      // Delay date update to ensure all scroll events are processed
-      setTimeout(() => updateCurrentDate(), 100);
+      // Much longer delay to ensure momentum scrolling is completely finished
+      setTimeout(() => updateCurrentDate(), 500);
     };
 
     const handleScroll = (e: Event) => {
@@ -252,13 +253,13 @@ export default function MobileWeeklyScheduleView({
       setIsScrolling(true);
       clearTimeout(scrollTimeout);
       
-      // Fallback timeout in case scrollend isn't supported
+      // Much longer timeout to ensure all momentum scrolling is complete
       scrollTimeout = setTimeout(() => {
         console.log('⏰ Scroll timeout triggered - setting isScrolling to false');
         setIsScrolling(false);
-        // Only update date after scroll completely stops
-        setTimeout(() => updateCurrentDate(), 50);
-      }, 200);
+        // Longer delay to ensure momentum is completely finished
+        setTimeout(() => updateCurrentDate(), 300);
+      }, 500);
     };
 
     const handleTouchStart = () => {
