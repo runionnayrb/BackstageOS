@@ -221,7 +221,7 @@ export default function MobileWeeklyScheduleView({
     return labels;
   }, [timeIncrement, timeFormat]);
 
-  const containerHeight = TOTAL_MINUTES + 60; // Add more padding for 8 AM visibility
+  const containerHeight = TOTAL_MINUTES + 200; // Add extra padding for full visibility
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
@@ -268,7 +268,7 @@ export default function MobileWeeklyScheduleView({
           </div>
           <div 
             className="relative overflow-y-auto"
-            style={{ height: `calc(100vh - 200px)` }}
+            style={{ height: `calc(100vh - 80px)` }}
           >
             <div 
               className="relative"
