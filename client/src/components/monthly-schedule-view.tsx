@@ -93,6 +93,20 @@ export default function MonthlyScheduleView({
     isOpen: boolean;
     date?: string;
   }>({ isOpen: false });
+
+  // Prevent body scroll when sheet is open
+  useEffect(() => {
+    if (createEventDialogData.isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [createEventDialogData.isOpen]);
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
 
   // Get show settings
@@ -355,6 +369,7 @@ export default function MonthlyScheduleView({
           <div 
             className="fixed inset-0 bg-black/50 z-40"
             onClick={() => setCreateEventDialogData({ isOpen: false })}
+            style={{ touchAction: 'none' }}
           />
           
           {/* Bottom Sheet */}
@@ -364,9 +379,13 @@ export default function MonthlyScheduleView({
               top: '60px', // Just below the BackstageOS header
               height: 'calc(100vh - 60px)' // Full height minus header
             }}
+            onTouchMove={(e) => {
+              // Prevent background scrolling when touching the sheet
+              e.stopPropagation();
+            }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
               <Button 
                 variant="ghost" 
                 onClick={() => setCreateEventDialogData({ isOpen: false })}
@@ -381,7 +400,7 @@ export default function MonthlyScheduleView({
             </div>
             
             {/* Content */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
               <EventForm
                 projectId={projectId}
                 contacts={contacts}
@@ -557,7 +576,7 @@ function EventForm({
         />
       </div>
 
-      <div className="flex justify-end space-x-2">
+      <div className="flex justify-end space-x-2 pb-4">
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
