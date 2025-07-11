@@ -261,21 +261,18 @@ export default function Schedule() {
             <div className="flex items-center gap-2">
               {/* Time Increment for weekly/daily views - rightmost */}
               {(viewMode === 'weekly' || viewMode === 'daily') && (
-                <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-                  <SelectTrigger className="w-12 h-8 border-0 bg-transparent shadow-none p-1 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center overflow-hidden" style={{['--radix-select-trigger-icon-display' as any]: 'none'}}>
-                    <style>{`
-                      [data-radix-select-trigger] > svg:last-child { display: none !important; }
-                    `}</style>
-                    <SelectValue>
+                <div className="no-chevron">
+                  <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
+                    <SelectTrigger className="w-12 h-8 border-0 bg-transparent shadow-none p-1 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center">
                       <Clock className="h-4 w-4 text-gray-600" />
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="15">15 min</SelectItem>
-                    <SelectItem value="30">30 min</SelectItem>
-                    <SelectItem value="60">60 min</SelectItem>
-                  </SelectContent>
-                </Select>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="15">15 min</SelectItem>
+                      <SelectItem value="30">30 min</SelectItem>
+                      <SelectItem value="60">60 min</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               )}
               
               {/* All Day Button - middle - show in weekly view too */}

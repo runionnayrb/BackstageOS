@@ -46,6 +46,15 @@
   display: none !important;
 }
 
+/* Hide Radix Select chevron icon */
+.no-chevron [data-radix-select-icon] {
+  display: none !important;
+}
+
+.no-chevron button[data-radix-select-trigger] > svg:last-child {
+  display: none !important;
+}
+
 /* Lighter dialog overlay */
 [data-radix-dialog-overlay] {
   background-color: rgba(0, 0, 0, 0.05) !important;
