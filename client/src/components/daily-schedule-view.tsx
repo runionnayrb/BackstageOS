@@ -127,7 +127,7 @@ export default function DailyScheduleView({
     return labels;
   }, [timeFormat, timeIncrement]);
 
-  const containerHeight = TOTAL_MINUTES + 2; // Just enough for midnight line
+  const containerHeight = TOTAL_MINUTES; // Exact height to midnight
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
