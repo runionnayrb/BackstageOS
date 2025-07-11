@@ -265,7 +265,7 @@ export default function MobileWeeklyScheduleView({
                 >
                   {/* Day Header */}
                   <div 
-                    className="bg-white flex items-center justify-center cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="bg-white cursor-pointer hover:bg-gray-50 transition-colors relative"
                     style={{ 
                       height: '20px', 
                       minHeight: '20px', 
@@ -273,7 +273,15 @@ export default function MobileWeeklyScheduleView({
                     }}
                     onClick={() => onDateClick(day)}
                   >
-                    <div className="flex items-center justify-center space-x-1">
+                    <div 
+                      className="absolute inset-0 flex items-center justify-center space-x-1"
+                      style={{ 
+                        top: '50%', 
+                        left: '50%', 
+                        transform: 'translate(-50%, -50%)',
+                        lineHeight: '14px'
+                      }}
+                    >
                       <span className="text-sm font-bold text-gray-600" style={{ lineHeight: '14px' }}>
                         {day.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
                       </span>
