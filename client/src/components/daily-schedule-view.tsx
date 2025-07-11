@@ -258,7 +258,7 @@ export default function DailyScheduleView({
 
               {/* Day Schedule Content */}
               <div 
-                className="relative bg-white flex-1 overflow-y-auto"
+                className="relative bg-white flex-1"
               >
                 <div 
                   className="relative"
