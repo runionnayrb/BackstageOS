@@ -161,11 +161,61 @@ export default function MobileWeeklyScheduleView({
     return filteredEvents.filter(event => event.date === dateString);
   };
 
-  // NO DATE TRACKING - prevent any scroll interference
+  // Handle date tracking for navigation arrows and context updates
+  const handleDateTracking = useCallback(() => {
+    if (!scrollContainerRef.current || !isInitialized || !setCurrentDate) return;
+    
+    const container = scrollContainerRef.current;
+    const scrollLeft = container.scrollLeft;
+    const containerWidth = container.clientWidth;
+    
+    // Calculate which day is most visible in center of viewport
+    const dayWidth = 200; // Fixed day width
+    const centerScrollPosition = scrollLeft + containerWidth / 2;
+    const centerDayIndex = Math.floor(centerScrollPosition / dayWidth);
+    
+    const clampedIndex = Math.max(0, Math.min(centerDayIndex, days.length - 1));
+    
+    if (days[clampedIndex]) {
+      const newCurrentDate = days[clampedIndex];
+      if (newCurrentDate.toDateString() !== currentDate?.toDateString()) {
+        setCurrentDate(newCurrentDate);
+      }
+    }
+  }, [days, setCurrentDate, isInitialized, currentDate]);
 
-  // Scroll to current date on mount only (not when currentDate changes from scroll)
+  // Add date tracking with delay to avoid scroll interference
   useEffect(() => {
-    if (!scrollContainerRef.current || !currentDate || isInitialized) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    let trackingTimeout: NodeJS.Timeout;
+    
+    const handleDelayedTracking = () => {
+      clearTimeout(trackingTimeout);
+      // Delay to ensure scroll has completely finished
+      trackingTimeout = setTimeout(handleDateTracking, 500);
+    };
+
+    // Use scrollend for immediate tracking when available, backup with delayed tracking
+    const handleScrollEnd = () => {
+      clearTimeout(trackingTimeout);
+      handleDateTracking();
+    };
+
+    container.addEventListener('scrollend', handleScrollEnd, { passive: true });
+    container.addEventListener('scroll', handleDelayedTracking, { passive: true });
+    
+    return () => {
+      container.removeEventListener('scrollend', handleScrollEnd);
+      container.removeEventListener('scroll', handleDelayedTracking);
+      clearTimeout(trackingTimeout);
+    };
+  }, [handleDateTracking]);
+
+  // Scroll to current date on mount and when currentDate changes externally (like arrow navigation)
+  useEffect(() => {
+    if (!scrollContainerRef.current || !currentDate) return;
     
     const currentDateIndex = days.findIndex(day => 
       day.toDateString() === currentDate.toDateString()
@@ -179,8 +229,15 @@ export default function MobileWeeklyScheduleView({
       // Position so the current day is visible on screen
       const scrollPosition = Math.max(0, (currentDateIndex * dayWidth) - (containerWidth / 2) + (dayWidth / 2));
       
-      container.scrollTo({ left: scrollPosition, behavior: 'instant' });
-      setIsInitialized(true);
+      // Use smooth scrolling for arrow navigation, instant for initial load
+      container.scrollTo({ 
+        left: scrollPosition, 
+        behavior: isInitialized ? 'smooth' : 'instant' 
+      });
+      
+      if (!isInitialized) {
+        setIsInitialized(true);
+      }
     }
   }, [days, currentDate, isInitialized]);
 
