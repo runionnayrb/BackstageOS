@@ -100,32 +100,22 @@
 
 /* Disable pull-to-refresh and default overscroll behaviors on mobile */
 html, body {
-  overscroll-behavior: none;
-  touch-action: manipulation;
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: auto;
 }
 
 /* Specifically for schedule views to prevent reload swipe */
 .schedule-container {
-  overscroll-behavior: none !important;
-  touch-action: pan-x !important;
-  -webkit-overscroll-behavior: none !important;
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: auto;
+  touch-action: pan-x pan-y;
   -webkit-overflow-scrolling: touch;
-  position: relative;
 }
 
 /* Mobile weekly schedule container */
 .mobile-weekly-schedule {
-  overscroll-behavior: none !important;
-  -webkit-overscroll-behavior: none !important;
-  touch-action: pan-x !important;
-}
-
-/* Prevent pull-to-refresh globally on mobile schedule pages */
-@media (max-width: 768px) {
-  .schedule-page {
-    overscroll-behavior: none !important;
-    -webkit-overscroll-behavior: none !important;
-  }
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: auto;
 }
 
 /* Lighter dialog overlay */

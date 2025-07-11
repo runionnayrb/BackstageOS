@@ -189,8 +189,8 @@ export default function MobileWeeklyScheduleView({
     const touch = e.touches[0];
     const deltaY = touch.clientY - touchStartY;
     
-    // Prevent any vertical movement at the start of scroll
-    if (Math.abs(deltaY) > 5) {
+    // Only prevent downward pull at the top to stop reload
+    if (deltaY > 20 && window.scrollY === 0) {
       e.preventDefault();
     }
   }, [touchStartY]);
@@ -267,8 +267,9 @@ export default function MobileWeeklyScheduleView({
     <div 
       className="flex flex-col h-full bg-gray-50 mobile-weekly-schedule" 
       style={{ 
-        touchAction: 'pan-x', 
-        overscrollBehavior: 'none',
+        touchAction: 'pan-x pan-y', 
+        overscrollBehaviorY: 'none',
+        overscrollBehaviorX: 'auto',
         WebkitOverflowScrolling: 'touch',
         position: 'relative'
       }}
@@ -444,8 +445,9 @@ export default function MobileWeeklyScheduleView({
             ref={scrollContainerRef}
             className="overflow-x-auto snap-x snap-mandatory scrollbar-hide h-full schedule-container"
             style={{ 
-              touchAction: 'pan-x',
-              overscrollBehavior: 'none',
+              touchAction: 'pan-x pan-y',
+              overscrollBehaviorY: 'none',
+              overscrollBehaviorX: 'auto',
               WebkitOverflowScrolling: 'touch'
             }}
             onScroll={(e) => {
