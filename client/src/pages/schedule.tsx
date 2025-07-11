@@ -352,10 +352,12 @@ export default function Schedule() {
           <DailyScheduleView 
             projectId={parseInt(projectId)} 
             selectedDate={currentDate}
-            onBackToWeekly={() => setViewMode('weekly')}
+            onDateClick={handleDateClick}
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
+            showAllDayEvents={showAllDayEvents}
+            timeIncrement={timeIncrement}
           />
         )}
       </div>

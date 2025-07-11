@@ -14,9 +14,11 @@ interface DailyScheduleViewProps {
   projectId: number;
   selectedDate: Date;
   onDateClick?: (date: Date) => void;
+  currentDate?: Date;
+  setCurrentDate?: (date: Date) => void;
   selectedContactIds: number[];
-  showAllDayEvents: boolean;
-  timeIncrement: number;
+  showAllDayEvents?: boolean;
+  timeIncrement?: number;
 }
 
 interface ScheduleEvent {
@@ -55,11 +57,71 @@ export default function DailyScheduleView({
   projectId, 
   selectedDate, 
   onDateClick, 
+  currentDate,
+  setCurrentDate,
   selectedContactIds, 
-  showAllDayEvents: propShowAllDayEvents, 
-  timeIncrement 
+  showAllDayEvents: propShowAllDayEvents = true, 
+  timeIncrement = 30
 }: DailyScheduleViewProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Touch handling for swipe navigation
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.touches[0].clientX);
+    setTouchStartY(e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartX || !touchStartY) return;
+
+    const touchCurrentX = e.touches[0].clientX;
+    const touchCurrentY = e.touches[0].clientY;
+    const deltaX = touchStartX - touchCurrentX;
+    const deltaY = touchStartY - touchCurrentY;
+
+    // Only handle horizontal swipes (ignore vertical scrolling)
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      e.preventDefault();
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartX || !touchStartY) return;
+
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaX = touchStartX - touchEndX;
+    const deltaY = touchStartY - touchEndY;
+
+    // Only handle horizontal swipes that are more horizontal than vertical
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      if (deltaX > 0) {
+        // Swipe left - go to next day
+        const nextDay = new Date(selectedDate);
+        nextDay.setDate(selectedDate.getDate() + 1);
+        if (setCurrentDate) {
+          setCurrentDate(nextDay);
+        } else if (onDateClick) {
+          onDateClick(nextDay);
+        }
+      } else {
+        // Swipe right - go to previous day
+        const prevDay = new Date(selectedDate);
+        prevDay.setDate(selectedDate.getDate() - 1);
+        if (setCurrentDate) {
+          setCurrentDate(prevDay);
+        } else if (onDateClick) {
+          onDateClick(prevDay);
+        }
+      }
+    }
+
+    setTouchStartX(null);
+    setTouchStartY(null);
+  };
 
   // Time utilities
   const timeToMinutes = (time: string): number => {
@@ -192,7 +254,12 @@ export default function DailyScheduleView({
         </div>
 
         {/* Day Container */}
-        <div className="flex-1 overflow-hidden">
+        <div 
+          className="flex-1 overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           <div className="h-full">
             <div className="flex flex-col h-full">
               {/* Day Header */}
