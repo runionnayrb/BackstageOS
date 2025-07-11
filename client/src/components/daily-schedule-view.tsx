@@ -201,14 +201,18 @@ export default function DailyScheduleView({
             <div className="flex flex-col h-full">
               {/* Day Header */}
               <div 
-                className="bg-white"
                 style={{ 
-                  height: '20px', 
+                  height: '20px',
                   minHeight: '20px', 
                   maxHeight: '20px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  backgroundColor: '#f9fafb',
+                  margin: 0,
+                  padding: 0,
+                  boxSizing: 'border-box'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
