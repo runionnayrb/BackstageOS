@@ -261,7 +261,7 @@ export default function MobileWeeklyScheduleView({
               {days.map((day, index) => (
                 <div 
                   key={day.toISOString()}
-                  className="flex-shrink-0 w-1/2 snap-start border-r border-gray-200 flex flex-col"
+                  className="flex-shrink-0 w-1/2 snap-start flex flex-col"
                 >
                   {/* Day Header */}
                   <div 
@@ -273,7 +273,7 @@ export default function MobileWeeklyScheduleView({
                       alignItems: 'center',
                       justifyContent: 'center',
                       overflow: 'hidden',
-                      backgroundColor: '#ffffff',
+                      backgroundColor: '#f9fafb',
                       cursor: 'pointer',
 
                       margin: 0,
