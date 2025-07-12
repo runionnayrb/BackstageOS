@@ -125,6 +125,22 @@ export function EnhancedCollaborativeEditor({
     setRedoStack([]);
   }, [pages]);
 
+  // Helper function to get all text nodes from an element
+  const getTextNodes = (element: HTMLElement): Text[] => {
+    const textNodes: Text[] = [];
+    const walker = document.createTreeWalker(
+      element,
+      NodeFilter.SHOW_TEXT,
+      null
+    );
+    
+    let node;
+    while (node = walker.nextNode()) {
+      textNodes.push(node as Text);
+    }
+    return textNodes;
+  };
+
   // Reflow content across pages for continuous text flow
   const reflowContent = useCallback((currentPages: string[], startFromPage: number = 0) => {
     if (pageBreakMode !== 'auto') return;
@@ -350,22 +366,54 @@ export function EnhancedCollaborativeEditor({
     setPages(newPages);
     
     // Check if auto-pagination is needed after content change
-    if (pageBreakMode === 'auto' && newContent.length > 2000) {
-      // Trigger auto-pagination in next tick to avoid state conflicts
-      setTimeout(() => {
-        // Re-paginate this specific page if it's too long
-        const contentForPagination = newContent;
-        const paginatedPages = autoPaginate(contentForPagination);
-        if (paginatedPages.length > 1) {
-          // Replace current page with paginated content
-          const updatedPages = [...pages];
-          updatedPages.splice(pageIndex, 1, ...paginatedPages);
-          setPages(updatedPages);
-          // Update parent component
-          const combinedContent = updatedPages.join('<!-- PAGE_BREAK -->');
-          onChange(combinedContent);
-        }
-      }, 100);
+    if (pageBreakMode === 'auto') {
+      const pageElement = target;
+      const pageHeight = pageElement.scrollHeight;
+      
+      // If content exceeds page height, we need to move overflow to next page
+      if (pageHeight > contentHeight || newContent.length > 2800) {
+        // Trigger auto-pagination in next tick to avoid state conflicts
+        setTimeout(() => {
+          // Get all content from current page onward
+          const allContentFromCurrentPage = newPages.slice(pageIndex).join(' ');
+          
+          // Re-paginate from current page onward
+          const paginatedPages = autoPaginate(allContentFromCurrentPage);
+          
+          if (paginatedPages.length > 0) {
+            // Keep pages before current page unchanged
+            const updatedPages = [...newPages.slice(0, pageIndex), ...paginatedPages];
+            
+            // If we have fewer pages after pagination, adjust
+            while (updatedPages.length < pages.length) {
+              updatedPages.push('');
+            }
+            
+            setPages(updatedPages);
+            // Update parent component
+            const combinedContent = updatedPages.join('<!-- PAGE_BREAK -->');
+            onChange(combinedContent);
+            
+            // Restore cursor position on the current page
+            setTimeout(() => {
+              const currentPageEl = document.getElementById(`page-${pageIndex}`);
+              if (currentPageEl && selection) {
+                currentPageEl.focus();
+                // Try to restore approximate cursor position
+                const range = document.createRange();
+                const textNodes = getTextNodes(currentPageEl);
+                if (textNodes.length > 0) {
+                  const lastNode = textNodes[textNodes.length - 1];
+                  range.setStart(lastNode, Math.min(cursorPosition, lastNode.textContent?.length || 0));
+                  range.setEnd(lastNode, Math.min(cursorPosition, lastNode.textContent?.length || 0));
+                  selection.removeAllRanges();
+                  selection.addRange(range);
+                }
+              }
+            }, 50);
+          }
+        }, 100);
+      }
     }
     
     // Update parent component
@@ -418,33 +466,74 @@ export function EnhancedCollaborativeEditor({
     const isAtStart = range.startOffset === 0;
     const pageElement = document.getElementById(`page-${pageIndex}`);
     
-    // Handle backspace at beginning of empty page - remove the page
+    // Handle backspace at beginning of page
     if (e.key === 'Backspace' && isAtStart && pageIndex > 0 && pageElement) {
-      const pageText = pageElement.innerText.trim();
-      if (pageText === '') {
-        e.preventDefault();
-        // Remove this empty page
-        const newPages = [...pages];
-        newPages.splice(pageIndex, 1);
-        setPages(newPages);
+      e.preventDefault();
+      
+      const currentPageHtml = pageElement.innerHTML;
+      const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
+      
+      if (prevPageElement) {
+        // Get the content from both pages
+        const prevPageHtml = prevPageElement.innerHTML;
         
-        // Move cursor to end of previous page
-        setTimeout(() => {
-          const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
-          if (prevPageElement) {
-            prevPageElement.focus();
-            const newRange = document.createRange();
-            newRange.selectNodeContents(prevPageElement);
-            newRange.collapse(false);
-            selection.removeAllRanges();
-            selection.addRange(newRange);
+        // Merge content from current page into previous page
+        const mergedContent = prevPageHtml + currentPageHtml;
+        
+        // Update the previous page with merged content
+        prevPageElement.innerHTML = mergedContent;
+        
+        // Move cursor to the connection point (end of original previous page content)
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = prevPageHtml;
+        const textLength = tempDiv.innerText.length;
+        
+        // Focus on previous page and set cursor position
+        prevPageElement.focus();
+        const range = document.createRange();
+        const sel = window.getSelection();
+        
+        // Find the position where the two pages joined
+        let charCount = 0;
+        let targetNode = null;
+        let targetOffset = 0;
+        
+        const findPosition = (node: Node): boolean => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            const nodeLength = node.textContent?.length || 0;
+            if (charCount + nodeLength >= textLength) {
+              targetNode = node;
+              targetOffset = textLength - charCount;
+              return true;
+            }
+            charCount += nodeLength;
+          } else {
+            for (let child of Array.from(node.childNodes)) {
+              if (findPosition(child)) return true;
+            }
           }
-        }, 50);
+          return false;
+        };
         
-        // Update content
-        const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
-        onChange(combinedContent);
-        return;
+        findPosition(prevPageElement);
+        
+        if (targetNode) {
+          range.setStart(targetNode, targetOffset);
+          range.setEnd(targetNode, targetOffset);
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+        }
+        
+        // Remove the current page if it's now empty
+        const pageText = pageElement.innerText.trim();
+        if (pageText === '') {
+          const newPages = [...pages];
+          newPages.splice(pageIndex, 1);
+          setPages(newPages);
+        } else {
+          // Update current page content
+          handleInput(pageIndex - 1, { target: prevPageElement, currentTarget: prevPageElement } as any);
+        }
       }
     }
     
