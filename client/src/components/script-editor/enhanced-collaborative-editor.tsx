@@ -105,14 +105,36 @@ export function EnhancedCollaborativeEditor({
       const contentStr = typeof content === 'string' ? content : '';
       if (contentStr.trim()) {
         // Split content into pages if it contains page breaks
-        const pageContent = contentStr.includes('<!-- PAGE_BREAK -->') 
-          ? contentStr.split('<!-- PAGE_BREAK -->')
-          : [contentStr];
-        setPages(pageContent);
+        if (contentStr.includes('<!-- PAGE_BREAK -->')) {
+          const pageContent = contentStr.split('<!-- PAGE_BREAK -->');
+          setPages(pageContent);
+        } else {
+          // Auto-paginate the content based on estimated page capacity
+          const estimatedWordsPerPage = 250; // Typical script page capacity
+          const words = contentStr.split(/\s+/);
+          const newPages: string[] = [];
+          
+          for (let i = 0; i < words.length; i += estimatedWordsPerPage) {
+            const pageWords = words.slice(i, i + estimatedWordsPerPage);
+            newPages.push(pageWords.join(' '));
+          }
+          
+          setPages(newPages.length > 0 ? newPages : [contentStr]);
+        }
       }
       setIsInitialized(true);
     }
   }, [content, isInitialized]);
+
+  // Auto-reflow content when initialized and page break mode is auto
+  useEffect(() => {
+    if (isInitialized && pageBreakMode === 'auto' && pages.length > 0) {
+      // Trigger reflow to ensure proper pagination
+      setTimeout(() => {
+        reflowContent(pages);
+      }, 100);
+    }
+  }, [isInitialized, pageBreakMode, pages, reflowContent]);
 
   // Save current state to undo stack
   const saveToUndoStack = useCallback(() => {
@@ -147,28 +169,34 @@ export function EnhancedCollaborativeEditor({
       // Remove existing page breaks for reflowing
       allContent = allContent.replace(/<!-- PAGE_BREAK -->/g, ' ');
       
-      // If content contains HTML, preserve it during reflow
+      // If content contains HTML (script elements), preserve it during reflow
       if (allContent.includes('<div') || allContent.includes('<p') || allContent.includes('<br')) {
-        // For HTML content, split by block elements but preserve formatting
+        // For HTML content, split by dialogue and stage direction elements
         const htmlParser = new DOMParser();
         const doc = htmlParser.parseFromString(`<div>${allContent}</div>`, 'text/html');
-        const elements = Array.from(doc.querySelectorAll('div, p, br'));
+        const elements = Array.from(doc.querySelectorAll('div'));
         
         let currentPageContent = '';
+        let currentPageLineCount = 0;
+        const maxLinesPerPage = 35; // Typical script page capacity
         
         for (const element of elements) {
           const elementHTML = element.outerHTML;
+          const isDialogue = element.className.includes('script-dialogue');
+          const isStageDirection = element.className.includes('script-stage_direction');
           
-          // Test if adding this element would exceed page height
-          tempDiv.innerHTML = currentPageContent + elementHTML;
-          const testHeight = tempDiv.offsetHeight;
+          // Estimate lines for this element
+          const estimatedLines = isStageDirection ? 1 : Math.ceil(element.textContent!.length / 60);
           
-          if (testHeight > contentHeight && currentPageContent.trim()) {
+          // Check if adding this element would exceed page capacity
+          if (currentPageLineCount + estimatedLines > maxLinesPerPage && currentPageContent.trim()) {
             // Start a new page
             newPages.push(currentPageContent.trim());
             currentPageContent = elementHTML;
+            currentPageLineCount = estimatedLines;
           } else {
             currentPageContent += elementHTML;
+            currentPageLineCount += estimatedLines;
           }
         }
         
