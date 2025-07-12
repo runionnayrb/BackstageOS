@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { CollaborativeEditor } from "@/components/script-editor/collaborative-editor";
+import { EnhancedCollaborativeEditor } from "@/components/script-editor/enhanced-collaborative-editor";
 import { VersionHistory } from "@/components/script-editor/version-history";
 import { ChangeLog } from "@/components/script-editor/change-log-simple";
 import { CommentsPanel } from "@/components/script-editor/comments-panel";
@@ -544,7 +544,7 @@ export default function ScriptEditor() {
 
       {/* Main Content - Full Page Editor */}
       <div className="flex-1">
-        <CollaborativeEditor
+        <EnhancedCollaborativeEditor
           content={scriptContent}
           onChange={handleContentChange}
           title={scriptTitle}
