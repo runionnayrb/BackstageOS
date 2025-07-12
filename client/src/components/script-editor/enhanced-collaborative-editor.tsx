@@ -450,6 +450,19 @@ export function EnhancedCollaborativeEditor({
     }
   }, [handleInput]);
 
+  // Get cursor position in element
+  const getCursorPosition = (element: HTMLElement): number => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return 0;
+    
+    const range = selection.getRangeAt(0);
+    const preRange = range.cloneRange();
+    preRange.selectNodeContents(element);
+    preRange.setEnd(range.endContainer, range.endOffset);
+    
+    return preRange.toString().length;
+  };
+
   // Handle key events for navigation between pages
   const handleKeyDown = useCallback((e: React.KeyboardEvent, pageIndex: number) => {
     const selection = window.getSelection();
@@ -496,6 +509,14 @@ export function EnhancedCollaborativeEditor({
       }
     }
     
+    // Check if cursor is at the end of the page
+    let isAtEnd = false;
+    if (pageElement) {
+      const textContent = pageElement.textContent || '';
+      const cursorPos = getCursorPosition(pageElement);
+      isAtEnd = cursorPos >= textContent.length;
+    }
+    
     // Handle arrow key navigation between pages
     if (e.key === 'ArrowUp' && isAtStart && pageIndex > 0) {
       e.preventDefault();
@@ -514,23 +535,47 @@ export function EnhancedCollaborativeEditor({
       }, 0);
     }
     
-    if (e.key === 'ArrowDown' && pageElement) {
-      const isAtEnd = range.endOffset === pageElement.innerText.length;
-      if (isAtEnd && pageIndex < pages.length - 1) {
+    if (e.key === 'ArrowDown' && isAtEnd && pageIndex < pages.length - 1) {
+      e.preventDefault();
+      // Move to next page
+      setTimeout(() => {
+        const nextPageElement = document.getElementById(`page-${pageIndex + 1}`);
+        if (nextPageElement) {
+          nextPageElement.focus();
+          // Place cursor at start of next page
+          const newRange = document.createRange();
+          newRange.selectNodeContents(nextPageElement);
+          newRange.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+        }
+      }, 0);
+    }
+    
+    // Handle End key at end of page to move to next page
+    if (e.key === 'End' && isAtEnd && pageIndex < pages.length - 1) {
+      // Natural flow to next page
+    }
+    
+    // Handle backspace at beginning to merge with previous page (when page is not empty)
+    if (e.key === 'Backspace' && isAtStart && pageIndex > 0 && pageElement) {
+      const pageText = pageElement.innerText.trim();
+      if (pageText !== '') {
         e.preventDefault();
-        // Move to next page
-        setTimeout(() => {
-          const nextPageElement = document.getElementById(`page-${pageIndex + 1}`);
-          if (nextPageElement) {
-            nextPageElement.focus();
-            // Place cursor at start of next page
-            const newRange = document.createRange();
-            newRange.selectNodeContents(nextPageElement);
-            newRange.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(newRange);
-          }
-        }, 0);
+        // Move to end of previous page
+        const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
+        
+        if (prevPageElement) {
+          prevPageElement.focus();
+          const range = document.createRange();
+          const sel = window.getSelection();
+          range.selectNodeContents(prevPageElement);
+          range.collapse(false);
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+          
+          // Let auto-pagination handle the content merging
+        }
       }
     }
   }, [pages, onChange]);
