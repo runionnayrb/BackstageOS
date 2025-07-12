@@ -494,11 +494,19 @@ export function EnhancedCollaborativeEditor({
     const pageElement = document.getElementById(`page-${pageIndex}`);
     if (!pageElement) return;
     
-    // Better detection of cursor position
-    const isAtStart = range.startOffset === 0 && 
-                     (range.startContainer === pageElement || 
-                      range.startContainer === pageElement.firstChild ||
-                      (range.startContainer.parentNode === pageElement && range.startContainer === pageElement.firstChild));
+    // Better detection of cursor position at start
+    let isAtStart = false;
+    if (range.startOffset === 0) {
+      const container = range.startContainer;
+      // Check if we're at the very beginning of the page
+      if (container === pageElement || 
+          container === pageElement.firstChild ||
+          (container.nodeType === Node.TEXT_NODE && container.parentNode === pageElement.firstChild)) {
+        // Get the cursor position within the page
+        const cursorPos = getCursorPosition(pageElement);
+        isAtStart = cursorPos === 0;
+      }
+    }
     
     // Check if cursor is at the end of the page
     const textContent = pageElement.textContent || '';
@@ -507,45 +515,41 @@ export function EnhancedCollaborativeEditor({
     
     // Handle backspace at beginning of page
     if (e.key === 'Backspace' && isAtStart && pageIndex > 0) {
-      const pageText = pageElement.innerText.trim();
+      console.log('Backspace at beginning of page', pageIndex);
+      e.preventDefault();
       
-      if (pageText === '') {
-        // Empty page - remove it
-        e.preventDefault();
-        const newPages = [...pages];
-        newPages.splice(pageIndex, 1);
-        setPages(newPages);
+      // Move to end of previous page
+      const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
+      if (prevPageElement) {
+        prevPageElement.focus();
         
-        // Update content
-        const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
-        onChange(combinedContent);
+        // Place cursor at the very end of the previous page
+        const range = document.createRange();
+        const sel = window.getSelection();
         
-        // Move to end of previous page
-        setTimeout(() => {
-          const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
-          if (prevPageElement) {
-            prevPageElement.focus();
-            const range = document.createRange();
-            const sel = window.getSelection();
-            range.selectNodeContents(prevPageElement);
-            range.collapse(false);
-            sel?.removeAllRanges();
-            sel?.addRange(range);
-          }
-        }, 10);
-      } else {
-        // Non-empty page - just move cursor to end of previous page
-        e.preventDefault();
-        const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
-        if (prevPageElement) {
-          prevPageElement.focus();
-          const range = document.createRange();
-          const sel = window.getSelection();
+        // Find the last text node in the previous page
+        const walker = document.createTreeWalker(
+          prevPageElement,
+          NodeFilter.SHOW_TEXT,
+          null
+        );
+        
+        let lastTextNode = null;
+        let node;
+        while (node = walker.nextNode()) {
+          lastTextNode = node;
+        }
+        
+        if (lastTextNode) {
+          range.setStart(lastTextNode, lastTextNode.textContent?.length || 0);
+          range.setEnd(lastTextNode, lastTextNode.textContent?.length || 0);
+        } else {
           range.selectNodeContents(prevPageElement);
           range.collapse(false);
-          sel?.removeAllRanges();
-          sel?.addRange(range);
         }
+        
+        sel?.removeAllRanges();
+        sel?.addRange(range);
       }
     }
     
