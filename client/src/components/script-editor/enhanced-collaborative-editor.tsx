@@ -126,16 +126,6 @@ export function EnhancedCollaborativeEditor({
     }
   }, [content, isInitialized]);
 
-  // Auto-reflow content when initialized and page break mode is auto
-  useEffect(() => {
-    if (isInitialized && pageBreakMode === 'auto' && pages.length > 0) {
-      // Trigger reflow to ensure proper pagination
-      setTimeout(() => {
-        reflowContent(pages);
-      }, 100);
-    }
-  }, [isInitialized, pageBreakMode, pages, reflowContent]);
-
   // Save current state to undo stack
   const saveToUndoStack = useCallback(() => {
     const currentState = JSON.stringify(pages);
@@ -246,6 +236,16 @@ export function EnhancedCollaborativeEditor({
       document.body.removeChild(tempDiv);
     }
   }, [contentWidth, contentHeight, fontFamily, fontSize, lineHeight, pageBreakMode, onChange]);
+
+  // Auto-reflow content when initialized and page break mode is auto
+  useEffect(() => {
+    if (isInitialized && pageBreakMode === 'auto' && pages.length > 0) {
+      // Trigger reflow to ensure proper pagination
+      setTimeout(() => {
+        reflowContent(pages);
+      }, 100);
+    }
+  }, [isInitialized, pageBreakMode, pages, reflowContent]);
 
   // Handle text input and content changes
   const handleInput = useCallback((pageIndex: number, event: React.FormEvent<HTMLDivElement>) => {
