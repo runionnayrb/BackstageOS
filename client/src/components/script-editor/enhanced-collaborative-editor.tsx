@@ -526,8 +526,7 @@ export function EnhancedCollaborativeEditor({
       console.log('Backspace at beginning of page', pageIndex);
       e.preventDefault();
       
-      // Stay on current page and let natural backspace merge content
-      // Get all page content
+      // Get all current page content
       const allPages = [];
       for (let i = 0; i < pages.length; i++) {
         const pageEl = document.getElementById(`page-${i}`);
@@ -536,15 +535,15 @@ export function EnhancedCollaborativeEditor({
         }
       }
       
-      // Find the break point between previous and current page
+      // Merge content from current page to previous page
       const prevPageContent = allPages[pageIndex - 1];
       const currentPageContent = allPages[pageIndex];
       
-      // Remove last character from previous page
+      // Create a temporary div to manipulate content
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = prevPageContent;
       
-      // Find the last text node and remove one character
+      // Find and remove the last character from previous page
       const walker = document.createTreeWalker(
         tempDiv,
         NodeFilter.SHOW_TEXT,
@@ -557,49 +556,53 @@ export function EnhancedCollaborativeEditor({
         lastTextNode = node;
       }
       
-      if (lastTextNode && lastTextNode.textContent) {
-        // Remove last character
+      if (lastTextNode && lastTextNode.textContent && lastTextNode.textContent.length > 0) {
+        // Remove the last character
         lastTextNode.textContent = lastTextNode.textContent.slice(0, -1);
         
-        // If text node is now empty, remove its parent element if it's a script element
+        // If the text node is now empty, remove its parent element
         if (lastTextNode.textContent === '' && lastTextNode.parentElement?.className.includes('script-')) {
           lastTextNode.parentElement.remove();
         }
       }
       
-      // Update the content
+      // Update pages array with modified content
       allPages[pageIndex - 1] = tempDiv.innerHTML;
       
       // Combine all content and repaginate
-      const allContent = allPages.join('');
-      const paginatedPages = autoPaginate(allContent);
+      const combinedContent = allPages.join('');
+      const newPages = autoPaginate(combinedContent);
       
-      if (paginatedPages.length > 0) {
-        setPages(paginatedPages);
-        const combinedContent = paginatedPages.join('<!-- PAGE_BREAK -->');
-        onChange(combinedContent);
-        
-        // Keep cursor at beginning of current page after repagination
-        setTimeout(() => {
-          const newPageEl = document.getElementById(`page-${pageIndex}`);
-          if (newPageEl) {
-            newPageEl.focus();
-            const range = document.createRange();
-            const sel = window.getSelection();
-            
-            if (newPageEl.firstChild) {
-              range.setStart(newPageEl.firstChild, 0);
-              range.setEnd(newPageEl.firstChild, 0);
-            } else {
-              range.selectNodeContents(newPageEl);
-              range.collapse(true);
-            }
-            
-            sel?.removeAllRanges();
-            sel?.addRange(range);
+      setPages(newPages);
+      onChange(newPages.join('<!-- PAGE_BREAK -->'));
+      
+      // After repagination, keep cursor at start of current page
+      setTimeout(() => {
+        const currentPageEl = document.getElementById(`page-${pageIndex}`);
+        if (currentPageEl) {
+          currentPageEl.focus();
+          const range = document.createRange();
+          const sel = window.getSelection();
+          
+          if (currentPageEl.firstChild) {
+            range.setStart(currentPageEl.firstChild, 0);
+            range.setEnd(currentPageEl.firstChild, 0);
+          } else {
+            range.selectNodeContents(currentPageEl);
+            range.collapse(true);
           }
-        }, 50);
-      }
+          
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+        }
+      }, 50);
+    }
+    
+    // Handle Enter key at end of page
+    if (e.key === 'Enter' && isAtEnd && pageIndex < pages.length - 1) {
+      console.log('Enter at end of page', pageIndex);
+      // Let the default enter behavior happen, it will trigger repagination
+      // The cursor will automatically move to the next page after content reflows
     }
     
     // Handle Enter key at end of page
