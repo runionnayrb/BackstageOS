@@ -5,6 +5,7 @@ import {
   emailAssignments, 
   emailCollaborations, 
   emailArchiveRules,
+  emailAccounts,
   type SharedInbox,
   type SharedInboxMember,
   type EmailAssignment,
@@ -42,6 +43,20 @@ export class SharedInboxService {
         .returning();
 
       const sharedInbox = result[0];
+
+      // Create corresponding email account for sending/receiving emails
+      await db
+        .insert(emailAccounts)
+        .values({
+          userId: data.createdBy,
+          projectId: data.projectId,
+          emailAddress: data.emailAddress,
+          displayName: data.name,
+          accountType: 'team',
+          isActive: true
+        });
+
+      console.log(`✅ Created email account for shared inbox: ${data.emailAddress}`);
 
       // Create email routing in Cloudflare
       await this.createEmailRouting(sharedInbox.emailAddress, data.projectId);
@@ -132,6 +147,11 @@ export class SharedInboxService {
         throw new Error('Shared inbox not found');
       }
 
+      // Delete corresponding email account
+      await db
+        .delete(emailAccounts)
+        .where(eq(emailAccounts.emailAddress, inbox.emailAddress));
+
       // Delete email routing in Cloudflare
       await this.deleteEmailRouting(inbox.emailAddress);
 
@@ -139,6 +159,8 @@ export class SharedInboxService {
       await db
         .delete(sharedInboxes)
         .where(eq(sharedInboxes.id, inboxId));
+
+      console.log(`✅ Deleted shared inbox and email account: ${inbox.emailAddress}`);
     } catch (error) {
       console.error('Error deleting shared inbox:', error);
       throw new Error('Failed to delete shared inbox');
