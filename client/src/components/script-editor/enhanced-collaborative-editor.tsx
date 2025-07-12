@@ -237,39 +237,23 @@ export function EnhancedCollaborativeEditor({
   const autoPaginate = useCallback((content: string) => {
     if (!content || content.length < 1000) return [content]; // Don't paginate short content
     
-    // Use character-based pagination for more consistent page sizes
+    // Simple character-based pagination - just split content evenly
     const targetCharsPerPage = 2800; // About 2800 characters per page for good balance
     const newPages: string[] = [];
     
-    // Try to find good break points (end of divs)
-    const divEndPattern = /<\/div>/g;
-    let lastIndex = 0;
-    let match;
-    let currentPageContent = '';
+    // Calculate how many pages we need
+    const totalLength = content.length;
+    const estimatedPages = Math.ceil(totalLength / targetCharsPerPage);
     
-    while ((match = divEndPattern.exec(content)) !== null) {
-      const elementEnd = match.index + match[0].length;
-      const potentialContent = content.substring(lastIndex, elementEnd);
+    // Simple approach: just split the content evenly
+    for (let i = 0; i < estimatedPages; i++) {
+      const start = i * targetCharsPerPage;
+      const end = Math.min(start + targetCharsPerPage, totalLength);
+      const pageContent = content.substring(start, end);
       
-      // If adding this element would exceed our target, start a new page
-      if (currentPageContent.length + potentialContent.length > targetCharsPerPage && currentPageContent.trim()) {
-        newPages.push(currentPageContent.trim());
-        currentPageContent = potentialContent;
-      } else {
-        currentPageContent += potentialContent;
+      if (pageContent.trim()) {
+        newPages.push(pageContent);
       }
-      
-      lastIndex = elementEnd;
-    }
-    
-    // Add any remaining content
-    if (lastIndex < content.length) {
-      currentPageContent += content.substring(lastIndex);
-    }
-    
-    // Add the last page if it has content
-    if (currentPageContent.trim()) {
-      newPages.push(currentPageContent.trim());
     }
     
     return newPages.length > 1 ? newPages : [content];
@@ -286,29 +270,15 @@ export function EnhancedCollaborativeEditor({
       const maxLength = Math.max(...pageLengths);
       const avgLength = pageLengths.reduce((a, b) => a + b, 0) / pageLengths.length;
       
-      // Debug logging
-      console.log('Page length analysis:', {
-        pageLengths,
-        maxLength,
-        avgLength,
-        ratio: maxLength / avgLength
-      });
-      
       // Repaginate if any page is too long or if there's significant size imbalance
       if (maxLength > 3500 || (maxLength > avgLength * 1.8 && pages.length > 1)) {
         needsRepagination = true;
-        console.log('Triggering repagination due to uneven pages');
       }
       
       if (needsRepagination) {
         // Combine all pages and re-paginate
         const allContent = pages.join('<!-- PAGE_BREAK -->').replace(/<!-- PAGE_BREAK -->/g, '');
         const paginatedPages = autoPaginate(allContent);
-        console.log('Repagination result:', {
-          originalPages: pages.length,
-          newPages: paginatedPages.length,
-          newLengths: paginatedPages.map(p => p.length)
-        });
         
         if (paginatedPages.length !== pages.length || JSON.stringify(paginatedPages) !== JSON.stringify(pages)) {
           setPages(paginatedPages);
