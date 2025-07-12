@@ -518,6 +518,20 @@ export function EnhancedCollaborativeEditor({
       console.log('Backspace at beginning of page', pageIndex);
       e.preventDefault();
       
+      // Check if current page is empty
+      const currentPageText = pageElement.textContent?.trim() || '';
+      
+      if (currentPageText === '') {
+        // Empty page - remove it
+        const newPages = [...pages];
+        newPages.splice(pageIndex, 1);
+        setPages(newPages);
+        
+        // Update content
+        const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
+        onChange(combinedContent);
+      }
+      
       // Move to end of previous page
       const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
       if (prevPageElement) {
@@ -550,6 +564,12 @@ export function EnhancedCollaborativeEditor({
         
         sel?.removeAllRanges();
         sel?.addRange(range);
+        
+        // Trigger auto-pagination to reflow content
+        setTimeout(() => {
+          const event = new Event('input', { bubbles: true });
+          prevPageElement.dispatchEvent(event);
+        }, 10);
       }
     }
     
