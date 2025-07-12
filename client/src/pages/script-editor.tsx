@@ -546,46 +546,22 @@ export default function ScriptEditor() {
 
       {/* Main Content - Full Page Editor */}
       <div className="flex-1">
-        {/* Editor Toggle Button */}
-        <div className="absolute top-20 right-4 z-10">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setUseSimpleEditor(!useSimpleEditor)}
-            className="bg-white shadow-sm"
-          >
-            Switch to {useSimpleEditor ? 'Advanced' : 'Simple'} Editor
-          </Button>
-        </div>
-        
-        {useSimpleEditor ? (
-          <SimplePaginatedEditor
-            content={scriptContent}
-            onChange={handleContentChange}
-            title={scriptTitle}
-            onTitleChange={handleTitleChange}
-            isLoading={saveScriptMutation.isPending}
-            isSaving={isAutoSaving}
-            lastSaved={lastSaved || undefined}
-          />
-        ) : (
-          <EnhancedCollaborativeEditor
-            content={scriptContent}
-            onChange={handleContentChange}
-            title={scriptTitle}
-            onTitleChange={handleTitleChange}
-            version={currentVersion}
-            collaborators={collaborators}
-            comments={comments}
-            onAddComment={handleAddComment}
-            onExport={handleExport}
-            onImport={handleImport}
-            isLoading={saveScriptMutation.isPending}
-            isSaving={isAutoSaving}
-            lastSaved={lastSaved || undefined}
-            className="w-full h-full"
-          />
-        )}
+        <EnhancedCollaborativeEditor
+          content={scriptContent}
+          onChange={handleContentChange}
+          title={scriptTitle}
+          onTitleChange={handleTitleChange}
+          version={currentVersion}
+          collaborators={collaborators}
+          comments={comments}
+          onAddComment={handleAddComment}
+          onExport={handleExport}
+          onImport={handleImport}
+          isLoading={saveScriptMutation.isPending}
+          isSaving={isAutoSaving}
+          lastSaved={lastSaved || undefined}
+          className="w-full h-full"
+        />
       </div>
 
 
