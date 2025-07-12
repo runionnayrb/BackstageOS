@@ -527,21 +527,15 @@ export function EnhancedCollaborativeEditor({
       e.preventDefault();
       
       const prevPageEl = document.getElementById(`page-${pageIndex - 1}`);
-      if (!prevPageEl) return;
+      const currentPageEl = document.getElementById(`page-${pageIndex}`);
+      if (!prevPageEl || !currentPageEl) return;
       
-      // Get all page content
-      const allPages = [];
-      for (let i = 0; i < pages.length; i++) {
-        const el = document.getElementById(`page-${i}`);
-        if (el) {
-          allPages.push(el.innerHTML);
-        }
-      }
+      // Get the content from the current page
+      const currentPageContent = currentPageEl.innerHTML;
       
-      // Delete last character from previous page
-      const prevPageContent = allPages[pageIndex - 1];
+      // Delete the last character from the previous page
       const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = prevPageContent;
+      tempDiv.innerHTML = prevPageEl.innerHTML;
       
       // Find and delete the last character
       const walker = document.createTreeWalker(
@@ -557,6 +551,9 @@ export function EnhancedCollaborativeEditor({
       }
       
       if (lastTextNode && lastTextNode.textContent && lastTextNode.textContent.length > 0) {
+        // Remember the position where we deleted
+        const deletedAtPosition = lastTextNode.textContent.length - 1;
+        
         // Remove the last character
         lastTextNode.textContent = lastTextNode.textContent.slice(0, -1);
         
@@ -566,17 +563,32 @@ export function EnhancedCollaborativeEditor({
         }
       }
       
-      // Update the pages with deleted content
-      allPages[pageIndex - 1] = tempDiv.innerHTML;
+      // Merge the content: previous page (with deleted char) + current page content
+      const mergedContent = tempDiv.innerHTML + currentPageContent;
       
-      // Merge and repaginate all content
+      // Update the previous page with merged content
+      prevPageEl.innerHTML = mergedContent;
+      
+      // Clear the current page temporarily
+      currentPageEl.innerHTML = '';
+      
+      // Get all pages content for repagination
+      const allPages = [];
+      for (let i = 0; i < pages.length; i++) {
+        const el = document.getElementById(`page-${i}`);
+        if (el) {
+          allPages.push(el.innerHTML);
+        }
+      }
+      
+      // Repaginate everything
       const combinedContent = allPages.join('');
       const newPages = autoPaginate(combinedContent);
       
       setPages(newPages);
       onChange(newPages.join('<!-- PAGE_BREAK -->'));
       
-      // Move cursor to end of previous page after repagination
+      // Move cursor to where we deleted the character
       setTimeout(() => {
         const targetPageEl = document.getElementById(`page-${pageIndex - 1}`);
         if (targetPageEl) {
@@ -616,42 +628,49 @@ export function EnhancedCollaborativeEditor({
       }, 100);
     }
     
-    // Handle Enter key - create new line and move overflow to next page
-    if (e.key === 'Enter' && isAtEnd) {
-      console.log('Enter at end of page', pageIndex);
-      // Don't prevent default - let Enter create the new line
+    // Handle Enter key - always allow the new line to be created, then handle overflow
+    if (e.key === 'Enter') {
+      console.log('Enter key pressed on page', pageIndex, 'at end:', isAtEnd);
+      // Don't prevent default - let Enter create the new line naturally
       
-      // After the new line is created, check for overflow and move to next page
+      // After the new line is created, check for overflow and repaginate
       setTimeout(() => {
         const pageEl = document.getElementById(`page-${pageIndex}`);
-        if (pageEl && pageEl.scrollHeight > contentHeight) {
-          // Get all current page content
-          const allPages = [];
-          for (let i = 0; i < pages.length; i++) {
-            const el = document.getElementById(`page-${i}`);
-            if (el) {
-              allPages.push(el.innerHTML);
-            }
+        if (!pageEl) return;
+        
+        // Get all current page content including the new line
+        const allPages = [];
+        for (let i = 0; i < pages.length; i++) {
+          const el = document.getElementById(`page-${i}`);
+          if (el) {
+            allPages.push(el.innerHTML);
           }
-          
-          // Repaginate all content
-          const combinedContent = allPages.join('');
-          const newPages = autoPaginate(combinedContent);
-          
+        }
+        
+        // Always repaginate to ensure content flows properly
+        const combinedContent = allPages.join('');
+        const newPages = autoPaginate(combinedContent);
+        
+        // Only update if content actually changed
+        if (JSON.stringify(newPages) !== JSON.stringify(allPages)) {
           setPages(newPages);
           onChange(newPages.join('<!-- PAGE_BREAK -->'));
           
-          // Move cursor to beginning of next page if it exists
-          setTimeout(() => {
-            if (pageIndex < newPages.length - 1) {
+          // If we were at the end of the page and content overflowed
+          if (isAtEnd && pageIndex < newPages.length - 1) {
+            // Check if any content moved to the next page
+            setTimeout(() => {
+              const currentPageEl = document.getElementById(`page-${pageIndex}`);
               const nextPageEl = document.getElementById(`page-${pageIndex + 1}`);
-              if (nextPageEl) {
+              
+              if (currentPageEl && nextPageEl && nextPageEl.textContent?.trim()) {
+                // Content did overflow to next page, move cursor there
                 nextPageEl.focus();
                 
                 const range = document.createRange();
                 const sel = window.getSelection();
                 
-                // Position at the very beginning of the next page
+                // Position at the very beginning of the overflow content
                 if (nextPageEl.firstChild) {
                   range.setStart(nextPageEl.firstChild, 0);
                   range.setEnd(nextPageEl.firstChild, 0);
@@ -666,32 +685,8 @@ export function EnhancedCollaborativeEditor({
                 // Scroll to the next page
                 nextPageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }
-            }
-          }, 100);
-        }
-      }, 50);
-    } else if (e.key === 'Enter') {
-      // For Enter key not at end of page, just check for overflow
-      console.log('Enter key pressed on page', pageIndex);
-      
-      setTimeout(() => {
-        const pageEl = document.getElementById(`page-${pageIndex}`);
-        if (pageEl && pageEl.scrollHeight > contentHeight) {
-          // Get all current page content
-          const allPages = [];
-          for (let i = 0; i < pages.length; i++) {
-            const el = document.getElementById(`page-${i}`);
-            if (el) {
-              allPages.push(el.innerHTML);
-            }
+            }, 100);
           }
-          
-          // Repaginate all content
-          const combinedContent = allPages.join('');
-          const newPages = autoPaginate(combinedContent);
-          
-          setPages(newPages);
-          onChange(newPages.join('<!-- PAGE_BREAK -->'));
         }
       }, 50);
     }
