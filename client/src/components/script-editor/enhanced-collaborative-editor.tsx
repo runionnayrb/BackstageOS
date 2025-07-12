@@ -121,54 +121,6 @@ export function EnhancedCollaborativeEditor({
     setRedoStack([]);
   }, [pages]);
 
-  // Handle text input and content changes
-  const handleInput = useCallback((pageIndex: number, event: React.FormEvent<HTMLDivElement>) => {
-    const target = event.target as HTMLDivElement;
-    const newContent = target.innerHTML || '';
-    
-    // Save cursor position before content changes
-    const selection = window.getSelection();
-    let cursorPosition = 0;
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      cursorPosition = range.startOffset;
-    }
-    
-    const newPages = [...pages];
-    newPages[pageIndex] = newContent;
-    setPages(newPages);
-    
-    // Trigger content reflow if in auto page break mode
-    if (pageBreakMode === 'auto') {
-      setTimeout(() => {
-        reflowContent(newPages, pageIndex);
-        // Restore cursor position after reflow
-        setTimeout(() => {
-          const pageElement = document.getElementById(`page-${pageIndex}`);
-          if (pageElement && selection) {
-            try {
-              const range = document.createRange();
-              const textNode = pageElement.childNodes[0];
-              if (textNode) {
-                range.setStart(textNode, Math.min(cursorPosition, textNode.textContent?.length || 0));
-                range.collapse(true);
-                selection.removeAllRanges();
-                selection.addRange(range);
-              }
-            } catch (e) {
-              // Fallback: just focus the element
-              pageElement.focus();
-            }
-          }
-        }, 50);
-      }, 10);
-    }
-    
-    // Update parent component
-    const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
-    onChange(combinedContent);
-  }, [pages, pageBreakMode, onChange, reflowContent]);
-
   // Reflow content across pages for continuous text flow
   const reflowContent = useCallback((currentPages: string[], startFromPage: number = 0) => {
     if (pageBreakMode !== 'auto') return;
@@ -267,6 +219,54 @@ export function EnhancedCollaborativeEditor({
     }
   }, [contentWidth, contentHeight, fontFamily, fontSize, lineHeight, pageBreakMode, onChange]);
 
+  // Handle text input and content changes
+  const handleInput = useCallback((pageIndex: number, event: React.FormEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLDivElement;
+    const newContent = target.innerHTML || '';
+    
+    // Save cursor position before content changes
+    const selection = window.getSelection();
+    let cursorPosition = 0;
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      cursorPosition = range.startOffset;
+    }
+    
+    const newPages = [...pages];
+    newPages[pageIndex] = newContent;
+    setPages(newPages);
+    
+    // Trigger content reflow if in auto page break mode
+    if (pageBreakMode === 'auto') {
+      setTimeout(() => {
+        reflowContent(newPages, pageIndex);
+        // Restore cursor position after reflow
+        setTimeout(() => {
+          const pageElement = document.getElementById(`page-${pageIndex}`);
+          if (pageElement && selection) {
+            try {
+              const range = document.createRange();
+              const textNode = pageElement.childNodes[0];
+              if (textNode) {
+                range.setStart(textNode, Math.min(cursorPosition, textNode.textContent?.length || 0));
+                range.collapse(true);
+                selection.removeAllRanges();
+                selection.addRange(range);
+              }
+            } catch (e) {
+              // Fallback: just focus the element
+              pageElement.focus();
+            }
+          }
+        }, 50);
+      }, 10);
+    }
+    
+    // Update parent component
+    const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
+    onChange(combinedContent);
+  }, [pages, pageBreakMode, onChange, reflowContent]);
+
   // Handle paste events
   const handlePaste = useCallback((e: React.ClipboardEvent, pageIndex: number) => {
     e.preventDefault();
@@ -289,11 +289,17 @@ export function EnhancedCollaborativeEditor({
     selection.removeAllRanges();
     selection.addRange(range);
     
-    // Update page content
+    // Update page content - trigger a synthetic input event
     const pageElement = document.getElementById(`page-${pageIndex}`);
     if (pageElement) {
-      const newContent = pageElement.innerText || '';
-      handleInput(pageIndex, newContent);
+      const syntheticEvent = {
+        target: pageElement,
+        currentTarget: pageElement,
+        preventDefault: () => {},
+        stopPropagation: () => {}
+      } as React.FormEvent<HTMLDivElement>;
+      
+      handleInput(pageIndex, syntheticEvent);
     }
   }, [handleInput]);
 
