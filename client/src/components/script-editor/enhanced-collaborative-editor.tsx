@@ -233,17 +233,35 @@ export function EnhancedCollaborativeEditor({
     }
   }, [contentWidth, contentHeight, fontFamily, fontSize, lineHeight, pageBreakMode, onChange]);
 
-  // Auto-reflow content when initialized and page break mode is auto (only once)
-  const [hasInitialReflow, setHasInitialReflow] = useState(false);
+  // Simple pagination based on content length
+  const [hasInitialPagination, setHasInitialPagination] = useState(false);
   useEffect(() => {
-    if (isInitialized && pageBreakMode === 'auto' && pages.length > 0 && !hasInitialReflow) {
-      // Trigger reflow to ensure proper pagination (only once during initialization)
-      setTimeout(() => {
-        reflowContent(pages);
-        setHasInitialReflow(true);
-      }, 100);
+    if (isInitialized && pageBreakMode === 'auto' && pages.length === 1 && !hasInitialPagination) {
+      const content = pages[0];
+      if (content && content.length > 2000) { // If content is substantial
+        // Split by script elements for better pagination
+        const scriptElements = content.split(/<\/div>/);
+        const elementsPerPage = 25; // About 25 dialogue lines per page
+        const newPages: string[] = [];
+        
+        for (let i = 0; i < scriptElements.length; i += elementsPerPage) {
+          const pageElements = scriptElements.slice(i, i + elementsPerPage);
+          const pageContent = pageElements.join('</div>');
+          if (pageContent.trim()) {
+            newPages.push(pageContent + (pageContent.endsWith('</div>') ? '' : '</div>'));
+          }
+        }
+        
+        if (newPages.length > 1) {
+          setPages(newPages);
+          // Update parent component
+          const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
+          onChange(combinedContent);
+        }
+      }
+      setHasInitialPagination(true);
     }
-  }, [isInitialized, pageBreakMode, pages, reflowContent, hasInitialReflow]);
+  }, [isInitialized, pageBreakMode, pages, onChange, hasInitialPagination]);
 
   // Handle text input and content changes
   const handleInput = useCallback((pageIndex: number, event: React.FormEvent<HTMLDivElement>) => {
