@@ -734,6 +734,26 @@ export function EnhancedCollaborativeEditor({
             <Plus className="h-4 w-4 mr-1" />
             Page
           </Button>
+          {pageBreakMode === 'auto' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                // Re-paginate all content
+                const allContent = pages.join('<!-- PAGE_BREAK -->').replace(/<!-- PAGE_BREAK -->/g, '');
+                const paginatedPages = autoPaginate(allContent);
+                if (paginatedPages.length > 0) {
+                  setPages(paginatedPages);
+                  const combinedContent = paginatedPages.join('<!-- PAGE_BREAK -->');
+                  onChange(combinedContent);
+                }
+              }}
+              className="h-8 text-sm px-3"
+              title="Re-paginate content"
+            >
+              Re-paginate
+            </Button>
+          )}
           <Badge variant="secondary" className="text-xs">
             {pageBreakMode === 'auto' ? 'Auto Flow' : 'Manual Pages'}
           </Badge>
