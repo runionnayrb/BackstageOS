@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { EnhancedCollaborativeEditor } from "@/components/script-editor/enhanced-collaborative-editor";
+import { SimplePaginatedEditor } from "@/components/script-editor/simple-paginated-editor";
 import { VersionHistory } from "@/components/script-editor/version-history";
 import { ChangeLog } from "@/components/script-editor/change-log-simple";
 import { CommentsPanel } from "@/components/script-editor/comments-panel";
@@ -51,6 +52,7 @@ export default function ScriptEditor() {
   const [currentVersion, setCurrentVersion] = useState("1.0");
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [useSimpleEditor, setUseSimpleEditor] = useState(true); // Default to simple editor
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -544,22 +546,46 @@ export default function ScriptEditor() {
 
       {/* Main Content - Full Page Editor */}
       <div className="flex-1">
-        <EnhancedCollaborativeEditor
-          content={scriptContent}
-          onChange={handleContentChange}
-          title={scriptTitle}
-          onTitleChange={handleTitleChange}
-          version={currentVersion}
-          collaborators={collaborators}
-          comments={comments}
-          onAddComment={handleAddComment}
-          onExport={handleExport}
-          onImport={handleImport}
-          isLoading={saveScriptMutation.isPending}
-          isSaving={isAutoSaving}
-          lastSaved={lastSaved || undefined}
-          className="w-full h-full"
-        />
+        {/* Editor Toggle Button */}
+        <div className="absolute top-20 right-4 z-10">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setUseSimpleEditor(!useSimpleEditor)}
+            className="bg-white shadow-sm"
+          >
+            Switch to {useSimpleEditor ? 'Advanced' : 'Simple'} Editor
+          </Button>
+        </div>
+        
+        {useSimpleEditor ? (
+          <SimplePaginatedEditor
+            content={scriptContent}
+            onChange={handleContentChange}
+            title={scriptTitle}
+            onTitleChange={handleTitleChange}
+            isLoading={saveScriptMutation.isPending}
+            isSaving={isAutoSaving}
+            lastSaved={lastSaved || undefined}
+          />
+        ) : (
+          <EnhancedCollaborativeEditor
+            content={scriptContent}
+            onChange={handleContentChange}
+            title={scriptTitle}
+            onTitleChange={handleTitleChange}
+            version={currentVersion}
+            collaborators={collaborators}
+            comments={comments}
+            onAddComment={handleAddComment}
+            onExport={handleExport}
+            onImport={handleImport}
+            isLoading={saveScriptMutation.isPending}
+            isSaving={isAutoSaving}
+            lastSaved={lastSaved || undefined}
+            className="w-full h-full"
+          />
+        )}
       </div>
 
 
