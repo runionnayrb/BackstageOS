@@ -616,15 +616,15 @@ export function EnhancedCollaborativeEditor({
       }, 100);
     }
     
-    // Handle Enter key - create new line and check for overflow
-    if (e.key === 'Enter') {
-      console.log('Enter key pressed on page', pageIndex);
+    // Handle Enter key - create new line and move overflow to next page
+    if (e.key === 'Enter' && isAtEnd) {
+      console.log('Enter at end of page', pageIndex);
       // Don't prevent default - let Enter create the new line
       
-      // After the new line is created, check if we need to repaginate
+      // After the new line is created, check for overflow and move to next page
       setTimeout(() => {
         const pageEl = document.getElementById(`page-${pageIndex}`);
-        if (pageEl) {
+        if (pageEl && pageEl.scrollHeight > contentHeight) {
           // Get all current page content
           const allPages = [];
           for (let i = 0; i < pages.length; i++) {
@@ -634,38 +634,64 @@ export function EnhancedCollaborativeEditor({
             }
           }
           
-          // Save cursor position before repagination
-          const cursorPos = getCursorPosition(pageEl);
-          
-          // Always repaginate to ensure proper content flow
+          // Repaginate all content
           const combinedContent = allPages.join('');
           const newPages = autoPaginate(combinedContent);
           
-          if (JSON.stringify(newPages) !== JSON.stringify(allPages)) {
-            setPages(newPages);
-            onChange(newPages.join('<!-- PAGE_BREAK -->'));
-            
-            // Restore cursor position after repagination
-            setTimeout(() => {
-              // Find which page the cursor should be on based on content position
-              let totalLength = 0;
-              let targetPageIndex = 0;
-              
-              for (let i = 0; i < newPages.length; i++) {
-                const pageLength = (document.getElementById(`page-${i}`)?.textContent || '').length;
-                if (totalLength + pageLength >= cursorPos) {
-                  targetPageIndex = i;
-                  break;
+          setPages(newPages);
+          onChange(newPages.join('<!-- PAGE_BREAK -->'));
+          
+          // Move cursor to beginning of next page if it exists
+          setTimeout(() => {
+            if (pageIndex < newPages.length - 1) {
+              const nextPageEl = document.getElementById(`page-${pageIndex + 1}`);
+              if (nextPageEl) {
+                nextPageEl.focus();
+                
+                const range = document.createRange();
+                const sel = window.getSelection();
+                
+                // Position at the very beginning of the next page
+                if (nextPageEl.firstChild) {
+                  range.setStart(nextPageEl.firstChild, 0);
+                  range.setEnd(nextPageEl.firstChild, 0);
+                } else {
+                  range.selectNodeContents(nextPageEl);
+                  range.collapse(true);
                 }
-                totalLength += pageLength;
+                
+                sel?.removeAllRanges();
+                sel?.addRange(range);
+                
+                // Scroll to the next page
+                nextPageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }
-              
-              const targetPageEl = document.getElementById(`page-${targetPageIndex}`);
-              if (targetPageEl) {
-                targetPageEl.focus();
-              }
-            }, 50);
+            }
+          }, 100);
+        }
+      }, 50);
+    } else if (e.key === 'Enter') {
+      // For Enter key not at end of page, just check for overflow
+      console.log('Enter key pressed on page', pageIndex);
+      
+      setTimeout(() => {
+        const pageEl = document.getElementById(`page-${pageIndex}`);
+        if (pageEl && pageEl.scrollHeight > contentHeight) {
+          // Get all current page content
+          const allPages = [];
+          for (let i = 0; i < pages.length; i++) {
+            const el = document.getElementById(`page-${i}`);
+            if (el) {
+              allPages.push(el.innerHTML);
+            }
           }
+          
+          // Repaginate all content
+          const combinedContent = allPages.join('');
+          const newPages = autoPaginate(combinedContent);
+          
+          setPages(newPages);
+          onChange(newPages.join('<!-- PAGE_BREAK -->'));
         }
       }, 50);
     }
