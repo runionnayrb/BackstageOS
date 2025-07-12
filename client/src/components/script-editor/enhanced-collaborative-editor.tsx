@@ -526,77 +526,80 @@ export function EnhancedCollaborativeEditor({
       console.log('Backspace at beginning of page', pageIndex);
       e.preventDefault();
       
-      // Get the current character from beginning of current page
-      const currentPageEl = document.getElementById(`page-${pageIndex}`);
-      const prevPageEl = document.getElementById(`page-${pageIndex - 1}`);
-      
-      if (!currentPageEl || !prevPageEl) return;
-      
-      // Get first character/element from current page
-      const firstNode = currentPageEl.firstChild;
-      let characterToMove = '';
-      
-      if (firstNode) {
-        if (firstNode.nodeType === Node.TEXT_NODE) {
-          characterToMove = firstNode.textContent?.charAt(0) || '';
-          // Remove first character from current page
-          if (firstNode.textContent && firstNode.textContent.length > 1) {
-            firstNode.textContent = firstNode.textContent.substring(1);
-          } else {
-            firstNode.remove();
-          }
+      // Stay on current page and let natural backspace merge content
+      // Get all page content
+      const allPages = [];
+      for (let i = 0; i < pages.length; i++) {
+        const pageEl = document.getElementById(`page-${i}`);
+        if (pageEl) {
+          allPages.push(pageEl.innerHTML);
         }
       }
       
-      // Move cursor to end of previous page
-      prevPageEl.focus();
-      const range = document.createRange();
-      const sel = window.getSelection();
+      // Find the break point between previous and current page
+      const prevPageContent = allPages[pageIndex - 1];
+      const currentPageContent = allPages[pageIndex];
       
-      // Find last position in previous page
-      if (prevPageEl.lastChild) {
-        if (prevPageEl.lastChild.nodeType === Node.TEXT_NODE) {
-          const textNode = prevPageEl.lastChild;
-          range.setStart(textNode, textNode.textContent?.length || 0);
-          range.setEnd(textNode, textNode.textContent?.length || 0);
-        } else {
-          range.selectNodeContents(prevPageEl);
-          range.collapse(false);
-        }
-      } else {
-        range.selectNodeContents(prevPageEl);
-        range.collapse(false);
+      // Remove last character from previous page
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = prevPageContent;
+      
+      // Find the last text node and remove one character
+      const walker = document.createTreeWalker(
+        tempDiv,
+        NodeFilter.SHOW_TEXT,
+        null
+      );
+      
+      let lastTextNode = null;
+      let node;
+      while (node = walker.nextNode()) {
+        lastTextNode = node;
       }
       
-      sel?.removeAllRanges();
-      sel?.addRange(range);
-      
-      // Now delete one character from the end of previous page
-      if (characterToMove) {
-        // Simulate backspace
-        document.execCommand('delete', false);
-      }
-      
-      // Force repagination after a short delay
-      setTimeout(() => {
-        // Combine all content and repaginate
-        const allPages = [];
-        for (let i = 0; i < pages.length; i++) {
-          const pageEl = document.getElementById(`page-${i}`);
-          if (pageEl) {
-            allPages.push(pageEl.innerHTML);
-          }
-        }
+      if (lastTextNode && lastTextNode.textContent) {
+        // Remove last character
+        lastTextNode.textContent = lastTextNode.textContent.slice(0, -1);
         
-        const allContent = allPages.join('');
-        const paginatedPages = autoPaginate(allContent);
-        
-        if (paginatedPages.length > 0) {
-          setPages(paginatedPages);
-          const combinedContent = paginatedPages.join('<!-- PAGE_BREAK -->');
-          onChange(combinedContent);
+        // If text node is now empty, remove its parent element if it's a script element
+        if (lastTextNode.textContent === '' && lastTextNode.parentElement?.className.includes('script-')) {
+          lastTextNode.parentElement.remove();
         }
-      }, 50);
+      }
+      
+      // Update the content
+      allPages[pageIndex - 1] = tempDiv.innerHTML;
+      
+      // Combine all content and repaginate
+      const allContent = allPages.join('');
+      const paginatedPages = autoPaginate(allContent);
+      
+      if (paginatedPages.length > 0) {
+        setPages(paginatedPages);
+        const combinedContent = paginatedPages.join('<!-- PAGE_BREAK -->');
+        onChange(combinedContent);
+        
+        // Keep cursor at beginning of current page after repagination
+        setTimeout(() => {
+          const newPageEl = document.getElementById(`page-${pageIndex}`);
+          if (newPageEl) {
+            newPageEl.focus();
+            const range = document.createRange();
+            const sel = window.getSelection();
+            
+            if (newPageEl.firstChild) {
+              range.setStart(newPageEl.firstChild, 0);
+              range.setEnd(newPageEl.firstChild, 0);
+            } else {
+              range.selectNodeContents(newPageEl);
+              range.collapse(true);
+            }
+            
+            sel?.removeAllRanges();
+            sel?.addRange(range);
+          }
+        }, 50);
+      }
     }
     
     // Handle Enter key at end of page
