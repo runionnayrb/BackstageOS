@@ -469,35 +469,40 @@ export function EnhancedCollaborativeEditor({
     if (!selection || selection.rangeCount === 0) return;
     
     const range = selection.getRangeAt(0);
-    const isAtStart = range.startOffset === 0;
     const pageElement = document.getElementById(`page-${pageIndex}`);
+    if (!pageElement) return;
     
-    // Handle backspace at beginning of page - simplified
-    if (e.key === 'Backspace' && isAtStart && pageIndex > 0 && pageElement) {
-      // Check if page is empty or we're at the very beginning
-      const pageText = pageElement.innerText;
-      const isEmpty = pageText.trim() === '';
+    // Better detection of cursor position
+    const isAtStart = range.startOffset === 0 && 
+                     (range.startContainer === pageElement || 
+                      range.startContainer === pageElement.firstChild ||
+                      (range.startContainer.parentNode === pageElement && range.startContainer === pageElement.firstChild));
+    
+    // Check if cursor is at the end of the page
+    const textContent = pageElement.textContent || '';
+    const cursorPos = getCursorPosition(pageElement);
+    const isAtEnd = cursorPos >= textContent.length - 1; // -1 for better detection
+    
+    // Handle backspace at beginning of page
+    if (e.key === 'Backspace' && isAtStart && pageIndex > 0) {
+      const pageText = pageElement.innerText.trim();
       
-      if (isEmpty || (range.startContainer === pageElement && range.startOffset === 0)) {
+      if (pageText === '') {
+        // Empty page - remove it
         e.preventDefault();
+        const newPages = [...pages];
+        newPages.splice(pageIndex, 1);
+        setPages(newPages);
         
-        if (isEmpty) {
-          // Remove empty page
-          const newPages = [...pages];
-          newPages.splice(pageIndex, 1);
-          setPages(newPages);
-          
-          // Update content
-          const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
-          onChange(combinedContent);
-        }
+        // Update content
+        const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
+        onChange(combinedContent);
         
-        // Move to previous page
+        // Move to end of previous page
         setTimeout(() => {
           const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
           if (prevPageElement) {
             prevPageElement.focus();
-            // Place cursor at end
             const range = document.createRange();
             const sel = window.getSelection();
             range.selectNodeContents(prevPageElement);
@@ -506,65 +511,10 @@ export function EnhancedCollaborativeEditor({
             sel?.addRange(range);
           }
         }, 10);
-      }
-    }
-    
-    // Check if cursor is at the end of the page
-    let isAtEnd = false;
-    if (pageElement) {
-      const textContent = pageElement.textContent || '';
-      const cursorPos = getCursorPosition(pageElement);
-      isAtEnd = cursorPos >= textContent.length;
-    }
-    
-    // Handle arrow key navigation between pages
-    if (e.key === 'ArrowUp' && isAtStart && pageIndex > 0) {
-      e.preventDefault();
-      // Move to previous page
-      setTimeout(() => {
-        const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
-        if (prevPageElement) {
-          prevPageElement.focus();
-          // Place cursor at end of previous page
-          const newRange = document.createRange();
-          newRange.selectNodeContents(prevPageElement);
-          newRange.collapse(false);
-          selection.removeAllRanges();
-          selection.addRange(newRange);
-        }
-      }, 0);
-    }
-    
-    if (e.key === 'ArrowDown' && isAtEnd && pageIndex < pages.length - 1) {
-      e.preventDefault();
-      // Move to next page
-      setTimeout(() => {
-        const nextPageElement = document.getElementById(`page-${pageIndex + 1}`);
-        if (nextPageElement) {
-          nextPageElement.focus();
-          // Place cursor at start of next page
-          const newRange = document.createRange();
-          newRange.selectNodeContents(nextPageElement);
-          newRange.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(newRange);
-        }
-      }, 0);
-    }
-    
-    // Handle End key at end of page to move to next page
-    if (e.key === 'End' && isAtEnd && pageIndex < pages.length - 1) {
-      // Natural flow to next page
-    }
-    
-    // Handle backspace at beginning to merge with previous page (when page is not empty)
-    if (e.key === 'Backspace' && isAtStart && pageIndex > 0 && pageElement) {
-      const pageText = pageElement.innerText.trim();
-      if (pageText !== '') {
+      } else {
+        // Non-empty page - just move cursor to end of previous page
         e.preventDefault();
-        // Move to end of previous page
         const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
-        
         if (prevPageElement) {
           prevPageElement.focus();
           const range = document.createRange();
@@ -573,12 +523,80 @@ export function EnhancedCollaborativeEditor({
           range.collapse(false);
           sel?.removeAllRanges();
           sel?.addRange(range);
-          
-          // Let auto-pagination handle the content merging
         }
       }
     }
-  }, [pages, onChange]);
+    
+    // Handle Enter key at end of page
+    if (e.key === 'Enter' && pageBreakMode === 'auto') {
+      // Check if we're really at the end of the page
+      const pageHeight = pageElement.offsetHeight;
+      if (pageHeight >= contentHeight * 0.95 && pageIndex < pages.length - 1) {
+        // Let the enter key work normally - auto-pagination will handle overflow
+        // The handleInput function will detect overflow and move content to next page
+      }
+    }
+    
+    // Handle arrow key navigation between pages
+    if (e.key === 'ArrowUp' && isAtStart && pageIndex > 0) {
+      e.preventDefault();
+      const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
+      if (prevPageElement) {
+        prevPageElement.focus();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(prevPageElement);
+        newRange.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      }
+    }
+    
+    if (e.key === 'ArrowDown' && isAtEnd && pageIndex < pages.length - 1) {
+      e.preventDefault();
+      const nextPageElement = document.getElementById(`page-${pageIndex + 1}`);
+      if (nextPageElement) {
+        nextPageElement.focus();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(nextPageElement);
+        newRange.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      }
+    }
+    
+    // Handle right arrow at end of page
+    if (e.key === 'ArrowRight' && isAtEnd && pageIndex < pages.length - 1) {
+      e.preventDefault();
+      const nextPageElement = document.getElementById(`page-${pageIndex + 1}`);
+      if (nextPageElement) {
+        nextPageElement.focus();
+        const newRange = document.createRange();
+        if (nextPageElement.firstChild) {
+          newRange.setStart(nextPageElement.firstChild, 0);
+          newRange.setEnd(nextPageElement.firstChild, 0);
+        } else {
+          newRange.selectNodeContents(nextPageElement);
+          newRange.collapse(true);
+        }
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      }
+    }
+    
+    // Handle left arrow at beginning of page
+    if (e.key === 'ArrowLeft' && isAtStart && pageIndex > 0) {
+      e.preventDefault();
+      const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
+      if (prevPageElement) {
+        prevPageElement.focus();
+        const newRange = document.createRange();
+        newRange.selectNodeContents(prevPageElement);
+        newRange.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+      }
+    }
+  }, [pages, onChange, pageBreakMode, contentHeight]);
 
   // Format text selection
   const formatText = useCallback((command: string, value?: string) => {
