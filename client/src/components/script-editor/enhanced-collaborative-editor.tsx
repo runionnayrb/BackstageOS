@@ -286,15 +286,30 @@ export function EnhancedCollaborativeEditor({
       const maxLength = Math.max(...pageLengths);
       const avgLength = pageLengths.reduce((a, b) => a + b, 0) / pageLengths.length;
       
+      // Debug logging
+      console.log('Page length analysis:', {
+        pageLengths,
+        maxLength,
+        avgLength,
+        ratio: maxLength / avgLength
+      });
+      
       // Repaginate if any page is too long or if there's significant size imbalance
-      if (maxLength > 3500 || (maxLength > avgLength * 2.0 && pages.length > 1)) {
+      if (maxLength > 3500 || (maxLength > avgLength * 1.8 && pages.length > 1)) {
         needsRepagination = true;
+        console.log('Triggering repagination due to uneven pages');
       }
       
       if (needsRepagination) {
         // Combine all pages and re-paginate
         const allContent = pages.join('<!-- PAGE_BREAK -->').replace(/<!-- PAGE_BREAK -->/g, '');
         const paginatedPages = autoPaginate(allContent);
+        console.log('Repagination result:', {
+          originalPages: pages.length,
+          newPages: paginatedPages.length,
+          newLengths: paginatedPages.map(p => p.length)
+        });
+        
         if (paginatedPages.length !== pages.length || JSON.stringify(paginatedPages) !== JSON.stringify(pages)) {
           setPages(paginatedPages);
           // Update parent component
