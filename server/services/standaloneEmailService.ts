@@ -257,7 +257,29 @@ export class StandaloneEmailService {
       return { success: true, messageId: sentMessage.id };
     } catch (error) {
       console.error('Error sending internal email:', error);
-      return { success: false, error: 'Failed to send email' };
+      
+      // Log detailed error information for debugging
+      if (error instanceof Error) {
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+      }
+      
+      // Return specific error message for 400 status
+      let errorMessage = 'Failed to send email';
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid email')) {
+          errorMessage = 'Invalid email address format';
+        } else if (error.message.includes('unauthorized')) {
+          errorMessage = 'Email service not authorized';
+        } else if (error.message.includes('SendGrid')) {
+          errorMessage = `Email delivery issue: ${error.message}`;
+        }
+      }
+      
+      return { success: false, error: errorMessage };
     }
   }
 

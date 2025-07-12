@@ -741,6 +741,44 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Mark single error as resolved
+  app.post('/api/errors/:id/resolve', requireAdmin, async (req: any, res) => {
+    try {
+      const errorId = parseInt(req.params.id);
+      const { resolution_notes } = req.body;
+      
+      await storage.markErrorAsResolved(errorId, req.user.id, resolution_notes);
+      
+      res.json({ success: true, message: "Error marked as resolved" });
+    } catch (error) {
+      console.error("Error marking error as resolved:", error);
+      res.status(500).json({ message: "Failed to mark error as resolved" });
+    }
+  });
+
+  // Bulk resolve errors by pattern
+  app.post('/api/errors/bulk-resolve', requireAdmin, async (req: any, res) => {
+    try {
+      const { message_pattern, page_pattern, resolution_notes } = req.body;
+      
+      const resolvedCount = await storage.bulkResolveErrors(
+        message_pattern, 
+        page_pattern, 
+        req.user.id, 
+        resolution_notes
+      );
+      
+      res.json({ 
+        success: true, 
+        message: `${resolvedCount} errors marked as resolved`,
+        resolvedCount 
+      });
+    } catch (error) {
+      console.error("Error bulk resolving errors:", error);
+      res.status(500).json({ message: "Failed to bulk resolve errors" });
+    }
+  });
+
   // Configure multer for file uploads
   const uploadsDir = path.join(process.cwd(), 'uploads');
   if (!fs.existsSync(uploadsDir)) {
@@ -6519,6 +6557,7 @@ Respond with valid JSON only.`;
         if (result.success) {
           res.json({ success: true, messageId: result.messageId });
         } else {
+          console.error('Email sending failed (attachment endpoint):', result.error);
           res.status(400).json({ success: false, error: result.error });
         }
         return;
@@ -6608,6 +6647,7 @@ Respond with valid JSON only.`;
       if (result.success) {
         res.json({ success: true, messageId: result.messageId });
       } else {
+        console.error('Email sending failed (json-only endpoint):', result.error);
         res.status(400).json({ success: false, error: result.error });
       }
     } catch (error) {

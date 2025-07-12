@@ -1623,6 +1623,45 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Bulk error resolution methods
+  async markErrorAsResolved(errorId: number, resolvedBy: number, resolutionNotes?: string): Promise<void> {
+    await db.update(errorLogs)
+      .set({
+        is_resolved: true,
+        resolved_at: new Date(),
+        resolved_by: resolvedBy,
+        resolution_notes: resolutionNotes || null
+      })
+      .where(eq(errorLogs.id, errorId));
+  }
+
+  async bulkResolveErrors(messagePattern?: string, pagePattern?: string, resolvedBy?: number, resolutionNotes?: string): Promise<number> {
+    const conditions = [];
+    
+    if (messagePattern) {
+      conditions.push(sql`${errorLogs.message} ILIKE ${`%${messagePattern}%`}`);
+    }
+    
+    if (pagePattern) {
+      conditions.push(sql`${errorLogs.page} ILIKE ${`%${pagePattern}%`}`);
+    }
+    
+    // Only resolve unresolved errors
+    conditions.push(or(eq(errorLogs.is_resolved, false), isNull(errorLogs.is_resolved)));
+    
+    const result = await db.update(errorLogs)
+      .set({
+        is_resolved: true,
+        resolved_at: new Date(),
+        resolved_by: resolvedBy || null,
+        resolution_notes: resolutionNotes || null
+      })
+      .where(and(...conditions))
+      .returning({ id: errorLogs.id });
+    
+    return result.length;
+  }
+
   // Company List Management
   async saveCompanyListSettings(projectId: number, settings: any): Promise<any> {
     // Implementation for saving company list settings

@@ -164,6 +164,48 @@ export default function AdminErrorLogs() {
     }
   };
 
+  // Bulk resolution states
+  const [showBulkDialog, setShowBulkDialog] = useState(false);
+  const [messagePattern, setMessagePattern] = useState("");
+  const [pagePattern, setPagePattern] = useState("");
+  const [resolutionNotes, setResolutionNotes] = useState("");
+
+  // Bulk resolution mutation
+  const bulkResolveMutation = useMutation({
+    mutationFn: async (data: { message_pattern?: string; page_pattern?: string; resolution_notes?: string }) => {
+      const response = await fetch("/api/errors/bulk-resolve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error("Failed to bulk resolve errors");
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/errors"] });
+      toast({
+        title: "Bulk Resolution Complete",
+        description: `${data.resolvedCount} errors marked as resolved.`,
+      });
+      setShowBulkDialog(false);
+      setMessagePattern("");
+      setPagePattern("");
+      setResolutionNotes("");
+    },
+    onError: (error) => {
+      console.error("Error bulk resolving:", error);
+      toast({
+        title: "Error",
+        description: "Failed to bulk resolve errors. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Get unique users from error logs for dropdown
   const uniqueUsers = errorLogs.reduce((users, log) => {
     if (log.userId && !users.some(u => u.id === log.userId)) {
@@ -337,6 +379,72 @@ export default function AdminErrorLogs() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-4">
             <h2 className="text-lg sm:text-xl font-semibold">Error Logs</h2>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <Dialog open={showBulkDialog} onOpenChange={setShowBulkDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="default" className="flex items-center gap-2 w-full sm:w-auto">
+                    <Wrench className="h-4 w-4" />
+                    <span className="hidden sm:inline">Bulk Resolve</span>
+                    <span className="sm:hidden">Bulk</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Bulk Resolve Errors</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="grid w-full items-center gap-1.5">
+                      <Label htmlFor="message-pattern">Message Pattern</Label>
+                      <Input
+                        id="message-pattern"
+                        placeholder="Part of error message to match"
+                        value={messagePattern}
+                        onChange={(e) => setMessagePattern(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="grid w-full items-center gap-1.5">
+                      <Label htmlFor="page-pattern">Page Pattern</Label>
+                      <Input
+                        id="page-pattern"
+                        placeholder="Part of page path to match"
+                        value={pagePattern}
+                        onChange={(e) => setPagePattern(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div className="grid w-full items-center gap-1.5">
+                      <Label htmlFor="resolution-notes">Resolution Notes</Label>
+                      <Textarea
+                        id="resolution-notes"
+                        placeholder="Description of how the errors were resolved"
+                        value={resolutionNotes}
+                        onChange={(e) => setResolutionNotes(e.target.value)}
+                        rows={3}
+                      />
+                    </div>
+                    
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowBulkDialog(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={() => bulkResolveMutation.mutate({
+                          message_pattern: messagePattern || undefined,
+                          page_pattern: pagePattern || undefined,
+                          resolution_notes: resolutionNotes || undefined
+                        })}
+                        disabled={bulkResolveMutation.isPending || (!messagePattern && !pagePattern)}
+                      >
+                        {bulkResolveMutation.isPending ? "Resolving..." : "Resolve Errors"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              
               <Link href="/auto-resolution-dashboard">
                 <Button variant="outline" size="default" className="flex items-center gap-2 w-full sm:w-auto">
                   <Activity className="h-4 w-4" />
