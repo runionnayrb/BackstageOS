@@ -238,16 +238,31 @@ export function EnhancedCollaborativeEditor({
     if (!content || content.length < 1000) return [content]; // Don't paginate short content
     
     // Split by script elements for better pagination
-    const scriptElements = content.split(/<\/div>/);
-    const elementsPerPage = 25; // About 25 dialogue lines per page
+    const scriptElements = content.split(/<\/div>/).filter(el => el.trim());
+    const targetElementsPerPage = 20; // About 20 dialogue lines per page for better balance
     const newPages: string[] = [];
     
-    for (let i = 0; i < scriptElements.length; i += elementsPerPage) {
-      const pageElements = scriptElements.slice(i, i + elementsPerPage);
-      const pageContent = pageElements.join('</div>');
-      if (pageContent.trim()) {
-        newPages.push(pageContent + (pageContent.endsWith('</div>') ? '' : '</div>'));
+    let currentPage = '';
+    let currentPageElements = 0;
+    
+    for (let i = 0; i < scriptElements.length; i++) {
+      const element = scriptElements[i] + '</div>';
+      
+      // Check if adding this element would make the page too long
+      if (currentPageElements >= targetElementsPerPage && currentPage.trim()) {
+        // Start a new page
+        newPages.push(currentPage);
+        currentPage = element;
+        currentPageElements = 1;
+      } else {
+        currentPage += element;
+        currentPageElements++;
       }
+    }
+    
+    // Add the last page if it has content
+    if (currentPage.trim()) {
+      newPages.push(currentPage);
     }
     
     return newPages.length > 1 ? newPages : [content];
@@ -256,15 +271,17 @@ export function EnhancedCollaborativeEditor({
   // Auto-pagination when content changes and in auto mode
   useEffect(() => {
     if (isInitialized && pageBreakMode === 'auto' && pages.length > 0) {
-      // Always check for auto-pagination when content changes
+      // Check for uneven page distribution
       let needsRepagination = false;
       
-      // Check if any page is too long
-      for (const page of pages) {
-        if (page.length > 2000) {
-          needsRepagination = true;
-          break;
-        }
+      // Check if any page is significantly longer than others or too long overall
+      const pageLengths = pages.map(page => page.length);
+      const maxLength = Math.max(...pageLengths);
+      const avgLength = pageLengths.reduce((a, b) => a + b, 0) / pageLengths.length;
+      
+      // Repaginate if any page is too long or if there's significant size imbalance
+      if (maxLength > 2000 || (maxLength > avgLength * 2.5 && pages.length > 1)) {
+        needsRepagination = true;
       }
       
       if (needsRepagination) {
