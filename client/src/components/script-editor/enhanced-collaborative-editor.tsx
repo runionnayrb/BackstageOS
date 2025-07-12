@@ -233,35 +233,41 @@ export function EnhancedCollaborativeEditor({
     }
   }, [contentWidth, contentHeight, fontFamily, fontSize, lineHeight, pageBreakMode, onChange]);
 
-  // Simple pagination based on content length
-  const [hasInitialPagination, setHasInitialPagination] = useState(false);
+  // Auto-pagination function
+  const autoPaginate = useCallback((content: string) => {
+    if (!content || content.length < 1000) return [content]; // Don't paginate short content
+    
+    // Split by script elements for better pagination
+    const scriptElements = content.split(/<\/div>/);
+    const elementsPerPage = 25; // About 25 dialogue lines per page
+    const newPages: string[] = [];
+    
+    for (let i = 0; i < scriptElements.length; i += elementsPerPage) {
+      const pageElements = scriptElements.slice(i, i + elementsPerPage);
+      const pageContent = pageElements.join('</div>');
+      if (pageContent.trim()) {
+        newPages.push(pageContent + (pageContent.endsWith('</div>') ? '' : '</div>'));
+      }
+    }
+    
+    return newPages.length > 1 ? newPages : [content];
+  }, []);
+
+  // Auto-pagination when content changes and in auto mode
   useEffect(() => {
-    if (isInitialized && pageBreakMode === 'auto' && pages.length === 1 && !hasInitialPagination) {
-      const content = pages[0];
-      if (content && content.length > 2000) { // If content is substantial
-        // Split by script elements for better pagination
-        const scriptElements = content.split(/<\/div>/);
-        const elementsPerPage = 25; // About 25 dialogue lines per page
-        const newPages: string[] = [];
-        
-        for (let i = 0; i < scriptElements.length; i += elementsPerPage) {
-          const pageElements = scriptElements.slice(i, i + elementsPerPage);
-          const pageContent = pageElements.join('</div>');
-          if (pageContent.trim()) {
-            newPages.push(pageContent + (pageContent.endsWith('</div>') ? '' : '</div>'));
-          }
-        }
-        
-        if (newPages.length > 1) {
-          setPages(newPages);
+    if (isInitialized && pageBreakMode === 'auto' && pages.length > 0) {
+      // Check if we have a single long page that needs pagination
+      if (pages.length === 1 && pages[0].length > 2000) {
+        const paginatedPages = autoPaginate(pages[0]);
+        if (paginatedPages.length > 1) {
+          setPages(paginatedPages);
           // Update parent component
-          const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
+          const combinedContent = paginatedPages.join('<!-- PAGE_BREAK -->');
           onChange(combinedContent);
         }
       }
-      setHasInitialPagination(true);
     }
-  }, [isInitialized, pageBreakMode, pages, onChange, hasInitialPagination]);
+  }, [isInitialized, pageBreakMode, pages, autoPaginate, onChange]);
 
   // Handle text input and content changes
   const handleInput = useCallback((pageIndex: number, event: React.FormEvent<HTMLDivElement>) => {
