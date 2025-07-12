@@ -237,27 +237,69 @@ export function EnhancedCollaborativeEditor({
   const autoPaginate = useCallback((content: string) => {
     if (!content || content.length < 1000) return [content]; // Don't paginate short content
     
-    // Simple character-based pagination - just split content evenly
-    const targetCharsPerPage = 2800; // About 2800 characters per page for good balance
+    console.log('Auto-paginating content...');
+    
+    // Create a temporary element to measure actual content height
+    const tempDiv = document.createElement('div');
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.visibility = 'hidden';
+    tempDiv.style.width = `${contentWidth}px`;
+    tempDiv.style.fontFamily = fontFamily;
+    tempDiv.style.fontSize = `${fontSize}pt`;
+    tempDiv.style.lineHeight = `${lineHeight}`;
+    tempDiv.style.padding = '0';
+    tempDiv.style.margin = '0';
+    document.body.appendChild(tempDiv);
+    
     const newPages: string[] = [];
     
-    // Calculate how many pages we need
-    const totalLength = content.length;
-    const estimatedPages = Math.ceil(totalLength / targetCharsPerPage);
-    
-    // Simple approach: just split the content evenly
-    for (let i = 0; i < estimatedPages; i++) {
-      const start = i * targetCharsPerPage;
-      const end = Math.min(start + targetCharsPerPage, totalLength);
-      const pageContent = content.substring(start, end);
+    try {
+      // Parse the content to work with individual elements
+      tempDiv.innerHTML = content;
+      const allElements = Array.from(tempDiv.children);
       
-      if (pageContent.trim()) {
-        newPages.push(pageContent);
+      let currentPageElements: Element[] = [];
+      let currentPageHeight = 0;
+      const maxPageHeight = contentHeight; // Use actual content height in pixels
+      
+      for (const element of allElements) {
+        // Measure the height of this element
+        const elementClone = element.cloneNode(true) as HTMLElement;
+        tempDiv.innerHTML = '';
+        tempDiv.appendChild(elementClone);
+        const elementHeight = tempDiv.offsetHeight;
+        
+        // Check if adding this element would exceed page height
+        if (currentPageHeight + elementHeight > maxPageHeight && currentPageElements.length > 0) {
+          // Save current page
+          const pageHtml = currentPageElements.map(el => el.outerHTML).join('');
+          newPages.push(pageHtml);
+          console.log(`Page ${newPages.length}: ${currentPageElements.length} elements, height: ${currentPageHeight}px`);
+          
+          // Start new page
+          currentPageElements = [element];
+          currentPageHeight = elementHeight;
+        } else {
+          // Add to current page
+          currentPageElements.push(element);
+          currentPageHeight += elementHeight;
+        }
       }
+      
+      // Add the last page if it has content
+      if (currentPageElements.length > 0) {
+        const pageHtml = currentPageElements.map(el => el.outerHTML).join('');
+        newPages.push(pageHtml);
+        console.log(`Page ${newPages.length}: ${currentPageElements.length} elements, height: ${currentPageHeight}px`);
+      }
+      
+    } finally {
+      document.body.removeChild(tempDiv);
     }
     
+    console.log(`Created ${newPages.length} pages from ${content.length} characters`);
     return newPages.length > 1 ? newPages : [content];
-  }, []);
+  }, [contentWidth, contentHeight, fontFamily, fontSize, lineHeight]);
 
   // Auto-pagination when content changes and in auto mode
   useEffect(() => {
