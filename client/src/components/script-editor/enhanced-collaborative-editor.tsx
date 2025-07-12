@@ -109,17 +109,9 @@ export function EnhancedCollaborativeEditor({
           const pageContent = contentStr.split('<!-- PAGE_BREAK -->');
           setPages(pageContent);
         } else {
-          // Auto-paginate the content based on estimated page capacity
-          const estimatedWordsPerPage = 250; // Typical script page capacity
-          const words = contentStr.split(/\s+/);
-          const newPages: string[] = [];
-          
-          for (let i = 0; i < words.length; i += estimatedWordsPerPage) {
-            const pageWords = words.slice(i, i + estimatedWordsPerPage);
-            newPages.push(pageWords.join(' '));
-          }
-          
-          setPages(newPages.length > 0 ? newPages : [contentStr]);
+          // For initial load, simply put all content on first page
+          // Auto-pagination will happen through the reflow system
+          setPages([contentStr]);
         }
       }
       setIsInitialized(true);
@@ -164,19 +156,23 @@ export function EnhancedCollaborativeEditor({
         // For HTML content, split by dialogue and stage direction elements
         const htmlParser = new DOMParser();
         const doc = htmlParser.parseFromString(`<div>${allContent}</div>`, 'text/html');
-        const elements = Array.from(doc.querySelectorAll('div'));
+        // Get only direct children to avoid nested div issues
+        const directChildren = Array.from(doc.body.firstElementChild!.children);
         
         let currentPageContent = '';
         let currentPageLineCount = 0;
         const maxLinesPerPage = 35; // Typical script page capacity
         
-        for (const element of elements) {
+        for (const element of directChildren) {
+          // Only process script-related elements
+          if (!element.className.includes('script-')) continue;
+          
           const elementHTML = element.outerHTML;
           const isDialogue = element.className.includes('script-dialogue');
           const isStageDirection = element.className.includes('script-stage_direction');
           
           // Estimate lines for this element
-          const estimatedLines = isStageDirection ? 1 : Math.ceil(element.textContent!.length / 60);
+          const estimatedLines = isStageDirection ? 1 : Math.ceil((element.textContent || '').length / 60);
           
           // Check if adding this element would exceed page capacity
           if (currentPageLineCount + estimatedLines > maxLinesPerPage && currentPageContent.trim()) {
@@ -237,15 +233,17 @@ export function EnhancedCollaborativeEditor({
     }
   }, [contentWidth, contentHeight, fontFamily, fontSize, lineHeight, pageBreakMode, onChange]);
 
-  // Auto-reflow content when initialized and page break mode is auto
+  // Auto-reflow content when initialized and page break mode is auto (only once)
+  const [hasInitialReflow, setHasInitialReflow] = useState(false);
   useEffect(() => {
-    if (isInitialized && pageBreakMode === 'auto' && pages.length > 0) {
-      // Trigger reflow to ensure proper pagination
+    if (isInitialized && pageBreakMode === 'auto' && pages.length > 0 && !hasInitialReflow) {
+      // Trigger reflow to ensure proper pagination (only once during initialization)
       setTimeout(() => {
         reflowContent(pages);
+        setHasInitialReflow(true);
       }, 100);
     }
-  }, [isInitialized, pageBreakMode, pages, reflowContent]);
+  }, [isInitialized, pageBreakMode, pages, reflowContent, hasInitialReflow]);
 
   // Handle text input and content changes
   const handleInput = useCallback((pageIndex: number, event: React.FormEvent<HTMLDivElement>) => {
@@ -264,31 +262,8 @@ export function EnhancedCollaborativeEditor({
     newPages[pageIndex] = newContent;
     setPages(newPages);
     
-    // Trigger content reflow if in auto page break mode
-    if (pageBreakMode === 'auto') {
-      setTimeout(() => {
-        reflowContent(newPages, pageIndex);
-        // Restore cursor position after reflow
-        setTimeout(() => {
-          const pageElement = document.getElementById(`page-${pageIndex}`);
-          if (pageElement && selection) {
-            try {
-              const range = document.createRange();
-              const textNode = pageElement.childNodes[0];
-              if (textNode) {
-                range.setStart(textNode, Math.min(cursorPosition, textNode.textContent?.length || 0));
-                range.collapse(true);
-                selection.removeAllRanges();
-                selection.addRange(range);
-              }
-            } catch (e) {
-              // Fallback: just focus the element
-              pageElement.focus();
-            }
-          }
-        }, 50);
-      }, 10);
-    }
+    // For now, disable auto-reflow during typing to prevent infinite loops
+    // Auto-reflow only happens during initial load
     
     // Update parent component
     const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
