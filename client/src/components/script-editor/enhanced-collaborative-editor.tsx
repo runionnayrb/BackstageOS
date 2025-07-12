@@ -108,7 +108,23 @@ export function EnhancedCollaborativeEditor({
         // Split content into pages if it contains page breaks
         if (contentStr.includes('<!-- PAGE_BREAK -->')) {
           const pageContent = contentStr.split('<!-- PAGE_BREAK -->');
-          setPages(pageContent);
+          // Clean up pages that only contain empty dialogue elements
+          const cleanedPages = pageContent.map(page => {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = page;
+            
+            // Remove empty dialogue elements
+            const dialogues = tempDiv.querySelectorAll('.script-dialogue');
+            dialogues.forEach(dialogue => {
+              if (!dialogue.textContent?.trim()) {
+                dialogue.remove();
+              }
+            });
+            
+            return tempDiv.innerHTML;
+          }).filter(page => page.trim() !== '');
+          
+          setPages(cleanedPages.length > 0 ? cleanedPages : ['']);
         } else {
           // For initial load, simply put all content on first page
           // Auto-pagination will happen through the reflow system
@@ -183,6 +199,12 @@ export function EnhancedCollaborativeEditor({
         for (const element of directChildren) {
           // Only process script-related elements
           if (!element.className.includes('script-')) continue;
+          
+          // Skip empty dialogue elements
+          const textContent = element.textContent?.trim() || '';
+          if (element.className.includes('script-dialogue') && textContent === '') {
+            continue;
+          }
           
           const elementHTML = element.outerHTML;
           const isDialogue = element.className.includes('script-dialogue');
