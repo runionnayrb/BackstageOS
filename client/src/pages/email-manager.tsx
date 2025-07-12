@@ -448,24 +448,38 @@ export default function EmailManager() {
                             {allSharedInboxes.map((inbox: any) => (
                               <DropdownMenuItem
                                 key={inbox.id}
-                                onClick={() => {
+                                onClick={async () => {
                                   console.log('Mobile shared inbox clicked:', inbox);
                                   
-                                  // Convert shared inbox to EmailAccount format for selection
-                                  const sharedInboxAsAccount: EmailAccount = {
-                                    id: inbox.id + 1000, // Add offset to avoid ID conflicts with regular accounts
-                                    userId: 0, // Shared inbox doesn't have a specific user
-                                    projectId: inbox.projectId,
-                                    emailAddress: inbox.emailAddress,
-                                    displayName: inbox.name,
-                                    accountType: 'shared',
-                                    isDefault: false,
-                                    isActive: inbox.isActive,
-                                    createdAt: new Date().toISOString(),
-                                  };
+                                  // Find the corresponding email account for this shared inbox
+                                  try {
+                                    const matchingAccount = (emailAccounts as EmailAccount[]).find(account => 
+                                      account.emailAddress === inbox.emailAddress
+                                    );
+                                    
+                                    if (matchingAccount) {
+                                      console.log('Setting selected account to real shared inbox account:', matchingAccount);
+                                      setSelectedAccount(matchingAccount);
+                                    } else {
+                                      console.error('No matching email account found for shared inbox:', inbox.emailAddress);
+                                      // Fallback to virtual account if no real account exists
+                                      const sharedInboxAsAccount: EmailAccount = {
+                                        id: inbox.id + 1000,
+                                        userId: 0,
+                                        projectId: inbox.projectId,
+                                        emailAddress: inbox.emailAddress,
+                                        displayName: inbox.name,
+                                        accountType: 'shared',
+                                        isDefault: false,
+                                        isActive: inbox.isActive,
+                                        createdAt: new Date().toISOString(),
+                                      };
+                                      setSelectedAccount(sharedInboxAsAccount);
+                                    }
+                                  } catch (error) {
+                                    console.error('Error finding email account for shared inbox:', error);
+                                  }
                                   
-                                  console.log('Setting selected account to shared inbox:', sharedInboxAsAccount);
-                                  setSelectedAccount(sharedInboxAsAccount);
                                   closeMobileMenu();
                                 }}
                                 className={cn(

@@ -328,21 +328,30 @@ export function EmailSidebar({
                             e.stopPropagation();
                             console.log('Shared inbox clicked:', inbox);
                             
-                            // Convert shared inbox to EmailAccount format for selection
-                            const sharedInboxAsAccount: EmailAccount = {
-                              id: inbox.id + 1000, // Add offset to avoid ID conflicts with regular accounts
-                              userId: 0, // Shared inbox doesn't have a specific user
-                              projectId: inbox.projectId,
-                              emailAddress: inbox.emailAddress,
-                              displayName: inbox.name,
-                              accountType: 'shared',
-                              isDefault: false,
-                              isActive: inbox.isActive,
-                              createdAt: new Date().toISOString(),
-                            };
+                            // Find the corresponding email account for this shared inbox
+                            const matchingAccount = emailAccounts.find(account => 
+                              account.emailAddress === inbox.emailAddress
+                            );
                             
-                            console.log('Selecting shared inbox account:', sharedInboxAsAccount);
-                            onAccountSelect(sharedInboxAsAccount);
+                            if (matchingAccount) {
+                              console.log('Selecting real shared inbox account:', matchingAccount);
+                              onAccountSelect(matchingAccount);
+                            } else {
+                              console.error('No matching email account found for shared inbox:', inbox.emailAddress);
+                              // Fallback to virtual account if no real account exists
+                              const sharedInboxAsAccount: EmailAccount = {
+                                id: inbox.id + 1000,
+                                userId: 0,
+                                projectId: inbox.projectId,
+                                emailAddress: inbox.emailAddress,
+                                displayName: inbox.name,
+                                accountType: 'shared',
+                                isDefault: false,
+                                isActive: inbox.isActive,
+                                createdAt: new Date().toISOString(),
+                              };
+                              onAccountSelect(sharedInboxAsAccount);
+                            }
                           }}
                           className={cn(
                             "flex flex-col items-start space-y-1 p-3 cursor-pointer",
