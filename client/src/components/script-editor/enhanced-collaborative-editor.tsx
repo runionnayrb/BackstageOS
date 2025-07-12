@@ -308,20 +308,28 @@ export function EnhancedCollaborativeEditor({
         tempDiv.appendChild(elementClone);
         const elementHeight = tempDiv.offsetHeight;
         
+        // Measure cumulative height with all current elements plus this one
+        tempDiv.innerHTML = '';
+        const testElements = [...currentPageElements, element];
+        testElements.forEach(el => tempDiv.appendChild(el.cloneNode(true) as HTMLElement));
+        const testHeight = tempDiv.scrollHeight;
+        
         // Check if adding this element would exceed page height
-        if (currentPageHeight + elementHeight > maxPageHeight && currentPageElements.length > 0) {
+        if (testHeight > maxPageHeight && currentPageElements.length > 0) {
           // Save current page
           const pageHtml = currentPageElements.map(el => el.outerHTML).join('');
           newPages.push(pageHtml);
-          console.log(`Page ${newPages.length}: ${currentPageElements.length} elements, height: ${currentPageHeight}px (max: ${maxPageHeight}px)`);
+          console.log(`Page ${newPages.length}: ${currentPageElements.length} elements, actual height: ${currentPageHeight}px (max: ${maxPageHeight}px)`);
           
-          // Start new page
+          // Start new page with this element
           currentPageElements = [element];
-          currentPageHeight = elementHeight;
+          tempDiv.innerHTML = '';
+          tempDiv.appendChild(element.cloneNode(true) as HTMLElement);
+          currentPageHeight = tempDiv.scrollHeight;
         } else {
           // Add to current page
           currentPageElements.push(element);
-          currentPageHeight += elementHeight;
+          currentPageHeight = testHeight;
         }
       }
       
@@ -518,59 +526,77 @@ export function EnhancedCollaborativeEditor({
       console.log('Backspace at beginning of page', pageIndex);
       e.preventDefault();
       
-      // Check if current page is empty
-      const currentPageText = pageElement.textContent?.trim() || '';
+      // Get the current character from beginning of current page
+      const currentPageEl = document.getElementById(`page-${pageIndex}`);
+      const prevPageEl = document.getElementById(`page-${pageIndex - 1}`);
       
-      if (currentPageText === '') {
-        // Empty page - remove it
-        const newPages = [...pages];
-        newPages.splice(pageIndex, 1);
-        setPages(newPages);
-        
-        // Update content
-        const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
-        onChange(combinedContent);
+      if (!currentPageEl || !prevPageEl) return;
+      
+      // Get first character/element from current page
+      const firstNode = currentPageEl.firstChild;
+      let characterToMove = '';
+      
+      if (firstNode) {
+        if (firstNode.nodeType === Node.TEXT_NODE) {
+          characterToMove = firstNode.textContent?.charAt(0) || '';
+          // Remove first character from current page
+          if (firstNode.textContent && firstNode.textContent.length > 1) {
+            firstNode.textContent = firstNode.textContent.substring(1);
+          } else {
+            firstNode.remove();
+          }
+        }
       }
       
-      // Move to end of previous page
-      const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
-      if (prevPageElement) {
-        prevPageElement.focus();
-        
-        // Place cursor at the very end of the previous page
-        const range = document.createRange();
-        const sel = window.getSelection();
-        
-        // Find the last text node in the previous page
-        const walker = document.createTreeWalker(
-          prevPageElement,
-          NodeFilter.SHOW_TEXT,
-          null
-        );
-        
-        let lastTextNode = null;
-        let node;
-        while (node = walker.nextNode()) {
-          lastTextNode = node;
-        }
-        
-        if (lastTextNode) {
-          range.setStart(lastTextNode, lastTextNode.textContent?.length || 0);
-          range.setEnd(lastTextNode, lastTextNode.textContent?.length || 0);
+      // Move cursor to end of previous page
+      prevPageEl.focus();
+      const range = document.createRange();
+      const sel = window.getSelection();
+      
+      // Find last position in previous page
+      if (prevPageEl.lastChild) {
+        if (prevPageEl.lastChild.nodeType === Node.TEXT_NODE) {
+          const textNode = prevPageEl.lastChild;
+          range.setStart(textNode, textNode.textContent?.length || 0);
+          range.setEnd(textNode, textNode.textContent?.length || 0);
         } else {
-          range.selectNodeContents(prevPageElement);
+          range.selectNodeContents(prevPageEl);
           range.collapse(false);
         }
-        
-        sel?.removeAllRanges();
-        sel?.addRange(range);
-        
-        // Trigger auto-pagination to reflow content
-        setTimeout(() => {
-          const event = new Event('input', { bubbles: true });
-          prevPageElement.dispatchEvent(event);
-        }, 10);
+      } else {
+        range.selectNodeContents(prevPageEl);
+        range.collapse(false);
       }
+      
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+      
+      // Now delete one character from the end of previous page
+      if (characterToMove) {
+        // Simulate backspace
+        document.execCommand('delete', false);
+      }
+      
+      // Force repagination after a short delay
+      setTimeout(() => {
+        // Combine all content and repaginate
+        const allPages = [];
+        for (let i = 0; i < pages.length; i++) {
+          const pageEl = document.getElementById(`page-${i}`);
+          if (pageEl) {
+            allPages.push(pageEl.innerHTML);
+          }
+        }
+        
+        const allContent = allPages.join('');
+        const paginatedPages = autoPaginate(allContent);
+        
+        if (paginatedPages.length > 0) {
+          setPages(paginatedPages);
+          const combinedContent = paginatedPages.join('<!-- PAGE_BREAK -->');
+          onChange(combinedContent);
+        }
+      }, 50);
     }
     
     // Handle Enter key at end of page
