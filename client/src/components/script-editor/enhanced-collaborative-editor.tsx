@@ -256,10 +256,22 @@ export function EnhancedCollaborativeEditor({
   // Auto-pagination when content changes and in auto mode
   useEffect(() => {
     if (isInitialized && pageBreakMode === 'auto' && pages.length > 0) {
-      // Check if we have a single long page that needs pagination
-      if (pages.length === 1 && pages[0].length > 2000) {
-        const paginatedPages = autoPaginate(pages[0]);
-        if (paginatedPages.length > 1) {
+      // Always check for auto-pagination when content changes
+      let needsRepagination = false;
+      
+      // Check if any page is too long
+      for (const page of pages) {
+        if (page.length > 2000) {
+          needsRepagination = true;
+          break;
+        }
+      }
+      
+      if (needsRepagination) {
+        // Combine all pages and re-paginate
+        const allContent = pages.join('<!-- PAGE_BREAK -->').replace(/<!-- PAGE_BREAK -->/g, '');
+        const paginatedPages = autoPaginate(allContent);
+        if (paginatedPages.length !== pages.length || JSON.stringify(paginatedPages) !== JSON.stringify(pages)) {
           setPages(paginatedPages);
           // Update parent component
           const combinedContent = paginatedPages.join('<!-- PAGE_BREAK -->');
@@ -286,8 +298,24 @@ export function EnhancedCollaborativeEditor({
     newPages[pageIndex] = newContent;
     setPages(newPages);
     
-    // For now, disable auto-reflow during typing to prevent infinite loops
-    // Auto-reflow only happens during initial load
+    // Check if auto-pagination is needed after content change
+    if (pageBreakMode === 'auto' && newContent.length > 2000) {
+      // Trigger auto-pagination in next tick to avoid state conflicts
+      setTimeout(() => {
+        // Re-paginate this specific page if it's too long
+        const contentForPagination = newContent;
+        const paginatedPages = autoPaginate(contentForPagination);
+        if (paginatedPages.length > 1) {
+          // Replace current page with paginated content
+          const updatedPages = [...pages];
+          updatedPages.splice(pageIndex, 1, ...paginatedPages);
+          setPages(updatedPages);
+          // Update parent component
+          const combinedContent = updatedPages.join('<!-- PAGE_BREAK -->');
+          onChange(combinedContent);
+        }
+      }, 100);
+    }
     
     // Update parent component
     const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
@@ -739,7 +767,7 @@ export function EnhancedCollaborativeEditor({
               variant="outline"
               size="sm"
               onClick={() => {
-                // Re-paginate all content
+                // Reformat pagination for clean script layout
                 const allContent = pages.join('<!-- PAGE_BREAK -->').replace(/<!-- PAGE_BREAK -->/g, '');
                 const paginatedPages = autoPaginate(allContent);
                 if (paginatedPages.length > 0) {
@@ -749,9 +777,9 @@ export function EnhancedCollaborativeEditor({
                 }
               }}
               className="h-8 text-sm px-3"
-              title="Re-paginate content"
+              title="Reformat pagination for printing"
             >
-              Re-paginate
+              Reformat
             </Button>
           )}
           <Badge variant="secondary" className="text-xs">
