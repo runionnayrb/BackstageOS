@@ -274,7 +274,7 @@ export function EnhancedCollaborativeEditor({
           // Save current page
           const pageHtml = currentPageElements.map(el => el.outerHTML).join('');
           newPages.push(pageHtml);
-          console.log(`Page ${newPages.length}: ${currentPageElements.length} elements, height: ${currentPageHeight}px`);
+          console.log(`Page ${newPages.length}: ${currentPageElements.length} elements, height: ${currentPageHeight}px (max: ${maxPageHeight}px)`);
           
           // Start new page
           currentPageElements = [element];
@@ -849,12 +849,13 @@ export function EnhancedCollaborativeEditor({
               className="bg-white shadow-lg mx-auto relative"
               style={{
                 width: `${pageWidth}in`,
-                minHeight: `${pageHeight}in`,
+                height: `${pageHeight}in`,
                 padding: `${margins.top}in ${margins.right}in ${margins.bottom}in ${margins.left}in`,
                 fontFamily: fontFamily,
                 fontSize: `${fontSize}pt`,
                 lineHeight: lineHeight,
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                overflow: 'hidden'
               }}
             >
               {/* Page number */}
@@ -869,11 +870,13 @@ export function EnhancedCollaborativeEditor({
                 onInput={(e) => handleInput(pageIndex, e)}
                 onPaste={(e) => handlePaste(e, pageIndex)}
                 onKeyDown={(e) => handleKeyDown(e, pageIndex)}
-                className="focus:outline-none min-h-full"
+                className="focus:outline-none"
                 style={{
                   whiteSpace: 'pre-wrap',
                   wordWrap: 'break-word',
-                  height: '100%'
+                  height: `${contentHeight}px`,
+                  maxHeight: `${contentHeight}px`,
+                  overflow: 'hidden'
                 }}
                 dangerouslySetInnerHTML={{ __html: pageContent }}
                 suppressContentEditableWarning={true}
