@@ -418,6 +418,36 @@ export function EnhancedCollaborativeEditor({
     const isAtStart = range.startOffset === 0;
     const pageElement = document.getElementById(`page-${pageIndex}`);
     
+    // Handle backspace at beginning of empty page - remove the page
+    if (e.key === 'Backspace' && isAtStart && pageIndex > 0 && pageElement) {
+      const pageText = pageElement.innerText.trim();
+      if (pageText === '') {
+        e.preventDefault();
+        // Remove this empty page
+        const newPages = [...pages];
+        newPages.splice(pageIndex, 1);
+        setPages(newPages);
+        
+        // Move cursor to end of previous page
+        setTimeout(() => {
+          const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
+          if (prevPageElement) {
+            prevPageElement.focus();
+            const newRange = document.createRange();
+            newRange.selectNodeContents(prevPageElement);
+            newRange.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+          }
+        }, 50);
+        
+        // Update content
+        const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
+        onChange(combinedContent);
+        return;
+      }
+    }
+    
     // Handle arrow key navigation between pages
     if (e.key === 'ArrowUp' && isAtStart && pageIndex > 0) {
       e.preventDefault();
@@ -455,7 +485,7 @@ export function EnhancedCollaborativeEditor({
         }, 0);
       }
     }
-  }, [pages.length]);
+  }, [pages, onChange]);
 
   // Format text selection
   const formatText = useCallback((command: string, value?: string) => {
