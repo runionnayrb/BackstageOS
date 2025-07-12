@@ -88,6 +88,7 @@ export function EnhancedCollaborativeEditor({
   const [isInitialized, setIsInitialized] = useState(false);
   const [lineHeight, setLineHeight] = useState(1.5);
   const [pageBreakMode, setPageBreakMode] = useState<'auto' | 'manual'>('auto');
+  const paginationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Page dimensions (8.5" x 11" standard)
   const pageWidth = 8.5;
@@ -370,56 +371,41 @@ export function EnhancedCollaborativeEditor({
       const pageElement = target;
       const pageHeight = pageElement.scrollHeight;
       
-      // If content exceeds page height, we need to move overflow to next page
-      if (pageHeight > contentHeight || newContent.length > 2800) {
-        // Trigger auto-pagination in next tick to avoid state conflicts
-        setTimeout(() => {
-          // Get all content from current page onward
-          const allContentFromCurrentPage = newPages.slice(pageIndex).join(' ');
-          
-          // Re-paginate from current page onward
-          const paginatedPages = autoPaginate(allContentFromCurrentPage);
-          
-          if (paginatedPages.length > 0) {
-            // Keep pages before current page unchanged
-            const updatedPages = [...newPages.slice(0, pageIndex), ...paginatedPages];
+      // Only trigger pagination if significantly over the limit
+      if (pageHeight > contentHeight * 1.1) {
+        // Debounce pagination to avoid disrupting typing
+        if (paginationTimeoutRef.current) {
+          clearTimeout(paginationTimeoutRef.current);
+        }
+        
+        paginationTimeoutRef.current = setTimeout(() => {
+          // Check height again after debounce
+          const currentHeight = pageElement.scrollHeight;
+          if (currentHeight > contentHeight * 1.1) {
+            // Get all content from current page onward
+            const allContentFromCurrentPage = pages.slice(pageIndex).join(' ');
             
-            // If we have fewer pages after pagination, adjust
-            while (updatedPages.length < pages.length) {
-              updatedPages.push('');
+            // Re-paginate from current page onward
+            const paginatedPages = autoPaginate(allContentFromCurrentPage);
+            
+            if (paginatedPages.length > 1) {
+              // Keep pages before current page unchanged
+              const updatedPages = [...pages.slice(0, pageIndex), ...paginatedPages];
+              
+              setPages(updatedPages);
+              // Update parent component
+              const combinedContent = updatedPages.join('<!-- PAGE_BREAK -->');
+              onChange(combinedContent);
             }
-            
-            setPages(updatedPages);
-            // Update parent component
-            const combinedContent = updatedPages.join('<!-- PAGE_BREAK -->');
-            onChange(combinedContent);
-            
-            // Restore cursor position on the current page
-            setTimeout(() => {
-              const currentPageEl = document.getElementById(`page-${pageIndex}`);
-              if (currentPageEl && selection) {
-                currentPageEl.focus();
-                // Try to restore approximate cursor position
-                const range = document.createRange();
-                const textNodes = getTextNodes(currentPageEl);
-                if (textNodes.length > 0) {
-                  const lastNode = textNodes[textNodes.length - 1];
-                  range.setStart(lastNode, Math.min(cursorPosition, lastNode.textContent?.length || 0));
-                  range.setEnd(lastNode, Math.min(cursorPosition, lastNode.textContent?.length || 0));
-                  selection.removeAllRanges();
-                  selection.addRange(range);
-                }
-              }
-            }, 50);
           }
-        }, 100);
+        }, 500); // Wait 500ms after user stops typing
       }
     }
     
     // Update parent component
     const combinedContent = newPages.join('<!-- PAGE_BREAK -->');
     onChange(combinedContent);
-  }, [pages, pageBreakMode, onChange, reflowContent]);
+  }, [pages, pageBreakMode, onChange, autoPaginate, paginationTimeoutRef]);
 
   // Handle paste events
   const handlePaste = useCallback((e: React.ClipboardEvent, pageIndex: number) => {
@@ -467,72 +453,52 @@ export function EnhancedCollaborativeEditor({
     const pageElement = document.getElementById(`page-${pageIndex}`);
     
     // Handle backspace at beginning of page
-    if (e.key === 'Backspace' && isAtStart && pageIndex > 0 && pageElement) {
-      e.preventDefault();
+    if (e.key === 'Backspace' && isAtStart && pageIndex > 0) {
+      // Check if we're truly at the beginning of the page (not just beginning of a text node)
+      const rangeContainer = range.startContainer;
+      const pageEl = document.getElementById(`page-${pageIndex}`);
       
-      const currentPageHtml = pageElement.innerHTML;
-      const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
-      
-      if (prevPageElement) {
-        // Get the content from both pages
-        const prevPageHtml = prevPageElement.innerHTML;
-        
-        // Merge content from current page into previous page
-        const mergedContent = prevPageHtml + currentPageHtml;
-        
-        // Update the previous page with merged content
-        prevPageElement.innerHTML = mergedContent;
-        
-        // Move cursor to the connection point (end of original previous page content)
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = prevPageHtml;
-        const textLength = tempDiv.innerText.length;
-        
-        // Focus on previous page and set cursor position
-        prevPageElement.focus();
-        const range = document.createRange();
-        const sel = window.getSelection();
-        
-        // Find the position where the two pages joined
-        let charCount = 0;
-        let targetNode = null;
-        let targetOffset = 0;
-        
-        const findPosition = (node: Node): boolean => {
-          if (node.nodeType === Node.TEXT_NODE) {
-            const nodeLength = node.textContent?.length || 0;
-            if (charCount + nodeLength >= textLength) {
-              targetNode = node;
-              targetOffset = textLength - charCount;
-              return true;
-            }
-            charCount += nodeLength;
-          } else {
-            for (let child of Array.from(node.childNodes)) {
-              if (findPosition(child)) return true;
-            }
-          }
-          return false;
-        };
-        
-        findPosition(prevPageElement);
-        
-        if (targetNode) {
-          range.setStart(targetNode, targetOffset);
-          range.setEnd(targetNode, targetOffset);
-          sel?.removeAllRanges();
-          sel?.addRange(range);
+      // Verify cursor is at the absolute beginning of the page
+      let isAtPageStart = false;
+      if (pageEl) {
+        const firstChild = pageEl.firstChild;
+        if (rangeContainer === pageEl || 
+            (rangeContainer === firstChild && range.startOffset === 0) ||
+            (rangeContainer.nodeType === Node.TEXT_NODE && 
+             rangeContainer.parentNode === pageEl && 
+             range.startOffset === 0 && 
+             rangeContainer === pageEl.firstChild)) {
+          isAtPageStart = true;
         }
+      }
+      
+      if (isAtPageStart) {
+        e.preventDefault();
         
-        // Remove the current page if it's now empty
-        const pageText = pageElement.innerText.trim();
-        if (pageText === '') {
-          const newPages = [...pages];
-          newPages.splice(pageIndex, 1);
-          setPages(newPages);
-        } else {
-          // Update current page content
-          handleInput(pageIndex - 1, { target: prevPageElement, currentTarget: prevPageElement } as any);
+        // Move to end of previous page
+        const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
+        if (prevPageElement) {
+          prevPageElement.focus();
+          const newRange = document.createRange();
+          const sel = window.getSelection();
+          
+          // Position cursor at end of previous page
+          if (prevPageElement.lastChild) {
+            const lastNode = prevPageElement.lastChild;
+            if (lastNode.nodeType === Node.TEXT_NODE) {
+              newRange.setStart(lastNode, lastNode.textContent?.length || 0);
+              newRange.setEnd(lastNode, lastNode.textContent?.length || 0);
+            } else {
+              newRange.selectNodeContents(prevPageElement);
+              newRange.collapse(false);
+            }
+          } else {
+            newRange.selectNodeContents(prevPageElement);
+            newRange.collapse(false);
+          }
+          
+          sel?.removeAllRanges();
+          sel?.addRange(newRange);
         }
       }
     }
