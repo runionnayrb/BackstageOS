@@ -521,31 +521,24 @@ export function EnhancedCollaborativeEditor({
     const cursorPos = getCursorPosition(pageElement);
     const isAtEnd = cursorPos >= textContent.length - 1; // -1 for better detection
     
-    // Handle backspace at beginning of page
+    // Handle backspace at beginning of page - Google Docs style
     if (e.key === 'Backspace' && isAtStart && pageIndex > 0) {
       console.log('Backspace at beginning of page', pageIndex);
       e.preventDefault();
       
-      // Get all current page content BEFORE any changes
-      const allPages = [];
-      for (let i = 0; i < pages.length; i++) {
-        const pageEl = document.getElementById(`page-${i}`);
-        if (pageEl) {
-          allPages.push(pageEl.innerHTML);
-        }
-      }
+      // Simply move cursor to end of previous page
+      const prevPageEl = document.getElementById(`page-${pageIndex - 1}`);
+      if (!prevPageEl) return;
       
-      // Get content from previous page and current page
-      const prevPageContent = allPages[pageIndex - 1] || '';
-      const currentPageContent = allPages[pageIndex] || '';
+      // Focus the previous page
+      prevPageEl.focus();
       
-      // Remove last character from previous page
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = prevPageContent;
+      // Find the last position in the previous page
+      const range = document.createRange();
+      const sel = window.getSelection();
       
-      // Walk through to find the last text node
       const walker = document.createTreeWalker(
-        tempDiv,
+        prevPageEl,
         NodeFilter.SHOW_TEXT,
         null
       );
@@ -556,75 +549,38 @@ export function EnhancedCollaborativeEditor({
         lastTextNode = node;
       }
       
-      let deletedChar = false;
-      if (lastTextNode && lastTextNode.textContent && lastTextNode.textContent.length > 0) {
-        // Remove the last character
-        lastTextNode.textContent = lastTextNode.textContent.slice(0, -1);
-        deletedChar = true;
-        
-        // If the text node is now empty, remove its parent element if it's a script element
-        if (lastTextNode.textContent === '' && lastTextNode.parentElement?.className.includes('script-')) {
-          lastTextNode.parentElement.remove();
-        }
+      if (lastTextNode) {
+        // Position cursor at the very end of the last text node
+        const textLength = lastTextNode.textContent?.length || 0;
+        range.setStart(lastTextNode, textLength);
+        range.setEnd(lastTextNode, textLength);
+      } else if (prevPageEl.lastChild) {
+        // No text nodes, position after last element
+        range.selectNodeContents(prevPageEl.lastChild);
+        range.collapse(false);
+      } else {
+        // Empty page, position at start
+        range.selectNodeContents(prevPageEl);
+        range.collapse(false);
       }
       
-      // Update the content array
-      allPages[pageIndex - 1] = tempDiv.innerHTML;
+      sel?.removeAllRanges();
+      sel?.addRange(range);
       
-      // Combine all content and repaginate
-      const combinedContent = allPages.join('');
-      const newPages = autoPaginate(combinedContent);
-      
-      setPages(newPages);
-      onChange(newPages.join('<!-- PAGE_BREAK -->'));
-      
-      // Move cursor to the end of previous page where we just deleted
-      setTimeout(() => {
-        const prevPageEl = document.getElementById(`page-${pageIndex - 1}`);
-        if (prevPageEl) {
-          prevPageEl.focus();
-          
-          // Position cursor at the end
-          const range = document.createRange();
-          const sel = window.getSelection();
-          
-          const newWalker = document.createTreeWalker(
-            prevPageEl,
-            NodeFilter.SHOW_TEXT,
-            null
-          );
-          
-          let lastText = null;
-          let textNode;
-          while (textNode = newWalker.nextNode()) {
-            lastText = textNode;
-          }
-          
-          if (lastText) {
-            const textLength = lastText.textContent?.length || 0;
-            range.setStart(lastText, textLength);
-            range.setEnd(lastText, textLength);
-          } else {
-            range.selectNodeContents(prevPageEl);
-            range.collapse(false);
-          }
-          
-          sel?.removeAllRanges();
-          sel?.addRange(range);
-        }
-      }, 100);
+      // Scroll the previous page into view
+      prevPageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     
-    // Handle Enter key at end of page - don't prevent default to allow new line creation
-    if (e.key === 'Enter' && isAtEnd) {
-      console.log('Enter at end of page', pageIndex);
+    // Handle Enter key - only check for overflow, don't navigate
+    if (e.key === 'Enter') {
+      console.log('Enter key pressed on page', pageIndex);
       // Don't prevent default - let Enter create the new line
       
-      // After the new line is created, check for overflow
+      // After the new line is created, check if we need to repaginate
       setTimeout(() => {
         const pageEl = document.getElementById(`page-${pageIndex}`);
         if (pageEl && pageEl.scrollHeight > contentHeight) {
-          // Get all pages content including the new line
+          // Content overflows, trigger repagination
           const allPages = [];
           for (let i = 0; i < pages.length; i++) {
             const el = document.getElementById(`page-${i}`);
@@ -639,25 +595,9 @@ export function EnhancedCollaborativeEditor({
           setPages(newPages);
           onChange(newPages.join('<!-- PAGE_BREAK -->'));
           
-          // Find where cursor should be after repagination
-          if (pageIndex < newPages.length - 1) {
-            setTimeout(() => {
-              const nextPageEl = document.getElementById(`page-${pageIndex + 1}`);
-              if (nextPageEl && nextPageEl.firstChild) {
-                nextPageEl.focus();
-                const range = document.createRange();
-                const sel = window.getSelection();
-                
-                range.setStart(nextPageEl.firstChild, 0);
-                range.setEnd(nextPageEl.firstChild, 0);
-                
-                sel?.removeAllRanges();
-                sel?.addRange(range);
-              }
-            }, 100);
-          }
+          // Keep cursor where it naturally flows after repagination
         }
-      }, 100);
+      }, 50);
     }
     
     // Handle Enter key at end of page
