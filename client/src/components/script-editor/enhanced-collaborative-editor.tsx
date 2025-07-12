@@ -349,6 +349,16 @@ export function EnhancedCollaborativeEditor({
     }
   }, [isInitialized, pageBreakMode, pages, autoPaginate, onChange]);
 
+  // Set initial content in the page elements
+  useEffect(() => {
+    pages.forEach((pageContent, index) => {
+      const pageEl = document.getElementById(`page-${index}`);
+      if (pageEl && !pageEl.textContent) {
+        pageEl.innerHTML = pageContent;
+      }
+    });
+  }, [pages]);
+
   // Handle text input and content changes
   const handleInput = useCallback((pageIndex: number, event: React.FormEvent<HTMLDivElement>) => {
     const target = event.target as HTMLDivElement;
@@ -946,7 +956,6 @@ export function EnhancedCollaborativeEditor({
                   maxHeight: `${contentHeight}px`,
                   overflow: 'hidden'
                 }}
-                dangerouslySetInnerHTML={{ __html: pageContent }}
                 suppressContentEditableWarning={true}
               />
 
