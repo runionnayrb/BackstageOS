@@ -529,14 +529,19 @@ export default function MobileWeeklyScheduleView({
                                   onEventEdit?.(event);
                                 }, 500);
                                 
+                                const currentTarget = e.currentTarget;
                                 const handleTouchEnd = () => {
                                   clearTimeout(touchTimer);
-                                  e.currentTarget.removeEventListener('touchend', handleTouchEnd);
-                                  e.currentTarget.removeEventListener('touchmove', handleTouchEnd);
+                                  if (currentTarget) {
+                                    currentTarget.removeEventListener('touchend', handleTouchEnd);
+                                    currentTarget.removeEventListener('touchmove', handleTouchEnd);
+                                  }
                                 };
                                 
-                                e.currentTarget.addEventListener('touchend', handleTouchEnd);
-                                e.currentTarget.addEventListener('touchmove', handleTouchEnd);
+                                if (currentTarget) {
+                                  currentTarget.addEventListener('touchend', handleTouchEnd);
+                                  currentTarget.addEventListener('touchmove', handleTouchEnd);
+                                }
                               }}
                             >
                               <div className="font-medium truncate">{event.title}</div>

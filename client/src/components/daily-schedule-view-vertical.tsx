@@ -367,14 +367,19 @@ export default function DailyScheduleViewVertical({ projectId, selectedDate, onB
                         handleEventDoubleClick(event);
                       }, 500);
                       
+                      const currentTarget = e.currentTarget;
                       const handleTouchEnd = () => {
                         clearTimeout(touchTimer);
-                        e.currentTarget.removeEventListener('touchend', handleTouchEnd);
-                        e.currentTarget.removeEventListener('touchmove', handleTouchEnd);
+                        if (currentTarget) {
+                          currentTarget.removeEventListener('touchend', handleTouchEnd);
+                          currentTarget.removeEventListener('touchmove', handleTouchEnd);
+                        }
                       };
                       
-                      e.currentTarget.addEventListener('touchend', handleTouchEnd);
-                      e.currentTarget.addEventListener('touchmove', handleTouchEnd);
+                      if (currentTarget) {
+                        currentTarget.addEventListener('touchend', handleTouchEnd);
+                        currentTarget.addEventListener('touchmove', handleTouchEnd);
+                      }
                     }}
                   >
                     <div className="font-medium text-sm">{event.title}</div>
@@ -477,14 +482,19 @@ export default function DailyScheduleViewVertical({ projectId, selectedDate, onB
                           handleEventDoubleClick(event);
                         }, 500);
                         
+                        const currentTarget = e.currentTarget;
                         const handleTouchEnd = () => {
                           clearTimeout(touchTimer);
-                          e.currentTarget.removeEventListener('touchend', handleTouchEnd);
-                          e.currentTarget.removeEventListener('touchmove', handleTouchEnd);
+                          if (currentTarget) {
+                            currentTarget.removeEventListener('touchend', handleTouchEnd);
+                            currentTarget.removeEventListener('touchmove', handleTouchEnd);
+                          }
                         };
                         
-                        e.currentTarget.addEventListener('touchend', handleTouchEnd);
-                        e.currentTarget.addEventListener('touchmove', handleTouchEnd);
+                        if (currentTarget) {
+                          currentTarget.addEventListener('touchend', handleTouchEnd);
+                          currentTarget.addEventListener('touchmove', handleTouchEnd);
+                        }
                       }}
                     >
                       <div className="p-2 overflow-hidden h-full">
