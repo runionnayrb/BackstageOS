@@ -488,6 +488,7 @@ export default function Schedule() {
                   startTime: createEventData.startTime,
                   endTime: createEventData.endTime,
                 }}
+                key={`${createEventData.date}-${createEventData.startTime}-${createEventData.endTime}`}
               />
             </div>
             
