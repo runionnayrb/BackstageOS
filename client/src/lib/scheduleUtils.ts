@@ -33,14 +33,37 @@ export function filterEventsBySettings(events: any[], scheduleSettings: any, eve
       et.name.toLowerCase() === event.type.toLowerCase()
     );
     
+    // Log details for tech_rehearsal event specifically
+    if (event.type === 'tech_rehearsal' || event.id === 34) {
+      console.log('DEBUG: Tech rehearsal event filtering:', {
+        eventId: event.id,
+        eventType: event.type,
+        eventDate: event.date,
+        enabledTypes: enabledTypes,
+        foundEventType: eventType,
+        availableEventTypes: eventTypes
+      });
+    }
+    
     if (!eventType) {
       // If event type not found, check by type string directly (case-insensitive)
       // Also check normalized form (spaces replaced with underscores)
       const normalizedEventType = event.type.replace(/_/g, ' ');
-      return enabledTypes.some(enabledType => 
+      const isEnabled = enabledTypes.some(enabledType => 
         enabledType.toLowerCase() === event.type.toLowerCase() ||
         enabledType.toLowerCase() === normalizedEventType.toLowerCase()
       );
+      
+      if (event.type === 'tech_rehearsal' || event.id === 34) {
+        console.log('DEBUG: Tech rehearsal - no event type found, checking by string:', {
+          eventType: event.type,
+          normalizedEventType,
+          enabledTypes,
+          isEnabled
+        });
+      }
+      
+      return isEnabled;
     }
     
     // Check if event type is enabled (using name for system types, id for custom types)
@@ -50,9 +73,29 @@ export function filterEventsBySettings(events: any[], scheduleSettings: any, eve
     // If not enabled by exact match, check if the normalized form matches
     if (!isEnabled) {
       const normalizedEventType = event.type.replace(/_/g, ' ');
-      return enabledTypes.some(enabledType => 
+      const fallbackEnabled = enabledTypes.some(enabledType => 
         enabledType.toLowerCase() === normalizedEventType.toLowerCase()
       );
+      
+      if (event.type === 'tech_rehearsal' || event.id === 34) {
+        console.log('DEBUG: Tech rehearsal - fallback check:', {
+          eventType: event.type,
+          normalizedEventType,
+          enabledTypes,
+          fallbackEnabled
+        });
+      }
+      
+      return fallbackEnabled;
+    }
+    
+    if (event.type === 'tech_rehearsal' || event.id === 34) {
+      console.log('DEBUG: Tech rehearsal - direct enabled check:', {
+        eventType: event.type,
+        typeIdentifier,
+        enabledTypes,
+        isEnabled
+      });
     }
     
     return isEnabled;
