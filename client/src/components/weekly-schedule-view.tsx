@@ -1253,11 +1253,7 @@ function CreateEventForm({
     onSubmit({
       ...formData,
       projectId,
-      participants: formData.participants.map(contactId => ({
-        contactId,
-        isRequired: true,
-        status: 'pending',
-      })),
+      participants: formData.participants, // Just send the participant IDs
     });
   };
 

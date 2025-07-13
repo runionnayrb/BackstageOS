@@ -854,11 +854,7 @@ function EditEventForm({
     e.preventDefault();
     onSubmit({
       ...formData,
-      participants: formData.participants.map(contactId => ({
-        contactId,
-        isRequired: true,
-        status: 'pending',
-      })),
+      participants: formData.participants, // Just send the participant IDs
     });
   };
 
