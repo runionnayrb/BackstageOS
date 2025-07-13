@@ -3821,11 +3821,20 @@ Respond with valid JSON only.`;
       }
 
       const userId = req.user.id.toString();
-      const contactData = insertContactSchema.parse({
+      
+      // Custom validation: only require equity status for cast members
+      const rawData = {
         ...req.body,
         projectId,
         createdBy: parseInt(userId),
-      });
+      };
+
+      // Remove equity status for non-cast contacts to avoid validation errors
+      if (rawData.category !== 'cast') {
+        rawData.equityStatus = null;
+      }
+
+      const contactData = insertContactSchema.parse(rawData);
 
       const contact = await storage.createContact(contactData);
       res.json(contact);
@@ -3858,13 +3867,21 @@ Respond with valid JSON only.`;
         return res.status(404).json({ message: "Contact not found" });
       }
 
+      // Custom validation for updates: only require equity status for cast members
+      const rawUpdateData = { ...req.body };
+      
+      // Remove equity status for non-cast contacts to avoid validation errors
+      if (rawUpdateData.category && rawUpdateData.category !== 'cast') {
+        rawUpdateData.equityStatus = null;
+      }
+
       // Validate the update data using a partial schema (omit required fields for updates)
       const updateContactSchema = insertContactSchema.partial().omit({
         projectId: true,
         createdBy: true,
       });
       
-      const validatedData = updateContactSchema.parse(req.body);
+      const validatedData = updateContactSchema.parse(rawUpdateData);
       const updatedContact = await storage.updateContact(contactId, validatedData);
       res.json(updatedContact);
     } catch (error) {
