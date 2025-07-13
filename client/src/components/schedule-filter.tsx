@@ -158,11 +158,11 @@ export default function ScheduleFilter({
         </div>
 
         <Tabs defaultValue="people" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mx-4 mb-4 max-w-none h-9">
-            <TabsTrigger value="people" className="h-8 text-sm">
+          <TabsList className="grid grid-cols-2 mx-4 mb-4 h-9 w-auto max-w-xs">
+            <TabsTrigger value="people" className="h-8 text-sm px-3">
               People
             </TabsTrigger>
-            <TabsTrigger value="events" className="h-8 text-sm">
+            <TabsTrigger value="events" className="h-8 text-sm px-3">
               Event Types
             </TabsTrigger>
           </TabsList>
