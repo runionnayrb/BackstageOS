@@ -56,6 +56,7 @@ export default function AvailabilityComparison({
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const selectedItemsRef = useRef<Set<number>>(new Set());
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -129,6 +130,8 @@ export default function AvailabilityComparison({
   const contacts = filteredContacts.sort((a: any, b: any) => 
     `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
   );
+
+
 
   // Filter functions
   const toggleContactType = (type: string) => {
@@ -932,6 +935,7 @@ export default function AvailabilityComparison({
           <div 
             className="flex-1 flex overflow-hidden focus:outline-none" 
             tabIndex={0}
+            style={{ height: 'calc(100vh - 12rem)' }}
           >
             {isLoading ? (
               <div className="flex-1 flex items-center justify-center">
@@ -941,56 +945,58 @@ export default function AvailabilityComparison({
                 </div>
               </div>
             ) : (
-              <>
-                {/* Contact Names Column */}
-                <div className="w-48 border-r bg-gray-50">
-                  <div className="h-10 border-b bg-gray-100 flex items-center px-3">
+              <div className="flex h-full relative">
+                {/* Fixed Headers */}
+                <div className="absolute top-0 left-0 right-0 z-10 bg-white border-b flex">
+                  <div className="w-48 border-r bg-gray-100 flex items-center px-3 h-10">
                     <span className="font-medium text-sm">Name</span>
                   </div>
-                  {contacts.map((contact: any) => (
-                    <div key={contact.id} className="h-16 border-b flex items-center px-3">
-                      <div className="text-sm font-medium truncate">
-                        {contact.firstName} {contact.lastName}
-                      </div>
-                    </div>
-                  ))}
+                  <div className="flex-1 relative h-10">
+                    {Array.from({ length: 17 }, (_, i) => {
+                      const minutes = START_MINUTES + (i * 60); // Every hour from 8 AM
+                      const position = ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                      
+                      return (
+                        <div
+                          key={minutes}
+                          className="absolute border-r border-gray-200 h-full"
+                          style={{
+                            left: `${position}%`,
+                          }}
+                        >
+                          <div className="absolute left-1 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">
+                            {formatTime(minutes)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                {/* Time Header and Grid */}
-                <div className="flex-1 overflow-auto">
-                  <div 
-                    className="relative select-none"
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
-                  >
-                    {/* Time Header */}
-                    <div className="sticky top-0 bg-white border-b z-10">
-                      <div className="relative w-full h-10">
-                        {/* Show only hour lines that align with the schedule grid */}
-                        {Array.from({ length: 17 }, (_, i) => {
-                          const minutes = START_MINUTES + (i * 60); // Every hour from 8 AM
-                          const position = ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
-                          
-                          return (
-                            <div
-                              key={minutes}
-                              className="absolute border-r border-gray-200 h-full"
-                              style={{
-                                left: `${position}%`,
-                              }}
-                            >
-                              <div className="absolute left-1 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">
-                                {formatTime(minutes)}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                {/* Scrollable Content */}
+                <div 
+                  ref={scrollContainerRef}
+                  className="absolute top-10 left-0 right-0 bottom-0 overflow-auto"
+                >
+                  <div className="flex">
+                    {/* Contact Names Column - Scrolls with content */}
+                    <div className="w-48 border-r bg-gray-50 flex-shrink-0">
+                      {contacts.map((contact: any) => (
+                        <div key={contact.id} className="h-16 border-b flex items-center px-3">
+                          <div className="text-sm font-medium truncate">
+                            {contact.firstName} {contact.lastName}
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
-                    {/* Contact Rows */}
-                    <div>
+                    {/* Schedule Grid - Scrolls with contact names */}
+                    <div 
+                      className="flex-1 relative select-none"
+                      onMouseMove={handleMouseMove}
+                      onMouseUp={handleMouseUp}
+                      onMouseLeave={handleMouseUp}
+                    >
                       {contacts.map((contact: any, contactIndex: number) => {
                         const contactAvailability = getContactAvailabilityForDate(contact.id);
                         
@@ -1151,7 +1157,7 @@ export default function AvailabilityComparison({
                     </div>
                   </div>
                 </div>
-              </>
+              </div>
             )}
           </div>
 
