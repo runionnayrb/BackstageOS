@@ -47,6 +47,14 @@ export default function LocationSelect({ projectId, value, onValueChange, eventD
     queryKey: [`/api/projects/${projectId}/event-locations`],
   });
 
+  // Debug logging
+  console.log('LocationSelect Debug:', { 
+    locations, 
+    isLoading, 
+    locationsLength: locations.length,
+    firstLocation: locations[0] 
+  });
+
   // Fetch location availability if we have date and time info
   const { data: locationAvailability = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/location-availability`],
@@ -163,16 +171,33 @@ export default function LocationSelect({ projectId, value, onValueChange, eventD
                     key={location.id} 
                     value={location.name}
                     disabled={unavailable}
+                    className="location-select-item"
                   >
                     <div className={`flex items-center gap-2 ${unavailable ? 'opacity-50' : ''}`}>
                       <MapPin className="h-4 w-4" style={{ color: '#666666' }} />
                       <div className="flex flex-col">
-                        <span style={{ color: '#000000', fontWeight: '500' }}>{location.name}</span>
+                        <span style={{ 
+                          color: '#000000', 
+                          fontWeight: '500',
+                          fontSize: '14px',
+                          lineHeight: '1.4',
+                          display: 'block',
+                          backgroundColor: 'white',
+                          textShadow: '0 0 1px rgba(0,0,0,0.5)'
+                        }}>{location.name}</span>
                         {unavailable && (
-                          <span className="text-xs" style={{ color: '#ef4444' }}>Space unavailable at this time</span>
+                          <span style={{ 
+                            color: '#ef4444 !important', 
+                            fontSize: '12px',
+                            display: 'block'
+                          }}>Space unavailable at this time</span>
                         )}
                         {location.address && !unavailable && (
-                          <span className="text-xs" style={{ color: '#666666' }}>({location.address})</span>
+                          <span style={{ 
+                            color: '#666666 !important', 
+                            fontSize: '12px',
+                            display: 'block'
+                          }}>({location.address})</span>
                         )}
                       </div>
                     </div>

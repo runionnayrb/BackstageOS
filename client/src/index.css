@@ -2,6 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force location dropdown text visibility - ultra aggressive */
+.location-select-item {
+  color: #000000 !important;
+  background-color: white !important;
+}
+
+.location-select-item * {
+  color: #000000 !important;
+  background-color: transparent !important;
+}
+
+.location-select-item span {
+  color: #000000 !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+}
+
+/* Ultra aggressive SelectItem visibility */
+[data-radix-select-item] {
+  color: #000000 !important;
+  background-color: white !important;
+}
+
+[data-radix-select-item] * {
+  color: #000000 !important;
+}
+
+[data-radix-select-item] span {
+  color: #000000 !important;
+  font-weight: 500 !important;
+}
+
 /* Hide field type labels in template editor */
 [data-field-type]::after,
 [data-type]::after,
