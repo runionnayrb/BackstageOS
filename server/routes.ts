@@ -3832,10 +3832,18 @@ Respond with valid JSON only.`;
       // Debug logging to help identify validation issues
       console.log("Contact creation data:", JSON.stringify(rawData, null, 2));
 
-      // Remove equity status for non-cast contacts to avoid validation errors
+      // Handle equity status validation properly
       if (rawData.category !== 'cast') {
+        // For non-cast contacts, set equity status to null
         rawData.equityStatus = null;
+      } else {
+        // For cast contacts, convert empty string to null (let validation handle required case)
+        if (rawData.equityStatus === "" || rawData.equityStatus === undefined) {
+          rawData.equityStatus = null;
+        }
       }
+
+      console.log("Contact data after equity status processing:", JSON.stringify(rawData, null, 2));
 
       const contactData = insertContactSchema.parse(rawData);
 
@@ -3873,9 +3881,15 @@ Respond with valid JSON only.`;
       // Custom validation for updates: only require equity status for cast members
       const rawUpdateData = { ...req.body };
       
-      // Remove equity status for non-cast contacts to avoid validation errors
+      // Handle equity status validation properly for updates
       if (rawUpdateData.category && rawUpdateData.category !== 'cast') {
+        // For non-cast contacts, set equity status to null
         rawUpdateData.equityStatus = null;
+      } else if (rawUpdateData.category === 'cast') {
+        // For cast contacts, convert empty string to null
+        if (rawUpdateData.equityStatus === "" || rawUpdateData.equityStatus === undefined) {
+          rawUpdateData.equityStatus = null;
+        }
       }
 
       // Validate the update data using a partial schema (omit required fields for updates)
