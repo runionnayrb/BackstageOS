@@ -616,34 +616,97 @@ function EventForm({
 
       <div>
         <Label>Participants</Label>
-        <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-3">
+        <div className="space-y-3 max-h-64 overflow-y-auto border rounded-md p-3">
           {contacts.length === 0 ? (
             <p className="text-sm text-gray-500">No contacts available</p>
           ) : (
-            contacts.map(contact => (
-              <div key={contact.id} className="flex items-center space-x-2">
-                <Checkbox
-                  id={`contact-${contact.id}`}
-                  checked={formData.participantIds.includes(contact.id)}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setFormData({
-                        ...formData,
-                        participantIds: [...formData.participantIds, contact.id],
-                      });
-                    } else {
-                      setFormData({
-                        ...formData,
-                        participantIds: formData.participantIds.filter(id => id !== contact.id),
-                      });
-                    }
-                  }}
-                />
-                <Label htmlFor={`contact-${contact.id}`} className="text-sm">
-                  {contact.firstName} {contact.lastName} ({contact.role || contact.category})
-                </Label>
-              </div>
-            ))
+            (() => {
+              // Group contacts by category
+              const contactsByCategory = contacts.reduce((acc, contact) => {
+                const category = contact.category || 'Other';
+                if (!acc[category]) {
+                  acc[category] = [];
+                }
+                acc[category].push(contact);
+                return acc;
+              }, {} as Record<string, typeof contacts>);
+
+              return Object.entries(contactsByCategory).map(([category, categoryContacts]) => {
+                const categoryContactIds = categoryContacts.map(c => c.id);
+                const allCategorySelected = categoryContactIds.every(id => formData.participantIds.includes(id));
+                const someCategorySelected = categoryContactIds.some(id => formData.participantIds.includes(id));
+
+                return (
+                  <div key={category} className="space-y-2">
+                    {/* Category header with select all checkbox */}
+                    <div className="flex items-center space-x-2 font-medium text-gray-700 border-b border-gray-200 pb-1">
+                      <Checkbox
+                        id={`category-${category}`}
+                        checked={allCategorySelected}
+                        ref={(el) => {
+                          if (el) {
+                            el.indeterminate = someCategorySelected && !allCategorySelected;
+                          }
+                        }}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            // Add all category contacts that aren't already selected
+                            const newParticipants = [
+                              ...formData.participantIds,
+                              ...categoryContactIds.filter(id => !formData.participantIds.includes(id))
+                            ];
+                            setFormData({
+                              ...formData,
+                              participantIds: newParticipants,
+                            });
+                          } else {
+                            // Remove all category contacts
+                            setFormData({
+                              ...formData,
+                              participantIds: formData.participantIds.filter(id => !categoryContactIds.includes(id)),
+                            });
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`category-${category}`} className="text-sm font-semibold">
+                        {category}
+                      </Label>
+                    </div>
+
+                    {/* Individual contacts in category */}
+                    <div className="space-y-1 ml-6">
+                      {categoryContacts.map(contact => (
+                        <div key={contact.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`contact-${contact.id}`}
+                            checked={formData.participantIds.includes(contact.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setFormData({
+                                  ...formData,
+                                  participantIds: [...formData.participantIds, contact.id],
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  participantIds: formData.participantIds.filter(id => id !== contact.id),
+                                });
+                              }
+                            }}
+                          />
+                          <Label htmlFor={`contact-${contact.id}`} className="text-sm">
+                            {contact.firstName} {contact.lastName}
+                            {contact.role && (
+                              <span className="text-gray-500 ml-1">({contact.role})</span>
+                            )}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              });
+            })()
           )}
         </div>
       </div>
