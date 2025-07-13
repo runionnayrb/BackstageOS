@@ -65,3 +65,23 @@ export const getEventTypeColor = (eventType: string): string => {
     default: return 'bg-gray-500';
   }
 };
+
+// Get event type border color for left border (darker shade of background color)
+export const getEventTypeBorderColor = (eventType: string): string => {
+  switch (eventType) {
+    // Show events - darker border colors
+    case 'rehearsal': return 'border-blue-700';
+    case 'tech': return 'border-orange-700';
+    case 'tech_rehearsal': return 'border-orange-700';
+    case 'preview': return 'border-yellow-700';
+    case 'performance': return 'border-green-700';
+    case 'dark': return 'border-gray-800';
+    // Individual events - darker border colors
+    case 'meeting': return 'border-purple-700';
+    case 'costume_fitting': return 'border-pink-700';
+    case 'wig_fitting': return 'border-yellow-700';
+    case 'hmu': return 'border-indigo-700';
+    case 'vocal_coaching': return 'border-teal-700';
+    default: return 'border-gray-700';
+  }
+};
