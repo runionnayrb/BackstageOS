@@ -58,8 +58,27 @@ export default function ScheduleFilter({
     queryKey: [`/api/projects/${projectId}/settings`],
   });
 
+  const { data: scheduleEvents = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/schedule-events`],
+  });
+
   // Get enabled event types from show settings
   const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
+
+  // Get all unique event types from existing events (legacy support)
+  const legacyEventTypes = [...new Set(scheduleEvents.map((event: any) => event.type))]
+    .filter(type => !eventTypes.some(et => et.name.toLowerCase() === type.toLowerCase()))
+    .map(type => ({
+      id: `legacy_${type}`,
+      name: type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
+      description: 'Legacy event type',
+      color: '#6b7280',
+      isDefault: false,
+      projectId
+    }));
+
+  // Combine database event types with legacy event types
+  const allEventTypes = [...eventTypes, ...legacyEventTypes];
 
   // Initialize Show Schedule state when settings load
   useEffect(() => {
@@ -107,7 +126,7 @@ export default function ScheduleFilter({
   };
 
   const handleSelectAllEventTypes = () => {
-    const allEventTypeNames = eventTypes.map(eventType => eventType.name);
+    const allEventTypeNames = allEventTypes.map(eventType => eventType.name);
     onEventTypeFilterChange(allEventTypeNames);
   };
 
@@ -126,8 +145,10 @@ export default function ScheduleFilter({
   };
 
   const handleSelectAllIndividualTypes = () => {
-    // Only select individual event types (costume fitting, wig fitting, etc.)
-    const individualEventTypes = ['Costume Fitting', 'Wig Fitting', 'Hair & Makeup'];
+    // Select all event types that are NOT enabled in show schedule
+    const individualEventTypes = allEventTypes
+      .filter(eventType => !enabledEventTypes.includes(eventType.isDefault ? eventType.name : eventType.id))
+      .map(eventType => eventType.name);
     onIndividualTypeFilterChange(individualEventTypes);
   };
 
@@ -334,26 +355,63 @@ export default function ScheduleFilter({
 
             {/* Individual Events Section */}
             <div className="p-4 border-b bg-gray-50">
-              <h5 className="text-sm font-medium text-gray-700 mb-3">Individual Events</h5>
-              <div className="space-y-2">
-                {['Costume Fitting', 'Wig Fitting', 'Hair & Makeup'].map((individualType) => (
-                  <div
-                    key={individualType}
-                    className="flex items-center space-x-3 p-2 rounded bg-white border cursor-pointer hover:bg-gray-50"
-                    onClick={() => handleIndividualTypeToggle(individualType)}
+              <div className="flex items-center justify-between mb-3">
+                <h5 className="text-sm font-medium text-gray-700">Individual Events</h5>
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAllIndividualTypes}
+                    className="h-6 px-2 text-xs"
+                    disabled={allEventTypes.filter(eventType => !enabledEventTypes.includes(eventType.isDefault ? eventType.name : eventType.id)).length === 0}
                   >
-                    <Checkbox
-                      checked={selectedIndividualTypes?.includes(individualType) || false}
-                      onChange={() => handleIndividualTypeToggle(individualType)}
-                      className="pointer-events-none"
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">
-                        {individualType}
-                      </p>
+                    All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearAllIndividualTypes}
+                    className="h-6 px-2 text-xs"
+                  >
+                    None
+                  </Button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {allEventTypes
+                  .filter(eventType => !enabledEventTypes.includes(eventType.isDefault ? eventType.name : eventType.id))
+                  .map((eventType) => (
+                    <div
+                      key={eventType.id}
+                      className="flex items-center space-x-3 p-2 rounded bg-white border cursor-pointer hover:bg-gray-50"
+                      onClick={() => handleIndividualTypeToggle(eventType.name)}
+                    >
+                      <Checkbox
+                        checked={selectedIndividualTypes?.includes(eventType.name) || false}
+                        onChange={() => handleIndividualTypeToggle(eventType.name)}
+                        className="pointer-events-none"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">
+                          {eventType.name}
+                        </p>
+                        {eventType.description && (
+                          <p className="text-xs text-gray-500 truncate">
+                            {eventType.description}
+                          </p>
+                        )}
+                      </div>
+                      <div 
+                        className="w-3 h-3 rounded-full border"
+                        style={{ backgroundColor: eventType.color }}
+                      />
                     </div>
+                  ))}
+                {allEventTypes.filter(eventType => !enabledEventTypes.includes(eventType.isDefault ? eventType.name : eventType.id)).length === 0 && (
+                  <div className="p-3 text-center text-gray-500 text-sm">
+                    All event types are enabled in Show Schedule
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -379,7 +437,7 @@ export default function ScheduleFilter({
             </div>
 
             <div className="max-h-96 overflow-y-auto">
-              {eventTypes.length === 0 ? (
+              {allEventTypes.length === 0 ? (
                 <div className="p-4 text-center text-gray-500">
                   <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p>No event types found</p>
@@ -388,7 +446,7 @@ export default function ScheduleFilter({
               ) : (
                 <div className="p-2">
                   <div className="space-y-1">
-                    {eventTypes.map((eventType) => (
+                    {allEventTypes.map((eventType) => (
                       <div
                         key={eventType.id}
                         className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"

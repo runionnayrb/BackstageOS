@@ -26,51 +26,37 @@ export function filterEventsBySettings(events: any[], scheduleSettings: any, eve
     return events;
   }
   
-  // Define individual event types for classification
-  const INDIVIDUAL_EVENT_TYPES = [
-    'meeting',
-    'costume_fitting',
-    'wig_fitting',
-    'hmu',
-    'vocal_coaching'
-  ];
-  
   // Filter events based on enabled types
   return events.filter((event: any) => {
-    // Normalize event type for comparison (handle both 'costume_fitting' and 'costume fitting')
-    const normalizedEventType = event.type.replace(/_/g, ' ');
-    const eventTypeKey = event.type.replace(/ /g, '_');
+    // Normalize event type for comparison (handle underscore vs space inconsistencies)
+    const normalizedEventType = event.type.replace(/_/g, ' ').toLowerCase();
     
-    // Check if this is an individual event type
-    const isIndividualEvent = INDIVIDUAL_EVENT_TYPES.includes(eventTypeKey) || 
-                             INDIVIDUAL_EVENT_TYPES.some(type => type.replace(/_/g, ' ').toLowerCase() === normalizedEventType.toLowerCase());
+    // Find the event type in the database
+    const eventType = eventTypes.find(et => 
+      et.id === event.eventTypeId || 
+      et.name.toLowerCase() === event.type.toLowerCase() ||
+      et.name.toLowerCase() === normalizedEventType
+    );
     
-    if (isIndividualEvent) {
-      // For individual events, check if they're enabled in the individual types
-      return enabledIndividualTypes.some(enabledType => 
-        enabledType.toLowerCase() === event.type.toLowerCase() ||
-        enabledType.toLowerCase() === normalizedEventType.toLowerCase() ||
-        enabledType.toLowerCase() === eventTypeKey.toLowerCase()
-      );
+    // Determine if this event type is enabled in show schedule
+    const typeIdentifier = eventType ? (eventType.isDefault ? eventType.name : eventType.id) : event.type;
+    const isEnabledInShowSchedule = enabledTypes.includes(typeIdentifier);
+    
+    if (isEnabledInShowSchedule) {
+      // This is a show event - it's always visible when show schedule is enabled
+      return true;
     } else {
-      // For show events, check if they're enabled in the show event types
-      // First try to find the event type in the database
-      const eventType = eventTypes.find(et => 
-        et.id === event.eventTypeId || 
-        et.name.toLowerCase() === event.type.toLowerCase()
-      );
+      // This is an individual event - check if it's enabled in individual types
+      const eventTypeName = eventType ? eventType.name : event.type;
+      const normalizedEventTypeName = eventTypeName.replace(/_/g, ' ').toLowerCase();
       
-      if (eventType) {
-        // Check if event type is enabled (using name for system types, id for custom types)
-        const typeIdentifier = eventType.isDefault ? eventType.name : eventType.id;
-        return enabledTypes.includes(typeIdentifier);
-      } else {
-        // If event type not found in database, check by type string directly (case-insensitive)
-        return enabledTypes.some(enabledType => 
-          enabledType.toLowerCase() === event.type.toLowerCase() ||
-          enabledType.toLowerCase() === normalizedEventType.toLowerCase()
-        );
-      }
+      return enabledIndividualTypes.some(enabledType => {
+        const normalizedEnabledType = enabledType.replace(/_/g, ' ').toLowerCase();
+        return normalizedEnabledType === eventTypeName.toLowerCase() ||
+               normalizedEnabledType === event.type.toLowerCase() ||
+               normalizedEnabledType === normalizedEventType ||
+               normalizedEnabledType === normalizedEventTypeName;
+      });
     }
   });
 }
