@@ -64,9 +64,9 @@ const START_MINUTES = START_HOUR * 60;
 const END_MINUTES = END_HOUR * 60;
 const TOTAL_MINUTES = END_MINUTES - START_MINUTES;
 
-// Event type colors - consistent single color for all events
+// Event type colors - use the proper color system from eventUtils
 const getEventColor = (type: string) => {
-  return 'bg-blue-500'; // Single consistent color for all events
+  return getEventTypeColor(type);
 };
 
 export default function WeeklyScheduleView({ 

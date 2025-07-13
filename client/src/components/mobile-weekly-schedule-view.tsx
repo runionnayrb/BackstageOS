@@ -526,7 +526,7 @@ export default function MobileWeeklyScheduleView({
                           return (
                             <div
                               key={event.id}
-                              className="absolute left-1 right-1 bg-blue-500 text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:bg-blue-600 transition-colors"
+                              className={`absolute left-1 right-1 ${getEventTypeColor(event.type)} text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:opacity-90 transition-opacity`}
                               style={{
                                 top: `${top}px`,
                                 height: `${height}px`,
