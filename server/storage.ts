@@ -619,8 +619,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateShowSettings(projectId: number, settings: Partial<InsertShowSettings>): Promise<ShowSettings> {
+    const updateData = {
+      ...settings,
+      updatedAt: new Date()
+    };
+    
     const result = await db.update(showSettings)
-      .set(settings)
+      .set(updateData)
       .where(eq(showSettings.projectId, projectId))
       .returning();
     return result[0];
