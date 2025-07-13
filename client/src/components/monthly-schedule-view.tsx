@@ -771,7 +771,7 @@ function EditEventForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="title">Event Title</Label>
           <Input
@@ -782,7 +782,7 @@ function EditEventForm({
           />
         </div>
         <div>
-          <Label htmlFor="type">Event Type</Label>
+          <Label htmlFor="type">Type</Label>
           <EventTypeSelect
             value={formData.type}
             onValueChange={(value) => setFormData({ ...formData, type: value })}
@@ -792,27 +792,33 @@ function EditEventForm({
         </div>
       </div>
 
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-        />
-      </div>
-
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="date">Date</Label>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="min-w-0">
+          <Label htmlFor="startDate">Start Date</Label>
           <Input
-            id="date"
+            id="startDate"
             type="date"
             value={formData.date}
             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
             required
+            className="w-full"
           />
         </div>
-        <div>
+        <div className="min-w-0">
+          <Label htmlFor="endDate">End Date</Label>
+          <Input
+            id="endDate"
+            type="date"
+            value={formData.date}
+            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            required
+            className="w-full"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <div className="min-w-0">
           <Label htmlFor="startTime">Start Time</Label>
           <Input
             id="startTime"
@@ -821,9 +827,10 @@ function EditEventForm({
             onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
             disabled={formData.isAllDay}
             required={!formData.isAllDay}
+            className="w-full"
           />
         </div>
-        <div>
+        <div className="min-w-0">
           <Label htmlFor="endTime">End Time</Label>
           <Input
             id="endTime"
@@ -832,6 +839,7 @@ function EditEventForm({
             onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
             disabled={formData.isAllDay}
             required={!formData.isAllDay}
+            className="w-full"
           />
         </div>
       </div>
@@ -846,11 +854,20 @@ function EditEventForm({
       </div>
 
       <div>
-        <Label htmlFor="location">Location</Label>
+        <Label>Location</Label>
         <LocationSelect
           value={formData.location}
           onValueChange={(value) => setFormData({ ...formData, location: value })}
           projectId={projectId}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
         />
       </div>
 
