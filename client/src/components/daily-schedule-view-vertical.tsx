@@ -7,6 +7,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { formatTimeDisplay, formatTimeFromMinutes } from '@/lib/timeUtils';
+import EditEventForm from '@/components/edit-event-form';
 
 // Constants for time grid (8 AM to midnight = 16 hours)
 const START_HOUR = 8;
@@ -101,6 +102,11 @@ export default function DailyScheduleViewVertical({ projectId, selectedDate, onB
   // Fetch contacts
   const { data: contacts = [] } = useQuery<Contact[]>({
     queryKey: [`/api/projects/${projectId}/contacts`],
+  });
+
+  // Fetch event types
+  const { data: eventTypes = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/event-types`],
   });
 
   // Filter events for the current day
@@ -521,6 +527,27 @@ export default function DailyScheduleViewVertical({ projectId, selectedDate, onB
           <span className="hidden md:inline">Click in empty time slots to create events • Double-click events to edit • Hold Shift and click events to select multiple • Press Delete to remove selected events</span>
           <span className="md:hidden">Tap empty time slots to create events • Long-press events to edit • Tap events to select</span>
         </div>
+
+        {/* Edit Event Dialog */}
+        {editingEvent && (
+          <Dialog open={!!editingEvent} onOpenChange={() => setEditingEvent(null)}>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Edit Event</DialogTitle>
+              </DialogHeader>
+              <EditEventForm 
+                event={editingEvent}
+                contacts={contacts}
+                eventTypes={eventTypes}
+                projectId={projectId}
+                onSubmit={(data) => updateEventMutation.mutate({ eventId: editingEvent.id, eventData: data })}
+                onDelete={() => deleteEventMutation.mutate(editingEvent.id)}
+                onCancel={() => setEditingEvent(null)}
+                isDeleting={deleteEventMutation.isPending}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
 
         {/* Bulk Delete Confirmation Dialog */}
         <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
