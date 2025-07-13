@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Filter, X, Users, Calendar } from "lucide-react";
+import { Filter, X } from "lucide-react";
 
 interface Contact {
   id: number;
@@ -139,7 +139,7 @@ export default function ScheduleFilter({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent className="w-96 p-0" align="end">
         <div className="p-4 border-b">
           <div className="flex items-center justify-between mb-3">
             <h4 className="font-semibold flex items-center gap-2">
@@ -158,13 +158,11 @@ export default function ScheduleFilter({
         </div>
 
         <Tabs defaultValue="people" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mx-4 mb-4">
-            <TabsTrigger value="people" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
+          <TabsList className="grid w-full grid-cols-2 mx-4 mb-4 max-w-none">
+            <TabsTrigger value="people">
               People
             </TabsTrigger>
-            <TabsTrigger value="events" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
+            <TabsTrigger value="events">
               Event Types
             </TabsTrigger>
           </TabsList>
