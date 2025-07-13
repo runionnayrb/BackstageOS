@@ -619,8 +619,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateShowSettings(projectId: number, settings: Partial<InsertShowSettings>): Promise<ShowSettings> {
+    // Filter out timestamp fields that shouldn't be updated from the frontend
+    const { createdAt, updatedAt, id, ...filteredSettings } = settings as any;
+    
     const updateData = {
-      ...settings,
+      ...filteredSettings,
       updatedAt: new Date()
     };
     
