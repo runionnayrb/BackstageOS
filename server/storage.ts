@@ -1343,6 +1343,28 @@ export class DatabaseStorage implements IStorage {
     await db.delete(eventLocations).where(eq(eventLocations.id, locationId));
   }
 
+  // Event types management
+  async getEventTypesByProjectId(projectId: number): Promise<any[]> {
+    return await db.select().from(eventTypes).where(eq(eventTypes.projectId, projectId));
+  }
+
+  async createEventType(eventType: any): Promise<any> {
+    const result = await db.insert(eventTypes).values(eventType).returning();
+    return result[0];
+  }
+
+  async updateEventType(eventTypeId: number, updates: any): Promise<any> {
+    const result = await db.update(eventTypes)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(eventTypes.id, eventTypeId))
+      .returning();
+    return result[0];
+  }
+
+  async deleteEventType(eventTypeId: number): Promise<void> {
+    await db.delete(eventTypes).where(eq(eventTypes.id, eventTypeId));
+  }
+
   // Error Clustering Methods
   async createErrorCluster(cluster: InsertErrorCluster): Promise<ErrorCluster> {
     const result = await db.insert(errorClusters).values(cluster).returning();

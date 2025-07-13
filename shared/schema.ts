@@ -412,6 +412,19 @@ export const contactAvailability = pgTable("contact_availability", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Event types for scheduling system
+export const eventTypes = pgTable("event_types", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  color: varchar("color").default("#3b82f6"), // Default blue color
+  isDefault: boolean("is_default").default(false), // System default types
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Schedule events system
 export const scheduleEvents = pgTable("schedule_events", {
   id: serial("id").primaryKey(),
@@ -422,6 +435,7 @@ export const scheduleEvents = pgTable("schedule_events", {
   startTime: time("start_time").notNull(), // Time type to match database  
   endTime: time("end_time").notNull(), // Time type to match database
   type: varchar("type").notNull().default("rehearsal"), // rehearsal, performance, meeting, tech, other
+  eventTypeId: integer("event_type_id").references(() => eventTypes.id, { onDelete: "set null" }), // Reference to custom event types
   location: varchar("location"),
   notes: text("notes"),
   isAllDay: boolean("is_all_day").default(false),
@@ -814,6 +828,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   globalTemplateSettings: many(globalTemplateSettings),
   contacts: many(contacts),
   eventLocations: many(eventLocations),
+  eventTypes: many(eventTypes),
   reportNotes: many(reportNotes),
   // Email system relations
   emailAccounts: many(emailAccounts),
@@ -1098,6 +1113,18 @@ export const locationAvailabilityRelations = relations(locationAvailability, ({ 
     fields: [locationAvailability.projectId],
     references: [projects.id],
   }),
+}));
+
+export const eventTypesRelations = relations(eventTypes, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [eventTypes.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [eventTypes.createdBy],
+    references: [users.id],
+  }),
+  scheduleEvents: many(scheduleEvents),
 }));
 
 // Contact sheet versions table for version control
@@ -1704,6 +1731,12 @@ export const insertEventLocationSchema = createInsertSchema(eventLocations).omit
   updatedAt: true,
 });
 
+export const insertEventTypeSchema = createInsertSchema(eventTypes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type ContactAvailability = typeof contactAvailability.$inferSelect;
 export type InsertContactAvailability = z.infer<typeof insertContactAvailabilitySchema>;
@@ -1936,6 +1969,8 @@ export type Waitlist = typeof waitlist.$inferSelect;
 export type InsertWaitlist = z.infer<typeof insertWaitlistSchema>;
 export type EventLocation = typeof eventLocations.$inferSelect;
 export type InsertEventLocation = z.infer<typeof insertEventLocationSchema>;
+export type EventType = typeof eventTypes.$inferSelect;
+export type InsertEventType = z.infer<typeof insertEventTypeSchema>;
 export type LocationAvailability = typeof locationAvailability.$inferSelect;
 export type InsertLocationAvailability = z.infer<typeof insertLocationAvailabilitySchema>;
 export type Prop = typeof props.$inferSelect;

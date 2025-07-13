@@ -13,7 +13,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { z } from "zod";
@@ -4250,6 +4250,86 @@ Respond with valid JSON only.`;
     } catch (error) {
       console.error("Error deleting event location:", error);
       res.status(500).json({ message: "Failed to delete event location" });
+    }
+  });
+
+  // Event types routes
+  app.get('/api/projects/:id/event-types', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      // Check project access
+      const project = await storage.getProjectById(projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const eventTypes = await storage.getEventTypesByProjectId(projectId);
+      res.json(eventTypes);
+    } catch (error) {
+      console.error("Error fetching event types:", error);
+      res.status(500).json({ message: "Failed to fetch event types" });
+    }
+  });
+
+  app.post('/api/projects/:id/event-types', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      // Check project access
+      const project = await storage.getProjectById(projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const eventTypeData = insertEventTypeSchema.parse({
+        ...req.body,
+        projectId,
+        createdBy: parseInt(req.user.id.toString()),
+      });
+
+      const eventType = await storage.createEventType(eventTypeData);
+      res.status(201).json(eventType);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid event type data", errors: error.errors });
+      }
+      console.error("Error creating event type:", error);
+      res.status(500).json({ message: "Failed to create event type" });
+    }
+  });
+
+  app.put('/api/event-types/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventTypeId = parseInt(req.params.id);
+      const eventTypeData = insertEventTypeSchema.partial().parse(req.body);
+      const updatedEventType = await storage.updateEventType(eventTypeId, eventTypeData);
+      res.json(updatedEventType);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid event type data", errors: error.errors });
+      }
+      console.error("Error updating event type:", error);
+      res.status(500).json({ message: "Failed to update event type" });
+    }
+  });
+
+  app.delete('/api/event-types/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventTypeId = parseInt(req.params.id);
+      await storage.deleteEventType(eventTypeId);
+      res.json({ message: "Event type deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting event type:", error);
+      res.status(500).json({ message: "Failed to delete event type" });
     }
   });
 

@@ -14,6 +14,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -41,7 +50,11 @@ import {
   Clock,
   Mail,
   ArrowLeft,
-  Edit3
+  Edit3,
+  Plus,
+  MapPin,
+  Tag,
+  Palette
 } from "lucide-react";
 
 // Helper function to safely parse JSON with error handling
@@ -110,6 +123,14 @@ export default function ShowSettings() {
   const [projectUpdates, setProjectUpdates] = useState<any>({});
   const [showBasicInfo, setShowBasicInfo] = useState<any>({});
   const [isEditingBasicInfo, setIsEditingBasicInfo] = useState(false);
+  
+  // Event types and locations management state
+  const [isEventTypeDialogOpen, setIsEventTypeDialogOpen] = useState(false);
+  const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false);
+  const [editingEventType, setEditingEventType] = useState<any>(null);
+  const [editingLocation, setEditingLocation] = useState<any>(null);
+  const [eventTypeForm, setEventTypeForm] = useState({ name: '', description: '', color: '#3b82f6' });
+  const [locationForm, setLocationForm] = useState({ name: '', address: '', description: '', capacity: '', notes: '' });
 
   const isFullTime = user?.profileType === "fulltime";
   const showLabel = isFullTime ? "Show" : "Project";
@@ -122,6 +143,16 @@ export default function ShowSettings() {
   const { data: settings, isLoading } = useQuery({
     queryKey: [`/api/projects/${id}/settings`],
     enabled: !!id,
+  });
+
+  const { data: eventTypes = [], refetch: refetchEventTypes } = useQuery({
+    queryKey: [`/api/projects/${id}/event-types`],
+    enabled: !!id && !!user,
+  });
+
+  const { data: locations = [], refetch: refetchLocations } = useQuery({
+    queryKey: [`/api/projects/${id}/locations`],
+    enabled: !!id && !!user,
   });
 
   const updateSettingsMutation = useMutation({
@@ -224,6 +255,140 @@ export default function ShowSettings() {
     },
   });
 
+  // Event type mutations
+  const createEventTypeMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest("POST", `/api/projects/${id}/event-types`, data);
+    },
+    onSuccess: () => {
+      refetchEventTypes();
+      setIsEventTypeDialogOpen(false);
+      setEventTypeForm({ name: '', description: '', color: '#3b82f6' });
+      setEditingEventType(null);
+      toast({
+        title: "Event Type Created",
+        description: "Event type has been created successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create event type. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateEventTypeMutation = useMutation({
+    mutationFn: async ({ id: eventTypeId, data }: { id: number; data: any }) => {
+      return await apiRequest("PUT", `/api/event-types/${eventTypeId}`, data);
+    },
+    onSuccess: () => {
+      refetchEventTypes();
+      setIsEventTypeDialogOpen(false);
+      setEventTypeForm({ name: '', description: '', color: '#3b82f6' });
+      setEditingEventType(null);
+      toast({
+        title: "Event Type Updated",
+        description: "Event type has been updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update event type. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteEventTypeMutation = useMutation({
+    mutationFn: async (eventTypeId: number) => {
+      return await apiRequest("DELETE", `/api/event-types/${eventTypeId}`);
+    },
+    onSuccess: () => {
+      refetchEventTypes();
+      toast({
+        title: "Event Type Deleted",
+        description: "Event type has been deleted successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete event type. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Location mutations
+  const createLocationMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest("POST", `/api/projects/${id}/locations`, data);
+    },
+    onSuccess: () => {
+      refetchLocations();
+      setIsLocationDialogOpen(false);
+      setLocationForm({ name: '', address: '', description: '', capacity: '', notes: '' });
+      setEditingLocation(null);
+      toast({
+        title: "Location Created",
+        description: "Location has been created successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create location. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateLocationMutation = useMutation({
+    mutationFn: async ({ id: locationId, data }: { id: number; data: any }) => {
+      return await apiRequest("PUT", `/api/event-locations/${locationId}`, data);
+    },
+    onSuccess: () => {
+      refetchLocations();
+      setIsLocationDialogOpen(false);
+      setLocationForm({ name: '', address: '', description: '', capacity: '', notes: '' });
+      setEditingLocation(null);
+      toast({
+        title: "Location Updated",
+        description: "Location has been updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update location. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteLocationMutation = useMutation({
+    mutationFn: async (locationId: number) => {
+      return await apiRequest("DELETE", `/api/event-locations/${locationId}`);
+    },
+    onSuccess: () => {
+      refetchLocations();
+      toast({
+        title: "Location Deleted",
+        description: "Location has been deleted successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete location. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSettingsUpdate = (section: string, updates: any) => {
     const settingsData = settings as any || {};
     
@@ -321,6 +486,78 @@ export default function ShowSettings() {
 
   const handleDeleteShow = () => {
     deleteProjectMutation.mutate();
+  };
+
+  // Event type management functions
+  const handleCreateEventType = () => {
+    setEditingEventType(null);
+    setEventTypeForm({ name: '', description: '', color: '#3b82f6' });
+    setIsEventTypeDialogOpen(true);
+  };
+
+  const handleEditEventType = (eventType: any) => {
+    setEditingEventType(eventType);
+    setEventTypeForm({
+      name: eventType.name || '',
+      description: eventType.description || '',
+      color: eventType.color || '#3b82f6'
+    });
+    setIsEventTypeDialogOpen(true);
+  };
+
+  const handleSaveEventType = () => {
+    if (editingEventType) {
+      updateEventTypeMutation.mutate({
+        id: editingEventType.id,
+        data: eventTypeForm
+      });
+    } else {
+      createEventTypeMutation.mutate(eventTypeForm);
+    }
+  };
+
+  const handleDeleteEventType = (eventTypeId: number) => {
+    deleteEventTypeMutation.mutate(eventTypeId);
+  };
+
+  // Location management functions
+  const handleCreateLocation = () => {
+    setEditingLocation(null);
+    setLocationForm({ name: '', address: '', description: '', capacity: '', notes: '' });
+    setIsLocationDialogOpen(true);
+  };
+
+  const handleEditLocation = (location: any) => {
+    setEditingLocation(location);
+    setLocationForm({
+      name: location.name || '',
+      address: location.address || '',
+      description: location.description || '',
+      capacity: location.capacity?.toString() || '',
+      notes: location.notes || ''
+    });
+    setIsLocationDialogOpen(true);
+  };
+
+  const handleSaveLocation = () => {
+    const data = {
+      ...locationForm,
+      capacity: locationForm.capacity ? parseInt(locationForm.capacity) : null,
+      projectId: parseInt(id!)
+    };
+
+    if (editingLocation) {
+      updateLocationMutation.mutate({
+        id: editingLocation.id,
+        data
+      });
+    } else {
+      createLocationMutation.mutate(data);
+    }
+  };
+
+  const handleDeleteLocation = (locationId: number) => {
+    deleteLocationMutation.mutate(locationId);
   };
 
   if (isLoading) {
@@ -1039,6 +1276,166 @@ export default function ShowSettings() {
               )}
             </CardContent>
           </Card>
+
+          {/* Event Types Management */}
+          <Card className="mt-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Tag className="h-5 w-5" />
+                    Event Types
+                  </CardTitle>
+                  <CardDescription>
+                    Manage custom event types for your schedule
+                  </CardDescription>
+                </div>
+                <Button onClick={handleCreateEventType} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Event Type
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {eventTypes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No event types created yet. Create your first event type to get started.
+                  </p>
+                ) : (
+                  eventTypes.map((eventType: any) => (
+                    <div key={eventType.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: eventType.color }}
+                        />
+                        <div>
+                          <h4 className="font-medium">{eventType.name}</h4>
+                          {eventType.description && (
+                            <p className="text-sm text-muted-foreground">{eventType.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditEventType(eventType)}
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Event Type</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{eventType.name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteEventType(eventType.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Event Locations Management */}
+          <Card className="mt-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    Event Locations
+                  </CardTitle>
+                  <CardDescription>
+                    Manage locations where events can take place
+                  </CardDescription>
+                </div>
+                <Button onClick={handleCreateLocation} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Location
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {locations.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No locations created yet. Create your first location to get started.
+                  </p>
+                ) : (
+                  locations.map((location: any) => (
+                    <div key={location.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <h4 className="font-medium">{location.name}</h4>
+                        {location.address && (
+                          <p className="text-sm text-muted-foreground">{location.address}</p>
+                        )}
+                        {location.description && (
+                          <p className="text-sm text-muted-foreground">{location.description}</p>
+                        )}
+                        {location.capacity && (
+                          <p className="text-sm text-muted-foreground">Capacity: {location.capacity}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditLocation(location)}
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Location</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{location.name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteLocation(location.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="dates" className="mt-6">
@@ -1200,6 +1597,168 @@ export default function ShowSettings() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Event Type Dialog */}
+      <Dialog open={isEventTypeDialogOpen} onOpenChange={setIsEventTypeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingEventType ? 'Edit Event Type' : 'Create Event Type'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingEventType 
+                ? 'Update the event type details below.'
+                : 'Create a new event type for your schedule.'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="eventTypeName">Name</Label>
+              <Input
+                id="eventTypeName"
+                value={eventTypeForm.name}
+                onChange={(e) => setEventTypeForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Rehearsal, Performance, Meeting"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="eventTypeDescription">Description (Optional)</Label>
+              <Textarea
+                id="eventTypeDescription"
+                value={eventTypeForm.description}
+                onChange={(e) => setEventTypeForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Brief description of this event type"
+                rows={3}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="eventTypeColor">Color</Label>
+              <div className="flex items-center gap-3">
+                <Input
+                  id="eventTypeColor"
+                  type="color"
+                  value={eventTypeForm.color}
+                  onChange={(e) => setEventTypeForm(prev => ({ ...prev, color: e.target.value }))}
+                  className="w-16 h-10"
+                />
+                <Input
+                  value={eventTypeForm.color}
+                  onChange={(e) => setEventTypeForm(prev => ({ ...prev, color: e.target.value }))}
+                  placeholder="#3b82f6"
+                  className="flex-1"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEventTypeDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveEventType}
+              disabled={!eventTypeForm.name.trim() || createEventTypeMutation.isPending || updateEventTypeMutation.isPending}
+            >
+              {createEventTypeMutation.isPending || updateEventTypeMutation.isPending ? 'Saving...' : 'Save Event Type'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Location Dialog */}
+      <Dialog open={isLocationDialogOpen} onOpenChange={setIsLocationDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingLocation ? 'Edit Location' : 'Create Location'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingLocation 
+                ? 'Update the location details below.'
+                : 'Create a new location for your events.'
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="locationName">Name</Label>
+              <Input
+                id="locationName"
+                value={locationForm.name}
+                onChange={(e) => setLocationForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Main Theater, Studio A, Conference Room"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="locationAddress">Address (Optional)</Label>
+              <Input
+                id="locationAddress"
+                value={locationForm.address}
+                onChange={(e) => setLocationForm(prev => ({ ...prev, address: e.target.value }))}
+                placeholder="Street address or building location"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="locationDescription">Description (Optional)</Label>
+              <Textarea
+                id="locationDescription"
+                value={locationForm.description}
+                onChange={(e) => setLocationForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Brief description of this location"
+                rows={3}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="locationCapacity">Capacity (Optional)</Label>
+              <Input
+                id="locationCapacity"
+                type="number"
+                min="1"
+                value={locationForm.capacity}
+                onChange={(e) => setLocationForm(prev => ({ ...prev, capacity: e.target.value }))}
+                placeholder="Maximum number of people"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="locationNotes">Notes (Optional)</Label>
+              <Textarea
+                id="locationNotes"
+                value={locationForm.notes}
+                onChange={(e) => setLocationForm(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Additional notes or special requirements"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsLocationDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveLocation}
+              disabled={!locationForm.name.trim() || createLocationMutation.isPending || updateLocationMutation.isPending}
+            >
+              {createLocationMutation.isPending || updateLocationMutation.isPending ? 'Saving...' : 'Save Location'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </div>
     </div>
   );
