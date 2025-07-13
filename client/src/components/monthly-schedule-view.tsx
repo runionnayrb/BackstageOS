@@ -452,9 +452,7 @@ export default function MonthlyScheduleView({
               eventTypes={eventTypes}
               projectId={projectId}
               onSubmit={(data) => updateEventMutation.mutate({ eventId: editingEvent.id, eventData: data })}
-              onDelete={() => deleteEventMutation.mutate(editingEvent.id)}
               onCancel={() => setEditingEvent(null)}
-              isDeleting={deleteEventMutation.isPending}
             />
           </DialogContent>
         </Dialog>
@@ -741,18 +739,14 @@ function EditEventForm({
   eventTypes,
   projectId,
   onSubmit, 
-  onDelete, 
-  onCancel, 
-  isDeleting 
+  onCancel
 }: {
   event: ScheduleEvent;
   contacts: Contact[];
   eventTypes: any[];
   projectId: number;
   onSubmit: (data: any) => void;
-  onDelete: () => void;
   onCancel: () => void;
-  isDeleting: boolean;
 }) {
   const [formData, setFormData] = useState({
     title: event.title,
@@ -966,21 +960,11 @@ function EditEventForm({
         </div>
       </div>
 
-      <div className="flex justify-between">
-        <Button 
-          type="button" 
-          variant="destructive" 
-          onClick={onDelete}
-          disabled={isDeleting}
-        >
-          {isDeleting ? "Deleting..." : "Delete Event"}
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
         </Button>
-        <div className="space-x-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="submit">Update Event</Button>
-        </div>
+        <Button type="submit">Save Changes</Button>
       </div>
     </form>
   );
