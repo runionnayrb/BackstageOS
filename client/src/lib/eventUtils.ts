@@ -1,7 +1,8 @@
 // Define which event types are considered "show events" vs individual events
 export const SHOW_EVENT_TYPES = [
   'rehearsal',
-  'tech', 
+  'tech',
+  'tech_rehearsal', 
   'preview',
   'performance',
   'dark'
@@ -32,6 +33,7 @@ export const getEventTypeDisplayName = (eventType: string): string => {
   switch (eventType) {
     case 'rehearsal': return 'Rehearsal';
     case 'tech': return 'Tech Rehearsal';
+    case 'tech_rehearsal': return 'Tech Rehearsal';
     case 'preview': return 'Preview';
     case 'performance': return 'Performance';
     case 'dark': return 'DARK';
@@ -50,6 +52,7 @@ export const getEventTypeColor = (eventType: string): string => {
     // Show events - brighter colors
     case 'rehearsal': return 'bg-blue-500';
     case 'tech': return 'bg-purple-500';
+    case 'tech_rehearsal': return 'bg-purple-500';
     case 'preview': return 'bg-orange-500';
     case 'performance': return 'bg-red-500';
     case 'dark': return 'bg-black';
