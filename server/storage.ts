@@ -16,6 +16,7 @@ import {
   scheduleEvents,
   scheduleEventParticipants,
   eventLocations,
+  eventTypes,
   locationAvailability,
   contactSheetVersions,
   errorLogs,
@@ -66,6 +67,8 @@ import {
   type InsertScheduleEventParticipant,
   type EventLocation,
   type InsertEventLocation,
+  type EventType,
+  type InsertEventType,
   type LocationAvailability,
   type InsertLocationAvailability,
   type ErrorLog,
@@ -1345,7 +1348,24 @@ export class DatabaseStorage implements IStorage {
 
   // Event types management
   async getEventTypesByProjectId(projectId: number): Promise<any[]> {
-    return await db.select().from(eventTypes).where(eq(eventTypes.projectId, projectId));
+    // Get custom event types from database
+    const customEventTypes = await db.select().from(eventTypes).where(eq(eventTypes.projectId, projectId));
+    
+    // Define default event types that should always be available
+    const defaultEventTypes = [
+      { id: -1, name: 'Rehearsal', description: 'Regular rehearsal sessions', color: '#3b82f6', isDefault: true, projectId },
+      { id: -2, name: 'Tech Rehearsal', description: 'Technical rehearsals with full equipment', color: '#8b5cf6', isDefault: true, projectId },
+      { id: -3, name: 'Preview', description: 'Preview performances', color: '#f97316', isDefault: true, projectId },
+      { id: -4, name: 'Performance', description: 'Live performances', color: '#ef4444', isDefault: true, projectId },
+      { id: -5, name: 'Meeting', description: 'Team meetings and discussions', color: '#10b981', isDefault: true, projectId },
+      { id: -6, name: 'Costume Fitting', description: 'Costume fittings and adjustments', color: '#ec4899', isDefault: true, projectId },
+      { id: -7, name: 'Wig Fitting', description: 'Wig fittings and styling', color: '#eab308', isDefault: true, projectId },
+      { id: -8, name: 'Hair and Make-Up', description: 'Hair and makeup sessions', color: '#6366f1', isDefault: true, projectId },
+      { id: -9, name: 'Vocal Coaching', description: 'Vocal coaching sessions', color: '#14b8a6', isDefault: true, projectId }
+    ];
+    
+    // Combine default and custom event types
+    return [...defaultEventTypes, ...customEventTypes];
   }
 
   async createEventType(eventType: any): Promise<any> {

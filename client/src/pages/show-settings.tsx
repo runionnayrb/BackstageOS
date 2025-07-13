@@ -1300,7 +1300,7 @@ export default function ShowSettings() {
               <div className="space-y-3">
                 {eventTypes.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No event types created yet. Create your first event type to get started.
+                    Loading event types...
                   </p>
                 ) : (
                   eventTypes.map((eventType: any) => (
@@ -1311,44 +1311,55 @@ export default function ShowSettings() {
                           style={{ backgroundColor: eventType.color }}
                         />
                         <div>
-                          <h4 className="font-medium">{eventType.name}</h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium">{eventType.name}</h4>
+                            {eventType.isDefault && (
+                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                Default
+                              </span>
+                            )}
+                          </div>
                           {eventType.description && (
                             <p className="text-sm text-muted-foreground">{eventType.description}</p>
                           )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditEventType(eventType)}
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <Trash2 className="h-4 w-4" />
+                        {!eventType.isDefault && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditEventType(eventType)}
+                            >
+                              <Edit3 className="h-4 w-4" />
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Event Type</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{eventType.name}"? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteEventType(eventType.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="sm">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Event Type</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{eventType.name}"? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteEventType(eventType.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </>
+                        )}
                       </div>
                     </div>
                   ))
