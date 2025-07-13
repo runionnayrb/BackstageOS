@@ -168,6 +168,8 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
       phone: parsePhoneNumber(formData.phone),
       emergencyContactPhone: parsePhoneNumber(formData.emergencyContactPhone),
       category,
+      // Only include equity status for cast members
+      equityStatus: category === 'cast' ? formData.equityStatus : null,
     };
 
     if (contact) {
