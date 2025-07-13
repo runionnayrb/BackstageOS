@@ -26,6 +26,7 @@ interface WeeklyScheduleViewProps {
   showAllDayEvents?: boolean;
   createEventDialog: boolean;
   setCreateEventDialog: (open: boolean) => void;
+  setCreateEventData: (data: { date?: string; startTime?: string; endTime?: string }) => void;
 }
 
 interface ScheduleEvent {
@@ -79,7 +80,8 @@ export default function WeeklyScheduleView({
   timeIncrement, 
   showAllDayEvents: propShowAllDayEvents, 
   createEventDialog, 
-  setCreateEventDialog 
+  setCreateEventDialog,
+  setCreateEventData
 }: WeeklyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -92,11 +94,6 @@ export default function WeeklyScheduleView({
     currentTime: number;
   } | null>(null);
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
-  const [createEventData, setCreateEventData] = useState<{
-    date?: string;
-    startTime?: string;
-    endTime?: string;
-  }>({});
   const [scrollPosition, setScrollPosition] = useState(0);
   const [showAllDayEvents, setShowAllDayEvents] = useState(propShowAllDayEvents ?? true);
   const [dragState, setDragState] = useState<{
