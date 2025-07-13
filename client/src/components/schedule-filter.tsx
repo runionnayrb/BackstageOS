@@ -187,14 +187,13 @@ export default function ScheduleFilter({
         <Button
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent border-none relative"
+          className={`h-8 w-8 p-0 bg-transparent hover:bg-transparent border-none ${
+            (selectedIndividualTypes && selectedIndividualTypes.length > 0) 
+              ? 'text-blue-600 hover:text-blue-700' 
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
         >
           <Filter className="h-4 w-4" />
-          {(selectedContactIds.length > 0 || (selectedEventTypes && selectedEventTypes.length > 0) || (selectedIndividualTypes && selectedIndividualTypes.length > 0)) && (
-            <Badge variant="secondary" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center min-w-0">
-              {selectedContactIds.length + (selectedEventTypes?.length || 0) + (selectedIndividualTypes?.length || 0)}
-            </Badge>
-          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0" align="end">
