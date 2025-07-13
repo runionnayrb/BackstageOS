@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
 import LocationSelect from "@/components/location-select";
+import EventTypeSelect from "@/components/event-type-select";
 
 interface MonthlyScheduleViewProps {
   projectId: number;
@@ -523,18 +524,12 @@ function EventForm({
         </div>
         <div>
           <Label htmlFor="type">Type</Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {eventTypes.map((eventType: any) => (
-                <SelectItem key={eventType.id} value={eventType.name.toLowerCase().replace(/\s+/g, '_')}>
-                  {eventType.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <EventTypeSelect
+            value={formData.type}
+            onValueChange={(value) => setFormData({ ...formData, type: value })}
+            projectId={projectId}
+            eventTypes={eventTypes}
+          />
         </div>
       </div>
 

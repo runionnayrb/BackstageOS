@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
 import LocationSelect from "@/components/location-select";
+import EventTypeSelect from "@/components/event-type-select";
 
 const START_HOUR = 8;
 const END_HOUR = 24;
@@ -1095,18 +1096,12 @@ function CreateEventForm({
 
         <div>
           <Label htmlFor="type">Event Type</Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
-            <SelectTrigger id="type">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="rehearsal">Rehearsal</SelectItem>
-              <SelectItem value="performance">Performance</SelectItem>
-              <SelectItem value="tech">Tech</SelectItem>
-              <SelectItem value="meeting">Meeting</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
+          <EventTypeSelect
+            value={formData.type}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
+            projectId={projectId}
+            eventTypes={[]}
+          />
         </div>
 
         <div>
@@ -1281,18 +1276,12 @@ function EditEventForm({
 
         <div>
           <Label htmlFor="type">Event Type</Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
-            <SelectTrigger id="type">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="rehearsal">Rehearsal</SelectItem>
-              <SelectItem value="performance">Performance</SelectItem>
-              <SelectItem value="tech">Tech</SelectItem>
-              <SelectItem value="meeting">Meeting</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
+          <EventTypeSelect
+            value={formData.type}
+            onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}
+            projectId={projectId}
+            eventTypes={[]}
+          />
         </div>
 
         <div>

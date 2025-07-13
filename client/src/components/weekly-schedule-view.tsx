@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
 import LocationSelect from "@/components/location-select";
+import EventTypeSelect from "@/components/event-type-select";
 
 interface WeeklyScheduleViewProps {
   projectId: number;
@@ -1176,6 +1177,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, currentDate
               event={editingEvent}
               contacts={contacts}
               eventTypes={eventTypes}
+              projectId={projectId}
               onSubmit={(data) => updateEventMutation.mutate({ eventId: editingEvent.id, eventData: data })}
               onDelete={() => deleteEventMutation.mutate(editingEvent.id)}
               onCancel={() => setEditingEvent(null)}
@@ -1273,18 +1275,12 @@ function CreateEventForm({
         </div>
         <div>
           <Label htmlFor="type">Event Type</Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {eventTypes.map((eventType: any) => (
-                <SelectItem key={eventType.id} value={eventType.name.toLowerCase().replace(/\s+/g, '_')}>
-                  {eventType.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <EventTypeSelect
+            value={formData.type}
+            onValueChange={(value) => setFormData({ ...formData, type: value })}
+            projectId={projectId}
+            eventTypes={eventTypes}
+          />
         </div>
       </div>
 
@@ -1404,6 +1400,7 @@ function EditEventForm({
   event, 
   contacts,
   eventTypes,
+  projectId,
   onSubmit, 
   onDelete, 
   onCancel, 
@@ -1412,6 +1409,7 @@ function EditEventForm({
   event: ScheduleEvent;
   contacts: Contact[];
   eventTypes: any[];
+  projectId: number;
   onSubmit: (data: any) => void;
   onDelete: () => void;
   onCancel: () => void;
@@ -1456,18 +1454,12 @@ function EditEventForm({
         </div>
         <div>
           <Label htmlFor="type">Event Type</Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {eventTypes.map((eventType: any) => (
-                <SelectItem key={eventType.id} value={eventType.name.toLowerCase().replace(/\s+/g, '_')}>
-                  {eventType.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <EventTypeSelect
+            value={formData.type}
+            onValueChange={(value) => setFormData({ ...formData, type: value })}
+            projectId={projectId}
+            eventTypes={eventTypes}
+          />
         </div>
       </div>
 
