@@ -163,17 +163,16 @@ export default function LocationSelect({ projectId, value, onValueChange, eventD
                     key={location.id} 
                     value={location.name}
                     disabled={unavailable}
-                    className="text-foreground"
                   >
                     <div className={`flex items-center gap-2 ${unavailable ? 'opacity-50' : ''}`}>
-                      <MapPin className="h-4 w-4 text-foreground" />
+                      <MapPin className="h-4 w-4" style={{ color: '#666666' }} />
                       <div className="flex flex-col">
-                        <span className="text-foreground">{location.name}</span>
+                        <span style={{ color: '#000000', fontWeight: '500' }}>{location.name}</span>
                         {unavailable && (
-                          <span className="text-xs text-red-500">Space unavailable at this time</span>
+                          <span className="text-xs" style={{ color: '#ef4444' }}>Space unavailable at this time</span>
                         )}
                         {location.address && !unavailable && (
-                          <span className="text-xs text-muted-foreground">({location.address})</span>
+                          <span className="text-xs" style={{ color: '#666666' }}>({location.address})</span>
                         )}
                       </div>
                     </div>
@@ -181,7 +180,7 @@ export default function LocationSelect({ projectId, value, onValueChange, eventD
                 );
               })}
               {locations.length === 0 && !isLoading && (
-                <SelectItem value="no-locations" disabled className="text-muted-foreground">
+                <SelectItem value="no-locations" disabled className="text-gray-500">
                   No locations available
                 </SelectItem>
               )}
