@@ -732,32 +732,42 @@ export default function EmailManager() {
                 </Button>
               </CardContent>
             </Card>
-          ) : selectedAccount && showCompose && !showSharedInboxes ? (
-            <InlineEmailComposer
-              isOpen={showCompose}
-              onClose={() => setShowCompose(false)}
-              fromAccountId={selectedAccount.id}
-              fromEmail={selectedAccount.emailAddress}
-              composeMode="compose"
-              initialRecipient={composeToEmail}
-            />
           ) : selectedAccount && !showSharedInboxes ? (
-            <EmailInterface 
-              selectedAccount={selectedAccount} 
-              onBack={() => setSelectedAccount(null)}
-              showCompose={showCompose}
-              onShowComposeChange={(show) => {
-                setShowCompose(show);
-                if (!show) {
-                  // Clear recipient email when closing compose
-                  setComposeToEmail('');
-                }
-              }}
-              activeFolder={activeFolder}
-              showTheaterFeatures={showTheaterFeatures}
-              onShowTheaterFeaturesChange={setShowTheaterFeatures}
-              composeToEmail={composeToEmail}
-            />
+            <div className={`flex h-full ${showCompose ? "gap-4" : ""}`}>
+              {/* Email Interface - Left side when composing, full width when not */}
+              <div className={`${showCompose ? "flex-1 min-w-0" : "w-full"}`}>
+                <EmailInterface 
+                  selectedAccount={selectedAccount} 
+                  onBack={() => setSelectedAccount(null)}
+                  showCompose={showCompose}
+                  onShowComposeChange={(show) => {
+                    setShowCompose(show);
+                    if (!show) {
+                      // Clear recipient email when closing compose
+                      setComposeToEmail('');
+                    }
+                  }}
+                  activeFolder={activeFolder}
+                  showTheaterFeatures={showTheaterFeatures}
+                  onShowTheaterFeaturesChange={setShowTheaterFeatures}
+                  composeToEmail={composeToEmail}
+                />
+              </div>
+              
+              {/* Compose Window - Right side, wider */}
+              {showCompose && (
+                <div className="w-[600px] flex-shrink-0">
+                  <InlineEmailComposer
+                    isOpen={showCompose}
+                    onClose={() => setShowCompose(false)}
+                    fromAccountId={selectedAccount.id}
+                    fromEmail={selectedAccount.emailAddress}
+                    composeMode="compose"
+                    initialRecipient={composeToEmail}
+                  />
+                </div>
+              )}
+            </div>
           ) : selectedAccount && showSharedInboxes ? (
             <div className="space-y-4">
               {/* Back button */}
