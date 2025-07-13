@@ -319,23 +319,63 @@ export default function ScheduleFilter({
           <TabsContent value="events" className="m-0">
             {/* Show Schedule Section */}
             <div className="p-4 border-b bg-gray-50">
-              <div 
-                className="flex items-center space-x-3 p-3 rounded bg-white border cursor-pointer hover:bg-gray-50"
-                onClick={handleShowScheduleToggle}
-              >
-                <Checkbox
-                  checked={showScheduleEnabled}
-                  onChange={handleShowScheduleToggle}
-                  className="pointer-events-none"
-                />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">
-                    Show Schedule
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Production events ({enabledEventTypes.length} types enabled in settings)
-                  </p>
+              <div className="flex items-center justify-between mb-3">
+                <h5 className="text-sm font-medium text-gray-700">Show Schedule</h5>
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAllEventTypes}
+                    className="h-6 px-2 text-xs"
+                    disabled={allEventTypes.filter(eventType => enabledEventTypes.includes(eventType.isDefault ? eventType.name : eventType.id)).length === 0}
+                  >
+                    All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearAllEventTypes}
+                    className="h-6 px-2 text-xs"
+                  >
+                    None
+                  </Button>
                 </div>
+              </div>
+              <div className="space-y-2">
+                {allEventTypes
+                  .filter(eventType => enabledEventTypes.includes(eventType.isDefault ? eventType.name : eventType.id))
+                  .map((eventType) => (
+                    <div
+                      key={eventType.id}
+                      className="flex items-center space-x-3 p-2 rounded bg-white border cursor-pointer hover:bg-gray-50"
+                      onClick={() => handleEventTypeToggle(eventType.name)}
+                    >
+                      <Checkbox
+                        checked={selectedEventTypes?.includes(eventType.name) || false}
+                        onChange={() => handleEventTypeToggle(eventType.name)}
+                        className="pointer-events-none"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">
+                          {eventType.name}
+                        </p>
+                        {eventType.description && (
+                          <p className="text-xs text-gray-500 truncate">
+                            {eventType.description}
+                          </p>
+                        )}
+                      </div>
+                      <div 
+                        className="w-3 h-3 rounded-full border"
+                        style={{ backgroundColor: eventType.color }}
+                      />
+                    </div>
+                  ))}
+                {allEventTypes.filter(eventType => enabledEventTypes.includes(eventType.isDefault ? eventType.name : eventType.id)).length === 0 && (
+                  <div className="p-3 text-center text-gray-500 text-sm">
+                    No event types enabled in Show Schedule
+                  </div>
+                )}
               </div>
             </div>
 
@@ -401,68 +441,7 @@ export default function ScheduleFilter({
               </div>
             </div>
 
-            <div className="px-4 pb-4">
-              <div className="flex gap-2 mb-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSelectAllEventTypes}
-                  className="flex-1"
-                >
-                  Select All
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearAllEventTypes}
-                  className="flex-1"
-                >
-                  Clear All
-                </Button>
-              </div>
-            </div>
 
-            <div className="max-h-96 overflow-y-auto">
-              {allEventTypes.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
-                  <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>No event types found</p>
-                  <p className="text-sm">Add event types to filter by type</p>
-                </div>
-              ) : (
-                <div className="p-2">
-                  <div className="space-y-1">
-                    {allEventTypes.map((eventType) => (
-                      <div
-                        key={eventType.id}
-                        className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50 cursor-pointer"
-                        onClick={() => handleEventTypeToggle(eventType.name)}
-                      >
-                        <Checkbox
-                          checked={selectedEventTypes?.includes(eventType.name) || false}
-                          onChange={() => handleEventTypeToggle(eventType.name)}
-                          className="pointer-events-none"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {eventType.name}
-                          </p>
-                          {eventType.description && (
-                            <p className="text-xs text-gray-500 truncate">
-                              {eventType.description}
-                            </p>
-                          )}
-                        </div>
-                        <div 
-                          className="w-3 h-3 rounded-full border"
-                          style={{ backgroundColor: eventType.color }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
 
             <div className="p-3 border-t bg-gray-50">
               <div className="flex items-center justify-between text-xs text-gray-600">
