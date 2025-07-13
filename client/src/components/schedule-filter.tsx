@@ -243,7 +243,29 @@ export default function ScheduleFilter({
           </div>
 
           <TabsContent value="people" className="m-0">
-
+            <div className="px-4 py-3 border-b bg-gray-50">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700">FULL COMPANY</span>
+                <div className="flex gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSelectAll}
+                    className="text-xs px-2 py-1 h-5"
+                  >
+                    All
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleClearAll}
+                    className="text-xs px-2 py-1 h-5"
+                  >
+                    None
+                  </Button>
+                </div>
+              </div>
+            </div>
 
             <div className="max-h-96 overflow-y-auto">
           {contacts.length === 0 ? (
