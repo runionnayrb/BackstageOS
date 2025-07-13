@@ -363,7 +363,7 @@ export function EmailComposer({
   // Desktop composer component  
   const DesktopComposer = () => (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-[95vw] max-w-4xl h-[95vh] max-h-[90vh] flex flex-col p-0 border bg-white [&>button]:hidden">
+      <DialogContent className="w-[calc(100vw-300px)] max-w-3xl h-[90vh] flex flex-col p-0 border bg-white [&>button]:hidden translate-x-[140px]">
         {/* Apple Mail Style Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
           <Button 
