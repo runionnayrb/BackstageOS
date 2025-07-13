@@ -1369,7 +1369,8 @@ export class DatabaseStorage implements IStorage {
       { id: -6, name: 'Costume Fitting', description: 'Costume fittings and adjustments', color: '#ec4899', isDefault: true, projectId },
       { id: -7, name: 'Wig Fitting', description: 'Wig fittings and styling', color: '#6366f1', isDefault: true, projectId },
       { id: -8, name: 'Hair and Make-Up', description: 'Hair and makeup sessions', color: '#14b8a6', isDefault: true, projectId },
-      { id: -9, name: 'Vocal Coaching', description: 'Vocal coaching sessions', color: '#ef4444', isDefault: true, projectId }
+      { id: -9, name: 'Vocal Coaching', description: 'Vocal coaching sessions', color: '#ef4444', isDefault: true, projectId },
+      { id: -10, name: 'DARK', description: 'Dark days - no scheduled activities', color: '#6b7280', isDefault: true, projectId }
     ];
     
     // Create a map of system event types that have been customized or hidden
@@ -1471,7 +1472,8 @@ export class DatabaseStorage implements IStorage {
           { id: -6, name: 'Costume Fitting', projectId: 0 },
           { id: -7, name: 'Wig Fitting', projectId: 0 },
           { id: -8, name: 'Hair and Make-Up', projectId: 0 },
-          { id: -9, name: 'Vocal Coaching', projectId: 0 }
+          { id: -9, name: 'Vocal Coaching', projectId: 0 },
+          { id: -10, name: 'DARK', projectId: 0 }
         ];
         
         const systemType = systemEventTypes.find(st => st.id === eventTypeId);
