@@ -133,6 +133,11 @@ export default function AvailabilityComparison({
 
 
 
+  // Debug logging
+  console.log('Team Availability Debug:');
+  console.log('Contacts count:', contacts.length);
+  console.log('First few contacts:', contacts.slice(0, 3).map((c: any) => `${c.firstName} ${c.lastName}`));
+
   // Filter functions
   const toggleContactType = (type: string) => {
     const newTypes = new Set(selectedContactTypes);
@@ -945,58 +950,56 @@ export default function AvailabilityComparison({
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col h-full">
-                {/* Fixed Headers */}
-                <div className="flex border-b bg-white flex-shrink-0">
-                  <div className="w-48 border-r bg-gray-100 flex items-center px-3 h-10">
+              <>
+                {/* Contact Names Column */}
+                <div className="w-48 border-r bg-gray-50 overflow-y-auto" style={{ height: 'calc(100vh - 12rem)' }}>
+                  <div className="h-10 border-b bg-gray-100 flex items-center px-3 sticky top-0">
                     <span className="font-medium text-sm">Name</span>
                   </div>
-                  <div className="flex-1 relative h-10">
-                    {Array.from({ length: 17 }, (_, i) => {
-                      const minutes = START_MINUTES + (i * 60); // Every hour from 8 AM
-                      const position = ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
-                      
-                      return (
-                        <div
-                          key={minutes}
-                          className="absolute border-r border-gray-200 h-full"
-                          style={{
-                            left: `${position}%`,
-                          }}
-                        >
-                          <div className="absolute left-1 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">
-                            {formatTime(minutes)}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+                  {contacts.map((contact: any) => (
+                    <div key={contact.id} className="h-16 border-b flex items-center px-3">
+                      <div className="text-sm font-medium truncate">
+                        {contact.firstName} {contact.lastName}
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
-                {/* Scrollable Content */}
-                <div 
-                  ref={scrollContainerRef}
-                  className="flex-1 overflow-auto"
-                >
-                  <div className="flex">
-                    {/* Contact Names Column - Scrolls with content */}
-                    <div className="w-48 border-r bg-gray-50 flex-shrink-0">
-                      {contacts.map((contact: any) => (
-                        <div key={contact.id} className="h-16 border-b flex items-center px-3">
-                          <div className="text-sm font-medium truncate">
-                            {contact.firstName} {contact.lastName}
-                          </div>
-                        </div>
-                      ))}
+                {/* Time Header and Grid */}
+                <div className="flex-1 overflow-auto" style={{ height: 'calc(100vh - 12rem)' }}>
+                  <div 
+                    className="relative select-none"
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                  >
+                    {/* Time Header */}
+                    <div className="sticky top-0 bg-white border-b z-10">
+                      <div className="relative w-full h-10">
+                        {/* Show only hour lines that align with the schedule grid */}
+                        {Array.from({ length: 17 }, (_, i) => {
+                          const minutes = START_MINUTES + (i * 60); // Every hour from 8 AM
+                          const position = ((minutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                          
+                          return (
+                            <div
+                              key={minutes}
+                              className="absolute border-r border-gray-200 h-full"
+                              style={{
+                                left: `${position}%`,
+                              }}
+                            >
+                              <div className="absolute left-1 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">
+                                {formatTime(minutes)}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
 
-                    {/* Schedule Grid - Scrolls with contact names */}
-                    <div 
-                      className="flex-1 relative select-none"
-                      onMouseMove={handleMouseMove}
-                      onMouseUp={handleMouseUp}
-                      onMouseLeave={handleMouseUp}
-                    >
+                    {/* Contact Rows */}
+                    <div>
                       {contacts.map((contact: any, contactIndex: number) => {
                         const contactAvailability = getContactAvailabilityForDate(contact.id);
                         
@@ -1157,7 +1160,7 @@ export default function AvailabilityComparison({
                     </div>
                   </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
 
