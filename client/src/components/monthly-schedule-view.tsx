@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
+import { filterEventsBySettings } from "@/lib/scheduleUtils";
 import EventForm from "@/components/event-form";
 
 interface MonthlyScheduleViewProps {
@@ -133,14 +134,25 @@ export default function MonthlyScheduleView({
     enabled: !!projectId,
   });
 
-  // Filter events based on selected contact IDs
-  const filteredEvents = selectedContactIds.length === 0 
-    ? events.filter(event => isShowEvent(event.type)) // Show only show-wide events when no filter is applied (show schedule)
-    : events.filter(event => 
+  // Filter events based on selected contact IDs and schedule filtering
+  const filteredEvents = (() => {
+    let eventsToFilter = events;
+    
+    // Apply schedule filtering based on enabled event types
+    eventsToFilter = filterEventsBySettings(eventsToFilter, settings?.scheduleSettings, eventTypes);
+    
+    // Apply contact filtering
+    if (selectedContactIds.length === 0) {
+      // When no contacts are selected, show all events that passed the schedule filtering
+      return eventsToFilter;
+    } else {
+      return eventsToFilter.filter(event => 
         event.participants.some(participant => 
           selectedContactIds.includes(participant.contactId)
         )
       );
+    }
+  })();
 
   // Generate calendar grid for the current month
   const generateCalendarDays = () => {

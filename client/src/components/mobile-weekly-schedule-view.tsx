@@ -123,7 +123,8 @@ export default function MobileWeeklyScheduleView({
     
     // Apply contact filtering
     if (selectedContactIds.length === 0) {
-      return eventsToFilter.filter(event => isShowEvent(event.type) || !event.type);
+      // When no contacts are selected, show all events that passed the schedule filtering
+      return eventsToFilter;
     } else {
       return eventsToFilter.filter(event => 
         event.participants.some(participant => 

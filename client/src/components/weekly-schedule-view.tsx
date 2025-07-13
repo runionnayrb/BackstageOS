@@ -172,7 +172,8 @@ export default function WeeklyScheduleView({
     
     // Apply contact filtering
     if (selectedContactIds.length === 0) {
-      return eventsToFilter.filter(event => isShowEvent(event.type) || !event.type); // Show show-wide events and events without type when no filter is applied
+      // When no contacts are selected, show all events that passed the schedule filtering
+      return eventsToFilter;
     } else {
       return eventsToFilter.filter(event => 
         event.participants.some(participant => 
