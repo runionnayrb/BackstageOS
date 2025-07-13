@@ -3829,6 +3829,9 @@ Respond with valid JSON only.`;
         createdBy: parseInt(userId),
       };
 
+      // Debug logging to help identify validation issues
+      console.log("Contact creation data:", JSON.stringify(rawData, null, 2));
+
       // Remove equity status for non-cast contacts to avoid validation errors
       if (rawData.category !== 'cast') {
         rawData.equityStatus = null;
