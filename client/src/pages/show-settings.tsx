@@ -1315,7 +1315,7 @@ export default function ShowSettings() {
                             <h4 className="font-medium">{eventType.name}</h4>
                             {eventType.isDefault && (
                               <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                                Default
+                                System
                               </span>
                             )}
                           </div>
