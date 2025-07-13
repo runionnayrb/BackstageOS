@@ -22,6 +22,8 @@ interface WeeklyScheduleViewProps {
   selectedContactIds: number[];
   timeIncrement: 15 | 30 | 60;
   showAllDayEvents?: boolean;
+  createEventDialog: boolean;
+  setCreateEventDialog: (open: boolean) => void;
 }
 
 interface ScheduleEvent {
@@ -66,7 +68,17 @@ const getEventColor = (type: string) => {
   return 'bg-blue-500'; // Single consistent color for all events
 };
 
-export default function WeeklyScheduleView({ projectId, onDateClick, currentDate, setCurrentDate, selectedContactIds, timeIncrement, showAllDayEvents: propShowAllDayEvents }: WeeklyScheduleViewProps) {
+export default function WeeklyScheduleView({ 
+  projectId, 
+  onDateClick, 
+  currentDate, 
+  setCurrentDate, 
+  selectedContactIds, 
+  timeIncrement, 
+  showAllDayEvents: propShowAllDayEvents, 
+  createEventDialog, 
+  setCreateEventDialog 
+}: WeeklyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [currentWeek, setCurrentWeek] = useState<Date>(currentDate || new Date());
@@ -78,12 +90,11 @@ export default function WeeklyScheduleView({ projectId, onDateClick, currentDate
     currentTime: number;
   } | null>(null);
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
-  const [createEventDialog, setCreateEventDialog] = useState<{
-    isOpen: boolean;
+  const [createEventData, setCreateEventData] = useState<{
     date?: string;
     startTime?: string;
     endTime?: string;
-  }>({ isOpen: false });
+  }>({});
   const [scrollPosition, setScrollPosition] = useState(0);
   const [showAllDayEvents, setShowAllDayEvents] = useState(propShowAllDayEvents ?? true);
   const [dragState, setDragState] = useState<{
@@ -501,12 +512,12 @@ export default function WeeklyScheduleView({ projectId, onDateClick, currentDate
         
         if (endTime - startTime >= timeIncrement) {
           const date = weekDates[dragState.startDay].toISOString().split('T')[0];
-          setCreateEventDialog({
-            isOpen: true,
+          setCreateEventData({
             date,
             startTime: formatTimeFromMinutes(startTime),
             endTime: formatTimeFromMinutes(endTime),
           });
+          setCreateEventDialog(true);
         } else {
           console.log('Block too small:', endTime - startTime, 'minutes');
         }
@@ -1149,22 +1160,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, currentDate
         </div>
       </div>
 
-      {/* Create Event Dialog */}
-      <Dialog open={createEventDialog.isOpen} onOpenChange={(open) => setCreateEventDialog({ isOpen: open })}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Create New Event</DialogTitle>
-          </DialogHeader>
-          <CreateEventForm 
-            projectId={projectId}
-            contacts={contacts}
-            eventTypes={eventTypes}
-            onSubmit={createEventMutation.mutate}
-            onCancel={() => setCreateEventDialog({ isOpen: false })}
-            defaultValues={createEventDialog}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Create Event Modal - Hidden in weekly view as parent handles it */}
 
       {/* Edit Event Dialog */}
       {editingEvent && (

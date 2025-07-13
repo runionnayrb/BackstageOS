@@ -22,6 +22,8 @@ interface MobileWeeklyScheduleViewProps {
   timeIncrement: 15 | 30 | 60;
   showAllDayEvents?: boolean;
   settings?: any;
+  createEventDialog: boolean;
+  setCreateEventDialog: (open: boolean) => void;
   onEventEdit?: (event: ScheduleEvent) => void;
 }
 
@@ -70,6 +72,8 @@ export default function MobileWeeklyScheduleView({
   selectedContactIds, 
   timeIncrement, 
   showAllDayEvents: propShowAllDayEvents,
+  createEventDialog,
+  setCreateEventDialog,
   onEventEdit
 }: MobileWeeklyScheduleViewProps) {
   const { toast } = useToast();

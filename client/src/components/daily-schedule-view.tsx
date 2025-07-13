@@ -19,6 +19,8 @@ interface DailyScheduleViewProps {
   selectedContactIds: number[];
   showAllDayEvents?: boolean;
   timeIncrement?: number;
+  createEventDialog: boolean;
+  setCreateEventDialog: (open: boolean) => void;
 }
 
 interface ScheduleEvent {
@@ -61,7 +63,9 @@ export default function DailyScheduleView({
   setCurrentDate,
   selectedContactIds, 
   showAllDayEvents: propShowAllDayEvents = true, 
-  timeIncrement = 30
+  timeIncrement = 30,
+  createEventDialog,
+  setCreateEventDialog
 }: DailyScheduleViewProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 

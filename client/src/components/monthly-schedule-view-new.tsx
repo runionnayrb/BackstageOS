@@ -1,0 +1,374 @@
+import { useState, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ChevronLeft, ChevronRight, Plus, Calendar, X } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
+import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
+import EventForm from "@/components/event-form";
+import { apiRequest } from "@/lib/queryClient";
+
+interface MonthlyScheduleViewProps {
+  projectId: number;
+  onDateClick: (date: Date) => void;
+  currentDate: Date;
+  setCurrentDate: (date: Date) => void;
+  selectedContactIds: number[];
+  showAllDayEvents: boolean;
+  setShowAllDayEvents: (show: boolean) => void;
+  createEventDialog: boolean;
+  setCreateEventDialog: (open: boolean) => void;
+  onEventClick?: (event: ScheduleEvent) => void;
+}
+
+interface ScheduleEvent {
+  id: number;
+  projectId: number;
+  title: string;
+  description?: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  type: string;
+  location?: string;
+  notes?: string;
+  isAllDay: boolean;
+  participants: {
+    id: number;
+    contactId: number;
+    contactFirstName: string;
+    contactLastName: string;
+    isRequired: boolean;
+    status: string;
+  }[];
+}
+
+interface Contact {
+  id: number;
+  firstName: string;
+  lastName: string;
+  category: string;
+  role?: string;
+}
+
+export default function MonthlyScheduleView({
+  projectId,
+  onDateClick,
+  currentDate,
+  setCurrentDate,
+  selectedContactIds,
+  showAllDayEvents,
+  setShowAllDayEvents,
+  createEventDialog,
+  setCreateEventDialog,
+  onEventClick
+}: MonthlyScheduleViewProps) {
+  const [editEventDialog, setEditEventDialog] = useState<{ isOpen: boolean; event?: ScheduleEvent }>({ isOpen: false });
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch all data needed for event creation/editing
+  const { data: events = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/schedule-events`],
+  });
+
+  const { data: contacts = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/contacts`],
+  });
+
+  const { data: eventTypes = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/event-types`],
+  });
+
+  const { data: settings } = useQuery({
+    queryKey: [`/api/projects/${projectId}/settings`],
+  });
+
+  // Get time format from settings
+  const scheduleSettings = parseScheduleSettings(settings?.scheduleSettings);
+  const timeFormat = scheduleSettings.timeFormat;
+
+  // Filter events based on contacts and all-day settings
+  const getEventsForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    
+    let filteredEvents = events.filter((event: ScheduleEvent) => event.date === dateStr);
+    
+    if (selectedContactIds.length > 0) {
+      filteredEvents = filteredEvents.filter((event: ScheduleEvent) => 
+        event.participants.some(participant => selectedContactIds.includes(participant.contactId))
+      );
+    }
+
+    if (!showAllDayEvents) {
+      filteredEvents = filteredEvents.filter((event: ScheduleEvent) => !event.isAllDay);
+    }
+
+    return filteredEvents;
+  };
+
+  // Mutations for creating and editing events
+  const createEventMutation = useMutation({
+    mutationFn: (eventData: any) => apiRequest('POST', `/api/schedule-events`, {
+      ...eventData,
+      projectId,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      setCreateEventDialog(false);
+      toast({
+        title: "Event created successfully",
+        description: "The event has been added to your schedule.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error creating event",
+        description: error.message || "Failed to create event. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateEventMutation = useMutation({
+    mutationFn: ({ id, ...eventData }: any) => apiRequest('PUT', `/api/schedule-events/${id}`, eventData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      setEditEventDialog({ isOpen: false });
+      toast({
+        title: "Event updated successfully",
+        description: "The event has been updated.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error updating event",
+        description: error.message || "Failed to update event. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteEventMutation = useMutation({
+    mutationFn: (eventId: number) => apiRequest('DELETE', `/api/schedule-events/${eventId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      setEditEventDialog({ isOpen: false });
+      toast({
+        title: "Event deleted successfully",
+        description: "The event has been removed from your schedule.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error deleting event",
+        description: error.message || "Failed to delete event. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle event creation
+  const handleCreateEvent = (eventData: any) => {
+    createEventMutation.mutate(eventData);
+  };
+
+  // Handle event editing
+  const handleEditEvent = (eventData: any) => {
+    updateEventMutation.mutate(eventData);
+  };
+
+  // Handle event deletion
+  const handleDeleteEvent = () => {
+    if (editEventDialog.event) {
+      deleteEventMutation.mutate(editEventDialog.event.id);
+    }
+  };
+
+  // Calendar generation
+  const generateCalendar = useCallback((date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    const firstDayOfCalendar = new Date(firstDayOfMonth);
+    firstDayOfCalendar.setDate(firstDayOfCalendar.getDate() - firstDayOfCalendar.getDay());
+    
+    const days = [];
+    let currentDay = new Date(firstDayOfCalendar);
+    
+    for (let week = 0; week < 6; week++) {
+      const weekDays = [];
+      for (let day = 0; day < 7; day++) {
+        weekDays.push(new Date(currentDay));
+        currentDay.setDate(currentDay.getDate() + 1);
+      }
+      days.push(weekDays);
+      
+      if (currentDay > lastDayOfMonth && currentDay.getDay() === 0) {
+        break;
+      }
+    }
+    
+    return days;
+  }, []);
+
+  const calendarDays = generateCalendar(currentDate);
+
+  const goToPreviousMonth = () => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() - 1);
+    setCurrentDate(newDate);
+  };
+
+  const goToNextMonth = () => {
+    const newDate = new Date(currentDate);
+    newDate.setMonth(newDate.getMonth() + 1);
+    setCurrentDate(newDate);
+  };
+
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return date.toDateString() === today.toDateString();
+  };
+
+  const isCurrentMonth = (date: Date) => {
+    return date.getMonth() === currentDate.getMonth();
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Calendar Header */}
+      <div className="hidden md:flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-4">
+          <h2 className="text-2xl font-bold">
+            {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </h2>
+          <div className="flex items-center space-x-1">
+            <Button variant="outline" size="sm" onClick={goToPreviousMonth}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={goToNextMonth}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowAllDayEvents(!showAllDayEvents)}
+            className={`flex items-center space-x-1 ${showAllDayEvents ? 'bg-blue-50 text-blue-600' : ''}`}
+          >
+            <Calendar className="h-4 w-4" />
+            <span>All Day</span>
+          </Button>
+          <Button
+            onClick={() => setCreateEventDialog(true)}
+            className="flex items-center space-x-1"
+          >
+            <Plus className="h-4 w-4" />
+            <span>New Event</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="bg-white rounded-lg border">
+        {/* Day Headers */}
+        <div className="grid grid-cols-7 border-b">
+          {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+            <div key={day} className="p-2 text-center text-sm font-medium text-gray-500 border-r last:border-r-0">
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar Days */}
+        <div className="grid grid-cols-7">
+          {calendarDays.flat().map((date, index) => {
+            const dayEvents = getEventsForDate(date);
+            const isCurrentMonthDay = isCurrentMonth(date);
+            const isTodayDate = isToday(date);
+
+            return (
+              <div
+                key={index}
+                className={`min-h-16 md:min-h-24 p-1 md:p-2 border-r border-b last:border-r-0 cursor-pointer transition-colors hover:bg-gray-50 ${
+                  !isCurrentMonthDay ? 'bg-gray-50 text-gray-400' : ''
+                }`}
+                onClick={() => onDateClick(date)}
+              >
+                <div className={`flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full text-sm font-medium ${
+                  isTodayDate ? 'bg-red-500 text-white' : ''
+                }`}>
+                  {date.getDate()}
+                </div>
+                
+                {/* Events */}
+                <div className="mt-1 space-y-1">
+                  {dayEvents.slice(0, 3).map((event: ScheduleEvent) => (
+                    <div
+                      key={event.id}
+                      className={`px-1 py-0.5 rounded text-xs truncate cursor-pointer transition-colors ${
+                        getEventTypeColor(event.type)
+                      } hover:opacity-80`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onEventClick) {
+                          onEventClick(event);
+                        } else {
+                          setEditEventDialog({ isOpen: true, event });
+                        }
+                      }}
+                      title={`${event.title}${event.isAllDay ? ' (All Day)' : ` (${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)})`}`}
+                    >
+                      {event.title}
+                    </div>
+                  ))}
+                  {dayEvents.length > 3 && (
+                    <div className="text-xs text-gray-500 px-1">
+                      +{dayEvents.length - 3} more
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Edit Event Dialog */}
+      <Dialog open={editEventDialog.isOpen} onOpenChange={(open) => setEditEventDialog({ isOpen: open })}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Event</DialogTitle>
+          </DialogHeader>
+          {editEventDialog.event && (
+            <EventForm
+              projectId={projectId}
+              contacts={contacts}
+              eventTypes={eventTypes}
+              initialDate={editEventDialog.event.date}
+              onSubmit={handleEditEvent}
+              onCancel={() => setEditEventDialog({ isOpen: false })}
+              timeFormat={timeFormat}
+            />
+          )}
+          <div className="flex justify-between pt-4">
+            <Button
+              variant="destructive"
+              onClick={handleDeleteEvent}
+              disabled={deleteEventMutation.isPending}
+            >
+              {deleteEventMutation.isPending ? "Deleting..." : "Delete Event"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

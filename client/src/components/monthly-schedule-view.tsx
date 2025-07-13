@@ -11,8 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
-import LocationSelect from "@/components/location-select";
-import EventTypeSelect from "@/components/event-type-select";
+import EventForm from "@/components/event-form";
 
 interface MonthlyScheduleViewProps {
   projectId: number;
@@ -541,89 +540,7 @@ export default function MonthlyScheduleView({
   );
 }
 
-// Event form component (simplified for this implementation)
-function EventForm({ 
-  projectId, 
-  contacts,
-  eventTypes,
-  initialDate, 
-  onSubmit, 
-  onCancel,
-  timeFormat,
-  showButtons = true
-}: {
-  projectId: number;
-  contacts: Contact[];
-  eventTypes: any[];
-  initialDate?: string;
-  onSubmit: (data: any) => void;
-  onCancel: () => void;
-  timeFormat: string;
-  showButtons?: boolean;
-}) {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    startDate: initialDate || '',
-    endDate: initialDate || '',
-    startTime: '09:00',
-    endTime: '10:00',
-    type: eventTypes.length > 0 ? eventTypes[0].name.toLowerCase().replace(/\s+/g, '_') : 'other',
-    location: '',
-    notes: '',
-    isAllDay: false,
-    participantIds: [] as number[],
-  });
-
-  // Auto-populate end date when start date changes
-  const handleStartDateChange = (newStartDate: string) => {
-    setFormData(prev => ({
-      ...prev,
-      startDate: newStartDate,
-      // Auto-update end date to match start date if it's currently empty or the same as the previous start date
-      endDate: prev.endDate === prev.startDate || !prev.endDate ? newStartDate : prev.endDate
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Clean up the form data before submission and map to API format
-    const cleanedData = {
-      ...formData,
-      date: formData.startDate, // Use startDate as the primary date for API compatibility
-      location: formData.location?.trim() || undefined,
-      description: formData.description?.trim() || undefined,
-      notes: formData.notes?.trim() || undefined,
-      participants: formData.participantIds, // Map participantIds to participants for backend
-    };
-    onSubmit(cleanedData);
-  };
-
-  return (
-    <form 
-      id="event-form" 
-      onSubmit={handleSubmit} 
-      className="space-y-4 p-4 max-w-full"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="title">Event Title</Label>
-          <Input
-            id="title"
-            value={formData.title}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="type">Type</Label>
-          <EventTypeSelect
-            value={formData.type}
-            onValueChange={(value) => setFormData({ ...formData, type: value })}
-            projectId={projectId}
-            eventTypes={eventTypes}
-          />
-        </div>
+// Event form component is now imported from external file
       </div>
 
       <div className="grid grid-cols-2 gap-3">

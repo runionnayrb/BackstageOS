@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { useParams, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X } from "lucide-react";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import MobileWeeklyScheduleView from "@/components/mobile-weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
-import MonthlyScheduleView from "@/components/monthly-schedule-view";
+import MonthlyScheduleView from "@/components/monthly-schedule-view-new";
 import ScheduleFilter from "@/components/schedule-filter";
+import EventForm from "@/components/event-form";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 interface ScheduleParams {
   id: string;
@@ -25,6 +28,14 @@ export default function Schedule() {
   const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
   const [showAllDayEvents, setShowAllDayEvents] = useState(true);
   const [createEventDialog, setCreateEventDialog] = useState(false);
+  const [createEventData, setCreateEventData] = useState<{
+    date?: string;
+    startTime?: string;
+    endTime?: string;
+  }>({});
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -32,6 +43,40 @@ export default function Schedule() {
 
   const { data: settings } = useQuery({
     queryKey: [`/api/projects/${projectId}/settings`],
+  });
+
+  // Fetch contacts for event creation
+  const { data: contacts = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/contacts`],
+  });
+
+  // Fetch event types for event creation
+  const { data: eventTypes = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/event-types`],
+  });
+
+  // Create event mutation
+  const createEventMutation = useMutation({
+    mutationFn: (eventData: any) => apiRequest('POST', `/api/schedule-events`, {
+      ...eventData,
+      projectId: parseInt(projectId),
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      setCreateEventDialog(false);
+      setCreateEventData({});
+      toast({
+        title: "Event created successfully",
+        description: "The event has been added to your schedule.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error creating event",
+        description: error.message || "Failed to create event. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   if (!project) {
@@ -50,6 +95,11 @@ export default function Schedule() {
   const handleDateClick = (date: Date) => {
     setCurrentDate(date);
     setViewMode('daily');
+  };
+
+  // Handle create event
+  const handleCreateEvent = (eventData: any) => {
+    createEventMutation.mutate(eventData);
   };
 
   // Navigation functions
@@ -342,6 +392,8 @@ export default function Schedule() {
                 selectedContactIds={selectedContactIds}
                 timeIncrement={timeIncrement}
                 showAllDayEvents={showAllDayEvents}
+                createEventDialog={createEventDialog}
+                setCreateEventDialog={setCreateEventDialog}
               />
             </div>
             {/* Mobile Weekly View - 2 days with continuous scroll */}
@@ -355,6 +407,8 @@ export default function Schedule() {
                 timeIncrement={timeIncrement}
                 showAllDayEvents={showAllDayEvents}
                 settings={settings}
+                createEventDialog={createEventDialog}
+                setCreateEventDialog={setCreateEventDialog}
                 onEventEdit={(event) => {
                   // Navigate to daily view and let that handle editing
                   setCurrentDate(new Date(event.date));
@@ -371,11 +425,91 @@ export default function Schedule() {
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
+            createEventDialog={createEventDialog}
+            setCreateEventDialog={setCreateEventDialog}
             showAllDayEvents={showAllDayEvents}
             timeIncrement={timeIncrement}
           />
         )}
       </div>
+
+      {/* Unified Mobile Bottom Sheet for Event Creation */}
+      {createEventDialog && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setCreateEventDialog(false)}
+            style={{ touchAction: 'none' }}
+          />
+          
+          {/* Bottom Sheet */}
+          <div 
+            className="fixed left-0 right-0 z-50 bg-white flex flex-col"
+            style={{ 
+              top: '60px', // Just below the BackstageOS header
+              bottom: '80px', // Above mobile navigation (typically 64-80px)
+              height: 'auto',
+              maxHeight: 'calc(100vh - 140px)' // Header + mobile nav space
+            }}
+            onTouchMove={(e) => {
+              // Prevent background scrolling when touching the sheet
+              e.stopPropagation();
+            }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
+              <Button 
+                variant="ghost" 
+                onClick={() => setCreateEventDialog(false)}
+                className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+              <h1 className="text-lg font-semibold text-black">
+                New Event
+              </h1>
+              <div className="w-9" /> {/* Spacer for center alignment */}
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+              <EventForm
+                projectId={parseInt(projectId)}
+                contacts={contacts}
+                eventTypes={eventTypes}
+                initialDate={createEventData.date}
+                onSubmit={handleCreateEvent}
+                onCancel={() => setCreateEventDialog(false)}
+                timeFormat={settings?.scheduleSettings?.timeFormat || '12'}
+                showButtons={false}
+              />
+            </div>
+            
+            {/* Sticky Footer with Buttons */}
+            <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 mt-auto">
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setCreateEventDialog(false)}
+                  className="px-4 py-2"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  form="event-form"
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
+                  disabled={createEventMutation.isPending}
+                >
+                  {createEventMutation.isPending ? "Creating..." : "Create Event"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
