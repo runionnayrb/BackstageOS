@@ -145,6 +145,10 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Debug logging to help identify the issue
+    console.log("ContactForm category prop:", category);
+    console.log("ContactForm formData:", formData);
+    
     // Validate phone numbers
     const errors: Record<string, string> = {};
     
@@ -171,6 +175,8 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
       // Only include equity status for cast members
       equityStatus: category === 'cast' ? formData.equityStatus : null,
     };
+    
+    console.log("ContactForm submission data:", data);
 
     if (contact) {
       updateMutation.mutate(data);
