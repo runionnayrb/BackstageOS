@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -40,6 +40,7 @@ export default function ScheduleFilter({
   onEventTypeFilterChange 
 }: ScheduleFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showScheduleEnabled, setShowScheduleEnabled] = useState(true);
 
   const { data: contacts = [] } = useQuery<Contact[]>({
     queryKey: [`/api/projects/${projectId}/contacts`],
@@ -48,6 +49,21 @@ export default function ScheduleFilter({
   const { data: eventTypes = [] } = useQuery<EventType[]>({
     queryKey: [`/api/projects/${projectId}/event-types`],
   });
+
+  const { data: showSettings } = useQuery({
+    queryKey: [`/api/projects/${projectId}/settings`],
+  });
+
+  // Get enabled event types from show settings
+  const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
+
+  // Initialize Show Schedule state when settings load
+  useEffect(() => {
+    if (enabledEventTypes.length > 0 && showScheduleEnabled) {
+      // Automatically apply enabled event types when show schedule is enabled
+      onEventTypeFilterChange(enabledEventTypes);
+    }
+  }, [enabledEventTypes, showScheduleEnabled, onEventTypeFilterChange]);
 
   // Group contacts by category for better organization
   const contactsByCategory = contacts.reduce((acc, contact) => {
@@ -93,6 +109,17 @@ export default function ScheduleFilter({
 
   const handleClearAllEventTypes = () => {
     onEventTypeFilterChange([]);
+  };
+
+  const handleShowScheduleToggle = () => {
+    setShowScheduleEnabled(!showScheduleEnabled);
+    if (!showScheduleEnabled) {
+      // When enabling show schedule, set selected event types to enabled ones from settings
+      onEventTypeFilterChange(enabledEventTypes);
+    } else {
+      // When disabling show schedule, clear all event type filters
+      onEventTypeFilterChange([]);
+    }
   };
 
   const getFilterStatusText = () => {
@@ -259,6 +286,28 @@ export default function ScheduleFilter({
           </TabsContent>
 
           <TabsContent value="events" className="m-0">
+            {/* Show Schedule Section */}
+            <div className="p-4 border-b bg-gray-50">
+              <div 
+                className="flex items-center space-x-3 p-3 rounded bg-white border cursor-pointer hover:bg-gray-50"
+                onClick={handleShowScheduleToggle}
+              >
+                <Checkbox
+                  checked={showScheduleEnabled}
+                  onChange={handleShowScheduleToggle}
+                  className="pointer-events-none"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">
+                    Show Schedule
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Production events ({enabledEventTypes.length} types enabled in settings)
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="px-4 pb-4">
               <div className="flex gap-2 mb-4">
                 <Button
