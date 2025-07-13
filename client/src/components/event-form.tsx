@@ -24,6 +24,19 @@ interface EventFormProps {
   onCancel: () => void;
   timeFormat?: string;
   showButtons?: boolean;
+  initialValues?: {
+    title?: string;
+    description?: string;
+    type?: string;
+    startDate?: string;
+    endDate?: string;
+    startTime?: string;
+    endTime?: string;
+    location?: string;
+    notes?: string;
+    isAllDay?: boolean;
+    participantIds?: number[];
+  };
 }
 
 export default function EventForm({
@@ -34,20 +47,21 @@ export default function EventForm({
   onSubmit,
   onCancel,
   timeFormat = '12',
-  showButtons = true
+  showButtons = true,
+  initialValues
 }: EventFormProps) {
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    type: '',
-    startDate: initialDate || new Date().toISOString().split('T')[0],
-    endDate: initialDate || new Date().toISOString().split('T')[0],
-    startTime: '09:00',
-    endTime: '10:00',
-    location: '',
-    notes: '',
-    isAllDay: false,
-    participantIds: [] as number[],
+    title: initialValues?.title || '',
+    description: initialValues?.description || '',
+    type: initialValues?.type || '',
+    startDate: initialValues?.startDate || initialDate || new Date().toISOString().split('T')[0],
+    endDate: initialValues?.endDate || initialDate || new Date().toISOString().split('T')[0],
+    startTime: initialValues?.startTime || '09:00',
+    endTime: initialValues?.endTime || '10:00',
+    location: initialValues?.location || '',
+    notes: initialValues?.notes || '',
+    isAllDay: initialValues?.isAllDay || false,
+    participantIds: initialValues?.participantIds || [] as number[],
   });
 
   // Auto-populate end date when start date changes
