@@ -58,27 +58,13 @@ export default function ScheduleFilter({
     queryKey: [`/api/projects/${projectId}/settings`],
   });
 
-  const { data: scheduleEvents = [] } = useQuery({
-    queryKey: [`/api/projects/${projectId}/schedule-events`],
-  });
+
 
   // Get enabled event types from show settings
   const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
 
-  // Get all unique event types from existing events (legacy support)
-  const legacyEventTypes = [...new Set(scheduleEvents.map((event: any) => event.type))]
-    .filter(type => !eventTypes.some(et => et.name.toLowerCase() === type.toLowerCase()))
-    .map(type => ({
-      id: `legacy_${type}`,
-      name: type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
-      description: 'Legacy event type',
-      color: '#6b7280',
-      isDefault: false,
-      projectId
-    }));
-
-  // Combine database event types with legacy event types
-  const allEventTypes = [...eventTypes, ...legacyEventTypes];
+  // Use only database event types - no legacy detection
+  const allEventTypes = eventTypes;
 
   // Initialize Show Schedule state when settings load
   useEffect(() => {
