@@ -639,7 +639,7 @@ export default function EmailManager() {
 
           <div className="px-2 md:px-4 lg:px-8 py-2 md:py-6">
           {/* Header - Mobile with hamburger left, search right */}
-          <div className="border-b border-gray-200 pb-2 md:pb-4">
+          <div>
             <div className="flex items-center gap-1.5 mb-4">
               {/* Mobile hamburger menu - left side */}
               <Button
@@ -672,37 +672,7 @@ export default function EmailManager() {
               </div>
             </div>
 
-            {/* Account Selector and Actions - Desktop Style */}
-            {selectedAccount && (
-              <div className="space-y-3">
-                {/* Account Selector */}
-                {emailAccounts && Array.isArray(emailAccounts) && (emailAccounts as EmailAccount[]).length > 1 && (
-                  <Select 
-                    value={selectedAccount?.id?.toString() || ''} 
-                    onValueChange={(value) => {
-                      const account = (emailAccounts as EmailAccount[]).find(acc => acc.id.toString() === value);
-                      if (account) setSelectedAccount(account);
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select account" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(emailAccounts as EmailAccount[]).map((account) => (
-                        <SelectItem key={account.id} value={account.id.toString()}>
-                          <div className="flex flex-col items-start">
-                            <span className="font-medium">{account.displayName}</span>
-                            <span className="text-sm text-gray-500">{account.emailAddress}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
 
-
-              </div>
-            )}
           </div>
 
           {/* Main Content - Email Interface */}
