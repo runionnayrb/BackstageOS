@@ -945,9 +945,9 @@ export default function AvailabilityComparison({
                 </div>
               </div>
             ) : (
-              <div className="flex h-full relative">
+              <div className="flex flex-col h-full">
                 {/* Fixed Headers */}
-                <div className="absolute top-0 left-0 right-0 z-10 bg-white border-b flex">
+                <div className="flex border-b bg-white flex-shrink-0">
                   <div className="w-48 border-r bg-gray-100 flex items-center px-3 h-10">
                     <span className="font-medium text-sm">Name</span>
                   </div>
@@ -976,7 +976,7 @@ export default function AvailabilityComparison({
                 {/* Scrollable Content */}
                 <div 
                   ref={scrollContainerRef}
-                  className="absolute top-10 left-0 right-0 bottom-0 overflow-auto"
+                  className="flex-1 overflow-auto"
                 >
                   <div className="flex">
                     {/* Contact Names Column - Scrolls with content */}
