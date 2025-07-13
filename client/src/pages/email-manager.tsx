@@ -630,12 +630,10 @@ export default function EmailManager() {
           />
         </div>
 
-        {/* Main Content - Mobile Full Width, Desktop With Sidebar, adjusts for compose panel */}
+        {/* Main Content - Mobile Full Width, Desktop With Sidebar */}
         <div 
           className={`transition-all duration-300 ease-in-out ${
             isSidebarCollapsed ? "md:ml-0" : "md:ml-64"
-          } ${
-            showCompose ? "md:mr-96" : ""
           } relative`}
         >
 
@@ -734,6 +732,15 @@ export default function EmailManager() {
                 </Button>
               </CardContent>
             </Card>
+          ) : selectedAccount && showCompose && !showSharedInboxes ? (
+            <InlineEmailComposer
+              isOpen={showCompose}
+              onClose={() => setShowCompose(false)}
+              fromAccountId={selectedAccount.id}
+              fromEmail={selectedAccount.emailAddress}
+              composeMode="compose"
+              initialRecipient={composeToEmail}
+            />
           ) : selectedAccount && !showSharedInboxes ? (
             <EmailInterface 
               selectedAccount={selectedAccount} 
@@ -1247,18 +1254,7 @@ export default function EmailManager() {
         </DialogContent>
       </Dialog>
 
-      {/* Inline Email Composer Panel */}
-      {showCompose && selectedAccount && (
-        <div className="fixed right-0 top-0 bottom-0 w-96 bg-white border-l border-gray-200 z-40 hidden md:block">
-          <InlineEmailComposer
-            isOpen={showCompose}
-            onClose={() => setShowCompose(false)}
-            fromAccountId={selectedAccount.id}
-            fromEmail={selectedAccount.emailAddress}
-            composeMode="compose"
-          />
-        </div>
-      )}
+
 
     </div>
   );
