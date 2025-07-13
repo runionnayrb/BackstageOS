@@ -942,28 +942,31 @@ export default function AvailabilityComparison({
               </div>
             ) : (
               <>
-                {/* Contact Names Column */}
-                <div className="w-48 border-r bg-gray-50">
-                  <div className="h-10 border-b bg-gray-100 flex items-center px-3">
-                    <span className="font-medium text-sm">Name</span>
-                  </div>
-                  {contacts.map((contact: any) => (
-                    <div key={contact.id} className="h-16 border-b flex items-center px-3">
-                      <div className="text-sm font-medium truncate">
-                        {contact.firstName} {contact.lastName}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Time Header and Grid */}
+                {/* Synchronized Contact Names and Schedule Area */}
                 <div className="flex-1 overflow-auto">
-                  <div 
-                    className="relative select-none"
-                    onMouseMove={handleMouseMove}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
-                  >
+                  <div className="flex">
+                    {/* Contact Names Column - Fixed width within scrollable container */}
+                    <div className="w-48 border-r bg-gray-50 flex-shrink-0">
+                      <div className="h-10 border-b bg-gray-100 flex items-center px-3 sticky top-0 z-20">
+                        <span className="font-medium text-sm">Name</span>
+                      </div>
+                      {contacts.map((contact: any) => (
+                        <div key={contact.id} className="h-16 border-b flex items-center px-3">
+                          <div className="text-sm font-medium truncate">
+                            {contact.firstName} {contact.lastName}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Time Header and Grid */}
+                    <div className="flex-1 min-w-0">
+                      <div 
+                        className="relative select-none"
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                        onMouseLeave={handleMouseUp}
+                      >
                     {/* Time Header */}
                     <div className="sticky top-0 bg-white border-b z-10">
                       <div className="relative w-full h-10">
@@ -1148,6 +1151,8 @@ export default function AvailabilityComparison({
                           </div>
                         );
                       })}
+                    </div>
+                      </div>
                     </div>
                   </div>
                 </div>
