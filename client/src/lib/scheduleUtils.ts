@@ -27,15 +27,6 @@ export function filterEventsBySettings(events: any[], scheduleSettings: any, eve
   
   // Filter events based on enabled types
   return events.filter((event: any) => {
-    // Debug logging
-    console.log('Filtering event:', {
-      event: event,
-      eventType: event.type,
-      eventTypeId: event.eventTypeId,
-      enabledTypes: enabledTypes,
-      availableEventTypes: eventTypes
-    });
-    
     // Check if the event type is enabled
     const eventType = eventTypes.find(et => 
       et.id === event.eventTypeId || 
@@ -44,26 +35,26 @@ export function filterEventsBySettings(events: any[], scheduleSettings: any, eve
     
     if (!eventType) {
       // If event type not found, check by type string directly (case-insensitive)
-      const isEnabled = enabledTypes.some(enabledType => 
-        enabledType.toLowerCase() === event.type.toLowerCase()
+      // Also check normalized form (spaces replaced with underscores)
+      const normalizedEventType = event.type.replace(/_/g, ' ');
+      return enabledTypes.some(enabledType => 
+        enabledType.toLowerCase() === event.type.toLowerCase() ||
+        enabledType.toLowerCase() === normalizedEventType.toLowerCase()
       );
-      console.log('Event type not found in database, checking by string:', { 
-        eventType: event.type, 
-        enabledTypes, 
-        isEnabled 
-      });
-      return isEnabled;
     }
     
     // Check if event type is enabled (using name for system types, id for custom types)
     const typeIdentifier = eventType.isDefault ? eventType.name : eventType.id;
     const isEnabled = enabledTypes.includes(typeIdentifier);
-    console.log('Event type found in database:', { 
-      eventType: eventType, 
-      typeIdentifier, 
-      enabledTypes, 
-      isEnabled 
-    });
+    
+    // If not enabled by exact match, check if the normalized form matches
+    if (!isEnabled) {
+      const normalizedEventType = event.type.replace(/_/g, ' ');
+      return enabledTypes.some(enabledType => 
+        enabledType.toLowerCase() === normalizedEventType.toLowerCase()
+      );
+    }
+    
     return isEnabled;
   });
 }
