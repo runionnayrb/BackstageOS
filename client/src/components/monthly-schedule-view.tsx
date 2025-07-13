@@ -616,7 +616,7 @@ function EventForm({
 
       <div>
         <Label>Participants</Label>
-        <div className="space-y-3 max-h-64 overflow-y-auto border rounded-md p-3">
+        <div className="space-y-3 max-h-80 overflow-y-auto border rounded-md p-3">
           {contacts.length === 0 ? (
             <p className="text-sm text-gray-500">No contacts available</p>
           ) : (
