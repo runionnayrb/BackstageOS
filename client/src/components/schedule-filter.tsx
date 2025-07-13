@@ -139,7 +139,7 @@ export default function ScheduleFilter({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[500px] p-0" align="end">
+      <PopoverContent className="w-96 p-0" align="end">
         <div className="p-4 border-b">
           <div className="flex items-center justify-between mb-3">
             <h4 className="font-semibold flex items-center gap-2">
@@ -158,14 +158,16 @@ export default function ScheduleFilter({
         </div>
 
         <Tabs defaultValue="people" className="w-full">
-          <TabsList className="grid grid-cols-2 mx-4 mb-4 h-9 w-auto max-w-xs">
-            <TabsTrigger value="people" className="h-8 text-sm px-3">
-              People
-            </TabsTrigger>
-            <TabsTrigger value="events" className="h-8 text-sm px-3">
-              Event Types
-            </TabsTrigger>
-          </TabsList>
+          <div className="flex gap-2 mx-4 mb-4">
+            <TabsList className="grid grid-cols-2 h-9 flex-1">
+              <TabsTrigger value="people" className="h-8 text-sm">
+                People
+              </TabsTrigger>
+              <TabsTrigger value="events" className="h-8 text-sm">
+                Event Types
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="people" className="m-0">
             <div className="px-4 pb-4">
