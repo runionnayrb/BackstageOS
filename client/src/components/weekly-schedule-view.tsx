@@ -146,6 +146,12 @@ export default function WeeklyScheduleView({ projectId, onDateClick, currentDate
     queryKey: [`/api/projects/${projectId}/contacts`],
   });
 
+  // Fetch event types for the project
+  const { data: eventTypes = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/event-types`],
+    enabled: !!projectId,
+  });
+
   // Filter events based on selected contact IDs
   const filteredEvents = selectedContactIds.length === 0 
     ? events.filter(event => isShowEvent(event.type) || !event.type) // Show show-wide events and events without type when no filter is applied
@@ -1151,6 +1157,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, currentDate
           <CreateEventForm 
             projectId={projectId}
             contacts={contacts}
+            eventTypes={eventTypes}
             onSubmit={createEventMutation.mutate}
             onCancel={() => setCreateEventDialog({ isOpen: false })}
             defaultValues={createEventDialog}
@@ -1168,6 +1175,7 @@ export default function WeeklyScheduleView({ projectId, onDateClick, currentDate
             <EditEventForm 
               event={editingEvent}
               contacts={contacts}
+              eventTypes={eventTypes}
               onSubmit={(data) => updateEventMutation.mutate({ eventId: editingEvent.id, eventData: data })}
               onDelete={() => deleteEventMutation.mutate(editingEvent.id)}
               onCancel={() => setEditingEvent(null)}
@@ -1213,12 +1221,14 @@ export default function WeeklyScheduleView({ projectId, onDateClick, currentDate
 function CreateEventForm({ 
   projectId, 
   contacts, 
+  eventTypes,
   onSubmit, 
   onCancel, 
   defaultValues 
 }: {
   projectId: number;
   contacts: Contact[];
+  eventTypes: any[];
   onSubmit: (data: any) => void;
   onCancel: () => void;
   defaultValues: any;
@@ -1226,7 +1236,7 @@ function CreateEventForm({
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    type: 'rehearsal',
+    type: eventTypes.length > 0 ? eventTypes[0].name.toLowerCase().replace(/\s+/g, '_') : 'rehearsal',
     date: defaultValues.date || '',
     startTime: defaultValues.startTime || '',
     endTime: defaultValues.endTime || '',
@@ -1268,9 +1278,9 @@ function CreateEventForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {ALL_EVENT_TYPES.map(type => (
-                <SelectItem key={type} value={type}>
-                  {getEventTypeDisplayName(type)}
+              {eventTypes.map((eventType: any) => (
+                <SelectItem key={eventType.id} value={eventType.name.toLowerCase().replace(/\s+/g, '_')}>
+                  {eventType.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -1392,7 +1402,8 @@ function CreateEventForm({
 // Edit Event Form Component
 function EditEventForm({ 
   event, 
-  contacts, 
+  contacts,
+  eventTypes,
   onSubmit, 
   onDelete, 
   onCancel, 
@@ -1400,6 +1411,7 @@ function EditEventForm({
 }: {
   event: ScheduleEvent;
   contacts: Contact[];
+  eventTypes: any[];
   onSubmit: (data: any) => void;
   onDelete: () => void;
   onCancel: () => void;
@@ -1449,9 +1461,9 @@ function EditEventForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {ALL_EVENT_TYPES.map(type => (
-                <SelectItem key={type} value={type}>
-                  {getEventTypeDisplayName(type)}
+              {eventTypes.map((eventType: any) => (
+                <SelectItem key={eventType.id} value={eventType.name.toLowerCase().replace(/\s+/g, '_')}>
+                  {eventType.name}
                 </SelectItem>
               ))}
             </SelectContent>

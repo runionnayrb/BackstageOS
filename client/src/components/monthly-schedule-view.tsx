@@ -127,6 +127,12 @@ export default function MonthlyScheduleView({
     queryKey: [`/api/projects/${projectId}/contacts`],
   });
 
+  // Fetch event types for the project
+  const { data: eventTypes = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/event-types`],
+    enabled: !!projectId,
+  });
+
   // Filter events based on selected contact IDs
   const filteredEvents = selectedContactIds.length === 0 
     ? events.filter(event => isShowEvent(event.type)) // Show only show-wide events when no filter is applied (show schedule)
@@ -406,6 +412,7 @@ export default function MonthlyScheduleView({
               <EventForm
                 projectId={projectId}
                 contacts={contacts}
+                eventTypes={eventTypes}
                 initialDate={createEventDialogData.date}
                 onSubmit={handleCreateEvent}
                 onCancel={() => setCreateEventDialogData({ isOpen: false })}
@@ -444,7 +451,8 @@ export default function MonthlyScheduleView({
 // Event form component (simplified for this implementation)
 function EventForm({ 
   projectId, 
-  contacts, 
+  contacts,
+  eventTypes,
   initialDate, 
   onSubmit, 
   onCancel,
@@ -453,6 +461,7 @@ function EventForm({
 }: {
   projectId: number;
   contacts: Contact[];
+  eventTypes: any[];
   initialDate?: string;
   onSubmit: (data: any) => void;
   onCancel: () => void;
@@ -466,7 +475,7 @@ function EventForm({
     endDate: initialDate || '',
     startTime: '09:00',
     endTime: '10:00',
-    type: 'other',
+    type: eventTypes.length > 0 ? eventTypes[0].name.toLowerCase().replace(/\s+/g, '_') : 'other',
     location: '',
     notes: '',
     isAllDay: false,
@@ -519,11 +528,11 @@ function EventForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="rehearsal">Rehearsal</SelectItem>
-              <SelectItem value="performance">Performance</SelectItem>
-              <SelectItem value="tech">Tech</SelectItem>
-              <SelectItem value="meeting">Meeting</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              {eventTypes.map((eventType: any) => (
+                <SelectItem key={eventType.id} value={eventType.name.toLowerCase().replace(/\s+/g, '_')}>
+                  {eventType.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
