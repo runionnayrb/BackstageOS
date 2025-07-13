@@ -33,6 +33,19 @@ export function filterEventsBySettings(events: any[], scheduleSettings: any, eve
       et.name.toLowerCase() === event.type.toLowerCase()
     );
     
+    // Log details for costume_fitting events specifically
+    if (event.type === 'costume_fitting' || event.type === 'costume fitting' || event.id === 35 || event.id === 19) {
+      console.log('DEBUG: Costume fitting event filtering:', {
+        eventId: event.id,
+        eventTitle: event.title,
+        eventType: event.type,
+        eventDate: event.date,
+        enabledTypes: enabledTypes,
+        foundEventType: eventType,
+        availableEventTypes: eventTypes
+      });
+    }
+    
     // Log details for tech_rehearsal event specifically
     if (event.type === 'tech_rehearsal' || event.id === 34) {
       console.log('DEBUG: Tech rehearsal event filtering:', {
