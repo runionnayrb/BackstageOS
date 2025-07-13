@@ -347,7 +347,7 @@ export default function ScheduleFilter({
                   .map((eventType) => (
                     <div
                       key={eventType.id}
-                      className="flex items-center space-x-3 p-2 rounded bg-white border cursor-pointer hover:bg-gray-50"
+                      className="flex items-center space-x-3 p-2 rounded bg-white cursor-pointer hover:bg-gray-50"
                       onClick={() => handleEventTypeToggle(eventType.name)}
                     >
                       <Checkbox
@@ -409,7 +409,7 @@ export default function ScheduleFilter({
                   .map((eventType) => (
                     <div
                       key={eventType.id}
-                      className="flex items-center space-x-3 p-2 rounded bg-white border cursor-pointer hover:bg-gray-50"
+                      className="flex items-center space-x-3 p-2 rounded bg-white cursor-pointer hover:bg-gray-50"
                       onClick={() => handleIndividualTypeToggle(eventType.name)}
                     >
                       <Checkbox
