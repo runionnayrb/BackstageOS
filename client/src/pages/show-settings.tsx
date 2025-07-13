@@ -151,7 +151,7 @@ export default function ShowSettings() {
   });
 
   const { data: locations = [], refetch: refetchLocations } = useQuery({
-    queryKey: [`/api/projects/${id}/locations`],
+    queryKey: [`/api/projects/${id}/event-locations`],
     enabled: !!id && !!user,
   });
 
@@ -327,9 +327,10 @@ export default function ShowSettings() {
   // Location mutations
   const createLocationMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("POST", `/api/projects/${id}/locations`, data);
+      return await apiRequest("POST", `/api/projects/${id}/event-locations`, data);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/event-locations`] });
       refetchLocations();
       setIsLocationDialogOpen(false);
       setLocationForm({ name: '', address: '', description: '', capacity: '', notes: '' });
