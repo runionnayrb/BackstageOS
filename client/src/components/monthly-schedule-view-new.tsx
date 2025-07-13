@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Plus, Calendar, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
-import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
+import { isShowEvent, getEventTypeDisplayName, getEventTypeColor } from "@/lib/eventUtils";
 import { filterEventsBySettings } from "@/lib/scheduleUtils";
 import EventForm from "@/components/event-form";
 import { apiRequest } from "@/lib/queryClient";
