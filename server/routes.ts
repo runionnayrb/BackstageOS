@@ -3881,8 +3881,7 @@ Respond with valid JSON only.`;
       // Custom validation for updates: only require equity status for cast members
       const rawUpdateData = { ...req.body };
       
-      // Debug logging for updates
-      console.log("Contact update data:", JSON.stringify(rawUpdateData, null, 2));
+
       
       // Handle equity status validation properly for updates
       // Always convert empty strings to null for equityStatus first
@@ -3903,7 +3902,7 @@ Respond with valid JSON only.`;
         }
       });
 
-      console.log("Contact update data after equity status processing:", JSON.stringify(rawUpdateData, null, 2));
+
 
       // Validate the update data using a partial schema (omit required fields for updates)
       const updateContactSchema = insertContactSchema.partial().omit({
