@@ -20,6 +20,7 @@ interface MobileWeeklyScheduleViewProps {
   currentDate?: Date;
   setCurrentDate?: (date: Date) => void;
   selectedContactIds: number[];
+  selectedEventTypes: string[];
   selectedIndividualTypes: string[];
   timeIncrement: 15 | 30 | 60;
   showAllDayEvents?: boolean;
@@ -72,6 +73,7 @@ export default function MobileWeeklyScheduleView({
   currentDate, 
   setCurrentDate, 
   selectedContactIds, 
+  selectedEventTypes,
   selectedIndividualTypes,
   timeIncrement, 
   showAllDayEvents: propShowAllDayEvents,
@@ -120,12 +122,44 @@ export default function MobileWeeklyScheduleView({
   const filteredEvents = (() => {
     let eventsToFilter = events;
     
-    // Apply schedule filtering based on enabled event types
-    eventsToFilter = filterEventsBySettings(eventsToFilter, showSettings?.scheduleSettings, eventTypes, selectedIndividualTypes);
+    // Apply event type filtering based on user selections
+    if (selectedEventTypes.length > 0 || selectedIndividualTypes.length > 0) {
+      eventsToFilter = eventsToFilter.filter(event => {
+        // Normalize event type for comparison
+        const normalizedEventType = event.type.replace(/_/g, ' ').toLowerCase();
+        
+        // Find the event type in the database
+        const eventType = eventTypes.find(et => 
+          et.id === event.eventTypeId || 
+          et.name.toLowerCase() === event.type.toLowerCase() ||
+          et.name.toLowerCase() === normalizedEventType
+        );
+        
+        // Check if this event type is selected in Show Schedule
+        const typeIdentifier = eventType ? (eventType.isDefault ? eventType.name : eventType.id) : event.type;
+        const isSelectedInShowSchedule = selectedEventTypes.includes(typeIdentifier);
+        
+        if (isSelectedInShowSchedule) {
+          return true;
+        } else {
+          // Check if it's selected in Individual Events
+          const eventTypeName = eventType ? eventType.name : event.type;
+          const normalizedEventTypeName = eventTypeName.replace(/_/g, ' ').toLowerCase();
+          
+          return selectedIndividualTypes.some(selectedType => {
+            const normalizedSelectedType = selectedType.replace(/_/g, ' ').toLowerCase();
+            return normalizedSelectedType === eventTypeName.toLowerCase() ||
+                   normalizedSelectedType === event.type.toLowerCase() ||
+                   normalizedSelectedType === normalizedEventType ||
+                   normalizedSelectedType === normalizedEventTypeName;
+          });
+        }
+      });
+    }
     
     // Apply contact filtering
     if (selectedContactIds.length === 0) {
-      // When no contacts are selected, show all events that passed the schedule filtering
+      // When no contacts are selected, show all events that passed the event type filtering
       return eventsToFilter;
     } else {
       return eventsToFilter.filter(event => 

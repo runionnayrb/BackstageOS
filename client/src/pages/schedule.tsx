@@ -261,6 +261,8 @@ export default function Schedule() {
                 onFilterChange={setSelectedContactIds}
                 selectedEventTypes={selectedEventTypes}
                 onEventTypeFilterChange={setSelectedEventTypes}
+                selectedIndividualTypes={selectedIndividualTypes}
+                onIndividualTypeFilterChange={setSelectedIndividualTypes}
               />
               <Button
                 variant="ghost"
@@ -377,6 +379,7 @@ export default function Schedule() {
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
+            selectedEventTypes={selectedEventTypes}
             selectedIndividualTypes={selectedIndividualTypes}
             showAllDayEvents={showAllDayEvents}
             setShowAllDayEvents={setShowAllDayEvents}
@@ -398,6 +401,7 @@ export default function Schedule() {
                 currentDate={currentDate}
                 setCurrentDate={setCurrentDate}
                 selectedContactIds={selectedContactIds}
+                selectedEventTypes={selectedEventTypes}
                 selectedIndividualTypes={selectedIndividualTypes}
                 timeIncrement={timeIncrement}
                 showAllDayEvents={showAllDayEvents}
@@ -414,6 +418,7 @@ export default function Schedule() {
                 currentDate={currentDate}
                 setCurrentDate={setCurrentDate}
                 selectedContactIds={selectedContactIds}
+                selectedEventTypes={selectedEventTypes}
                 selectedIndividualTypes={selectedIndividualTypes}
                 timeIncrement={timeIncrement}
                 showAllDayEvents={showAllDayEvents}
@@ -436,6 +441,7 @@ export default function Schedule() {
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
+            selectedEventTypes={selectedEventTypes}
             selectedIndividualTypes={selectedIndividualTypes}
             createEventDialog={createEventDialog}
             setCreateEventDialog={setCreateEventDialog}

@@ -17,6 +17,7 @@ interface MonthlyScheduleViewProps {
   currentDate: Date;
   setCurrentDate: (date: Date) => void;
   selectedContactIds: number[];
+  selectedEventTypes: string[];
   selectedIndividualTypes: string[];
   showAllDayEvents: boolean;
   setShowAllDayEvents: (show: boolean) => void;
@@ -61,6 +62,7 @@ export default function MonthlyScheduleView({
   currentDate,
   setCurrentDate,
   selectedContactIds,
+  selectedEventTypes,
   selectedIndividualTypes,
   showAllDayEvents,
   setShowAllDayEvents,
@@ -99,8 +101,40 @@ export default function MonthlyScheduleView({
     
     let filteredEvents = events.filter((event: ScheduleEvent) => event.date === dateStr);
     
-    // Apply schedule filtering based on enabled event types
-    filteredEvents = filterEventsBySettings(filteredEvents, settings?.scheduleSettings, eventTypes, selectedIndividualTypes);
+    // Apply event type filtering based on user selections
+    if (selectedEventTypes.length > 0 || selectedIndividualTypes.length > 0) {
+      filteredEvents = filteredEvents.filter(event => {
+        // Normalize event type for comparison
+        const normalizedEventType = event.type.replace(/_/g, ' ').toLowerCase();
+        
+        // Find the event type in the database
+        const eventType = eventTypes.find(et => 
+          et.id === event.eventTypeId || 
+          et.name.toLowerCase() === event.type.toLowerCase() ||
+          et.name.toLowerCase() === normalizedEventType
+        );
+        
+        // Check if this event type is selected in Show Schedule
+        const typeIdentifier = eventType ? (eventType.isDefault ? eventType.name : eventType.id) : event.type;
+        const isSelectedInShowSchedule = selectedEventTypes.includes(typeIdentifier);
+        
+        if (isSelectedInShowSchedule) {
+          return true;
+        } else {
+          // Check if it's selected in Individual Events
+          const eventTypeName = eventType ? eventType.name : event.type;
+          const normalizedEventTypeName = eventTypeName.replace(/_/g, ' ').toLowerCase();
+          
+          return selectedIndividualTypes.some(selectedType => {
+            const normalizedSelectedType = selectedType.replace(/_/g, ' ').toLowerCase();
+            return normalizedSelectedType === eventTypeName.toLowerCase() ||
+                   normalizedSelectedType === event.type.toLowerCase() ||
+                   normalizedSelectedType === normalizedEventType ||
+                   normalizedSelectedType === normalizedEventTypeName;
+          });
+        }
+      });
+    }
     
     if (selectedContactIds.length > 0) {
       filteredEvents = filteredEvents.filter((event: ScheduleEvent) => 
