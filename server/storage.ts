@@ -1348,24 +1348,49 @@ export class DatabaseStorage implements IStorage {
 
   // Event types management
   async getEventTypesByProjectId(projectId: number): Promise<any[]> {
-    // Get custom event types from database
-    const customEventTypes = await db.select().from(eventTypes).where(eq(eventTypes.projectId, projectId));
+    // Get all event types from database for this project
+    const allEventTypes = await db.select().from(eventTypes).where(eq(eventTypes.projectId, projectId));
     
-    // Define default event types that should always be available
-    const defaultEventTypes = [
+    // Define system event types that should be available by default
+    const systemEventTypes = [
       { id: -1, name: 'Rehearsal', description: 'Regular rehearsal sessions', color: '#3b82f6', isDefault: true, projectId },
-      { id: -2, name: 'Tech Rehearsal', description: 'Technical rehearsals with full equipment', color: '#8b5cf6', isDefault: true, projectId },
-      { id: -3, name: 'Preview', description: 'Preview performances', color: '#f97316', isDefault: true, projectId },
-      { id: -4, name: 'Performance', description: 'Live performances', color: '#ef4444', isDefault: true, projectId },
-      { id: -5, name: 'Meeting', description: 'Team meetings and discussions', color: '#10b981', isDefault: true, projectId },
+      { id: -2, name: 'Tech Rehearsal', description: 'Technical rehearsals with full equipment', color: '#f97316', isDefault: true, projectId },
+      { id: -3, name: 'Preview', description: 'Preview performances', color: '#eab308', isDefault: true, projectId },
+      { id: -4, name: 'Performance', description: 'Live performances', color: '#10b981', isDefault: true, projectId },
+      { id: -5, name: 'Meeting', description: 'Team meetings and discussions', color: '#8b5cf6', isDefault: true, projectId },
       { id: -6, name: 'Costume Fitting', description: 'Costume fittings and adjustments', color: '#ec4899', isDefault: true, projectId },
-      { id: -7, name: 'Wig Fitting', description: 'Wig fittings and styling', color: '#eab308', isDefault: true, projectId },
-      { id: -8, name: 'Hair and Make-Up', description: 'Hair and makeup sessions', color: '#6366f1', isDefault: true, projectId },
-      { id: -9, name: 'Vocal Coaching', description: 'Vocal coaching sessions', color: '#14b8a6', isDefault: true, projectId }
+      { id: -7, name: 'Wig Fitting', description: 'Wig fittings and styling', color: '#6366f1', isDefault: true, projectId },
+      { id: -8, name: 'Hair and Make-Up', description: 'Hair and makeup sessions', color: '#14b8a6', isDefault: true, projectId },
+      { id: -9, name: 'Vocal Coaching', description: 'Vocal coaching sessions', color: '#ef4444', isDefault: true, projectId }
     ];
     
-    // Combine default and custom event types
-    return [...defaultEventTypes, ...customEventTypes];
+    // Create a map of system event types that have been customized or hidden
+    const customizedSystemTypes = new Map();
+    const customEventTypes = [];
+    
+    allEventTypes.forEach(eventType => {
+      if (eventType.isDefault) {
+        // This is a customized system event type (overrides the default)
+        customizedSystemTypes.set(eventType.id, eventType);
+      } else {
+        // This is a completely custom event type
+        customEventTypes.push(eventType);
+      }
+    });
+    
+    // Filter system event types, replacing with customized versions where they exist
+    const activeSystemEventTypes = systemEventTypes
+      .map(systemType => {
+        const customized = customizedSystemTypes.get(systemType.id);
+        return customized || systemType;
+      })
+      .filter(eventType => {
+        // Filter out system types that have been explicitly hidden (marked with name starting with 'HIDDEN_')
+        return !eventType.name?.startsWith('HIDDEN_');
+      });
+    
+    // Combine active system event types and custom event types
+    return [...activeSystemEventTypes, ...customEventTypes];
   }
 
   async createEventType(eventType: any): Promise<any> {
@@ -1374,15 +1399,90 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateEventType(eventTypeId: number, updates: any): Promise<any> {
-    const result = await db.update(eventTypes)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(eventTypes.id, eventTypeId))
-      .returning();
-    return result[0];
+    // If updating a system event type (negative ID), create a custom override
+    if (eventTypeId < 0) {
+      // Check if an override already exists
+      const existingOverride = await db.select()
+        .from(eventTypes)
+        .where(eq(eventTypes.id, eventTypeId))
+        .limit(1);
+      
+      if (existingOverride.length > 0) {
+        // Update existing override
+        const result = await db.update(eventTypes)
+          .set({ ...updates, updatedAt: new Date() })
+          .where(eq(eventTypes.id, eventTypeId))
+          .returning();
+        return result[0];
+      } else {
+        // Create new override for system event type
+        const overrideData = {
+          id: eventTypeId, // Keep the negative ID to override the system type
+          projectId: updates.projectId,
+          isDefault: true, // Mark as system type override
+          ...updates,
+        };
+        const result = await db.insert(eventTypes).values(overrideData).returning();
+        return result[0];
+      }
+    } else {
+      // Regular custom event type update
+      const result = await db.update(eventTypes)
+        .set({ ...updates, updatedAt: new Date() })
+        .where(eq(eventTypes.id, eventTypeId))
+        .returning();
+      return result[0];
+    }
   }
 
-  async deleteEventType(eventTypeId: number): Promise<void> {
-    await db.delete(eventTypes).where(eq(eventTypes.id, eventTypeId));
+  async deleteEventType(eventTypeId: number, projectId?: number, userId?: number): Promise<void> {
+    // If deleting a system event type (negative ID), create a hidden override
+    if (eventTypeId < 0) {
+      // Check if an override already exists
+      const existingOverride = await db.select()
+        .from(eventTypes)
+        .where(eq(eventTypes.id, eventTypeId))
+        .limit(1);
+      
+      if (existingOverride.length > 0) {
+        // Update existing override to hide it
+        await db.update(eventTypes)
+          .set({ 
+            name: `HIDDEN_${existingOverride[0].name}`,
+            updatedAt: new Date() 
+          })
+          .where(eq(eventTypes.id, eventTypeId));
+      } else {
+        // Create new hidden override for system event type
+        const systemEventTypes = [
+          { id: -1, name: 'Rehearsal', projectId: 0 },
+          { id: -2, name: 'Tech Rehearsal', projectId: 0 },
+          { id: -3, name: 'Preview', projectId: 0 },
+          { id: -4, name: 'Performance', projectId: 0 },
+          { id: -5, name: 'Meeting', projectId: 0 },
+          { id: -6, name: 'Costume Fitting', projectId: 0 },
+          { id: -7, name: 'Wig Fitting', projectId: 0 },
+          { id: -8, name: 'Hair and Make-Up', projectId: 0 },
+          { id: -9, name: 'Vocal Coaching', projectId: 0 }
+        ];
+        
+        const systemType = systemEventTypes.find(st => st.id === eventTypeId);
+        if (systemType) {
+          // We need the projectId, which should be passed from the route
+          // For now, we'll create a record to mark it as hidden
+          await db.insert(eventTypes).values({
+            id: eventTypeId,
+            projectId: projectId || 1,
+            name: `HIDDEN_${systemType.name}`,
+            isDefault: true,
+            createdBy: userId || 2
+          });
+        }
+      }
+    } else {
+      // Regular custom event type deletion
+      await db.delete(eventTypes).where(eq(eventTypes.id, eventTypeId));
+    }
   }
 
   // Error Clustering Methods

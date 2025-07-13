@@ -304,7 +304,9 @@ export default function ShowSettings() {
 
   const deleteEventTypeMutation = useMutation({
     mutationFn: async (eventTypeId: number) => {
-      return await apiRequest("DELETE", `/api/event-types/${eventTypeId}`);
+      // For system event types (negative IDs), pass projectId in request body
+      const body = eventTypeId < 0 ? { projectId: parseInt(id!) } : {};
+      return await apiRequest("DELETE", `/api/event-types/${eventTypeId}`, body);
     },
     onSuccess: () => {
       refetchEventTypes();
@@ -1325,41 +1327,42 @@ export default function ShowSettings() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        {!eventType.isDefault && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditEventType(eventType)}
-                            >
-                              <Edit3 className="h-4 w-4" />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditEventType(eventType)}
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <Trash2 className="h-4 w-4" />
                             </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Event Type</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete "{eventType.name}"? This action cannot be undone.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDeleteEventType(eventType.id)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
-                                    Delete
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </>
-                        )}
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {eventType.isDefault ? 'Remove System Event Type' : 'Delete Event Type'}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {eventType.isDefault 
+                                  ? `Are you sure you want to remove "${eventType.name}" from this show? You can add it back later by creating a custom event type with the same name.`
+                                  : `Are you sure you want to delete "${eventType.name}"? This action cannot be undone.`
+                                }
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteEventType(eventType.id)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {eventType.isDefault ? 'Remove' : 'Delete'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   ))

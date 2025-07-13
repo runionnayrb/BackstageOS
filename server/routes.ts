@@ -4311,6 +4311,12 @@ Respond with valid JSON only.`;
     try {
       const eventTypeId = parseInt(req.params.id);
       const eventTypeData = insertEventTypeSchema.partial().parse(req.body);
+      
+      // For system event types, ensure createdBy is included
+      if (eventTypeId < 0) {
+        eventTypeData.createdBy = req.user?.id;
+      }
+      
       const updatedEventType = await storage.updateEventType(eventTypeId, eventTypeData);
       res.json(updatedEventType);
     } catch (error) {
@@ -4325,7 +4331,10 @@ Respond with valid JSON only.`;
   app.delete('/api/event-types/:id', isAuthenticated, async (req: any, res) => {
     try {
       const eventTypeId = parseInt(req.params.id);
-      await storage.deleteEventType(eventTypeId);
+      const { projectId } = req.body; // Pass projectId in request body for system event types
+      const userId = req.user?.id;
+      
+      await storage.deleteEventType(eventTypeId, projectId, userId);
       res.json({ message: "Event type deleted successfully" });
     } catch (error) {
       console.error("Error deleting event type:", error);
