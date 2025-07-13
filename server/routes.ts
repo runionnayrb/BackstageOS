@@ -4359,9 +4359,13 @@ Respond with valid JSON only.`;
       const eventTypeId = parseInt(req.params.id);
       const eventTypeData = insertEventTypeSchema.partial().parse(req.body);
       
-      // For system event types, ensure createdBy is included
+      // For system event types, ensure createdBy and projectId are included
       if (eventTypeId < 0) {
         eventTypeData.createdBy = req.user?.id;
+        // System event types need projectId to create override records
+        if (!eventTypeData.projectId) {
+          return res.status(400).json({ message: "Project ID is required for system event type updates" });
+        }
       }
       
       const updatedEventType = await storage.updateEventType(eventTypeId, eventTypeData);

@@ -1410,17 +1410,23 @@ export class DatabaseStorage implements IStorage {
   async updateEventType(eventTypeId: number, updates: any): Promise<any> {
     // If updating a system event type (negative ID), create a custom override
     if (eventTypeId < 0) {
-      // Check if an override already exists
+      // Check if an override already exists for this project
       const existingOverride = await db.select()
         .from(eventTypes)
-        .where(eq(eventTypes.id, eventTypeId))
+        .where(and(
+          eq(eventTypes.id, eventTypeId),
+          eq(eventTypes.projectId, updates.projectId)
+        ))
         .limit(1);
       
       if (existingOverride.length > 0) {
         // Update existing override
         const result = await db.update(eventTypes)
           .set({ ...updates, updatedAt: new Date() })
-          .where(eq(eventTypes.id, eventTypeId))
+          .where(and(
+            eq(eventTypes.id, eventTypeId),
+            eq(eventTypes.projectId, updates.projectId)
+          ))
           .returning();
         return result[0];
       } else {
@@ -1429,6 +1435,7 @@ export class DatabaseStorage implements IStorage {
           id: eventTypeId, // Keep the negative ID to override the system type
           projectId: updates.projectId,
           isDefault: true, // Mark as system type override
+          createdBy: updates.createdBy || 2,
           ...updates,
         };
         const result = await db.insert(eventTypes).values(overrideData).returning();
@@ -1447,10 +1454,17 @@ export class DatabaseStorage implements IStorage {
   async deleteEventType(eventTypeId: number, projectId?: number, userId?: number): Promise<void> {
     // If deleting a system event type (negative ID), create a hidden override
     if (eventTypeId < 0) {
-      // Check if an override already exists
+      if (!projectId) {
+        throw new Error('Project ID is required for system event type deletion');
+      }
+      
+      // Check if an override already exists for this project
       const existingOverride = await db.select()
         .from(eventTypes)
-        .where(eq(eventTypes.id, eventTypeId))
+        .where(and(
+          eq(eventTypes.id, eventTypeId),
+          eq(eventTypes.projectId, projectId)
+        ))
         .limit(1);
       
       if (existingOverride.length > 0) {
@@ -1460,29 +1474,30 @@ export class DatabaseStorage implements IStorage {
             name: `HIDDEN_${existingOverride[0].name}`,
             updatedAt: new Date() 
           })
-          .where(eq(eventTypes.id, eventTypeId));
+          .where(and(
+            eq(eventTypes.id, eventTypeId),
+            eq(eventTypes.projectId, projectId)
+          ));
       } else {
         // Create new hidden override for system event type
         const systemEventTypes = [
-          { id: -1, name: 'Rehearsal', projectId: 0 },
-          { id: -2, name: 'Tech Rehearsal', projectId: 0 },
-          { id: -3, name: 'Preview', projectId: 0 },
-          { id: -4, name: 'Performance', projectId: 0 },
-          { id: -5, name: 'Meeting', projectId: 0 },
-          { id: -6, name: 'Costume Fitting', projectId: 0 },
-          { id: -7, name: 'Wig Fitting', projectId: 0 },
-          { id: -8, name: 'Hair and Make-Up', projectId: 0 },
-          { id: -9, name: 'Vocal Coaching', projectId: 0 },
-          { id: -10, name: 'DARK', projectId: 0 }
+          { id: -1, name: 'Rehearsal' },
+          { id: -2, name: 'Tech Rehearsal' },
+          { id: -3, name: 'Preview' },
+          { id: -4, name: 'Performance' },
+          { id: -5, name: 'Meeting' },
+          { id: -6, name: 'Costume Fitting' },
+          { id: -7, name: 'Wig Fitting' },
+          { id: -8, name: 'Hair and Make-Up' },
+          { id: -9, name: 'Vocal Coaching' },
+          { id: -10, name: 'DARK' }
         ];
         
         const systemType = systemEventTypes.find(st => st.id === eventTypeId);
         if (systemType) {
-          // We need the projectId, which should be passed from the route
-          // For now, we'll create a record to mark it as hidden
           await db.insert(eventTypes).values({
             id: eventTypeId,
-            projectId: projectId || 1,
+            projectId: projectId,
             name: `HIDDEN_${systemType.name}`,
             isDefault: true,
             createdBy: userId || 2

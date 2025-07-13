@@ -281,7 +281,9 @@ export default function ShowSettings() {
 
   const updateEventTypeMutation = useMutation({
     mutationFn: async ({ id: eventTypeId, data }: { id: number; data: any }) => {
-      return await apiRequest("PUT", `/api/event-types/${eventTypeId}`, data);
+      // For system event types (negative IDs), include projectId in the data
+      const updateData = eventTypeId < 0 ? { ...data, projectId: parseInt(id!) } : data;
+      return await apiRequest("PUT", `/api/event-types/${eventTypeId}`, updateData);
     },
     onSuccess: () => {
       refetchEventTypes();
