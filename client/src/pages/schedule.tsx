@@ -482,6 +482,12 @@ export default function Schedule() {
                 onCancel={() => setCreateEventDialog(false)}
                 timeFormat={settings?.scheduleSettings?.timeFormat || '12'}
                 showButtons={false}
+                initialValues={{
+                  startDate: createEventData.date,
+                  endDate: createEventData.date,
+                  startTime: createEventData.startTime,
+                  endTime: createEventData.endTime,
+                }}
               />
             </div>
             
