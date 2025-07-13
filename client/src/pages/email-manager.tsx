@@ -400,8 +400,8 @@ export default function EmailManager() {
               </Button>
             </div>
             
-            {/* Account Selector */}
-            <div className="mb-4">
+            {/* Account Selector - Hidden on desktop per user request */}
+            <div className="mb-4 md:hidden">
               <div className="flex items-center justify-between mb-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
