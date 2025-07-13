@@ -260,7 +260,7 @@ export default function ScheduleFilter({
               {sortedCategories.map((category) => (
                 <div key={category} className="mb-4">
                   <div className="px-2 py-1 text-sm font-medium text-gray-600 border-b">
-                    {category}
+                    {category.replace(/_/g, ' ').toUpperCase()}
                   </div>
                   <div className="space-y-1 mt-2">
                     {contactsByCategory[category].map((contact) => (
