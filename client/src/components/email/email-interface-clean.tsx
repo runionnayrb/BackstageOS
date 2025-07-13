@@ -558,16 +558,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 </span>
               </div>
             ) : (
-              <div className="flex items-center gap-3 w-full">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-3 w-3 md:h-4 md:w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-7 md:pl-10 w-full text-sm h-7 md:h-10 border-gray-300"
-                  />
-                </div>
+              <div className="flex items-center justify-end w-full">
                 <Button
                   variant="ghost"
                   size="sm"
