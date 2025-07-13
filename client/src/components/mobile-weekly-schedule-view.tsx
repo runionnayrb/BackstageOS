@@ -123,7 +123,10 @@ export default function MobileWeeklyScheduleView({
     let eventsToFilter = events;
     
     // Apply event type filtering based on user selections
-    if (selectedEventTypes.length > 0 || selectedIndividualTypes.length > 0) {
+    // If no event types are selected at all, show no events
+    if (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
+      eventsToFilter = [];
+    } else {
       eventsToFilter = eventsToFilter.filter(event => {
         // Normalize event type for comparison
         const normalizedEventType = event.type.replace(/_/g, ' ').toLowerCase();

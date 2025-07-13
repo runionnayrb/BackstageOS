@@ -102,7 +102,10 @@ export default function MonthlyScheduleView({
     let filteredEvents = events.filter((event: ScheduleEvent) => event.date === dateStr);
     
     // Apply event type filtering based on user selections
-    if (selectedEventTypes.length > 0 || selectedIndividualTypes.length > 0) {
+    // If no event types are selected at all, show no events
+    if (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
+      filteredEvents = [];
+    } else {
       filteredEvents = filteredEvents.filter(event => {
         // Normalize event type for comparison
         const normalizedEventType = event.type.replace(/_/g, ' ').toLowerCase();
