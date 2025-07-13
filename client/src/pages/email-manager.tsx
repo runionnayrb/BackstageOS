@@ -733,30 +733,28 @@ export default function EmailManager() {
               </CardContent>
             </Card>
           ) : selectedAccount && !showSharedInboxes ? (
-            <div className={`flex h-full ${showCompose ? "gap-4" : ""}`}>
-              {/* Email Interface - Left side when composing, full width when not */}
-              <div className={`${showCompose ? "flex-1 min-w-0" : "w-full"}`}>
-                <EmailInterface 
-                  selectedAccount={selectedAccount} 
-                  onBack={() => setSelectedAccount(null)}
-                  showCompose={showCompose}
-                  onShowComposeChange={(show) => {
-                    setShowCompose(show);
-                    if (!show) {
-                      // Clear recipient email when closing compose
-                      setComposeToEmail('');
-                    }
-                  }}
-                  activeFolder={activeFolder}
-                  showTheaterFeatures={showTheaterFeatures}
-                  onShowTheaterFeaturesChange={setShowTheaterFeatures}
-                  composeToEmail={composeToEmail}
-                />
-              </div>
+            <div className="relative h-full">
+              {/* Email Interface - Always full width, unchanged */}
+              <EmailInterface 
+                selectedAccount={selectedAccount} 
+                onBack={() => setSelectedAccount(null)}
+                showCompose={showCompose}
+                onShowComposeChange={(show) => {
+                  setShowCompose(show);
+                  if (!show) {
+                    // Clear recipient email when closing compose
+                    setComposeToEmail('');
+                  }
+                }}
+                activeFolder={activeFolder}
+                showTheaterFeatures={showTheaterFeatures}
+                onShowTheaterFeaturesChange={setShowTheaterFeatures}
+                composeToEmail={composeToEmail}
+              />
               
-              {/* Compose Window - Right side, wider */}
+              {/* Compose Window - Overlay on top, right side */}
               {showCompose && (
-                <div className="w-[600px] flex-shrink-0">
+                <div className="absolute top-0 right-0 bottom-0 w-[600px] bg-white border-l border-gray-200 shadow-lg z-10">
                   <InlineEmailComposer
                     isOpen={showCompose}
                     onClose={() => setShowCompose(false)}
