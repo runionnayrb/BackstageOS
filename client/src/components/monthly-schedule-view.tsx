@@ -502,6 +502,7 @@ function EventForm({
       location: formData.location?.trim() || undefined,
       description: formData.description?.trim() || undefined,
       notes: formData.notes?.trim() || undefined,
+      participants: formData.participantIds, // Map participantIds to participants for backend
     };
     onSubmit(cleanedData);
   };
@@ -611,6 +612,40 @@ function EventForm({
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
         />
+      </div>
+
+      <div>
+        <Label>Participants</Label>
+        <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-3">
+          {contacts.length === 0 ? (
+            <p className="text-sm text-gray-500">No contacts available</p>
+          ) : (
+            contacts.map(contact => (
+              <div key={contact.id} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`contact-${contact.id}`}
+                  checked={formData.participantIds.includes(contact.id)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setFormData({
+                        ...formData,
+                        participantIds: [...formData.participantIds, contact.id],
+                      });
+                    } else {
+                      setFormData({
+                        ...formData,
+                        participantIds: formData.participantIds.filter(id => id !== contact.id),
+                      });
+                    }
+                  }}
+                />
+                <Label htmlFor={`contact-${contact.id}`} className="text-sm">
+                  {contact.firstName} {contact.lastName} ({contact.role || contact.category})
+                </Label>
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {showButtons && (
