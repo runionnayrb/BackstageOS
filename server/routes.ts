@@ -3885,14 +3885,14 @@ Respond with valid JSON only.`;
       console.log("Contact update data:", JSON.stringify(rawUpdateData, null, 2));
       
       // Handle equity status validation properly for updates
-      if (rawUpdateData.category && rawUpdateData.category !== 'cast') {
-        // For non-cast contacts, set equity status to null
+      // Always convert empty strings to null for equityStatus first
+      if (rawUpdateData.equityStatus === "" || rawUpdateData.equityStatus === undefined) {
         rawUpdateData.equityStatus = null;
-      } else if (rawUpdateData.category === 'cast') {
-        // For cast contacts, convert empty string to null
-        if (rawUpdateData.equityStatus === "" || rawUpdateData.equityStatus === undefined) {
-          rawUpdateData.equityStatus = null;
-        }
+      }
+      
+      // For updates, if category is provided and it's not cast, ensure equityStatus is null
+      if (rawUpdateData.category && rawUpdateData.category !== 'cast') {
+        rawUpdateData.equityStatus = null;
       }
 
       // Convert empty strings to null for optional fields to prevent validation issues
