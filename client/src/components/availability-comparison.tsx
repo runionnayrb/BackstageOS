@@ -56,7 +56,6 @@ export default function AvailabilityComparison({
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const selectedItemsRef = useRef<Set<number>>(new Set());
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -130,13 +129,6 @@ export default function AvailabilityComparison({
   const contacts = filteredContacts.sort((a: any, b: any) => 
     `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
   );
-
-
-
-  // Debug logging
-  console.log('Team Availability Debug:');
-  console.log('Contacts count:', contacts.length);
-  console.log('First few contacts:', contacts.slice(0, 3).map((c: any) => `${c.firstName} ${c.lastName}`));
 
   // Filter functions
   const toggleContactType = (type: string) => {
@@ -940,7 +932,6 @@ export default function AvailabilityComparison({
           <div 
             className="flex-1 flex overflow-hidden focus:outline-none" 
             tabIndex={0}
-            style={{ height: 'calc(100vh - 12rem)' }}
           >
             {isLoading ? (
               <div className="flex-1 flex items-center justify-center">
@@ -952,8 +943,8 @@ export default function AvailabilityComparison({
             ) : (
               <>
                 {/* Contact Names Column */}
-                <div className="w-48 border-r bg-gray-50 overflow-y-auto" style={{ height: 'calc(100vh - 12rem)' }}>
-                  <div className="h-10 border-b bg-gray-100 flex items-center px-3 sticky top-0">
+                <div className="w-48 border-r bg-gray-50">
+                  <div className="h-10 border-b bg-gray-100 flex items-center px-3">
                     <span className="font-medium text-sm">Name</span>
                   </div>
                   {contacts.map((contact: any) => (
@@ -966,7 +957,7 @@ export default function AvailabilityComparison({
                 </div>
 
                 {/* Time Header and Grid */}
-                <div className="flex-1 overflow-auto" style={{ height: 'calc(100vh - 12rem)' }}>
+                <div className="flex-1 overflow-auto">
                   <div 
                     className="relative select-none"
                     onMouseMove={handleMouseMove}
