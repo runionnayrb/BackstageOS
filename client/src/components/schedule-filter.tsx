@@ -101,6 +101,22 @@ export default function ScheduleFilter({
     onFilterChange([]);
   };
 
+  const handleSelectCategoryAll = (category: string) => {
+    const categoryContactIds = contactsByCategory[category]?.map(contact => contact.id) || [];
+    const otherContactIds = selectedContactIds.filter(id => 
+      !contactsByCategory[category]?.some(contact => contact.id === id)
+    );
+    onFilterChange([...otherContactIds, ...categoryContactIds]);
+  };
+
+  const handleSelectCategoryNone = (category: string) => {
+    const categoryContactIds = contactsByCategory[category]?.map(contact => contact.id) || [];
+    const remainingContactIds = selectedContactIds.filter(id => 
+      !categoryContactIds.includes(id)
+    );
+    onFilterChange(remainingContactIds);
+  };
+
   // Event type filtering functions
   const handleEventTypeToggle = (eventTypeName: string) => {
     const currentSelection = selectedEventTypes || [];
@@ -227,26 +243,7 @@ export default function ScheduleFilter({
           </div>
 
           <TabsContent value="people" className="m-0">
-            <div className="px-4 pb-4">
-              <div className="flex justify-end gap-2 mb-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleSelectAll}
-                  className="text-xs px-2 py-1 h-6"
-                >
-                  All
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearAll}
-                  className="text-xs px-2 py-1 h-6"
-                >
-                  None
-                </Button>
-              </div>
-            </div>
+
 
             <div className="max-h-96 overflow-y-auto">
           {contacts.length === 0 ? (
@@ -259,8 +256,26 @@ export default function ScheduleFilter({
             <div className="p-2">
               {sortedCategories.map((category) => (
                 <div key={category} className="mb-4">
-                  <div className="px-2 py-1 text-sm font-medium text-gray-600 border-b">
-                    {category.replace(/_/g, ' ').toUpperCase()}
+                  <div className="flex items-center justify-between px-2 py-1 text-sm font-medium text-gray-600 border-b">
+                    <span>{category.replace(/_/g, ' ').toUpperCase()}</span>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSelectCategoryAll(category)}
+                        className="text-xs px-2 py-1 h-5"
+                      >
+                        All
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSelectCategoryNone(category)}
+                        className="text-xs px-2 py-1 h-5"
+                      >
+                        None
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-1 mt-2">
                     {contactsByCategory[category].map((contact) => (
