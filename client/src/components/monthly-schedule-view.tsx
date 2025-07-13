@@ -669,7 +669,7 @@ function EventForm({
                         }}
                       />
                       <Label htmlFor={`category-${category}`} className="text-sm font-semibold">
-                        {category}
+                        {category.replace(/_/g, ' ').toUpperCase()}
                       </Label>
                     </div>
 
