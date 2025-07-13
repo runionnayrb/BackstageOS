@@ -149,7 +149,6 @@ export default function LocationSelect({ projectId, value, onValueChange, eventD
 
   return (
     <div className="space-y-2">
-      <Label>Location</Label>
       <div className="flex gap-2">
         <div className="flex-1">
           <Select value={value || ""} onValueChange={onValueChange} disabled={isLoading}>
@@ -164,16 +163,17 @@ export default function LocationSelect({ projectId, value, onValueChange, eventD
                     key={location.id} 
                     value={location.name}
                     disabled={unavailable}
+                    className="text-foreground"
                   >
                     <div className={`flex items-center gap-2 ${unavailable ? 'opacity-50' : ''}`}>
-                      <MapPin className="h-4 w-4" />
+                      <MapPin className="h-4 w-4 text-foreground" />
                       <div className="flex flex-col">
-                        <span>{location.name}</span>
+                        <span className="text-foreground">{location.name}</span>
                         {unavailable && (
                           <span className="text-xs text-red-500">Space unavailable at this time</span>
                         )}
                         {location.address && !unavailable && (
-                          <span className="text-xs text-gray-500">({location.address})</span>
+                          <span className="text-xs text-muted-foreground">({location.address})</span>
                         )}
                       </div>
                     </div>
@@ -181,7 +181,7 @@ export default function LocationSelect({ projectId, value, onValueChange, eventD
                 );
               })}
               {locations.length === 0 && !isLoading && (
-                <SelectItem value="no-locations" disabled>
+                <SelectItem value="no-locations" disabled className="text-muted-foreground">
                   No locations available
                 </SelectItem>
               )}

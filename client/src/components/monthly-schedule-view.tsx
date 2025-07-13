@@ -597,14 +597,17 @@ function EventForm({
         <Label htmlFor="isAllDay">All Day Event</Label>
       </div>
 
-      <LocationSelect
-        projectId={projectId}
-        value={formData.location}
-        onValueChange={(value) => setFormData({ ...formData, location: value })}
-        eventDate={formData.date}
-        startTime={formData.startTime}
-        endTime={formData.endTime}
-      />
+      <div>
+        <Label>Location</Label>
+        <LocationSelect
+          projectId={projectId}
+          value={formData.location}
+          onValueChange={(value) => setFormData({ ...formData, location: value })}
+          eventDate={formData.date}
+          startTime={formData.startTime}
+          endTime={formData.endTime}
+        />
+      </div>
 
       <div>
         <Label htmlFor="description">Description</Label>
