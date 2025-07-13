@@ -47,13 +47,7 @@ export default function LocationSelect({ projectId, value, onValueChange, eventD
     queryKey: [`/api/projects/${projectId}/event-locations`],
   });
 
-  // Debug logging
-  console.log('LocationSelect Debug:', { 
-    locations, 
-    isLoading, 
-    locationsLength: locations.length,
-    firstLocation: locations[0] 
-  });
+
 
   // Fetch location availability if we have date and time info
   const { data: locationAvailability = [] } = useQuery({
