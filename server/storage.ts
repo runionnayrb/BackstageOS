@@ -863,6 +863,7 @@ export class DatabaseStorage implements IStorage {
     })
     .from(errorLogs)
     .leftJoin(users, eq(errorLogs.userId, sql`${users.id}::text`))
+    .where(eq(errorLogs.isResolved, false))
     .orderBy(desc(errorLogs.createdAt));
     return result as ErrorLog[];
   }
