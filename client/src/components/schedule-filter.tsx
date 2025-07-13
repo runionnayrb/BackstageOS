@@ -228,22 +228,22 @@ export default function ScheduleFilter({
 
           <TabsContent value="people" className="m-0">
             <div className="px-4 pb-4">
-              <div className="flex gap-2 mb-4">
+              <div className="flex justify-end gap-2 mb-4">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleSelectAll}
-                  className="flex-1"
+                  className="text-xs px-2 py-1 h-6"
                 >
-                  Select All
+                  All
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleClearAll}
-                  className="flex-1"
+                  className="text-xs px-2 py-1 h-6"
                 >
-                  Clear All
+                  None
                 </Button>
               </div>
             </div>
