@@ -151,71 +151,86 @@ export default function LocationSelect({ projectId, value, onValueChange, eventD
 
   return (
     <div className="space-y-2">
-      <div className="flex gap-2">
-        <div className="flex-1">
-          <Select value={value || ""} onValueChange={onValueChange} disabled={isLoading}>
-            <SelectTrigger>
-              <SelectValue placeholder={isLoading ? "Loading locations..." : "Select a location"} />
-            </SelectTrigger>
-            <SelectContent>
-              {locations.map((location: EventLocation) => {
-                const unavailable = isLocationUnavailable(location.id);
-                return (
-                  <SelectItem 
-                    key={location.id} 
-                    value={location.name}
-                    disabled={unavailable}
-                  >
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '8px',
-                      opacity: unavailable ? 0.5 : 1
-                    }}>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div>
+        <Select 
+          value={value || ""} 
+          onValueChange={(newValue) => {
+            if (newValue === "__new_location__") {
+              setIsCreateOpen(true);
+            } else {
+              onValueChange(newValue);
+            }
+          }} 
+          disabled={isLoading}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder={isLoading ? "Loading locations..." : "Select a location"} />
+          </SelectTrigger>
+          <SelectContent>
+            {locations.map((location: EventLocation) => {
+              const unavailable = isLocationUnavailable(location.id);
+              return (
+                <SelectItem 
+                  key={location.id} 
+                  value={location.name}
+                  disabled={unavailable}
+                >
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px',
+                    opacity: unavailable ? 0.5 : 1
+                  }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      <div style={{ 
+                        color: '#000000', 
+                        fontWeight: '500',
+                        fontSize: '14px',
+                        fontFamily: 'system-ui, -apple-system, sans-serif'
+                      }}>{location.name}</div>
+                      {unavailable && (
                         <div style={{ 
-                          color: '#000000', 
-                          fontWeight: '500',
-                          fontSize: '14px',
+                          color: '#ef4444', 
+                          fontSize: '12px',
                           fontFamily: 'system-ui, -apple-system, sans-serif'
-                        }}>{location.name}</div>
-                        {unavailable && (
-                          <div style={{ 
-                            color: '#ef4444', 
-                            fontSize: '12px',
-                            fontFamily: 'system-ui, -apple-system, sans-serif'
-                          }}>Space unavailable at this time</div>
-                        )}
-                        {location.address && !unavailable && (
-                          <div style={{ 
-                            color: '#666666', 
-                            fontSize: '12px',
-                            fontFamily: 'system-ui, -apple-system, sans-serif'
-                          }}>({location.address})</div>
-                        )}
-                      </div>
+                        }}>Space unavailable at this time</div>
+                      )}
+                      {location.address && !unavailable && (
+                        <div style={{ 
+                          color: '#666666', 
+                          fontSize: '12px',
+                          fontFamily: 'system-ui, -apple-system, sans-serif'
+                        }}>({location.address})</div>
+                      )}
                     </div>
-                  </SelectItem>
-                );
-              })}
-              {locations.length === 0 && !isLoading && (
-                <SelectItem value="no-locations" disabled>
-                  <div style={{ color: '#666666', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                    No locations available
                   </div>
                 </SelectItem>
-              )}
-            </SelectContent>
-          </Select>
-        </div>
+              );
+            })}
+            {locations.length === 0 && !isLoading && (
+              <SelectItem value="no-locations" disabled>
+                <div style={{ color: '#666666', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                  No locations available
+                </div>
+              </SelectItem>
+            )}
+            <SelectItem value="__new_location__">
+              <div className="flex items-center gap-2" style={{ 
+                color: '#2563eb', 
+                fontWeight: '500',
+                fontSize: '14px',
+                fontFamily: 'system-ui, -apple-system, sans-serif'
+              }}>
+                <Plus className="h-4 w-4" />
+                <span>New Location</span>
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
         
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Add New Location</DialogTitle>
             </DialogHeader>
