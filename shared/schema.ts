@@ -1648,7 +1648,7 @@ export const insertContactSchema = createInsertSchema(contacts).omit({
   updatedAt: true,
 }).extend({
   castTypes: z.array(z.string()).optional(),
-  equityStatus: z.enum(["equity", "non-equity"]).optional(),
+  equityStatus: z.enum(["equity", "non-equity"]).nullable().optional(),
 });
 
 export const insertContactAvailabilitySchema = createInsertSchema(contactAvailability).omit({
