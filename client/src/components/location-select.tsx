@@ -171,33 +171,33 @@ export default function LocationSelect({ projectId, value, onValueChange, eventD
                     key={location.id} 
                     value={location.name}
                     disabled={unavailable}
-                    className="location-select-item"
                   >
-                    <div className={`flex items-center gap-2 ${unavailable ? 'opacity-50' : ''}`}>
-                      <MapPin className="h-4 w-4" style={{ color: '#666666' }} />
-                      <div className="flex flex-col">
-                        <span style={{ 
+                    <div style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '8px',
+                      opacity: unavailable ? 0.5 : 1
+                    }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ 
                           color: '#000000', 
                           fontWeight: '500',
                           fontSize: '14px',
-                          lineHeight: '1.4',
-                          display: 'block',
-                          backgroundColor: 'white',
-                          textShadow: '0 0 1px rgba(0,0,0,0.5)'
-                        }}>{location.name}</span>
+                          fontFamily: 'system-ui, -apple-system, sans-serif'
+                        }}>{location.name}</div>
                         {unavailable && (
-                          <span style={{ 
-                            color: '#ef4444 !important', 
+                          <div style={{ 
+                            color: '#ef4444', 
                             fontSize: '12px',
-                            display: 'block'
-                          }}>Space unavailable at this time</span>
+                            fontFamily: 'system-ui, -apple-system, sans-serif'
+                          }}>Space unavailable at this time</div>
                         )}
                         {location.address && !unavailable && (
-                          <span style={{ 
-                            color: '#666666 !important', 
+                          <div style={{ 
+                            color: '#666666', 
                             fontSize: '12px',
-                            display: 'block'
-                          }}>({location.address})</span>
+                            fontFamily: 'system-ui, -apple-system, sans-serif'
+                          }}>({location.address})</div>
                         )}
                       </div>
                     </div>
@@ -205,8 +205,10 @@ export default function LocationSelect({ projectId, value, onValueChange, eventD
                 );
               })}
               {locations.length === 0 && !isLoading && (
-                <SelectItem value="no-locations" disabled className="text-gray-500">
-                  No locations available
+                <SelectItem value="no-locations" disabled>
+                  <div style={{ color: '#666666', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                    No locations available
+                  </div>
                 </SelectItem>
               )}
             </SelectContent>

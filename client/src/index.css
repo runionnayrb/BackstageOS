@@ -73,8 +73,8 @@
   display: none !important;
 }
 
-/* Hide any text elements that might show field types */
-.border.rounded-md span:only-child:not(input):not(textarea) {
+/* Hide any text elements that might show field types - but exclude location select */
+.border.rounded-md span:only-child:not(input):not(textarea):not(.location-text) {
   display: none !important;
 }
 
