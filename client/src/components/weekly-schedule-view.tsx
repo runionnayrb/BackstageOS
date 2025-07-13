@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
-import { filterEventsBySettings } from "@/lib/scheduleUtils";
+import { filterEventsBySettings, getTimezoneAbbreviation } from "@/lib/scheduleUtils";
 import LocationSelect from "@/components/location-select";
 import EventTypeSelect from "@/components/event-type-select";
 
@@ -967,15 +967,7 @@ export default function WeeklyScheduleView({
               className="absolute left-0 top-0 bottom-0 bg-gray-100 border-r border-gray-200 p-3 text-sm font-medium text-gray-600 flex items-center justify-center"
               style={{ width: '80px' }}
             >
-              {(() => {
-                const userTimeZone = timezone || "America/New_York";
-                const now = new Date();
-                const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
-                  timeZone: userTimeZone, 
-                  timeZoneName: 'short' 
-                }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
-                return timeZoneAbbr;
-              })()}
+              {getTimezoneAbbreviation(timezone || "America/New_York")}
             </div>
             {weekDates.map((date, dayIndex) => {
               const isToday = date.toDateString() === new Date().toDateString();

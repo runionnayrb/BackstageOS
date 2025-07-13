@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
-import { filterEventsBySettings } from "@/lib/scheduleUtils";
+import { filterEventsBySettings, getTimezoneAbbreviation } from "@/lib/scheduleUtils";
 import LocationSelect from "@/components/location-select";
 
 interface MobileWeeklyScheduleViewProps {
@@ -317,15 +317,7 @@ export default function MobileWeeklyScheduleView({
                 padding: 0
               }}
             >
-              {(() => {
-                const userTimeZone = timezone || "America/New_York";
-                const now = new Date();
-                const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
-                  timeZone: userTimeZone, 
-                  timeZoneName: 'short' 
-                }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
-                return timeZoneAbbr;
-              })()}
+              {getTimezoneAbbreviation(timezone || "America/New_York")}
             </span>
           </div>
 

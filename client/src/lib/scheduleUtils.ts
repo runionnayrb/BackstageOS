@@ -58,3 +58,31 @@ export function shouldShowEventType(eventType: any, scheduleSettings: any) {
   const typeIdentifier = eventType.isDefault ? eventType.name : eventType.id;
   return enabledTypes.includes(typeIdentifier);
 }
+
+export function getTimezoneAbbreviation(timeZone: string): string {
+  try {
+    const now = new Date();
+    const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
+      timeZone: timeZone, 
+      timeZoneName: 'short' 
+    }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
+    return timeZoneAbbr;
+  } catch (error) {
+    console.warn('Failed to get timezone abbreviation for:', timeZone, error);
+    return 'EST';
+  }
+}
+
+export function formatDateInTimezone(date: Date, timeZone: string): string {
+  try {
+    return date.toLocaleDateString('en-US', { 
+      timeZone: timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  } catch (error) {
+    console.warn('Failed to format date in timezone:', timeZone, error);
+    return date.toLocaleDateString('en-US');
+  }
+}

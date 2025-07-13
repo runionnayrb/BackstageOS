@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { formatTimeDisplay } from '@/lib/timeUtils';
-import { filterEventsBySettings } from '@/lib/scheduleUtils';
+import { filterEventsBySettings, getTimezoneAbbreviation } from '@/lib/scheduleUtils';
 
 // Constants for time grid (8 AM to midnight = 16 hours)
 const START_HOUR = 8;
@@ -236,15 +236,7 @@ export default function DailyScheduleView({
                 padding: 0
               }}
             >
-              {(() => {
-                const userTimeZone = scheduleSettings?.timeZone || "America/New_York";
-                const now = new Date();
-                const timeZoneAbbr = new Intl.DateTimeFormat('en-US', { 
-                  timeZone: userTimeZone, 
-                  timeZoneName: 'short' 
-                }).formatToParts().find(part => part.type === 'timeZoneName')?.value || 'EST';
-                return timeZoneAbbr;
-              })()}
+              {getTimezoneAbbreviation(scheduleSettings?.timeZone || "America/New_York")}
             </span>
           </div>
 
