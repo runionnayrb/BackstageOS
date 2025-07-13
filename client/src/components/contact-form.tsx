@@ -145,10 +145,6 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Debug logging to help identify the issue
-    console.log("ContactForm category prop:", category);
-    console.log("ContactForm formData:", formData);
-    
     // Validate phone numbers
     const errors: Record<string, string> = {};
     

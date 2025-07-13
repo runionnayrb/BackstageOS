@@ -3895,6 +3895,14 @@ Respond with valid JSON only.`;
         }
       }
 
+      // Convert empty strings to null for optional fields to prevent validation issues
+      const fieldsToNullify = ['email', 'phone', 'role', 'notes', 'emergencyContactName', 'emergencyContactPhone', 'emergencyContactEmail', 'emergencyContactRelationship', 'allergies', 'medicalNotes'];
+      fieldsToNullify.forEach(field => {
+        if (rawUpdateData[field] === "") {
+          rawUpdateData[field] = null;
+        }
+      });
+
       console.log("Contact update data after equity status processing:", JSON.stringify(rawUpdateData, null, 2));
 
       // Validate the update data using a partial schema (omit required fields for updates)
@@ -3908,6 +3916,7 @@ Respond with valid JSON only.`;
       res.json(updatedContact);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Contact update validation errors:", error.errors);
         return res.status(400).json({ message: "Invalid contact data", errors: error.errors });
       }
       console.error("Error updating contact:", error);
