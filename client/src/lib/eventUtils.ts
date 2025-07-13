@@ -51,13 +51,13 @@ export const getEventTypeColor = (eventType: string): string => {
   switch (eventType) {
     // Show events - brighter colors
     case 'rehearsal': return 'bg-blue-500';
-    case 'tech': return 'bg-purple-500';
-    case 'tech_rehearsal': return 'bg-purple-500';
-    case 'preview': return 'bg-orange-500';
-    case 'performance': return 'bg-red-500';
+    case 'tech': return 'bg-orange-500';
+    case 'tech_rehearsal': return 'bg-orange-500';
+    case 'preview': return 'bg-yellow-500';
+    case 'performance': return 'bg-green-500';
     case 'dark': return 'bg-black';
     // Individual events - muted colors
-    case 'meeting': return 'bg-green-500';
+    case 'meeting': return 'bg-purple-500';
     case 'costume_fitting': return 'bg-pink-500';
     case 'wig_fitting': return 'bg-yellow-500';
     case 'hmu': return 'bg-indigo-500';
