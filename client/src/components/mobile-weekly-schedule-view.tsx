@@ -22,6 +22,7 @@ interface MobileWeeklyScheduleViewProps {
   timeIncrement: 15 | 30 | 60;
   showAllDayEvents?: boolean;
   settings?: any;
+  onEventEdit?: (event: ScheduleEvent) => void;
 }
 
 interface ScheduleEvent {
@@ -68,7 +69,8 @@ export default function MobileWeeklyScheduleView({
   setCurrentDate, 
   selectedContactIds, 
   timeIncrement, 
-  showAllDayEvents: propShowAllDayEvents 
+  showAllDayEvents: propShowAllDayEvents,
+  onEventEdit
 }: MobileWeeklyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -517,6 +519,25 @@ export default function MobileWeeklyScheduleView({
                                 height: `${height}px`,
                               }}
                               onClick={() => onDateClick(day)}
+                              onTouchStart={(e) => {
+                                e.stopPropagation();
+                                const touchTimer = setTimeout(() => {
+                                  // Haptic feedback if available
+                                  if ('vibrate' in navigator) {
+                                    navigator.vibrate(50);
+                                  }
+                                  onEventEdit?.(event);
+                                }, 500);
+                                
+                                const handleTouchEnd = () => {
+                                  clearTimeout(touchTimer);
+                                  e.currentTarget.removeEventListener('touchend', handleTouchEnd);
+                                  e.currentTarget.removeEventListener('touchmove', handleTouchEnd);
+                                };
+                                
+                                e.currentTarget.addEventListener('touchend', handleTouchEnd);
+                                e.currentTarget.addEventListener('touchmove', handleTouchEnd);
+                              }}
                             >
                               <div className="font-medium truncate">{event.title}</div>
                               {height > 40 && (

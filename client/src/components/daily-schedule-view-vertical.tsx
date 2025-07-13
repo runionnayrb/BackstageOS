@@ -357,6 +357,25 @@ export default function DailyScheduleViewVertical({ projectId, selectedDate, onB
                     } ${selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''}`}
                     onClick={(e) => handleEventClick(e, event)}
                     onDoubleClick={() => handleEventDoubleClick(event)}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      const touchTimer = setTimeout(() => {
+                        // Haptic feedback if available
+                        if ('vibrate' in navigator) {
+                          navigator.vibrate(50);
+                        }
+                        handleEventDoubleClick(event);
+                      }, 500);
+                      
+                      const handleTouchEnd = () => {
+                        clearTimeout(touchTimer);
+                        e.currentTarget.removeEventListener('touchend', handleTouchEnd);
+                        e.currentTarget.removeEventListener('touchmove', handleTouchEnd);
+                      };
+                      
+                      e.currentTarget.addEventListener('touchend', handleTouchEnd);
+                      e.currentTarget.addEventListener('touchmove', handleTouchEnd);
+                    }}
                   >
                     <div className="font-medium text-sm">{event.title}</div>
                     {event.description && (
@@ -448,6 +467,25 @@ export default function DailyScheduleViewVertical({ projectId, selectedDate, onB
                       }}
                       onClick={(e) => handleEventClick(e, event)}
                       onDoubleClick={() => handleEventDoubleClick(event)}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        const touchTimer = setTimeout(() => {
+                          // Haptic feedback if available
+                          if ('vibrate' in navigator) {
+                            navigator.vibrate(50);
+                          }
+                          handleEventDoubleClick(event);
+                        }, 500);
+                        
+                        const handleTouchEnd = () => {
+                          clearTimeout(touchTimer);
+                          e.currentTarget.removeEventListener('touchend', handleTouchEnd);
+                          e.currentTarget.removeEventListener('touchmove', handleTouchEnd);
+                        };
+                        
+                        e.currentTarget.addEventListener('touchend', handleTouchEnd);
+                        e.currentTarget.addEventListener('touchmove', handleTouchEnd);
+                      }}
                     >
                       <div className="p-2 overflow-hidden h-full">
                         <div className="font-medium text-sm truncate">{event.title}</div>
@@ -470,7 +508,8 @@ export default function DailyScheduleViewVertical({ projectId, selectedDate, onB
 
         {/* Help text */}
         <div className="mt-4 text-sm text-gray-500 text-center">
-          Click in empty time slots to create events • Hold Shift and click events to select multiple • Press Delete to remove selected events
+          <span className="hidden md:inline">Click in empty time slots to create events • Double-click events to edit • Hold Shift and click events to select multiple • Press Delete to remove selected events</span>
+          <span className="md:hidden">Tap empty time slots to create events • Long-press events to edit • Tap events to select</span>
         </div>
 
         {/* Bulk Delete Confirmation Dialog */}

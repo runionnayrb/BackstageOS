@@ -395,6 +395,25 @@ export default function MonthlyScheduleView({
                           setEditingEvent(event);
                         }
                       }}
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        const touchTimer = setTimeout(() => {
+                          // Haptic feedback if available
+                          if ('vibrate' in navigator) {
+                            navigator.vibrate(50);
+                          }
+                          setEditingEvent(event);
+                        }, 500);
+                        
+                        const handleTouchEnd = () => {
+                          clearTimeout(touchTimer);
+                          e.currentTarget.removeEventListener('touchend', handleTouchEnd);
+                          e.currentTarget.removeEventListener('touchmove', handleTouchEnd);
+                        };
+                        
+                        e.currentTarget.addEventListener('touchend', handleTouchEnd);
+                        e.currentTarget.addEventListener('touchmove', handleTouchEnd);
+                      }}
                     >
                       <span className="hidden md:inline">
                         {event.isAllDay ? event.title : `${formatTimeDisplay(event.startTime, timeFormat)} ${event.title}`}

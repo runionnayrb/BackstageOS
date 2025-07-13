@@ -355,6 +355,11 @@ export default function Schedule() {
                 timeIncrement={timeIncrement}
                 showAllDayEvents={showAllDayEvents}
                 settings={settings}
+                onEventEdit={(event) => {
+                  // Navigate to daily view and let that handle editing
+                  setCurrentDate(new Date(event.date));
+                  setViewMode('daily');
+                }}
               />
             </div>
           </>
