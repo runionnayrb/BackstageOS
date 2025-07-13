@@ -1285,8 +1285,7 @@ export default function ShowSettings() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Tag className="h-5 w-5" />
+                  <CardTitle>
                     Event Types
                   </CardTitle>
                   <CardDescription>
@@ -1377,8 +1376,7 @@ export default function ShowSettings() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5" />
+                  <CardTitle>
                     Event Locations
                   </CardTitle>
                   <CardDescription>
