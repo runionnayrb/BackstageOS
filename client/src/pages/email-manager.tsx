@@ -754,7 +754,7 @@ export default function EmailManager() {
               
               {/* Compose Window - Overlay on top, right side */}
               {showCompose && (
-                <div className="absolute top-0 right-0 bottom-0 w-[600px] bg-white border-l border-gray-200 shadow-lg z-10">
+                <div className="absolute top-0 right-0 bottom-0 w-[600px] bg-white border-l border-gray-200 shadow-lg z-[60]">
                   <InlineEmailComposer
                     isOpen={showCompose}
                     onClose={() => setShowCompose(false)}
