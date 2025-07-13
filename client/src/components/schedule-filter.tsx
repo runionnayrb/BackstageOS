@@ -139,7 +139,7 @@ export default function ScheduleFilter({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-96 p-0" align="end">
+      <PopoverContent className="w-[500px] p-0" align="end">
         <div className="p-4 border-b">
           <div className="flex items-center justify-between mb-3">
             <h4 className="font-semibold flex items-center gap-2">
