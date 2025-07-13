@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { EmailSidebar } from "@/components/email/email-sidebar";
 import { EmailInterface } from "@/components/email/email-interface-clean";
+import { InlineEmailComposer } from "@/components/email/inline-email-composer";
 import { EmailAccountConfig } from "@/components/email/email-account-config";
 import { SharedInboxManager } from "@/components/email/shared-inbox-manager";
 import { apiRequest } from "@/lib/queryClient";
@@ -629,10 +630,12 @@ export default function EmailManager() {
           />
         </div>
 
-        {/* Main Content - Mobile Full Width, Desktop With Sidebar */}
+        {/* Main Content - Mobile Full Width, Desktop With Sidebar, adjusts for compose panel */}
         <div 
           className={`transition-all duration-300 ease-in-out ${
             isSidebarCollapsed ? "md:ml-0" : "md:ml-64"
+          } ${
+            showCompose ? "md:mr-96" : ""
           } relative`}
         >
 
@@ -1243,6 +1246,19 @@ export default function EmailManager() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Inline Email Composer Panel */}
+      {showCompose && selectedAccount && (
+        <div className="fixed right-0 top-0 bottom-0 w-96 bg-white border-l border-gray-200 z-40 hidden md:block">
+          <InlineEmailComposer
+            isOpen={showCompose}
+            onClose={() => setShowCompose(false)}
+            fromAccountId={selectedAccount.id}
+            fromEmail={selectedAccount.emailAddress}
+            composeMode="compose"
+          />
+        </div>
+      )}
 
     </div>
   );

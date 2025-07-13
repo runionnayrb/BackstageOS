@@ -1058,40 +1058,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         </div>
       )}
 
-      {/* Gmail-style Email Composer */}
-      {showCompose && (
-        <GmailEmailComposer
-          isOpen={showCompose}
-          onClose={() => {
-            onShowComposeChange?.(false);
-            onShowTheaterFeaturesChange?.(false);
-            // Reset all message data and compose mode when closing
-            setForwardMessage(null);
-            setReplyMessage(null);
-            setComposeMode('compose');
-          }}
-          fromAccountId={selectedAccount.id}
-          fromEmail={selectedAccount.emailAddress}
-          replyToMessage={replyMessage ? {
-            id: String(replyMessage.id),
-            subject: replyMessage.subject || '',
-            fromAddress: replyMessage.fromAddress || '',
-            content: replyMessage.content || '',
-            toAddresses: replyMessage.toAddresses || [],
-            ccAddresses: replyMessage.ccAddresses || [],
-            bccAddresses: replyMessage.bccAddresses || []
-          } : undefined}
-          forwardMessage={forwardMessage ? {
-            id: String(forwardMessage.id),
-            subject: forwardMessage.subject || '',
-            fromAddress: forwardMessage.fromAddress,
-            content: forwardMessage.content || '',
-            htmlContent: forwardMessage.htmlContent
-          } : undefined}
-          composeMode={composeMode}
-          initialRecipient={composeToEmail}
-        />
-      )}
+      {/* Composer is now handled at email manager level as inline panel */}
 
       {/* Email Account Configuration */}
       {showConfiguration && (
