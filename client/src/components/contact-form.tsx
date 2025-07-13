@@ -220,15 +220,6 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">
-          {contact ? "Edit Contact" : "Add New Contact"}
-        </h2>
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Contact Information Section */}
         <Card>
