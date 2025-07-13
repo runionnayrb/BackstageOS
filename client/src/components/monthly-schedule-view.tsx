@@ -225,6 +225,53 @@ export default function MonthlyScheduleView({
     },
   });
 
+  // Update event mutation
+  const updateEventMutation = useMutation({
+    mutationFn: async ({ eventId, eventData }: { eventId: number; eventData: any }) => {
+      const response = await fetch(`/api/schedule-events/${eventId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(eventData),
+      });
+      if (!response.ok) throw new Error("Failed to update event");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      setEditingEvent(null);
+      toast({ title: "Event updated successfully" });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to update event",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete event mutation
+  const deleteEventMutation = useMutation({
+    mutationFn: async (eventId: number) => {
+      const response = await fetch(`/api/schedule-events/${eventId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete event");
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      setEditingEvent(null);
+      toast({ title: "Event deleted successfully" });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to delete event",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCreateEvent = (formData: any) => {
     createEventMutation.mutate(formData);
   };
@@ -368,6 +415,27 @@ export default function MonthlyScheduleView({
           })}
         </div>
       </div>
+
+      {/* Edit Event Dialog */}
+      {editingEvent && (
+        <Dialog open={!!editingEvent} onOpenChange={() => setEditingEvent(null)}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Event</DialogTitle>
+            </DialogHeader>
+            <EditEventForm 
+              event={editingEvent}
+              contacts={contacts}
+              eventTypes={eventTypes}
+              projectId={projectId}
+              onSubmit={(data) => updateEventMutation.mutate({ eventId: editingEvent.id, eventData: data })}
+              onDelete={() => deleteEventMutation.mutate(editingEvent.id)}
+              onCancel={() => setEditingEvent(null)}
+              isDeleting={deleteEventMutation.isPending}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Create Event Bottom Sheet */}
       {createEventDialogData.isOpen && (
@@ -721,6 +789,262 @@ function EventForm({
           </Button>
         </div>
       )}
+    </form>
+  );
+}
+
+// Edit Event Form component
+function EditEventForm({ 
+  event, 
+  contacts,
+  eventTypes,
+  projectId,
+  onSubmit, 
+  onDelete, 
+  onCancel, 
+  isDeleting 
+}: {
+  event: ScheduleEvent;
+  contacts: Contact[];
+  eventTypes: any[];
+  projectId: number;
+  onSubmit: (data: any) => void;
+  onDelete: () => void;
+  onCancel: () => void;
+  isDeleting: boolean;
+}) {
+  const [formData, setFormData] = useState({
+    title: event.title,
+    description: event.description || '',
+    type: event.type,
+    date: event.date,
+    startTime: event.startTime,
+    endTime: event.endTime,
+    location: event.location || '',
+    notes: event.notes || '',
+    isAllDay: event.isAllDay,
+    participants: event.participants.map(p => p.contactId),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit({
+      ...formData,
+      participants: formData.participants.map(contactId => ({
+        contactId,
+        isRequired: true,
+        status: 'pending',
+      })),
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="title">Event Title</Label>
+          <Input
+            id="title"
+            value={formData.title}
+            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="type">Event Type</Label>
+          <EventTypeSelect
+            value={formData.type}
+            onValueChange={(value) => setFormData({ ...formData, type: value })}
+            projectId={projectId}
+            eventTypes={eventTypes}
+          />
+        </div>
+      </div>
+
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+        />
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <Label htmlFor="date">Date</Label>
+          <Input
+            id="date"
+            type="date"
+            value={formData.date}
+            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+            required
+          />
+        </div>
+        <div>
+          <Label htmlFor="startTime">Start Time</Label>
+          <Input
+            id="startTime"
+            type="time"
+            value={formData.startTime}
+            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+            disabled={formData.isAllDay}
+            required={!formData.isAllDay}
+          />
+        </div>
+        <div>
+          <Label htmlFor="endTime">End Time</Label>
+          <Input
+            id="endTime"
+            type="time"
+            value={formData.endTime}
+            onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+            disabled={formData.isAllDay}
+            required={!formData.isAllDay}
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="isAllDay"
+          checked={formData.isAllDay}
+          onCheckedChange={(checked) => setFormData({ ...formData, isAllDay: !!checked })}
+        />
+        <Label htmlFor="isAllDay">All Day Event</Label>
+      </div>
+
+      <div>
+        <Label htmlFor="location">Location</Label>
+        <LocationSelect
+          value={formData.location}
+          onValueChange={(value) => setFormData({ ...formData, location: value })}
+          projectId={projectId}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="notes">Notes</Label>
+        <Textarea
+          id="notes"
+          value={formData.notes}
+          onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+        />
+      </div>
+
+      <div>
+        <Label>Participants</Label>
+        <div className="space-y-3 max-h-80 overflow-y-auto border rounded-md p-3">
+          {contacts.length === 0 ? (
+            <p className="text-sm text-gray-500">No contacts available</p>
+          ) : (
+            (() => {
+              // Group contacts by category
+              const contactsByCategory = contacts.reduce((acc, contact) => {
+                const category = contact.category || 'Other';
+                if (!acc[category]) {
+                  acc[category] = [];
+                }
+                acc[category].push(contact);
+                return acc;
+              }, {} as Record<string, typeof contacts>);
+
+              return Object.entries(contactsByCategory).map(([category, categoryContacts]) => {
+                const categoryContactIds = categoryContacts.map(c => c.id);
+                const allCategorySelected = categoryContactIds.every(id => formData.participants.includes(id));
+                const someCategorySelected = categoryContactIds.some(id => formData.participants.includes(id));
+
+                return (
+                  <div key={category} className="space-y-2">
+                    {/* Category header with select all checkbox */}
+                    <div className="flex items-center space-x-2 font-medium text-gray-700 border-b border-gray-200 pb-1">
+                      <Checkbox
+                        id={`edit-category-${category}`}
+                        checked={allCategorySelected}
+                        ref={(el) => {
+                          if (el) {
+                            el.indeterminate = someCategorySelected && !allCategorySelected;
+                          }
+                        }}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            // Add all category contacts that aren't already selected
+                            const newParticipants = [
+                              ...formData.participants,
+                              ...categoryContactIds.filter(id => !formData.participants.includes(id))
+                            ];
+                            setFormData({
+                              ...formData,
+                              participants: newParticipants,
+                            });
+                          } else {
+                            // Remove all category contacts
+                            setFormData({
+                              ...formData,
+                              participants: formData.participants.filter(id => !categoryContactIds.includes(id)),
+                            });
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`edit-category-${category}`} className="text-sm font-semibold">
+                        {category.replace(/_/g, ' ').toUpperCase()}
+                      </Label>
+                    </div>
+
+                    {/* Individual contacts in category */}
+                    <div className="space-y-1 ml-6">
+                      {categoryContacts.map(contact => (
+                        <div key={contact.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`edit-contact-${contact.id}`}
+                            checked={formData.participants.includes(contact.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setFormData({
+                                  ...formData,
+                                  participants: [...formData.participants, contact.id],
+                                });
+                              } else {
+                                setFormData({
+                                  ...formData,
+                                  participants: formData.participants.filter(id => id !== contact.id),
+                                });
+                              }
+                            }}
+                          />
+                          <Label htmlFor={`edit-contact-${contact.id}`} className="text-sm">
+                            {contact.firstName} {contact.lastName}
+                            {contact.role && (
+                              <span className="text-gray-500 ml-1">({contact.role})</span>
+                            )}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              });
+            })()
+          )}
+        </div>
+      </div>
+
+      <div className="flex justify-between">
+        <Button 
+          type="button" 
+          variant="destructive" 
+          onClick={onDelete}
+          disabled={isDeleting}
+        >
+          {isDeleting ? "Deleting..." : "Delete Event"}
+        </Button>
+        <div className="space-x-2">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button type="submit">Update Event</Button>
+        </div>
+      </div>
     </form>
   );
 }
