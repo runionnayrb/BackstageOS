@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { formatTimeDisplay } from '@/lib/timeUtils';
+import { filterEventsBySettings } from '@/lib/scheduleUtils';
 
 // Constants for time grid (8 AM to midnight = 16 hours)
 const START_HOUR = 8;
@@ -161,10 +162,19 @@ export default function DailyScheduleView({
     queryKey: ['/api/projects', projectId, 'schedule-events'],
   });
 
+  // Fetch event types for filtering
+  const { data: eventTypes = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/event-types`],
+    enabled: !!projectId,
+  });
+
   // Filter events for the selected day
   const getEventsForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
     let filteredEvents = events.filter((event: ScheduleEvent) => event.date === dateStr);
+    
+    // Apply schedule filtering based on enabled event types
+    filteredEvents = filterEventsBySettings(filteredEvents, projectSettings?.scheduleSettings, eventTypes);
     
     // Apply contact filter if contacts are selected
     if (selectedContactIds.length > 0) {

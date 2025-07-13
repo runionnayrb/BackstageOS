@@ -1074,7 +1074,86 @@ export default function ShowSettings() {
         </TabsContent>
 
         <TabsContent value="schedule" className="mt-6">
+          {/* Schedule Filtering */}
           <Card>
+            <CardHeader>
+              <CardTitle>Schedule Filtering</CardTitle>
+              <CardDescription>
+                Control which event types appear in your schedule views
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Enabled Event Types</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Only selected event types will appear in your monthly, weekly, and daily schedule views
+                  </p>
+                </div>
+                
+                <div className="space-y-2">
+                  {eventTypes.map((eventType: any) => (
+                    <div key={eventType.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: eventType.color }}
+                        />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{eventType.name}</span>
+                            {eventType.isDefault && (
+                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                System
+                              </span>
+                            )}
+                          </div>
+                          {eventType.description && (
+                            <p className="text-sm text-muted-foreground">{eventType.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Switch
+                        checked={(() => {
+                          const scheduleSettings = safeJsonParse((settings as any)?.scheduleSettings || '{}');
+                          const enabledTypes = scheduleSettings.enabledEventTypes || [];
+                          const typeIdentifier = eventType.isDefault ? eventType.name : eventType.id;
+                          return enabledTypes.includes(typeIdentifier);
+                        })()}
+                        onCheckedChange={(checked) => {
+                          const scheduleSettings = safeJsonParse((settings as any)?.scheduleSettings || '{}');
+                          const enabledTypes = scheduleSettings.enabledEventTypes || [];
+                          const typeIdentifier = eventType.isDefault ? eventType.name : eventType.id;
+                          
+                          let newEnabledTypes;
+                          if (checked) {
+                            newEnabledTypes = [...enabledTypes, typeIdentifier];
+                          } else {
+                            newEnabledTypes = enabledTypes.filter((id: any) => id !== typeIdentifier);
+                          }
+                          
+                          const newScheduleSettings = {
+                            ...scheduleSettings,
+                            enabledEventTypes: newEnabledTypes
+                          };
+                          
+                          handleSettingsUpdate('scheduleSettings', newScheduleSettings);
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                
+                {eventTypes.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No event types available. Create event types below to enable filtering.
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
             <CardHeader>
               <CardTitle>Schedule Settings</CardTitle>
               <CardDescription>
@@ -1277,6 +1356,85 @@ export default function ShowSettings() {
                   />
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Show Schedule Filtering */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle>Show Schedule Filtering</CardTitle>
+              <CardDescription>
+                Configure which event types appear in your schedule views by default. Only enabled types will be shown in monthly, weekly, and daily views.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  {eventTypes.map((eventType: any) => (
+                    <div key={eventType.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-4 h-4 rounded-full"
+                          style={{ backgroundColor: eventType.color }}
+                        />
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium">{eventType.name}</h4>
+                            {eventType.isDefault && (
+                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                System
+                              </span>
+                            )}
+                          </div>
+                          {eventType.description && (
+                            <p className="text-sm text-muted-foreground">{eventType.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Switch
+                        checked={(() => {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          const enabledTypes = scheduleSettings?.enabledEventTypes || [];
+                          return enabledTypes.includes(eventType.id) || enabledTypes.includes(eventType.name);
+                        })()}
+                        onCheckedChange={(checked) => {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          let enabledTypes = scheduleSettings?.enabledEventTypes || [];
+                          
+                          if (checked) {
+                            // Add the event type (using name for system types, id for custom types)
+                            const typeIdentifier = eventType.isDefault ? eventType.name : eventType.id;
+                            if (!enabledTypes.includes(typeIdentifier)) {
+                              enabledTypes = [...enabledTypes, typeIdentifier];
+                            }
+                          } else {
+                            // Remove the event type
+                            enabledTypes = enabledTypes.filter((type: any) => 
+                              type !== eventType.id && type !== eventType.name
+                            );
+                          }
+                          
+                          handleSettingsUpdate("scheduleSettings", {
+                            ...scheduleSettings,
+                            enabledEventTypes: enabledTypes
+                          });
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-sm text-blue-700">
+                    <strong>Note:</strong> These settings control which event types appear in your schedule views. 
+                    You can still create all event types, but only enabled ones will be visible in the calendar.
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
 

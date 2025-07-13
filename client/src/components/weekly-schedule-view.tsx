@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
+import { filterEventsBySettings } from "@/lib/scheduleUtils";
 import LocationSelect from "@/components/location-select";
 import EventTypeSelect from "@/components/event-type-select";
 
@@ -164,14 +165,24 @@ export default function WeeklyScheduleView({
     enabled: !!projectId,
   });
 
-  // Filter events based on selected contact IDs
-  const filteredEvents = selectedContactIds.length === 0 
-    ? events.filter(event => isShowEvent(event.type) || !event.type) // Show show-wide events and events without type when no filter is applied
-    : events.filter(event => 
+  // Filter events based on selected contact IDs and schedule filtering
+  const filteredEvents = (() => {
+    let eventsToFilter = events;
+    
+    // Apply schedule filtering based on enabled event types
+    eventsToFilter = filterEventsBySettings(eventsToFilter, showSettings?.scheduleSettings, eventTypes);
+    
+    // Apply contact filtering
+    if (selectedContactIds.length === 0) {
+      return eventsToFilter.filter(event => isShowEvent(event.type) || !event.type); // Show show-wide events and events without type when no filter is applied
+    } else {
+      return eventsToFilter.filter(event => 
         event.participants.some(participant => 
           selectedContactIds.includes(participant.contactId)
         )
       );
+    }
+  })();
 
 
 

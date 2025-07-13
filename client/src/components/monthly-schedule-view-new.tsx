@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
+import { filterEventsBySettings } from "@/lib/scheduleUtils";
 import EventForm from "@/components/event-form";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -90,11 +91,14 @@ export default function MonthlyScheduleView({
   const scheduleSettings = parseScheduleSettings(settings?.scheduleSettings);
   const timeFormat = scheduleSettings.timeFormat;
 
-  // Filter events based on contacts and all-day settings
+  // Filter events based on contacts, all-day settings, and schedule filtering
   const getEventsForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
     
     let filteredEvents = events.filter((event: ScheduleEvent) => event.date === dateStr);
+    
+    // Apply schedule filtering based on enabled event types
+    filteredEvents = filterEventsBySettings(filteredEvents, settings?.scheduleSettings, eventTypes);
     
     if (selectedContactIds.length > 0) {
       filteredEvents = filteredEvents.filter((event: ScheduleEvent) => 

@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
+import { filterEventsBySettings } from "@/lib/scheduleUtils";
 import LocationSelect from "@/components/location-select";
 
 interface MobileWeeklyScheduleViewProps {
@@ -107,14 +108,30 @@ export default function MobileWeeklyScheduleView({
     queryKey: [`/api/projects/${projectId}/contacts`],
   });
 
-  // Filter events based on selected contact IDs
-  const filteredEvents = selectedContactIds.length === 0 
-    ? events.filter(event => isShowEvent(event.type) || !event.type)
-    : events.filter(event => 
+  // Fetch event types for filtering
+  const { data: eventTypes = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/event-types`],
+    enabled: !!projectId,
+  });
+
+  // Filter events based on selected contact IDs and schedule filtering
+  const filteredEvents = (() => {
+    let eventsToFilter = events;
+    
+    // Apply schedule filtering based on enabled event types
+    eventsToFilter = filterEventsBySettings(eventsToFilter, showSettings?.scheduleSettings, eventTypes);
+    
+    // Apply contact filtering
+    if (selectedContactIds.length === 0) {
+      return eventsToFilter.filter(event => isShowEvent(event.type) || !event.type);
+    } else {
+      return eventsToFilter.filter(event => 
         event.participants.some(participant => 
           selectedContactIds.includes(participant.contactId)
         )
       );
+    }
+  })();
 
   // Generate multiple weeks of days for continuous scrolling
   const generateDays = useCallback((centerDate: Date, daysRange: number = 21) => {

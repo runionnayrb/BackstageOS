@@ -57,9 +57,8 @@ export default function Schedule() {
 
   // Create event mutation
   const createEventMutation = useMutation({
-    mutationFn: (eventData: any) => apiRequest('POST', `/api/schedule-events`, {
+    mutationFn: (eventData: any) => apiRequest('POST', `/api/projects/${projectId}/schedule-events`, {
       ...eventData,
-      projectId: parseInt(projectId),
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
