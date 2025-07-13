@@ -50,9 +50,6 @@ export default function EventForm({
   showButtons = true,
   initialValues
 }: EventFormProps) {
-  // Debug logging
-  console.log('EventForm initialValues:', initialValues);
-  
   const [formData, setFormData] = useState({
     title: initialValues?.title || '',
     description: initialValues?.description || '',
@@ -66,9 +63,6 @@ export default function EventForm({
     isAllDay: initialValues?.isAllDay || false,
     participantIds: initialValues?.participantIds || [] as number[],
   });
-  
-  // Debug logging
-  console.log('EventForm formData:', formData);
 
   // Auto-populate end date when start date changes
   const handleStartDateChange = (newStartDate: string) => {
