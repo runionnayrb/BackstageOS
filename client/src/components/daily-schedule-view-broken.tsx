@@ -129,6 +129,12 @@ export default function DailyScheduleView({ projectId, selectedDate, onBackToWee
     queryKey: [`/api/projects/${projectId}/contacts`],
   });
 
+  // Fetch event types for the project
+  const { data: eventTypes = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/event-types`],
+    enabled: !!projectId,
+  });
+
   // Navigation functions
   const goToPreviousDay = () => {
     const prevDay = new Date(currentDate);
