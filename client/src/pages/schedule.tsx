@@ -26,6 +26,7 @@ export default function Schedule() {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedContactIds, setSelectedContactIds] = useState<number[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
+  const [selectedIndividualTypes, setSelectedIndividualTypes] = useState<string[]>([]);
   const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
   const [showAllDayEvents, setShowAllDayEvents] = useState(true);
   const [createEventDialog, setCreateEventDialog] = useState(false);
@@ -182,6 +183,8 @@ export default function Schedule() {
               onFilterChange={setSelectedContactIds}
               selectedEventTypes={selectedEventTypes}
               onEventTypeFilterChange={setSelectedEventTypes}
+              selectedIndividualTypes={selectedIndividualTypes}
+              onIndividualTypeFilterChange={setSelectedIndividualTypes}
             />
             
             <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
@@ -374,6 +377,7 @@ export default function Schedule() {
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
+            selectedIndividualTypes={selectedIndividualTypes}
             showAllDayEvents={showAllDayEvents}
             setShowAllDayEvents={setShowAllDayEvents}
             createEventDialog={createEventDialog}
@@ -394,6 +398,7 @@ export default function Schedule() {
                 currentDate={currentDate}
                 setCurrentDate={setCurrentDate}
                 selectedContactIds={selectedContactIds}
+                selectedIndividualTypes={selectedIndividualTypes}
                 timeIncrement={timeIncrement}
                 showAllDayEvents={showAllDayEvents}
                 createEventDialog={createEventDialog}
@@ -409,6 +414,7 @@ export default function Schedule() {
                 currentDate={currentDate}
                 setCurrentDate={setCurrentDate}
                 selectedContactIds={selectedContactIds}
+                selectedIndividualTypes={selectedIndividualTypes}
                 timeIncrement={timeIncrement}
                 showAllDayEvents={showAllDayEvents}
                 settings={settings}
@@ -430,6 +436,7 @@ export default function Schedule() {
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
+            selectedIndividualTypes={selectedIndividualTypes}
             createEventDialog={createEventDialog}
             setCreateEventDialog={setCreateEventDialog}
             showAllDayEvents={showAllDayEvents}

@@ -19,6 +19,7 @@ interface DailyScheduleViewProps {
   currentDate?: Date;
   setCurrentDate?: (date: Date) => void;
   selectedContactIds: number[];
+  selectedIndividualTypes: string[];
   showAllDayEvents?: boolean;
   timeIncrement?: number;
   createEventDialog: boolean;
@@ -64,6 +65,7 @@ export default function DailyScheduleView({
   currentDate,
   setCurrentDate,
   selectedContactIds, 
+  selectedIndividualTypes,
   showAllDayEvents: propShowAllDayEvents = true, 
   timeIncrement = 30,
   createEventDialog,
@@ -175,7 +177,7 @@ export default function DailyScheduleView({
     let filteredEvents = events.filter((event: ScheduleEvent) => event.date === dateStr);
     
     // Apply schedule filtering based on enabled event types
-    filteredEvents = filterEventsBySettings(filteredEvents, projectSettings?.scheduleSettings, eventTypes);
+    filteredEvents = filterEventsBySettings(filteredEvents, projectSettings?.scheduleSettings, eventTypes, selectedIndividualTypes);
     
     // Apply contact filter if contacts are selected
     if (selectedContactIds.length > 0) {

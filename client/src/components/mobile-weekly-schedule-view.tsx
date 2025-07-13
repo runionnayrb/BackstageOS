@@ -20,6 +20,7 @@ interface MobileWeeklyScheduleViewProps {
   currentDate?: Date;
   setCurrentDate?: (date: Date) => void;
   selectedContactIds: number[];
+  selectedIndividualTypes: string[];
   timeIncrement: 15 | 30 | 60;
   showAllDayEvents?: boolean;
   settings?: any;
@@ -71,6 +72,7 @@ export default function MobileWeeklyScheduleView({
   currentDate, 
   setCurrentDate, 
   selectedContactIds, 
+  selectedIndividualTypes,
   timeIncrement, 
   showAllDayEvents: propShowAllDayEvents,
   createEventDialog,
@@ -119,7 +121,7 @@ export default function MobileWeeklyScheduleView({
     let eventsToFilter = events;
     
     // Apply schedule filtering based on enabled event types
-    eventsToFilter = filterEventsBySettings(eventsToFilter, showSettings?.scheduleSettings, eventTypes);
+    eventsToFilter = filterEventsBySettings(eventsToFilter, showSettings?.scheduleSettings, eventTypes, selectedIndividualTypes);
     
     // Apply contact filtering
     if (selectedContactIds.length === 0) {

@@ -17,101 +17,61 @@ export function getEnabledEventTypes(scheduleSettings: any) {
   return parsed.enabledEventTypes || [];
 }
 
-export function filterEventsBySettings(events: any[], scheduleSettings: any, eventTypes: any[]) {
+export function filterEventsBySettings(events: any[], scheduleSettings: any, eventTypes: any[], individualTypes: string[] = []) {
   const enabledTypes = getEnabledEventTypes(scheduleSettings);
+  const enabledIndividualTypes = individualTypes;
   
-  // If no enabled types are configured, show all events (default behavior)
-  if (enabledTypes.length === 0) {
+  // If no enabled types are configured for either category, show all events (default behavior)
+  if (enabledTypes.length === 0 && enabledIndividualTypes.length === 0) {
     return events;
   }
   
+  // Define individual event types for classification
+  const INDIVIDUAL_EVENT_TYPES = [
+    'meeting',
+    'costume_fitting',
+    'wig_fitting',
+    'hmu',
+    'vocal_coaching'
+  ];
+  
   // Filter events based on enabled types
   return events.filter((event: any) => {
-    // Check if the event type is enabled
-    const eventType = eventTypes.find(et => 
-      et.id === event.eventTypeId || 
-      et.name.toLowerCase() === event.type.toLowerCase()
-    );
+    // Normalize event type for comparison (handle both 'costume_fitting' and 'costume fitting')
+    const normalizedEventType = event.type.replace(/_/g, ' ');
+    const eventTypeKey = event.type.replace(/ /g, '_');
     
-    // Log details for costume_fitting events specifically
-    if (event.type === 'costume_fitting' || event.type === 'costume fitting' || event.id === 35 || event.id === 19) {
-      console.log('DEBUG: Costume fitting event filtering:', {
-        eventId: event.id,
-        eventTitle: event.title,
-        eventType: event.type,
-        eventDate: event.date,
-        enabledTypes: enabledTypes,
-        foundEventType: eventType,
-        availableEventTypes: eventTypes
-      });
-    }
+    // Check if this is an individual event type
+    const isIndividualEvent = INDIVIDUAL_EVENT_TYPES.includes(eventTypeKey) || 
+                             INDIVIDUAL_EVENT_TYPES.some(type => type.replace(/_/g, ' ').toLowerCase() === normalizedEventType.toLowerCase());
     
-    // Log details for tech_rehearsal event specifically
-    if (event.type === 'tech_rehearsal' || event.id === 34) {
-      console.log('DEBUG: Tech rehearsal event filtering:', {
-        eventId: event.id,
-        eventType: event.type,
-        eventDate: event.date,
-        enabledTypes: enabledTypes,
-        foundEventType: eventType,
-        availableEventTypes: eventTypes
-      });
-    }
-    
-    if (!eventType) {
-      // If event type not found, check by type string directly (case-insensitive)
-      // Also check normalized form (spaces replaced with underscores)
-      const normalizedEventType = event.type.replace(/_/g, ' ');
-      const isEnabled = enabledTypes.some(enabledType => 
+    if (isIndividualEvent) {
+      // For individual events, check if they're enabled in the individual types
+      return enabledIndividualTypes.some(enabledType => 
         enabledType.toLowerCase() === event.type.toLowerCase() ||
-        enabledType.toLowerCase() === normalizedEventType.toLowerCase()
+        enabledType.toLowerCase() === normalizedEventType.toLowerCase() ||
+        enabledType.toLowerCase() === eventTypeKey.toLowerCase()
+      );
+    } else {
+      // For show events, check if they're enabled in the show event types
+      // First try to find the event type in the database
+      const eventType = eventTypes.find(et => 
+        et.id === event.eventTypeId || 
+        et.name.toLowerCase() === event.type.toLowerCase()
       );
       
-      if (event.type === 'tech_rehearsal' || event.id === 34) {
-        console.log('DEBUG: Tech rehearsal - no event type found, checking by string:', {
-          eventType: event.type,
-          normalizedEventType,
-          enabledTypes,
-          isEnabled
-        });
+      if (eventType) {
+        // Check if event type is enabled (using name for system types, id for custom types)
+        const typeIdentifier = eventType.isDefault ? eventType.name : eventType.id;
+        return enabledTypes.includes(typeIdentifier);
+      } else {
+        // If event type not found in database, check by type string directly (case-insensitive)
+        return enabledTypes.some(enabledType => 
+          enabledType.toLowerCase() === event.type.toLowerCase() ||
+          enabledType.toLowerCase() === normalizedEventType.toLowerCase()
+        );
       }
-      
-      return isEnabled;
     }
-    
-    // Check if event type is enabled (using name for system types, id for custom types)
-    const typeIdentifier = eventType.isDefault ? eventType.name : eventType.id;
-    const isEnabled = enabledTypes.includes(typeIdentifier);
-    
-    // If not enabled by exact match, check if the normalized form matches
-    if (!isEnabled) {
-      const normalizedEventType = event.type.replace(/_/g, ' ');
-      const fallbackEnabled = enabledTypes.some(enabledType => 
-        enabledType.toLowerCase() === normalizedEventType.toLowerCase()
-      );
-      
-      if (event.type === 'tech_rehearsal' || event.id === 34) {
-        console.log('DEBUG: Tech rehearsal - fallback check:', {
-          eventType: event.type,
-          normalizedEventType,
-          enabledTypes,
-          fallbackEnabled
-        });
-      }
-      
-      return fallbackEnabled;
-    }
-    
-    if (event.type === 'tech_rehearsal' || event.id === 34) {
-      console.log('DEBUG: Tech rehearsal - direct enabled check:', {
-        eventType: event.type,
-        typeIdentifier,
-        enabledTypes,
-        isEnabled
-      });
-    }
-    
-    return isEnabled;
   });
 }
 

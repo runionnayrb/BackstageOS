@@ -17,6 +17,7 @@ interface MonthlyScheduleViewProps {
   currentDate: Date;
   setCurrentDate: (date: Date) => void;
   selectedContactIds: number[];
+  selectedIndividualTypes: string[];
   showAllDayEvents: boolean;
   setShowAllDayEvents: (show: boolean) => void;
   createEventDialog: boolean;
@@ -60,6 +61,7 @@ export default function MonthlyScheduleView({
   currentDate,
   setCurrentDate,
   selectedContactIds,
+  selectedIndividualTypes,
   showAllDayEvents,
   setShowAllDayEvents,
   createEventDialog,
@@ -98,7 +100,7 @@ export default function MonthlyScheduleView({
     let filteredEvents = events.filter((event: ScheduleEvent) => event.date === dateStr);
     
     // Apply schedule filtering based on enabled event types
-    filteredEvents = filterEventsBySettings(filteredEvents, settings?.scheduleSettings, eventTypes);
+    filteredEvents = filterEventsBySettings(filteredEvents, settings?.scheduleSettings, eventTypes, selectedIndividualTypes);
     
     if (selectedContactIds.length > 0) {
       filteredEvents = filteredEvents.filter((event: ScheduleEvent) => 

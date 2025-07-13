@@ -22,6 +22,7 @@ interface WeeklyScheduleViewProps {
   currentDate?: Date;
   setCurrentDate?: (date: Date) => void;
   selectedContactIds: number[];
+  selectedIndividualTypes: string[];
   timeIncrement: 15 | 30 | 60;
   showAllDayEvents?: boolean;
   createEventDialog: boolean;
@@ -77,6 +78,7 @@ export default function WeeklyScheduleView({
   currentDate, 
   setCurrentDate, 
   selectedContactIds, 
+  selectedIndividualTypes,
   timeIncrement, 
   showAllDayEvents: propShowAllDayEvents, 
   createEventDialog, 
@@ -168,7 +170,7 @@ export default function WeeklyScheduleView({
     let eventsToFilter = events;
     
     // Apply schedule filtering based on enabled event types
-    eventsToFilter = filterEventsBySettings(eventsToFilter, showSettings?.scheduleSettings, eventTypes);
+    eventsToFilter = filterEventsBySettings(eventsToFilter, showSettings?.scheduleSettings, eventTypes, selectedIndividualTypes);
     
     // Apply contact filtering
     if (selectedContactIds.length === 0) {

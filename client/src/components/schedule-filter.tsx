@@ -30,6 +30,8 @@ interface ScheduleFilterProps {
   onFilterChange: (contactIds: number[]) => void;
   selectedEventTypes: string[];
   onEventTypeFilterChange: (eventTypes: string[]) => void;
+  selectedIndividualTypes: string[];
+  onIndividualTypeFilterChange: (individualTypes: string[]) => void;
 }
 
 export default function ScheduleFilter({ 
@@ -37,7 +39,9 @@ export default function ScheduleFilter({
   selectedContactIds, 
   onFilterChange, 
   selectedEventTypes, 
-  onEventTypeFilterChange 
+  onEventTypeFilterChange,
+  selectedIndividualTypes,
+  onIndividualTypeFilterChange
 }: ScheduleFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showScheduleEnabled, setShowScheduleEnabled] = useState(true);
@@ -111,6 +115,26 @@ export default function ScheduleFilter({
     onEventTypeFilterChange([]);
   };
 
+  // Individual event type filtering functions
+  const handleIndividualTypeToggle = (eventTypeName: string) => {
+    const currentSelection = selectedIndividualTypes || [];
+    const newSelection = currentSelection.includes(eventTypeName)
+      ? currentSelection.filter(name => name !== eventTypeName)
+      : [...currentSelection, eventTypeName];
+    
+    onIndividualTypeFilterChange(newSelection);
+  };
+
+  const handleSelectAllIndividualTypes = () => {
+    // Only select individual event types (costume fitting, wig fitting, etc.)
+    const individualEventTypes = ['Costume Fitting', 'Wig Fitting', 'Hair & Makeup'];
+    onIndividualTypeFilterChange(individualEventTypes);
+  };
+
+  const handleClearAllIndividualTypes = () => {
+    onIndividualTypeFilterChange([]);
+  };
+
   const handleShowScheduleToggle = () => {
     setShowScheduleEnabled(!showScheduleEnabled);
     if (!showScheduleEnabled) {
@@ -159,9 +183,9 @@ export default function ScheduleFilter({
           className="h-8 w-8 p-0 text-gray-600 hover:text-gray-900 bg-transparent hover:bg-transparent border-none relative"
         >
           <Filter className="h-4 w-4" />
-          {(selectedContactIds.length > 0 || (selectedEventTypes && selectedEventTypes.length > 0)) && (
+          {(selectedContactIds.length > 0 || (selectedEventTypes && selectedEventTypes.length > 0) || (selectedIndividualTypes && selectedIndividualTypes.length > 0)) && (
             <Badge variant="secondary" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs flex items-center justify-center min-w-0">
-              {selectedContactIds.length + (selectedEventTypes?.length || 0)}
+              {selectedContactIds.length + (selectedEventTypes?.length || 0) + (selectedIndividualTypes?.length || 0)}
             </Badge>
           )}
         </Button>
@@ -308,6 +332,31 @@ export default function ScheduleFilter({
               </div>
             </div>
 
+            {/* Individual Events Section */}
+            <div className="p-4 border-b bg-gray-50">
+              <h5 className="text-sm font-medium text-gray-700 mb-3">Individual Events</h5>
+              <div className="space-y-2">
+                {['Costume Fitting', 'Wig Fitting', 'Hair & Makeup'].map((individualType) => (
+                  <div
+                    key={individualType}
+                    className="flex items-center space-x-3 p-2 rounded bg-white border cursor-pointer hover:bg-gray-50"
+                    onClick={() => handleIndividualTypeToggle(individualType)}
+                  >
+                    <Checkbox
+                      checked={selectedIndividualTypes?.includes(individualType) || false}
+                      onChange={() => handleIndividualTypeToggle(individualType)}
+                      className="pointer-events-none"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        {individualType}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <div className="px-4 pb-4">
               <div className="flex gap-2 mb-4">
                 <Button
@@ -374,19 +423,22 @@ export default function ScheduleFilter({
             <div className="p-3 border-t bg-gray-50">
               <div className="flex items-center justify-between text-xs text-gray-600">
                 <span>
-                  {(selectedEventTypes?.length || 0) === 0 
+                  {((selectedEventTypes?.length || 0) + (selectedIndividualTypes?.length || 0)) === 0 
                     ? "Showing all event types"
-                    : `Filtering by ${selectedEventTypes?.length || 0} ${(selectedEventTypes?.length || 0) === 1 ? 'type' : 'types'}`
+                    : `Filtering by ${(selectedEventTypes?.length || 0) + (selectedIndividualTypes?.length || 0)} ${((selectedEventTypes?.length || 0) + (selectedIndividualTypes?.length || 0)) === 1 ? 'type' : 'types'}`
                   }
                 </span>
-                {(selectedEventTypes?.length || 0) > 0 && (
+                {((selectedEventTypes?.length || 0) + (selectedIndividualTypes?.length || 0)) > 0 && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleClearAllEventTypes}
+                    onClick={() => {
+                      handleClearAllEventTypes();
+                      handleClearAllIndividualTypes();
+                    }}
                     className="h-6 px-2 text-xs"
                   >
-                    Clear
+                    Clear All
                   </Button>
                 )}
               </div>
