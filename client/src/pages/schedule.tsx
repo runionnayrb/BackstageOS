@@ -25,6 +25,7 @@ export default function Schedule() {
   const [viewMode, setViewMode] = useState<'monthly' | 'weekly' | 'daily'>('weekly');
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedContactIds, setSelectedContactIds] = useState<number[]>([]);
+  const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
   const [showAllDayEvents, setShowAllDayEvents] = useState(true);
   const [createEventDialog, setCreateEventDialog] = useState(false);
@@ -179,6 +180,8 @@ export default function Schedule() {
               projectId={parseInt(projectId)}
               selectedContactIds={selectedContactIds}
               onFilterChange={setSelectedContactIds}
+              selectedEventTypes={selectedEventTypes}
+              onEventTypeFilterChange={setSelectedEventTypes}
             />
             
             <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
@@ -253,6 +256,8 @@ export default function Schedule() {
                 projectId={parseInt(projectId)}
                 selectedContactIds={selectedContactIds}
                 onFilterChange={setSelectedContactIds}
+                selectedEventTypes={selectedEventTypes}
+                onEventTypeFilterChange={setSelectedEventTypes}
               />
               <Button
                 variant="ghost"
