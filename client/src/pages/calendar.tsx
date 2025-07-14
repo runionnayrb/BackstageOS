@@ -95,11 +95,9 @@ export default function Calendar() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => setShowAvailabilityComparison(true)}>
-                <Users className="mr-2 h-4 w-4" />
                 Team Availability
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowLocationAvailability(true)}>
-                <MapPin className="mr-2 h-4 w-4" />
                 Location Availability
               </DropdownMenuItem>
             </DropdownMenuContent>
