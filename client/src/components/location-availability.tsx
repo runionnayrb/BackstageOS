@@ -239,45 +239,19 @@ export default function LocationAvailability({
       return event.date === dateStr && event.location === location.name;
     });
     
-    // Debug individual types filtering
-    if (eventsForLocation.length > 0) {
-      console.log(`🔍 ${location.name} events on ${dateStr}:`, eventsForLocation.map(e => `${e.title} (${e.type})`));
-      console.log(`🔍 Selected individual types:`, selectedIndividualTypes);
-      console.log(`🔍 Selected show types:`, selectedEventTypes);
-    }
-    
-    // Apply event type filtering
     // If no filters are selected at all, show no events
     if (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
       return [];
     }
     
-    // Filter events based on selected types
-    const filteredEvents = eventsForLocation.filter((event: any) => {
-      const eventTypeLower = event.type.toLowerCase();
-      
-      // Check if event type matches any selected show schedule types
-      const matchesShowTypes = selectedEventTypes.some(selectedType => 
-        selectedType.toLowerCase() === eventTypeLower
-      );
-      
-      // Check if event type matches any selected individual types
-      // Need to handle format conversion: "Costume Fitting" -> "costume_fitting"
-      const matchesIndividualTypes = selectedIndividualTypes.some(selectedType => {
-        const selectedTypeLower = selectedType.toLowerCase();
-        const selectedTypeWithUnderscore = selectedTypeLower.replace(/\s+/g, '_');
-        return selectedTypeLower === eventTypeLower || selectedTypeWithUnderscore === eventTypeLower;
-      });
-      
-      const matches = matchesShowTypes || matchesIndividualTypes;
-      if (eventsForLocation.length > 0) {
-        console.log(`Event "${event.title}" (${event.type}): show=${matchesShowTypes}, individual=${matchesIndividualTypes}, final=${matches}`);
-      }
-      return matches;
-    });
+    // Use the shared filtering utility with proper format conversion
+    // Create a mock schedule settings object to use with the shared utility
+    const mockScheduleSettings = {
+      enabledEventTypes: selectedEventTypes
+    };
     
-    return filteredEvents;
-  }, [currentDate, locations, scheduleEvents, selectedEventTypes, selectedIndividualTypes]);
+    return filterEventsBySettings(eventsForLocation, mockScheduleSettings, eventTypes, selectedIndividualTypes);
+  }, [currentDate, locations, scheduleEvents, selectedEventTypes, selectedIndividualTypes, eventTypes]);
 
   // Navigation functions
   const goToPreviousDay = () => {
