@@ -736,43 +736,11 @@ export default function WeeklyScheduleView({
             queryKey: [`/api/projects/${projectId}/schedule-events`] 
           });
 
-          // Immediately update the query cache for instant visual feedback
-          queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: any) => {
-            console.log('Updating cache for event', event.id, 'with data:', eventData);
-            const updated = old?.map((e: ScheduleEvent) => 
-              e.id === event.id ? { ...e, ...eventData } : e
-            ) || [];
-            console.log('Updated cache data:', updated.find((e: any) => e.id === event.id));
-            return updated;
+          // Use the mutation for proper error handling and cache management
+          updateEventMutation.mutate({
+            eventId: event.id,
+            eventData
           });
-
-          // Run database update silently in background with debouncing
-          setTimeout(async () => {
-            try {
-              const response = await fetch(`/api/schedule-events/${event.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(eventData),
-              });
-              
-              if (!response.ok) {
-                // If silent update fails, revert the cache
-                queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
-                toast({ 
-                  title: "Failed to update event", 
-                  variant: "destructive" 
-                });
-              }
-            } catch (error) {
-              console.error('Silent update failed:', error);
-              // Revert cache on error
-              queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
-              toast({ 
-                title: "Failed to update event", 
-                variant: "destructive" 
-              });
-            }
-          }, 500);
 
           setJustDragged(event.id);
         }
@@ -843,45 +811,11 @@ export default function WeeklyScheduleView({
           endTime: resizingEvent.event.endTime + ':00',
         };
 
-        // Cancel any outgoing refetches to prevent conflicts
-        queryClient.cancelQueries({ 
-          queryKey: [`/api/projects/${projectId}/schedule-events`] 
+        // Use the mutation for proper error handling and cache management
+        updateEventMutation.mutate({
+          eventId: event.id,
+          eventData
         });
-
-        // Update UI immediately for instant visual feedback
-        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
-          return old?.map((e: ScheduleEvent) => 
-            e.id === event.id ? { ...e, startTime: resizingEvent.event.startTime, endTime: resizingEvent.event.endTime } : e
-          ) || [];
-        });
-
-        // Run database update silently in background with debouncing
-        setTimeout(async () => {
-          try {
-            const response = await fetch(`/api/schedule-events/${event.id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(eventData),
-            });
-            
-            if (!response.ok) {
-              // If silent update fails, revert the cache
-              queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
-              toast({ 
-                title: "Failed to update event", 
-                variant: "destructive" 
-              });
-            }
-          } catch (error) {
-            console.error('Silent resize update failed:', error);
-            // Revert cache on error
-            queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
-            toast({ 
-              title: "Failed to update event", 
-              variant: "destructive" 
-            });
-          }
-        }, 500);
       }
 
       setResizingEvent(null);
