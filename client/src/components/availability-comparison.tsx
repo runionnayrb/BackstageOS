@@ -129,10 +129,24 @@ export default function AvailabilityComparison({
     queryKey: [`/api/projects/${projectId}/event-types`],
   });
 
-  // Use all contacts, sorted alphabetically
-  const contacts = (allContacts as any[]).sort((a: any, b: any) => 
-    `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
-  );
+  // Filter contacts based on selected contact IDs
+  const getFilteredContacts = () => {
+    let filteredContacts = allContacts as any[];
+    
+    // Apply contact filtering if specific contacts are selected
+    if (selectedContactIds.length > 0) {
+      filteredContacts = filteredContacts.filter(contact => 
+        selectedContactIds.includes(contact.id)
+      );
+    }
+    
+    // Sort alphabetically
+    return filteredContacts.sort((a: any, b: any) => 
+      `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
+    );
+  };
+
+  const contacts = getFilteredContacts();
 
   // Schedule Filter Logic (duplicated from schedule-filter.tsx)
   const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
@@ -302,6 +316,42 @@ export default function AvailabilityComparison({
       if (event.date !== dateStr) return false;
       return event.participants?.some((p: any) => p.contactId === contactId);
     });
+  };
+
+  // Apply schedule filtering to events (duplicated logic from schedule-filter.tsx)
+  const applyFiltersToEvents = (events: any[]) => {
+    if (!events || events.length === 0) return [];
+    
+    // If no filtering is active, show all events
+    if (!showScheduleEnabled || (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0)) {
+      return events;
+    }
+    
+    // Filter based on selected event types
+    return events.filter((event: any) => {
+      // Check if event type is in Show Schedule types
+      const eventType = eventTypes.find(et => 
+        et.id === event.eventTypeId || 
+        et.name.toLowerCase() === event.type.toLowerCase()
+      );
+      
+      const typeIdentifier = eventType ? (eventType.isDefault ? eventType.name : eventType.id) : event.type;
+      
+      // Check if enabled in Show Schedule
+      if (selectedEventTypes.includes(typeIdentifier)) {
+        return true;
+      }
+      
+      // Check if enabled in Individual Events
+      const eventTypeName = eventType ? eventType.name : event.type;
+      return selectedIndividualTypes.includes(eventTypeName);
+    });
+  };
+
+  // Get filtered events for a specific contact (applies schedule filtering)
+  const getFilteredScheduleEvents = (contactId: number) => {
+    const contactEvents = getContactScheduleEventsForDate(contactId);
+    return applyFiltersToEvents(contactEvents);
   };
 
   // Navigation functions
@@ -1446,7 +1496,7 @@ export default function AvailabilityComparison({
                             })}
 
                             {/* Schedule Events (showing as conflicts) */}
-                            {getContactScheduleEventsForDate(contact.id).map((event: any) => {
+                            {getFilteredScheduleEvents(contact.id).map((event: any) => {
                               const startMinutes = timeToMinutes(event.startTime);
                               const endMinutes = timeToMinutes(event.endTime);
                               
@@ -1454,14 +1504,23 @@ export default function AvailabilityComparison({
                               const startPercent = ((startMinutes - START_MINUTES) / TOTAL_MINUTES) * 100;
                               const widthPercent = ((endMinutes - startMinutes) / TOTAL_MINUTES) * 100;
 
+                              // Get event type color (same as schedule views)
+                              const eventType = eventTypes.find(et => 
+                                et.id === event.eventTypeId || 
+                                et.name.toLowerCase() === event.type.toLowerCase()
+                              );
+                              const eventColor = eventType?.color || '#8B5CF6'; // Default purple
+
                               return (
                                 <div
                                   key={`event-${event.id}`}
-                                  className="absolute text-xs text-white top-1 bottom-1 rounded bg-purple-600 border-2 border-purple-700 z-15 pointer-events-none"
+                                  className="absolute text-xs text-white top-1 bottom-1 rounded border-2 z-15 pointer-events-none"
                                   style={{
                                     left: `${startPercent}%`,
                                     width: `${widthPercent}%`,
                                     minWidth: '20px',
+                                    backgroundColor: eventColor,
+                                    borderColor: eventColor,
                                   }}
                                   title={`Scheduled: ${event.title} (${formatTime(startMinutes)} - ${formatTime(endMinutes)})`}
                                 >
