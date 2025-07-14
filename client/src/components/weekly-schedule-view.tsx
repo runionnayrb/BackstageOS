@@ -860,13 +860,13 @@ export default function WeeklyScheduleView({
 
           queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
             return old?.map((e: ScheduleEvent) => 
-              e.id === event.id ? { ...e, startTime, endTime } : e
+              e.id === prev.event.id ? { ...e, startTime, endTime } : e
             ) || [];
           });
 
           // Update database
           updateEventMutation.mutate({
-            id: event.id,
+            id: prev.event.id,
             startTime,
             endTime,
           });
