@@ -846,20 +846,9 @@ export default function LocationAvailability({
       <div className="px-6 py-6">
         <div className="h-[calc(100vh-6rem)] flex flex-col">
           <div className="mb-4">
-            <p className="text-gray-600 mb-2">
+            <p className="text-gray-600">
               Compare location availability for the selected day. Times are shown across the top, locations on the left.
             </p>
-            <div className="flex items-center gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                <span className="text-gray-600">Available</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-500 rounded"></div>
-                <span className="text-gray-600">Unavailable</span>
-              </div>
-              <span className="text-gray-600">Schedule events show with their event type colors</span>
-            </div>
           </div>
 
           {/* Navigation and Controls */}
