@@ -845,6 +845,29 @@ export default function WeeklyScheduleView({
     };
 
     const handleMouseUp = () => {
+      if (resizingEvent) {
+        // Update cache immediately with the resized times
+        const startTime = resizingEvent.event.startTime.includes(':') && resizingEvent.event.startTime.split(':').length === 2 
+          ? resizingEvent.event.startTime + ':00' 
+          : resizingEvent.event.startTime;
+        const endTime = resizingEvent.event.endTime.includes(':') && resizingEvent.event.endTime.split(':').length === 2 
+          ? resizingEvent.event.endTime + ':00' 
+          : resizingEvent.event.endTime;
+
+        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+          return old?.map((e: ScheduleEvent) => 
+            e.id === event.id ? { ...e, startTime, endTime } : e
+          ) || [];
+        });
+
+        // Update database
+        updateEventMutation.mutate({
+          id: event.id,
+          startTime,
+          endTime,
+        });
+      }
+
       setResizingEvent(null);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -852,7 +875,7 @@ export default function WeeklyScheduleView({
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [timeIncrement, projectId]);
+  }, [timeIncrement, projectId, resizingEvent, queryClient, event.id, updateEventMutation]);
 
   // Generate time labels using memoization to prevent scoping issues
   const timeLabels = useMemo(() => {
