@@ -76,15 +76,6 @@ export default function LocationAvailability({
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [selectedIndividualTypes, setSelectedIndividualTypes] = useState<string[]>([]);
 
-  // Add debugging for filter changes
-  useEffect(() => {
-    console.log('🟡 Location Availability - selectedEventTypes changed:', selectedEventTypes);
-  }, [selectedEventTypes]);
-
-  useEffect(() => {
-    console.log('🟠 Location Availability - selectedIndividualTypes changed:', selectedIndividualTypes);
-  }, [selectedIndividualTypes]);
-
   // Keep ref in sync with state
   useEffect(() => {
     selectedItemsRef.current = selectedItems;
