@@ -253,10 +253,15 @@ export default function LocationAvailability({
       return event.date === dateStr && event.location === location.name;
     });
     
+    console.log(`🔍 Events for ${location.name} on ${dateStr}:`, eventsForLocation);
+    console.log(`🔍 Filter state - selectedEventTypes:`, selectedEventTypes);
+    console.log(`🔍 Filter state - selectedIndividualTypes:`, selectedIndividualTypes);
+    
     // Apply event type filtering
-    // If no filters are selected at all, show all events
+    // If no filters are selected at all, show no events (this is the new behavior)
     if (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
-      return eventsForLocation;
+      console.log('🔴 No filters selected, showing NO events');
+      return [];
     }
     
     // Filter events based on selected types
@@ -273,9 +278,12 @@ export default function LocationAvailability({
         selectedType.toLowerCase() === eventTypeLower
       );
       
-      return matchesShowTypes || matchesIndividualTypes;
+      const matches = matchesShowTypes || matchesIndividualTypes;
+      console.log(`Event "${event.title}" (${event.type}) matches filters:`, matches);
+      return matches;
     });
     
+    console.log(`🔍 Final filtered events for ${location.name}:`, filteredEvents.length);
     return filteredEvents;
   }, [currentDate, locations, scheduleEvents, selectedEventTypes, selectedIndividualTypes]);
 
