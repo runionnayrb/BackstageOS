@@ -324,13 +324,22 @@ export default function AvailabilityComparison({
   const applyFiltersToEvents = (events: any[]) => {
     if (!events || events.length === 0) return [];
     
+    console.log('🔍 Filtering events:', {
+      totalEvents: events.length,
+      showScheduleEnabled,
+      selectedEventTypes,
+      selectedIndividualTypes,
+      eventTypes: eventTypes.map(et => ({ id: et.id, name: et.name, isDefault: et.isDefault }))
+    });
+    
     // If no filtering is active, show all events
     if (!showScheduleEnabled || (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0)) {
+      console.log('🔍 No filtering active, showing all events');
       return events;
     }
     
     // Filter based on selected event types
-    return events.filter((event: any) => {
+    const filteredEvents = events.filter((event: any) => {
       // Check if event type is in Show Schedule types
       const eventType = eventTypes.find(et => 
         et.id === event.eventTypeId || 
@@ -338,6 +347,18 @@ export default function AvailabilityComparison({
       );
       
       const typeIdentifier = eventType ? (eventType.isDefault ? eventType.name : eventType.id) : event.type;
+      const eventTypeName = eventType ? eventType.name : event.type;
+      
+      console.log('🔍 Checking event:', {
+        eventId: event.id,
+        eventType: event.type,
+        eventTypeId: event.eventTypeId,
+        foundEventType: eventType,
+        typeIdentifier,
+        eventTypeName,
+        inShowSchedule: selectedEventTypes.includes(typeIdentifier),
+        inIndividualEvents: selectedIndividualTypes.includes(eventTypeName)
+      });
       
       // Check if enabled in Show Schedule
       if (selectedEventTypes.includes(typeIdentifier)) {
@@ -345,9 +366,11 @@ export default function AvailabilityComparison({
       }
       
       // Check if enabled in Individual Events
-      const eventTypeName = eventType ? eventType.name : event.type;
       return selectedIndividualTypes.includes(eventTypeName);
     });
+    
+    console.log('🔍 Filtered events result:', filteredEvents);
+    return filteredEvents;
   };
 
   // Get filtered events for a specific contact (applies schedule filtering)
