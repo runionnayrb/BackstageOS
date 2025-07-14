@@ -614,200 +614,189 @@ export default function WeeklyScheduleView({
       setEditingEvent(event);
     };
 
-    // Prepare drag state immediately on mouse down
-    const eventDate = event.date;
-    const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
-    
-    if (dayIndex === -1) return;
+    // Set up double click detection
+    const clickTimeout = setTimeout(() => {
+      // Single click - start dragging
+      const eventDate = event.date;
+      const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
+      
+      if (dayIndex === -1) return;
 
-    const startMinutes = timeToMinutes(event.startTime);
-    const rect = calendarRef.current?.getBoundingClientRect();
-    if (!rect) return;
+      const startMinutes = timeToMinutes(event.startTime);
+      const rect = calendarRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-    // Calculate the event's current position on screen
-    const eventLeft = 80 + ((rect.width - 80) * dayIndex / 7);
-    const eventTop = minutesToPosition(startMinutes);
-    
-    // Calculate offset relative to the event's top-left corner
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top + (scrollContainerRef.current?.scrollTop || 0);
-    
-    const draggedEvent = {
-      event,
-      originalPosition: { dayIndex, startMinutes },
-      currentPosition: { dayIndex, startMinutes },
-      offset: { 
-        x: clickX - eventLeft, 
-        y: clickY - eventTop 
-      },
-      isDragging: false,
-    };
+      // Calculate the event's current position on screen
+      const eventLeft = 80 + ((rect.width - 80) * dayIndex / 7);
+      const eventTop = minutesToPosition(startMinutes);
+      
+      // Calculate offset relative to the event's top-left corner
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top + (scrollContainerRef.current?.scrollTop || 0);
+      
+      const draggedEvent = {
+        event,
+        originalPosition: { dayIndex, startMinutes },
+        currentPosition: { dayIndex, startMinutes },
+        offset: { 
+          x: clickX - eventLeft, 
+          y: clickY - eventTop 
+        },
+        isDragging: false,
+      };
 
-    setDraggedEvent(draggedEvent);
+      setDraggedEvent(draggedEvent);
 
-        let hasStartedDragging = false;
-        let currentDragPosition = { dayIndex: draggedEvent.originalPosition.dayIndex, startMinutes: draggedEvent.originalPosition.startMinutes };
-        const moveThreshold = 1; // pixels - very sensitive
+      let hasStartedDragging = false;
+      let currentDragPosition = { dayIndex: draggedEvent.originalPosition.dayIndex, startMinutes: draggedEvent.originalPosition.startMinutes };
+      const moveThreshold = 3; // pixels
 
-        const handleMouseMove = (e: MouseEvent) => {
-          if (!hasStartedDragging) {
-            // Calculate current mouse position
-            const currentX = e.clientX - rect!.left;
-            const currentY = e.clientY - rect!.top;
-            
-            // Calculate original click position
-            const originalEventLeft = 80 + ((rect!.width - 80) * draggedEvent.originalPosition.dayIndex / 7);
-            const originalEventTop = minutesToPosition(draggedEvent.originalPosition.startMinutes);
-            const originalClickX = originalEventLeft + draggedEvent.offset.x;
-            const originalClickY = originalEventTop + draggedEvent.offset.y - (scrollContainerRef.current?.scrollTop || 0);
-            
-            const distance = Math.sqrt(
-              Math.pow(currentX - originalClickX, 2) +
-              Math.pow(currentY - originalClickY, 2)
-            );
-            
-            console.log('Movement check:', { distance, threshold: moveThreshold, currentX, currentY, originalClickX, originalClickY });
-            
-            if (distance < moveThreshold) return;
-            hasStartedDragging = true;
-            console.log('Drag started! Distance:', distance);
-            setDraggedEvent(prev => prev ? { ...prev, isDragging: true } : null);
-          }
-
-          if (!calendarRef.current || !scrollContainerRef.current) return;
-
-          const newRect = calendarRef.current.getBoundingClientRect();
-          const scrollTop = scrollContainerRef.current.scrollTop;
+      const handleMouseMove = (e: MouseEvent) => {
+        if (!hasStartedDragging) {
+          // Calculate current mouse position
+          const currentX = e.clientX - rect!.left;
+          const currentY = e.clientY - rect!.top;
           
-          // Calculate mouse position relative to calendar content with scroll, adjusted for click offset
-          const mouseX = e.clientX - newRect.left;
-          const mouseY = e.clientY - newRect.top + scrollTop;
+          // Calculate original click position
+          const originalEventLeft = 80 + ((rect!.width - 80) * draggedEvent.originalPosition.dayIndex / 7);
+          const originalEventTop = minutesToPosition(draggedEvent.originalPosition.startMinutes);
+          const originalClickX = originalEventLeft + draggedEvent.offset.x;
+          const originalClickY = originalEventTop + draggedEvent.offset.y - (scrollContainerRef.current?.scrollTop || 0);
           
-          // Subtract the offset to get the event's new top-left position
-          const eventX = mouseX - draggedEvent.offset.x;
-          const eventY = mouseY - draggedEvent.offset.y;
-
-          // Calculate day index from event position
-          const newDayIndex = Math.floor((eventX - 80) / ((newRect.width - 80) / 7));
-          const constrainedDayIndex = Math.max(0, Math.min(6, newDayIndex));
+          const distance = Math.sqrt(
+            Math.pow(currentX - originalClickX, 2) +
+            Math.pow(currentY - originalClickY, 2)
+          );
           
-          // Calculate time position from event position
-          const newStartMinutes = snapToIncrement(positionToMinutes(eventY));
+          if (distance < moveThreshold) return;
+          hasStartedDragging = true;
+          setDraggedEvent(prev => prev ? { ...prev, isDragging: true } : null);
+        }
 
-          // Update local position tracker
-          currentDragPosition = { dayIndex: constrainedDayIndex, startMinutes: newStartMinutes };
+        if (!calendarRef.current || !scrollContainerRef.current) return;
 
-          console.log('Drag move:', {
-            mouseX,
-            mouseY,
-            eventX,
-            eventY,
-            offset: draggedEvent.offset,
-            scrollTop,
-            newDayIndex: constrainedDayIndex,
-            newStartMinutes,
-            time: formatTimeFromMinutes(newStartMinutes)
+        const newRect = calendarRef.current.getBoundingClientRect();
+        const scrollTop = scrollContainerRef.current.scrollTop;
+        
+        // Calculate mouse position relative to calendar content with scroll, adjusted for click offset
+        const mouseX = e.clientX - newRect.left;
+        const mouseY = e.clientY - newRect.top + scrollTop;
+        
+        // Subtract the offset to get the event's new top-left position
+        const eventX = mouseX - draggedEvent.offset.x;
+        const eventY = mouseY - draggedEvent.offset.y;
+
+        // Calculate day index from event position
+        const newDayIndex = Math.floor((eventX - 80) / ((newRect.width - 80) / 7));
+        const constrainedDayIndex = Math.max(0, Math.min(6, newDayIndex));
+        
+        // Calculate time position from event position
+        const newStartMinutes = snapToIncrement(positionToMinutes(eventY));
+
+        // Update local position tracker
+        currentDragPosition = { dayIndex: constrainedDayIndex, startMinutes: newStartMinutes };
+
+        console.log('Drag move:', {
+          mouseX,
+          mouseY,
+          eventX,
+          eventY,
+          offset: draggedEvent.offset,
+          scrollTop,
+          newDayIndex: constrainedDayIndex,
+          newStartMinutes,
+          time: formatTimeFromMinutes(newStartMinutes)
+        });
+
+        setDraggedEvent(prev => prev ? {
+          ...prev,
+          currentPosition: currentDragPosition,
+        } : null);
+      };
+
+      const handleMouseUp = () => {
+        console.log('Mouse up triggered, hasStartedDragging:', hasStartedDragging, 'currentDragPosition:', currentDragPosition);
+        if (hasStartedDragging && draggedEvent) {
+          // Update event position using the current drag position
+          const newDate = weekDates[currentDragPosition.dayIndex].toISOString().split('T')[0];
+          // Format time with seconds for database storage
+          const startTime = formatTimeFromMinutes(currentDragPosition.startMinutes) + ':00';
+          const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+          const endTime = formatTimeFromMinutes(currentDragPosition.startMinutes + duration) + ':00';
+
+          const eventData = {
+            date: newDate,
+            startTime,
+            endTime,
+            fromDrag: true, // Flag to indicate this is a drag operation
+          };
+
+          // Cancel any outgoing refetches to prevent conflicts
+          queryClient.cancelQueries({ 
+            queryKey: [`/api/projects/${projectId}/schedule-events`] 
           });
 
-          setDraggedEvent(prev => prev ? {
-            ...prev,
-            currentPosition: currentDragPosition,
-          } : null);
-        };
+          // Immediately update the query cache for instant visual feedback
+          queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: any) => {
+            console.log('Updating cache for event', event.id, 'with data:', eventData);
+            const updated = old?.map((e: ScheduleEvent) => 
+              e.id === event.id ? { ...e, ...eventData } : e
+            ) || [];
+            console.log('Updated cache data:', updated.find((e: any) => e.id === event.id));
+            return updated;
+          });
 
-        const handleMouseUp = () => {
-          console.log('Mouse up triggered, hasStartedDragging:', hasStartedDragging, 'currentDragPosition:', currentDragPosition);
-          if (hasStartedDragging && draggedEvent) {
-            // Update event position using the current drag position
-            const newDate = weekDates[currentDragPosition.dayIndex].toISOString().split('T')[0];
-            // Format time with seconds for database storage
-            const startTime = formatTimeFromMinutes(currentDragPosition.startMinutes) + ':00';
-            const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
-            const endTime = formatTimeFromMinutes(currentDragPosition.startMinutes + duration) + ':00';
-
-            const eventData = {
-              date: newDate,
-              startTime,
-              endTime,
-              fromDrag: true, // Flag to indicate this is a drag operation
-            };
-
-            // Cancel any outgoing refetches to prevent conflicts
-            queryClient.cancelQueries({ 
-              queryKey: [`/api/projects/${projectId}/schedule-events`] 
-            });
-
-            // Immediately update the query cache for instant visual feedback
-            queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: any) => {
-              console.log('Updating cache for event', event.id, 'with data:', eventData);
-              const updated = old?.map((e: ScheduleEvent) => 
-                e.id === event.id ? { ...e, ...eventData } : e
-              ) || [];
-              console.log('Updated cache data:', updated.find((e: any) => e.id === event.id));
-              return updated;
-            });
-
-            // Run database update silently in background with debouncing
-            setTimeout(async () => {
-              try {
-                const response = await fetch(`/api/schedule-events/${event.id}`, {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(eventData),
-                });
-                
-                if (!response.ok) {
-                  // If silent update fails, revert the cache
-                  queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
-                  toast({ 
-                    title: "Failed to update event", 
-                    variant: "destructive" 
-                  });
-                }
-              } catch (error) {
-                console.error('Silent update failed:', error);
-                // Revert cache on error
+          // Run database update silently in background with debouncing
+          setTimeout(async () => {
+            try {
+              const response = await fetch(`/api/schedule-events/${event.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(eventData),
+              });
+              
+              if (!response.ok) {
+                // If silent update fails, revert the cache
                 queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
                 toast({ 
                   title: "Failed to update event", 
                   variant: "destructive" 
                 });
               }
-            }, 500);
+            } catch (error) {
+              console.error('Silent update failed:', error);
+              // Revert cache on error
+              queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+              toast({ 
+                title: "Failed to update event", 
+                variant: "destructive" 
+              });
+            }
+          }, 500);
 
-            setJustDragged(event.id);
-          }
+          setJustDragged(event.id);
+        }
 
-          setDraggedEvent(null);
-          document.removeEventListener('mousemove', handleMouseMove);
-          document.removeEventListener('mouseup', handleMouseUp);
-        };
+        setDraggedEvent(null);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
 
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
-
-    // Set up double click detection with shorter timeout
-    const doubleClickTimeout = setTimeout(() => {
-      // This timeout just cleans up the double click listener
-    }, 300);
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }, 200);
 
     // Handle double click
     const handleDoubleClick = () => {
-      clearTimeout(doubleClickTimeout);
-      // Cancel drag and edit instead
-      setDraggedEvent(null);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      clearTimeout(clickTimeout);
       doubleClickHandler();
     };
 
     e.currentTarget.addEventListener('dblclick', handleDoubleClick, { once: true });
   }, [weekDates, filteredEvents, timeIncrement, updateEventMutation, justDragged, selectedEvents]);
 
-
-
   // Handle event resize
-  const handleResizeStart = (e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
+  const handleResizeStart = useCallback((e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -815,78 +804,94 @@ export default function WeeklyScheduleView({
     const originalEndMinutes = timeToMinutes(event.endTime);
 
     setResizingEvent({
-      event: { ...event },
+      event,
       edge,
-      originalStart: originalStartMinutes,
-      originalEnd: originalEndMinutes,
+      originalStartMinutes,
+      originalEndMinutes,
     });
 
     const handleMouseMove = (e: MouseEvent) => {
-      const rect = document.querySelector('.schedule-grid')?.getBoundingClientRect();
-      if (!rect) return;
+      if (!calendarRef.current) return;
 
+      const rect = calendarRef.current.getBoundingClientRect();
       const y = e.clientY - rect.top;
-      const snappedMinutes = Math.round(positionToMinutes(y) / timeIncrement) * timeIncrement;
+      const minutes = snapToIncrement(positionToMinutes(y));
 
-      setResizingEvent(prev => {
-        if (!prev) return null;
-        
-        let newStartTime, newEndTime;
-        
-        if (prev.edge === 'start') {
-          // Resizing from the top - change start time, keep end time
-          newStartTime = formatTime(Math.max(0, Math.min(snappedMinutes, prev.originalEnd - timeIncrement)));
-          newEndTime = formatTime(prev.originalEnd);
-        } else {
-          // Resizing from the bottom - keep start time, change end time
-          newStartTime = formatTime(prev.originalStart);
-          newEndTime = formatTime(Math.max(prev.originalStart + timeIncrement, snappedMinutes));
-        }
+      let newStartMinutes = originalStartMinutes;
+      let newEndMinutes = originalEndMinutes;
 
-        return {
-          ...prev,
-          event: { ...prev.event, startTime: newStartTime, endTime: newEndTime },
-        };
-      });
+      if (edge === 'start') {
+        newStartMinutes = Math.min(minutes, originalEndMinutes - timeIncrement);
+      } else {
+        newEndMinutes = Math.max(minutes, originalStartMinutes + timeIncrement);
+      }
+
+      const newStartTime = formatTimeFromMinutes(newStartMinutes);
+      const newEndTime = formatTimeFromMinutes(newEndMinutes);
+
+      // Update the event optimistically
+      setResizingEvent(prev => prev ? {
+        ...prev,
+        event: { ...prev.event, startTime: newStartTime, endTime: newEndTime },
+      } : null);
     };
 
     const handleMouseUp = () => {
-      setResizingEvent(prev => {
-        if (prev) {
-          // Update cache immediately with the resized times
-          const startTime = prev.event.startTime.includes(':') && prev.event.startTime.split(':').length === 2 
-            ? prev.event.startTime + ':00' 
-            : prev.event.startTime;
-          const endTime = prev.event.endTime.includes(':') && prev.event.endTime.split(':').length === 2 
-            ? prev.event.endTime + ':00' 
-            : prev.event.endTime;
+      if (resizingEvent) {
+        const eventData = {
+          startTime: resizingEvent.event.startTime,
+          endTime: resizingEvent.event.endTime,
+        };
 
-          queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
-            return old?.map((e: ScheduleEvent) => 
-              e.id === prev.event.id ? { ...e, startTime, endTime } : e
-            ) || [];
-          });
+        // Cancel any outgoing refetches to prevent conflicts
+        queryClient.cancelQueries({ 
+          queryKey: [`/api/projects/${projectId}/schedule-events`] 
+        });
 
-          // Update database
-          updateEventMutation.mutate({
-            eventId: prev.event.id,
-            eventData: {
-              startTime,
-              endTime,
-              fromDrag: true
+        // Update UI immediately for instant visual feedback
+        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+          return old?.map((e: ScheduleEvent) => 
+            e.id === event.id ? { ...e, startTime: resizingEvent.event.startTime, endTime: resizingEvent.event.endTime } : e
+          ) || [];
+        });
+
+        // Run database update silently in background with debouncing
+        setTimeout(async () => {
+          try {
+            const response = await fetch(`/api/schedule-events/${event.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(eventData),
+            });
+            
+            if (!response.ok) {
+              // If silent update fails, revert the cache
+              queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+              toast({ 
+                title: "Failed to update event", 
+                variant: "destructive" 
+              });
             }
-          });
-        }
-        return null;
-      });
+          } catch (error) {
+            console.error('Silent resize update failed:', error);
+            // Revert cache on error
+            queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+            toast({ 
+              title: "Failed to update event", 
+              variant: "destructive" 
+            });
+          }
+        }, 500);
+      }
 
+      setResizingEvent(null);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  };
+  }, [timeIncrement, updateEventMutation, resizingEvent]);
 
   // Generate time labels using memoization to prevent scoping issues
   const timeLabels = useMemo(() => {
@@ -1132,17 +1137,6 @@ export default function WeeklyScheduleView({
                     minutesToPosition(draggedEvent.currentPosition.startMinutes) : 
                     minutesToPosition(timeToMinutes(event.startTime));
 
-                  // Debug logging for dragged events
-                  if (draggedEvent?.event.id === event.id) {
-                    console.log(`Event ${event.id} dragged position:`, {
-                      originalDay: dayIndex,
-                      displayDay: displayDayIndex,
-                      originalTop: minutesToPosition(timeToMinutes(event.startTime)),
-                      displayTop,
-                      isDragging: draggedEvent.isDragging
-                    });
-                  }
-
                   // Use resized dimensions if this event is being resized
                   const displayHeight = resizingEvent?.event.id === event.id ?
                     timeToMinutes(resizingEvent.event.endTime) - timeToMinutes(resizingEvent.event.startTime) : height;
@@ -1169,12 +1163,6 @@ export default function WeeklyScheduleView({
                       <div className="font-medium truncate">{event.title}</div>
                       <div className="text-xs opacity-90">
                         {(() => {
-                          // Use resized times if this event is being resized
-                          if (resizingEvent?.event.id === event.id) {
-                            const resizeStartMinutes = timeToMinutes(resizingEvent.event.startTime);
-                            const resizeEndMinutes = timeToMinutes(resizingEvent.event.endTime);
-                            return `${formatTimeDisplay(formatTime(resizeStartMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(resizeEndMinutes), timeFormat as '12' | '24')}`;
-                          }
                           // Use dragged position times if this event is being dragged
                           if (draggedEvent?.event.id === event.id && draggedEvent.isDragging) {
                             const dragStartMinutes = draggedEvent.currentPosition.startMinutes;
