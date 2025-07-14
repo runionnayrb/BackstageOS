@@ -845,7 +845,9 @@ export default function WeeklyScheduleView({
     };
 
     const handleMouseUp = () => {
+      console.log('Resize handleMouseUp called, resizingEvent:', resizingEvent);
       if (resizingEvent) {
+        console.log('Resize handleMouseUp - processing resize event:', resizingEvent);
         // Update cache immediately with the resized times
         const startTime = resizingEvent.event.startTime.includes(':') && resizingEvent.event.startTime.split(':').length === 2 
           ? resizingEvent.event.startTime + ':00' 
@@ -853,6 +855,8 @@ export default function WeeklyScheduleView({
         const endTime = resizingEvent.event.endTime.includes(':') && resizingEvent.event.endTime.split(':').length === 2 
           ? resizingEvent.event.endTime + ':00' 
           : resizingEvent.event.endTime;
+
+        console.log('Formatted times for database:', { startTime, endTime });
 
         queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
           return old?.map((e: ScheduleEvent) => 
@@ -867,6 +871,8 @@ export default function WeeklyScheduleView({
           startTime,
           endTime,
         });
+      } else {
+        console.log('Resize handleMouseUp - no resizingEvent, skipping database update');
       }
 
       setResizingEvent(null);
