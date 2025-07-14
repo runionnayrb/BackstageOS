@@ -659,6 +659,17 @@ export default function WeeklyScheduleView({
         isDragging: false,
       };
 
+      console.log('🎯 Drag initialized:', {
+        eventId: event.id,
+        dayIndex,
+        startMinutes,
+        offset: draggedEvent.offset,
+        eventLeft,
+        eventTop,
+        clickX,
+        clickY
+      });
+
       setDraggedEvent(draggedEvent);
 
       let hasStartedDragging = false;
@@ -730,6 +741,8 @@ export default function WeeklyScheduleView({
 
       const handleMouseUp = () => {
         console.log('Mouse up triggered, hasStartedDragging:', hasStartedDragging, 'currentDragPosition:', currentDragPosition);
+        console.log('draggedEvent:', draggedEvent);
+        
         if (hasStartedDragging && draggedEvent) {
           // Update event position using the current drag position
           const newDate = weekDates[currentDragPosition.dayIndex].toISOString().split('T')[0];
@@ -774,6 +787,8 @@ export default function WeeklyScheduleView({
           console.log('✅ Mutation called');
 
           setJustDragged(event.id);
+        } else {
+          console.log('❌ Drag cancelled - hasStartedDragging:', hasStartedDragging, 'draggedEvent:', !!draggedEvent);
         }
 
         setDraggedEvent(null);
