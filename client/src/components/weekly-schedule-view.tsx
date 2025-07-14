@@ -647,7 +647,7 @@ export default function WeeklyScheduleView({
 
         let hasStartedDragging = false;
         let currentDragPosition = { dayIndex: draggedEvent.originalPosition.dayIndex, startMinutes: draggedEvent.originalPosition.startMinutes };
-        const moveThreshold = 3; // pixels
+        const moveThreshold = 1; // pixels - very sensitive
 
         const handleMouseMove = (e: MouseEvent) => {
           if (!hasStartedDragging) {
@@ -666,8 +666,11 @@ export default function WeeklyScheduleView({
               Math.pow(currentY - originalClickY, 2)
             );
             
+            console.log('Movement check:', { distance, threshold: moveThreshold, currentX, currentY, originalClickX, originalClickY });
+            
             if (distance < moveThreshold) return;
             hasStartedDragging = true;
+            console.log('Drag started! Distance:', distance);
             setDraggedEvent(prev => prev ? { ...prev, isDragging: true } : null);
           }
 
