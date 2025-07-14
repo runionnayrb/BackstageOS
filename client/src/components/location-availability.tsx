@@ -679,11 +679,25 @@ export default function LocationAvailability({
   // Add mouse event listeners
   useEffect(() => {
     if (isDragging) {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setIsDragging(false);
+          setDragStart(null);
+          setNewBlock(null);
+          setDraggedItem(null);
+          setDraggedItems([]);
+          setResizingItem(null);
+          setResizeMode(null);
+        }
+      };
+
       document.addEventListener('mousemove', handleGlobalMouseMove);
       document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('keydown', handleKeyDown);
       return () => {
         document.removeEventListener('mousemove', handleGlobalMouseMove);
         document.removeEventListener('mouseup', handleGlobalMouseUp);
+        document.removeEventListener('keydown', handleKeyDown);
       };
     }
   }, [isDragging, handleGlobalMouseMove, handleGlobalMouseUp]);
@@ -971,6 +985,7 @@ export default function LocationAvailability({
                             key={location.id} 
                             className="location-row h-16 border-b relative bg-white cursor-crosshair w-full" 
                             onMouseDown={(e) => handleMouseDown(e, location.id)}
+                            onContextMenu={(e) => e.preventDefault()}
                           >
                             {/* Time Grid Background with both hour lines and increment lines */}
                             <div className="relative w-full h-full absolute">

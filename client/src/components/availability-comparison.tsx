@@ -1365,6 +1365,18 @@ export default function AvailabilityComparison({
                         onMouseMove={handleMouseMove}
                         onMouseUp={handleMouseUp}
                         onMouseLeave={handleMouseUp}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Escape' && (isDragging || newBlock)) {
+                            setIsDragging(false);
+                            setDragStart(null);
+                            setNewBlock(null);
+                            setDraggedItem(null);
+                            setDraggedItems([]);
+                            setResizingItem(null);
+                            setResizeMode(null);
+                          }
+                        }}
+                        tabIndex={-1}
                       >
                     {/* Time Header */}
                     <div className="sticky top-0 bg-white border-b z-10">
@@ -1401,6 +1413,7 @@ export default function AvailabilityComparison({
                             key={contact.id} 
                             className="h-16 border-b relative bg-white cursor-crosshair w-full" 
                             onMouseDown={(e) => handleMouseDown(e, contact.id)}
+                            onContextMenu={(e) => e.preventDefault()}
                           >
                             {/* Time Grid Background with incremental lines */}
                             <div className="relative w-full h-full absolute">
