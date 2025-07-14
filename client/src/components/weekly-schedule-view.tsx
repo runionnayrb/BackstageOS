@@ -796,6 +796,7 @@ export default function WeeklyScheduleView({
 
   // Handle event resize
   const handleResizeStart = useCallback((e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
+    console.log('🎯 Resize started:', { eventId: event.id, edge, startTime: event.startTime, endTime: event.endTime });
     e.preventDefault();
     e.stopPropagation();
 
@@ -836,11 +837,17 @@ export default function WeeklyScheduleView({
     };
 
     const handleMouseUp = () => {
+      console.log('🎯 Resize mouse up, resizingEvent:', resizingEvent);
       if (resizingEvent) {
         const eventData = {
           startTime: resizingEvent.event.startTime + ':00',
           endTime: resizingEvent.event.endTime + ':00',
         };
+
+        console.log('🚀 Calling resize mutation with data:', {
+          eventId: event.id,
+          eventData
+        });
 
         // Use the mutation for proper error handling and cache management
         updateEventMutation.mutate({
