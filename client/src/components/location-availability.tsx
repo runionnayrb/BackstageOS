@@ -820,7 +820,6 @@ export default function LocationAvailability({
                 Back to Calendar
               </Button>
               <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
                 <h1 className="text-xl font-semibold">Location Availability</h1>
               </div>
             </div>
@@ -831,11 +830,6 @@ export default function LocationAvailability({
       {/* Main Content */}
       <div className="px-6 py-6">
         <div className="h-[calc(100vh-6rem)] flex flex-col">
-          <div className="mb-4">
-            <p className="text-gray-600">
-              Compare location availability for the selected day. Times are shown across the top, locations on the left.
-            </p>
-          </div>
 
           {/* Navigation and Controls */}
           <div className="flex items-center justify-between gap-4 border-b pb-4 mb-4">
