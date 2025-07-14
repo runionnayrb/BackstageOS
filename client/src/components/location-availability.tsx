@@ -228,20 +228,6 @@ export default function LocationAvailability({
     );
   };
 
-  // Debug: Log all schedule events to see what's available
-  useEffect(() => {
-    if (scheduleEvents.length > 0) {
-      console.log('📅 All schedule events:', scheduleEvents.map(event => ({
-        id: event.id,
-        title: event.title,
-        date: event.date,
-        location: event.location,
-        type: event.type
-      })));
-      console.log('📅 Current date being checked:', currentDate.toISOString().split('T')[0]);
-    }
-  }, [scheduleEvents, currentDate]);
-
   // Get schedule events for a specific location on the current date with filtering
   const getScheduleEventsForLocationAndDate = useCallback((locationId: number) => {
     const dateStr = currentDate.toISOString().split('T')[0];
@@ -253,19 +239,14 @@ export default function LocationAvailability({
       return event.date === dateStr && event.location === location.name;
     });
     
-    console.log(`🔍 Events for ${location.name} on ${dateStr}:`, eventsForLocation);
-    console.log(`🔍 Filter state - selectedEventTypes:`, selectedEventTypes);
-    console.log(`🔍 Filter state - selectedIndividualTypes:`, selectedIndividualTypes);
-    
     // Apply event type filtering
-    // If no filters are selected at all, show no events (this is the new behavior)
+    // If no filters are selected at all, show no events
     if (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
-      console.log('🔴 No filters selected, showing NO events');
       return [];
     }
     
     // Filter events based on selected types
-    const filteredEvents = eventsForLocation.filter((event: any) => {
+    return eventsForLocation.filter((event: any) => {
       const eventTypeLower = event.type.toLowerCase();
       
       // Check if event type matches any selected show schedule types
@@ -278,13 +259,8 @@ export default function LocationAvailability({
         selectedType.toLowerCase() === eventTypeLower
       );
       
-      const matches = matchesShowTypes || matchesIndividualTypes;
-      console.log(`Event "${event.title}" (${event.type}) matches filters:`, matches);
-      return matches;
+      return matchesShowTypes || matchesIndividualTypes;
     });
-    
-    console.log(`🔍 Final filtered events for ${location.name}:`, filteredEvents.length);
-    return filteredEvents;
   }, [currentDate, locations, scheduleEvents, selectedEventTypes, selectedIndividualTypes]);
 
   // Navigation functions
