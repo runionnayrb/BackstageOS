@@ -614,11 +614,7 @@ export default function WeeklyScheduleView({
       return;
     }
 
-    // Skip if event was just dragged (prevent immediate edit after drag)
-    if (justDragged === event.id) {
-      setJustDragged(null);
-      return;
-    }
+
 
     // Clear any existing selections when not in multi-select mode
     setSelectedEvents(new Set());
@@ -803,7 +799,7 @@ export default function WeeklyScheduleView({
           });
           console.log('✅ Mutation called');
 
-          setJustDragged(event.id);
+
         } else {
           console.log('❌ Drag cancelled - hasStartedDragging:', hasStartedDragging, 'draggedEvent:', !!draggedEvent);
         }
