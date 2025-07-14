@@ -846,9 +846,17 @@ export default function WeeklyScheduleView({
 
     const handleMouseUp = () => {
       if (resizingEvent) {
+        // Format times with seconds for database storage
+        const startTime = resizingEvent.event.startTime.includes(':') && resizingEvent.event.startTime.split(':').length === 2 
+          ? resizingEvent.event.startTime + ':00' 
+          : resizingEvent.event.startTime;
+        const endTime = resizingEvent.event.endTime.includes(':') && resizingEvent.event.endTime.split(':').length === 2 
+          ? resizingEvent.event.endTime + ':00' 
+          : resizingEvent.event.endTime;
+          
         const eventData = {
-          startTime: resizingEvent.event.startTime,
-          endTime: resizingEvent.event.endTime,
+          startTime,
+          endTime,
         };
 
         // Cancel any outgoing refetches to prevent conflicts
@@ -899,7 +907,7 @@ export default function WeeklyScheduleView({
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [timeIncrement, updateEventMutation, resizingEvent]);
+  }, [timeIncrement, projectId]);
 
   // Generate time labels using memoization to prevent scoping issues
   const timeLabels = useMemo(() => {
