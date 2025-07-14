@@ -234,67 +234,33 @@ export default function LocationAvailability({
     const location = locations.find((loc: EventLocation) => loc.id === locationId);
     if (!location) return [];
     
-    console.log('Getting events for location:', location.name, 'on date:', dateStr);
-    console.log('All schedule events:', scheduleEvents.length);
-    
     const eventsForLocation = scheduleEvents.filter((event: any) => {
       // Match by location name and date
-      const matches = event.date === dateStr && event.location === location.name;
-      if (matches) {
-        console.log('Found matching event:', event.title, 'type:', event.type);
-      }
-      return matches;
+      return event.date === dateStr && event.location === location.name;
     });
-    
-    console.log('Events for location before filtering:', eventsForLocation.length);
-    console.log('Selected event types:', selectedEventTypes);
-    console.log('Selected individual types:', selectedIndividualTypes);
     
     // Apply event type filtering
     // If no filters are selected at all, show all events
     if (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
-      console.log('No filters selected, showing all events');
       return eventsForLocation;
     }
     
-    // If only one type of filter is selected, filter by that type
-    if (selectedEventTypes.length > 0 && selectedIndividualTypes.length === 0) {
-      const filtered = eventsForLocation.filter((event: any) => {
-        const eventTypeLower = event.type.toLowerCase();
-        const matches = selectedEventTypes.some(selectedType => 
-          selectedType.toLowerCase() === eventTypeLower
-        );
-        console.log('Checking event type:', event.type, 'against selected:', selectedEventTypes, 'matches:', matches);
-        return matches;
-      });
-      console.log('Filtered by show schedule types:', filtered.length);
-      return filtered;
-    }
-    
-    if (selectedIndividualTypes.length > 0 && selectedEventTypes.length === 0) {
-      const filtered = eventsForLocation.filter((event: any) => {
-        const eventTypeLower = event.type.toLowerCase();
-        return selectedIndividualTypes.some(selectedType => 
-          selectedType.toLowerCase() === eventTypeLower
-        );
-      });
-      console.log('Filtered by individual types:', filtered.length);
-      return filtered;
-    }
-    
-    // If both types have selections, show events that match either filter
-    const filtered = eventsForLocation.filter((event: any) => {
+    // Filter events based on selected types
+    return eventsForLocation.filter((event: any) => {
       const eventTypeLower = event.type.toLowerCase();
+      
+      // Check if event type matches any selected show schedule types
       const matchesShowTypes = selectedEventTypes.some(selectedType => 
         selectedType.toLowerCase() === eventTypeLower
       );
+      
+      // Check if event type matches any selected individual types
       const matchesIndividualTypes = selectedIndividualTypes.some(selectedType => 
         selectedType.toLowerCase() === eventTypeLower
       );
+      
       return matchesShowTypes || matchesIndividualTypes;
     });
-    console.log('Filtered by both types:', filtered.length);
-    return filtered;
   };
 
   // Navigation functions
