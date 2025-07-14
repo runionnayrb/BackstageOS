@@ -385,12 +385,11 @@ export default function WeeklyScheduleView({
     onSuccess: (data) => {
       console.log('Update mutation succeeded:', data);
       
-      // Force immediate cache update with the returned data
+      // Update is already done optimistically, so we only update if the server returns different data
       queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
         const updated = old?.map((e: ScheduleEvent) => 
           e.id === data.id ? data : e
         ) || [];
-        console.log('Mutation success - updated cache for event', data.id, 'with data:', data);
         return updated;
       });
       
@@ -757,14 +756,7 @@ export default function WeeklyScheduleView({
             eventData
           });
 
-          // Check if the mutation is actually being triggered
-          console.log('🔧 Mutation state before calling:', {
-            isLoading: updateEventMutation.isPending,
-            isError: updateEventMutation.isError,
-            error: updateEventMutation.error
-          });
-
-          // Optimistically update the cache immediately
+          // Optimistically update the cache immediately for instant visual feedback
           queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
             const updated = old?.map((e: ScheduleEvent) => 
               e.id === event.id ? { ...e, ...eventData } : e
@@ -773,7 +765,7 @@ export default function WeeklyScheduleView({
             return updated;
           });
 
-          // Use the mutation for proper error handling
+          // Use the mutation for backend update
           console.log('🚀 Calling updateEventMutation.mutate()');
           updateEventMutation.mutate({
             eventId: event.id,
@@ -856,6 +848,13 @@ export default function WeeklyScheduleView({
           startTime: resizingEventRef.current.event.startTime + ':00',
           endTime: resizingEventRef.current.event.endTime + ':00',
         };
+
+        // Optimistically update the cache immediately for instant visual feedback
+        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+          return old?.map((e: ScheduleEvent) => 
+            e.id === event.id ? { ...e, startTime: eventData.startTime, endTime: eventData.endTime } : e
+          ) || [];
+        });
 
         console.log('🚀 Calling resize mutation with data:', {
           eventId: event.id,
