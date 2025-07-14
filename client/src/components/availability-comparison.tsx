@@ -324,17 +324,11 @@ export default function AvailabilityComparison({
   const applyFiltersToEvents = (events: any[]) => {
     if (!events || events.length === 0) return [];
     
-    console.log('🔍 Filtering events:', {
-      totalEvents: events.length,
-      showScheduleEnabled,
-      selectedEventTypes,
-      selectedIndividualTypes,
-      eventTypes: eventTypes.map(et => ({ id: et.id, name: et.name, isDefault: et.isDefault }))
-    });
+
     
     // If no filtering is active, show all events
     if (!showScheduleEnabled || (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0)) {
-      console.log('🔍 No filtering active, showing all events');
+
       return events;
     }
     
@@ -351,16 +345,7 @@ export default function AvailabilityComparison({
       const typeIdentifier = eventType ? (eventType.isDefault ? eventType.name : eventType.id) : event.type;
       const eventTypeName = eventType ? eventType.name : event.type;
       
-      console.log('🔍 Checking event:', {
-        eventId: event.id,
-        eventType: event.type,
-        eventTypeId: event.eventTypeId,
-        foundEventType: eventType,
-        typeIdentifier,
-        eventTypeName,
-        inShowSchedule: selectedEventTypes.includes(typeIdentifier),
-        inIndividualEvents: selectedIndividualTypes.includes(eventTypeName)
-      });
+
       
       // Check if enabled in Show Schedule
       if (selectedEventTypes.includes(typeIdentifier)) {
@@ -371,7 +356,7 @@ export default function AvailabilityComparison({
       return selectedIndividualTypes.includes(eventTypeName);
     });
     
-    console.log('🔍 Filtered events result:', filteredEvents);
+
     return filteredEvents;
   };
 
@@ -1536,7 +1521,9 @@ export default function AvailabilityComparison({
                               // Get event type color (same as schedule views)
                               const eventType = eventTypes.find(et => 
                                 et.id === event.eventTypeId || 
-                                et.name.toLowerCase() === event.type.toLowerCase()
+                                et.name.toLowerCase() === event.type.toLowerCase() ||
+                                et.name.toLowerCase().replace(/\s+/g, '_') === event.type.toLowerCase() ||
+                                et.name.toLowerCase() === event.type.toLowerCase().replace(/_/g, ' ')
                               );
                               const eventColor = eventType?.color || '#8B5CF6'; // Default purple
 
