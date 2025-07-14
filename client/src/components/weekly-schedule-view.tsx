@@ -505,6 +505,9 @@ export default function WeeklyScheduleView({
   // Mouse handlers for drag-to-create (matching weekly availability pattern)
   const handleMouseDown = useCallback((e: React.MouseEvent, dayIndex: number) => {
     if (!calendarRef.current || !scrollContainerRef.current) return;
+    
+    // Ignore right clicks
+    if (e.button !== 0) return;
 
     // Use same coordinate system as weekly availability editor
     const rect = calendarRef.current.getBoundingClientRect();
@@ -1129,6 +1132,7 @@ export default function WeeklyScheduleView({
                     width: `calc((100% - 80px) / 7)`,
                   }}
                   onMouseDown={(e) => handleMouseDown(e, dayIndex)}
+                  onContextMenu={(e) => e.preventDefault()}
                 />
               ))}
 
