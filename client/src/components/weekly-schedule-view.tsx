@@ -365,19 +365,14 @@ export default function WeeklyScheduleView({
     onSuccess: (data) => {
       console.log('Update mutation succeeded:', data);
       
-      // Clear any drag state immediately
-      setDraggedEvent(null);
-      setJustDragged(null);
-      
       // Force immediate cache update with the returned data
       queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
-        return old?.map((e: ScheduleEvent) => 
+        const updated = old?.map((e: ScheduleEvent) => 
           e.id === data.id ? data : e
         ) || [];
+        console.log('Mutation success - updated cache for event', data.id, 'with data:', data);
+        return updated;
       });
-      
-      // Also refetch to ensure consistency
-      queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
       
       setEditingEvent(null);
       // Only show toast for manual edits, not drag operations
@@ -731,12 +726,27 @@ export default function WeeklyScheduleView({
             fromDrag: true, // Flag to indicate this is a drag operation
           };
 
-          // Cancel any outgoing refetches to prevent conflicts
-          queryClient.cancelQueries({ 
-            queryKey: [`/api/projects/${projectId}/schedule-events`] 
+          console.log('About to save drag update:', {
+            eventId: event.id,
+            originalDate: event.date,
+            originalStartTime: event.startTime,
+            originalEndTime: event.endTime,
+            newDate,
+            newStartTime: startTime,
+            newEndTime: endTime,
+            eventData
           });
 
-          // Use the mutation for proper error handling and cache management
+          // Optimistically update the cache immediately
+          queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+            const updated = old?.map((e: ScheduleEvent) => 
+              e.id === event.id ? { ...e, ...eventData } : e
+            ) || [];
+            console.log('Optimistically updated cache for event', event.id);
+            return updated;
+          });
+
+          // Use the mutation for proper error handling
           updateEventMutation.mutate({
             eventId: event.id,
             eventData
