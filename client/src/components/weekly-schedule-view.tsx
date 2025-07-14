@@ -588,11 +588,22 @@ export default function WeeklyScheduleView({
       setDragState(null);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setDragState(null);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('keydown', handleKeyDown);
+      }
     };
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [filteredEvents, weekDates, timeIncrement, timeFormat]);
+    document.addEventListener('keydown', handleKeyDown);
+  }, [filteredEvents, weekDates, timeIncrement, timeFormat, setCreateEventData, setCreateEventDialog]);
 
   // Handle dragging existing events and multi-select
   const handleEventMouseDown = useCallback((e: React.MouseEvent, event: ScheduleEvent) => {
