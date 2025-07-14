@@ -100,7 +100,7 @@ export default function Calendar() {
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowLocationAvailability(true)}>
                 <MapPin className="mr-2 h-4 w-4" />
-                Space Availability
+                Location Availability
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
