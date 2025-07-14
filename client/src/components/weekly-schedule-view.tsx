@@ -394,10 +394,6 @@ export default function WeeklyScheduleView({
       });
       
       setEditingEvent(null);
-      // Only show toast for manual edits, not drag operations
-      if (data.fromDrag !== true) {
-        toast({ title: "Event updated successfully" });
-      }
     },
     onError: (error) => {
       console.error('Update mutation failed:', error);
