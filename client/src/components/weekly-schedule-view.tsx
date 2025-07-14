@@ -805,6 +805,7 @@ export default function WeeklyScheduleView({
 
   // Handle event resize
   const handleResizeStart = (e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
+    console.log('🎯 Resize started for event:', event.id, 'edge:', edge);
     e.preventDefault();
     e.stopPropagation();
 
