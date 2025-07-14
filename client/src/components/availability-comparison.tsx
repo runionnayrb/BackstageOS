@@ -502,6 +502,8 @@ export default function AvailabilityComparison({
     }, 500); // Longer delay for background operations
   }, [projectId, queryClient]);
 
+
+
   const handleMouseUp = () => {
     if (!isDragging) return;
     
@@ -583,6 +585,35 @@ export default function AvailabilityComparison({
     setResizingItem(null);
     setResizeMode(null);
   };
+
+  // Add global mouse event listeners for drag operations
+  useEffect(() => {
+    if (isDragging) {
+      const handleGlobalMouseUp = () => {
+        handleMouseUp();
+      };
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setIsDragging(false);
+          setDragStart(null);
+          setNewBlock(null);
+          setDraggedItem(null);
+          setDraggedItems([]);
+          setResizingItem(null);
+          setResizeMode(null);
+        }
+      };
+
+      document.addEventListener('mouseup', handleGlobalMouseUp);
+      document.addEventListener('keydown', handleKeyDown);
+      
+      return () => {
+        document.removeEventListener('mouseup', handleGlobalMouseUp);
+        document.removeEventListener('keydown', handleKeyDown);
+      };
+    }
+  }, [isDragging, newBlock, draggedItem, draggedItems, resizingItem, currentDate, projectId, queryClient, createMutation, silentUpdate]);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
