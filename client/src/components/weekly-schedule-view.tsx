@@ -861,6 +861,7 @@ export default function WeeklyScheduleView({
         });
 
         // Update database
+        console.log('Calling updateEventMutation.mutate with:', { id: event.id, startTime, endTime });
         updateEventMutation.mutate({
           id: event.id,
           startTime,
@@ -875,7 +876,7 @@ export default function WeeklyScheduleView({
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [timeIncrement, projectId, resizingEvent, queryClient, updateEventMutation]);
+  }, [timeIncrement, projectId, queryClient, updateEventMutation]);
 
   // Generate time labels using memoization to prevent scoping issues
   const timeLabels = useMemo(() => {
