@@ -120,6 +120,14 @@ export default function WeeklyScheduleView({
     originalStartMinutes: number;
     originalEndMinutes: number;
   } | null>(null);
+  
+  // Use a ref to track resizing state for proper closure handling
+  const resizingEventRef = useRef<{
+    event: ScheduleEvent;
+    edge: 'start' | 'end';
+    originalStartMinutes: number;
+    originalEndMinutes: number;
+  } | null>(null);
   const [justDragged, setJustDragged] = useState<number | null>(null);
   const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
   const [isShiftPressed, setIsShiftPressed] = useState(false);
@@ -803,12 +811,15 @@ export default function WeeklyScheduleView({
     const originalStartMinutes = timeToMinutes(event.startTime);
     const originalEndMinutes = timeToMinutes(event.endTime);
 
-    setResizingEvent({
+    const resizingData = {
       event,
       edge,
       originalStartMinutes,
       originalEndMinutes,
-    });
+    };
+    
+    setResizingEvent(resizingData);
+    resizingEventRef.current = resizingData;
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!calendarRef.current) return;
@@ -830,18 +841,20 @@ export default function WeeklyScheduleView({
       const newEndTime = formatTime(newEndMinutes);
 
       // Update the event optimistically
+      const updatedEvent = { ...resizingEventRef.current!.event, startTime: newStartTime, endTime: newEndTime };
       setResizingEvent(prev => prev ? {
         ...prev,
-        event: { ...prev.event, startTime: newStartTime, endTime: newEndTime },
+        event: updatedEvent,
       } : null);
+      resizingEventRef.current!.event = updatedEvent;
     };
 
     const handleMouseUp = () => {
-      console.log('🎯 Resize mouse up, resizingEvent:', resizingEvent);
-      if (resizingEvent) {
+      console.log('🎯 Resize mouse up, resizingEventRef.current:', resizingEventRef.current);
+      if (resizingEventRef.current) {
         const eventData = {
-          startTime: resizingEvent.event.startTime + ':00',
-          endTime: resizingEvent.event.endTime + ':00',
+          startTime: resizingEventRef.current.event.startTime + ':00',
+          endTime: resizingEventRef.current.event.endTime + ':00',
         };
 
         console.log('🚀 Calling resize mutation with data:', {
@@ -857,6 +870,7 @@ export default function WeeklyScheduleView({
       }
 
       setResizingEvent(null);
+      resizingEventRef.current = null;
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
