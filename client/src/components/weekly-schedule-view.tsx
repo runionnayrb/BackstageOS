@@ -804,7 +804,7 @@ export default function WeeklyScheduleView({
 
 
   // Handle event resize
-  const handleResizeStart = useCallback((e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
+  const handleResizeStart = (e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -880,7 +880,7 @@ export default function WeeklyScheduleView({
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [timeIncrement, projectId, queryClient, updateEventMutation]);
+  };
 
   // Generate time labels using memoization to prevent scoping issues
   const timeLabels = useMemo(() => {
