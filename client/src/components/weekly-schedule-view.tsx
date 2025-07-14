@@ -733,10 +733,29 @@ export default function WeeklyScheduleView({
           time: formatTime(newStartMinutes)
         });
 
+        // Update the dragged event position for visual feedback
         setDraggedEvent(prev => prev ? {
           ...prev,
           currentPosition: currentDragPosition,
         } : null);
+
+        // Optimistically update the event in the cache for instant visual feedback while dragging
+        const newDate = weekDates[currentDragPosition.dayIndex].toISOString().split('T')[0];
+        const startTime = formatTime(currentDragPosition.startMinutes);
+        const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+        const endTime = formatTime(currentDragPosition.startMinutes + duration);
+
+        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+          const updated = old?.map((e: ScheduleEvent) => 
+            e.id === event.id ? { 
+              ...e, 
+              date: newDate,
+              startTime: startTime + ':00',
+              endTime: endTime + ':00'
+            } : e
+          ) || [];
+          return updated;
+        });
       };
 
       const handleMouseUp = () => {
@@ -769,14 +788,8 @@ export default function WeeklyScheduleView({
             eventData
           });
 
-          // Optimistically update the cache immediately for instant visual feedback
-          queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
-            const updated = old?.map((e: ScheduleEvent) => 
-              e.id === event.id ? { ...e, ...eventData } : e
-            ) || [];
-            console.log('💾 Optimistically updated cache for event', event.id);
-            return updated;
-          });
+          // Cache is already updated during drag, no need to update again
+          console.log('💾 Cache already updated during drag for event', event.id);
 
           // Use the mutation for backend update
           console.log('🚀 Calling updateEventMutation.mutate()');
