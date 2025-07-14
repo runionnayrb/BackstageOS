@@ -804,8 +804,7 @@ export default function WeeklyScheduleView({
 
 
   // Handle event resize
-  const handleResizeStart = (e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
-    console.log('🎯 Resize started for event:', event.id, 'edge:', edge);
+  const handleResizeStart = useCallback((e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -813,77 +812,75 @@ export default function WeeklyScheduleView({
     const originalEndMinutes = timeToMinutes(event.endTime);
 
     setResizingEvent({
-      event,
+      event: { ...event },
       edge,
-      originalStartMinutes,
-      originalEndMinutes,
+      originalStart: originalStartMinutes,
+      originalEnd: originalEndMinutes,
     });
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!calendarRef.current) return;
+      const rect = document.querySelector('.schedule-grid')?.getBoundingClientRect();
+      if (!rect) return;
 
-      const rect = calendarRef.current.getBoundingClientRect();
       const y = e.clientY - rect.top;
-      const minutes = snapToIncrement(positionToMinutes(y));
+      const snappedMinutes = Math.round(positionToMinutes(y) / timeIncrement) * timeIncrement;
 
-      let newStartMinutes = originalStartMinutes;
-      let newEndMinutes = originalEndMinutes;
+      setResizingEvent(prev => {
+        if (!prev) return null;
+        
+        let newStartTime, newEndTime;
+        
+        if (prev.edge === 'start') {
+          // Resizing from the top - change start time, keep end time
+          newStartTime = formatTime(Math.max(0, Math.min(snappedMinutes, prev.originalEnd - timeIncrement)));
+          newEndTime = formatTime(prev.originalEnd);
+        } else {
+          // Resizing from the bottom - keep start time, change end time
+          newStartTime = formatTime(prev.originalStart);
+          newEndTime = formatTime(Math.max(prev.originalStart + timeIncrement, snappedMinutes));
+        }
 
-      if (edge === 'start') {
-        newStartMinutes = Math.min(minutes, originalEndMinutes - timeIncrement);
-      } else {
-        newEndMinutes = Math.max(minutes, originalStartMinutes + timeIncrement);
-      }
-
-      const newStartTime = formatTimeFromMinutes(newStartMinutes);
-      const newEndTime = formatTimeFromMinutes(newEndMinutes);
-
-      // Update the event optimistically
-      setResizingEvent(prev => prev ? {
-        ...prev,
-        event: { ...prev.event, startTime: newStartTime, endTime: newEndTime },
-      } : null);
+        return {
+          ...prev,
+          event: { ...prev.event, startTime: newStartTime, endTime: newEndTime },
+        };
+      });
     };
 
     const handleMouseUp = () => {
-      console.log('Resize handleMouseUp called, resizingEvent:', resizingEvent);
-      if (resizingEvent) {
-        console.log('Resize handleMouseUp - processing resize event:', resizingEvent);
-        // Update cache immediately with the resized times
-        const startTime = resizingEvent.event.startTime.includes(':') && resizingEvent.event.startTime.split(':').length === 2 
-          ? resizingEvent.event.startTime + ':00' 
-          : resizingEvent.event.startTime;
-        const endTime = resizingEvent.event.endTime.includes(':') && resizingEvent.event.endTime.split(':').length === 2 
-          ? resizingEvent.event.endTime + ':00' 
-          : resizingEvent.event.endTime;
+      setResizingEvent(prev => {
+        if (prev) {
+          // Update cache immediately with the resized times
+          const startTime = prev.event.startTime.includes(':') && prev.event.startTime.split(':').length === 2 
+            ? prev.event.startTime + ':00' 
+            : prev.event.startTime;
+          const endTime = prev.event.endTime.includes(':') && prev.event.endTime.split(':').length === 2 
+            ? prev.event.endTime + ':00' 
+            : prev.event.endTime;
 
-        console.log('Formatted times for database:', { startTime, endTime });
+          queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
+            return old?.map((e: ScheduleEvent) => 
+              e.id === event.id ? { ...e, startTime, endTime } : e
+            ) || [];
+          });
 
-        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
-          return old?.map((e: ScheduleEvent) => 
-            e.id === event.id ? { ...e, startTime, endTime } : e
-          ) || [];
-        });
+          // Update database
+          updateEventMutation.mutate({
+            id: event.id,
+            startTime,
+            endTime,
+          });
+        }
+        return null;
+      });
 
-        // Update database
-        console.log('Calling updateEventMutation.mutate with:', { id: event.id, startTime, endTime });
-        updateEventMutation.mutate({
-          id: event.id,
-          startTime,
-          endTime,
-        });
-      } else {
-        console.log('Resize handleMouseUp - no resizingEvent, skipping database update');
-      }
-
-      setResizingEvent(null);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  };
+  }, [timeIncrement, projectId, queryClient, updateEventMutation]);
 
   // Generate time labels using memoization to prevent scoping issues
   const timeLabels = useMemo(() => {
