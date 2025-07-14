@@ -628,55 +628,59 @@ export default function WeeklyScheduleView({
       setEditingEvent(event);
     };
 
-    // Set up double click detection
-    const clickTimeout = setTimeout(() => {
-      // Single click - start dragging
-      const eventDate = event.date;
-      const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
-      
-      if (dayIndex === -1) return;
+    // Set up drag immediately
+    const eventDate = event.date;
+    const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
+    
+    if (dayIndex === -1) return;
 
-      const startMinutes = timeToMinutes(event.startTime);
-      const rect = calendarRef.current?.getBoundingClientRect();
-      if (!rect) return;
+    const startMinutes = timeToMinutes(event.startTime);
+    const rect = calendarRef.current?.getBoundingClientRect();
+    if (!rect) return;
 
-      // Calculate the event's current position on screen
-      const eventLeft = 80 + ((rect.width - 80) * dayIndex / 7);
-      const eventTop = minutesToPosition(startMinutes);
-      
-      // Calculate offset relative to the event's top-left corner
-      const clickX = e.clientX - rect.left;
-      const clickY = e.clientY - rect.top + (scrollContainerRef.current?.scrollTop || 0);
-      
-      const draggedEvent = {
-        event,
-        originalPosition: { dayIndex, startMinutes },
-        currentPosition: { dayIndex, startMinutes },
-        offset: { 
-          x: clickX - eventLeft, 
-          y: clickY - eventTop 
-        },
-        isDragging: false,
-      };
+    // Calculate the event's current position on screen
+    const eventLeft = 80 + ((rect.width - 80) * dayIndex / 7);
+    const eventTop = minutesToPosition(startMinutes);
+    
+    // Calculate offset relative to the event's top-left corner
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top + (scrollContainerRef.current?.scrollTop || 0);
+    
+    const draggedEvent = {
+      event,
+      originalPosition: { dayIndex, startMinutes },
+      currentPosition: { dayIndex, startMinutes },
+      offset: { 
+        x: clickX - eventLeft, 
+        y: clickY - eventTop 
+      },
+      isDragging: false,
+    };
 
-      console.log('🎯 Drag initialized:', {
-        eventId: event.id,
-        dayIndex,
-        startMinutes,
-        offset: draggedEvent.offset,
-        eventLeft,
-        eventTop,
-        clickX,
-        clickY
-      });
+    console.log('🎯 Drag initialized:', {
+      eventId: event.id,
+      dayIndex,
+      startMinutes,
+      offset: draggedEvent.offset,
+      eventLeft,
+      eventTop,
+      clickX,
+      clickY
+    });
 
-      setDraggedEvent(draggedEvent);
+    setDraggedEvent(draggedEvent);
 
-      let hasStartedDragging = false;
-      let currentDragPosition = { dayIndex: draggedEvent.originalPosition.dayIndex, startMinutes: draggedEvent.originalPosition.startMinutes };
-      const moveThreshold = 3; // pixels
+    let hasStartedDragging = false;
+    let currentDragPosition = { dayIndex: draggedEvent.originalPosition.dayIndex, startMinutes: draggedEvent.originalPosition.startMinutes };
+    const moveThreshold = 3; // pixels
+    let clickTimeout: NodeJS.Timeout | null = null;
 
-      const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent) => {
+      // Clear double-click timeout if user starts dragging
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+        clickTimeout = null;
+      }
         if (!hasStartedDragging) {
           // Calculate current mouse position
           const currentX = e.clientX - rect!.left;
@@ -809,13 +813,24 @@ export default function WeeklyScheduleView({
         document.removeEventListener('mouseup', handleMouseUp);
       };
 
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    // Set up double click detection with timeout
+    clickTimeout = setTimeout(() => {
+      // If we reach here, it's a single click that didn't turn into a drag
+      // Do nothing - drag is already set up
     }, 200);
 
     // Handle double click
     const handleDoubleClick = () => {
-      clearTimeout(clickTimeout);
+      if (clickTimeout) {
+        clearTimeout(clickTimeout);
+      }
+      // Clean up drag if it was set up
+      setDraggedEvent(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
       doubleClickHandler();
     };
 
