@@ -239,6 +239,13 @@ export default function LocationAvailability({
       return event.date === dateStr && event.location === location.name;
     });
     
+    // Debug individual types filtering
+    if (eventsForLocation.length > 0) {
+      console.log(`🔍 ${location.name} events on ${dateStr}:`, eventsForLocation.map(e => `${e.title} (${e.type})`));
+      console.log(`🔍 Selected individual types:`, selectedIndividualTypes);
+      console.log(`🔍 Selected show types:`, selectedEventTypes);
+    }
+    
     // Apply event type filtering
     // If no filters are selected at all, show no events
     if (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
@@ -246,7 +253,7 @@ export default function LocationAvailability({
     }
     
     // Filter events based on selected types
-    return eventsForLocation.filter((event: any) => {
+    const filteredEvents = eventsForLocation.filter((event: any) => {
       const eventTypeLower = event.type.toLowerCase();
       
       // Check if event type matches any selected show schedule types
@@ -255,12 +262,21 @@ export default function LocationAvailability({
       );
       
       // Check if event type matches any selected individual types
-      const matchesIndividualTypes = selectedIndividualTypes.some(selectedType => 
-        selectedType.toLowerCase() === eventTypeLower
-      );
+      // Need to handle format conversion: "Costume Fitting" -> "costume_fitting"
+      const matchesIndividualTypes = selectedIndividualTypes.some(selectedType => {
+        const selectedTypeLower = selectedType.toLowerCase();
+        const selectedTypeWithUnderscore = selectedTypeLower.replace(/\s+/g, '_');
+        return selectedTypeLower === eventTypeLower || selectedTypeWithUnderscore === eventTypeLower;
+      });
       
-      return matchesShowTypes || matchesIndividualTypes;
+      const matches = matchesShowTypes || matchesIndividualTypes;
+      if (eventsForLocation.length > 0) {
+        console.log(`Event "${event.title}" (${event.type}): show=${matchesShowTypes}, individual=${matchesIndividualTypes}, final=${matches}`);
+      }
+      return matches;
     });
+    
+    return filteredEvents;
   }, [currentDate, locations, scheduleEvents, selectedEventTypes, selectedIndividualTypes]);
 
   // Navigation functions
