@@ -132,11 +132,16 @@ export default function ScheduleFilter({
   };
 
   const handleSelectAllEventTypes = () => {
-    const allEventTypeNames = allEventTypes.map(eventType => eventType.name);
-    onEventTypeFilterChange(allEventTypeNames);
+    // Get only the enabled event types for Show Schedule
+    const enabledEventTypeNames = allEventTypes
+      .filter(eventType => enabledEventTypes.includes(eventType.isDefault ? eventType.name : eventType.id))
+      .map(eventType => eventType.name);
+    console.log('Select All Event Types clicked, setting to:', enabledEventTypeNames);
+    onEventTypeFilterChange(enabledEventTypeNames);
   };
 
   const handleClearAllEventTypes = () => {
+    console.log('Clear All Event Types clicked, setting to: []');
     onEventTypeFilterChange([]);
   };
 
