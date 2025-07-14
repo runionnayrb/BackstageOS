@@ -1239,7 +1239,7 @@ export default function WeeklyScheduleView({
                     minHeight: '20px',
                   }}
                 >
-                  <div className="px-2 py-1 h-full flex flex-col justify-center">
+                  <div className="px-2 py-1 h-full flex flex-col justify-start">
                     <div className="font-medium truncate">New Event</div>
                     <div className="text-xs opacity-90 truncate">
                       {formatTimeDisplay(formatTime(Math.min(dragState.startTime, dragState.currentTime)), timeFormat as '12' | '24')}
