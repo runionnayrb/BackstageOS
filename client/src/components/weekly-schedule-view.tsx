@@ -10,7 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
-import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeBorderColor } from "@/lib/eventUtils";
+import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeBorderColor, getEventTypeColorFromDatabase } from "@/lib/eventUtils";
 import { filterEventsBySettings, getTimezoneAbbreviation } from "@/lib/scheduleUtils";
 import LocationSelect from "@/components/location-select";
 import EventTypeSelect from "@/components/event-type-select";
@@ -1126,6 +1126,8 @@ export default function WeeklyScheduleView({
                   const top = minutesToPosition(startMinutes);
                   const height = endMinutes - startMinutes;
 
+                  // Get event type color from database with enhanced matching
+                  const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
 
 
                   // Use dragged position if this event is being dragged, otherwise use the event's actual data
@@ -1144,7 +1146,7 @@ export default function WeeklyScheduleView({
                   return (
                     <div
                       key={event.id}
-                      className={`absolute ${getEventColor(event.type)} text-white text-sm p-2 rounded-md shadow-sm border-l-4 ${getEventTypeBorderColor(event.type)} cursor-pointer hover:opacity-90 z-30 ${
+                      className={`absolute text-white text-sm p-2 rounded-md shadow-sm border-l-4 cursor-pointer hover:opacity-90 z-30 ${
                         selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
                       } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''}`}
                       style={{
@@ -1153,6 +1155,8 @@ export default function WeeklyScheduleView({
                         top: `${resizedTop}px`,
                         height: `${Math.max(20, displayHeight)}px`,
                         minHeight: '20px',
+                        backgroundColor: eventTypeColor,
+                        borderLeftColor: eventTypeColor,
                       }}
                       onMouseDown={(e) => handleEventMouseDown(e, event)}
                     >

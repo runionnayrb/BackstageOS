@@ -66,6 +66,52 @@ export const getEventTypeColor = (eventType: string): string => {
   }
 };
 
+// Enhanced color matching function for database event types with format conversion
+export const getEventTypeColorFromDatabase = (eventType: string, eventTypes: any[]): string => {
+  // First try direct match
+  let matchedEventType = eventTypes.find(et => 
+    et.id === eventType || 
+    et.name === eventType ||
+    et.name.toLowerCase() === eventType.toLowerCase()
+  );
+  
+  // If no direct match, try format conversions
+  if (!matchedEventType) {
+    matchedEventType = eventTypes.find(et => 
+      et.name.toLowerCase().replace(/\s+/g, '_') === eventType.toLowerCase() ||
+      et.name.toLowerCase() === eventType.toLowerCase().replace(/_/g, ' ')
+    );
+  }
+  
+  // Return the database color if found, otherwise fallback to default hex colors
+  if (matchedEventType?.color) {
+    return matchedEventType.color;
+  }
+  
+  // Fallback to hardcoded hex colors if no database match
+  return getEventTypeHexColor(eventType);
+};
+
+// Get hex color equivalents for event types
+export const getEventTypeHexColor = (eventType: string): string => {
+  switch (eventType) {
+    // Show events - brighter colors
+    case 'rehearsal': return '#3B82F6'; // blue-500
+    case 'tech': return '#F97316'; // orange-500
+    case 'tech_rehearsal': return '#F97316'; // orange-500
+    case 'preview': return '#EAB308'; // yellow-500
+    case 'performance': return '#22C55E'; // green-500
+    case 'dark': return '#000000'; // black
+    // Individual events - muted colors
+    case 'meeting': return '#8B5CF6'; // purple-500
+    case 'costume_fitting': return '#EC4899'; // pink-500
+    case 'wig_fitting': return '#EAB308'; // yellow-500
+    case 'hmu': return '#6366F1'; // indigo-500
+    case 'vocal_coaching': return '#14B8A6'; // teal-500
+    default: return '#6B7280'; // gray-500
+  }
+};
+
 // Get event type border color for left border (darker shade of background color)
 export const getEventTypeBorderColor = (eventType: string): string => {
   switch (eventType) {

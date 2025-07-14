@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, Plus, Calendar, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
-import { isShowEvent, getEventTypeDisplayName, getEventTypeColor } from "@/lib/eventUtils";
+import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, getEventTypeColorFromDatabase } from "@/lib/eventUtils";
 import { filterEventsBySettings } from "@/lib/scheduleUtils";
 import EventForm from "@/components/event-form";
 import { apiRequest } from "@/lib/queryClient";
@@ -353,25 +353,27 @@ export default function MonthlyScheduleView({
                 
                 {/* Events */}
                 <div className="mt-1 space-y-1">
-                  {dayEvents.slice(0, 3).map((event: ScheduleEvent) => (
-                    <div
-                      key={event.id}
-                      className={`px-1 py-0.5 rounded text-xs truncate cursor-pointer transition-colors ${
-                        getEventTypeColor(event.type)
-                      } hover:opacity-80`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (onEventClick) {
-                          onEventClick(event);
-                        } else {
-                          setEditEventDialog({ isOpen: true, event });
-                        }
-                      }}
-                      title={`${event.title}${event.isAllDay ? ' (All Day)' : ` (${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)})`}`}
-                    >
-                      {event.title}
-                    </div>
-                  ))}
+                  {dayEvents.slice(0, 3).map((event: ScheduleEvent) => {
+                    const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
+                    return (
+                      <div
+                        key={event.id}
+                        className="px-1 py-0.5 rounded text-xs truncate cursor-pointer transition-colors text-white hover:opacity-80"
+                        style={{ backgroundColor: eventTypeColor }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onEventClick) {
+                            onEventClick(event);
+                          } else {
+                            setEditEventDialog({ isOpen: true, event });
+                          }
+                        }}
+                        title={`${event.title}${event.isAllDay ? ' (All Day)' : ` (${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)})`}`}
+                      >
+                        {event.title}
+                      </div>
+                    );
+                  })}
                   {dayEvents.length > 3 && (
                     <div className="text-xs text-gray-500 px-1">
                       +{dayEvents.length - 3} more

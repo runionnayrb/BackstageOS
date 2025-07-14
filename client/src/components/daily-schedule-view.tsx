@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { formatTimeDisplay } from '@/lib/timeUtils';
 import { filterEventsBySettings, getTimezoneAbbreviation } from '@/lib/scheduleUtils';
-import { getEventTypeColor } from '@/lib/eventUtils';
+import { getEventTypeColor, getEventTypeColorFromDatabase } from '@/lib/eventUtils';
 
 // Constants for time grid (8 AM to midnight = 16 hours)
 const START_HOUR = 8;
@@ -384,15 +384,19 @@ export default function DailyScheduleView({
                 <div className="bg-gray-50 border-b border-gray-200 min-h-[40px] p-1">
                   {getEventsForDate(selectedDate)
                     .filter(event => event.isAllDay)
-                    .map((event) => (
-                      <div
-                        key={event.id}
-                        className="bg-blue-500 text-white rounded px-2 py-1 text-xs mb-1 cursor-pointer hover:bg-blue-600 transition-colors"
-                        onClick={() => onDateClick?.(selectedDate)}
-                      >
-                        <div className="font-medium truncate">{event.title}</div>
-                      </div>
-                    ))}
+                    .map((event) => {
+                      const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
+                      return (
+                        <div
+                          key={event.id}
+                          className="text-white rounded px-2 py-1 text-xs mb-1 cursor-pointer hover:opacity-90 transition-opacity"
+                          style={{ backgroundColor: eventTypeColor }}
+                          onClick={() => onDateClick?.(selectedDate)}
+                        >
+                          <div className="font-medium truncate">{event.title}</div>
+                        </div>
+                      );
+                    })}
                 </div>
               )}
 
@@ -428,14 +432,16 @@ export default function DailyScheduleView({
                       const endMinutes = timeToMinutes(event.endTime);
                       const top = minutesToPosition(startMinutes);
                       const height = Math.max(30, endMinutes - startMinutes); // Minimum 30px height
+                      const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
 
                       return (
                         <div
                           key={event.id}
-                          className={`absolute left-1 right-1 ${getEventTypeColor(event.type)} text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:opacity-90 transition-opacity`}
+                          className="absolute left-1 right-1 text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
                           style={{
                             top: `${top + 20}px`,
                             height: `${height}px`,
+                            backgroundColor: eventTypeColor,
                           }}
                           onClick={() => onDateClick?.(selectedDate)}
                         >
