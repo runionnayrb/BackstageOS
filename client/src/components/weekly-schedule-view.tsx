@@ -848,7 +848,9 @@ export default function WeeklyScheduleView({
     };
 
     const handleMouseUp = () => {
+      console.log('Resize handleMouseUp called, resizingEvent:', resizingEvent);
       setResizingEvent(prev => {
+        console.log('Inside setResizingEvent, prev:', prev);
         if (prev) {
           // Update cache immediately with the resized times
           const startTime = prev.event.startTime.includes(':') && prev.event.startTime.split(':').length === 2 
@@ -865,6 +867,7 @@ export default function WeeklyScheduleView({
           });
 
           // Update database
+          console.log('Resizing event mutation:', { id: prev.event.id, startTime, endTime });
           updateEventMutation.mutate({
             id: prev.event.id,
             startTime,
