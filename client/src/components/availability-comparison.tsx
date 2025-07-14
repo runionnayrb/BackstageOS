@@ -936,17 +936,13 @@ export default function AvailabilityComparison({
     <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="border-b bg-white">
-        <div className="px-6">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Button onClick={onBack} variant="ghost" size="sm" className="flex items-center gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Calendar
-              </Button>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-semibold">Team Availability</h1>
-              </div>
-            </div>
+        <div className="px-6 py-4">
+          <div className="space-y-2">
+            <Button onClick={onBack} variant="ghost" size="sm" className="flex items-center gap-2 -ml-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back to Calendar
+            </Button>
+            <h1 className="text-3xl font-bold">Team Availability</h1>
           </div>
         </div>
       </div>
