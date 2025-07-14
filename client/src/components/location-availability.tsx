@@ -239,10 +239,14 @@ export default function LocationAvailability({
       return event.date === dateStr && event.location === location.name;
     });
     
-    // Apply event type filtering
-    return filterEventsBySettings(eventsForLocation, {
-      selectedEventTypes,
-      selectedIndividualTypes
+    // Apply event type filtering - if no filters selected, show all events
+    if (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
+      return eventsForLocation;
+    }
+    
+    // Filter events based on selected event types
+    return eventsForLocation.filter((event: any) => {
+      return selectedEventTypes.includes(event.type) || selectedIndividualTypes.includes(event.type);
     });
   };
 
