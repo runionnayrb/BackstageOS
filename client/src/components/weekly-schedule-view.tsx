@@ -1129,6 +1129,17 @@ export default function WeeklyScheduleView({
                     minutesToPosition(draggedEvent.currentPosition.startMinutes) : 
                     minutesToPosition(timeToMinutes(event.startTime));
 
+                  // Debug logging for dragged events
+                  if (draggedEvent?.event.id === event.id) {
+                    console.log(`Event ${event.id} dragged position:`, {
+                      originalDay: dayIndex,
+                      displayDay: displayDayIndex,
+                      originalTop: minutesToPosition(timeToMinutes(event.startTime)),
+                      displayTop,
+                      isDragging: draggedEvent.isDragging
+                    });
+                  }
+
                   // Use resized dimensions if this event is being resized
                   const displayHeight = resizingEvent?.event.id === event.id ?
                     timeToMinutes(resizingEvent.event.endTime) - timeToMinutes(resizingEvent.event.startTime) : height;
