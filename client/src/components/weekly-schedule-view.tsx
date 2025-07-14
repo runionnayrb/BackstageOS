@@ -614,43 +614,36 @@ export default function WeeklyScheduleView({
       setEditingEvent(event);
     };
 
-    // Set up double click detection and hold-to-drag
-    let isHolding = false;
-    let holdTimeout: NodeJS.Timeout;
+    // Prepare drag state immediately on mouse down
+    const eventDate = event.date;
+    const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
     
-    const startHoldTimer = () => {
-      holdTimeout = setTimeout(() => {
-        isHolding = true;
-        // Hold duration reached - start dragging
-        const eventDate = event.date;
-        const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
-        
-        if (dayIndex === -1) return;
+    if (dayIndex === -1) return;
 
-        const startMinutes = timeToMinutes(event.startTime);
-        const rect = calendarRef.current?.getBoundingClientRect();
-        if (!rect) return;
+    const startMinutes = timeToMinutes(event.startTime);
+    const rect = calendarRef.current?.getBoundingClientRect();
+    if (!rect) return;
 
-        // Calculate the event's current position on screen
-        const eventLeft = 80 + ((rect.width - 80) * dayIndex / 7);
-        const eventTop = minutesToPosition(startMinutes);
-        
-        // Calculate offset relative to the event's top-left corner
-        const clickX = e.clientX - rect.left;
-        const clickY = e.clientY - rect.top + (scrollContainerRef.current?.scrollTop || 0);
-        
-        const draggedEvent = {
-          event,
-          originalPosition: { dayIndex, startMinutes },
-          currentPosition: { dayIndex, startMinutes },
-          offset: { 
-            x: clickX - eventLeft, 
-            y: clickY - eventTop 
-          },
-          isDragging: false,
-        };
+    // Calculate the event's current position on screen
+    const eventLeft = 80 + ((rect.width - 80) * dayIndex / 7);
+    const eventTop = minutesToPosition(startMinutes);
+    
+    // Calculate offset relative to the event's top-left corner
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top + (scrollContainerRef.current?.scrollTop || 0);
+    
+    const draggedEvent = {
+      event,
+      originalPosition: { dayIndex, startMinutes },
+      currentPosition: { dayIndex, startMinutes },
+      offset: { 
+        x: clickX - eventLeft, 
+        y: clickY - eventTop 
+      },
+      isDragging: false,
+    };
 
-        setDraggedEvent(draggedEvent);
+    setDraggedEvent(draggedEvent);
 
         let hasStartedDragging = false;
         let currentDragPosition = { dayIndex: draggedEvent.originalPosition.dayIndex, startMinutes: draggedEvent.originalPosition.startMinutes };
@@ -789,31 +782,26 @@ export default function WeeklyScheduleView({
 
         document.addEventListener('mousemove', handleMouseMove);
         document.addEventListener('mouseup', handleMouseUp);
-      }, 500); // Hold for 500ms before dragging is enabled
-    };
-    
-    // Start the hold timer immediately
-    startHoldTimer();
-    
-    // Add mouse up handler to cancel hold timer if mouse is released before hold duration
-    const cancelHoldTimer = () => {
-      clearTimeout(holdTimeout);
-      if (!isHolding) {
-        // Mouse released before hold duration - this is just a click, not a drag
-        return;
-      }
-    };
-    
-    document.addEventListener('mouseup', cancelHoldTimer, { once: true });
+
+    // Set up double click detection with shorter timeout
+    const doubleClickTimeout = setTimeout(() => {
+      // This timeout just cleans up the double click listener
+    }, 300);
 
     // Handle double click
     const handleDoubleClick = () => {
-      clearTimeout(holdTimeout);
+      clearTimeout(doubleClickTimeout);
+      // Cancel drag and edit instead
+      setDraggedEvent(null);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
       doubleClickHandler();
     };
 
     e.currentTarget.addEventListener('dblclick', handleDoubleClick, { once: true });
   }, [weekDates, filteredEvents, timeIncrement, updateEventMutation, justDragged, selectedEvents]);
+
+
 
   // Handle event resize
   const handleResizeStart = useCallback((e: React.MouseEvent, event: ScheduleEvent, edge: 'start' | 'end') => {
