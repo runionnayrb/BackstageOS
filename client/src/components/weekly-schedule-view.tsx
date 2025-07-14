@@ -345,21 +345,33 @@ export default function WeeklyScheduleView({
 
   const updateEventMutation = useMutation({
     mutationFn: async ({ eventId, eventData }: { eventId: number; eventData: any }) => {
-      console.log('Updating event:', eventId, eventData);
+      console.log('🚀 Starting update mutation for event:', eventId);
+      console.log('📝 Event data being sent:', JSON.stringify(eventData, null, 2));
+      
       const response = await fetch(`/api/schedule-events/${eventId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(eventData),
       });
       
+      const responseText = await response.text();
+      console.log('📨 Response status:', response.status);
+      console.log('📨 Response text:', responseText);
+      
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Update failed:', response.status, errorText);
-        throw new Error(`Failed to update event: ${response.status} ${errorText}`);
+        console.error('❌ Update failed:', response.status, responseText);
+        throw new Error(`Failed to update event: ${response.status} ${responseText}`);
       }
       
-      const result = await response.json();
-      console.log('Update success:', result);
+      let result;
+      try {
+        result = JSON.parse(responseText);
+      } catch (e) {
+        console.error('❌ Failed to parse response:', e);
+        throw new Error('Invalid response from server');
+      }
+      
+      console.log('✅ Update success, returned data:', result);
       return result;
     },
     onSuccess: (data) => {
@@ -726,7 +738,7 @@ export default function WeeklyScheduleView({
             fromDrag: true, // Flag to indicate this is a drag operation
           };
 
-          console.log('About to save drag update:', {
+          console.log('🎯 About to save drag update:', {
             eventId: event.id,
             originalDate: event.date,
             originalStartTime: event.startTime,
@@ -737,20 +749,29 @@ export default function WeeklyScheduleView({
             eventData
           });
 
+          // Check if the mutation is actually being triggered
+          console.log('🔧 Mutation state before calling:', {
+            isLoading: updateEventMutation.isPending,
+            isError: updateEventMutation.isError,
+            error: updateEventMutation.error
+          });
+
           // Optimistically update the cache immediately
           queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
             const updated = old?.map((e: ScheduleEvent) => 
               e.id === event.id ? { ...e, ...eventData } : e
             ) || [];
-            console.log('Optimistically updated cache for event', event.id);
+            console.log('💾 Optimistically updated cache for event', event.id);
             return updated;
           });
 
           // Use the mutation for proper error handling
+          console.log('🚀 Calling updateEventMutation.mutate()');
           updateEventMutation.mutate({
             eventId: event.id,
             eventData
           });
+          console.log('✅ Mutation called');
 
           setJustDragged(event.id);
         }
