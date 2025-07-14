@@ -858,10 +858,7 @@ export default function LocationAvailability({
                 <div className="w-3 h-3 bg-red-500 rounded"></div>
                 <span className="text-gray-600">Unavailable</span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-600 rounded"></div>
-                <span className="text-gray-600">Scheduled Events</span>
-              </div>
+              <span className="text-gray-600">Schedule events show with their event type colors</span>
             </div>
           </div>
 
