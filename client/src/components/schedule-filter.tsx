@@ -32,6 +32,8 @@ interface ScheduleFilterProps {
   onEventTypeFilterChange: (eventTypes: string[]) => void;
   selectedIndividualTypes: string[];
   onIndividualTypeFilterChange: (individualTypes: string[]) => void;
+  defaultTab?: string;
+  hidePeopleTab?: boolean;
 }
 
 export default function ScheduleFilter({ 
@@ -41,7 +43,9 @@ export default function ScheduleFilter({
   selectedEventTypes, 
   onEventTypeFilterChange,
   selectedIndividualTypes,
-  onIndividualTypeFilterChange
+  onIndividualTypeFilterChange,
+  defaultTab = "people",
+  hidePeopleTab = false
 }: ScheduleFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [showScheduleEnabled, setShowScheduleEnabled] = useState(true);
@@ -230,20 +234,30 @@ export default function ScheduleFilter({
           </div>
         </div>
 
-        <Tabs defaultValue="people" className="w-full">
-          <div className="flex gap-2 mx-4 mb-4">
-            <TabsList className="grid grid-cols-2 h-9 flex-1">
-              <TabsTrigger value="people" className="h-8 text-sm">
-                People
-              </TabsTrigger>
-              <TabsTrigger value="events" className="h-8 text-sm">
+        <Tabs defaultValue={hidePeopleTab ? "events" : defaultTab} className="w-full">
+          {!hidePeopleTab && (
+            <div className="flex gap-2 mx-4 mb-4">
+              <TabsList className="grid grid-cols-2 h-9 flex-1">
+                <TabsTrigger value="people" className="h-8 text-sm">
+                  People
+                </TabsTrigger>
+                <TabsTrigger value="events" className="h-8 text-sm">
+                  Event Types
+                </TabsTrigger>
+              </TabsList>
+            </div>
+          )}
+          {hidePeopleTab && (
+            <div className="px-4 pb-3 border-b">
+              <h4 className="font-semibold text-sm text-gray-700">
                 Event Types
-              </TabsTrigger>
-            </TabsList>
-          </div>
+              </h4>
+            </div>
+          )}
 
-          <TabsContent value="people" className="m-0">
-            <div className="px-4 py-3 border-b bg-gray-50">
+          {!hidePeopleTab && (
+            <TabsContent value="people" className="m-0">
+              <div className="px-4 py-3 border-b bg-gray-50">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">FULL COMPANY</span>
                 <div className="flex gap-1">
@@ -351,6 +365,7 @@ export default function ScheduleFilter({
               </div>
             </div>
           </TabsContent>
+          )}
 
           <TabsContent value="events" className="m-0">
             {/* Show Schedule Section */}

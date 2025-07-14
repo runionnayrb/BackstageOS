@@ -10,6 +10,8 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatTimeFromMinutes } from "@/lib/timeUtils";
 import { getEventTypeColorFromDatabase } from "@/lib/eventUtils";
+import ScheduleFilter from "@/components/schedule-filter";
+import { filterEventsBySettings } from "@/lib/scheduleUtils";
 
 interface EventLocation {
   id: number;
@@ -69,6 +71,10 @@ export default function LocationAvailability({
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const selectedItemsRef = useRef<Set<number>>(new Set());
+  
+  // Event type filtering state
+  const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
+  const [selectedIndividualTypes, setSelectedIndividualTypes] = useState<string[]>([]);
 
   // Keep ref in sync with state
   useEffect(() => {
@@ -222,15 +228,21 @@ export default function LocationAvailability({
     );
   };
 
-  // Get schedule events for a specific location on the current date
+  // Get schedule events for a specific location on the current date with filtering
   const getScheduleEventsForLocationAndDate = (locationId: number) => {
     const dateStr = currentDate.toISOString().split('T')[0];
     const location = locations.find((loc: EventLocation) => loc.id === locationId);
     if (!location) return [];
     
-    return scheduleEvents.filter((event: any) => {
+    const eventsForLocation = scheduleEvents.filter((event: any) => {
       // Match by location name and date
       return event.date === dateStr && event.location === location.name;
+    });
+    
+    // Apply event type filtering
+    return filterEventsBySettings(eventsForLocation, {
+      selectedEventTypes,
+      selectedIndividualTypes
     });
   };
 
@@ -890,6 +902,18 @@ export default function LocationAvailability({
             </div>
 
             <div className="flex items-center gap-4">
+              <ScheduleFilter
+                projectId={projectId}
+                selectedContactIds={[]} // Empty array - we don't need people filtering
+                onFilterChange={() => {}} // No-op function for contacts
+                selectedEventTypes={selectedEventTypes}
+                onEventTypeFilterChange={setSelectedEventTypes}
+                selectedIndividualTypes={selectedIndividualTypes}
+                onIndividualTypeFilterChange={setSelectedIndividualTypes}
+                defaultTab="events" // Start with Events tab for location filtering
+                hidePeopleTab={true} // Hide the people tab for location view
+              />
+              
               {/* Multi-select indicator - positioned before filter */}
               {selectedItems.size > 0 && (
                 <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded text-xs font-medium">
