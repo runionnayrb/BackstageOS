@@ -1230,14 +1230,22 @@ export default function WeeklyScheduleView({
               {/* Drag preview overlay for new events - FIXED POSITIONING */}
               {dragState?.isActive && (
                 <div
-                  className="absolute bg-blue-200 border-2 border-blue-400 rounded opacity-60 pointer-events-none z-30"
+                  className="absolute text-xs text-white rounded bg-gray-500 opacity-60 pointer-events-none z-30"
                   style={{
                     left: `calc(80px + (100% - 80px) * ${dragState.startDay} / 7 + 2px)`,
                     width: `calc((100% - 80px) / 7 - 4px)`,
                     top: `${minutesToPosition(Math.min(dragState.startTime, dragState.currentTime))}px`,
                     height: `${Math.abs(minutesToPosition(dragState.currentTime) - minutesToPosition(dragState.startTime))}px`,
+                    minHeight: '20px',
                   }}
-                />
+                >
+                  <div className="px-2 py-1 h-full flex flex-col justify-center">
+                    <div className="font-medium truncate">New Event</div>
+                    <div className="text-xs opacity-90 truncate">
+                      {formatTimeDisplay(formatTime(Math.min(dragState.startTime, dragState.currentTime)), timeFormat as '12' | '24')}
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
