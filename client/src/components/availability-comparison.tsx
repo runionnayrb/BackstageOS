@@ -54,9 +54,6 @@ export default function AvailabilityComparison({
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
-  const [showFilterPopover, setShowFilterPopover] = useState(false);
-  const [selectedContactTypes, setSelectedContactTypes] = useState<Set<string>>(new Set());
-  const [hasActiveFilters, setHasActiveFilters] = useState(false);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const selectedItemsRef = useRef<Set<number>>(new Set());
   
@@ -132,40 +129,10 @@ export default function AvailabilityComparison({
     queryKey: [`/api/projects/${projectId}/event-types`],
   });
 
-  // Get unique contact categories/types
-  const contactTypes = Array.from(new Set((allContacts as any[]).map((contact: any) => contact.category))).filter(Boolean);
-  
-  // Filter contacts based on selected types
-  const filteredContacts = selectedContactTypes.size > 0 
-    ? (allContacts as any[]).filter((contact: any) => selectedContactTypes.has(contact.category))
-    : (allContacts as any[]);
-  
-  // Use filtered contacts, sorted alphabetically
-  const contacts = filteredContacts.sort((a: any, b: any) => 
+  // Use all contacts, sorted alphabetically
+  const contacts = (allContacts as any[]).sort((a: any, b: any) => 
     `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
   );
-
-  // Filter functions
-  const toggleContactType = (type: string) => {
-    const newTypes = new Set(selectedContactTypes);
-    if (newTypes.has(type)) {
-      newTypes.delete(type);
-    } else {
-      newTypes.add(type);
-    }
-    setSelectedContactTypes(newTypes);
-  };
-
-  const applyFilters = () => {
-    setHasActiveFilters(selectedContactTypes.size > 0);
-    setShowFilterPopover(false);
-  };
-
-  const clearFilters = () => {
-    setSelectedContactTypes(new Set());
-    setHasActiveFilters(false);
-    setShowFilterPopover(false);
-  };
 
   // Schedule Filter Logic (duplicated from schedule-filter.tsx)
   const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
@@ -1286,62 +1253,7 @@ export default function AvailabilityComparison({
                 </PopoverContent>
               </Popover>
 
-              {/* Original Filter Button - moved to left of timezone */}
-              <Popover open={showFilterPopover} onOpenChange={setShowFilterPopover}>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className={`h-8 w-8 p-0 ${hasActiveFilters ? 'text-blue-600 bg-blue-50' : 'text-gray-500'}`}
-                  >
-                    <Filter className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64" align="end">
-                  <div className="space-y-4">
-                    <div className="font-medium text-sm">Filter by Contact Type</div>
-                    
-                    {contactTypes.length > 0 ? (
-                      <div className="space-y-2">
-                        {contactTypes.map((type) => (
-                          <div key={type} className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id={`type-${type}`}
-                              checked={selectedContactTypes.has(type)}
-                              onChange={() => toggleContactType(type)}
-                              className="rounded border-gray-300"
-                            />
-                            <label htmlFor={`type-${type}`} className="text-sm capitalize">
-                              {type}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-sm text-gray-500">No contact types available</div>
-                    )}
-                    
-                    <div className="flex gap-2 pt-2 border-t">
-                      <Button 
-                        size="sm" 
-                        onClick={applyFilters}
-                        className="flex-1"
-                      >
-                        Apply
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={clearFilters}
-                        className="flex-1"
-                      >
-                        Clear
-                      </Button>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
+
 
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500">
