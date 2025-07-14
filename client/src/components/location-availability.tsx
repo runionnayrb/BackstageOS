@@ -228,8 +228,22 @@ export default function LocationAvailability({
     );
   };
 
+  // Debug: Log all schedule events to see what's available
+  useEffect(() => {
+    if (scheduleEvents.length > 0) {
+      console.log('📅 All schedule events:', scheduleEvents.map(event => ({
+        id: event.id,
+        title: event.title,
+        date: event.date,
+        location: event.location,
+        type: event.type
+      })));
+      console.log('📅 Current date being checked:', currentDate.toISOString().split('T')[0]);
+    }
+  }, [scheduleEvents, currentDate]);
+
   // Get schedule events for a specific location on the current date with filtering
-  const getScheduleEventsForLocationAndDate = (locationId: number) => {
+  const getScheduleEventsForLocationAndDate = useCallback((locationId: number) => {
     const dateStr = currentDate.toISOString().split('T')[0];
     const location = locations.find((loc: EventLocation) => loc.id === locationId);
     if (!location) return [];
@@ -246,7 +260,7 @@ export default function LocationAvailability({
     }
     
     // Filter events based on selected types
-    return eventsForLocation.filter((event: any) => {
+    const filteredEvents = eventsForLocation.filter((event: any) => {
       const eventTypeLower = event.type.toLowerCase();
       
       // Check if event type matches any selected show schedule types
@@ -261,7 +275,9 @@ export default function LocationAvailability({
       
       return matchesShowTypes || matchesIndividualTypes;
     });
-  };
+    
+    return filteredEvents;
+  }, [currentDate, locations, scheduleEvents, selectedEventTypes, selectedIndividualTypes]);
 
   // Navigation functions
   const goToPreviousDay = () => {
