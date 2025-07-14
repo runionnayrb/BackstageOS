@@ -392,7 +392,7 @@ export default function ScheduleFilter({
                   </Button>
                 </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-48 overflow-y-auto">
                 {allEventTypes
                   .filter(eventType => enabledEventTypes.includes(eventType.isDefault ? eventType.name : eventType.id))
                   .map((eventType) => (
@@ -454,7 +454,7 @@ export default function ScheduleFilter({
                   </Button>
                 </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-48 overflow-y-auto">
                 {allEventTypes
                   .filter(eventType => !enabledEventTypes.includes(eventType.isDefault ? eventType.name : eventType.id))
                   .map((eventType) => (
