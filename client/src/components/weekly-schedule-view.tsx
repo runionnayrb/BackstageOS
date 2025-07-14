@@ -596,6 +596,9 @@ export default function WeeklyScheduleView({
     e.preventDefault();
     e.stopPropagation();
     
+    // Ignore right clicks
+    if (e.button !== 0) return;
+    
     // Handle Shift+click for multi-selection
     if (e.shiftKey) {
       if (selectedEvents.has(event.id)) {
@@ -1179,6 +1182,7 @@ export default function WeeklyScheduleView({
                         borderLeftColor: eventTypeColor,
                       }}
                       onMouseDown={(e) => handleEventMouseDown(e, event)}
+                      onContextMenu={(e) => e.preventDefault()}
                     >
                       <div className="font-medium truncate">{event.title}</div>
                       <div className="text-xs opacity-90">
