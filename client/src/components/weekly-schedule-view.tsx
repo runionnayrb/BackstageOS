@@ -614,181 +614,201 @@ export default function WeeklyScheduleView({
       setEditingEvent(event);
     };
 
-    // Set up double click detection
-    const clickTimeout = setTimeout(() => {
-      // Single click - start dragging
-      const eventDate = event.date;
-      const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
-      
-      if (dayIndex === -1) return;
-
-      const startMinutes = timeToMinutes(event.startTime);
-      const rect = calendarRef.current?.getBoundingClientRect();
-      if (!rect) return;
-
-      // Calculate the event's current position on screen
-      const eventLeft = 80 + ((rect.width - 80) * dayIndex / 7);
-      const eventTop = minutesToPosition(startMinutes);
-      
-      // Calculate offset relative to the event's top-left corner
-      const clickX = e.clientX - rect.left;
-      const clickY = e.clientY - rect.top + (scrollContainerRef.current?.scrollTop || 0);
-      
-      const draggedEvent = {
-        event,
-        originalPosition: { dayIndex, startMinutes },
-        currentPosition: { dayIndex, startMinutes },
-        offset: { 
-          x: clickX - eventLeft, 
-          y: clickY - eventTop 
-        },
-        isDragging: false,
-      };
-
-      setDraggedEvent(draggedEvent);
-
-      let hasStartedDragging = false;
-      let currentDragPosition = { dayIndex: draggedEvent.originalPosition.dayIndex, startMinutes: draggedEvent.originalPosition.startMinutes };
-      const moveThreshold = 3; // pixels
-
-      const handleMouseMove = (e: MouseEvent) => {
-        if (!hasStartedDragging) {
-          // Calculate current mouse position
-          const currentX = e.clientX - rect!.left;
-          const currentY = e.clientY - rect!.top;
-          
-          // Calculate original click position
-          const originalEventLeft = 80 + ((rect!.width - 80) * draggedEvent.originalPosition.dayIndex / 7);
-          const originalEventTop = minutesToPosition(draggedEvent.originalPosition.startMinutes);
-          const originalClickX = originalEventLeft + draggedEvent.offset.x;
-          const originalClickY = originalEventTop + draggedEvent.offset.y - (scrollContainerRef.current?.scrollTop || 0);
-          
-          const distance = Math.sqrt(
-            Math.pow(currentX - originalClickX, 2) +
-            Math.pow(currentY - originalClickY, 2)
-          );
-          
-          if (distance < moveThreshold) return;
-          hasStartedDragging = true;
-          setDraggedEvent(prev => prev ? { ...prev, isDragging: true } : null);
-        }
-
-        if (!calendarRef.current || !scrollContainerRef.current) return;
-
-        const newRect = calendarRef.current.getBoundingClientRect();
-        const scrollTop = scrollContainerRef.current.scrollTop;
+    // Set up double click detection and hold-to-drag
+    let isHolding = false;
+    let holdTimeout: NodeJS.Timeout;
+    
+    const startHoldTimer = () => {
+      holdTimeout = setTimeout(() => {
+        isHolding = true;
+        // Hold duration reached - start dragging
+        const eventDate = event.date;
+        const dayIndex = weekDates.findIndex((date: Date) => date.toISOString().split('T')[0] === eventDate);
         
-        // Calculate mouse position relative to calendar content with scroll, adjusted for click offset
-        const mouseX = e.clientX - newRect.left;
-        const mouseY = e.clientY - newRect.top + scrollTop;
+        if (dayIndex === -1) return;
+
+        const startMinutes = timeToMinutes(event.startTime);
+        const rect = calendarRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        // Calculate the event's current position on screen
+        const eventLeft = 80 + ((rect.width - 80) * dayIndex / 7);
+        const eventTop = minutesToPosition(startMinutes);
         
-        // Subtract the offset to get the event's new top-left position
-        const eventX = mouseX - draggedEvent.offset.x;
-        const eventY = mouseY - draggedEvent.offset.y;
-
-        // Calculate day index from event position
-        const newDayIndex = Math.floor((eventX - 80) / ((newRect.width - 80) / 7));
-        const constrainedDayIndex = Math.max(0, Math.min(6, newDayIndex));
+        // Calculate offset relative to the event's top-left corner
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top + (scrollContainerRef.current?.scrollTop || 0);
         
-        // Calculate time position from event position
-        const newStartMinutes = snapToIncrement(positionToMinutes(eventY));
+        const draggedEvent = {
+          event,
+          originalPosition: { dayIndex, startMinutes },
+          currentPosition: { dayIndex, startMinutes },
+          offset: { 
+            x: clickX - eventLeft, 
+            y: clickY - eventTop 
+          },
+          isDragging: false,
+        };
 
-        // Update local position tracker
-        currentDragPosition = { dayIndex: constrainedDayIndex, startMinutes: newStartMinutes };
+        setDraggedEvent(draggedEvent);
 
-        console.log('Drag move:', {
-          mouseX,
-          mouseY,
-          eventX,
-          eventY,
-          offset: draggedEvent.offset,
-          scrollTop,
-          newDayIndex: constrainedDayIndex,
-          newStartMinutes,
-          time: formatTimeFromMinutes(newStartMinutes)
-        });
+        let hasStartedDragging = false;
+        let currentDragPosition = { dayIndex: draggedEvent.originalPosition.dayIndex, startMinutes: draggedEvent.originalPosition.startMinutes };
+        const moveThreshold = 3; // pixels
 
-        setDraggedEvent(prev => prev ? {
-          ...prev,
-          currentPosition: currentDragPosition,
-        } : null);
-      };
+        const handleMouseMove = (e: MouseEvent) => {
+          if (!hasStartedDragging) {
+            // Calculate current mouse position
+            const currentX = e.clientX - rect!.left;
+            const currentY = e.clientY - rect!.top;
+            
+            // Calculate original click position
+            const originalEventLeft = 80 + ((rect!.width - 80) * draggedEvent.originalPosition.dayIndex / 7);
+            const originalEventTop = minutesToPosition(draggedEvent.originalPosition.startMinutes);
+            const originalClickX = originalEventLeft + draggedEvent.offset.x;
+            const originalClickY = originalEventTop + draggedEvent.offset.y - (scrollContainerRef.current?.scrollTop || 0);
+            
+            const distance = Math.sqrt(
+              Math.pow(currentX - originalClickX, 2) +
+              Math.pow(currentY - originalClickY, 2)
+            );
+            
+            if (distance < moveThreshold) return;
+            hasStartedDragging = true;
+            setDraggedEvent(prev => prev ? { ...prev, isDragging: true } : null);
+          }
 
-      const handleMouseUp = () => {
-        console.log('Mouse up triggered, hasStartedDragging:', hasStartedDragging, 'currentDragPosition:', currentDragPosition);
-        if (hasStartedDragging && draggedEvent) {
-          // Update event position using the current drag position
-          const newDate = weekDates[currentDragPosition.dayIndex].toISOString().split('T')[0];
-          // Format time with seconds for database storage
-          const startTime = formatTimeFromMinutes(currentDragPosition.startMinutes) + ':00';
-          const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
-          const endTime = formatTimeFromMinutes(currentDragPosition.startMinutes + duration) + ':00';
+          if (!calendarRef.current || !scrollContainerRef.current) return;
 
-          const eventData = {
-            date: newDate,
-            startTime,
-            endTime,
-            fromDrag: true, // Flag to indicate this is a drag operation
-          };
+          const newRect = calendarRef.current.getBoundingClientRect();
+          const scrollTop = scrollContainerRef.current.scrollTop;
+          
+          // Calculate mouse position relative to calendar content with scroll, adjusted for click offset
+          const mouseX = e.clientX - newRect.left;
+          const mouseY = e.clientY - newRect.top + scrollTop;
+          
+          // Subtract the offset to get the event's new top-left position
+          const eventX = mouseX - draggedEvent.offset.x;
+          const eventY = mouseY - draggedEvent.offset.y;
 
-          // Cancel any outgoing refetches to prevent conflicts
-          queryClient.cancelQueries({ 
-            queryKey: [`/api/projects/${projectId}/schedule-events`] 
+          // Calculate day index from event position
+          const newDayIndex = Math.floor((eventX - 80) / ((newRect.width - 80) / 7));
+          const constrainedDayIndex = Math.max(0, Math.min(6, newDayIndex));
+          
+          // Calculate time position from event position
+          const newStartMinutes = snapToIncrement(positionToMinutes(eventY));
+
+          // Update local position tracker
+          currentDragPosition = { dayIndex: constrainedDayIndex, startMinutes: newStartMinutes };
+
+          console.log('Drag move:', {
+            mouseX,
+            mouseY,
+            eventX,
+            eventY,
+            offset: draggedEvent.offset,
+            scrollTop,
+            newDayIndex: constrainedDayIndex,
+            newStartMinutes,
+            time: formatTimeFromMinutes(newStartMinutes)
           });
 
-          // Immediately update the query cache for instant visual feedback
-          queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: any) => {
-            console.log('Updating cache for event', event.id, 'with data:', eventData);
-            const updated = old?.map((e: ScheduleEvent) => 
-              e.id === event.id ? { ...e, ...eventData } : e
-            ) || [];
-            console.log('Updated cache data:', updated.find((e: any) => e.id === event.id));
-            return updated;
-          });
+          setDraggedEvent(prev => prev ? {
+            ...prev,
+            currentPosition: currentDragPosition,
+          } : null);
+        };
 
-          // Run database update silently in background with debouncing
-          setTimeout(async () => {
-            try {
-              const response = await fetch(`/api/schedule-events/${event.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(eventData),
-              });
-              
-              if (!response.ok) {
-                // If silent update fails, revert the cache
+        const handleMouseUp = () => {
+          console.log('Mouse up triggered, hasStartedDragging:', hasStartedDragging, 'currentDragPosition:', currentDragPosition);
+          if (hasStartedDragging && draggedEvent) {
+            // Update event position using the current drag position
+            const newDate = weekDates[currentDragPosition.dayIndex].toISOString().split('T')[0];
+            // Format time with seconds for database storage
+            const startTime = formatTimeFromMinutes(currentDragPosition.startMinutes) + ':00';
+            const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
+            const endTime = formatTimeFromMinutes(currentDragPosition.startMinutes + duration) + ':00';
+
+            const eventData = {
+              date: newDate,
+              startTime,
+              endTime,
+              fromDrag: true, // Flag to indicate this is a drag operation
+            };
+
+            // Cancel any outgoing refetches to prevent conflicts
+            queryClient.cancelQueries({ 
+              queryKey: [`/api/projects/${projectId}/schedule-events`] 
+            });
+
+            // Immediately update the query cache for instant visual feedback
+            queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: any) => {
+              console.log('Updating cache for event', event.id, 'with data:', eventData);
+              const updated = old?.map((e: ScheduleEvent) => 
+                e.id === event.id ? { ...e, ...eventData } : e
+              ) || [];
+              console.log('Updated cache data:', updated.find((e: any) => e.id === event.id));
+              return updated;
+            });
+
+            // Run database update silently in background with debouncing
+            setTimeout(async () => {
+              try {
+                const response = await fetch(`/api/schedule-events/${event.id}`, {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(eventData),
+                });
+                
+                if (!response.ok) {
+                  // If silent update fails, revert the cache
+                  queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+                  toast({ 
+                    title: "Failed to update event", 
+                    variant: "destructive" 
+                  });
+                }
+              } catch (error) {
+                console.error('Silent update failed:', error);
+                // Revert cache on error
                 queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
                 toast({ 
                   title: "Failed to update event", 
                   variant: "destructive" 
                 });
               }
-            } catch (error) {
-              console.error('Silent update failed:', error);
-              // Revert cache on error
-              queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
-              toast({ 
-                title: "Failed to update event", 
-                variant: "destructive" 
-              });
-            }
-          }, 500);
+            }, 500);
 
-          setJustDragged(event.id);
-        }
+            setJustDragged(event.id);
+          }
 
-        setDraggedEvent(null);
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
+          setDraggedEvent(null);
+          document.removeEventListener('mousemove', handleMouseMove);
+          document.removeEventListener('mouseup', handleMouseUp);
+        };
 
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }, 200);
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
+      }, 500); // Hold for 500ms before dragging is enabled
+    };
+    
+    // Start the hold timer immediately
+    startHoldTimer();
+    
+    // Add mouse up handler to cancel hold timer if mouse is released before hold duration
+    const cancelHoldTimer = () => {
+      clearTimeout(holdTimeout);
+      if (!isHolding) {
+        // Mouse released before hold duration - this is just a click, not a drag
+        return;
+      }
+    };
+    
+    document.addEventListener('mouseup', cancelHoldTimer, { once: true });
 
     // Handle double click
     const handleDoubleClick = () => {
-      clearTimeout(clickTimeout);
+      clearTimeout(holdTimeout);
       doubleClickHandler();
     };
 
