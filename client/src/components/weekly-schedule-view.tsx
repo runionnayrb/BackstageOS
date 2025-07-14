@@ -819,11 +819,10 @@ export default function WeeklyScheduleView({
     });
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!calendarRef.current || !scrollContainerRef.current) return;
+      if (!calendarRef.current) return;
 
       const rect = calendarRef.current.getBoundingClientRect();
-      const scrollTop = scrollContainerRef.current.scrollTop;
-      const y = e.clientY - rect.top + scrollTop; // Add scroll offset for accurate positioning
+      const y = e.clientY - rect.top;
       const minutes = snapToIncrement(positionToMinutes(y));
 
       let newStartMinutes = originalStartMinutes;
@@ -846,81 +845,6 @@ export default function WeeklyScheduleView({
     };
 
     const handleMouseUp = () => {
-      if (resizingEvent) {
-        // Format times with seconds for database storage
-        const startTime = resizingEvent.event.startTime.includes(':') && resizingEvent.event.startTime.split(':').length === 2 
-          ? resizingEvent.event.startTime + ':00' 
-          : resizingEvent.event.startTime;
-        const endTime = resizingEvent.event.endTime.includes(':') && resizingEvent.event.endTime.split(':').length === 2 
-          ? resizingEvent.event.endTime + ':00' 
-          : resizingEvent.event.endTime;
-          
-        const eventData = {
-          startTime,
-          endTime,
-        };
-
-        console.log('Resize mouse up:', {
-          eventId: event.id,
-          originalStart: event.startTime,
-          originalEnd: event.endTime,
-          newStart: startTime,
-          newEnd: endTime,
-          resizingEventData: resizingEvent.event
-        });
-
-        // Cancel any outgoing refetches to prevent conflicts
-        queryClient.cancelQueries({ 
-          queryKey: [`/api/projects/${projectId}/schedule-events`] 
-        });
-
-        // Update UI immediately for instant visual feedback - use the formatted times with seconds
-        queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
-          console.log('Updating cache for resize - event', event.id, 'with times:', { startTime, endTime });
-          const updated = old?.map((e: ScheduleEvent) => 
-            e.id === event.id ? { ...e, startTime, endTime } : e
-          ) || [];
-          console.log('Updated resize cache data:', updated.find((e: any) => e.id === event.id));
-          return updated;
-        });
-
-        // Run database update silently in background with debouncing
-        setTimeout(async () => {
-          try {
-            console.log('Sending resize API request for event', event.id, 'with data:', eventData);
-            const response = await fetch(`/api/schedule-events/${event.id}`, {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(eventData),
-            });
-            
-            if (!response.ok) {
-              console.error('Resize API request failed with status:', response.status);
-              const errorText = await response.text();
-              console.error('Resize API error response:', errorText);
-              // If silent update fails, revert the cache
-              queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
-              toast({ 
-                title: "Failed to update event", 
-                variant: "destructive" 
-              });
-            } else {
-              console.log('Resize API request successful');
-              const result = await response.json();
-              console.log('Resize API response:', result);
-            }
-          } catch (error) {
-            console.error('Silent resize update failed:', error);
-            // Revert cache on error
-            queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
-            toast({ 
-              title: "Failed to update event", 
-              variant: "destructive" 
-            });
-          }
-        }, 500);
-      }
-
       setResizingEvent(null);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
