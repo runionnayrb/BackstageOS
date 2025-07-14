@@ -343,7 +343,9 @@ export default function AvailabilityComparison({
       // Check if event type is in Show Schedule types
       const eventType = eventTypes.find(et => 
         et.id === event.eventTypeId || 
-        et.name.toLowerCase() === event.type.toLowerCase()
+        et.name.toLowerCase() === event.type.toLowerCase() ||
+        et.name.toLowerCase().replace(/\s+/g, '_') === event.type.toLowerCase() ||
+        et.name.toLowerCase() === event.type.toLowerCase().replace(/_/g, ' ')
       );
       
       const typeIdentifier = eventType ? (eventType.isDefault ? eventType.name : eventType.id) : event.type;
