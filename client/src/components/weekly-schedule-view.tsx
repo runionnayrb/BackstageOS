@@ -875,7 +875,7 @@ export default function WeeklyScheduleView({
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [timeIncrement, projectId, resizingEvent, queryClient, event.id, updateEventMutation]);
+  }, [timeIncrement, projectId, resizingEvent, queryClient, updateEventMutation]);
 
   // Generate time labels using memoization to prevent scoping issues
   const timeLabels = useMemo(() => {
