@@ -234,17 +234,36 @@ export default function LocationAvailability({
     const location = locations.find((loc: EventLocation) => loc.id === locationId);
     if (!location) return [];
     
+    console.log('Getting events for location:', location.name, 'on date:', dateStr);
+    console.log('All schedule events:', scheduleEvents.length);
+    
     const eventsForLocation = scheduleEvents.filter((event: any) => {
       // Match by location name and date
-      return event.date === dateStr && event.location === location.name;
+      const matches = event.date === dateStr && event.location === location.name;
+      if (matches) {
+        console.log('Found matching event:', event.title, 'type:', event.type);
+      }
+      return matches;
     });
     
-    // Apply event type filtering - if no filters selected, show all events
+    console.log('Events for location before filtering:', eventsForLocation.length);
+    
+    // Apply event type filtering
+    // If no filters are selected at all, show all events
     if (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
       return eventsForLocation;
     }
     
-    // Filter events based on selected event types
+    // If only one type of filter is selected, filter by that type
+    if (selectedEventTypes.length > 0 && selectedIndividualTypes.length === 0) {
+      return eventsForLocation.filter((event: any) => selectedEventTypes.includes(event.type));
+    }
+    
+    if (selectedIndividualTypes.length > 0 && selectedEventTypes.length === 0) {
+      return eventsForLocation.filter((event: any) => selectedIndividualTypes.includes(event.type));
+    }
+    
+    // If both types have selections, show events that match either filter
     return eventsForLocation.filter((event: any) => {
       return selectedEventTypes.includes(event.type) || selectedIndividualTypes.includes(event.type);
     });
