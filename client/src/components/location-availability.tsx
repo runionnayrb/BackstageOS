@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { formatTimeFromMinutes } from "@/lib/timeUtils";
+import { getEventTypeColorFromDatabase } from "@/lib/eventUtils";
 
 interface EventLocation {
   id: number;
@@ -136,6 +137,12 @@ export default function LocationAvailability({
     queryKey: [`/api/projects/${projectId}/schedule-events`],
   });
 
+  // Get event types for color matching
+  const { data: eventTypes = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/event-types`],
+    enabled: !!projectId,
+  });
+
   const isLoading = locationsLoading || availabilityLoading || eventsLoading;
 
   // Filter locations if needed
@@ -213,6 +220,18 @@ export default function LocationAvailability({
     return (allAvailability as LocationAvailability[]).filter(
       (item: LocationAvailability) => item.locationId === locationId && item.date === dateStr
     );
+  };
+
+  // Get schedule events for a specific location on the current date
+  const getScheduleEventsForLocationAndDate = (locationId: number) => {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    const location = locations.find((loc: EventLocation) => loc.id === locationId);
+    if (!location) return [];
+    
+    return scheduleEvents.filter((event: any) => {
+      // Match by location name and date
+      return event.date === dateStr && event.location === location.name;
+    });
   };
 
   // Navigation functions
@@ -827,9 +846,23 @@ export default function LocationAvailability({
       <div className="px-6 py-6">
         <div className="h-[calc(100vh-6rem)] flex flex-col">
           <div className="mb-4">
-            <p className="text-gray-600">
+            <p className="text-gray-600 mb-2">
               Compare location availability for the selected day. Times are shown across the top, locations on the left.
             </p>
+            <div className="flex items-center gap-6 text-sm">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                <span className="text-gray-600">Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-red-500 rounded"></div>
+                <span className="text-gray-600">Unavailable</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-600 rounded"></div>
+                <span className="text-gray-600">Scheduled Events</span>
+              </div>
+            </div>
           </div>
 
           {/* Navigation and Controls */}
@@ -1056,6 +1089,43 @@ export default function LocationAvailability({
                                 ) : null;
                               })}
                             </div>
+
+                            {/* Schedule Events for this location */}
+                            {getScheduleEventsForLocationAndDate(location.id).map((event: any) => {
+                              const startMinutes = timeToMinutes(event.startTime);
+                              const endMinutes = timeToMinutes(event.endTime);
+                              const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
+                              
+                              // Calculate percentage-based positioning for full width
+                              const startPercent = ((startMinutes - START_MINUTES) / TOTAL_MINUTES) * 100;
+                              const widthPercent = ((endMinutes - startMinutes) / TOTAL_MINUTES) * 100;
+                              
+                              return (
+                                <div
+                                  key={`event-${event.id}`}
+                                  className="absolute text-xs text-white top-1 bottom-1 rounded transition-all duration-150 z-5"
+                                  style={{
+                                    left: `${startPercent}%`,
+                                    width: `${widthPercent}%`,
+                                    minWidth: '20px',
+                                    backgroundColor: eventTypeColor,
+                                    borderColor: eventTypeColor,
+                                    borderWidth: '1px',
+                                    filter: 'brightness(0.9)', // Slightly darker border
+                                  }}
+                                  title={`${event.title} (${event.startTime} - ${event.endTime})`}
+                                >
+                                  <div className="px-2 py-1 h-full flex flex-col justify-center">
+                                    <div className="font-medium truncate text-[10px]">
+                                      {event.title}
+                                    </div>
+                                    <div className="text-[9px] opacity-90 truncate">
+                                      {event.startTime} - {event.endTime}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
 
                             {/* Availability Blocks */}
                             {locationAvailability.map((item: LocationAvailability) => {
