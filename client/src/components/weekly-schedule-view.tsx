@@ -705,7 +705,7 @@ export default function WeeklyScheduleView({
           scrollTop,
           newDayIndex: constrainedDayIndex,
           newStartMinutes,
-          time: formatTimeFromMinutes(newStartMinutes)
+          time: formatTime(newStartMinutes)
         });
 
         setDraggedEvent(prev => prev ? {
@@ -720,9 +720,9 @@ export default function WeeklyScheduleView({
           // Update event position using the current drag position
           const newDate = weekDates[currentDragPosition.dayIndex].toISOString().split('T')[0];
           // Format time with seconds for database storage
-          const startTime = formatTimeFromMinutes(currentDragPosition.startMinutes) + ':00';
+          const startTime = formatTime(currentDragPosition.startMinutes) + ':00';
           const duration = timeToMinutes(event.endTime) - timeToMinutes(event.startTime);
-          const endTime = formatTimeFromMinutes(currentDragPosition.startMinutes + duration) + ':00';
+          const endTime = formatTime(currentDragPosition.startMinutes + duration) + ':00';
 
           const eventData = {
             date: newDate,
@@ -826,8 +826,8 @@ export default function WeeklyScheduleView({
         newEndMinutes = Math.max(minutes, originalStartMinutes + timeIncrement);
       }
 
-      const newStartTime = formatTimeFromMinutes(newStartMinutes);
-      const newEndTime = formatTimeFromMinutes(newEndMinutes);
+      const newStartTime = formatTime(newStartMinutes);
+      const newEndTime = formatTime(newEndMinutes);
 
       // Update the event optimistically
       setResizingEvent(prev => prev ? {
@@ -839,8 +839,8 @@ export default function WeeklyScheduleView({
     const handleMouseUp = () => {
       if (resizingEvent) {
         const eventData = {
-          startTime: resizingEvent.event.startTime,
-          endTime: resizingEvent.event.endTime,
+          startTime: resizingEvent.event.startTime + ':00',
+          endTime: resizingEvent.event.endTime + ':00',
         };
 
         // Cancel any outgoing refetches to prevent conflicts
