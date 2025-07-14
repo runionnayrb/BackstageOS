@@ -66,9 +66,7 @@ export default function LocationAvailability({
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
-  const [showFilterPopover, setShowFilterPopover] = useState(false);
-  const [selectedLocationTypes, setSelectedLocationTypes] = useState<Set<string>>(new Set());
-  const [hasActiveFilters, setHasActiveFilters] = useState(false);
+
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const selectedItemsRef = useRef<Set<number>>(new Set());
   
@@ -151,39 +149,8 @@ export default function LocationAvailability({
 
   const isLoading = locationsLoading || availabilityLoading || eventsLoading;
 
-  // Filter locations if needed
-  const filteredLocations = locations.filter((location: EventLocation) => {
-    if (!hasActiveFilters || selectedLocationTypes.size === 0) return true;
-    // Use description first, fallback to name if no description
-    const locationType = location.description || location.name;
-    return selectedLocationTypes.has(locationType);
-  });
-
-  // Get unique location types for filtering - use description first, fallback to name
-  const locationTypes = [...new Set(locations.map((location: EventLocation) => 
-    location.description || location.name
-  ).filter(Boolean))];
-
-  const toggleLocationType = (type: string) => {
-    const newTypes = new Set(selectedLocationTypes);
-    if (newTypes.has(type)) {
-      newTypes.delete(type);
-    } else {
-      newTypes.add(type);
-    }
-    setSelectedLocationTypes(newTypes);
-  };
-
-  const applyFilters = () => {
-    setHasActiveFilters(selectedLocationTypes.size > 0);
-    setShowFilterPopover(false);
-  };
-
-  const clearFilters = () => {
-    setSelectedLocationTypes(new Set());
-    setHasActiveFilters(false);
-    setShowFilterPopover(false);
-  };
+  // Use all locations without the old filter (removed duplicate filter functionality)
+  const filteredLocations = locations;
 
   // Time formatting using show settings preference
   const formatTime = (minutes: number) => {
@@ -927,63 +894,6 @@ export default function LocationAvailability({
                   {selectedItems.size} selected - Press Delete to remove
                 </span>
               )}
-              
-              {/* Filter Button - moved to left of timezone */}
-              <Popover open={showFilterPopover} onOpenChange={setShowFilterPopover}>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className={`h-8 w-8 p-0 ${hasActiveFilters ? 'text-blue-600 bg-blue-50' : 'text-gray-500'}`}
-                  >
-                    <Filter className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-64" align="end">
-                  <div className="space-y-4">
-                    <div className="font-medium text-sm">Filter by Location Type</div>
-                    
-                    {locationTypes.length > 0 ? (
-                      <div className="space-y-2">
-                        {locationTypes.map((type) => (
-                          <div key={type} className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              id={`type-${type}`}
-                              checked={selectedLocationTypes.has(type)}
-                              onChange={() => toggleLocationType(type)}
-                              className="rounded border-gray-300"
-                            />
-                            <label htmlFor={`type-${type}`} className="text-sm capitalize">
-                              {type}
-                            </label>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-sm text-gray-500">No location types available</div>
-                    )}
-                    
-                    <div className="flex gap-2 pt-2 border-t">
-                      <Button 
-                        size="sm" 
-                        onClick={applyFilters}
-                        className="flex-1"
-                      >
-                        Apply
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={clearFilters}
-                        className="flex-1"
-                      >
-                        Clear
-                      </Button>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
 
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500">
