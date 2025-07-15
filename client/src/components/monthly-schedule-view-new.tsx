@@ -436,13 +436,13 @@ export default function MonthlyScheduleView({
                                                 {category.replace('_', ' ')}
                                               </div>
                                               {participantsByCategory[category].map(participant => (
-                                                <div key={participant.id} className="text-xs text-gray-600 ml-1 py-0.5">
-                                                  <span>
-                                                    {participant.contactName}
-                                                    {participant.contactRole && (
-                                                      <span className="text-gray-500"> ({participant.contactRole})</span>
-                                                    )}
+                                                <div key={participant.id} className="text-xs text-gray-900 ml-1 py-0.5">
+                                                  <span className="font-medium">
+                                                    {participant.contactName || 'No name'}
                                                   </span>
+                                                  {participant.contactRole && (
+                                                    <span className="text-gray-600 font-normal"> ({participant.contactRole})</span>
+                                                  )}
                                                 </div>
                                               ))}
                                             </div>
