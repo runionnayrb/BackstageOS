@@ -1037,7 +1037,7 @@ export default function WeeklyScheduleView({
         {/* Main Schedule Grid */}
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           {/* Header row */}
-          <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '20px' }}>
+          <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '24px' }}>
             <div 
               style={{ 
                 position: 'absolute',
@@ -1045,9 +1045,9 @@ export default function WeeklyScheduleView({
                 top: 0,
                 bottom: 0,
                 width: '80px',
-                height: '20px',
-                minHeight: '20px', 
-                maxHeight: '20px',
+                height: '24px',
+                minHeight: '24px', 
+                maxHeight: '24px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -1082,9 +1082,9 @@ export default function WeeklyScheduleView({
                     position: 'absolute',
                     left: `calc(80px + (100% - 80px) * ${dayIndex} / 7)`,
                     width: `calc((100% - 80px) / 7)`,
-                    height: '20px', 
-                    minHeight: '20px', 
-                    maxHeight: '20px',
+                    height: '24px', 
+                    minHeight: '24px', 
+                    maxHeight: '24px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

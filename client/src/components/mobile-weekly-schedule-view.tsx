@@ -334,9 +334,9 @@ export default function MobileWeeklyScheduleView({
           {/* Timezone Header */}
           <div 
             style={{ 
-              height: '20px',
-              minHeight: '20px', 
-              maxHeight: '20px',
+              height: '24px',
+              minHeight: '24px', 
+              maxHeight: '24px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -375,13 +375,13 @@ export default function MobileWeeklyScheduleView({
           >
             <div 
               className="relative"
-              style={{ height: `${containerHeight}px`, paddingTop: '20px' }}
+              style={{ height: `${containerHeight}px`, paddingTop: '24px' }}
             >
               {timeLabels.map((timeLabel) => (
                 <div
                   key={timeLabel.minutes}
                   className="absolute right-2 text-xs text-gray-500"
-                  style={{ top: `${timeLabel.position + 20 - 12}px` }}
+                  style={{ top: `${timeLabel.position + 24 - 12}px` }}
                 >
                   {timeLabel.label}
                 </div>
@@ -389,7 +389,7 @@ export default function MobileWeeklyScheduleView({
               {/* Midnight line */}
               <div
                 className="absolute left-0 right-0 border-b border-gray-100"
-                style={{ top: `${TOTAL_MINUTES + 20}px` }}
+                style={{ top: `${TOTAL_MINUTES + 24}px` }}
               />
             </div>
           </div>
@@ -435,9 +435,9 @@ export default function MobileWeeklyScheduleView({
                   {/* Day Header */}
                   <div 
                     style={{ 
-                      height: '20px', 
-                      minHeight: '20px', 
-                      maxHeight: '20px',
+                      height: '24px', 
+                      minHeight: '24px', 
+                      maxHeight: '24px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
