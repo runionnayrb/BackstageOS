@@ -355,7 +355,7 @@ export default function DailyScheduleView({
                 <div
                   key={timeLabel.minutes}
                   className="absolute right-2 text-xs text-gray-500"
-                  style={{ top: `${timeLabel.position + 24 - 12}px` }}
+                  style={{ top: `${timeLabel.position + 24}px` }}
                 >
                   {timeLabel.label}
                 </div>
