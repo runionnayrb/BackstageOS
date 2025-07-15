@@ -427,7 +427,7 @@ export default function MonthlyScheduleView({
                                   </PopoverTrigger>
                                   <PopoverContent className="w-72 p-0" align="start">
                                     <div className="p-4 space-y-3">
-                                      <h4 className="font-medium text-sm">Event Participants</h4>
+                                      <h4 className="font-medium text-sm">People Called</h4>
                                       <div className="space-y-3">
                                         {(() => {
                                           // Group participants by contact category
