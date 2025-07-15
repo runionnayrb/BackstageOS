@@ -163,26 +163,88 @@ export default function Schedule() {
 
   return (
     <div className="w-full">
-      {/* Desktop Header */}
-      <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
+      {/* Desktop Header - Unified Weekly View Style */}
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}/calendar`)}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Calendar
-          </Button>
-          
-          <div className="flex items-center gap-2">
-
+          {/* Left side - Date/Range display */}
+          <div className="flex items-center">
+            <div className="text-lg font-medium">
+              {getHeaderText()}
+            </div>
           </div>
-        </div>
-        
-        <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">Schedule</h1>
+
+          {/* Right side - Controls matching weekly view order */}
+          <div className="flex items-center space-x-2">
+            <ScheduleFilter
+              projectId={parseInt(projectId)}
+              selectedContactIds={selectedContactIds}
+              onFilterChange={setSelectedContactIds}
+              selectedEventTypes={selectedEventTypes}
+              onEventTypeFilterChange={setSelectedEventTypes}
+              selectedIndividualTypes={selectedIndividualTypes}
+              onIndividualTypeFilterChange={setSelectedIndividualTypes}
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-auto">
+                  {timeIncrement} Min
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setTimeIncrement(15)}>
+                  15 Min
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTimeIncrement(30)}>
+                  30 Min
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTimeIncrement(60)}>
+                  60 Min
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              variant={showAllDayEvents ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowAllDayEvents(!showAllDayEvents)}
+              className="text-xs px-2 py-1 h-auto"
+            >
+              All Day
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-auto">
+                  {viewMode === 'monthly' ? 'Month' : viewMode === 'weekly' ? 'Week' : 'Day'}
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setViewMode('monthly')}>
+                  Month
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setViewMode('weekly')}>
+                  Week
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setViewMode('daily')}>
+                  Day
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="outline" onClick={() => {
+              const today = new Date();
+              setCurrentDate(today);
+            }} size="sm" className="text-xs px-2 py-1 h-auto">
+              Today
+            </Button>
+            <div className="flex items-center">
+              <button onClick={goToPrevious} className="p-1 hover:bg-gray-100 rounded-l transition-colors">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button onClick={goToNext} className="p-1 hover:bg-gray-100 rounded-r transition-colors">
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

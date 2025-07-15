@@ -336,77 +336,7 @@ export default function MonthlyScheduleView({
 
   return (
     <div>
-      {/* Header - Match weekly view layout - Hidden on mobile since main page has its own header */}
-      <div className="hidden md:flex items-center justify-between mb-4">
-        {/* Left side - Month/Year display */}
-        <div className="flex items-center">
-          <div className="text-base font-medium text-gray-700">
-            {formatMonthYear()}
-          </div>
-        </div>
-
-        {/* Right side - Controls matching weekly view order */}
-        <div className="flex items-center space-x-2">
-          <ScheduleFilter
-            projectId={projectId}
-            selectedContactIds={selectedContactIds}
-            onFilterChange={onFilterChange}
-            selectedEventTypes={selectedEventTypes}
-            onEventTypeFilterChange={onEventTypeFilterChange}
-            selectedIndividualTypes={selectedIndividualTypes}
-            onIndividualTypeFilterChange={onIndividualTypeFilterChange}
-          />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-auto">
-                {timeIncrement} Min
-                <ChevronDown className="h-3 w-3 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setTimeIncrement(15)}>
-                15 Min
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTimeIncrement(30)}>
-                30 Min
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTimeIncrement(60)}>
-                60 Min
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button 
-            variant={showAllDayEvents ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowAllDayEvents(!showAllDayEvents)}
-            className="text-xs px-2 py-1 h-auto"
-          >
-            <Calendar className="h-3 w-3 mr-1" />
-            All Day
-          </Button>
-          <Select value={viewMode} onValueChange={(value: 'monthly' | 'weekly' | 'daily') => setViewMode(value)}>
-            <SelectTrigger className="w-auto text-xs px-2 py-1 h-auto">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="monthly">Month</SelectItem>
-              <SelectItem value="weekly">Week</SelectItem>
-              <SelectItem value="daily">Day</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button variant="outline" size="sm" onClick={goToToday} className="text-xs px-2 py-1 h-auto">
-            Today
-          </Button>
-          <div className="flex items-center">
-            <Button variant="outline" size="sm" onClick={goToPreviousMonth} className="text-xs px-1 py-1 h-auto rounded-r-none border-r-0">
-              <ChevronLeft className="h-3 w-3" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={goToNextMonth} className="text-xs px-1 py-1 h-auto rounded-l-none">
-              <ChevronRight className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-      </div>
+      {/* Removed individual header - using unified main page header */}
 
 
 
