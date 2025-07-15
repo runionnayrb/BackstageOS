@@ -436,7 +436,7 @@ export default function DailyScheduleView({
 
               {/* All Day Events Section */}
               {propShowAllDayEvents && (
-                <div className="bg-gray-50 border-b border-gray-200 min-h-[40px] p-1">
+                <div className="bg-gray-50 border-b border-gray-200 min-h-[60px] p-1">
                   {getEventsForDate(selectedDate)
                     .filter(event => event.isAllDay)
                     .map((event) => {
