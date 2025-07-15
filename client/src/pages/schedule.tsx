@@ -187,24 +187,7 @@ export default function Schedule() {
               onIndividualTypeFilterChange={setSelectedIndividualTypes}
             />
             
-            <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-              <SelectTrigger className="w-12 border-0 shadow-none [&_svg[data-lucide='chevron-down']]:hidden">
-                <SelectValue asChild>
-                  <Clock 
-                    className={`h-6 w-6 ${
-                      timeIncrement === 15 ? 'rotate-90' : 
-                      timeIncrement === 30 ? 'rotate-180' : 
-                      'rotate-0'
-                    }`} 
-                  />
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="15">15 minutes</SelectItem>
-                <SelectItem value="30">30 minutes</SelectItem>
-                <SelectItem value="60">60 minutes</SelectItem>
-              </SelectContent>
-            </Select>
+
             
 
           </div>
@@ -386,6 +369,7 @@ export default function Schedule() {
                 selectedEventTypes={selectedEventTypes}
                 selectedIndividualTypes={selectedIndividualTypes}
                 timeIncrement={timeIncrement}
+                setTimeIncrement={setTimeIncrement}
                 showAllDayEvents={showAllDayEvents}
                 createEventDialog={createEventDialog}
                 setCreateEventDialog={setCreateEventDialog}
