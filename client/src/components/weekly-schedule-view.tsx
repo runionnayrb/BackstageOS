@@ -992,16 +992,25 @@ export default function WeeklyScheduleView({
 
           {/* Controls - right aligned */}
           <div className="flex items-center space-x-2">
-            <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-              <SelectTrigger className="w-auto border-0 shadow-none [&_svg[data-lucide='chevron-down']]:hidden px-2 py-1 h-auto text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="15">15 Min</SelectItem>
-                <SelectItem value="30">30 Min</SelectItem>
-                <SelectItem value="60">60 Min</SelectItem>
-              </SelectContent>
-            </Select>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-auto">
+                  {timeIncrement} Min
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setTimeIncrement(15)}>
+                  15 Min
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTimeIncrement(30)}>
+                  30 Min
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTimeIncrement(60)}>
+                  60 Min
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               variant={showAllDayEvents ? "default" : "outline"}
               size="sm"
