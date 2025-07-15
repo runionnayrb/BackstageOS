@@ -303,9 +303,25 @@ export default function DailyScheduleView({
     <div className="flex flex-col h-full bg-gray-50">
       {/* Removed individual header - using unified main page header */}
       {/* Main Content Container */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Time grid lines spanning full width - matching weekly view */}
+        <div className="absolute inset-0" style={{ paddingTop: '24px' }}>
+          {timeLabels.map((timeLabel) => (
+            <div
+              key={timeLabel.minutes}
+              className="absolute left-0 right-0 border-t border-gray-200"
+              style={{ top: `${timeLabel.position + 24}px` }}
+            />
+          ))}
+          {/* Midnight line */}
+          <div
+            className="absolute left-0 right-0 border-t border-gray-200"
+            style={{ top: `${TOTAL_MINUTES + 24}px` }}
+          />
+        </div>
+
         {/* Time Labels - Fixed on left side */}
-        <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
+        <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0 relative z-10">
           <div 
             style={{ 
               height: '24px',
@@ -366,7 +382,7 @@ export default function DailyScheduleView({
 
         {/* Day Container */}
         <div 
-          className="flex-1 overflow-hidden"
+          className="flex-1 overflow-hidden relative z-10"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -588,27 +604,12 @@ export default function DailyScheduleView({
 
               {/* Day Schedule Content */}
               <div 
-                className="relative bg-white flex-1"
+                className="relative bg-transparent flex-1"
               >
                 <div 
                   className="relative"
                   style={{ height: `${containerHeight}px`, paddingTop: '24px' }}
                 >
-                  {/* Time grid background */}
-                  <div className="absolute inset-0">
-                    {timeLabels.map((timeLabel) => (
-                      <div
-                        key={timeLabel.minutes}
-                        className="absolute left-0 right-0 border-t border-gray-100"
-                        style={{ top: `${timeLabel.position + 24}px` }}
-                      />
-                    ))}
-                    {/* Midnight line */}
-                    <div
-                      className="absolute left-0 right-0 border-t border-gray-100"
-                      style={{ top: `${TOTAL_MINUTES + 24}px` }}
-                    />
-                  </div>
 
                   {/* Events for this day - only non-all-day events */}
                   {getEventsForDate(selectedDate)
