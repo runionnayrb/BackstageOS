@@ -164,11 +164,28 @@ export default function Schedule() {
   return (
     <div className="w-full">
       {/* Desktop Header - Unified Weekly View Style */}
-      <div className="hidden md:block px-4 sm:px-6 lg:px-8">
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
-          {/* Left side - Date/Range display */}
-          <div className="flex items-center">
-            <div className="text-lg font-medium">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation(`/shows/${projectId}/calendar`)}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Calendar
+          </Button>
+          
+          <div className="flex items-center gap-2">
+
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between mb-4">
+          {/* Left side - Title and Date/Range display */}
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold text-gray-900">Schedule</h1>
+            <div className="text-lg font-medium text-gray-600">
               {getHeaderText()}
             </div>
           </div>
@@ -252,8 +269,8 @@ export default function Schedule() {
       <div className="md:hidden">
         {/* Main Mobile Header */}
         <div className="px-4 py-3 border-b border-gray-200 bg-white">
-          <div className="flex items-center justify-between">
-            {/* Month/Year Display */}
+          <div className="flex items-center justify-between mb-2">
+            {/* Back button and Title */}
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
@@ -263,9 +280,13 @@ export default function Schedule() {
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <h1 className="text-xl font-semibold text-gray-900">
-                {getHeaderText()}
-              </h1>
+              <h1 className="text-xl font-semibold text-gray-900">Schedule</h1>
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            {/* Date/Range Display */}
+            <div className="text-lg font-medium text-gray-600">
+              {getHeaderText()}
             </div>
             
             {/* Navigation Controls */}
