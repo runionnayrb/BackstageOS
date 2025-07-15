@@ -1037,35 +1037,125 @@ export default function WeeklyScheduleView({
         {/* Main Schedule Grid */}
         <div className="border border-gray-200 rounded-lg overflow-hidden">
           {/* Header row */}
-          <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '60px' }}>
+          <div className="relative bg-gray-50 border-b border-gray-200" style={{ height: '20px' }}>
             <div 
-              className="absolute left-0 top-0 bottom-0 bg-gray-100 border-r border-gray-200 p-3 text-sm font-medium text-gray-600 flex items-center justify-center"
-              style={{ width: '80px' }}
+              style={{ 
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: '80px',
+                height: '20px',
+                minHeight: '20px', 
+                maxHeight: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+                backgroundColor: '#f9fafb',
+                borderRight: '1px solid #e5e7eb',
+                margin: 0,
+                padding: 0,
+                boxSizing: 'border-box'
+              }}
             >
-              {getTimezoneAbbreviation(timezone || "America/New_York")}
+              <span 
+                style={{ 
+                  lineHeight: '14px',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  color: '#6b7280',
+                  margin: 0,
+                  padding: 0
+                }}
+              >
+                {getTimezoneAbbreviation(timezone || "America/New_York")}
+              </span>
             </div>
             {weekDates.map((date, dayIndex) => {
               const isToday = date.toDateString() === new Date().toDateString();
               return (
                 <div 
                   key={dayIndex} 
-                  className={`absolute top-0 bottom-0 p-3 text-sm font-medium text-center border-l border-gray-200 cursor-pointer transition-colors ${
-                    isToday 
-                      ? 'bg-blue-500 text-white hover:bg-blue-600' 
-                      : 'hover:bg-blue-50'
-                  }`}
+                  className="border-l border-gray-200 cursor-pointer transition-colors hover:bg-blue-50"
                   style={{
+                    position: 'absolute',
                     left: `calc(80px + (100% - 80px) * ${dayIndex} / 7)`,
                     width: `calc((100% - 80px) / 7)`,
+                    height: '20px', 
+                    minHeight: '20px', 
+                    maxHeight: '20px',
                     display: 'flex',
-                    flexDirection: 'column',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    backgroundColor: '#f9fafb',
+                    margin: 0,
+                    padding: 0,
+                    boxSizing: 'border-box'
                   }}
                   onClick={() => onDateClick(date)}
                 >
-                  <div>{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                  <div className="text-lg">{date.getDate()}</div>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    gap: '4px',
+                    height: '100%',
+                    width: '100%'
+                  }}>
+                    <span 
+                      style={{ 
+                        lineHeight: '14px',
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        color: '#6b7280',
+                        margin: 0,
+                        padding: 0
+                      }}
+                    >
+                      {date.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
+                    </span>
+                    {isToday ? (
+                      <div 
+                        className="bg-red-500 rounded-full"
+                        style={{
+                          width: '20px',
+                          height: '20px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}
+                      >
+                        <span 
+                          style={{ 
+                            lineHeight: '12px',
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                            color: '#ffffff',
+                            margin: 0,
+                            padding: 0
+                          }}
+                        >
+                          {date.getDate()}
+                        </span>
+                      </div>
+                    ) : (
+                      <span 
+                        style={{ 
+                          lineHeight: '14px',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          color: '#111827',
+                          margin: 0,
+                          padding: 0
+                        }}
+                      >
+                        {date.getDate()}
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
             })}
