@@ -996,12 +996,14 @@ export default function WeeklyScheduleView({
             <Button variant="outline" onClick={goToToday} size="sm" className="text-xs px-2 py-1 h-auto">
               Today
             </Button>
-            <button onClick={goToPreviousWeek} className="p-2 hover:bg-gray-100 rounded transition-colors">
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button onClick={goToNextWeek} className="p-2 hover:bg-gray-100 rounded transition-colors">
-              <ChevronRight className="h-4 w-4" />
-            </button>
+            <div className="flex items-center">
+              <button onClick={goToPreviousWeek} className="p-2 hover:bg-gray-100 rounded transition-colors">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button onClick={goToNextWeek} className="p-2 hover:bg-gray-100 rounded transition-colors">
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
 
