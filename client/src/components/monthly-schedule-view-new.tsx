@@ -369,7 +369,7 @@ export default function MonthlyScheduleView({
                                 <span>
                                   {event.isAllDay 
                                     ? 'All Day' 
-                                    : `${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)}`
+                                    : `${formatTimeDisplay(event.startTime, timeFormat).replace(':00', '')} - ${formatTimeDisplay(event.endTime, timeFormat).replace(':00', '')}`
                                   }
                                 </span>
                               </div>
