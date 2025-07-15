@@ -336,8 +336,8 @@ export default function MonthlyScheduleView({
 
   return (
     <div>
-      {/* Header - Match weekly view layout */}
-      <div className="flex items-center justify-between mb-4">
+      {/* Header - Match weekly view layout - Hidden on mobile since main page has its own header */}
+      <div className="hidden md:flex items-center justify-between mb-4">
         {/* Left side - Month/Year display */}
         <div className="flex items-center">
           <div className="text-base font-medium text-gray-700">

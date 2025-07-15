@@ -284,33 +284,29 @@ export default function Schedule() {
               </button>
             </div>
 
-            {/* Buttons and Settings */}
+            {/* Buttons and Settings - Complete unified control layout */}
             <div className="flex items-center gap-2">
-              {/* Time Increment for weekly/daily views - rightmost */}
-              {(viewMode === 'weekly' || viewMode === 'daily') && (
-                <div className="no-chevron">
-                  <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-                    <SelectTrigger className="w-12 h-8 border-0 bg-transparent shadow-none p-1 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center">
-                      <Clock className="h-4 w-4 text-gray-600" />
-                    </SelectTrigger>
-                    <SelectContent align="end" className="min-w-[80px] w-auto">
-                      <SelectItem value="15">15 min</SelectItem>
-                      <SelectItem value="30">30 min</SelectItem>
-                      <SelectItem value="60">60 min</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              {/* Time Increment for all views - rightmost */}
+              <div className="no-chevron">
+                <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
+                  <SelectTrigger className="w-12 h-8 border-0 bg-transparent shadow-none p-1 hover:bg-gray-100 rounded-md transition-colors flex items-center justify-center">
+                    <Clock className="h-4 w-4 text-gray-600" />
+                  </SelectTrigger>
+                  <SelectContent align="end" className="min-w-[80px] w-auto">
+                    <SelectItem value="15">15 min</SelectItem>
+                    <SelectItem value="30">30 min</SelectItem>
+                    <SelectItem value="60">60 min</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               
               {/* All Day Button - middle - show in all views */}
-              {(viewMode === 'weekly' || viewMode === 'monthly' || viewMode === 'daily') && (
-                <button
-                  onClick={() => setShowAllDayEvents(!showAllDayEvents)}
-                  className="p-2 h-8 border-0 bg-transparent hover:bg-gray-100 rounded-md transition-colors"
-                >
-                  <Calendar className={`h-4 w-4 ${showAllDayEvents ? 'text-blue-500' : 'text-gray-600'}`} />
-                </button>
-              )}
+              <button
+                onClick={() => setShowAllDayEvents(!showAllDayEvents)}
+                className="p-2 h-8 border-0 bg-transparent hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <Calendar className={`h-4 w-4 ${showAllDayEvents ? 'text-blue-500' : 'text-gray-600'}`} />
+              </button>
               
               {/* New Event Button - leftmost */}
               <button
