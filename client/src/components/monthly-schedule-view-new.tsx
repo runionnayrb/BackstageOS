@@ -326,7 +326,13 @@ export default function MonthlyScheduleView({
                 {/* Events */}
                 <div className="mt-1 space-y-1">
                   {dayEvents
-                    .sort((a, b) => a.startTime.localeCompare(b.startTime)) // Sort by start time
+                    .sort((a, b) => {
+                      // All Day events first
+                      if (a.isAllDay && !b.isAllDay) return -1;
+                      if (!a.isAllDay && b.isAllDay) return 1;
+                      // Then sort by start time for timed events
+                      return a.startTime.localeCompare(b.startTime);
+                    })
                     .slice(0, 3)
                     .map((event: ScheduleEvent) => {
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
