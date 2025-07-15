@@ -303,7 +303,8 @@ export default function DailyScheduleView({
     <div className="flex flex-col h-full bg-gray-50">
       {/* Removed individual header - using unified main page header */}
       {/* Main Content Container */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className="flex flex-1 overflow-hidden">
         {/* Time Labels - Fixed on left side */}
         <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
           <div 
@@ -779,6 +780,7 @@ export default function DailyScheduleView({
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
