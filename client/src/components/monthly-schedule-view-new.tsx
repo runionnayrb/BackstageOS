@@ -307,7 +307,7 @@ export default function MonthlyScheduleView({
             return (
               <div
                 key={index}
-                className={`min-h-16 md:min-h-24 p-1 md:p-2 border-r border-b last:border-r-0 transition-colors hover:bg-gray-50 ${
+                className={`min-h-16 md:min-h-24 p-1 md:p-2 border-r border-b last:border-r-0 ${
                   !isCurrentMonthDay ? 'bg-gray-50 text-gray-400' : ''
                 }`}
               >
