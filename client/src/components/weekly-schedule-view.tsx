@@ -649,10 +649,7 @@ export default function WeeklyScheduleView({
     // Clear any existing selections when not in multi-select mode
     setSelectedEvents(new Set());
 
-    // Double click to edit
-    const doubleClickHandler = () => {
-      setEditingEvent(event);
-    };
+
 
     // Set up drag immediately
     const eventDate = event.date;
@@ -699,14 +696,8 @@ export default function WeeklyScheduleView({
     let hasStartedDragging = false;
     let currentDragPosition = { dayIndex: draggedEvent.originalPosition.dayIndex, startMinutes: draggedEvent.originalPosition.startMinutes };
     const moveThreshold = 3; // pixels
-    let clickTimeout: NodeJS.Timeout | null = null;
 
     const handleMouseMove = (e: MouseEvent) => {
-      // Clear double-click timeout if user starts dragging
-      if (clickTimeout) {
-        clearTimeout(clickTimeout);
-        clickTimeout = null;
-      }
         if (!hasStartedDragging) {
           // Calculate current mouse position
           const currentX = e.clientX - rect!.left;
@@ -842,25 +833,7 @@ export default function WeeklyScheduleView({
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
 
-    // Set up double click detection with timeout
-    clickTimeout = setTimeout(() => {
-      // If we reach here, it's a single click that didn't turn into a drag
-      // Do nothing - drag is already set up
-    }, 200);
 
-    // Handle double click
-    const handleDoubleClick = () => {
-      if (clickTimeout) {
-        clearTimeout(clickTimeout);
-      }
-      // Clean up drag if it was set up
-      setDraggedEvent(null);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      doubleClickHandler();
-    };
-
-    e.currentTarget.addEventListener('dblclick', handleDoubleClick, { once: true });
   }, [weekDates, filteredEvents, timeIncrement, updateEventMutation, justDragged, selectedEvents]);
 
   // Handle event resize
