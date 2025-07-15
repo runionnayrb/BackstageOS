@@ -976,22 +976,14 @@ export default function WeeklyScheduleView({
       <div>
         {/* Navigation and controls row - Desktop only */}
         <div className="relative hidden md:flex justify-between mb-4">
-          {/* Week navigation - fixed arrow positions */}
+          {/* Week range display - left aligned */}
           <div className="flex items-center">
-            <button onClick={goToPreviousWeek} className="p-2 hover:bg-gray-100 rounded transition-colors">
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            
-            <div className="text-lg font-medium w-[400px] text-center">
+            <div className="text-lg font-medium">
               {formatWeekRange(weekDates)}
             </div>
-            
-            <button onClick={goToNextWeek} className="p-2 hover:bg-gray-100 rounded transition-colors">
-              <ChevronRight className="h-4 w-4" />
-            </button>
           </div>
 
-          {/* All Day and Today buttons - right aligned */}
+          {/* Controls - right aligned */}
           <div className="flex items-center space-x-2">
             <Button
               variant={showAllDayEvents ? "default" : "outline"}
@@ -1004,6 +996,12 @@ export default function WeeklyScheduleView({
             <Button variant="outline" onClick={goToToday} size="sm" className="text-xs px-2 py-1 h-auto">
               Today
             </Button>
+            <button onClick={goToPreviousWeek} className="p-2 hover:bg-gray-100 rounded transition-colors">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button onClick={goToNextWeek} className="p-2 hover:bg-gray-100 rounded transition-colors">
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
