@@ -2,11 +2,12 @@ import React, { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { formatTimeDisplay } from '@/lib/timeUtils';
 import { filterEventsBySettings, getTimezoneAbbreviation } from '@/lib/scheduleUtils';
-import { getEventTypeColor, getEventTypeColorFromDatabase } from '@/lib/eventUtils';
-import { ChevronLeft, ChevronRight, Plus, Calendar, Clock, ChevronDown } from "lucide-react";
+import { getEventTypeColor, getEventTypeColorFromDatabase, getEventTypeDisplayName } from '@/lib/eventUtils';
+import { ChevronLeft, ChevronRight, Plus, Calendar, Clock, ChevronDown, MapPin, Users, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import ScheduleFilter from "@/components/schedule-filter";
 
 // Constants for time grid (8 AM to midnight = 16 hours)
@@ -93,6 +94,7 @@ export default function DailyScheduleView({
   setViewMode
 }: DailyScheduleViewProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
 
   // Touch handling for swipe navigation
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -189,6 +191,12 @@ export default function DailyScheduleView({
   // Fetch event types for filtering
   const { data: eventTypes = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/event-types`],
+    enabled: !!projectId,
+  });
+
+  // Fetch contacts for participant popover categorization
+  const { data: contacts = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/contacts`],
     enabled: !!projectId,
   });
 
@@ -434,14 +442,145 @@ export default function DailyScheduleView({
                     .map((event) => {
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
                       return (
-                        <div
-                          key={event.id}
-                          className="text-white rounded px-2 py-1 text-xs mb-1 cursor-pointer hover:opacity-90 transition-opacity"
-                          style={{ backgroundColor: eventTypeColor }}
-                          onClick={() => onDateClick?.(selectedDate)}
-                        >
-                          <div className="font-medium truncate">{event.title}</div>
-                        </div>
+                        <Popover key={event.id}>
+                          <PopoverTrigger asChild>
+                            <div
+                              className="text-white rounded px-2 py-1 text-xs mb-1 cursor-pointer hover:opacity-90 transition-opacity border-l-4"
+                              style={{ 
+                                backgroundColor: eventTypeColor,
+                                borderLeftColor: eventTypeColor,
+                              }}
+                            >
+                              <div className="font-medium truncate">{event.title}</div>
+                            </div>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-0" align="start">
+                            <div className="p-4 space-y-3">
+                              {/* Event Header */}
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <div 
+                                    className="w-3 h-3 rounded-full" 
+                                    style={{ backgroundColor: eventTypeColor }}
+                                  />
+                                  <h3 className="font-medium text-sm">{event.title}</h3>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => setEditingEvent(event)}
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              </div>
+
+                              {/* Event Details */}
+                              <div className="space-y-2">
+                                {/* Time */}
+                                <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                  <Clock className="h-3 w-3" />
+                                  <span>All Day</span>
+                                </div>
+
+                                {/* Location */}
+                                {event.location && (
+                                  <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                    <MapPin className="h-3 w-3" />
+                                    <span>{event.location}</span>
+                                  </div>
+                                )}
+
+                                {/* Event Type */}
+                                <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                  <Calendar className="h-3 w-3" />
+                                  <span>{getEventTypeDisplayName(event.type)}</span>
+                                </div>
+
+                                {/* Participants */}
+                                {event.participants && event.participants.length > 0 && (
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <div className="flex items-center space-x-2 text-xs text-gray-600 cursor-pointer hover:text-gray-800 transition-colors">
+                                        <Users className="h-3 w-3" />
+                                        <span>{event.participants.length} {event.participants.length === 1 ? 'Person Called' : 'People Called'}</span>
+                                      </div>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-72 p-0" align="start">
+                                      <div className="p-4 space-y-3">
+                                        <h4 className="font-medium text-sm">People Called</h4>
+                                        <div className="space-y-3">
+                                          {(() => {
+                                            // Group participants by contact category
+                                            const participantsByCategory = event.participants.reduce((acc, participant) => {
+                                              // Find the contact details from the contacts array for category and role
+                                              const contact = contacts.find(c => c.id === participant.contactId);
+                                              const category = contact?.category || 'Other';
+                                              
+                                              if (!acc[category]) {
+                                                acc[category] = [];
+                                              }
+                                              acc[category].push({
+                                                ...participant,
+                                                contactName: `${participant.contactFirstName} ${participant.contactLastName}`,
+                                                contactRole: contact?.role
+                                              });
+                                              return acc;
+                                            }, {} as Record<string, any[]>);
+
+                                            // Sort categories in the same order as the filter
+                                            const categoryOrder = ['cast', 'stage_management', 'crew', 'creative_team', 'theater_staff'];
+                                            const sortedCategories = Object.keys(participantsByCategory).sort((a, b) => {
+                                              const aIndex = categoryOrder.indexOf(a);
+                                              const bIndex = categoryOrder.indexOf(b);
+                                              if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+                                              if (aIndex === -1) return 1;
+                                              if (bIndex === -1) return -1;
+                                              return aIndex - bIndex;
+                                            });
+
+                                            return sortedCategories.map(category => (
+                                              <div key={category} className="space-y-1">
+                                                <div className="text-xs font-medium text-gray-800 capitalize border-b border-gray-200 pb-1">
+                                                  {category.replace('_', ' ')}
+                                                </div>
+                                                {participantsByCategory[category].map(participant => (
+                                                  <div key={participant.id} className="text-xs text-gray-900 ml-1 py-0.5">
+                                                    <span className="font-medium">
+                                                      {participant.contactName || 'No name'}
+                                                    </span>
+                                                    {participant.contactRole && (
+                                                      <span className="text-gray-600 font-normal"> ({participant.contactRole})</span>
+                                                    )}
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            ));
+                                          })()}
+                                        </div>
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                )}
+
+                                {/* Description */}
+                                {event.description && (
+                                  <div className="text-xs text-gray-700 pt-1">
+                                    <p>{event.description}</p>
+                                  </div>
+                                )}
+
+                                {/* Notes */}
+                                {event.notes && (
+                                  <div className="text-xs text-gray-700 pt-1">
+                                    <p className="font-medium">Notes:</p>
+                                    <p>{event.notes}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       );
                     })}
                 </div>
@@ -482,23 +621,157 @@ export default function DailyScheduleView({
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
 
                       return (
-                        <div
-                          key={event.id}
-                          className="absolute left-1 right-1 text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                          style={{
-                            top: `${top + 20}px`,
-                            height: `${height}px`,
-                            backgroundColor: eventTypeColor,
-                          }}
-                          onClick={() => onDateClick?.(selectedDate)}
-                        >
-                          <div className="font-medium truncate">{event.title}</div>
-                          {height > 40 && (
-                            <div className="text-xs opacity-90 truncate">
-                              {formatTime(startMinutes)} - {formatTime(endMinutes)}
+                        <Popover key={event.id}>
+                          <PopoverTrigger asChild>
+                            <div
+                              className="absolute left-1 right-1 text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:opacity-90 transition-opacity border-l-4"
+                              style={{
+                                top: `${top + 20}px`,
+                                height: `${height}px`,
+                                backgroundColor: eventTypeColor,
+                                borderLeftColor: eventTypeColor,
+                              }}
+                            >
+                              <div className="font-medium truncate">{event.title}</div>
+                              {height > 40 && (
+                                <div className="text-xs opacity-90 truncate">
+                                  {formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} - {formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80 p-0" align="start">
+                            <div className="p-4 space-y-3">
+                              {/* Event Header */}
+                              <div className="flex items-start justify-between">
+                                <div className="flex items-center space-x-2">
+                                  <div 
+                                    className="w-3 h-3 rounded-full" 
+                                    style={{ backgroundColor: eventTypeColor }}
+                                  />
+                                  <h3 className="font-medium text-sm">{event.title}</h3>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => setEditingEvent(event)}
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              </div>
+
+                              {/* Event Details */}
+                              <div className="space-y-2">
+                                {/* Time */}
+                                <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                  <Clock className="h-3 w-3" />
+                                  <span>
+                                    {event.isAllDay 
+                                      ? 'All Day' 
+                                      : `${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24').replace(':00', '')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24').replace(':00', '')}`
+                                    }
+                                  </span>
+                                </div>
+
+                                {/* Location */}
+                                {event.location && (
+                                  <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                    <MapPin className="h-3 w-3" />
+                                    <span>{event.location}</span>
+                                  </div>
+                                )}
+
+                                {/* Event Type */}
+                                <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                  <Calendar className="h-3 w-3" />
+                                  <span>{getEventTypeDisplayName(event.type)}</span>
+                                </div>
+
+                                {/* Participants */}
+                                {event.participants && event.participants.length > 0 && (
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <div className="flex items-center space-x-2 text-xs text-gray-600 cursor-pointer hover:text-gray-800 transition-colors">
+                                        <Users className="h-3 w-3" />
+                                        <span>{event.participants.length} {event.participants.length === 1 ? 'Person Called' : 'People Called'}</span>
+                                      </div>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-72 p-0" align="start">
+                                      <div className="p-4 space-y-3">
+                                        <h4 className="font-medium text-sm">People Called</h4>
+                                        <div className="space-y-3">
+                                          {(() => {
+                                            // Group participants by contact category
+                                            const participantsByCategory = event.participants.reduce((acc, participant) => {
+                                              // Find the contact details from the contacts array for category and role
+                                              const contact = contacts.find(c => c.id === participant.contactId);
+                                              const category = contact?.category || 'Other';
+                                              
+                                              if (!acc[category]) {
+                                                acc[category] = [];
+                                              }
+                                              acc[category].push({
+                                                ...participant,
+                                                contactName: `${participant.contactFirstName} ${participant.contactLastName}`,
+                                                contactRole: contact?.role
+                                              });
+                                              return acc;
+                                            }, {} as Record<string, any[]>);
+
+                                            // Sort categories in the same order as the filter
+                                            const categoryOrder = ['cast', 'stage_management', 'crew', 'creative_team', 'theater_staff'];
+                                            const sortedCategories = Object.keys(participantsByCategory).sort((a, b) => {
+                                              const aIndex = categoryOrder.indexOf(a);
+                                              const bIndex = categoryOrder.indexOf(b);
+                                              if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+                                              if (aIndex === -1) return 1;
+                                              if (bIndex === -1) return -1;
+                                              return aIndex - bIndex;
+                                            });
+
+                                            return sortedCategories.map(category => (
+                                              <div key={category} className="space-y-1">
+                                                <div className="text-xs font-medium text-gray-800 capitalize border-b border-gray-200 pb-1">
+                                                  {category.replace('_', ' ')}
+                                                </div>
+                                                {participantsByCategory[category].map(participant => (
+                                                  <div key={participant.id} className="text-xs text-gray-900 ml-1 py-0.5">
+                                                    <span className="font-medium">
+                                                      {participant.contactName || 'No name'}
+                                                    </span>
+                                                    {participant.contactRole && (
+                                                      <span className="text-gray-600 font-normal"> ({participant.contactRole})</span>
+                                                    )}
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            ));
+                                          })()}
+                                        </div>
+                                      </div>
+                                    </PopoverContent>
+                                  </Popover>
+                                )}
+
+                                {/* Description */}
+                                {event.description && (
+                                  <div className="text-xs text-gray-700 pt-1">
+                                    <p>{event.description}</p>
+                                  </div>
+                                )}
+
+                                {/* Notes */}
+                                {event.notes && (
+                                  <div className="text-xs text-gray-700 pt-1">
+                                    <p className="font-medium">Notes:</p>
+                                    <p>{event.notes}</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       );
                     })}
                 </div>
