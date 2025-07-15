@@ -284,40 +284,7 @@ export default function MonthlyScheduleView({
 
   return (
     <div className="space-y-4">
-      {/* Calendar Header */}
-      <div className="hidden md:flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-4">
-          <h2 className="text-2xl font-bold">
-            {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-          </h2>
-          <div className="flex items-center space-x-1">
-            <Button variant="outline" size="sm" onClick={goToPreviousMonth}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={goToNextMonth}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAllDayEvents(!showAllDayEvents)}
-            className={`flex items-center space-x-1 ${showAllDayEvents ? 'bg-blue-50 text-blue-600' : ''}`}
-          >
-            <Calendar className="h-4 w-4" />
-            <span>All Day</span>
-          </Button>
-          <Button
-            onClick={() => setCreateEventDialog(true)}
-            className="flex items-center space-x-1"
-          >
-            <Plus className="h-4 w-4" />
-            <span>New Event</span>
-          </Button>
-        </div>
-      </div>
+      {/* Removed individual calendar header - using unified main page header */}
 
       {/* Calendar Grid */}
       <div className="bg-white rounded-lg border">
