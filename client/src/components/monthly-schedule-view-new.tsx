@@ -325,19 +325,41 @@ export default function MonthlyScheduleView({
                 
                 {/* Events */}
                 <div className="mt-1 space-y-1">
-                  {dayEvents.slice(0, 3).map((event: ScheduleEvent) => {
-                    const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
-                    return (
-                      <Popover key={event.id}>
-                        <PopoverTrigger asChild>
-                          <div
-                            className="px-1 py-0.5 rounded text-xs truncate cursor-pointer transition-colors text-white hover:opacity-80"
-                            style={{ backgroundColor: eventTypeColor }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {event.title}
-                          </div>
-                        </PopoverTrigger>
+                  {dayEvents
+                    .sort((a, b) => a.startTime.localeCompare(b.startTime)) // Sort by start time
+                    .slice(0, 3)
+                    .map((event: ScheduleEvent) => {
+                      const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
+                      const formatTime = (time: string) => {
+                        const [hours, minutes] = time.split(':');
+                        const hour24 = parseInt(hours);
+                        if (timeFormat === '12') {
+                          const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+                          const ampm = hour24 >= 12 ? 'PM' : 'AM';
+                          return `${hour12}:${minutes}${ampm}`;
+                        } else {
+                          return `${hours}:${minutes}`;
+                        }
+                      };
+                      
+                      return (
+                        <Popover key={event.id}>
+                          <PopoverTrigger asChild>
+                            <div
+                              className="px-1 py-0.5 rounded text-xs cursor-pointer transition-colors text-white hover:opacity-80 flex items-center space-x-1"
+                              style={{ backgroundColor: eventTypeColor }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {!event.isAllDay && (
+                                <span className="font-medium opacity-90 text-[10px] flex-shrink-0">
+                                  {formatTime(event.startTime)}
+                                </span>
+                              )}
+                              <span className="truncate">
+                                {event.title}
+                              </span>
+                            </div>
+                          </PopoverTrigger>
                         <PopoverContent className="w-80 p-0" align="start">
                           <div className="p-4 space-y-3">
                             {/* Event Header */}
