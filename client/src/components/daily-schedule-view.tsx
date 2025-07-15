@@ -308,9 +308,9 @@ export default function DailyScheduleView({
         <div className="w-16 bg-white border-r border-gray-200 flex-shrink-0">
           <div 
             style={{ 
-              height: '20px',
-              minHeight: '20px', 
-              maxHeight: '20px',
+              height: '24px',
+              minHeight: '24px', 
+              maxHeight: '24px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -339,7 +339,7 @@ export default function DailyScheduleView({
           {propShowAllDayEvents && (
             <div 
               className="bg-gray-50 border-b border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600"
-              style={{ minHeight: '40px' }}
+              style={{ minHeight: '60px' }}
             >
               All Day
             </div>
@@ -349,13 +349,13 @@ export default function DailyScheduleView({
           >
             <div 
               className="relative"
-              style={{ height: `${containerHeight}px`, paddingTop: '20px' }}
+              style={{ height: `${containerHeight}px`, paddingTop: '24px' }}
             >
               {timeLabels.map((timeLabel) => (
                 <div
                   key={timeLabel.minutes}
                   className="absolute right-2 text-xs text-gray-500"
-                  style={{ top: `${timeLabel.position + 20 - 12}px` }}
+                  style={{ top: `${timeLabel.position + 24 - 12}px` }}
                 >
                   {timeLabel.label}
                 </div>
@@ -376,9 +376,9 @@ export default function DailyScheduleView({
               {/* Day Header */}
               <div 
                 style={{ 
-                  height: '20px',
-                  minHeight: '20px', 
-                  maxHeight: '20px',
+                  height: '24px',
+                  minHeight: '24px', 
+                  maxHeight: '24px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -592,7 +592,7 @@ export default function DailyScheduleView({
               >
                 <div 
                   className="relative"
-                  style={{ height: `${containerHeight}px`, paddingTop: '20px' }}
+                  style={{ height: `${containerHeight}px`, paddingTop: '24px' }}
                 >
                   {/* Time grid background */}
                   <div className="absolute inset-0">
@@ -600,13 +600,13 @@ export default function DailyScheduleView({
                       <div
                         key={timeLabel.minutes}
                         className="absolute left-0 right-0 border-t border-gray-100"
-                        style={{ top: `${timeLabel.position + 20}px` }}
+                        style={{ top: `${timeLabel.position + 24}px` }}
                       />
                     ))}
                     {/* Midnight line */}
                     <div
                       className="absolute left-0 right-0 border-t border-gray-100"
-                      style={{ top: `${TOTAL_MINUTES + 20}px` }}
+                      style={{ top: `${TOTAL_MINUTES + 24}px` }}
                     />
                   </div>
 
@@ -626,7 +626,7 @@ export default function DailyScheduleView({
                             <div
                               className="absolute left-1 right-1 text-white rounded px-2 py-1 text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-opacity border-l-4"
                               style={{
-                                top: `${top + 20}px`,
+                                top: `${top + 24}px`,
                                 height: `${height}px`,
                                 backgroundColor: eventTypeColor,
                                 borderLeftColor: eventTypeColor,
