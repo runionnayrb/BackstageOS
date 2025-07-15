@@ -996,6 +996,9 @@ export default function WeeklyScheduleView({
             <Button variant="outline" onClick={goToToday} size="sm" className="text-xs px-2 py-1 h-auto">
               Today
             </Button>
+            <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-auto">
+              Week
+            </Button>
             <div className="flex items-center">
               <button onClick={goToPreviousWeek} className="p-1 hover:bg-gray-100 rounded-l transition-colors">
                 <ChevronLeft className="h-4 w-4" />
