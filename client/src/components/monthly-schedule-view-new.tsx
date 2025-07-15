@@ -404,19 +404,18 @@ export default function MonthlyScheduleView({
                                         {(() => {
                                           // Group participants by contact category
                                           const participantsByCategory = event.participants.reduce((acc, participant) => {
-                                            // Find the contact details from the contacts array
+                                            // Find the contact details from the contacts array for category and role
                                             const contact = contacts.find(c => c.id === participant.contactId);
-                                            if (contact) {
-                                              const category = contact.category || 'Other';
-                                              if (!acc[category]) {
-                                                acc[category] = [];
-                                              }
-                                              acc[category].push({
-                                                ...participant,
-                                                contactName: `${contact.firstName} ${contact.lastName}`,
-                                                contactRole: contact.role
-                                              });
+                                            const category = contact?.category || 'Other';
+                                            
+                                            if (!acc[category]) {
+                                              acc[category] = [];
                                             }
+                                            acc[category].push({
+                                              ...participant,
+                                              contactName: `${participant.contactFirstName} ${participant.contactLastName}`,
+                                              contactRole: contact?.role
+                                            });
                                             return acc;
                                           }, {} as Record<string, any[]>);
 
@@ -437,19 +436,12 @@ export default function MonthlyScheduleView({
                                                 {category.replace('_', ' ')}
                                               </div>
                                               {participantsByCategory[category].map(participant => (
-                                                <div key={participant.id} className="text-xs text-gray-600 ml-1 flex items-center justify-between py-0.5">
+                                                <div key={participant.id} className="text-xs text-gray-600 ml-1 py-0.5">
                                                   <span>
                                                     {participant.contactName}
                                                     {participant.contactRole && (
                                                       <span className="text-gray-500"> ({participant.contactRole})</span>
                                                     )}
-                                                  </span>
-                                                  <span className={`text-xs px-1.5 py-0.5 rounded ${
-                                                    participant.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                                                    participant.status === 'declined' ? 'bg-red-100 text-red-700' :
-                                                    'bg-yellow-100 text-yellow-700'
-                                                  }`}>
-                                                    {participant.status}
                                                   </span>
                                                 </div>
                                               ))}
