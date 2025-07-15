@@ -993,16 +993,8 @@ export default function WeeklyScheduleView({
           {/* Controls - right aligned */}
           <div className="flex items-center space-x-2">
             <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-              <SelectTrigger className="w-12 border-0 shadow-none [&_svg[data-lucide='chevron-down']]:hidden">
-                <SelectValue asChild>
-                  <Clock 
-                    className={`h-4 w-4 ${
-                      timeIncrement === 15 ? 'rotate-90' : 
-                      timeIncrement === 30 ? 'rotate-180' : 
-                      'rotate-0'
-                    }`} 
-                  />
-                </SelectValue>
+              <SelectTrigger className="w-auto border-0 shadow-none [&_svg[data-lucide='chevron-down']]:hidden px-2 py-1 h-auto text-xs">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="15">15 minutes</SelectItem>
