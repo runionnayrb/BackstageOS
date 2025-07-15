@@ -177,18 +177,6 @@ export default function Schedule() {
           </Button>
           
           <div className="flex items-center gap-2">
-            <ScheduleFilter
-              projectId={parseInt(projectId)}
-              selectedContactIds={selectedContactIds}
-              onFilterChange={setSelectedContactIds}
-              selectedEventTypes={selectedEventTypes}
-              onEventTypeFilterChange={setSelectedEventTypes}
-              selectedIndividualTypes={selectedIndividualTypes}
-              onIndividualTypeFilterChange={setSelectedIndividualTypes}
-            />
-            
-
-            
 
           </div>
         </div>
@@ -366,8 +354,11 @@ export default function Schedule() {
                 currentDate={currentDate}
                 setCurrentDate={setCurrentDate}
                 selectedContactIds={selectedContactIds}
+                onFilterChange={setSelectedContactIds}
                 selectedEventTypes={selectedEventTypes}
+                onEventTypeFilterChange={setSelectedEventTypes}
                 selectedIndividualTypes={selectedIndividualTypes}
+                onIndividualTypeFilterChange={setSelectedIndividualTypes}
                 timeIncrement={timeIncrement}
                 setTimeIncrement={setTimeIncrement}
                 showAllDayEvents={showAllDayEvents}

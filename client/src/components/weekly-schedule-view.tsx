@@ -16,6 +16,7 @@ import { filterEventsBySettings, getTimezoneAbbreviation } from "@/lib/scheduleU
 import LocationSelect from "@/components/location-select";
 import EventTypeSelect from "@/components/event-type-select";
 import EventForm from "@/components/event-form";
+import ScheduleFilter from "@/components/schedule-filter";
 
 interface WeeklyScheduleViewProps {
   projectId: number;
@@ -23,8 +24,11 @@ interface WeeklyScheduleViewProps {
   currentDate?: Date;
   setCurrentDate?: (date: Date) => void;
   selectedContactIds: number[];
+  onFilterChange: (contactIds: number[]) => void;
   selectedEventTypes: string[];
+  onEventTypeFilterChange: (eventTypes: string[]) => void;
   selectedIndividualTypes: string[];
+  onIndividualTypeFilterChange: (individualTypes: string[]) => void;
   timeIncrement: 15 | 30 | 60;
   setTimeIncrement: (increment: 15 | 30 | 60) => void;
   showAllDayEvents?: boolean;
@@ -83,8 +87,11 @@ export default function WeeklyScheduleView({
   currentDate, 
   setCurrentDate, 
   selectedContactIds, 
+  onFilterChange,
   selectedEventTypes,
+  onEventTypeFilterChange,
   selectedIndividualTypes,
+  onIndividualTypeFilterChange,
   timeIncrement, 
   setTimeIncrement,
   showAllDayEvents: propShowAllDayEvents, 
@@ -992,6 +999,15 @@ export default function WeeklyScheduleView({
 
           {/* Controls - right aligned */}
           <div className="flex items-center space-x-2">
+            <ScheduleFilter
+              projectId={projectId}
+              selectedContactIds={selectedContactIds}
+              onFilterChange={onFilterChange}
+              selectedEventTypes={selectedEventTypes}
+              onEventTypeFilterChange={onEventTypeFilterChange}
+              selectedIndividualTypes={selectedIndividualTypes}
+              onIndividualTypeFilterChange={onIndividualTypeFilterChange}
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-auto">
