@@ -1,8 +1,9 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, Plus, Calendar, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Calendar, X, Clock, MapPin, Users, Edit } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
@@ -71,6 +72,8 @@ export default function MonthlyScheduleView({
   onEventClick
 }: MonthlyScheduleViewProps) {
   const [editEventDialog, setEditEventDialog] = useState<{ isOpen: boolean; event?: ScheduleEvent }>({ isOpen: false });
+  const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -325,22 +328,92 @@ export default function MonthlyScheduleView({
                   {dayEvents.slice(0, 3).map((event: ScheduleEvent) => {
                     const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
                     return (
-                      <div
-                        key={event.id}
-                        className="px-1 py-0.5 rounded text-xs truncate cursor-pointer transition-colors text-white hover:opacity-80"
-                        style={{ backgroundColor: eventTypeColor }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (onEventClick) {
-                            onEventClick(event);
-                          } else {
-                            setEditEventDialog({ isOpen: true, event });
-                          }
-                        }}
-                        title={`${event.title}${event.isAllDay ? ' (All Day)' : ` (${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)})`}`}
-                      >
-                        {event.title}
-                      </div>
+                      <Popover key={event.id}>
+                        <PopoverTrigger asChild>
+                          <div
+                            className="px-1 py-0.5 rounded text-xs truncate cursor-pointer transition-colors text-white hover:opacity-80"
+                            style={{ backgroundColor: eventTypeColor }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {event.title}
+                          </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 p-0" align="start">
+                          <div className="p-4 space-y-3">
+                            {/* Event Header */}
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center space-x-2">
+                                <div 
+                                  className="w-3 h-3 rounded-full" 
+                                  style={{ backgroundColor: eventTypeColor }}
+                                />
+                                <h3 className="font-medium text-sm">{event.title}</h3>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => {
+                                  setEditEventDialog({ isOpen: true, event });
+                                }}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            </div>
+
+                            {/* Event Details */}
+                            <div className="space-y-2">
+                              {/* Time */}
+                              <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                <Clock className="h-3 w-3" />
+                                <span>
+                                  {event.isAllDay 
+                                    ? 'All Day' 
+                                    : `${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)}`
+                                  }
+                                </span>
+                              </div>
+
+                              {/* Location */}
+                              {event.location && (
+                                <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                  <MapPin className="h-3 w-3" />
+                                  <span>{event.location}</span>
+                                </div>
+                              )}
+
+                              {/* Event Type */}
+                              <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                <Calendar className="h-3 w-3" />
+                                <span>{getEventTypeDisplayName(event.type)}</span>
+                              </div>
+
+                              {/* Participants */}
+                              {event.participants && event.participants.length > 0 && (
+                                <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                  <Users className="h-3 w-3" />
+                                  <span>{event.participants.length} participant{event.participants.length !== 1 ? 's' : ''}</span>
+                                </div>
+                              )}
+
+                              {/* Description */}
+                              {event.description && (
+                                <div className="text-xs text-gray-700 pt-1">
+                                  <p>{event.description}</p>
+                                </div>
+                              )}
+
+                              {/* Notes */}
+                              {event.notes && (
+                                <div className="text-xs text-gray-700 pt-1">
+                                  <p className="font-medium">Notes:</p>
+                                  <p>{event.notes}</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                     );
                   })}
                   {dayEvents.length > 3 && (
