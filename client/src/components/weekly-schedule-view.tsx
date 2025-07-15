@@ -993,9 +993,6 @@ export default function WeeklyScheduleView({
             >
               All Day
             </Button>
-            <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-auto">
-              Week
-            </Button>
             <Button variant="outline" onClick={goToToday} size="sm" className="text-xs px-2 py-1 h-auto">
               Today
             </Button>
