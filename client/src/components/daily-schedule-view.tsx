@@ -349,13 +349,13 @@ export default function DailyScheduleView({
           >
             <div 
               className="relative"
-              style={{ height: `${containerHeight}px`, paddingTop: '24px' }}
+              style={{ height: `${containerHeight}px` }}
             >
               {timeLabels.map((timeLabel) => (
                 <div
                   key={timeLabel.minutes}
                   className="absolute right-2 text-xs text-gray-500"
-                  style={{ top: `${timeLabel.position + 24}px` }}
+                  style={{ top: `${timeLabel.position}px` }}
                 >
                   {timeLabel.label}
                 </div>
@@ -592,7 +592,7 @@ export default function DailyScheduleView({
               >
                 <div 
                   className="relative"
-                  style={{ height: `${containerHeight}px`, paddingTop: '24px' }}
+                  style={{ height: `${containerHeight}px` }}
                 >
                   {/* Time grid background */}
                   <div className="absolute inset-0">
@@ -600,13 +600,13 @@ export default function DailyScheduleView({
                       <div
                         key={timeLabel.minutes}
                         className="absolute left-0 right-0 border-t border-gray-100"
-                        style={{ top: `${timeLabel.position + 24}px` }}
+                        style={{ top: `${timeLabel.position}px` }}
                       />
                     ))}
                     {/* Midnight line */}
                     <div
                       className="absolute left-0 right-0 border-t border-gray-100"
-                      style={{ top: `${TOTAL_MINUTES + 24}px` }}
+                      style={{ top: `${TOTAL_MINUTES}px` }}
                     />
                   </div>
 
@@ -626,7 +626,7 @@ export default function DailyScheduleView({
                             <div
                               className="absolute left-1 right-1 text-white rounded px-2 py-1 text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-opacity border-l-4"
                               style={{
-                                top: `${top + 24}px`,
+                                top: `${top}px`,
                                 height: `${height}px`,
                                 backgroundColor: eventTypeColor,
                                 borderLeftColor: eventTypeColor,
