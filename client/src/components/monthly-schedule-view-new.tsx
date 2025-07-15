@@ -390,69 +390,76 @@ export default function MonthlyScheduleView({
 
                               {/* Participants */}
                               {event.participants && event.participants.length > 0 && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center space-x-2 text-xs text-gray-600">
-                                    <Users className="h-3 w-3" />
-                                    <span className="font-medium">Participants ({event.participants.length})</span>
-                                  </div>
-                                  <div className="ml-5 space-y-1">
-                                    {(() => {
-                                      // Group participants by contact category
-                                      const participantsByCategory = event.participants.reduce((acc, participant) => {
-                                        // Find the contact details from the contacts array
-                                        const contact = contacts.find(c => c.id === participant.contactId);
-                                        if (contact) {
-                                          const category = contact.category || 'Other';
-                                          if (!acc[category]) {
-                                            acc[category] = [];
-                                          }
-                                          acc[category].push({
-                                            ...participant,
-                                            contactName: `${contact.firstName} ${contact.lastName}`,
-                                            contactRole: contact.role
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <div className="flex items-center space-x-2 text-xs text-gray-600 cursor-pointer hover:text-gray-800 transition-colors">
+                                      <Users className="h-3 w-3" />
+                                      <span>{event.participants.length} participant{event.participants.length !== 1 ? 's' : ''}</span>
+                                    </div>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-72 p-0" align="start">
+                                    <div className="p-4 space-y-3">
+                                      <h4 className="font-medium text-sm">Event Participants</h4>
+                                      <div className="space-y-3">
+                                        {(() => {
+                                          // Group participants by contact category
+                                          const participantsByCategory = event.participants.reduce((acc, participant) => {
+                                            // Find the contact details from the contacts array
+                                            const contact = contacts.find(c => c.id === participant.contactId);
+                                            if (contact) {
+                                              const category = contact.category || 'Other';
+                                              if (!acc[category]) {
+                                                acc[category] = [];
+                                              }
+                                              acc[category].push({
+                                                ...participant,
+                                                contactName: `${contact.firstName} ${contact.lastName}`,
+                                                contactRole: contact.role
+                                              });
+                                            }
+                                            return acc;
+                                          }, {} as Record<string, any[]>);
+
+                                          // Sort categories in the same order as the filter
+                                          const categoryOrder = ['cast', 'stage_management', 'crew', 'creative_team', 'theater_staff'];
+                                          const sortedCategories = Object.keys(participantsByCategory).sort((a, b) => {
+                                            const aIndex = categoryOrder.indexOf(a);
+                                            const bIndex = categoryOrder.indexOf(b);
+                                            if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+                                            if (aIndex === -1) return 1;
+                                            if (bIndex === -1) return -1;
+                                            return aIndex - bIndex;
                                           });
-                                        }
-                                        return acc;
-                                      }, {} as Record<string, any[]>);
 
-                                      // Sort categories in the same order as the filter
-                                      const categoryOrder = ['cast', 'stage_management', 'crew', 'creative_team', 'theater_staff'];
-                                      const sortedCategories = Object.keys(participantsByCategory).sort((a, b) => {
-                                        const aIndex = categoryOrder.indexOf(a);
-                                        const bIndex = categoryOrder.indexOf(b);
-                                        if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
-                                        if (aIndex === -1) return 1;
-                                        if (bIndex === -1) return -1;
-                                        return aIndex - bIndex;
-                                      });
-
-                                      return sortedCategories.map(category => (
-                                        <div key={category} className="space-y-0.5">
-                                          <div className="text-xs font-medium text-gray-800 capitalize">
-                                            {category.replace('_', ' ')}
-                                          </div>
-                                          {participantsByCategory[category].map(participant => (
-                                            <div key={participant.id} className="text-xs text-gray-600 ml-2 flex items-center justify-between">
-                                              <span>
-                                                {participant.contactName}
-                                                {participant.contactRole && (
-                                                  <span className="text-gray-500"> ({participant.contactRole})</span>
-                                                )}
-                                              </span>
-                                              <span className={`text-xs px-1.5 py-0.5 rounded ${
-                                                participant.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                                                participant.status === 'declined' ? 'bg-red-100 text-red-700' :
-                                                'bg-yellow-100 text-yellow-700'
-                                              }`}>
-                                                {participant.status}
-                                              </span>
+                                          return sortedCategories.map(category => (
+                                            <div key={category} className="space-y-1">
+                                              <div className="text-xs font-medium text-gray-800 capitalize border-b border-gray-200 pb-1">
+                                                {category.replace('_', ' ')}
+                                              </div>
+                                              {participantsByCategory[category].map(participant => (
+                                                <div key={participant.id} className="text-xs text-gray-600 ml-1 flex items-center justify-between py-0.5">
+                                                  <span>
+                                                    {participant.contactName}
+                                                    {participant.contactRole && (
+                                                      <span className="text-gray-500"> ({participant.contactRole})</span>
+                                                    )}
+                                                  </span>
+                                                  <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                                    participant.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                                                    participant.status === 'declined' ? 'bg-red-100 text-red-700' :
+                                                    'bg-yellow-100 text-yellow-700'
+                                                  }`}>
+                                                    {participant.status}
+                                                  </span>
+                                                </div>
+                                              ))}
                                             </div>
-                                          ))}
-                                        </div>
-                                      ));
-                                    })()}
-                                  </div>
-                                </div>
+                                          ));
+                                        })()}
+                                      </div>
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
                               )}
 
                               {/* Description */}
