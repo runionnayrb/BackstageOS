@@ -408,6 +408,8 @@ export default function Schedule() {
                 createEventDialog={createEventDialog}
                 setCreateEventDialog={setCreateEventDialog}
                 setCreateEventData={setCreateEventData}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
               />
             </div>
             {/* Mobile Weekly View - 2 days with continuous scroll */}

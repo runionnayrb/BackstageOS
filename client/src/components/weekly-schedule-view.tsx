@@ -2,10 +2,11 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, ChevronRight, Plus, Clock, Users, Calendar, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, Users, Calendar, X, ChevronDown } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,6 +30,8 @@ interface WeeklyScheduleViewProps {
   createEventDialog: boolean;
   setCreateEventDialog: (open: boolean) => void;
   setCreateEventData: (data: { date?: string; startTime?: string; endTime?: string }) => void;
+  viewMode: 'monthly' | 'weekly' | 'daily';
+  setViewMode: (mode: 'monthly' | 'weekly' | 'daily') => void;
 }
 
 interface ScheduleEvent {
@@ -85,7 +88,9 @@ export default function WeeklyScheduleView({
   showAllDayEvents: propShowAllDayEvents, 
   createEventDialog, 
   setCreateEventDialog,
-  setCreateEventData
+  setCreateEventData,
+  viewMode,
+  setViewMode
 }: WeeklyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -993,6 +998,25 @@ export default function WeeklyScheduleView({
             >
               All Day
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-auto">
+                  {viewMode === 'monthly' ? 'Month' : viewMode === 'weekly' ? 'Week' : 'Day'}
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setViewMode('monthly')}>
+                  Month
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setViewMode('weekly')}>
+                  Week
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setViewMode('daily')}>
+                  Day
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button variant="outline" onClick={goToToday} size="sm" className="text-xs px-2 py-1 h-auto">
               Today
             </Button>
