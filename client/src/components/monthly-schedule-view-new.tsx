@@ -422,7 +422,7 @@ export default function MonthlyScheduleView({
                                   <PopoverTrigger asChild>
                                     <div className="flex items-center space-x-2 text-xs text-gray-600 cursor-pointer hover:text-gray-800 transition-colors">
                                       <Users className="h-3 w-3" />
-                                      <span>{event.participants.length} participant{event.participants.length !== 1 ? 's' : ''}</span>
+                                      <span>{event.participants.length} {event.participants.length === 1 ? 'Person Called' : 'People Called'}</span>
                                     </div>
                                   </PopoverTrigger>
                                   <PopoverContent className="w-72 p-0" align="start">
