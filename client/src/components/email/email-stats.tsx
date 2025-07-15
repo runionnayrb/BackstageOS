@@ -19,13 +19,13 @@ export function EmailStats({ accountId }: EmailStatsProps) {
   // Get delivery statistics
   const { data: deliveryStats, isLoading: loadingDelivery } = useQuery({
     queryKey: ['/api/email/accounts', accountId, 'delivery-stats'],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 600000, // Refresh every 10 minutes (cost reduction)
   });
 
   // Get queue statistics
   const { data: queueStats, isLoading: loadingQueue } = useQuery({
     queryKey: ['/api/email/queue-stats'],
-    refetchInterval: 15000, // Refresh every 15 seconds
+    refetchInterval: 600000, // Refresh every 10 minutes (cost reduction)
   });
 
   // Retry failed emails mutation

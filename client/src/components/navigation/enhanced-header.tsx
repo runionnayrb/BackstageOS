@@ -57,7 +57,7 @@ export default function EnhancedHeader() {
   const { data: unreadEmailData } = useQuery({
     queryKey: ['/api/email/unread-count'],
     enabled: !!user,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 600000, // Refresh every 10 minutes (cost reduction)
   });
 
   // Parse current location to determine navigation context

@@ -35,7 +35,7 @@ export default function MobileBottomNav() {
   // Get unread email count for badge
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['/api/email/unread-count'],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 600000, // Refresh every 10 minutes (cost reduction)
     select: (data: any) => data?.count || 0,
   });
 

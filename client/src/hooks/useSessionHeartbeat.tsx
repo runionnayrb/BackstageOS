@@ -21,7 +21,7 @@ export function useSessionHeartbeat() {
       document.addEventListener(event, trackActivity, true);
     });
 
-    // Send heartbeat every 4 minutes if user has been active in last 10 minutes
+    // Send heartbeat every 30 minutes if user has been active in last 10 minutes (cost reduction)
     const sendHeartbeat = async () => {
       const timeSinceActivity = Date.now() - lastActivityRef.current;
       const tenMinutes = 10 * 60 * 1000;
@@ -36,7 +36,7 @@ export function useSessionHeartbeat() {
     };
 
     // Start heartbeat interval
-    heartbeatIntervalRef.current = setInterval(sendHeartbeat, 4 * 60 * 1000); // 4 minutes
+    heartbeatIntervalRef.current = setInterval(sendHeartbeat, 30 * 60 * 1000); // 30 minutes (cost reduction)
 
     return () => {
       // Cleanup
