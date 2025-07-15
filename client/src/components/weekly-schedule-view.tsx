@@ -82,33 +82,7 @@ const getEventColor = (type: string) => {
   return getEventTypeColor(type);
 };
 
-// Helper function to categorize participants
-const categorizeParticipants = (participants: any[]) => {
-  const categories = {
-    Cast: [] as any[],
-    'Stage Management': [] as any[],
-    Crew: [] as any[],
-    'Creative Team': [] as any[],
-    'Theater Staff': [] as any[]
-  };
 
-  participants.forEach(participant => {
-    const category = participant.contactCategory || 'Theater Staff';
-    if (category === 'cast') {
-      categories.Cast.push(participant);
-    } else if (category === 'stage_management') {
-      categories['Stage Management'].push(participant);
-    } else if (category === 'crew') {
-      categories.Crew.push(participant);
-    } else if (category === 'creative_team') {
-      categories['Creative Team'].push(participant);
-    } else {
-      categories['Theater Staff'].push(participant);
-    }
-  });
-
-  return categories;
-};
 
 export default function WeeklyScheduleView({ 
   projectId, 
@@ -1208,95 +1182,130 @@ export default function WeeklyScheduleView({
                             {event.title}
                           </div>
                         </PopoverTrigger>
-                        <PopoverContent className="w-80 p-0">
-                          <div className="p-4">
-                            {/* Event Title and Time */}
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex-1">
-                                <h3 className="font-semibold text-gray-900 mb-1">{event.title}</h3>
-                                <div className="flex items-center text-sm text-gray-600 mb-2">
-                                  <Clock className="h-3 w-3 mr-1" />
-                                  All Day
-                                </div>
+                        <PopoverContent className="w-80 p-0" align="start">
+                          <div className="p-4 space-y-3">
+                            {/* Event Header */}
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center space-x-2">
+                                <div 
+                                  className="w-3 h-3 rounded-full" 
+                                  style={{ backgroundColor: getEventTypeColorFromDatabase(event.type, eventTypes) }}
+                                />
+                                <h3 className="font-medium text-sm">{event.title}</h3>
                               </div>
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                className="h-6 w-6 p-0"
                                 onClick={() => setEditingEvent(event)}
-                                className="ml-2"
                               >
-                                <Edit className="h-4 w-4" />
+                                <Edit className="h-3 w-3" />
                               </Button>
                             </div>
 
-                            {/* Location */}
-                            {event.location && (
-                              <div className="flex items-center text-sm text-gray-600 mb-2">
-                                <MapPin className="h-3 w-3 mr-1" />
-                                {event.location}
+                            {/* Event Details */}
+                            <div className="space-y-2">
+                              {/* Time */}
+                              <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                <Clock className="h-3 w-3" />
+                                <span>All Day</span>
                               </div>
-                            )}
 
-                            {/* Event Type */}
-                            <div className="flex items-center text-sm text-gray-600 mb-3">
-                              <FileText className="h-3 w-3 mr-1" />
-                              {getEventTypeDisplayName(event.type)}
-                            </div>
+                              {/* Location */}
+                              {event.location && (
+                                <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                  <MapPin className="h-3 w-3" />
+                                  <span>{event.location}</span>
+                                </div>
+                              )}
 
-                            {/* Participants */}
-                            {event.participants && event.participants.length > 0 && (
-                              <div className="mb-3">
+                              {/* Event Type */}
+                              <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                <Calendar className="h-3 w-3" />
+                                <span>{getEventTypeDisplayName(event.type)}</span>
+                              </div>
+
+                              {/* Participants */}
+                              {event.participants && event.participants.length > 0 && (
                                 <Popover>
                                   <PopoverTrigger asChild>
-                                    <Button variant="outline" size="sm" className="text-sm">
-                                      <Users className="h-3 w-3 mr-1" />
-                                      {event.participants.length} participant{event.participants.length !== 1 ? 's' : ''}
-                                    </Button>
+                                    <div className="flex items-center space-x-2 text-xs text-gray-600 cursor-pointer hover:text-gray-800 transition-colors">
+                                      <Users className="h-3 w-3" />
+                                      <span>{event.participants.length} participant{event.participants.length !== 1 ? 's' : ''}</span>
+                                    </div>
                                   </PopoverTrigger>
-                                  <PopoverContent className="w-80 p-0">
-                                    <div className="p-4">
-                                      <h4 className="font-medium text-gray-900 mb-3">Participants</h4>
-                                      {(() => {
-                                        const categorized = categorizeParticipants(event.participants);
-                                        return Object.entries(categorized).map(([category, participants]) => 
-                                          participants.length > 0 && (
-                                            <div key={category} className="mb-3 last:mb-0">
-                                              <h5 className="text-sm font-medium text-gray-700 mb-1">{category}</h5>
-                                              <div className="space-y-1">
-                                                {participants.map((participant: any) => (
-                                                  <div key={participant.id} className="flex items-center text-sm text-gray-900">
-                                                    <User className="h-3 w-3 mr-2 text-gray-500" />
-                                                    <span className="font-medium">{participant.contactFirstName} {participant.contactLastName}</span>
-                                                    {participant.contactRole && (
-                                                      <span className="text-gray-500 ml-1">({participant.contactRole})</span>
-                                                    )}
-                                                  </div>
-                                                ))}
+                                  <PopoverContent className="w-72 p-0" align="start">
+                                    <div className="p-4 space-y-3">
+                                      <h4 className="font-medium text-sm">Event Participants</h4>
+                                      <div className="space-y-3">
+                                        {(() => {
+                                          // Group participants by contact category
+                                          const participantsByCategory = event.participants.reduce((acc, participant) => {
+                                            // Find the contact details from the contacts array for category and role
+                                            const contact = contacts.find(c => c.id === participant.contactId);
+                                            const category = contact?.category || 'Other';
+                                            
+                                            if (!acc[category]) {
+                                              acc[category] = [];
+                                            }
+                                            acc[category].push({
+                                              ...participant,
+                                              contactName: `${participant.contactFirstName} ${participant.contactLastName}`,
+                                              contactRole: contact?.role
+                                            });
+                                            return acc;
+                                          }, {} as Record<string, any[]>);
+
+                                          // Sort categories in the same order as the filter
+                                          const categoryOrder = ['cast', 'stage_management', 'crew', 'creative_team', 'theater_staff'];
+                                          const sortedCategories = Object.keys(participantsByCategory).sort((a, b) => {
+                                            const aIndex = categoryOrder.indexOf(a);
+                                            const bIndex = categoryOrder.indexOf(b);
+                                            if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+                                            if (aIndex === -1) return 1;
+                                            if (bIndex === -1) return -1;
+                                            return aIndex - bIndex;
+                                          });
+
+                                          return sortedCategories.map(category => (
+                                            <div key={category} className="space-y-1">
+                                              <div className="text-xs font-medium text-gray-800 capitalize border-b border-gray-200 pb-1">
+                                                {category.replace('_', ' ')}
                                               </div>
+                                              {participantsByCategory[category].map(participant => (
+                                                <div key={participant.id} className="text-xs text-gray-900 ml-1 py-0.5">
+                                                  <span className="font-medium">
+                                                    {participant.contactName || 'No name'}
+                                                  </span>
+                                                  {participant.contactRole && (
+                                                    <span className="text-gray-600 font-normal"> ({participant.contactRole})</span>
+                                                  )}
+                                                </div>
+                                              ))}
                                             </div>
-                                          )
-                                        );
-                                      })()}
+                                          ));
+                                        })()}
+                                      </div>
                                     </div>
                                   </PopoverContent>
                                 </Popover>
-                              </div>
-                            )}
+                              )}
 
-                            {/* Description */}
-                            {event.description && (
-                              <div className="text-xs text-gray-700 pt-1">
-                                <p>{event.description}</p>
-                              </div>
-                            )}
+                              {/* Description */}
+                              {event.description && (
+                                <div className="text-xs text-gray-700 pt-1">
+                                  <p>{event.description}</p>
+                                </div>
+                              )}
 
-                            {/* Notes */}
-                            {event.notes && (
-                              <div className="text-xs text-gray-700 pt-1">
-                                <p className="font-medium">Notes:</p>
-                                <p>{event.notes}</p>
-                              </div>
-                            )}
+                              {/* Notes */}
+                              {event.notes && (
+                                <div className="text-xs text-gray-700 pt-1">
+                                  <p className="font-medium">Notes:</p>
+                                  <p>{event.notes}</p>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </PopoverContent>
                       </Popover>
@@ -1422,96 +1431,135 @@ export default function WeeklyScheduleView({
                           />
                         </div>
                       </PopoverTrigger>
-                      <PopoverContent className="w-80 p-0">
-                        <div className="p-4">
-                          {/* Event Title and Time */}
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-gray-900 mb-1">{event.title}</h3>
-                              <div className="flex items-center text-sm text-gray-600 mb-2">
-                                <Clock className="h-3 w-3 mr-1" />
-                                {!event.isAllDay && `${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}`}
-                                {event.isAllDay && "All Day"}
-                              </div>
+                      <PopoverContent className="w-80 p-0" align="start">
+                        <div className="p-4 space-y-3">
+                          {/* Event Header */}
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center space-x-2">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: eventTypeColor }}
+                              />
+                              <h3 className="font-medium text-sm">{event.title}</h3>
                             </div>
                             <Button
                               variant="ghost"
                               size="sm"
+                              className="h-6 w-6 p-0"
                               onClick={() => setEditingEvent(event)}
-                              className="ml-2"
                             >
-                              <Edit className="h-4 w-4" />
+                              <Edit className="h-3 w-3" />
                             </Button>
                           </div>
 
-                          {/* Location */}
-                          {event.location && (
-                            <div className="flex items-center text-sm text-gray-600 mb-2">
-                              <MapPin className="h-3 w-3 mr-1" />
-                              {event.location}
+                          {/* Event Details */}
+                          <div className="space-y-2">
+                            {/* Time */}
+                            <div className="flex items-center space-x-2 text-xs text-gray-600">
+                              <Clock className="h-3 w-3" />
+                              <span>
+                                {event.isAllDay 
+                                  ? 'All Day' 
+                                  : `${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24').replace(':00', '')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24').replace(':00', '')}`
+                                }
+                              </span>
                             </div>
-                          )}
 
-                          {/* Event Type */}
-                          <div className="flex items-center text-sm text-gray-600 mb-3">
-                            <FileText className="h-3 w-3 mr-1" />
-                            {getEventTypeDisplayName(event.type)}
-                          </div>
+                            {/* Location */}
+                            {event.location && (
+                              <div className="flex items-center space-x-2 text-xs text-gray-600">
+                                <MapPin className="h-3 w-3" />
+                                <span>{event.location}</span>
+                              </div>
+                            )}
 
-                          {/* Participants */}
-                          {event.participants && event.participants.length > 0 && (
-                            <div className="mb-3">
+                            {/* Event Type */}
+                            <div className="flex items-center space-x-2 text-xs text-gray-600">
+                              <Calendar className="h-3 w-3" />
+                              <span>{getEventTypeDisplayName(event.type)}</span>
+                            </div>
+
+                            {/* Participants */}
+                            {event.participants && event.participants.length > 0 && (
                               <Popover>
                                 <PopoverTrigger asChild>
-                                  <Button variant="outline" size="sm" className="text-sm">
-                                    <Users className="h-3 w-3 mr-1" />
-                                    {event.participants.length} participant{event.participants.length !== 1 ? 's' : ''}
-                                  </Button>
+                                  <div className="flex items-center space-x-2 text-xs text-gray-600 cursor-pointer hover:text-gray-800 transition-colors">
+                                    <Users className="h-3 w-3" />
+                                    <span>{event.participants.length} participant{event.participants.length !== 1 ? 's' : ''}</span>
+                                  </div>
                                 </PopoverTrigger>
-                                <PopoverContent className="w-80 p-0">
-                                  <div className="p-4">
-                                    <h4 className="font-medium text-gray-900 mb-3">Participants</h4>
-                                    {(() => {
-                                      const categorized = categorizeParticipants(event.participants);
-                                      return Object.entries(categorized).map(([category, participants]) => 
-                                        participants.length > 0 && (
-                                          <div key={category} className="mb-3 last:mb-0">
-                                            <h5 className="text-sm font-medium text-gray-700 mb-1">{category}</h5>
-                                            <div className="space-y-1">
-                                              {participants.map((participant: any) => (
-                                                <div key={participant.id} className="flex items-center text-sm text-gray-900">
-                                                  <User className="h-3 w-3 mr-2 text-gray-500" />
-                                                  <span className="font-medium">{participant.contactFirstName} {participant.contactLastName}</span>
-                                                  {participant.contactRole && (
-                                                    <span className="text-gray-500 ml-1">({participant.contactRole})</span>
-                                                  )}
-                                                </div>
-                                              ))}
+                                <PopoverContent className="w-72 p-0" align="start">
+                                  <div className="p-4 space-y-3">
+                                    <h4 className="font-medium text-sm">Event Participants</h4>
+                                    <div className="space-y-3">
+                                      {(() => {
+                                        // Group participants by contact category
+                                        const participantsByCategory = event.participants.reduce((acc, participant) => {
+                                          // Find the contact details from the contacts array for category and role
+                                          const contact = contacts.find(c => c.id === participant.contactId);
+                                          const category = contact?.category || 'Other';
+                                          
+                                          if (!acc[category]) {
+                                            acc[category] = [];
+                                          }
+                                          acc[category].push({
+                                            ...participant,
+                                            contactName: `${participant.contactFirstName} ${participant.contactLastName}`,
+                                            contactRole: contact?.role
+                                          });
+                                          return acc;
+                                        }, {} as Record<string, any[]>);
+
+                                        // Sort categories in the same order as the filter
+                                        const categoryOrder = ['cast', 'stage_management', 'crew', 'creative_team', 'theater_staff'];
+                                        const sortedCategories = Object.keys(participantsByCategory).sort((a, b) => {
+                                          const aIndex = categoryOrder.indexOf(a);
+                                          const bIndex = categoryOrder.indexOf(b);
+                                          if (aIndex === -1 && bIndex === -1) return a.localeCompare(b);
+                                          if (aIndex === -1) return 1;
+                                          if (bIndex === -1) return -1;
+                                          return aIndex - bIndex;
+                                        });
+
+                                        return sortedCategories.map(category => (
+                                          <div key={category} className="space-y-1">
+                                            <div className="text-xs font-medium text-gray-800 capitalize border-b border-gray-200 pb-1">
+                                              {category.replace('_', ' ')}
                                             </div>
+                                            {participantsByCategory[category].map(participant => (
+                                              <div key={participant.id} className="text-xs text-gray-900 ml-1 py-0.5">
+                                                <span className="font-medium">
+                                                  {participant.contactName || 'No name'}
+                                                </span>
+                                                {participant.contactRole && (
+                                                  <span className="text-gray-600 font-normal"> ({participant.contactRole})</span>
+                                                )}
+                                              </div>
+                                            ))}
                                           </div>
-                                        )
-                                      );
-                                    })()}
+                                        ));
+                                      })()}
+                                    </div>
                                   </div>
                                 </PopoverContent>
                               </Popover>
-                            </div>
-                          )}
+                            )}
 
-                          {/* Description */}
-                          {event.description && (
-                            <div className="text-xs text-gray-700 pt-1">
-                              <p>{event.description}</p>
-                            </div>
-                          )}
+                            {/* Description */}
+                            {event.description && (
+                              <div className="text-xs text-gray-700 pt-1">
+                                <p>{event.description}</p>
+                              </div>
+                            )}
 
-                          {/* Notes */}
-                          {event.notes && (
-                            <div className="text-xs text-gray-700 pt-1">
-                              <p className="font-medium">Notes:</p>
-                              <p>{event.notes}</p>
-                            </div>
-                          )}
+                            {/* Notes */}
+                            {event.notes && (
+                              <div className="text-xs text-gray-700 pt-1">
+                                <p className="font-medium">Notes:</p>
+                                <p>{event.notes}</p>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </PopoverContent>
                     </Popover>
