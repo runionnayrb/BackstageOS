@@ -997,9 +997,9 @@ export default function WeeklyScheduleView({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="15">15 minutes</SelectItem>
-                <SelectItem value="30">30 minutes</SelectItem>
-                <SelectItem value="60">60 minutes</SelectItem>
+                <SelectItem value="15">15 Min</SelectItem>
+                <SelectItem value="30">30 Min</SelectItem>
+                <SelectItem value="60">60 Min</SelectItem>
               </SelectContent>
             </Select>
             <Button
