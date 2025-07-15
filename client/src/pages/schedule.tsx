@@ -182,12 +182,11 @@ export default function Schedule() {
         </div>
         
         <div className="flex items-center justify-between mb-4">
-          {/* Left side - Title and Date/Range display */}
-          <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold text-gray-900">Schedule</h1>
-            <div className="text-lg font-medium text-gray-600">
+          {/* Left side - Dynamic Date/Range display */}
+          <div className="flex items-center">
+            <h1 className="text-3xl font-bold text-gray-900">
               {getHeaderText()}
-            </div>
+            </h1>
           </div>
 
           {/* Right side - Controls matching weekly view order */}
@@ -276,7 +275,7 @@ export default function Schedule() {
         {/* Main Mobile Header */}
         <div className="px-4 py-3 border-b border-gray-200 bg-white">
           <div className="flex items-center justify-between mb-2">
-            {/* Back button and Title */}
+            {/* Back button and Dynamic Title */}
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
@@ -286,14 +285,14 @@ export default function Schedule() {
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              <h1 className="text-xl font-semibold text-gray-900">Schedule</h1>
+              <h1 className="text-xl font-semibold text-gray-900">
+                {getHeaderText()}
+              </h1>
             </div>
           </div>
           <div className="flex items-center justify-between">
-            {/* Date/Range Display */}
-            <div className="text-lg font-medium text-gray-600">
-              {getHeaderText()}
-            </div>
+            {/* Controls only - no duplicate date display */}
+            <div></div>
             
             {/* Navigation Controls */}
             <div className="flex items-center gap-2">
