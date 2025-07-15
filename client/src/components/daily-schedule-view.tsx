@@ -445,7 +445,7 @@ export default function DailyScheduleView({
                         <Popover key={event.id}>
                           <PopoverTrigger asChild>
                             <div
-                              className="text-white rounded px-2 py-1 text-xs mb-1 cursor-pointer hover:opacity-90 transition-opacity border-l-4"
+                              className="text-white rounded px-2 py-1 text-sm mb-1 cursor-pointer hover:opacity-90 transition-opacity border-l-4"
                               style={{ 
                                 backgroundColor: eventTypeColor,
                                 borderLeftColor: eventTypeColor,
@@ -624,7 +624,7 @@ export default function DailyScheduleView({
                         <Popover key={event.id}>
                           <PopoverTrigger asChild>
                             <div
-                              className="absolute left-1 right-1 text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:opacity-90 transition-opacity border-l-4"
+                              className="absolute left-1 right-1 text-white rounded px-2 py-1 text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-opacity border-l-4"
                               style={{
                                 top: `${top + 20}px`,
                                 height: `${height}px`,
