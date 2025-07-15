@@ -402,13 +402,8 @@ export default function WeeklyScheduleView({
     onSuccess: (data) => {
       console.log('Update mutation succeeded:', data);
       
-      // Update is already done optimistically, so we only update if the server returns different data
-      queryClient.setQueryData([`/api/projects/${projectId}/schedule-events`], (old: ScheduleEvent[]) => {
-        const updated = old?.map((e: ScheduleEvent) => 
-          e.id === data.id ? data : e
-        ) || [];
-        return updated;
-      });
+      // Invalidate queries to ensure all views update
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
       
       setEditingEvent(null);
     },
