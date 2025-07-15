@@ -260,6 +260,12 @@ export default function Schedule() {
               <button onClick={goToNext} className="p-1 hover:bg-gray-100 rounded-r transition-colors">
                 <ChevronRight className="h-4 w-4" />
               </button>
+              <button 
+                onClick={() => setCreateEventDialog(true)} 
+                className="p-1 hover:bg-gray-100 rounded ml-2 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -315,6 +321,14 @@ export default function Schedule() {
                 className="p-2"
               >
                 <ChevronRight className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setCreateEventDialog(true)}
+                className="p-2"
+              >
+                <Plus className="h-5 w-5" />
               </Button>
             </div>
           </div>
