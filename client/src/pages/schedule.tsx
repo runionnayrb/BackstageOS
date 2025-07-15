@@ -206,25 +206,7 @@ export default function Schedule() {
               </SelectContent>
             </Select>
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 border-none bg-transparent hover:bg-transparent">
-                  {viewMode === 'monthly' ? 'Month' : viewMode === 'weekly' ? 'Week' : 'Day'}
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setViewMode('monthly')}>
-                  Month
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setViewMode('weekly')}>
-                  Week
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setViewMode('daily')}>
-                  Day
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+
           </div>
         </div>
         
