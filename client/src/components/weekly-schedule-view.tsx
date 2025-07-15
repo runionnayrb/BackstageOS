@@ -997,10 +997,10 @@ export default function WeeklyScheduleView({
               Today
             </Button>
             <div className="flex items-center">
-              <button onClick={goToPreviousWeek} className="p-2 hover:bg-gray-100 rounded transition-colors">
+              <button onClick={goToPreviousWeek} className="p-1 hover:bg-gray-100 rounded-l transition-colors">
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <button onClick={goToNextWeek} className="p-2 hover:bg-gray-100 rounded transition-colors">
+              <button onClick={goToNextWeek} className="p-1 hover:bg-gray-100 rounded-r transition-colors">
                 <ChevronRight className="h-4 w-4" />
               </button>
             </div>
