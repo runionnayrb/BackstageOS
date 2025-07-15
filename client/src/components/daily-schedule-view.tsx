@@ -3,6 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { formatTimeDisplay } from '@/lib/timeUtils';
 import { filterEventsBySettings, getTimezoneAbbreviation } from '@/lib/scheduleUtils';
 import { getEventTypeColor, getEventTypeColorFromDatabase } from '@/lib/eventUtils';
+import { ChevronLeft, ChevronRight, Plus, Calendar, Clock, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import ScheduleFilter from "@/components/schedule-filter";
 
 // Constants for time grid (8 AM to midnight = 16 hours)
 const START_HOUR = 8;
@@ -19,12 +24,19 @@ interface DailyScheduleViewProps {
   currentDate?: Date;
   setCurrentDate?: (date: Date) => void;
   selectedContactIds: number[];
+  onFilterChange: (contactIds: number[]) => void;
   selectedEventTypes: string[];
+  onEventTypeFilterChange: (eventTypes: string[]) => void;
   selectedIndividualTypes: string[];
+  onIndividualTypeFilterChange: (individualTypes: string[]) => void;
+  timeIncrement: 15 | 30 | 60;
+  setTimeIncrement: (increment: 15 | 30 | 60) => void;
   showAllDayEvents?: boolean;
-  timeIncrement?: number;
+  setShowAllDayEvents?: (show: boolean) => void;
   createEventDialog: boolean;
   setCreateEventDialog: (open: boolean) => void;
+  viewMode: 'monthly' | 'weekly' | 'daily';
+  setViewMode: (mode: 'monthly' | 'weekly' | 'daily') => void;
 }
 
 interface ScheduleEvent {
@@ -66,12 +78,19 @@ export default function DailyScheduleView({
   currentDate,
   setCurrentDate,
   selectedContactIds, 
+  onFilterChange,
   selectedEventTypes,
+  onEventTypeFilterChange,
   selectedIndividualTypes,
+  onIndividualTypeFilterChange,
+  timeIncrement,
+  setTimeIncrement,
   showAllDayEvents: propShowAllDayEvents = true, 
-  timeIncrement = 30,
+  setShowAllDayEvents,
   createEventDialog,
-  setCreateEventDialog
+  setCreateEventDialog,
+  viewMode,
+  setViewMode
 }: DailyScheduleViewProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -245,8 +264,106 @@ export default function DailyScheduleView({
 
   const containerHeight = TOTAL_MINUTES + 15; // Small padding to show 11:30 PM
 
+  // Helper functions for navigation
+  const goToPreviousDay = () => {
+    const previousDay = new Date(selectedDate);
+    previousDay.setDate(selectedDate.getDate() - 1);
+    setCurrentDate?.(previousDay);
+  };
+
+  const goToNextDay = () => {
+    const nextDay = new Date(selectedDate);
+    nextDay.setDate(selectedDate.getDate() + 1);
+    setCurrentDate?.(nextDay);
+  };
+
+  const goToToday = () => {
+    setCurrentDate?.(new Date());
+  };
+
+  // Format the selected date for display
+  const formatDayDisplay = () => {
+    return selectedDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
   return (
     <div className="flex flex-col h-full bg-gray-50">
+      {/* Header - Match weekly view layout */}
+      <div className="flex items-center justify-between mb-4 px-4">
+        {/* Left side - Date display */}
+        <div className="flex items-center">
+          <div className="text-base font-medium text-gray-700">
+            {formatDayDisplay()}
+          </div>
+        </div>
+
+        {/* Right side - Controls matching weekly view order */}
+        <div className="flex items-center space-x-2">
+          <ScheduleFilter
+            projectId={projectId}
+            selectedContactIds={selectedContactIds}
+            onFilterChange={onFilterChange}
+            selectedEventTypes={selectedEventTypes}
+            onEventTypeFilterChange={onEventTypeFilterChange}
+            selectedIndividualTypes={selectedIndividualTypes}
+            onIndividualTypeFilterChange={onIndividualTypeFilterChange}
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-auto">
+                {timeIncrement} Min
+                <ChevronDown className="h-3 w-3 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setTimeIncrement(15)}>
+                15 Min
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTimeIncrement(30)}>
+                30 Min
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTimeIncrement(60)}>
+                60 Min
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button 
+            variant={propShowAllDayEvents ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowAllDayEvents?.(!propShowAllDayEvents)}
+            className="text-xs px-2 py-1 h-auto"
+          >
+            <Calendar className="h-3 w-3 mr-1" />
+            All Day
+          </Button>
+          <Select value={viewMode} onValueChange={(value: 'monthly' | 'weekly' | 'daily') => setViewMode(value)}>
+            <SelectTrigger className="w-auto text-xs px-2 py-1 h-auto">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monthly">Month</SelectItem>
+              <SelectItem value="weekly">Week</SelectItem>
+              <SelectItem value="daily">Day</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm" onClick={goToToday} className="text-xs px-2 py-1 h-auto">
+            Today
+          </Button>
+          <div className="flex items-center">
+            <Button variant="outline" size="sm" onClick={goToPreviousDay} className="text-xs px-1 py-1 h-auto rounded-r-none border-r-0">
+              <ChevronLeft className="h-3 w-3" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={goToNextDay} className="text-xs px-1 py-1 h-auto rounded-l-none">
+              <ChevronRight className="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+      </div>
       {/* Main Content Container */}
       <div className="flex flex-1 overflow-hidden">
         {/* Time Labels - Fixed on left side */}

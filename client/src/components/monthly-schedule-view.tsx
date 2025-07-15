@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, ChevronRight, Plus, Calendar, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Calendar, X, ChevronDown, Clock } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,6 +13,8 @@ import { formatTimeDisplay, parseScheduleSettings } from "@/lib/timeUtils";
 import { isShowEvent, getEventTypeDisplayName, getEventTypeColor, ALL_EVENT_TYPES } from "@/lib/eventUtils";
 import { filterEventsBySettings } from "@/lib/scheduleUtils";
 import EventForm from "@/components/event-form";
+import ScheduleFilter from "@/components/schedule-filter";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface MonthlyScheduleViewProps {
   projectId: number;
@@ -20,11 +22,20 @@ interface MonthlyScheduleViewProps {
   currentDate: Date;
   setCurrentDate: (date: Date) => void;
   selectedContactIds: number[];
+  onFilterChange: (contactIds: number[]) => void;
+  selectedEventTypes: string[];
+  onEventTypeFilterChange: (eventTypes: string[]) => void;
+  selectedIndividualTypes: string[];
+  onIndividualTypeFilterChange: (individualTypes: string[]) => void;
+  timeIncrement: 15 | 30 | 60;
+  setTimeIncrement: (increment: 15 | 30 | 60) => void;
   showAllDayEvents: boolean;
   setShowAllDayEvents: (show: boolean) => void;
   createEventDialog: boolean;
   setCreateEventDialog: (open: boolean) => void;
   onEventClick?: (event: ScheduleEvent) => void;
+  viewMode: 'monthly' | 'weekly' | 'daily';
+  setViewMode: (mode: 'monthly' | 'weekly' | 'daily') => void;
 }
 
 interface ScheduleEvent {
@@ -82,11 +93,20 @@ export default function MonthlyScheduleView({
   currentDate,
   setCurrentDate,
   selectedContactIds,
+  onFilterChange,
+  selectedEventTypes,
+  onEventTypeFilterChange,
+  selectedIndividualTypes,
+  onIndividualTypeFilterChange,
+  timeIncrement,
+  setTimeIncrement,
   showAllDayEvents,
   setShowAllDayEvents,
   createEventDialog,
   setCreateEventDialog,
   onEventClick,
+  viewMode,
+  setViewMode,
 }: MonthlyScheduleViewProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -316,39 +336,75 @@ export default function MonthlyScheduleView({
 
   return (
     <div>
-      {/* Desktop Month Navigation */}
-      <div className="hidden md:flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" onClick={goToPreviousMonth}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <h3 className="text-lg font-semibold">{formatMonthYear()}</h3>
-          <Button variant="outline" size="sm" onClick={goToNextMonth}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={goToToday}>
-            Today
-          </Button>
+      {/* Header - Match weekly view layout */}
+      <div className="flex items-center justify-between mb-4">
+        {/* Left side - Month/Year display */}
+        <div className="flex items-center">
+          <div className="text-base font-medium text-gray-700">
+            {formatMonthYear()}
+          </div>
         </div>
 
+        {/* Right side - Controls matching weekly view order */}
         <div className="flex items-center space-x-2">
+          <ScheduleFilter
+            projectId={projectId}
+            selectedContactIds={selectedContactIds}
+            onFilterChange={onFilterChange}
+            selectedEventTypes={selectedEventTypes}
+            onEventTypeFilterChange={onEventTypeFilterChange}
+            selectedIndividualTypes={selectedIndividualTypes}
+            onIndividualTypeFilterChange={onIndividualTypeFilterChange}
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-auto">
+                {timeIncrement} Min
+                <ChevronDown className="h-3 w-3 ml-1" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setTimeIncrement(15)}>
+                15 Min
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTimeIncrement(30)}>
+                30 Min
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTimeIncrement(60)}>
+                60 Min
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button 
             variant={showAllDayEvents ? "default" : "outline"}
             size="sm"
             onClick={() => setShowAllDayEvents(!showAllDayEvents)}
-            className="flex items-center gap-2"
+            className="text-xs px-2 py-1 h-auto"
           >
-            <Calendar className="h-4 w-4" />
+            <Calendar className="h-3 w-3 mr-1" />
             All Day
           </Button>
-          
-          <Button 
-            onClick={() => setCreateEventDialog({ isOpen: true })}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            New Event
+          <Select value={viewMode} onValueChange={(value: 'monthly' | 'weekly' | 'daily') => setViewMode(value)}>
+            <SelectTrigger className="w-auto text-xs px-2 py-1 h-auto">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="monthly">Month</SelectItem>
+              <SelectItem value="weekly">Week</SelectItem>
+              <SelectItem value="daily">Day</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm" onClick={goToToday} className="text-xs px-2 py-1 h-auto">
+            Today
           </Button>
+          <div className="flex items-center">
+            <Button variant="outline" size="sm" onClick={goToPreviousMonth} className="text-xs px-1 py-1 h-auto rounded-r-none border-r-0">
+              <ChevronLeft className="h-3 w-3" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={goToNextMonth} className="text-xs px-1 py-1 h-auto rounded-l-none">
+              <ChevronRight className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
       </div>
 

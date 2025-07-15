@@ -332,12 +332,19 @@ export default function Schedule() {
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
+            onFilterChange={setSelectedContactIds}
             selectedEventTypes={selectedEventTypes}
+            onEventTypeFilterChange={setSelectedEventTypes}
             selectedIndividualTypes={selectedIndividualTypes}
+            onIndividualTypeFilterChange={setSelectedIndividualTypes}
+            timeIncrement={timeIncrement}
+            setTimeIncrement={setTimeIncrement}
             showAllDayEvents={showAllDayEvents}
             setShowAllDayEvents={setShowAllDayEvents}
             createEventDialog={createEventDialog}
             setCreateEventDialog={setCreateEventDialog}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
             onEventClick={(event) => {
               // Set the date to the event's date and switch to daily view
               setCurrentDate(new Date(event.date));
@@ -377,13 +384,20 @@ export default function Schedule() {
                 currentDate={currentDate}
                 setCurrentDate={setCurrentDate}
                 selectedContactIds={selectedContactIds}
+                onFilterChange={setSelectedContactIds}
                 selectedEventTypes={selectedEventTypes}
+                onEventTypeFilterChange={setSelectedEventTypes}
                 selectedIndividualTypes={selectedIndividualTypes}
+                onIndividualTypeFilterChange={setSelectedIndividualTypes}
                 timeIncrement={timeIncrement}
+                setTimeIncrement={setTimeIncrement}
                 showAllDayEvents={showAllDayEvents}
+                setShowAllDayEvents={setShowAllDayEvents}
                 settings={settings}
                 createEventDialog={createEventDialog}
                 setCreateEventDialog={setCreateEventDialog}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
                 onEventEdit={(event) => {
                   // Navigate to daily view and let that handle editing
                   setCurrentDate(new Date(event.date));
@@ -400,12 +414,19 @@ export default function Schedule() {
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
             selectedContactIds={selectedContactIds}
+            onFilterChange={setSelectedContactIds}
             selectedEventTypes={selectedEventTypes}
+            onEventTypeFilterChange={setSelectedEventTypes}
             selectedIndividualTypes={selectedIndividualTypes}
+            onIndividualTypeFilterChange={setSelectedIndividualTypes}
+            timeIncrement={timeIncrement}
+            setTimeIncrement={setTimeIncrement}
+            showAllDayEvents={showAllDayEvents}
+            setShowAllDayEvents={setShowAllDayEvents}
             createEventDialog={createEventDialog}
             setCreateEventDialog={setCreateEventDialog}
-            showAllDayEvents={showAllDayEvents}
-            timeIncrement={timeIncrement}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
           />
         )}
       </div>

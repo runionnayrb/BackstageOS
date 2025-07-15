@@ -20,13 +20,20 @@ interface MobileWeeklyScheduleViewProps {
   currentDate?: Date;
   setCurrentDate?: (date: Date) => void;
   selectedContactIds: number[];
+  onFilterChange: (contactIds: number[]) => void;
   selectedEventTypes: string[];
+  onEventTypeFilterChange: (eventTypes: string[]) => void;
   selectedIndividualTypes: string[];
+  onIndividualTypeFilterChange: (individualTypes: string[]) => void;
   timeIncrement: 15 | 30 | 60;
+  setTimeIncrement: (increment: 15 | 30 | 60) => void;
   showAllDayEvents?: boolean;
+  setShowAllDayEvents?: (show: boolean) => void;
   settings?: any;
   createEventDialog: boolean;
   setCreateEventDialog: (open: boolean) => void;
+  viewMode: 'monthly' | 'weekly' | 'daily';
+  setViewMode: (mode: 'monthly' | 'weekly' | 'daily') => void;
   onEventEdit?: (event: ScheduleEvent) => void;
 }
 
@@ -73,12 +80,20 @@ export default function MobileWeeklyScheduleView({
   currentDate, 
   setCurrentDate, 
   selectedContactIds, 
+  onFilterChange,
   selectedEventTypes,
+  onEventTypeFilterChange,
   selectedIndividualTypes,
-  timeIncrement, 
+  onIndividualTypeFilterChange,
+  timeIncrement,
+  setTimeIncrement,
   showAllDayEvents: propShowAllDayEvents,
+  setShowAllDayEvents,
+  settings,
   createEventDialog,
   setCreateEventDialog,
+  viewMode,
+  setViewMode,
   onEventEdit
 }: MobileWeeklyScheduleViewProps) {
   const { toast } = useToast();
