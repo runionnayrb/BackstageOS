@@ -185,7 +185,7 @@ export default function DailyScheduleView({
 
   // Fetch events
   const { data: events = [] } = useQuery<ScheduleEvent[]>({
-    queryKey: ['/api/projects', projectId, 'schedule-events'],
+    queryKey: [`/api/projects/${projectId}/schedule-events`],
   });
 
   // Fetch event types for filtering
