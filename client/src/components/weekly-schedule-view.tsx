@@ -388,7 +388,7 @@ export default function WeeklyScheduleView({
           if (conflict.conflictType === 'unavailable') {
             return `${conflict.contactName} is unavailable during ${conflict.conflictTime}`;
           } else if (conflict.conflictType === 'schedule_overlap') {
-            return `${conflict.contactName} is already scheduled during ${conflict.conflictTime}`;
+            return `${conflict.contactName} is unavailable during ${conflict.conflictTime}`;
           } else if (conflict.conflictType === 'location_unavailable') {
             return `${conflict.locationName} is unavailable during ${conflict.conflictTime}`;
           }
@@ -469,6 +469,13 @@ export default function WeeklyScheduleView({
       // Handle conflict errors with user-friendly toast messages
       if (error.status === 409 && error.conflicts) {
         const conflictMessages = error.conflicts.map((conflict: any) => {
+          if (conflict.conflictType === 'unavailable') {
+            return `${conflict.contactName} is unavailable during ${conflict.conflictTime}`;
+          } else if (conflict.conflictType === 'schedule_overlap') {
+            return `${conflict.contactName} is unavailable during ${conflict.conflictTime}`;
+          } else if (conflict.conflictType === 'location_unavailable') {
+            return `${conflict.locationName} is unavailable during ${conflict.conflictTime}`;
+          }
           return conflict.conflictDetails;
         });
         

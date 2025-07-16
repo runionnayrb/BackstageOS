@@ -102,7 +102,7 @@ export class ConflictValidationService {
             contactName: contactMap.get(participantId) || 'Unknown Contact',
             conflictType: 'unavailable',
             conflictTime: `${availability.startTime} - ${availability.endTime}`,
-            conflictDetails: `Contact is marked as unavailable during ${availability.startTime} - ${availability.endTime}${availability.notes ? `: ${availability.notes}` : ''}`
+            conflictDetails: `${contactMap.get(participantId) || 'Unknown Contact'} is unavailable during ${availability.startTime} - ${availability.endTime}${availability.notes ? `: ${availability.notes}` : ''}`
           });
         }
       }
@@ -145,7 +145,7 @@ export class ConflictValidationService {
               contactName: contactMap.get(participantId) || 'Unknown Contact',
               conflictType: 'schedule_overlap',
               conflictTime: `${event.startTime} - ${event.endTime}`,
-              conflictDetails: `Contact is already scheduled in "${event.title}" from ${event.startTime} - ${event.endTime}`
+              conflictDetails: `${contactMap.get(participantId) || 'Unknown Contact'} is unavailable during ${event.startTime} - ${event.endTime}`
             });
           }
         }
