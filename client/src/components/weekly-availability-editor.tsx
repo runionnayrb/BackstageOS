@@ -43,7 +43,10 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     currentDay: number;
     currentTime: number;
     availabilityType: 'unavailable' | 'preferred';
+    canceled?: boolean;
   } | null>(null);
+  
+  const dragCanceledRef = useRef(false);
   const [draggedItem, setDraggedItem] = useState<{
     item: ContactAvailability;
     originalPosition: { dayIndex: number; startMinutes: number };
@@ -363,6 +366,9 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       return;
     }
 
+    // Reset cancellation flag
+    dragCanceledRef.current = false;
+    
     // Start drag creation
     let dragState = {
       isActive: true,
@@ -370,7 +376,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       startTime: minutes,
       currentDay: dayIndex,
       currentTime: minutes,
-      availabilityType: 'unavailable' as const
+      availabilityType: 'unavailable' as const,
+      canceled: false
     };
 
     console.log('Setting isDragCreating state:', dragState);
@@ -388,7 +395,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     };
 
     const handleMouseUp = () => {
-      if (dragState.isActive) {
+      if (dragState.isActive && !dragCanceledRef.current) {
         const startTime = Math.min(dragState.startTime, dragState.currentTime);
         const endTime = Math.max(dragState.startTime, dragState.currentTime);
         
@@ -415,6 +422,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
         } else {
           console.log('Block too small:', endTime - startTime, 'minutes');
         }
+      } else if (dragState.canceled) {
+        console.log('Drag was canceled - not creating availability block');
       }
       
       setIsDragCreating(null);
@@ -708,6 +717,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
           
           // Cancel any active drag operations
           if (isDragCreating) {
+            dragCanceledRef.current = true;
             setIsDragCreating(null);
           }
           if (draggedItem) {
