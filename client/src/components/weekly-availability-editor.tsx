@@ -270,8 +270,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     // Ensure proper time format conversion (handle both '12h'/'24h' and '12'/'24' formats)
     const format = timeFormat === '24h' || timeFormat === '24' ? '24' : '12';
     const timeString = formatTimeFromMinutes(minutes, format);
-    // Remove seconds if present (e.g., "9:00:00 AM" -> "9:00 AM")
-    return timeString.replace(':00 ', ' ').replace(':00AM', 'AM').replace(':00PM', 'PM').replace(':00$', '');
+    // Remove seconds completely from display
+    return timeString.replace(/:\d{2}(\s|$)/, '$1').replace(/:\d{2}(AM|PM)/, '$1');
   };
 
   const minutesToPosition = (minutes: number): number => {
@@ -711,10 +711,26 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   }
 
   const getAvailabilityColor = (type: string) => {
+    // Get colors from show settings schedule tab if available
+    const availabilitySettings = showSettings?.scheduleSettings ? 
+      (typeof showSettings.scheduleSettings === 'string' ? 
+        JSON.parse(showSettings.scheduleSettings) : 
+        showSettings.scheduleSettings) : {};
+    
+    const colors = availabilitySettings.availabilityColors || {};
+    
+    if (type === 'unavailable' && colors.unavailable) {
+      return `border-2 hover:opacity-90` + ` ` + `bg-[${colors.unavailable}] border-[${colors.unavailable}]`;
+    }
+    if (type === 'preferred' && colors.preferred) {
+      return `border-2 hover:opacity-90` + ` ` + `bg-[${colors.preferred}] border-[${colors.preferred}]`;
+    }
+    
+    // Fallback to default colors
     switch (type) {
-      case 'unavailable': return 'bg-red-500 hover:bg-red-600 border-red-600';
-      case 'preferred': return 'bg-blue-500 hover:bg-blue-600 border-blue-600';
-      default: return 'bg-gray-500 hover:bg-gray-600 border-gray-600';
+      case 'unavailable': return 'bg-red-500 hover:bg-red-600 border-red-600 border-2';
+      case 'preferred': return 'bg-blue-500 hover:bg-blue-600 border-blue-600 border-2';
+      default: return 'bg-gray-500 hover:bg-gray-600 border-gray-600 border-2';
     }
   };
 
