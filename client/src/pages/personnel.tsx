@@ -259,16 +259,16 @@ export default function Personnel() {
                         onClick={() => handleContactClick(contact)}
                       >
                         <div className="grid grid-cols-5 gap-4 items-center">
-                          <div className="font-medium text-gray-900">
+                          <div className="text-gray-900">
                             {contact.firstName} {contact.lastName}
                           </div>
-                          <div className="text-gray-600 text-sm">
+                          <div className="text-gray-900">
                             {contact.role || ''}
                           </div>
-                          <div className="text-gray-600 text-sm">
+                          <div className="text-gray-900">
                             {contact.email || ''}
                           </div>
-                          <div className="text-gray-600 text-sm">
+                          <div className="text-gray-900">
                             {contact.phone || ''}
                           </div>
                           
