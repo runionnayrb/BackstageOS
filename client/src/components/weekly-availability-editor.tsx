@@ -953,50 +953,48 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               ))}
             </div>
 
-            {/* All Day Events section */}
-            {allDayEvents.length > 0 && (
-              <div className="grid grid-cols-8 border-b bg-gray-25">
-                <div className="p-2 text-xs font-medium text-gray-500 border-r bg-gray-50 flex items-center">
-                  All Day
-                </div>
-                {weekDates.map((date: Date, dayIndex: number) => {
-                  const dayEvents = allDayEvents.filter((event: any) => 
-                    event.date === date.toISOString().split('T')[0]
-                  );
-                  
-                  return (
-                    <div key={dayIndex} className="p-1 border-r last:border-r-0 min-h-[60px]">
-                      {dayEvents.map((event: any) => {
-                        // Safe color fallback  
-                        let eventColor = '#3b82f6'; // Default blue
-                        try {
-                          // Use event.type field instead of event.eventType
-                          if (event.type && eventTypes?.length > 0) {
-                            eventColor = getEventTypeColorFromDatabase(event.type, eventTypes);
-                          }
-                        } catch (error) {
-                          console.warn('Error getting event color:', error);
-                        }
-                        
-                        return (
-                          <div
-                            key={event.id}
-                            className="text-xs p-1 mb-1 rounded text-white truncate"
-                            style={{ 
-                              backgroundColor: eventColor,
-                              fontSize: '11px'
-                            }}
-                            title={`${event.title}${event.location ? ` - ${event.location}` : ''}`}
-                          >
-                            {event.title}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
+            {/* All Day Events section - always visible */}
+            <div className="grid grid-cols-8 border-b bg-gray-25">
+              <div className="p-2 text-xs font-medium text-gray-500 border-r bg-gray-50 flex items-center">
+                All Day
               </div>
-            )}
+              {weekDates.map((date: Date, dayIndex: number) => {
+                const dayEvents = allDayEvents.filter((event: any) => 
+                  event.date === date.toISOString().split('T')[0]
+                );
+                
+                return (
+                  <div key={dayIndex} className="p-1 border-r last:border-r-0 min-h-[40px] max-h-[80px] overflow-y-auto">
+                    {dayEvents.map((event: any) => {
+                      // Safe color fallback  
+                      let eventColor = '#3b82f6'; // Default blue
+                      try {
+                        // Use event.type field instead of event.eventType
+                        if (event.type && eventTypes?.length > 0) {
+                          eventColor = getEventTypeColorFromDatabase(event.type, eventTypes);
+                        }
+                      } catch (error) {
+                        console.warn('Error getting event color:', error);
+                      }
+                      
+                      return (
+                        <div
+                          key={event.id}
+                          className="text-xs p-1 mb-1 rounded text-white truncate"
+                          style={{ 
+                            backgroundColor: eventColor,
+                            fontSize: '11px'
+                          }}
+                          title={`${event.title}${event.location ? ` - ${event.location}` : ''}`}
+                        >
+                          {event.title}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
 
             {/* Calendar body */}
             <div 
