@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { ContactDetailModal } from "@/components/contact-detail-modal";
 
 interface PersonnelParams {
   id: string;
@@ -44,6 +45,8 @@ export default function Personnel() {
   const [categories, setCategories] = useState(defaultCategories);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [isReordering, setIsReordering] = useState(false);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -141,7 +144,18 @@ export default function Personnel() {
   }, {} as Record<string, Contact[]>);
 
   const handleContactClick = (contact: Contact) => {
-    setLocation(`/shows/${projectId}/contacts/${contact.category}/${contact.id}`);
+    setSelectedContact(contact);
+    setShowContactModal(true);
+  };
+
+  const handleContactModalClose = () => {
+    setShowContactModal(false);
+    setSelectedContact(null);
+  };
+
+  const handleEditContact = (contact: Contact) => {
+    // Navigate to the category page for editing
+    setLocation(`/shows/${projectId}/contacts/${contact.category}`);
   };
 
   const handleEmailContact = (email: string) => {
@@ -317,6 +331,16 @@ export default function Personnel() {
           })}
         </div>
       </div>
+
+      {/* Contact Detail Modal */}
+      {selectedContact && (
+        <ContactDetailModal
+          contact={selectedContact}
+          isOpen={showContactModal}
+          onClose={handleContactModalClose}
+          onEdit={handleEditContact}
+        />
+      )}
     </div>
   );
 }
