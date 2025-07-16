@@ -692,21 +692,24 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     document.addEventListener('mouseup', handleMouseUp);
   }, [timeIncrement, updateMutation, isResizing]);
 
-  // Generate time labels (every 2 hours) starting from 8 AM using show's time format
+  // Generate time labels based on time increment starting from 8 AM using show's time format
   const START_HOUR = 8; // 8 AM
   const END_HOUR = 24; // Midnight
+  const START_MINUTES = START_HOUR * 60; // 8 AM = 480 minutes
+  const END_MINUTES = END_HOUR * 60; // Midnight = 1440 minutes
   const timeLabels = [];
-  for (let hour = START_HOUR; hour < END_HOUR; hour += 2) {
+  
+  // Generate labels based on time increment, but only show hour labels
+  for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += 60) { // Every hour
+    const hour = Math.floor(minutes / 60);
     timeLabels.push({
       hour,
-      label: minutesToTime(hour * 60),
-      position: (hour * 60 / 1440) * 1440 // Convert to pixel position
+      label: minutesToTime(minutes),
+      position: minutes - START_MINUTES // Position relative to 8 AM start
     });
   }
 
   // Generate grid lines based on time increment starting from 8 AM using show's time format
-  const START_MINUTES = START_HOUR * 60; // 8 AM = 480 minutes
-  const END_MINUTES = END_HOUR * 60; // Midnight = 1440 minutes
   const gridLines = [];
   for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += timeIncrement) {
     const min = minutes % 60;
