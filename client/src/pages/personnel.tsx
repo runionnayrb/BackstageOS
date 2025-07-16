@@ -258,19 +258,19 @@ export default function Personnel() {
                         className="p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-gray-200"
                         onClick={() => handleContactClick(contact)}
                       >
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-start gap-4">
                           <div className="flex-1">
-                            <span className="font-medium text-gray-900">
+                            <div className="font-medium text-gray-900 mb-1">
                               {contact.firstName} {contact.lastName}
-                            </span>
+                            </div>
                             {contact.role && (
-                              <span className="text-gray-600 ml-2">• {contact.role}</span>
+                              <div className="text-gray-600 text-sm">{contact.role}</div>
                             )}
                             {contact.email && (
-                              <span className="text-gray-600 ml-2">• {contact.email}</span>
+                              <div className="text-gray-600 text-sm">{contact.email}</div>
                             )}
                             {contact.phone && (
-                              <span className="text-gray-600 ml-2">• {contact.phone}</span>
+                              <div className="text-gray-600 text-sm">{contact.phone}</div>
                             )}
                           </div>
                           
