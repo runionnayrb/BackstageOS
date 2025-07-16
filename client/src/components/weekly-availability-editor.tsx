@@ -342,6 +342,9 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   const handleMouseDown = useCallback((e: React.MouseEvent, dayIndex: number) => {
     if (!calendarRef.current) return;
 
+    // Prevent text selection during drag operations
+    e.preventDefault();
+    
     const rect = calendarRef.current.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const minutes = positionToMinutes(y);
@@ -972,7 +975,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                 </div>
 
                 {/* Day columns */}
-                <div className="col-span-7 relative" ref={calendarRef}>
+                <div className="col-span-7 relative select-none" ref={calendarRef}>
                   {/* Working hours background highlight */}
                   <div
                     className="absolute w-full bg-blue-50 opacity-30"
