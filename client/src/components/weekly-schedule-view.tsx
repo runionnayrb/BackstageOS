@@ -365,7 +365,15 @@ export default function WeeklyScheduleView({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(eventData),
       });
-      if (!response.ok) throw new Error("Failed to create event");
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        const error = new Error(errorData.message || "Failed to create event") as any;
+        error.status = response.status;
+        error.conflicts = errorData.conflicts;
+        throw error;
+      }
+      
       return response.json();
     },
     onSuccess: () => {
@@ -373,12 +381,32 @@ export default function WeeklyScheduleView({
       setCreateEventDialog({ isOpen: false });
       toast({ title: "Event created successfully" });
     },
-    onError: (error) => {
-      toast({ 
-        title: "Failed to create event", 
-        description: error.message,
-        variant: "destructive" 
-      });
+    onError: (error: any) => {
+      // Handle conflict validation (409 status) with user-friendly messages
+      if (error.status === 409 && error.conflicts) {
+        const conflictMessages = error.conflicts.map((conflict: any) => {
+          if (conflict.conflictType === 'unavailable') {
+            return `${conflict.contactName} is unavailable during ${conflict.conflictTime}`;
+          } else if (conflict.conflictType === 'schedule_overlap') {
+            return `${conflict.contactName} is already scheduled during ${conflict.conflictTime}`;
+          } else if (conflict.conflictType === 'location_unavailable') {
+            return `${conflict.locationName} is unavailable during ${conflict.conflictTime}`;
+          }
+          return conflict.conflictDetails;
+        });
+        
+        toast({
+          title: "Scheduling Conflict",
+          description: conflictMessages.join('\n'),
+          variant: "destructive",
+        });
+      } else {
+        toast({ 
+          title: "Failed to create event", 
+          description: error.message,
+          variant: "destructive" 
+        });
+      }
     },
   });
 

@@ -87,8 +87,8 @@ export class ConflictValidationService {
     const availabilityRecords = await this.storage.getContactAvailabilityByProjectAndDate(projectId, date);
 
     // Get contact info for participant names
-    const contacts = await this.storage.getProjectContacts(projectId);
-    const contactMap = new Map(contacts.map(c => [c.id, `${c.firstName} ${c.lastName}`]));
+    const contacts = await this.storage.getContactsByProjectId(projectId);
+    const contactMap = new Map(contacts.map((c: any) => [c.id, `${c.firstName} ${c.lastName}`]));
 
     for (const participantId of participantIds) {
       const participantAvailability = availabilityRecords.filter(
@@ -127,8 +127,8 @@ export class ConflictValidationService {
     const existingEvents = await this.storage.getScheduleEventsByProjectAndDate(projectId, date);
 
     // Get contact info for participant names
-    const contacts = await this.storage.getProjectContacts(projectId);
-    const contactMap = new Map(contacts.map(c => [c.id, `${c.firstName} ${c.lastName}`]));
+    const contacts = await this.storage.getContactsByProjectId(projectId);
+    const contactMap = new Map(contacts.map((c: any) => [c.id, `${c.firstName} ${c.lastName}`]));
 
     for (const participantId of participantIds) {
       for (const event of existingEvents) {
@@ -200,7 +200,7 @@ export class ConflictValidationService {
 
     // Filter for this specific location and unavailable type
     const locationUnavailability = locationAvailabilityRecords.filter(
-      record => record.locationId === location.id && record.availabilityType === 'unavailable'
+      record => record.locationId === location.id && record.type === 'unavailable'
     );
 
     for (const availability of locationUnavailability) {

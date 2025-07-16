@@ -72,11 +72,31 @@ export default function Schedule() {
       });
     },
     onError: (error: any) => {
-      toast({
-        title: "Error creating event",
-        description: error.message || "Failed to create event. Please try again.",
-        variant: "destructive",
-      });
+      // Handle conflict validation (409 status) with user-friendly messages
+      if (error.status === 409 && error.conflicts) {
+        const conflictMessages = error.conflicts.map((conflict: any) => {
+          if (conflict.conflictType === 'unavailable') {
+            return `${conflict.contactName} is unavailable during ${conflict.conflictTime}`;
+          } else if (conflict.conflictType === 'schedule_overlap') {
+            return `${conflict.contactName} is already scheduled during ${conflict.conflictTime}`;
+          } else if (conflict.conflictType === 'location_unavailable') {
+            return `${conflict.locationName} is unavailable during ${conflict.conflictTime}`;
+          }
+          return conflict.conflictDetails;
+        });
+        
+        toast({
+          title: "Scheduling Conflict",
+          description: conflictMessages.join('\n'),
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error creating event",
+          description: error.message || "Failed to create event. Please try again.",
+          variant: "destructive",
+        });
+      }
     },
   });
 
