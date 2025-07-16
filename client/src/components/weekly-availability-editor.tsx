@@ -800,8 +800,16 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     return `${startFormatted} - ${endFormatted}`;
   };
 
+  const handleDialogOpenChange = (open: boolean) => {
+    // Prevent dialog from closing if we have active drag operations
+    if (!open && (isDragCreating || draggedItem || isResizing)) {
+      return; // Don't close the dialog
+    }
+    setIsOpen(open);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Calendar className="h-4 w-4 mr-2" />
