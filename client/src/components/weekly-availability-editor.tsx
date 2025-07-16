@@ -8,6 +8,7 @@ import { Calendar, ChevronLeft, ChevronRight, ChevronDown, Trash2 } from "lucide
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings, getTimezoneAbbreviation } from "@/lib/timeUtils";
+import { getEventTypeColorFromDatabase } from "@/lib/eventUtils";
 
 interface Contact {
   id: number;
@@ -107,6 +108,12 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   // Fetch show settings for working hours
   const { data: showSettings } = useQuery({
     queryKey: [`/api/projects/${contact.projectId}/settings`],
+    enabled: isOpen,
+  });
+
+  // Fetch event types for color matching
+  const { data: eventTypes = [] } = useQuery({
+    queryKey: [`/api/projects/${contact.projectId}/event-types`],
     enabled: isOpen,
   });
 
@@ -1077,8 +1084,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                           width: `${100 / 7 - 1}%`,
                           top: `${minutesToPosition(startMinutes)}px`,
                           height: `${minutesToHeight(endMinutes - startMinutes)}px`,
-                          backgroundColor: showSettings?.scheduleSettings?.eventColors?.[event.type] || '#7C3AED',
-                          borderColor: showSettings?.scheduleSettings?.eventColors?.[event.type] || '#7C3AED'
+                          backgroundColor: getEventTypeColorFromDatabase(event.type, eventTypes),
+                          borderColor: getEventTypeColorFromDatabase(event.type, eventTypes)
                         }}
                         title={`Scheduled: ${event.title} (${formatTimeDisplay(event.startTime.slice(0, 5), timeFormat)} - ${formatTimeDisplay(event.endTime.slice(0, 5), timeFormat)})`}
                       >
