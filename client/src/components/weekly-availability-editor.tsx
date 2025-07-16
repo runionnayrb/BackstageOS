@@ -267,7 +267,9 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   };
 
   const minutesToTime = (minutes: number): string => {
-    return formatTimeFromMinutes(minutes, timeFormat);
+    // Ensure proper time format conversion (handle both '12h'/'24h' and '12'/'24' formats)
+    const format = timeFormat === '24h' || timeFormat === '24' ? '24' : '12';
+    return formatTimeFromMinutes(minutes, format);
   };
 
   const minutesToPosition = (minutes: number): number => {
