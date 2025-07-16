@@ -328,7 +328,7 @@ export default function DailyScheduleView({
                 padding: 0
               }}
             >
-              {getTimezoneAbbreviation(scheduleSettings?.timeZone || "America/New_York")}
+              {getTimezoneAbbreviation(timezone || "America/New_York")}
             </span>
           </div>
 
