@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { formatTimeFromMinutes, parseScheduleSettings } from "@/lib/timeUtils";
+import { formatTimeFromMinutes, parseScheduleSettings, getTimezoneAbbreviation } from "@/lib/timeUtils";
 import { getEventTypeColorFromDatabase } from "@/lib/eventUtils";
 import ScheduleFilter from "@/components/schedule-filter";
 import { filterEventsBySettings } from "@/lib/scheduleUtils";
@@ -897,7 +897,7 @@ export default function LocationAvailability({
 
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500">
-                  {timezone}
+                  {getTimezoneAbbreviation(timezone || "America/New_York")}
                 </span>
                 <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value))}>
                   <SelectTrigger className="w-20 border-0 shadow-none">

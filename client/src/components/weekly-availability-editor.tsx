@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings } from "@/lib/timeUtils";
+import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings, getTimezoneAbbreviation } from "@/lib/timeUtils";
 
 interface Contact {
   id: number;
@@ -794,7 +794,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               
               {/* Timezone indicator */}
               <div className="text-sm text-gray-600">
-                Times shown in {timeZone.replace('_', ' ')}
+                Times shown in {getTimezoneAbbreviation(timeZone || "America/New_York")}
               </div>
             </div>
 

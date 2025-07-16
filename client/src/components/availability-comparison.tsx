@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChevronLeft, ChevronRight, Users, Trash2, ArrowLeft, Calendar, Filter, X } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings } from "@/lib/timeUtils";
+import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings, getTimezoneAbbreviation } from "@/lib/timeUtils";
 
 interface ProjectAvailability {
   id: number;
@@ -1342,7 +1342,7 @@ export default function AvailabilityComparison({
 
               <div className="flex items-center gap-2">
                 <span className="text-sm text-gray-500">
-                  {timezone}
+                  {getTimezoneAbbreviation(timezone || "America/New_York")}
                 </span>
                 <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value))}>
                   <SelectTrigger className="w-20 border-0 shadow-none">
