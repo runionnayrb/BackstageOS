@@ -967,7 +967,16 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                   return (
                     <div key={dayIndex} className="p-1 border-r last:border-r-0 min-h-[60px]">
                       {dayEvents.map((event: any) => {
-                        const eventColor = getEventTypeColorFromDatabase(event.eventType, eventTypes);
+                        // Safe color fallback  
+                        let eventColor = '#3b82f6'; // Default blue
+                        try {
+                          // Use event.type field instead of event.eventType
+                          if (event.type && eventTypes?.length > 0) {
+                            eventColor = getEventTypeColorFromDatabase(event.type, eventTypes);
+                          }
+                        } catch (error) {
+                          console.warn('Error getting event color:', error);
+                        }
                         
                         return (
                           <div
