@@ -427,7 +427,19 @@ export default function WeeklyScheduleView({
       
       if (!response.ok) {
         console.error('❌ Update failed:', response.status, responseText);
-        throw new Error(`Failed to update event: ${response.status} ${responseText}`);
+        
+        // Try to parse the error response for conflict information
+        let errorData;
+        try {
+          errorData = JSON.parse(responseText);
+        } catch (e) {
+          errorData = { message: responseText };
+        }
+        
+        const error = new Error(errorData.message || "Failed to update event") as any;
+        error.status = response.status;
+        error.conflicts = errorData.conflicts;
+        throw error;
       }
       
       let result;
@@ -449,15 +461,29 @@ export default function WeeklyScheduleView({
       
       setEditingEvent(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Update mutation failed:', error);
       // Revert optimistic update by forcing a fresh query
       queryClient.refetchQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
-      toast({ 
-        title: "Failed to update event", 
-        description: error.message,
-        variant: "destructive" 
-      });
+      
+      // Handle conflict errors with user-friendly toast messages
+      if (error.status === 409 && error.conflicts) {
+        const conflictMessages = error.conflicts.map((conflict: any) => {
+          return conflict.conflictDetails;
+        });
+        
+        toast({
+          title: "Scheduling Conflict",
+          description: conflictMessages.join('\n'),
+          variant: "destructive",
+        });
+      } else {
+        toast({ 
+          title: "Failed to update event", 
+          description: error.message,
+          variant: "destructive" 
+        });
+      }
     },
   });
 
