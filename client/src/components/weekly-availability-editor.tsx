@@ -1284,6 +1284,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
           </div>
         </div>
 
+      </DialogContent>
+
         {/* Edit dialog */}
         {editingItem && (
           <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
@@ -1350,7 +1352,6 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             </DialogContent>
           </Dialog>
         )}
-      </DialogContent>
     </Dialog>
   );
 }
