@@ -6,6 +6,7 @@ import { useState } from "react";
 import { ContactForm } from "@/components/contact-form";
 import { ContactDetailModal } from "@/components/contact-detail-modal";
 import { GmailEmailComposer } from "@/components/email/gmail-email-composer";
+import { WeeklyAvailabilityEditor } from "@/components/weekly-availability-editor";
 import {
   Dialog,
   DialogContent,
@@ -53,6 +54,9 @@ export default function PersonnelCategory() {
 
   // Email composer state
   const [showEmailComposer, setShowEmailComposer] = useState(false);
+  
+  // Availability dialog state
+  const [availabilityContact, setAvailabilityContact] = useState<Contact | null>(null);
   const [composerRecipient, setComposerRecipient] = useState('');
   const [composerFromAccount, setComposerFromAccount] = useState<any>(null);
 
@@ -236,7 +240,7 @@ export default function PersonnelCategory() {
                         className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
                         onClick={(e) => {
                           e.stopPropagation();
-                          setLocation(`/shows/${projectId}/contacts/${contact.id}/availability`);
+                          setAvailabilityContact(contact);
                         }}
                       />
                       {contact.email ? (
@@ -303,6 +307,19 @@ export default function PersonnelCategory() {
             fromAccountId={composerFromAccount.id}
             fromEmail={composerFromAccount.emailAddress}
             initialRecipient={composerRecipient}
+          />
+        )}
+
+        {/* Weekly Availability Editor */}
+        {availabilityContact && (
+          <WeeklyAvailabilityEditor 
+            contact={availabilityContact}
+            isOpen={true}
+            onOpenChange={(open) => {
+              if (!open) {
+                setAvailabilityContact(null);
+              }
+            }}
           />
         )}
       </div>

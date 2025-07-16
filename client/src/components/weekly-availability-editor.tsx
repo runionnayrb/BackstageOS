@@ -30,10 +30,14 @@ interface ContactAvailability {
 
 interface AvailabilityEditorProps {
   contact: Contact;
+  isOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function WeeklyAvailabilityEditor({ contact, isOpen: externalIsOpen, onOpenChange }: AvailabilityEditorProps) {
+  const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const isOpen = externalIsOpen !== undefined ? externalIsOpen : internalIsOpen;
+  const setIsOpen = onOpenChange || setInternalIsOpen;
   // Initialize with timezone-aware date once settings are loaded
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [isDragCreating, setIsDragCreating] = useState<{
@@ -834,12 +838,14 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={handleDialogOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Calendar className="h-4 w-4 mr-2" />
-          Manage Availability
-        </Button>
-      </DialogTrigger>
+      {externalIsOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm">
+            <Calendar className="h-4 w-4 mr-2" />
+            Manage Availability
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-7xl max-h-[90vh] w-[95vw]">
         <DialogHeader>
           <DialogTitle>
