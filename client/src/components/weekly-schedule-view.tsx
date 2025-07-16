@@ -117,6 +117,7 @@ export default function WeeklyScheduleView({
     currentTime: number;
   } | null>(null);
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
+  const [openPopoverId, setOpenPopoverId] = useState<number | null>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [dragState, setDragState] = useState<{
     isActive: boolean;
@@ -1211,7 +1212,11 @@ export default function WeeklyScheduleView({
                     }}
                   >
                     {dayEvents.map(event => (
-                      <Popover key={event.id}>
+                      <Popover 
+                        key={event.id} 
+                        open={openPopoverId === event.id} 
+                        onOpenChange={(open) => setOpenPopoverId(open ? event.id : null)}
+                      >
                         <PopoverTrigger asChild>
                           <div
                             className={`${getEventColor(event.type)} text-white text-xs p-1 rounded cursor-pointer hover:opacity-80 ${
@@ -1238,7 +1243,10 @@ export default function WeeklyScheduleView({
                                 variant="ghost"
                                 size="sm"
                                 className="h-6 w-6 p-0"
-                                onClick={() => setEditingEvent(event)}
+                                onClick={() => {
+                                  setEditingEvent(event);
+                                  setOpenPopoverId(null);
+                                }}
                               >
                                 <Edit className="h-3 w-3" />
                               </Button>
@@ -1428,7 +1436,11 @@ export default function WeeklyScheduleView({
                     minutesToPosition(timeToMinutes(resizingEvent.event.startTime)) : displayTop;
 
                   return (
-                    <Popover key={event.id}>
+                    <Popover 
+                      key={event.id} 
+                      open={openPopoverId === event.id} 
+                      onOpenChange={(open) => setOpenPopoverId(open ? event.id : null)}
+                    >
                       <PopoverTrigger asChild>
                         <div
                           className={`absolute text-white text-sm p-2 rounded-md shadow-sm border-l-4 cursor-pointer hover:opacity-90 z-30 ${
@@ -1487,7 +1499,10 @@ export default function WeeklyScheduleView({
                               variant="ghost"
                               size="sm"
                               className="h-6 w-6 p-0"
-                              onClick={() => setEditingEvent(event)}
+                              onClick={() => {
+                                setEditingEvent(event);
+                                setOpenPopoverId(null);
+                              }}
                             >
                               <Edit className="h-3 w-3" />
                             </Button>
