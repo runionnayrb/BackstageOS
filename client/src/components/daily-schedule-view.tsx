@@ -178,6 +178,9 @@ export default function DailyScheduleView({
   // Extract timezone and time format from settings using utility function
   const scheduleSettings = parseScheduleSettings(projectSettings?.scheduleSettings);
   const { timeFormat, timezone } = scheduleSettings;
+  
+  // Debug: Log timeFormat changes
+  console.log('Daily View - timeFormat:', timeFormat, 'projectSettings:', projectSettings?.scheduleSettings);
 
   // Fetch events
   const { data: events = [] } = useQuery<ScheduleEvent[]>({
@@ -253,10 +256,12 @@ export default function DailyScheduleView({
 
   // Generate time labels - use same approach as mobile weekly view
   const timeLabels = useMemo(() => {
+    console.log('Daily View - Generating time labels with timeFormat:', timeFormat);
     const labels = [];
     for (let minutes = START_MINUTES; minutes < END_MINUTES; minutes += (timeIncrement || 30)) {
       const timeString = formatTime(minutes);
       const label = formatTimeDisplay(timeString, timeFormat);
+      console.log(`Daily View - Time ${timeString} → ${label} (format: ${timeFormat})`);
       labels.push({
         minutes,
         label,
