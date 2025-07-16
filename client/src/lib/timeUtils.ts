@@ -58,7 +58,7 @@ export function parseScheduleSettings(settings: any) {
     
   return {
     timeFormat: scheduleSettings.timeFormat || '12',
-    timezone: scheduleSettings.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+    timezone: scheduleSettings.timeZone || scheduleSettings.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
     weekStartDay: scheduleSettings.weekStartDay || 'sunday',
     workStartTime: scheduleSettings.workStartTime || '09:00',
     workEndTime: scheduleSettings.workEndTime || '18:00',
