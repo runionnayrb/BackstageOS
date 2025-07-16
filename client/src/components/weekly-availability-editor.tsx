@@ -149,6 +149,16 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       weekDate.toISOString().split('T')[0] === item.date
     );
   });
+
+  // Filter schedule events for current week and get all day events
+  const weekScheduleEvents = (scheduleEvents as any[]).filter((event: any) => {
+    const eventDate = new Date(event.date);
+    return weekDates.some((weekDate: Date) => 
+      weekDate.toISOString().split('T')[0] === event.date
+    );
+  });
+
+  const allDayEvents = weekScheduleEvents.filter((event: any) => event.isAllDay);
   
   // Calculate initial scroll position to show working hours
   // Show working hours in the center of the 500px viewport
@@ -942,6 +952,42 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                 </div>
               ))}
             </div>
+
+            {/* All Day Events section */}
+            {allDayEvents.length > 0 && (
+              <div className="grid grid-cols-8 border-b bg-gray-25">
+                <div className="p-2 text-xs font-medium text-gray-500 border-r bg-gray-50 flex items-center">
+                  All Day
+                </div>
+                {weekDates.map((date: Date, dayIndex: number) => {
+                  const dayEvents = allDayEvents.filter((event: any) => 
+                    event.date === date.toISOString().split('T')[0]
+                  );
+                  
+                  return (
+                    <div key={dayIndex} className="p-1 border-r last:border-r-0 min-h-[60px]">
+                      {dayEvents.map((event: any) => {
+                        const eventColor = getEventTypeColorFromDatabase(event.eventType, eventTypes);
+                        
+                        return (
+                          <div
+                            key={event.id}
+                            className="text-xs p-1 mb-1 rounded text-white truncate"
+                            style={{ 
+                              backgroundColor: eventColor,
+                              fontSize: '11px'
+                            }}
+                            title={`${event.title}${event.location ? ` - ${event.location}` : ''}`}
+                          >
+                            {event.title}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Calendar body */}
             <div 
