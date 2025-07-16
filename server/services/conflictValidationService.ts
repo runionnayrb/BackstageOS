@@ -29,7 +29,8 @@ export class ConflictValidationService {
     startTime: string,
     endTime: string,
     participantIds: number[],
-    locationName?: string
+    locationName?: string,
+    excludeEventId?: number
   ): Promise<ConflictValidationResult> {
     const conflicts: ConflictValidationResult['conflicts'] = [];
 
@@ -49,7 +50,8 @@ export class ConflictValidationService {
       date,
       startTime,
       endTime,
-      participantIds
+      participantIds,
+      excludeEventId
     );
     conflicts.push(...scheduleConflicts);
 
@@ -119,7 +121,8 @@ export class ConflictValidationService {
     date: string,
     startTime: string,
     endTime: string,
-    participantIds: number[]
+    participantIds: number[],
+    excludeEventId?: number
   ): Promise<ConflictValidationResult['conflicts']> {
     const conflicts: ConflictValidationResult['conflicts'] = [];
 
@@ -132,6 +135,11 @@ export class ConflictValidationService {
 
     for (const participantId of participantIds) {
       for (const event of existingEvents) {
+        // Skip the current event being edited
+        if (excludeEventId && event.id === excludeEventId) {
+          continue;
+        }
+
         // Check if this participant is in the existing event
         const isParticipantInEvent = event.participants.some(
           (p: any) => p.contactId === participantId

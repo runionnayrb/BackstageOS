@@ -4159,7 +4159,8 @@ Respond with valid JSON only.`;
           startTime,
           endTime,
           req.body.participants || [],
-          locationName
+          locationName,
+          eventId // Exclude the current event being edited
         );
 
         if (conflictResult.hasConflicts) {
