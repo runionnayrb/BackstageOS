@@ -495,8 +495,8 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       const mouseX = e.clientX - calendarRect.left;
       const mouseY = e.clientY - calendarRect.top;
       
-      // Calculate which day column the mouse is over
-      const dayColumnWidth = calendarRect.width / 7; // Each day column width
+      // Calculate which day column the mouse is over (accounting for 60px time column)
+      const dayColumnWidth = calendarRect.width / 7; // Each day column width within the flex-1 area
       const newDayIndex = Math.floor(mouseX / dayColumnWidth);
       const clampedDayIndex = Math.max(0, Math.min(6, newDayIndex));
       
@@ -1011,9 +1011,9 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               }}
             >
               <div style={{ height: '960px', position: 'relative' }}> {/* 8 AM to midnight (16 hours) */}
-                <div className="grid grid-cols-8 h-full">
+                <div className="flex h-full">
                 {/* Time column */}
-                <div className="border-r bg-gray-50">
+                <div className="border-r bg-gray-50" style={{ width: '60px', flexShrink: 0 }}>
                   <div className="relative h-full">
                     {timeLabels.map(({ hour, label, position }) => (
                       <div
@@ -1028,7 +1028,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                 </div>
 
                 {/* Day columns */}
-                <div className="col-span-7 relative select-none" ref={calendarRef}>
+                <div className="flex-1 relative select-none" ref={calendarRef}>
                   {/* Working hours background highlight */}
                   <div
                     className="absolute w-full bg-blue-50 opacity-30"
@@ -1259,7 +1259,6 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                     </div>
                   )}
                 </div>
-              </div>
               </div>
             </div>
           </div>
