@@ -98,7 +98,8 @@ export default function WeeklyScheduleView({
   onIndividualTypeFilterChange,
   timeIncrement, 
   setTimeIncrement,
-  showAllDayEvents: propShowAllDayEvents, 
+  showAllDayEvents, 
+  setShowAllDayEvents,
   createEventDialog, 
   setCreateEventDialog,
   setCreateEventData,
@@ -117,7 +118,6 @@ export default function WeeklyScheduleView({
   } | null>(null);
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
-  const [showAllDayEvents, setShowAllDayEvents] = useState(propShowAllDayEvents ?? true);
   const [dragState, setDragState] = useState<{
     isActive: boolean;
     startDay: number;
