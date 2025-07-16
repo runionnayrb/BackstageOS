@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical } from "lucide-react";
+import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
@@ -302,6 +302,14 @@ export default function Personnel() {
                           </div>
                           
                           <div className="flex gap-2">
+                            <Calendar 
+                              className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setLocation(`/shows/${projectId}/contacts/${contact.id}/availability`);
+                              }}
+                              title="Manage Weekly Availability"
+                            />
                             {contact.email && (
                               <Mail 
                                 className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
