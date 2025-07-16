@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, GripVertical, FileText, ChevronDown } from "lucide-react";
+import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,6 +12,18 @@ interface PersonnelParams {
   id: string;
 }
 
+interface Contact {
+  id: number;
+  projectId: number;
+  firstName: string;
+  lastName: string;
+  email?: string;
+  phone?: string;
+  category: string;
+  role?: string;
+  notes?: string;
+}
+
 export default function Personnel() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -20,37 +32,13 @@ export default function Personnel() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Order categories as requested: creative team, stage management, cast, crew, theatre staff
   const defaultCategories = [
-    {
-      id: "cast",
-      title: "Cast",
-      description: "Actors and performers",
-      href: `/shows/${projectId}/contacts/cast`,
-    },
-    {
-      id: "crew",
-      title: "Crew",
-      description: "Technical and production crew",
-      href: `/shows/${projectId}/contacts/crew`,
-    },
-    {
-      id: "stage_management",
-      title: "Stage Management",
-      description: "Stage managers and assistants",
-      href: `/shows/${projectId}/contacts/stage_management`,
-    },
-    {
-      id: "creative_team",
-      title: "Creative Team",
-      description: "Directors, designers, and creative staff",
-      href: `/shows/${projectId}/contacts/creative_team`,
-    },
-    {
-      id: "theater_staff",
-      title: "Theater Staff",
-      description: "House management and venue staff",
-      href: `/shows/${projectId}/contacts/theater_staff`,
-    },
+    { id: "creative_team", title: "Creative Team" },
+    { id: "stage_management", title: "Stage Management" },
+    { id: "cast", title: "Cast" },
+    { id: "crew", title: "Crew" },
+    { id: "theater_staff", title: "Theater Staff" },
   ];
 
   const [categories, setCategories] = useState(defaultCategories);
@@ -67,22 +55,11 @@ export default function Personnel() {
     enabled: !!projectId,
   });
 
-  // Query all contacts to determine if Create Contact Sheet button should be visible
-  const { data: allContacts = [] } = useQuery<Contact[]>({
+  // Query all contacts
+  const { data: allContacts = [], isLoading } = useQuery<Contact[]>({
     queryKey: [`/api/projects/${projectId}/contacts`],
     enabled: !!projectId,
   });
-
-  interface Contact {
-    id: number;
-    projectId: number;
-    firstName: string;
-    lastName: string;
-    email?: string;
-    phone?: string;
-    category: string;
-    role?: string;
-  }
 
   // Apply saved category order when project settings load
   useEffect(() => {
@@ -157,6 +134,20 @@ export default function Personnel() {
     setDraggedIndex(null);
   };
 
+  // Group contacts by category using current category order
+  const contactsByCategory = categories.reduce((acc, category) => {
+    acc[category.id] = allContacts.filter(contact => contact.category === category.id);
+    return acc;
+  }, {} as Record<string, Contact[]>);
+
+  const handleContactClick = (contact: Contact) => {
+    setLocation(`/shows/${projectId}/contacts/${contact.category}/${contact.id}`);
+  };
+
+  const handleEmailContact = (email: string) => {
+    setLocation(`/shows/${projectId}/compose?to=${encodeURIComponent(email)}`);
+  };
+
 
 
   if (!project) {
@@ -227,37 +218,90 @@ export default function Personnel() {
       </div>
 
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="space-y-1">
-          {categories.map((category, index) => (
-            <div
-              key={category.id}
-              draggable={isReordering}
-              onDragStart={isReordering ? (e) => handleDragStart(e, index) : undefined}
-              onDragOver={isReordering ? handleDragOver : undefined}
-              onDrop={isReordering ? (e) => handleDrop(e, index) : undefined}
-              onDragEnd={isReordering ? handleDragEnd : undefined}
-              className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                isReordering && draggedIndex === index 
-                  ? 'opacity-50 bg-blue-50 border-blue-200' 
-                  : ''
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                {isReordering && (
-                  <div className="drag-handle cursor-grab active:cursor-grabbing">
-                    <GripVertical className="h-5 w-5 text-gray-400" />
+        <div className="space-y-8">
+          {categories.map((category, categoryIndex) => {
+            const categoryContacts = contactsByCategory[category.id] || [];
+            
+            return (
+              <div
+                key={category.id}
+                draggable={isReordering}
+                onDragStart={isReordering ? (e) => handleDragStart(e, categoryIndex) : undefined}
+                onDragOver={isReordering ? handleDragOver : undefined}
+                onDrop={isReordering ? (e) => handleDrop(e, categoryIndex) : undefined}
+                onDragEnd={isReordering ? handleDragEnd : undefined}
+                className={`${
+                  isReordering && draggedIndex === categoryIndex 
+                    ? 'opacity-50 bg-blue-50 border-blue-200 border-2 rounded-lg p-4' 
+                    : ''
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  {isReordering && (
+                    <div className="drag-handle cursor-grab active:cursor-grabbing">
+                      <GripVertical className="h-5 w-5 text-gray-400" />
+                    </div>
+                  )}
+                  <h2 className="text-xl font-semibold text-gray-900">{category.title}</h2>
+                  <span className="text-gray-500 text-sm">({categoryContacts.length})</span>
+                </div>
+                
+                {categoryContacts.length === 0 ? (
+                  <div className="text-gray-500 italic py-4 px-2">
+                    No contacts in this category yet.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {categoryContacts.map((contact) => (
+                      <div
+                        key={contact.id}
+                        className="p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-gray-200"
+                        onClick={() => handleContactClick(contact)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <div className="flex-1">
+                            <span className="font-medium text-gray-900">
+                              {contact.firstName} {contact.lastName}
+                            </span>
+                            {contact.role && (
+                              <span className="text-gray-600 ml-2">• {contact.role}</span>
+                            )}
+                            {contact.email && (
+                              <span className="text-gray-600 ml-2">• {contact.email}</span>
+                            )}
+                            {contact.phone && (
+                              <span className="text-gray-600 ml-2">• {contact.phone}</span>
+                            )}
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            {contact.email && (
+                              <Mail 
+                                className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEmailContact(contact.email!);
+                                }}
+                              />
+                            )}
+                            {contact.phone && (
+                              <Phone 
+                                className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.location.href = `tel:${contact.phone}`;
+                                }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
-                <div 
-                  className="flex-1 flex justify-between items-center"
-                  onClick={() => setLocation(category.href)}
-                >
-                  <h3 className="text-lg font-medium text-gray-900">{category.title}</h3>
-                  <span className="text-gray-400 text-lg">→</span>
-                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
