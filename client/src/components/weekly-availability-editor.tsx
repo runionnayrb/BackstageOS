@@ -1,9 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, ChevronDown, Trash2 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatTimeDisplay, formatTimeFromMinutes, parseScheduleSettings, getTimezoneAbbreviation } from "@/lib/timeUtils";
@@ -749,74 +750,89 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
         </DialogHeader>
         
         <div className="space-y-4">
-          {/* Week navigation */}
-          <div className="flex items-center justify-between">
+          {/* Schedule-style unified header */}
+          <div className="flex items-center justify-between mb-4">
+            {/* Left side - Week range display */}
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-gray-900">
+                {formatWeekRange(weekDates)}
+              </h1>
+            </div>
+
+            {/* Right side - Controls matching schedule view */}
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" onClick={goToPreviousWeek}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <h3 className="text-lg font-semibold w-80 text-center">{formatWeekRange(weekDates)}</h3>
-              <Button variant="outline" size="sm" onClick={goToNextWeek}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={goToToday}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-auto">
+                    {timeIncrement} Min
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setTimeIncrement(15)}>
+                    15 Min
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTimeIncrement(30)}>
+                    30 Min
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTimeIncrement(60)}>
+                    60 Min
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <Button variant="outline" onClick={goToToday} size="sm" className="text-xs px-2 py-1 h-auto">
                 Today
               </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
+                className="text-xs px-2 py-1 h-auto"
                 onClick={() => {
                   if (scrollContainerRef.current) {
-                    const workingHoursPosition = startHour * 60; // 9 AM = 540 minutes
+                    const workingHoursPosition = startHour * 60;
                     scrollContainerRef.current.scrollTop = workingHoursPosition;
                   }
                 }}
               >
                 Working Hours
               </Button>
+              <div className="flex items-center">
+                <button onClick={goToPreviousWeek} className="p-1 hover:bg-gray-100 rounded-l transition-colors">
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button onClick={goToNextWeek} className="p-1 hover:bg-gray-100 rounded-r transition-colors">
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            
-            {/* Time increment selector and timezone display */}
+          </div>
+
+          {/* Secondary controls row */}
+          <div className="flex items-center justify-between text-sm text-gray-600">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <span className="text-sm">Grid:</span>
-                <Select value={timeIncrement.toString()} onValueChange={(value) => setTimeIncrement(parseInt(value) as 15 | 30 | 60)}>
-                  <SelectTrigger className="w-24 border-0 shadow-none">
+                <span>Create as:</span>
+                <Select 
+                  value={isDragCreating?.availabilityType || 'unavailable'} 
+                  onValueChange={(value) => {
+                    if (isDragCreating) {
+                      setIsDragCreating(prev => prev ? { ...prev, availabilityType: value as any } : null);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-32 h-7 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="15">15 min</SelectItem>
-                    <SelectItem value="30">30 min</SelectItem>
-                    <SelectItem value="60">60 min</SelectItem>
+                    <SelectItem value="unavailable">Unavailable</SelectItem>
+                    <SelectItem value="preferred">Preferred</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
-              {/* Timezone indicator */}
-              <div className="text-sm text-gray-600">
-                Times shown in {getTimezoneAbbreviation(timeZone || "America/New_York")}
-              </div>
             </div>
-
-            {/* Availability type selector for drag creation */}
-            <div className="flex items-center space-x-2">
-              <span className="text-sm">Create as:</span>
-              <Select 
-                value={isDragCreating?.availabilityType || 'unavailable'} 
-                onValueChange={(value) => {
-                  if (isDragCreating) {
-                    setIsDragCreating(prev => prev ? { ...prev, availabilityType: value as any } : null);
-                  }
-                }}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unavailable">Unavailable</SelectItem>
-                  <SelectItem value="preferred">Preferred</SelectItem>
-                </SelectContent>
-              </Select>
+            
+            <div>
+              Times shown in {getTimezoneAbbreviation(timeZone || "America/New_York")}
             </div>
           </div>
 
