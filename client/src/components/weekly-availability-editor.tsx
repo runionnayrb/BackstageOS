@@ -696,20 +696,26 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   useEffect(() => {
     const handleEscapeKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        // Cancel any active drag operations
-        if (isDragCreating) {
-          setIsDragCreating(null);
+        // Only handle escape if we have active drag operations
+        if (isDragCreating || draggedItem || isResizing) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Cancel any active drag operations
+          if (isDragCreating) {
+            setIsDragCreating(null);
+          }
+          if (draggedItem) {
+            setDraggedItem(null);
+          }
+          if (isResizing) {
+            setIsResizing(null);
+          }
+          
+          // Remove any active event listeners
+          document.removeEventListener('mousemove', () => {});
+          document.removeEventListener('mouseup', () => {});
         }
-        if (draggedItem) {
-          setDraggedItem(null);
-        }
-        if (isResizing) {
-          setIsResizing(null);
-        }
-        
-        // Remove any active event listeners
-        document.removeEventListener('mousemove', () => {});
-        document.removeEventListener('mouseup', () => {});
       }
     };
 
