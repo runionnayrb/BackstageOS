@@ -264,7 +264,7 @@ export default function DailyScheduleView({
       });
     }
     return labels;
-  }, [timeFormat, timeIncrement]);
+  }, [timeFormat, timeIncrement, scheduleSettings]);
 
   const containerHeight = TOTAL_MINUTES + 15; // Small padding to show 11:30 PM
 
