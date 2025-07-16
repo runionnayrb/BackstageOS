@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { formatTimeFromMinutes } from "@/lib/timeUtils";
+import { formatTimeFromMinutes, parseScheduleSettings } from "@/lib/timeUtils";
 import { getEventTypeColorFromDatabase } from "@/lib/eventUtils";
 import ScheduleFilter from "@/components/schedule-filter";
 import { filterEventsBySettings } from "@/lib/scheduleUtils";
@@ -118,13 +118,9 @@ export default function LocationAvailability({
     queryKey: [`/api/projects/${projectId}/settings`],
   });
 
-  const scheduleSettings = showSettings?.scheduleSettings ? 
-    (typeof showSettings.scheduleSettings === 'string' ? 
-      JSON.parse(showSettings.scheduleSettings) : 
-      showSettings.scheduleSettings) : {};
-
-  const timezone = scheduleSettings?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const timeFormat = scheduleSettings?.timeFormat || '12';
+  // Parse schedule settings with time format preference
+  const scheduleSettings = parseScheduleSettings(showSettings?.scheduleSettings);
+  const { timeFormat, timezone } = scheduleSettings;
 
   // Get locations data
   const { data: locations = [], isLoading: locationsLoading } = useQuery({

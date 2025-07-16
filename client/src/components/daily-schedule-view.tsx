@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { formatTimeDisplay } from '@/lib/timeUtils';
+import { formatTimeDisplay, parseScheduleSettings } from '@/lib/timeUtils';
 import { filterEventsBySettings, getTimezoneAbbreviation } from '@/lib/scheduleUtils';
 import { getEventTypeColor, getEventTypeColorFromDatabase, getEventTypeDisplayName } from '@/lib/eventUtils';
 import { ChevronLeft, ChevronRight, Plus, Calendar, Clock, ChevronDown, MapPin, Users, Edit } from "lucide-react";
@@ -163,7 +163,8 @@ export default function DailyScheduleView({
   const formatTime = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    const timeString = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    return formatTimeDisplay(timeString, timeFormat);
   };
 
   const minutesToPosition = (minutes: number): number => {
@@ -175,13 +176,9 @@ export default function DailyScheduleView({
     queryKey: ['/api/projects', projectId, 'settings'],
   });
 
-  // Extract time format
-  const scheduleSettings = projectSettings?.scheduleSettings 
-    ? (typeof projectSettings.scheduleSettings === 'string' 
-        ? JSON.parse(projectSettings.scheduleSettings) 
-        : projectSettings.scheduleSettings)
-    : {};
-  const timeFormat = scheduleSettings.timeFormat || '12-Hour AM/PM';
+  // Extract timezone and time format from settings using utility function
+  const scheduleSettings = parseScheduleSettings(projectSettings?.scheduleSettings);
+  const { timeFormat, timezone } = scheduleSettings;
 
   // Fetch events
   const { data: events = [] } = useQuery<ScheduleEvent[]>({

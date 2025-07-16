@@ -366,17 +366,7 @@ export default function MonthlyScheduleView({
                     .slice(0, 3)
                     .map((event: ScheduleEvent) => {
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
-                      const formatTime = (time: string) => {
-                        const [hours, minutes] = time.split(':');
-                        const hour24 = parseInt(hours);
-                        if (timeFormat === '12') {
-                          const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
-                          const ampm = hour24 >= 12 ? 'PM' : 'AM';
-                          return `${hour12}:${minutes}${ampm}`;
-                        } else {
-                          return `${hours}:${minutes}`;
-                        }
-                      };
+                      const formatEventTime = (time: string) => formatTimeDisplay(time, timeFormat);
                       
                       return (
                         <Popover key={event.id}>
@@ -388,7 +378,7 @@ export default function MonthlyScheduleView({
                             >
                               {!event.isAllDay && (
                                 <span className="font-medium opacity-90 text-[10px] flex-shrink-0">
-                                  {formatTime(event.startTime)}
+                                  {formatEventTime(event.startTime)}
                                 </span>
                               )}
                               <span className="truncate">
