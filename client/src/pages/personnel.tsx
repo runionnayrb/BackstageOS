@@ -273,7 +273,7 @@ export default function Personnel() {
                         className="p-2 hover:bg-gray-50 cursor-pointer transition-colors"
                         onClick={() => handleContactClick(contact)}
                       >
-                        <div className="grid grid-cols-5 gap-4 items-center">
+                        <div className="grid items-center gap-3" style={{ gridTemplateColumns: "2fr 1.5fr 3fr 1.5fr auto" }}>
                           <div className="text-gray-900">
                             {contact.firstName} {contact.lastName}
                           </div>
