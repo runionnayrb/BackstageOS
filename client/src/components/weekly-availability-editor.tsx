@@ -1258,10 +1258,11 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                       </div>
                     </div>
                   )}
-                </div>
-              </div>
-            </div>
-          </div>
+                </div>  {/* Close Day columns - line 1031 */}
+              </div>  {/* Close Flex container - line 1014 */}
+            </div>  {/* Close Height container - line 1013 */}
+          </div>  {/* Close Calendar body - line 1000 */}
+        </div>  {/* Close Calendar grid - line 940 */}
 
           {/* Legend */}
           <div className="flex items-center justify-between">
@@ -1283,75 +1284,74 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             </div>
           </div>
         </div>
-
       </DialogContent>
 
-        {/* Edit dialog */}
-        {editingItem && (
-          <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Edit Availability</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Type</label>
-                  <Select 
-                    value={editingItem.availabilityType} 
-                    onValueChange={(value) => setEditingItem(prev => prev ? { ...prev, availabilityType: value as 'unavailable' | 'preferred' } : null)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="unavailable">Unavailable</SelectItem>
-                      <SelectItem value="preferred">Preferred</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Notes</label>
-                  <Textarea
-                    value={editingItem.notes}
-                    onChange={(e) => setEditingItem(prev => prev ? { ...prev, notes: e.target.value } : null)}
-                    rows={3}
-                  />
-                </div>
-                <div className="flex justify-between">
+      {/* Edit dialog */}
+      {editingItem && (
+        <Dialog open={!!editingItem} onOpenChange={(open) => !open && setEditingItem(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Availability</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Type</label>
+                <Select 
+                  value={editingItem.availabilityType} 
+                  onValueChange={(value) => setEditingItem(prev => prev ? { ...prev, availabilityType: value as 'unavailable' | 'preferred' } : null)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unavailable">Unavailable</SelectItem>
+                    <SelectItem value="preferred">Preferred</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Notes</label>
+                <Textarea
+                  value={editingItem.notes}
+                  onChange={(e) => setEditingItem(prev => prev ? { ...prev, notes: e.target.value } : null)}
+                  rows={3}
+                />
+              </div>
+              <div className="flex justify-between">
+                <Button
+                  variant="destructive"
+                  onClick={() => {
+                    deleteMutation.mutate(editingItem.id);
+                    setEditingItem(null);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+                <div className="space-x-2">
+                  <Button variant="outline" onClick={() => setEditingItem(null)}>
+                    Cancel
+                  </Button>
                   <Button
-                    variant="destructive"
                     onClick={() => {
-                      deleteMutation.mutate(editingItem.id);
+                      updateMutation.mutate({
+                        id: editingItem.id,
+                        data: {
+                          availabilityType: editingItem.availabilityType,
+                          notes: editingItem.notes
+                        }
+                      });
                       setEditingItem(null);
                     }}
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
+                    Save
                   </Button>
-                  <div className="space-x-2">
-                    <Button variant="outline" onClick={() => setEditingItem(null)}>
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        updateMutation.mutate({
-                          id: editingItem.id,
-                          data: {
-                            availabilityType: editingItem.availabilityType,
-                            notes: editingItem.notes
-                          }
-                        });
-                        setEditingItem(null);
-                      }}
-                    >
-                      Save
-                    </Button>
-                  </div>
                 </div>
               </div>
-            </DialogContent>
-          </Dialog>
-        )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   );
 }
