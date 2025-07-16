@@ -692,6 +692,34 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     document.addEventListener('mouseup', handleMouseUp);
   }, [timeIncrement, updateMutation, isResizing]);
 
+  // Add escape key handler to cancel drag operations
+  useEffect(() => {
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        // Cancel any active drag operations
+        if (isDragCreating) {
+          setIsDragCreating(null);
+        }
+        if (draggedItem) {
+          setDraggedItem(null);
+        }
+        if (isResizing) {
+          setIsResizing(null);
+        }
+        
+        // Remove any active event listeners
+        document.removeEventListener('mousemove', () => {});
+        document.removeEventListener('mouseup', () => {});
+      }
+    };
+
+    document.addEventListener('keydown', handleEscapeKey);
+    
+    return () => {
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [isDragCreating, draggedItem, isResizing]);
+
   // Generate time labels based on time increment starting from 8 AM using show's time format
   const START_HOUR = 8; // 8 AM
   const END_HOUR = 24; // Midnight
