@@ -33,6 +33,7 @@ interface WeeklyScheduleViewProps {
   timeIncrement: 15 | 30 | 60;
   setTimeIncrement: (increment: 15 | 30 | 60) => void;
   showAllDayEvents?: boolean;
+  setShowAllDayEvents?: (show: boolean) => void;
   createEventDialog: boolean;
   setCreateEventDialog: (open: boolean) => void;
   setCreateEventData: (data: { date?: string; startTime?: string; endTime?: string }) => void;
