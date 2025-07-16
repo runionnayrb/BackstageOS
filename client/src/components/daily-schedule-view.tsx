@@ -95,6 +95,7 @@ export default function DailyScheduleView({
 }: DailyScheduleViewProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
+  const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
 
   // Touch handling for swipe navigation
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
@@ -439,7 +440,11 @@ export default function DailyScheduleView({
                     .map((event) => {
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
                       return (
-                        <Popover key={event.id}>
+                        <Popover 
+                          key={event.id}
+                          open={openPopoverId === `allday-${event.id}`}
+                          onOpenChange={(open) => setOpenPopoverId(open ? `allday-${event.id}` : null)}
+                        >
                           <PopoverTrigger asChild>
                             <div
                               className="text-white rounded px-2 py-1 text-sm mb-1 cursor-pointer hover:opacity-90 transition-opacity border-l-4"
@@ -466,7 +471,10 @@ export default function DailyScheduleView({
                                   variant="ghost"
                                   size="sm"
                                   className="h-6 w-6 p-0"
-                                  onClick={() => setEditingEvent(event)}
+                                  onClick={() => {
+                                    setEditingEvent(event);
+                                    setOpenPopoverId(null);
+                                  }}
                                 >
                                   <Edit className="h-3 w-3" />
                                 </Button>
@@ -618,7 +626,11 @@ export default function DailyScheduleView({
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
 
                       return (
-                        <Popover key={event.id}>
+                        <Popover 
+                          key={event.id}
+                          open={openPopoverId === `timed-${event.id}`}
+                          onOpenChange={(open) => setOpenPopoverId(open ? `timed-${event.id}` : null)}
+                        >
                           <PopoverTrigger asChild>
                             <div
                               className="absolute left-1 right-1 text-white rounded px-2 py-1 text-sm overflow-hidden cursor-pointer hover:opacity-90 transition-opacity border-l-4"
@@ -652,7 +664,10 @@ export default function DailyScheduleView({
                                   variant="ghost"
                                   size="sm"
                                   className="h-6 w-6 p-0"
-                                  onClick={() => setEditingEvent(event)}
+                                  onClick={() => {
+                                    setEditingEvent(event);
+                                    setOpenPopoverId(null);
+                                  }}
                                 >
                                   <Edit className="h-3 w-3" />
                                 </Button>

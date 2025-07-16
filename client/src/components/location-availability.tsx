@@ -66,6 +66,7 @@ export default function LocationAvailability({
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
 
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const selectedItemsRef = useRef<Set<number>>(new Set());
@@ -853,7 +854,10 @@ export default function LocationAvailability({
                 <div className="text-sm font-medium">
                   {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                 </div>
-                <Popover>
+                <Popover 
+                  open={openPopoverId === 'calendar'}
+                  onOpenChange={(open) => setOpenPopoverId(open ? 'calendar' : null)}
+                >
                   <PopoverTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                       <CalendarIcon className="h-4 w-4" />
@@ -866,6 +870,7 @@ export default function LocationAvailability({
                       onSelect={(date) => {
                         if (date) {
                           setCurrentDate(date);
+                          setOpenPopoverId(null); // Close popover after selection
                         }
                       }}
                       initialFocus
@@ -1092,7 +1097,10 @@ export default function LocationAvailability({
                                     minWidth: '20px',
                                   }}
                                   onMouseDown={(e) => handleBlockMouseDown(e, item)}
-                                  onDoubleClick={() => setEditingItem(item)}
+                                  onDoubleClick={() => {
+                                    setEditingItem(item);
+                                    setOpenPopoverId(null); // Close any open popovers
+                                  }}
                                 >
                                   {/* Left resize handle */}
                                   <div

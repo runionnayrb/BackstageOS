@@ -54,6 +54,7 @@ export default function AvailabilityComparison({
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const selectedItemsRef = useRef<Set<number>>(new Set());
   
@@ -998,7 +999,10 @@ export default function AvailabilityComparison({
                 <div className="text-sm font-medium">
                   {currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                 </div>
-                <Popover>
+                <Popover 
+                  open={openPopoverId === 'calendar'} 
+                  onOpenChange={(open) => setOpenPopoverId(open ? 'calendar' : null)}
+                >
                   <PopoverTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                       <Calendar className="h-4 w-4" />
@@ -1011,6 +1015,7 @@ export default function AvailabilityComparison({
                       onSelect={(date) => {
                         if (date) {
                           setCurrentDate(date);
+                          setOpenPopoverId(null); // Close popover when date is selected
                         }
                       }}
                       initialFocus
@@ -1515,7 +1520,10 @@ export default function AvailabilityComparison({
                                       setSelectedItems(newSelected);
                                     }
                                   }}
-                                  onDoubleClick={() => setEditingItem(item)}
+                                  onDoubleClick={() => {
+                                    setEditingItem(item);
+                                    setOpenPopoverId(null); // Close any open popovers
+                                  }}
                                   title={`${currentItem.availabilityType === 'unavailable' ? 'Unavailable' : 'Preferred'}: ${formatTime(currentStartMinutes)} - ${formatTime(currentEndMinutes)}${currentItem.notes ? `\n${currentItem.notes}` : ''}`}
                                 >
                                   {/* Left resize handle */}

@@ -74,6 +74,7 @@ export default function MonthlyScheduleView({
   const [editEventDialog, setEditEventDialog] = useState<{ isOpen: boolean; event?: ScheduleEvent }>({ isOpen: false });
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -369,7 +370,11 @@ export default function MonthlyScheduleView({
                       const formatEventTime = (time: string) => formatTimeDisplay(time.slice(0, 5), timeFormat);
                       
                       return (
-                        <Popover key={event.id}>
+                        <Popover 
+                          key={event.id}
+                          open={openPopoverId === `event-${event.id}`}
+                          onOpenChange={(open) => setOpenPopoverId(open ? `event-${event.id}` : null)}
+                        >
                           <PopoverTrigger asChild>
                             <div
                               className="px-1 py-0.5 rounded text-xs cursor-pointer transition-colors text-white hover:opacity-80 flex items-center space-x-1"
@@ -402,6 +407,7 @@ export default function MonthlyScheduleView({
                                 size="sm"
                                 className="h-6 w-6 p-0"
                                 onClick={() => {
+                                  setOpenPopoverId(null);
                                   setEditEventDialog({ isOpen: true, event });
                                 }}
                               >
@@ -438,7 +444,10 @@ export default function MonthlyScheduleView({
 
                               {/* Participants */}
                               {event.participants && event.participants.length > 0 && (
-                                <Popover>
+                                <Popover 
+                                  open={openPopoverId === `event-${event.id}-participants`}
+                                  onOpenChange={(open) => setOpenPopoverId(open ? `event-${event.id}-participants` : null)}
+                                >
                                   <PopoverTrigger asChild>
                                     <div className="flex items-center space-x-2 text-xs text-gray-600 cursor-pointer hover:text-gray-800 transition-colors">
                                       <Users className="h-3 w-3" />
