@@ -927,7 +927,7 @@ export default function WeeklyScheduleView({
       labels.push(
         <div
           key={minutes}
-          className="absolute left-0 w-20 text-left pl-2 text-sm text-gray-600"
+          className="absolute right-2 text-xs text-gray-500"
           style={{ top: `${position}px` }}
         >
           {formatTimeDisplay(timeString, timeFormat as '12' | '24')}
@@ -949,9 +949,7 @@ export default function WeeklyScheduleView({
     incrementLines.push(
       <div
         key={`increment-${minutes}`}
-        className={`absolute left-0 right-0 border-b ${
-          isHourLine ? 'border-gray-300' : 'border-gray-200'
-        } z-10`}
+        className="absolute left-0 right-0 border-t border-gray-100"
         style={{ top: `${position}px` }}
       />
     );
@@ -1120,8 +1118,8 @@ export default function WeeklyScheduleView({
           {showAllDayEvents && (
             <div className="relative min-h-[60px] bg-gray-50 border-b border-gray-200">
               <div 
-                className="absolute left-0 top-0 bottom-0 bg-gray-100 border-r border-gray-200 p-2 text-sm font-medium text-gray-600 flex items-center justify-start"
-                style={{ width: '80px' }}
+                className="absolute left-0 top-0 bottom-0 bg-gray-50 border-r border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600"
+                style={{ width: '80px', minHeight: '60px' }}
               >
                 All Day
               </div>
