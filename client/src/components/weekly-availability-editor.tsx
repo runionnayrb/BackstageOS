@@ -274,11 +274,11 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   };
 
   const minutesToTime = (minutes: number): string => {
-    // Ensure proper time format conversion (handle both '12h'/'24h' and '12'/'24' formats)
-    const format = timeFormat === '24h' || timeFormat === '24' ? '24' : '12';
-    const timeString = formatTimeFromMinutes(minutes, format);
-    // Remove seconds completely from display
-    return timeString.replace(/:\d{2}(\s|$)/, '$1').replace(/:\d{2}(AM|PM)/, '$1');
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    const timeString = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    // Use the same formatTimeDisplay function as weekly and daily schedule views
+    return formatTimeDisplay(timeString, timeFormat);
   };
 
   const minutesToPosition = (minutes: number): number => {
