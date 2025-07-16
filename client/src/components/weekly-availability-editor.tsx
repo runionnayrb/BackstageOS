@@ -59,6 +59,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   const [editingItem, setEditingItem] = useState<ContactAvailability & { notes: string; availabilityType: string } | null>(null);
   const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [showAllDayEvents, setShowAllDayEvents] = useState(true);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { toast } = useToast();
@@ -880,21 +881,17 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button variant="outline" onClick={goToToday} size="sm" className="text-xs px-2 py-1 h-auto">
-                Today
-              </Button>
               <Button 
-                variant="outline" 
+                variant={showAllDayEvents ? "default" : "outline"}
                 size="sm" 
                 className="text-xs px-2 py-1 h-auto"
-                onClick={() => {
-                  if (scrollContainerRef.current) {
-                    const workingHoursPosition = startHour * 60;
-                    scrollContainerRef.current.scrollTop = workingHoursPosition;
-                  }
-                }}
+                onClick={() => setShowAllDayEvents(!showAllDayEvents)}
               >
-                Working Hours
+                <Calendar className="h-3 w-3 mr-1" />
+                All Day
+              </Button>
+              <Button variant="outline" onClick={goToToday} size="sm" className="text-xs px-2 py-1 h-auto">
+                Today
               </Button>
               <div className="flex items-center">
                 <button onClick={goToPreviousWeek} className="p-1 hover:bg-gray-100 rounded-l transition-colors">
@@ -942,20 +939,78 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
             <div className="flex bg-gray-50 border-b">
               <div className="p-3 text-xs font-medium text-gray-500 border-r bg-gray-50" style={{ width: '60px', flexShrink: 0 }}>Time</div>
               <div className="flex-1 flex">
-                {weekDates.map((date: Date, index: number) => (
-                  <div key={index} className="p-3 text-center border-r last:border-r-0 flex-1">
-                    <div className="text-xs font-medium text-gray-500">
-                      {dayNames[index]}
+                {weekDates.map((date: Date, index: number) => {
+                  const isToday = date.toDateString() === new Date().toDateString();
+                  return (
+                    <div key={index} className="p-3 text-center border-r last:border-r-0 flex-1">
+                      <div style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        gap: '4px',
+                        height: '100%',
+                        width: '100%'
+                      }}>
+                        <span 
+                          style={{ 
+                            lineHeight: '14px',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            color: '#6b7280',
+                            margin: 0,
+                            padding: 0
+                          }}
+                        >
+                          {date.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 2)}
+                        </span>
+                        {isToday ? (
+                          <div 
+                            className="bg-red-500 rounded-full"
+                            style={{
+                              width: '20px',
+                              height: '20px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0
+                            }}
+                          >
+                            <span 
+                              style={{ 
+                                lineHeight: '12px',
+                                fontSize: '12px',
+                                fontWeight: 'bold',
+                                color: '#ffffff',
+                                margin: 0,
+                                padding: 0
+                              }}
+                            >
+                              {date.getDate()}
+                            </span>
+                          </div>
+                        ) : (
+                          <span 
+                            style={{ 
+                              lineHeight: '14px',
+                              fontSize: '14px',
+                              fontWeight: 'bold',
+                              color: '#111827',
+                              margin: 0,
+                              padding: 0
+                            }}
+                          >
+                            {date.getDate()}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-lg font-semibold">
-                      {date.getDate()}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
-            {/* All Day Events section - always visible */}
+            {/* All Day Events section - conditionally visible */}
+            {showAllDayEvents && (
             <div className="flex border-b bg-gray-25">
               <div className="p-2 text-xs font-medium text-gray-500 border-r bg-gray-50 flex items-center" style={{ width: '60px', flexShrink: 0 }}>
                 All Day
@@ -999,6 +1054,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               })}
               </div>
             </div>
+            )}
 
             {/* Calendar body */}
             <div 
