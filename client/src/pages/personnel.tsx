@@ -148,6 +148,21 @@ export default function Personnel() {
     setLocation(`/shows/${projectId}/compose?to=${encodeURIComponent(email)}`);
   };
 
+  const formatPhoneNumber = (phone: string | undefined): string => {
+    if (!phone) return '';
+    
+    // Remove all non-digits
+    const digits = phone.replace(/\D/g, '');
+    
+    // Format as (xxx) xxx-xxxx
+    if (digits.length === 10) {
+      return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    }
+    
+    // Return original if not 10 digits
+    return phone;
+  };
+
 
 
   if (!project) {
@@ -269,7 +284,7 @@ export default function Personnel() {
                             {contact.email || ''}
                           </div>
                           <div className="text-gray-900">
-                            {contact.phone || ''}
+                            {formatPhoneNumber(contact.phone)}
                           </div>
                           
                           <div className="flex gap-2">
