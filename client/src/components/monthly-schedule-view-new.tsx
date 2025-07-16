@@ -94,9 +94,9 @@ export default function MonthlyScheduleView({
     queryKey: [`/api/projects/${projectId}/settings`],
   });
 
-  // Get time format from settings
+  // Get time format and week start day from settings
   const scheduleSettings = parseScheduleSettings(settings?.scheduleSettings);
-  const timeFormat = scheduleSettings.timeFormat;
+  const { timeFormat, weekStartDay } = scheduleSettings;
 
   // Filter events based on contacts, all-day settings, and schedule filtering
   const getEventsForDate = (date: Date) => {
@@ -241,7 +241,23 @@ export default function MonthlyScheduleView({
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
     const firstDayOfCalendar = new Date(firstDayOfMonth);
-    firstDayOfCalendar.setDate(firstDayOfCalendar.getDate() - firstDayOfCalendar.getDay());
+    
+    // Map week start day string to number
+    const weekStartMap: { [key: string]: number } = {
+      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, 
+      thursday: 4, friday: 5, saturday: 6
+    };
+    
+    const configuredStartDay = weekStartMap[weekStartDay] || 0;
+    const firstDayOfMonthWeekday = firstDayOfMonth.getDay();
+    
+    // Calculate days to subtract to get to the configured start day
+    let daysToSubtract = firstDayOfMonthWeekday - configuredStartDay;
+    if (daysToSubtract < 0) {
+      daysToSubtract += 7;
+    }
+    
+    firstDayOfCalendar.setDate(firstDayOfCalendar.getDate() - daysToSubtract);
     
     const days = [];
     let currentDay = new Date(firstDayOfCalendar);
@@ -254,13 +270,13 @@ export default function MonthlyScheduleView({
       }
       days.push(weekDays);
       
-      if (currentDay > lastDayOfMonth && currentDay.getDay() === 0) {
+      if (currentDay > lastDayOfMonth && currentDay.getDay() === configuredStartDay) {
         break;
       }
     }
     
     return days;
-  }, []);
+  }, [weekStartDay]);
 
   const calendarDays = generateCalendar(currentDate);
 
@@ -293,11 +309,25 @@ export default function MonthlyScheduleView({
       <div className="bg-white rounded-lg border">
         {/* Day Headers */}
         <div className="grid grid-cols-7 border-b">
-          {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
-            <div key={day} className="p-2 text-center text-sm font-medium text-gray-500 border-r last:border-r-0">
-              {day}
-            </div>
-          ))}
+          {(() => {
+            const allDayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+            const weekStartMap: { [key: string]: number } = {
+              sunday: 0, monday: 1, tuesday: 2, wednesday: 3, 
+              thursday: 4, friday: 5, saturday: 6
+            };
+            
+            const configuredStartDay = weekStartMap[weekStartDay] || 0;
+            const orderedDayNames = [
+              ...allDayNames.slice(configuredStartDay),
+              ...allDayNames.slice(0, configuredStartDay)
+            ];
+            
+            return orderedDayNames.map((day) => (
+              <div key={day} className="p-2 text-center text-sm font-medium text-gray-500 border-r last:border-r-0">
+                {day}
+              </div>
+            ));
+          })()}
         </div>
 
         {/* Calendar Days */}

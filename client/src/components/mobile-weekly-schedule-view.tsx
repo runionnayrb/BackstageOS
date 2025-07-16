@@ -104,7 +104,23 @@ export default function MobileWeeklyScheduleView({
     // Start with current date, but align to start of week
     const date = currentDate || new Date();
     const startOfWeek = new Date(date);
-    startOfWeek.setDate(date.getDate() - date.getDay()); // Start on Sunday
+    
+    // Map week start day string to number (default to Sunday if weekStartDay not available yet)
+    const weekStartMap: { [key: string]: number } = {
+      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, 
+      thursday: 4, friday: 5, saturday: 6
+    };
+    
+    const configuredStartDay = weekStartMap['sunday'] || 0; // Default to Sunday for initial state
+    const currentDay = startOfWeek.getDay();
+    
+    // Calculate days to subtract to get to the configured start day
+    let daysToSubtract = currentDay - configuredStartDay;
+    if (daysToSubtract < 0) {
+      daysToSubtract += 7;
+    }
+    
+    startOfWeek.setDate(startOfWeek.getDate() - daysToSubtract);
     return startOfWeek;
   });
 
@@ -203,6 +219,33 @@ export default function MobileWeeklyScheduleView({
   }, []);
 
   const days = generateDays(currentDate || new Date());
+
+  // Update start date when week start day setting changes
+  useEffect(() => {
+    if (!weekStartDay) return; // Wait for settings to load
+    
+    const date = currentDate || new Date();
+    const newStartOfWeek = new Date(date);
+    
+    // Map week start day string to number
+    const weekStartMap: { [key: string]: number } = {
+      sunday: 0, monday: 1, tuesday: 2, wednesday: 3, 
+      thursday: 4, friday: 5, saturday: 6
+    };
+    
+    const configuredStartDay = weekStartMap[weekStartDay] || 0;
+    const currentDay = newStartOfWeek.getDay();
+    
+    // Calculate days to subtract to get to the configured start day
+    let daysToSubtract = currentDay - configuredStartDay;
+    if (daysToSubtract < 0) {
+      daysToSubtract += 7;
+    }
+    
+    newStartOfWeek.setDate(newStartOfWeek.getDate() - daysToSubtract);
+    setStartDate(newStartOfWeek);
+    setIsInitialized(false); // Reset initialization to allow repositioning
+  }, [weekStartDay, currentDate]);
 
   // ONLY initial positioning - NO programmatic scrolling after initialization
   useEffect(() => {
