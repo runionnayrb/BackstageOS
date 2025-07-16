@@ -163,8 +163,7 @@ export default function DailyScheduleView({
   const formatTime = (minutes: number): string => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    const timeString = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-    return formatTimeDisplay(timeString, timeFormat);
+    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
   };
 
   const minutesToPosition = (minutes: number): number => {
@@ -633,7 +632,7 @@ export default function DailyScheduleView({
                               <div className="font-medium truncate">{event.title}</div>
                               {height > 40 && (
                                 <div className="text-xs opacity-90 truncate">
-                                  {formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24')} - {formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24')}
+                                  {formatTimeDisplay(formatTime(startMinutes), timeFormat)} - {formatTimeDisplay(formatTime(endMinutes), timeFormat)}
                                 </div>
                               )}
                             </div>
@@ -667,7 +666,7 @@ export default function DailyScheduleView({
                                   <span>
                                     {event.isAllDay 
                                       ? 'All Day' 
-                                      : `${formatTimeDisplay(formatTime(startMinutes), timeFormat as '12' | '24').replace(':00', '')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat as '12' | '24').replace(':00', '')}`
+                                      : `${formatTimeDisplay(formatTime(startMinutes), timeFormat).replace(':00', '')} - ${formatTimeDisplay(formatTime(endMinutes), timeFormat).replace(':00', '')}`
                                     }
                                   </span>
                                 </div>

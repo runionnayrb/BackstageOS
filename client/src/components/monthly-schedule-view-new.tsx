@@ -366,7 +366,7 @@ export default function MonthlyScheduleView({
                     .slice(0, 3)
                     .map((event: ScheduleEvent) => {
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
-                      const formatEventTime = (time: string) => formatTimeDisplay(time, timeFormat);
+                      const formatEventTime = (time: string) => formatTimeDisplay(time.slice(0, 5), timeFormat);
                       
                       return (
                         <Popover key={event.id}>
@@ -417,7 +417,7 @@ export default function MonthlyScheduleView({
                                 <span>
                                   {event.isAllDay 
                                     ? 'All Day' 
-                                    : `${formatTimeDisplay(event.startTime, timeFormat).replace(':00', '')} - ${formatTimeDisplay(event.endTime, timeFormat).replace(':00', '')}`
+                                    : `${formatTimeDisplay(event.startTime.slice(0, 5), timeFormat).replace(':00', '')} - ${formatTimeDisplay(event.endTime.slice(0, 5), timeFormat).replace(':00', '')}`
                                   }
                                 </span>
                               </div>
