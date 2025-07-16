@@ -658,7 +658,7 @@ export default function WeeklyScheduleView({
     if (!rect) return;
 
     // Calculate the event's current position on screen
-    const eventLeft = 80 + ((rect.width - 80) * dayIndex / 7);
+    const eventLeft = 64 + ((rect.width - 64) * dayIndex / 7);
     const eventTop = minutesToPosition(startMinutes);
     
     // Calculate offset relative to the event's top-left corner
@@ -700,7 +700,7 @@ export default function WeeklyScheduleView({
           const currentY = e.clientY - rect!.top;
           
           // Calculate original click position
-          const originalEventLeft = 80 + ((rect!.width - 80) * draggedEvent.originalPosition.dayIndex / 7);
+          const originalEventLeft = 64 + ((rect!.width - 64) * draggedEvent.originalPosition.dayIndex / 7);
           const originalEventTop = minutesToPosition(draggedEvent.originalPosition.startMinutes);
           const originalClickX = originalEventLeft + draggedEvent.offset.x;
           const originalClickY = originalEventTop + draggedEvent.offset.y - (scrollContainerRef.current?.scrollTop || 0);
@@ -729,7 +729,7 @@ export default function WeeklyScheduleView({
         const eventY = mouseY - draggedEvent.offset.y;
 
         // Calculate day index from event position
-        const newDayIndex = Math.floor((eventX - 80) / ((newRect.width - 80) / 7));
+        const newDayIndex = Math.floor((eventX - 64) / ((newRect.width - 64) / 7));
         const constrainedDayIndex = Math.max(0, Math.min(6, newDayIndex));
         
         // Calculate time position from event position
@@ -997,7 +997,7 @@ export default function WeeklyScheduleView({
                 left: 0,
                 top: 0,
                 bottom: 0,
-                width: '80px',
+                width: '64px',
                 height: '24px',
                 minHeight: '24px', 
                 maxHeight: '24px',
@@ -1033,8 +1033,8 @@ export default function WeeklyScheduleView({
                   className="border-l border-gray-200 cursor-pointer transition-colors hover:bg-blue-50"
                   style={{
                     position: 'absolute',
-                    left: `calc(80px + (100% - 80px) * ${dayIndex} / 7)`,
-                    width: `calc((100% - 80px) / 7)`,
+                    left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
+                    width: `calc((100% - 64px) / 7)`,
                     height: '24px', 
                     minHeight: '24px', 
                     maxHeight: '24px',
@@ -1119,7 +1119,7 @@ export default function WeeklyScheduleView({
             <div className="relative min-h-[60px] bg-gray-50 border-b border-gray-200">
               <div 
                 className="absolute left-0 top-0 bottom-0 bg-gray-50 border-r border-gray-200 flex items-center justify-center text-xs font-medium text-gray-600"
-                style={{ width: '80px', minHeight: '60px' }}
+                style={{ width: '64px', minHeight: '60px' }}
               >
                 All Day
               </div>
@@ -1132,8 +1132,8 @@ export default function WeeklyScheduleView({
                     key={dayIndex} 
                     className="absolute top-0 bottom-0 p-2 border-l border-gray-200 space-y-1"
                     style={{
-                      left: `calc(80px + (100% - 80px) * ${dayIndex} / 7)`,
-                      width: `calc((100% - 80px) / 7)`,
+                      left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
+                      width: `calc((100% - 64px) / 7)`,
                     }}
                   >
                     {dayEvents.map(event => (
@@ -1299,7 +1299,7 @@ export default function WeeklyScheduleView({
               {/* Time column with consistent right border */}
               <div 
                 className="absolute left-0 top-0 bottom-0 bg-gray-50 border-r border-gray-200 z-20"
-                style={{ width: '80px' }}
+                style={{ width: '64px' }}
               >
                 {/* Time labels */}
                 {timeLabels}
@@ -1311,8 +1311,8 @@ export default function WeeklyScheduleView({
                   key={dayIndex}
                   className="absolute top-0 bottom-0 border-l border-gray-100 hover:bg-blue-50/30 cursor-crosshair"
                   style={{
-                    left: `calc(80px + (100% - 80px) * ${dayIndex} / 7)`,
-                    width: `calc((100% - 80px) / 7)`,
+                    left: `calc(64px + (100% - 64px) * ${dayIndex} / 7)`,
+                    width: `calc((100% - 64px) / 7)`,
                   }}
                   onMouseDown={(e) => handleMouseDown(e, dayIndex)}
                   onContextMenu={(e) => e.preventDefault()}
