@@ -1001,7 +1001,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
               ref={scrollContainerRef}
               className="border-t"
               style={{ 
-                height: '500px',
+                height: '400px',
                 overflowY: 'scroll',
                 position: 'relative'
               }}
