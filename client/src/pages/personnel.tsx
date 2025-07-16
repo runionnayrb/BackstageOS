@@ -266,11 +266,11 @@ export default function Personnel() {
                     No contacts in this category yet.
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     {categoryContacts.map((contact) => (
                       <div
                         key={contact.id}
-                        className="p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors border border-gray-200"
+                        className="p-2 hover:bg-gray-50 cursor-pointer transition-colors"
                         onClick={() => handleContactClick(contact)}
                       >
                         <div className="grid grid-cols-5 gap-4 items-center">
