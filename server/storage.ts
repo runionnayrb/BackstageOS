@@ -763,6 +763,16 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
+  async getContactAvailabilityByProjectAndDate(projectId: number, date: string): Promise<ContactAvailability[]> {
+    const result = await db.select()
+      .from(contactAvailability)
+      .where(and(
+        eq(contactAvailability.projectId, projectId),
+        eq(contactAvailability.date, date)
+      ));
+    return result;
+  }
+
   async createContactAvailability(availability: InsertContactAvailability): Promise<ContactAvailability> {
     const result = await db.insert(contactAvailability).values(availability).returning();
     return result[0];
@@ -1286,6 +1296,55 @@ export class DatabaseStorage implements IStorage {
       ...result[0],
       participants,
     };
+  }
+
+  async getScheduleEventsByProjectAndDate(projectId: number, date: string): Promise<any[]> {
+    const result = await db.select({
+      id: scheduleEvents.id,
+      projectId: scheduleEvents.projectId,
+      title: scheduleEvents.title,
+      description: scheduleEvents.description,
+      date: scheduleEvents.date,
+      startTime: scheduleEvents.startTime,
+      endTime: scheduleEvents.endTime,
+      type: scheduleEvents.type,
+      location: scheduleEvents.location,
+      notes: scheduleEvents.notes,
+      isAllDay: scheduleEvents.isAllDay,
+      createdBy: scheduleEvents.createdBy,
+      createdAt: scheduleEvents.createdAt,
+      updatedAt: scheduleEvents.updatedAt,
+    })
+    .from(scheduleEvents)
+    .where(and(
+      eq(scheduleEvents.projectId, projectId),
+      eq(scheduleEvents.date, date)
+    ))
+    .orderBy(scheduleEvents.startTime);
+
+    // Get participants for each event
+    const eventsWithParticipants = await Promise.all(
+      result.map(async (event) => {
+        const participants = await db.select({
+          id: scheduleEventParticipants.id,
+          contactId: scheduleEventParticipants.contactId,
+          contactFirstName: contacts.firstName,
+          contactLastName: contacts.lastName,
+          isRequired: scheduleEventParticipants.isRequired,
+          status: scheduleEventParticipants.status,
+        })
+        .from(scheduleEventParticipants)
+        .leftJoin(contacts, eq(scheduleEventParticipants.contactId, contacts.id))
+        .where(eq(scheduleEventParticipants.eventId, event.id));
+
+        return {
+          ...event,
+          participants,
+        };
+      })
+    );
+
+    return eventsWithParticipants;
   }
 
   async createScheduleEvent(event: any): Promise<any> {

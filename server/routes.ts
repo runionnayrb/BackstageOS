@@ -16,6 +16,7 @@ import { isAdmin } from "./adminUtils";
 import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
+import { ConflictValidationService } from "./services/conflictValidationService.js";
 import { z } from "zod";
 import sgMail from "@sendgrid/mail";
 
@@ -242,6 +243,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Initialize error clustering service
   const errorClusteringService = new ErrorClusteringService(storage);
+  
+  // Initialize conflict validation service
+  const conflictValidationService = new ConflictValidationService(storage);
 
   // Helper function for error descriptions
   function getErrorDescription(type: string, message: string, page: string) {
@@ -4049,6 +4053,24 @@ Respond with valid JSON only.`;
         createdBy: parseInt(req.user.id.toString()),
       });
 
+      // Validate for conflicts if participants are provided
+      if (req.body.participants && Array.isArray(req.body.participants) && req.body.participants.length > 0) {
+        const conflictResult = await conflictValidationService.validateEventConflicts(
+          projectId,
+          eventData.date,
+          eventData.startTime,
+          eventData.endTime,
+          req.body.participants
+        );
+
+        if (conflictResult.hasConflicts) {
+          return res.status(409).json({
+            message: "Cannot create event due to scheduling conflicts",
+            conflicts: conflictResult.conflicts
+          });
+        }
+      }
+
       const event = await storage.createScheduleEvent(eventData);
       
       // Handle participants if provided
@@ -4122,6 +4144,29 @@ Respond with valid JSON only.`;
       });
       
       const validatedData = updateEventSchema.parse(req.body);
+      
+      // Validate for conflicts if participants are provided or if time/date is being updated
+      if (req.body.participants && Array.isArray(req.body.participants) && req.body.participants.length > 0) {
+        const eventDate = validatedData.date || event.date;
+        const startTime = validatedData.startTime || event.startTime;
+        const endTime = validatedData.endTime || event.endTime;
+        
+        const conflictResult = await conflictValidationService.validateEventConflicts(
+          event.projectId,
+          eventDate,
+          startTime,
+          endTime,
+          req.body.participants
+        );
+
+        if (conflictResult.hasConflicts) {
+          return res.status(409).json({
+            message: "Cannot update event due to scheduling conflicts",
+            conflicts: conflictResult.conflicts
+          });
+        }
+      }
+      
       const updatedEvent = await storage.updateScheduleEvent(eventId, validatedData);
       
       // Handle participants update if provided
