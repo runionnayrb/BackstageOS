@@ -373,6 +373,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
       availabilityType: 'unavailable' as const
     };
 
+    console.log('Setting isDragCreating state:', dragState);
     setIsDragCreating(dragState);
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -692,14 +693,18 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     document.addEventListener('mouseup', handleMouseUp);
   }, [timeIncrement, updateMutation, isResizing]);
 
-  // Add escape key handler to cancel drag operations
+  // Add escape key handler to cancel drag operations - only when dialog is open
   useEffect(() => {
+    if (!isOpen) return;
+    
     const handleEscapeKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         // Only handle escape if we have active drag operations
         if (isDragCreating || draggedItem || isResizing) {
           e.preventDefault();
           e.stopPropagation();
+          
+          console.log('Escape pressed - canceling drag operations:', { isDragCreating, draggedItem, isResizing });
           
           // Cancel any active drag operations
           if (isDragCreating) {
@@ -724,7 +729,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
     return () => {
       document.removeEventListener('keydown', handleEscapeKey);
     };
-  }, [isDragCreating, draggedItem, isResizing]);
+  }, [isOpen, isDragCreating, draggedItem, isResizing]);
 
   // Generate time labels based on time increment starting from 8 AM using show's time format
   const START_HOUR = 8; // 8 AM
