@@ -269,7 +269,9 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
   const minutesToTime = (minutes: number): string => {
     // Ensure proper time format conversion (handle both '12h'/'24h' and '12'/'24' formats)
     const format = timeFormat === '24h' || timeFormat === '24' ? '24' : '12';
-    return formatTimeFromMinutes(minutes, format);
+    const timeString = formatTimeFromMinutes(minutes, format);
+    // Remove seconds if present (e.g., "9:00:00 AM" -> "9:00 AM")
+    return timeString.replace(':00 ', ' ').replace(':00AM', 'AM').replace(':00PM', 'PM').replace(':00$', '');
   };
 
   const minutesToPosition = (minutes: number): number => {
