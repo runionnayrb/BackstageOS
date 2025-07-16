@@ -461,6 +461,7 @@ export default function Schedule() {
                 timeIncrement={timeIncrement}
                 setTimeIncrement={setTimeIncrement}
                 showAllDayEvents={showAllDayEvents}
+                setShowAllDayEvents={setShowAllDayEvents}
                 createEventDialog={createEventDialog}
                 setCreateEventDialog={setCreateEventDialog}
                 setCreateEventData={setCreateEventData}
