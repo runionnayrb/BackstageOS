@@ -939,32 +939,35 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
           {/* Calendar grid */}
           <div className="border rounded-lg overflow-hidden bg-white">
             {/* Day headers */}
-            <div className="grid grid-cols-8 bg-gray-50 border-b">
-              <div className="p-3 text-xs font-medium text-gray-500 border-r">Time</div>
-              {weekDates.map((date: Date, index: number) => (
-                <div key={index} className="p-3 text-center border-r last:border-r-0">
-                  <div className="text-xs font-medium text-gray-500">
-                    {dayNames[index]}
+            <div className="flex bg-gray-50 border-b">
+              <div className="p-3 text-xs font-medium text-gray-500 border-r bg-gray-50" style={{ width: '60px', flexShrink: 0 }}>Time</div>
+              <div className="flex-1 flex">
+                {weekDates.map((date: Date, index: number) => (
+                  <div key={index} className="p-3 text-center border-r last:border-r-0 flex-1">
+                    <div className="text-xs font-medium text-gray-500">
+                      {dayNames[index]}
+                    </div>
+                    <div className="text-lg font-semibold">
+                      {date.getDate()}
+                    </div>
                   </div>
-                  <div className="text-lg font-semibold">
-                    {date.getDate()}
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
             {/* All Day Events section - always visible */}
-            <div className="grid grid-cols-8 border-b bg-gray-25">
-              <div className="p-2 text-xs font-medium text-gray-500 border-r bg-gray-50 flex items-center">
+            <div className="flex border-b bg-gray-25">
+              <div className="p-2 text-xs font-medium text-gray-500 border-r bg-gray-50 flex items-center" style={{ width: '60px', flexShrink: 0 }}>
                 All Day
               </div>
-              {weekDates.map((date: Date, dayIndex: number) => {
+              <div className="flex-1 flex">
+                {weekDates.map((date: Date, dayIndex: number) => {
                 const dayEvents = allDayEvents.filter((event: any) => 
                   event.date === date.toISOString().split('T')[0]
                 );
                 
                 return (
-                  <div key={dayIndex} className="p-1 border-r last:border-r-0 min-h-[40px] max-h-[80px] overflow-y-auto">
+                  <div key={dayIndex} className="p-1 border-r last:border-r-0 min-h-[40px] max-h-[80px] overflow-y-auto flex-1">
                     {dayEvents.map((event: any) => {
                       // Safe color fallback  
                       let eventColor = '#3b82f6'; // Default blue
@@ -994,6 +997,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                   </div>
                 );
               })}
+              </div>
             </div>
 
             {/* Calendar body */}
