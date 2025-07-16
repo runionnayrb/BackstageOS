@@ -839,7 +839,7 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
           Manage Availability
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-6xl max-h-[90vh]">
+      <DialogContent className="max-w-7xl max-h-[90vh] w-[95vw]">
         <DialogHeader>
           <DialogTitle>
             Weekly Availability - {contact.firstName} {contact.lastName}
