@@ -1071,19 +1071,21 @@ export function WeeklyAvailabilityEditor({ contact }: AvailabilityEditorProps) {
                     return (
                       <div
                         key={`event-${event.id}`}
-                        className="absolute rounded border-2 border-purple-700 bg-purple-600 text-white text-xs pointer-events-none z-30"
+                        className="absolute rounded border-2 text-white text-xs pointer-events-none z-30"
                         style={{
                           left: `${(eventDayIndex / 7) * 100 + 0.5}%`,
                           width: `${100 / 7 - 1}%`,
                           top: `${minutesToPosition(startMinutes)}px`,
                           height: `${minutesToHeight(endMinutes - startMinutes)}px`,
+                          backgroundColor: showSettings?.scheduleSettings?.eventColors?.[event.type] || '#7C3AED',
+                          borderColor: showSettings?.scheduleSettings?.eventColors?.[event.type] || '#7C3AED'
                         }}
-                        title={`Scheduled: ${event.title} (${formatTimeDisplay(event.startTime, timeFormat)} - ${formatTimeDisplay(event.endTime, timeFormat)})`}
+                        title={`Scheduled: ${event.title} (${formatTimeDisplay(event.startTime.slice(0, 5), timeFormat)} - ${formatTimeDisplay(event.endTime.slice(0, 5), timeFormat)})`}
                       >
                         <div className="p-1">
                           <div className="font-medium truncate">{event.title}</div>
                           <div className="opacity-90 truncate">
-                            {formatTimeDisplay(event.startTime, timeFormat)} - {formatTimeDisplay(event.endTime, timeFormat)}
+                            {formatTimeDisplay(event.startTime.slice(0, 5), timeFormat)} - {formatTimeDisplay(event.endTime.slice(0, 5), timeFormat)}
                           </div>
                           <div className="opacity-75 text-xs truncate">{event.type}</div>
                         </div>
