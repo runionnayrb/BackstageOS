@@ -1361,8 +1361,8 @@ export default function WeeklyScheduleView({
                             selectedEvents.has(event.id) ? 'ring-2 ring-yellow-400' : ''
                           } ${draggedEvent?.event.id === event.id && draggedEvent.isDragging ? 'opacity-50' : ''}`}
                           style={{
-                            left: `calc(80px + (100% - 80px) * ${displayDayIndex} / 7 + 2px)`,
-                            width: `calc((100% - 80px) / 7 - 4px)`,
+                            left: `calc(64px + (100% - 64px) * ${displayDayIndex} / 7 + 2px)`,
+                            width: `calc((100% - 64px) / 7 - 4px)`,
                             top: `${resizedTop}px`,
                             height: `${Math.max(20, displayHeight)}px`,
                             minHeight: '20px',
@@ -1538,8 +1538,8 @@ export default function WeeklyScheduleView({
                 <div
                   className="absolute text-xs text-white rounded bg-gray-500 opacity-60 pointer-events-none z-30"
                   style={{
-                    left: `calc(80px + (100% - 80px) * ${dragState.startDay} / 7 + 2px)`,
-                    width: `calc((100% - 80px) / 7 - 4px)`,
+                    left: `calc(64px + (100% - 64px) * ${dragState.startDay} / 7 + 2px)`,
+                    width: `calc((100% - 64px) / 7 - 4px)`,
                     top: `${minutesToPosition(Math.min(dragState.startTime, dragState.currentTime))}px`,
                     height: `${Math.abs(minutesToPosition(dragState.currentTime) - minutesToPosition(dragState.startTime))}px`,
                     minHeight: '20px',
