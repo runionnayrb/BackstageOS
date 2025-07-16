@@ -4053,14 +4053,15 @@ Respond with valid JSON only.`;
         createdBy: parseInt(req.user.id.toString()),
       });
 
-      // Validate for conflicts if participants are provided
-      if (req.body.participants && Array.isArray(req.body.participants) && req.body.participants.length > 0) {
+      // Validate for conflicts if participants are provided or location is specified
+      if ((req.body.participants && Array.isArray(req.body.participants) && req.body.participants.length > 0) || eventData.location) {
         const conflictResult = await conflictValidationService.validateEventConflicts(
           projectId,
           eventData.date,
           eventData.startTime,
           eventData.endTime,
-          req.body.participants
+          req.body.participants || [],
+          eventData.location
         );
 
         if (conflictResult.hasConflicts) {
@@ -4145,18 +4146,20 @@ Respond with valid JSON only.`;
       
       const validatedData = updateEventSchema.parse(req.body);
       
-      // Validate for conflicts if participants are provided or if time/date is being updated
-      if (req.body.participants && Array.isArray(req.body.participants) && req.body.participants.length > 0) {
+      // Validate for conflicts if participants are provided or if time/date/location is being updated
+      if ((req.body.participants && Array.isArray(req.body.participants) && req.body.participants.length > 0) || validatedData.location) {
         const eventDate = validatedData.date || event.date;
         const startTime = validatedData.startTime || event.startTime;
         const endTime = validatedData.endTime || event.endTime;
+        const locationName = validatedData.location || event.location;
         
         const conflictResult = await conflictValidationService.validateEventConflicts(
           event.projectId,
           eventDate,
           startTime,
           endTime,
-          req.body.participants
+          req.body.participants || [],
+          locationName
         );
 
         if (conflictResult.hasConflicts) {

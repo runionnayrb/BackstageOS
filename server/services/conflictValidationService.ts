@@ -3,9 +3,11 @@ import { DatabaseStorage } from '../storage.js';
 export interface ConflictValidationResult {
   hasConflicts: boolean;
   conflicts: Array<{
-    contactId: number;
-    contactName: string;
-    conflictType: 'unavailable' | 'schedule_overlap';
+    contactId?: number;
+    contactName?: string;
+    locationId?: number;
+    locationName?: string;
+    conflictType: 'unavailable' | 'schedule_overlap' | 'location_unavailable';
     conflictTime: string;
     conflictDetails: string;
   }>;
@@ -19,18 +21,19 @@ export class ConflictValidationService {
   }
 
   /**
-   * Validates if participants have availability conflicts for a given event
+   * Validates if participants and locations have availability conflicts for a given event
    */
   async validateEventConflicts(
     projectId: number,
     date: string,
     startTime: string,
     endTime: string,
-    participantIds: number[]
+    participantIds: number[],
+    locationName?: string
   ): Promise<ConflictValidationResult> {
     const conflicts: ConflictValidationResult['conflicts'] = [];
 
-    // Check availability conflicts
+    // Check participant availability conflicts
     const availabilityConflicts = await this.checkAvailabilityConflicts(
       projectId,
       date,
@@ -40,7 +43,7 @@ export class ConflictValidationService {
     );
     conflicts.push(...availabilityConflicts);
 
-    // Check schedule overlap conflicts
+    // Check participant schedule overlap conflicts
     const scheduleConflicts = await this.checkScheduleOverlapConflicts(
       projectId,
       date,
@@ -49,6 +52,18 @@ export class ConflictValidationService {
       participantIds
     );
     conflicts.push(...scheduleConflicts);
+
+    // Check location availability conflicts
+    if (locationName) {
+      const locationConflicts = await this.checkLocationAvailabilityConflicts(
+        projectId,
+        date,
+        startTime,
+        endTime,
+        locationName
+      );
+      conflicts.push(...locationConflicts);
+    }
 
     return {
       hasConflicts: conflicts.length > 0,
@@ -157,6 +172,50 @@ export class ConflictValidationService {
 
     // Check if ranges overlap: (start1 < end2 && end1 > start2)
     return start1Minutes < end2Minutes && end1Minutes > start2Minutes;
+  }
+
+  /**
+   * Check if location is marked as unavailable during the event time
+   */
+  private async checkLocationAvailabilityConflicts(
+    projectId: number,
+    date: string,
+    startTime: string,
+    endTime: string,
+    locationName: string
+  ): Promise<ConflictValidationResult['conflicts']> {
+    const conflicts: ConflictValidationResult['conflicts'] = [];
+
+    // Get location availability records for this project and date
+    const locationAvailabilityRecords = await this.storage.getLocationAvailabilityByProjectAndDate(projectId, date);
+    
+    // Get all locations for this project to find the location ID by name
+    const locations = await this.storage.getEventLocationsByProjectId(projectId);
+    const location = locations.find(loc => loc.name === locationName);
+    
+    if (!location) {
+      // If location doesn't exist in database, no conflicts can exist
+      return conflicts;
+    }
+
+    // Filter for this specific location and unavailable type
+    const locationUnavailability = locationAvailabilityRecords.filter(
+      record => record.locationId === location.id && record.availabilityType === 'unavailable'
+    );
+
+    for (const availability of locationUnavailability) {
+      if (this.hasTimeOverlap(startTime, endTime, availability.startTime, availability.endTime)) {
+        conflicts.push({
+          locationId: location.id,
+          locationName: locationName,
+          conflictType: 'location_unavailable',
+          conflictTime: `${availability.startTime} - ${availability.endTime}`,
+          conflictDetails: `Location "${locationName}" is marked as unavailable during ${availability.startTime} - ${availability.endTime}${availability.notes ? `: ${availability.notes}` : ''}`
+        });
+      }
+    }
+
+    return conflicts;
   }
 
   /**

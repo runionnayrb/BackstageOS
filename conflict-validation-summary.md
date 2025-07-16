@@ -6,7 +6,7 @@ The conflict validation system has been successfully implemented to prevent sche
 
 ## 🎯 Key Features Implemented
 
-### 1. **Availability Conflict Detection**
+### 1. **Participant Availability Conflict Detection**
 - Detects when participants are marked as "unavailable" during event times
 - Prevents scheduling during blocked time periods
 - Provides detailed conflict information including notes/reasons
@@ -16,15 +16,23 @@ The conflict validation system has been successfully implemented to prevent sche
 - Detects when participants are already scheduled in other events
 - Validates overlapping time ranges accurately
 
-### 3. **Server-Side Validation**
+### 3. **Location Availability Conflict Detection** ⭐ NEW
+- Detects when locations are marked as "unavailable" during event times
+- Prevents scheduling events in locations that are blocked for maintenance, repairs, or other reasons
+- Matches location names from events to location availability records
+- Provides detailed conflict information including location names and unavailability reasons
+
+### 4. **Server-Side Validation**
 - Conflict validation occurs on the server before database writes
 - Returns HTTP 409 Conflict status with detailed error messages
 - Integrated with both event creation and update operations
+- Validates participants AND locations simultaneously
 
-### 4. **Detailed Error Reporting**
-- Contact names and conflict details provided in error responses
-- Conflict type identification (unavailable vs schedule_overlap)
+### 5. **Detailed Error Reporting**
+- Contact names, location names, and conflict details provided in error responses
+- Conflict type identification (unavailable, schedule_overlap, location_unavailable)
 - Time range information showing exactly when conflicts occur
+- Clear explanations of what caused each conflict
 
 ## 📁 Files Created/Modified
 
@@ -86,6 +94,16 @@ class ConflictValidationService {
   "existing_event": "Costume Fitting 2:00 PM - 3:00 PM",
   "new_event": "Blocking Rehearsal 2:30 PM - 4:30 PM",
   "result": "BLOCKED - Double booking prevented"
+}
+```
+
+### Scenario 3: Location Unavailable
+```json
+{
+  "location": "Studio A",
+  "unavailable": "10:00 AM - 12:00 PM (Maintenance work)",
+  "event_time": "11:00 AM - 1:00 PM",
+  "result": "BLOCKED - Location unavailable during requested time"
 }
 ```
 

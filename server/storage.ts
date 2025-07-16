@@ -773,6 +773,16 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
+  async getLocationAvailabilityByProjectAndDate(projectId: number, date: string): Promise<LocationAvailability[]> {
+    const result = await db.select()
+      .from(locationAvailability)
+      .where(and(
+        eq(locationAvailability.projectId, projectId),
+        eq(locationAvailability.date, date)
+      ));
+    return result;
+  }
+
   async createContactAvailability(availability: InsertContactAvailability): Promise<ContactAvailability> {
     const result = await db.insert(contactAvailability).values(availability).returning();
     return result[0];
