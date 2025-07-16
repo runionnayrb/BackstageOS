@@ -8,6 +8,7 @@ import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ContactDetailModal } from "@/components/contact-detail-modal";
+import { WeeklyAvailabilityEditor } from "@/components/weekly-availability-editor";
 
 interface PersonnelParams {
   id: string;
@@ -47,6 +48,8 @@ export default function Personnel() {
   const [isReordering, setIsReordering] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
+  const [availabilityContact, setAvailabilityContact] = useState<Contact | null>(null);
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -156,6 +159,16 @@ export default function Personnel() {
   const handleEditContact = (contact: Contact) => {
     // Navigate to the category page for editing
     setLocation(`/shows/${projectId}/contacts/${contact.category}`);
+  };
+
+  const handleAvailabilityClick = (contact: Contact) => {
+    setAvailabilityContact(contact);
+    setShowAvailabilityModal(true);
+  };
+
+  const handleAvailabilityModalClose = () => {
+    setShowAvailabilityModal(false);
+    setAvailabilityContact(null);
   };
 
   const handleEmailContact = (email: string) => {
@@ -306,7 +319,7 @@ export default function Personnel() {
                               className="h-4 w-4 text-gray-600 hover:text-gray-800 cursor-pointer" 
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setLocation(`/shows/${projectId}/contacts/${contact.id}/availability`);
+                                handleAvailabilityClick(contact);
                               }}
                               title="Manage Weekly Availability"
                             />
@@ -347,6 +360,15 @@ export default function Personnel() {
           isOpen={showContactModal}
           onClose={handleContactModalClose}
           onEdit={handleEditContact}
+        />
+      )}
+
+      {/* Weekly Availability Modal */}
+      {availabilityContact && (
+        <WeeklyAvailabilityEditor
+          contact={availabilityContact}
+          isOpen={showAvailabilityModal}
+          onOpenChange={setShowAvailabilityModal}
         />
       )}
     </div>
