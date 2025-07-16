@@ -80,3 +80,22 @@ export function formatTimestamp(date: Date, timeFormat: '12' | '24' = '12', time
 
   return date.toLocaleTimeString(undefined, options);
 }
+
+export function getTimezoneAbbreviation(timezone: string): string {
+  try {
+    // Get the timezone abbreviation using Intl.DateTimeFormat
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      timeZoneName: 'short'
+    });
+    
+    const parts = formatter.formatToParts(now);
+    const timeZoneName = parts.find(part => part.type === 'timeZoneName')?.value || timezone;
+    
+    return timeZoneName;
+  } catch (error) {
+    console.warn('Error getting timezone abbreviation:', error);
+    return timezone;
+  }
+}
