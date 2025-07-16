@@ -1,8 +1,6 @@
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
 import { ContactDetail } from "@/components/contact-detail";
 
@@ -38,13 +36,8 @@ export function ContactDetailModal({ contact, isOpen, onClose, onEdit }: Contact
   if (!contact) return null;
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {contact.firstName} {contact.lastName}
-          </DialogTitle>
-        </DialogHeader>
+    <Dialog open={isOpen}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto [&>button]:hidden">
         <ContactDetail
           contact={contact}
           onEdit={() => onEdit(contact)}
