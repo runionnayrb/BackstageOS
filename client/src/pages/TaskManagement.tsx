@@ -90,7 +90,7 @@ export function TaskManagement() {
   // Show loading state
   if (loadingDatabase) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-4">
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
           <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded"></div>
@@ -103,71 +103,71 @@ export function TaskManagement() {
   if (database) {
     return (
       <div className="h-full flex flex-col">
-        {/* Header */}
-        <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <h1 className="text-2xl font-bold">Tasks</h1>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                {/* Expandable Search */}
-                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                  isSearchExpanded ? 'w-64 opacity-100' : 'w-0 opacity-0'
-                }`}>
-                  <Input
-                    placeholder="Search tasks..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full border-0 bg-transparent focus:ring-0 focus:outline-none placeholder:text-muted-foreground"
-                    autoFocus={isSearchExpanded}
-                    onBlur={() => {
-                      if (!searchQuery) {
-                        setIsSearchExpanded(false);
-                      }
-                    }}
-                  />
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setIsSearchExpanded(!isSearchExpanded)}
-                  className="hover:bg-transparent group"
-                >
-                  <Search className="h-4 w-4 group-hover:text-blue-600" />
-                </Button>
-                <Button variant="ghost" size="sm" className="hover:bg-transparent group">
-                  <Filter className="h-4 w-4 group-hover:text-blue-600" />
-                </Button>
-                <Button variant="ghost" size="sm" className="hover:bg-transparent group">
-                  <Settings className="h-4 w-4 group-hover:text-blue-600" />
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => setIsCreateTaskOpen(true)} className="hover:bg-transparent group">
-                  <Plus className="h-4 w-4 group-hover:text-blue-600" />
-                </Button>
-              </div>
+        {/* Header - matching Reports page structure */}
+        <div className="px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tasks</h2>
+              <p className="text-gray-600">Manage and track your project tasks</p>
             </div>
-
-            {/* Views */}
-            {views.length > 0 && (
-              <div className="flex items-center space-x-2 mt-4">
-                <span className="text-sm text-muted-foreground">Views:</span>
-                {views.map((view) => (
-                  <Button
-                    key={view.id}
-                    variant={selectedView?.id === view.id ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setSelectedView(view)}
-                    className="h-8"
-                  >
-                    {getViewIcon(view.type)}
-                    <span className="ml-2">{view.name}</span>
-                  </Button>
-                ))}
+            
+            <div className="flex items-center space-x-2">
+              {/* Expandable Search */}
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                isSearchExpanded ? 'w-64 opacity-100' : 'w-0 opacity-0'
+              }`}>
+                <Input
+                  placeholder="Search tasks..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full border-0 bg-transparent focus:ring-0 focus:outline-none placeholder:text-muted-foreground"
+                  autoFocus={isSearchExpanded}
+                  onBlur={() => {
+                    if (!searchQuery) {
+                      setIsSearchExpanded(false);
+                    }
+                  }}
+                />
               </div>
-            )}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+                className="hover:bg-transparent group"
+              >
+                <Search className="h-4 w-4 group-hover:text-blue-600" />
+              </Button>
+              <Button variant="ghost" size="sm" className="hover:bg-transparent group">
+                <Filter className="h-4 w-4 group-hover:text-blue-600" />
+              </Button>
+              <Button variant="ghost" size="sm" className="hover:bg-transparent group">
+                <Settings className="h-4 w-4 group-hover:text-blue-600" />
+              </Button>
+              <Button onClick={() => setIsCreateTaskOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Task
+              </Button>
+            </div>
           </div>
+
+          {/* Views */}
+          {views.length > 0 && (
+            <div className="flex items-center space-x-2 mb-6">
+              <span className="text-sm text-muted-foreground">Views:</span>
+              {views.map((view) => (
+                <Button
+                  key={view.id}
+                  variant={selectedView?.id === view.id ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSelectedView(view)}
+                  className="h-8"
+                >
+                  {getViewIcon(view.type)}
+                  <span className="ml-2">{view.name}</span>
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Task Board */}
@@ -187,7 +187,7 @@ export function TaskManagement() {
 
   // Fallback if no database is found
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="px-4 sm:px-6 lg:px-8 py-4">
       <div className="text-center py-12">
         <Database className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
         <h3 className="text-lg font-semibold mb-2">Setting up your task database</h3>
