@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -21,18 +20,18 @@ import {
   Zap,
   MoreHorizontal,
   ChevronRight,
+  Table,
+  Calendar,
 } from 'lucide-react';
 
 interface TaskViewSettingsProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
+  children: React.ReactNode;
   currentView: 'table' | 'kanban' | 'calendar';
   onViewChange: (view: 'table' | 'kanban' | 'calendar') => void;
 }
 
 export function TaskViewSettings({ 
-  isOpen, 
-  onOpenChange, 
+  children,
   currentView, 
   onViewChange 
 }: TaskViewSettingsProps) {
@@ -45,13 +44,13 @@ export function TaskViewSettings({
   const getViewIcon = (view: string) => {
     switch (view) {
       case 'table':
-        return <LayoutGrid className="w-4 h-4" />;
+        return <Table className="w-4 h-4" />;
       case 'kanban':
         return <LayoutGrid className="w-4 h-4" />;
       case 'calendar':
-        return <LayoutGrid className="w-4 h-4" />;
+        return <Calendar className="w-4 h-4" />;
       default:
-        return <LayoutGrid className="w-4 h-4" />;
+        return <Table className="w-4 h-4" />;
     }
   };
 
@@ -69,21 +68,16 @@ export function TaskViewSettings({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-80 p-0">
-        <SheetHeader className="px-6 py-4 border-b">
+    <Popover>
+      <PopoverTrigger asChild>
+        {children}
+      </PopoverTrigger>
+      <PopoverContent side="left" className="w-80 p-0">
+        <div className="px-6 py-4 border-b">
           <div className="flex items-center justify-between">
-            <SheetTitle className="text-base font-medium">View settings</SheetTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onOpenChange(false)}
-              className="h-6 w-6 p-0"
-            >
-              <X className="w-4 h-4" />
-            </Button>
+            <h3 className="text-base font-medium">View settings</h3>
           </div>
-        </SheetHeader>
+        </div>
 
         <div className="flex flex-col h-full">
           {/* View Settings Section */}
@@ -282,7 +276,7 @@ export function TaskViewSettings({
             </div>
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </PopoverContent>
+    </Popover>
   );
 }
