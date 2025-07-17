@@ -70,7 +70,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
     lastName: contact?.lastName || "",
     email: contact?.email || "",
     phone: contact?.phone ? formatPhoneNumber(contact.phone) : "",
-    category: contact?.category || category,
+    category: contact?.category || "",
     role: contact?.role || "",
     notes: contact?.notes || "",
     emergencyContactName: contact?.emergencyContactName || "",
@@ -250,22 +250,6 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="category">Contact Type *</Label>
-              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select contact type..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="creative_team">Creative Team</SelectItem>
-                  <SelectItem value="stage_management">Stage Management</SelectItem>
-                  <SelectItem value="cast">Cast</SelectItem>
-                  <SelectItem value="crew">Crew</SelectItem>
-                  <SelectItem value="theater_staff">Theater Staff</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="email">Email</Label>
@@ -303,6 +287,22 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
                 onChange={handleInputChange}
                 placeholder="e.g., Actor, Director, Sound Engineer"
               />
+            </div>
+
+            <div>
+              <Label htmlFor="category">Contact Type *</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select contact type..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="creative_team">Creative Team</SelectItem>
+                  <SelectItem value="stage_management">Stage Management</SelectItem>
+                  <SelectItem value="cast">Cast</SelectItem>
+                  <SelectItem value="crew">Crew</SelectItem>
+                  <SelectItem value="theater_staff">Theater Staff</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Cast Types Section - Only for Cast Category */}
