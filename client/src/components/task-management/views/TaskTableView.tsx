@@ -378,14 +378,16 @@ export function TaskTableView({
 
       case 'date':
         if (column.key === 'dueDate') {
+          const dueDate = task.properties?.dueDate;
           return (
             <div onClick={(e) => e.stopPropagation()} className="w-full">
               <input
                 type="date"
-                value={task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : ''}
+                value={dueDate ? format(new Date(dueDate), 'yyyy-MM-dd') : ''}
                 onChange={(e) => {
-                  const date = e.target.value ? new Date(e.target.value) : null;
-                  onTaskUpdate(task.id, { dueDate: date });
+                  const date = e.target.value ? new Date(e.target.value).toISOString() : null;
+                  const updatedProperties = { ...task.properties, dueDate: date };
+                  onTaskUpdate(task.id, { properties: updatedProperties });
                 }}
                 className="w-full h-8 px-2 bg-transparent border-0 outline-none text-sm focus:bg-white focus:border focus:border-blue-200 focus:rounded"
                 placeholder="Set due date"
