@@ -60,7 +60,7 @@ function ProjectAssignmentProperty({ form }: { form: any }) {
         name="properties.project"
         render={({ field }) => (
           <FormItem className="w-auto">
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select onValueChange={field.onChange} defaultValue={field.value || "none"}>
               <FormControl>
                 <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:border-none hover:border-none w-auto [&>svg]:hidden [&]:!border-none" style={{ border: 'none !important', outline: 'none !important', boxShadow: 'none !important' }}>
                   <SelectValue placeholder="No project" />
