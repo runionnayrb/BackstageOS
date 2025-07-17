@@ -141,7 +141,7 @@ export function TaskDialog({
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: task?.title || "",
+      title: task?.title === "New Task" ? "" : (task?.title || ""),
       content: task?.content || "",
       status: task?.status || "not_started",
       priority: task?.priority || "medium",
