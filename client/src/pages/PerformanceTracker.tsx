@@ -429,6 +429,7 @@ export default function PerformanceTracker() {
           projectId={projectId}
           settings={contractSettings}
           onClose={() => setShowSettingsForm(false)}
+          hasEquityMembers={equityCheck?.hasEquityMembers || false}
         />
       )}
 

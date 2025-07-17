@@ -2003,9 +2003,11 @@ export const showContractSettings = pgTable("show_contract_settings", {
   contractType: varchar("contract_type").notNull(), // "Production", "LORT A", "LORT B", "LORT C", "LORT D", "SPT Tier 1", ..., "SPT Tier 10"
   baseSalary: decimal("base_salary", { precision: 10, scale: 2 }).notNull(),
   understudyBump: decimal("understudy_bump", { precision: 10, scale: 2 }).notNull(),
-  swingBump: decimal("swing_bump", { precision: 10, scale: 2 }).notNull(),
+  swingBump: decimal("swing_bump", { precision: 10, scale: 2 }),
+  swingBumpRule: text("swing_bump_rule"), // For Production contracts with complex rules
+  partialSwingIncrement: decimal("partial_swing_increment", { precision: 10, scale: 2 }),
   rehearsalCap: integer("rehearsal_cap").notNull(), // weekly hour limit
-  overtimeTrigger: integer("overtime_trigger").notNull(), // overtime trigger in hours
+  overtimeTrigger: varchar("overtime_trigger").notNull(), // "Above X hours/week"
   rulebookPdfUrl: varchar("rulebook_pdf_url"), // Placeholder for Phase 2
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),

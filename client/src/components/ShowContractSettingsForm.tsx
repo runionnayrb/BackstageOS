@@ -7,50 +7,84 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Settings, Clock, Users, DollarSign, FileText, Shield } from "lucide-react";
+import { Settings, DollarSign, Clock, Users, FileText, AlertCircle } from "lucide-react";
+import { insertShowContractSettingsSchema } from "@shared/schema";
 
-const settingsFormSchema = z.object({
-  contractType: z.enum(["equity", "non_equity", "mixed"]),
-  equityRules: z.object({
-    maxRehearsalHours: z.coerce.number().min(0).optional(),
-    maxPerformanceHours: z.coerce.number().min(0).optional(),
-    minimumBreakTime: z.coerce.number().min(0).optional(),
-    overtimeRate: z.coerce.number().min(0).optional(),
-    fightCallRequired: z.boolean().default(false),
-    voiceCallRequired: z.boolean().default(false),
-    intimacyCallRequired: z.boolean().default(false)
-  }),
-  trackingRequirements: z.object({
-    performanceTracking: z.boolean().default(true),
-    rehearsalTracking: z.boolean().default(true),
-    attendanceTracking: z.boolean().default(true),
-    overtimeTracking: z.boolean().default(true),
-    breakTracking: z.boolean().default(true),
-    revenueTracking: z.boolean().default(false)
-  }),
-  reportingSettings: z.object({
-    weeklyReports: z.boolean().default(true),
-    monthlyReports: z.boolean().default(true),
-    endOfRunReports: z.boolean().default(true),
-    customReportPeriod: z.string().optional()
-  }),
-  notifications: z.object({
-    overtimeAlerts: z.boolean().default(true),
-    breakViolationAlerts: z.boolean().default(true),
-    attendanceAlerts: z.boolean().default(true),
-    reportDeadlineAlerts: z.boolean().default(true)
-  }),
-  customSettings: z.object({
-    additionalNotes: z.string().optional(),
-    specialRequirements: z.string().optional(),
-    contactInfo: z.string().optional()
-  })
+// Contract defaults lookup for auto-fill functionality
+const CONTRACT_DEFAULTS = {
+  "Production": {
+    baseSalary: 2439,
+    understudyBump: 60,
+    swingBumpRule: "1/8 of baseSalary if performing 5+ tracks in a single performance",
+    partialSwingIncrement: 20,
+    rehearsalCap: 10,
+    overtimeTrigger: "Above 10 hours/week"
+  },
+  "LORT A": {
+    baseSalary: 1191,
+    understudyBump: 35,
+    swingBump: 25,
+    rehearsalCap: 8,
+    overtimeTrigger: "Above 8 hours/week"
+  },
+  "LORT B": {
+    baseSalary: 1145,
+    understudyBump: 35,
+    swingBump: 25,
+    rehearsalCap: 8,
+    overtimeTrigger: "Above 8 hours/week"
+  },
+  "LORT C": {
+    baseSalary: 1016,
+    understudyBump: 30,
+    swingBump: 20,
+    rehearsalCap: 8,
+    overtimeTrigger: "Above 8 hours/week"
+  },
+  "LORT D": {
+    baseSalary: 879,
+    understudyBump: 25,
+    swingBump: 15,
+    rehearsalCap: 8,
+    overtimeTrigger: "Above 8 hours/week"
+  },
+  "SPT Tier 1": {
+    baseSalary: 286,
+    understudyBump: 25,
+    swingBump: 15,
+    rehearsalCap: 8,
+    overtimeTrigger: "Above 8 hours/week"
+  },
+  "SPT Tier 3": {
+    baseSalary: 427,
+    understudyBump: 30,
+    swingBump: 20,
+    rehearsalCap: 8,
+    overtimeTrigger: "Above 8 hours/week"
+  },
+  "SPT Tier 10": {
+    baseSalary: 727,
+    understudyBump: 40,
+    swingBump: 30,
+    rehearsalCap: 8,
+    overtimeTrigger: "Above 8 hours/week"
+  }
+};
+
+const settingsFormSchema = insertShowContractSettingsSchema.extend({
+  contractType: z.enum(["Production", "LORT A", "LORT B", "LORT C", "LORT D", "SPT Tier 1", "SPT Tier 3", "SPT Tier 10"]),
+  baseSalary: z.coerce.number().min(0),
+  understudyBump: z.coerce.number().min(0),
+  swingBump: z.coerce.number().min(0).optional(),
+  swingBumpRule: z.string().optional(),
+  partialSwingIncrement: z.coerce.number().min(0).optional(),
+  rehearsalCap: z.coerce.number().min(0),
+  overtimeTrigger: z.string()
 });
 
 type SettingsFormData = z.infer<typeof settingsFormSchema>;
@@ -59,52 +93,63 @@ interface ShowContractSettingsFormProps {
   projectId: number;
   settings?: any;
   onClose: () => void;
+  hasEquityMembers?: boolean;
 }
 
-export function ShowContractSettingsForm({ projectId, settings, onClose }: ShowContractSettingsFormProps) {
+export function ShowContractSettingsForm({ projectId, settings, onClose, hasEquityMembers = false }: ShowContractSettingsFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const form = useForm<SettingsFormData>({
     resolver: zodResolver(settingsFormSchema),
     defaultValues: {
-      contractType: settings?.contractType || "equity",
-      equityRules: {
-        maxRehearsalHours: settings?.equityRules?.maxRehearsalHours || 8,
-        maxPerformanceHours: settings?.equityRules?.maxPerformanceHours || 8,
-        minimumBreakTime: settings?.equityRules?.minimumBreakTime || 60,
-        overtimeRate: settings?.equityRules?.overtimeRate || 1.5,
-        fightCallRequired: settings?.equityRules?.fightCallRequired || false,
-        voiceCallRequired: settings?.equityRules?.voiceCallRequired || false,
-        intimacyCallRequired: settings?.equityRules?.intimacyCallRequired || false
-      },
-      trackingRequirements: {
-        performanceTracking: settings?.trackingRequirements?.performanceTracking ?? true,
-        rehearsalTracking: settings?.trackingRequirements?.rehearsalTracking ?? true,
-        attendanceTracking: settings?.trackingRequirements?.attendanceTracking ?? true,
-        overtimeTracking: settings?.trackingRequirements?.overtimeTracking ?? true,
-        breakTracking: settings?.trackingRequirements?.breakTracking ?? true,
-        revenueTracking: settings?.trackingRequirements?.revenueTracking ?? false
-      },
-      reportingSettings: {
-        weeklyReports: settings?.reportingSettings?.weeklyReports ?? true,
-        monthlyReports: settings?.reportingSettings?.monthlyReports ?? true,
-        endOfRunReports: settings?.reportingSettings?.endOfRunReports ?? true,
-        customReportPeriod: settings?.reportingSettings?.customReportPeriod || ""
-      },
-      notifications: {
-        overtimeAlerts: settings?.notifications?.overtimeAlerts ?? true,
-        breakViolationAlerts: settings?.notifications?.breakViolationAlerts ?? true,
-        attendanceAlerts: settings?.notifications?.attendanceAlerts ?? true,
-        reportDeadlineAlerts: settings?.notifications?.reportDeadlineAlerts ?? true
-      },
-      customSettings: {
-        additionalNotes: settings?.customSettings?.additionalNotes || "",
-        specialRequirements: settings?.customSettings?.specialRequirements || "",
-        contactInfo: settings?.customSettings?.contactInfo || ""
-      }
+      projectId,
+      contractType: settings?.contractType || "Production",
+      baseSalary: settings?.baseSalary || 0,
+      understudyBump: settings?.understudyBump || 0,
+      swingBump: settings?.swingBump || 0,
+      swingBumpRule: settings?.swingBumpRule || "",
+      partialSwingIncrement: settings?.partialSwingIncrement || 0,
+      rehearsalCap: settings?.rehearsalCap || 8,
+      overtimeTrigger: settings?.overtimeTrigger || "Above 8 hours/week",
+      createdBy: settings?.createdBy || 1
     }
   });
+
+  // Auto-fill handler for contract type selection
+  const handleContractTypeChange = (contractType: string) => {
+    if (!hasEquityMembers) {
+      toast({
+        title: "Equity Status Required",
+        description: "Contract defaults only apply when at least one cast member has Equity status.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const defaults = CONTRACT_DEFAULTS[contractType as keyof typeof CONTRACT_DEFAULTS];
+    if (defaults) {
+      form.setValue("baseSalary", defaults.baseSalary);
+      form.setValue("understudyBump", defaults.understudyBump);
+      form.setValue("rehearsalCap", defaults.rehearsalCap);
+      form.setValue("overtimeTrigger", defaults.overtimeTrigger);
+      
+      if (defaults.swingBump) {
+        form.setValue("swingBump", defaults.swingBump);
+      }
+      if (defaults.swingBumpRule) {
+        form.setValue("swingBumpRule", defaults.swingBumpRule);
+      }
+      if (defaults.partialSwingIncrement) {
+        form.setValue("partialSwingIncrement", defaults.partialSwingIncrement);
+      }
+      
+      toast({
+        title: "Contract defaults applied",
+        description: `${contractType} contract settings have been auto-filled. All fields remain editable.`
+      });
+    }
+  };
 
   const mutation = useMutation({
     mutationFn: async (data: SettingsFormData) => {
@@ -124,7 +169,7 @@ export function ShowContractSettingsForm({ projectId, settings, onClose }: ShowC
       queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'show-contract-settings'] });
       toast({
         title: "Success",
-        description: "Settings saved successfully"
+        description: "Contract settings saved successfully"
       });
       onClose();
     },
@@ -147,9 +192,21 @@ export function ShowContractSettingsForm({ projectId, settings, onClose }: ShowC
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            Show Contract Settings
+            Equity Contract Settings
           </DialogTitle>
         </DialogHeader>
+
+        {!hasEquityMembers && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-2 text-amber-700">
+              <AlertCircle className="h-5 w-5" />
+              <p className="font-medium">No Equity Members Detected</p>
+            </div>
+            <p className="text-sm text-amber-600 mt-1">
+              Contract defaults will only apply when at least one cast member has Equity status.
+            </p>
+          </div>
+        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -158,7 +215,7 @@ export function ShowContractSettingsForm({ projectId, settings, onClose }: ShowC
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Contract Type
+                  Contract Type & Auto-Fill
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -167,17 +224,28 @@ export function ShowContractSettingsForm({ projectId, settings, onClose }: ShowC
                   name="contractType"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Contract Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormLabel>Select Contract Type</FormLabel>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          handleContractTypeChange(value);
+                        }} 
+                        defaultValue={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select contract type" />
+                            <SelectValue placeholder="Choose contract type to auto-fill defaults" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="equity">Equity</SelectItem>
-                          <SelectItem value="non_equity">Non-Equity</SelectItem>
-                          <SelectItem value="mixed">Mixed</SelectItem>
+                          <SelectItem value="Production">Production</SelectItem>
+                          <SelectItem value="LORT A">LORT A</SelectItem>
+                          <SelectItem value="LORT B">LORT B</SelectItem>
+                          <SelectItem value="LORT C">LORT C</SelectItem>
+                          <SelectItem value="LORT D">LORT D</SelectItem>
+                          <SelectItem value="SPT Tier 1">SPT Tier 1</SelectItem>
+                          <SelectItem value="SPT Tier 3">SPT Tier 3</SelectItem>
+                          <SelectItem value="SPT Tier 10">SPT Tier 10</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -187,222 +255,140 @@ export function ShowContractSettingsForm({ projectId, settings, onClose }: ShowC
               </CardContent>
             </Card>
 
-            {/* Equity Rules */}
+            {/* Salary Structure */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Equity Rules
+                  <DollarSign className="h-5 w-5" />
+                  Salary Structure
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="equityRules.maxRehearsalHours"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Max Rehearsal Hours per Day</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" step="0.5" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="equityRules.maxPerformanceHours"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Max Performance Hours per Day</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" step="0.5" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="equityRules.minimumBreakTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Minimum Break Time (minutes)</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="equityRules.overtimeRate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Overtime Rate Multiplier</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="1" step="0.1" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="space-y-3">
-                  <h4 className="font-medium">Special Call Requirements</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="equityRules.fightCallRequired"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between">
-                          <FormLabel>Fight Call Required</FormLabel>
-                          <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="equityRules.voiceCallRequired"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between">
-                          <FormLabel>Voice Call Required</FormLabel>
-                          <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="equityRules.intimacyCallRequired"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center justify-between">
-                          <FormLabel>Intimacy Call Required</FormLabel>
-                          <FormControl>
-                            <Switch checked={field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
+              <CardContent className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="baseSalary"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Base Salary ($)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="Enter base salary"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="understudyBump"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Understudy Bump ($)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="Enter understudy bump"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="swingBump"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Swing Bump ($)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="Enter swing bump"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="partialSwingIncrement"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Partial Swing Increment ($)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="0.01" 
+                          placeholder="Enter partial swing increment"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 
-            {/* Tracking Requirements */}
+            {/* Swing Bump Rules */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Swing Bump Rules
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FormField
+                  control={form.control}
+                  name="swingBumpRule"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Swing Bump Rule</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Enter detailed swing bump rule (e.g., 1/8 of baseSalary if performing 5+ tracks)"
+                          className="min-h-[100px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Time & Overtime */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  Tracking Requirements
+                  Time & Overtime Rules
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="trackingRequirements.performanceTracking"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between">
-                        <FormLabel>Performance Tracking</FormLabel>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="trackingRequirements.rehearsalTracking"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between">
-                        <FormLabel>Rehearsal Tracking</FormLabel>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="trackingRequirements.attendanceTracking"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between">
-                        <FormLabel>Attendance Tracking</FormLabel>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="trackingRequirements.overtimeTracking"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between">
-                        <FormLabel>Overtime Tracking</FormLabel>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="trackingRequirements.breakTracking"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between">
-                        <FormLabel>Break Tracking</FormLabel>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="trackingRequirements.revenueTracking"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between">
-                        <FormLabel>Revenue Tracking</FormLabel>
-                        <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Custom Settings */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Additional Settings
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="customSettings.additionalNotes"
+                  name="rehearsalCap"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Additional Notes</FormLabel>
+                      <FormLabel>Rehearsal Cap (hours/week)</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Any additional contract requirements or notes..."
-                          rows={3}
-                          {...field} 
+                        <Input 
+                          type="number" 
+                          min="0" 
+                          placeholder="Enter rehearsal cap"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -411,32 +397,14 @@ export function ShowContractSettingsForm({ projectId, settings, onClose }: ShowC
                 />
                 <FormField
                   control={form.control}
-                  name="customSettings.specialRequirements"
+                  name="overtimeTrigger"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Special Requirements</FormLabel>
+                      <FormLabel>Overtime Trigger</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="Special equity requirements for this production..."
-                          rows={3}
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="customSettings.contactInfo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Equity Contact Information</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Equity representative contact information..."
-                          rows={2}
-                          {...field} 
+                        <Input 
+                          placeholder="e.g., Above 8 hours/week"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -451,7 +419,7 @@ export function ShowContractSettingsForm({ projectId, settings, onClose }: ShowC
                 Cancel
               </Button>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? "Saving..." : "Save Settings"}
+                {mutation.isPending ? "Saving..." : "Save Contract Settings"}
               </Button>
             </DialogFooter>
           </form>
