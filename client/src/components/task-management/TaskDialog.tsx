@@ -267,7 +267,7 @@ export function TaskDialog({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="p-4 space-y-6">
             {/* Task Title - Notion style */}
-            <div className="space-y-6">
+            <div className="space-y-3">
               <FormField
                 control={form.control}
                 name="title"
@@ -277,12 +277,14 @@ export function TaskDialog({
                       <textarea
                         placeholder="New page" 
                         {...field} 
-                        className="text-5xl font-bold border-none p-0 shadow-none focus-visible:ring-0 bg-transparent resize-none overflow-hidden min-h-0 w-full"
+                        className="text-5xl font-bold border-none p-0 shadow-none focus-visible:ring-0 focus:ring-0 focus:outline-none focus:border-none bg-transparent resize-none overflow-hidden min-h-0 w-full"
                         rows={1}
                         style={{ 
                           fontSize: '3rem', 
                           lineHeight: '1.2',
-                          fontWeight: 'bold'
+                          fontWeight: 'bold',
+                          border: 'none',
+                          outline: 'none'
                         }}
                         onInput={(e) => {
                           const target = e.target as HTMLTextAreaElement;
