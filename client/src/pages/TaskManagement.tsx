@@ -42,6 +42,7 @@ export function TaskManagement() {
         });
       }
       
+      console.log('Main database created/fetched:', mainDatabase);
       return mainDatabase;
     }
   });

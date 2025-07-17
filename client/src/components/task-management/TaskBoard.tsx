@@ -66,6 +66,9 @@ export function TaskBoard({ database, view }: TaskBoardProps) {
   );
 
   const handleCreateTask = (data: any) => {
+    console.log('Creating task with database:', database);
+    console.log('Database ID:', database.id);
+    console.log('Task data:', data);
     createTaskMutation.mutate(data);
   };
 
