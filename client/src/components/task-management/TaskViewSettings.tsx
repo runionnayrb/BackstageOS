@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Popover,
   PopoverContent,
@@ -36,6 +36,19 @@ export function TaskViewSettings({
   onViewChange 
 }: TaskViewSettingsProps) {
   const [visibleProperties] = useState(6); // Mock count for now
+  const [isOpen, setIsOpen] = useState(false);
+  const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
+  const triggerRef = useRef<HTMLDivElement>(null);
+
+  const handleTriggerClick = (event: React.MouseEvent) => {
+    // Capture mouse position and offset to the left
+    const offsetX = 300; // Offset to the left of cursor
+    setPopoverPosition({
+      x: event.clientX - offsetX,
+      y: event.clientY
+    });
+    setIsOpen(true);
+  };
 
   const handleViewSelect = (view: 'table' | 'kanban' | 'calendar') => {
     onViewChange(view);
@@ -68,11 +81,28 @@ export function TaskViewSettings({
   };
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <>
+      <div ref={triggerRef} onClick={handleTriggerClick}>
         {children}
-      </PopoverTrigger>
-      <PopoverContent side="left" className="w-80 p-0">
+      </div>
+      
+      {isOpen && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setIsOpen(false)}
+          />
+          
+          {/* Popover Content */}
+          <div 
+            className="fixed z-50 w-80 bg-white rounded-md border shadow-lg p-0"
+            style={{
+              left: `${popoverPosition.x}px`,
+              top: `${popoverPosition.y}px`,
+              transform: 'translateY(-50%)'
+            }}
+          >
         <div className="px-6 py-4 border-b">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-medium">View settings</h3>
@@ -276,7 +306,9 @@ export function TaskViewSettings({
             </div>
           </div>
         </div>
-      </PopoverContent>
-    </Popover>
+          </div>
+        </>
+      )}
+    </>
   );
 }
