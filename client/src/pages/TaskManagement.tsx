@@ -178,10 +178,7 @@ export function TaskManagement() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Task Management</h1>
-          <p className="text-muted-foreground mt-2">
-            Organize and track your tasks with powerful databases and multiple view types
-          </p>
+          <h1 className="text-3xl font-bold">Tasks</h1>
         </div>
         <Button onClick={() => setIsCreateDatabaseOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
