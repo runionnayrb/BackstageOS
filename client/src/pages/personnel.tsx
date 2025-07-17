@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical, Calendar } from "lucide-react";
+import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical, Calendar, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
@@ -254,8 +254,15 @@ export default function Personnel() {
           </div>
         </div>
         
-        <div className="mb-2">
+        <div className="mb-2 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
+          <Button
+            onClick={() => setLocation(`/shows/${projectId}/contacts/cast`)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Contact
+          </Button>
         </div>
       </div>
 
