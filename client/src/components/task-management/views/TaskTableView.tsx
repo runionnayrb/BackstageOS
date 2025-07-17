@@ -393,7 +393,7 @@ export function TaskTableView({
     <DndProvider backend={HTML5Backend}>
       <div className="h-full overflow-auto">
         <div className="overflow-x-auto">
-          <Table style={{ minWidth: columns.reduce((sum, col) => sum + col.width, 0) }}>
+          <Table style={{ minWidth: 'max-content', tableLayout: 'fixed', width: columns.reduce((sum, col) => sum + col.width, 0) }}>
             <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
                 {columns.map((column, index) => {
