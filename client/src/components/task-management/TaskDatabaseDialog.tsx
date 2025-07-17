@@ -32,7 +32,6 @@ import { Database, CheckSquare, Calendar, Users, Briefcase, Target, Star, Clock 
 const formSchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name too long"),
   description: z.string().optional(),
-  icon: z.string().optional(),
   color: z.string().min(1, "Color is required"),
   templateType: z.string().optional(),
 });
@@ -119,7 +118,6 @@ export function TaskDatabaseDialog({ isOpen, onClose, onSubmit, isLoading }: Tas
     defaultValues: {
       name: "",
       description: "",
-      icon: "",
       color: "#6B7280",
       templateType: "custom",
     },
@@ -131,7 +129,6 @@ export function TaskDatabaseDialog({ isOpen, onClose, onSubmit, isLoading }: Tas
     if (template) {
       form.setValue("name", template.name);
       form.setValue("description", template.description);
-      form.setValue("icon", template.icon);
       form.setValue("color", template.color);
       form.setValue("templateType", templateId);
     }
@@ -223,45 +220,29 @@ export function TaskDatabaseDialog({ isOpen, onClose, onSubmit, isLoading }: Tas
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="icon"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Icon</FormLabel>
-                      <FormControl>
-                        <Input placeholder="🗄️" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="color"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Color</FormLabel>
-                      <div className="flex flex-wrap gap-2">
-                        {COLOR_OPTIONS.map((color) => (
-                          <button
-                            key={color}
-                            type="button"
-                            className={`w-8 h-8 rounded-full border-2 ${
-                              field.value === color ? "border-primary" : "border-transparent"
-                            }`}
-                            style={{ backgroundColor: color }}
-                            onClick={() => field.onChange(color)}
-                          />
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="color"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Color</FormLabel>
+                    <div className="flex flex-wrap gap-2">
+                      {COLOR_OPTIONS.map((color) => (
+                        <button
+                          key={color}
+                          type="button"
+                          className={`w-8 h-8 rounded-full border-2 ${
+                            field.value === color ? "border-primary" : "border-transparent"
+                          }`}
+                          style={{ backgroundColor: color }}
+                          onClick={() => field.onChange(color)}
+                        />
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="flex justify-end space-x-2 pt-4">
                 <Button type="button" variant="outline" onClick={handleClose}>
