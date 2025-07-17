@@ -106,7 +106,21 @@ export function EnhancedCollaborativeEditor({
       const selection = document.getSelection();
       if (!selection || !selection.focusNode) return;
 
-      const currentPage = (selection.focusNode as HTMLElement)?.closest('[id^="page-"]') as HTMLElement;
+      // Handle both element nodes and text nodes
+      let currentElement = selection.focusNode.nodeType === Node.TEXT_NODE 
+        ? selection.focusNode.parentElement 
+        : selection.focusNode as HTMLElement;
+      
+      // Find the page element by traversing up the DOM
+      let currentPage: HTMLElement | null = null;
+      while (currentElement && currentElement !== document.body) {
+        if (currentElement.id && currentElement.id.startsWith('page-')) {
+          currentPage = currentElement;
+          break;
+        }
+        currentElement = currentElement.parentElement;
+      }
+      
       if (!currentPage) return;
 
       const pageId = parseInt(currentPage.id.replace('page-', ''), 10);
