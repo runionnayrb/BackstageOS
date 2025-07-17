@@ -259,6 +259,10 @@ export function TaskTableView({
     });
   };
 
+  const handlePriorityChange = (taskId: number, newPriority: string) => {
+    onTaskUpdate(taskId, { priority: newPriority });
+  };
+
   const renderCellContent = (task: Task, column: Column) => {
     switch (column.type) {
       case 'checkbox':
@@ -323,13 +327,38 @@ export function TaskTableView({
         const priorityConfig = PRIORITY_CONFIG[task.priority as keyof typeof PRIORITY_CONFIG];
         const PriorityIcon = priorityConfig?.icon || ArrowRight;
         return (
-          <div className="flex items-center space-x-1">
-            <PriorityIcon 
-              className="h-3 w-3" 
-              style={{ color: priorityConfig?.color || '#6B7280' }} 
-            />
-            <span className="text-xs">{priorityConfig?.label || task.priority}</span>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-full justify-start" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center space-x-2">
+                  <PriorityIcon 
+                    className="h-3 w-3" 
+                    style={{ color: priorityConfig?.color || '#6B7280' }} 
+                  />
+                  <span className="text-xs">{priorityConfig?.label || task.priority}</span>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {Object.entries(PRIORITY_CONFIG).map(([priority, config]) => {
+                const Icon = config.icon;
+                return (
+                  <DropdownMenuItem
+                    key={priority}
+                    onClick={() => handlePriorityChange(task.id, priority)}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <Icon 
+                        className="h-3 w-3" 
+                        style={{ color: config.color }}
+                      />
+                      <span>{config.label}</span>
+                    </div>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
 
       case 'date':
