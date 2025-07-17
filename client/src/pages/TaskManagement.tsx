@@ -105,7 +105,7 @@ export function TaskManagement() {
       <div className="h-full flex flex-col">
         {/* Header - matching Reports page structure */}
         <div className="px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Tasks</h2>
             </div>
@@ -150,7 +150,7 @@ export function TaskManagement() {
 
           {/* Views */}
           {views.length > 0 && (
-            <div className="flex items-center space-x-2 mb-6">
+            <div className="flex items-center space-x-2 mb-4">
               <span className="text-sm text-muted-foreground">Views:</span>
               {views.map((view) => (
                 <Button
