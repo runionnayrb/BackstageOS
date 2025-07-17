@@ -40,11 +40,11 @@ import {
   Flag, 
   GripVertical,
   Type,
-  Settings,
+
   Filter,
   ArrowUpDown,
   Group,
-  Calculator,
+
   Lock,
   EyeOff,
   WrapText,
@@ -110,11 +110,6 @@ function ColumnContextMenu({
           <ChevronRight className="w-4 h-4 ml-auto" />
         </ContextMenuItem>
         
-        <ContextMenuItem onClick={() => onAction('autofill', column.id)} className="flex items-center gap-2">
-          <Settings className="w-4 h-4" />
-          Set up AI autofill
-        </ContextMenuItem>
-        
         <ContextMenuSeparator />
         
         <ContextMenuItem onClick={() => onAction('filter', column.id)} className="flex items-center gap-2">
@@ -131,12 +126,6 @@ function ColumnContextMenu({
         <ContextMenuItem onClick={() => onAction('group', column.id)} className="flex items-center gap-2">
           <Group className="w-4 h-4" />
           Group
-        </ContextMenuItem>
-        
-        <ContextMenuItem onClick={() => onAction('calculate', column.id)} className="flex items-center gap-2">
-          <Calculator className="w-4 h-4" />
-          Calculate
-          <ChevronRight className="w-4 h-4 ml-auto" />
         </ContextMenuItem>
         
         <ContextMenuSeparator />
@@ -420,10 +409,7 @@ export function TaskTableView({
         // TODO: Implement change type dialog
         console.log('Opening change type dialog for column:', columnId);
         break;
-      case 'autofill':
-        // TODO: Implement AI autofill setup
-        console.log('Setting up AI autofill for column:', columnId);
-        break;
+
       case 'filter':
         // TODO: Implement column filtering
         console.log('Opening filter for column:', columnId);
@@ -436,10 +422,7 @@ export function TaskTableView({
         // TODO: Implement column grouping
         console.log('Grouping by column:', columnId);
         break;
-      case 'calculate':
-        // TODO: Implement calculations
-        console.log('Opening calculate options for column:', columnId);
-        break;
+
       case 'freeze':
         // TODO: Implement column freezing
         console.log('Freezing column:', columnId);
