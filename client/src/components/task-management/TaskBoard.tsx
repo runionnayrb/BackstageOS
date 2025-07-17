@@ -25,18 +25,27 @@ export function TaskBoard({ database, view }: TaskBoardProps) {
   // Fetch tasks for this database
   const { data: tasks = [], isLoading: loadingTasks } = useQuery({
     queryKey: ['/api/task-databases', database.id, 'tasks'],
-    queryFn: () => apiRequest(`/api/task-databases/${database.id}/tasks`)
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/task-databases/${database.id}/tasks`);
+      return await response.json();
+    }
   });
 
   // Fetch properties for this database
   const { data: properties = [], isLoading: loadingProperties } = useQuery({
     queryKey: ['/api/task-databases', database.id, 'properties'],
-    queryFn: () => apiRequest(`/api/task-databases/${database.id}/properties`)
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/task-databases/${database.id}/properties`);
+      return await response.json();
+    }
   });
 
   // Create task mutation
   const createTaskMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('POST', `/api/task-databases/${database.id}/tasks`, data),
+    mutationFn: async (data: any) => {
+      const response = await apiRequest('POST', `/api/task-databases/${database.id}/tasks`, data);
+      return await response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database.id, 'tasks'] });
       setIsCreateTaskOpen(false);
@@ -45,7 +54,10 @@ export function TaskBoard({ database, view }: TaskBoardProps) {
 
   // Update task mutation
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest('PUT', `/api/tasks/${id}`, data),
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      const response = await apiRequest('PUT', `/api/tasks/${id}`, data);
+      return await response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database.id, 'tasks'] });
     }
@@ -53,7 +65,10 @@ export function TaskBoard({ database, view }: TaskBoardProps) {
 
   // Delete task mutation
   const deleteTaskMutation = useMutation({
-    mutationFn: (id: number) => apiRequest('DELETE', `/api/tasks/${id}`),
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/tasks/${id}`);
+      return await response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database.id, 'tasks'] });
     }
