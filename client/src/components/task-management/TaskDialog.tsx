@@ -267,7 +267,7 @@ export function TaskDialog({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="p-4 space-y-6">
             {/* Task Title - Notion style */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
               <FormField
                 control={form.control}
                 name="title"
