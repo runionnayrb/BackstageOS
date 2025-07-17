@@ -52,7 +52,7 @@ function ProjectAssignmentProperty({ form }: { form: any }) {
     queryKey: ["/api/projects"],
   });
 
-  console.log("Projects loaded:", projects.length, projects);
+
 
   return (
     <div className="flex items-center space-x-3 py-1">
@@ -62,10 +62,10 @@ function ProjectAssignmentProperty({ form }: { form: any }) {
         name="properties.project"
         render={({ field }) => (
           <FormItem className="w-auto">
-            <Select onValueChange={field.onChange} value={field.value || "none"}>
+            <Select onValueChange={field.onChange} value={field.value || ""}>
               <FormControl>
                 <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:border-none hover:border-none w-auto [&>svg]:hidden [&]:!border-none" style={{ border: 'none !important', outline: 'none !important', boxShadow: 'none !important' }}>
-                  <SelectValue placeholder="No project" />
+                  <SelectValue placeholder="No Project" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -148,15 +148,24 @@ export function TaskDialog({
       status: task?.status || "not_started",
       priority: task?.priority || "medium",
       dueDate: task?.dueDate ? new Date(task.dueDate) : undefined,
-      properties: task?.properties || {},
+      properties: { 
+        ...task?.properties, 
+        project: task?.properties?.project === "none" ? undefined : task?.properties?.project 
+      },
     },
   });
 
   const handleSubmit = (data: FormData) => {
-    onSubmit({
+    // Ensure empty project field gets saved as "none"
+    const processedData = {
       ...data,
       dueDate: data.dueDate?.toISOString(),
-    } as any);
+      properties: {
+        ...data.properties,
+        project: data.properties?.project || "none"
+      }
+    };
+    onSubmit(processedData as any);
   };
 
   const handleClose = () => {
