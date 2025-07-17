@@ -142,12 +142,7 @@ export function TaskManagement() {
               <Button variant="ghost" size="sm" className="hover:bg-transparent group">
                 <Settings className="h-4 w-4 group-hover:text-blue-600" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => {
-                // Trigger auto-create task function
-                if (window.autoCreateTask) {
-                  window.autoCreateTask();
-                }
-              }} className="hover:bg-transparent group">
+              <Button variant="ghost" size="sm" onClick={() => setIsCreateTaskOpen(true)} className="hover:bg-transparent group">
                 <Plus className="h-4 w-4 group-hover:text-blue-600" />
               </Button>
             </div>
@@ -181,7 +176,6 @@ export function TaskManagement() {
             isCreateTaskOpen={isCreateTaskOpen}
             onCreateTaskClose={() => setIsCreateTaskOpen(false)}
             onCreateTaskOpen={() => setIsCreateTaskOpen(true)}
-            onAutoCreateTask={() => {}}
             searchQuery={searchQuery}
           />
         </div>
