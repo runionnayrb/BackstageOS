@@ -67,7 +67,7 @@ function ProjectAssignmentProperty({ form }: { form: any }) {
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="">
+                <SelectItem value="none">
                   <span className="text-gray-500">No project</span>
                 </SelectItem>
                 {projects.map((project: any) => (
