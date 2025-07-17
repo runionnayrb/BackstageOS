@@ -23,14 +23,12 @@ export function TaskManagement() {
 
   // Fetch task databases
   const { data: databases = [], isLoading: loadingDatabases } = useQuery({
-    queryKey: ['/api/task-databases', projectId],
-    queryFn: () => apiRequest(`/api/task-databases?${projectId ? `projectId=${projectId}` : ''}`)
+    queryKey: ['/api/task-databases', projectId ? `?projectId=${projectId}` : '']
   });
 
   // Fetch views for selected database
   const { data: views = [], isLoading: loadingViews } = useQuery({
     queryKey: ['/api/task-databases', selectedDatabase?.id, 'views'],
-    queryFn: () => apiRequest(`/api/task-databases/${selectedDatabase?.id}/views`),
     enabled: !!selectedDatabase
   });
 
@@ -39,13 +37,7 @@ export function TaskManagement() {
     mutationFn: async (data: any) => {
       console.log('Creating database with data:', data);
       try {
-        const response = await apiRequest('/api/task-databases', {
-          method: 'POST',
-          body: JSON.stringify(data),
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        });
+        const response = await apiRequest('POST', '/api/task-databases', data);
         console.log('API response:', response);
         return response;
       } catch (error) {
@@ -67,9 +59,7 @@ export function TaskManagement() {
 
   // Delete database mutation
   const deleteDatabaseMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/task-databases/${id}`, {
-      method: 'DELETE'
-    }),
+    mutationFn: (id: number) => apiRequest('DELETE', `/api/task-databases/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases'] });
       if (selectedDatabase?.id === arguments[0]) {
