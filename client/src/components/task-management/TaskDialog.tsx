@@ -120,7 +120,7 @@ export function TaskDialog({
               <FormItem>
                 <FormLabel>{property.name}</FormLabel>
                 <FormControl>
-                  <Input placeholder={`Enter ${property.name.toLowerCase()}`} {...field} className="border-none shadow-none focus-visible:ring-0" />
+                  <Input placeholder={`Enter ${property.name.toLowerCase()}`} {...field} className="border-none shadow-none focus-visible:ring-0 focus:ring-0 focus:outline-none focus:border-none hover:border-none" style={{ border: 'none', outline: 'none' }} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -143,7 +143,8 @@ export function TaskDialog({
                     placeholder={`Enter ${property.name.toLowerCase()}`} 
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value) || "")}
-                    className="border-none shadow-none focus-visible:ring-0"
+                    className="border-none shadow-none focus-visible:ring-0 focus:ring-0 focus:outline-none focus:border-none hover:border-none"
+                    style={{ border: 'none', outline: 'none' }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -164,7 +165,7 @@ export function TaskDialog({
                 <FormLabel>{property.name}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger className="border-none shadow-none focus:ring-0 focus:border-none">
+                    <SelectTrigger className="border-none shadow-none focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:border-none hover:border-none" style={{ border: 'none', outline: 'none' }}>
                       <SelectValue placeholder={`Select ${property.name.toLowerCase()}`} />
                     </SelectTrigger>
                   </FormControl>
@@ -220,7 +221,8 @@ export function TaskDialog({
                     <FormControl>
                       <Button
                         variant="outline"
-                        className="w-full pl-3 text-left font-normal border-none shadow-none focus:ring-0 focus:border-none"
+                        className="w-full pl-3 text-left font-normal border-none shadow-none focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:border-none hover:border-none"
+                        style={{ border: 'none', outline: 'none' }}
                       >
                         {field.value ? (
                           format(new Date(field.value), "PPP")
@@ -325,7 +327,7 @@ export function TaskDialog({
                       <FormItem className="w-auto">
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none w-auto [&>svg]:hidden">
+                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:border-none hover:border-none w-auto [&>svg]:hidden" style={{ border: 'none', outline: 'none' }}>
                               <SelectValue placeholder="Not started" />
                             </SelectTrigger>
                           </FormControl>
@@ -359,7 +361,7 @@ export function TaskDialog({
                       <FormItem className="w-auto">
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none w-auto [&>svg]:hidden">
+                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:border-none hover:border-none w-auto [&>svg]:hidden" style={{ border: 'none', outline: 'none' }}>
                               <SelectValue placeholder="Medium" />
                             </SelectTrigger>
                           </FormControl>
@@ -393,7 +395,8 @@ export function TaskDialog({
                             <FormControl>
                               <Button
                                 variant="ghost"
-                                className="h-8 px-2 justify-start font-normal border-none shadow-none focus:ring-0 focus:border-none"
+                                className="h-8 px-2 justify-start font-normal border-none shadow-none focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:border-none hover:border-none"
+                                style={{ border: 'none', outline: 'none' }}
                               >
                                 {field.value ? (
                                   format(field.value, "MMM d, yyyy")
@@ -443,7 +446,8 @@ export function TaskDialog({
                         placeholder="Type / to start..." 
                         rows={6} 
                         {...field} 
-                        className="border-none shadow-none resize-none focus-visible:ring-0 p-0 text-gray-700"
+                        className="border-none shadow-none resize-none focus-visible:ring-0 focus:ring-0 focus:outline-none focus:border-none hover:border-none p-0 text-gray-700"
+                        style={{ border: 'none', outline: 'none' }}
                       />
                     </FormControl>
                     <FormMessage />
