@@ -13,6 +13,7 @@ export function TaskManagement() {
   const [location, navigate] = useLocation();
   const [selectedView, setSelectedView] = useState<TaskView | null>(null);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+  const [newTaskId, setNewTaskId] = useState<number | null>(null);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
@@ -75,6 +76,33 @@ export function TaskManagement() {
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database?.id, 'views'] });
     }
   });
+
+  // Create task mutation
+  const createTaskMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', `/api/task-databases/${database?.id}/tasks`, {
+        title: "Untitled",
+        content: "",
+        properties: {
+          status: "not_started",
+          priority: "medium",
+          project: "none"
+        }
+      });
+      return await response.json();
+    },
+    onSuccess: (newTask) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database?.id, 'tasks'] });
+      setNewTaskId(newTask.id);
+      setIsCreateTaskOpen(true);
+    }
+  });
+
+  const handleCreateTask = () => {
+    if (database?.id) {
+      createTaskMutation.mutate();
+    }
+  };
 
   const getViewIcon = (type: string) => {
     switch (type) {
@@ -142,7 +170,7 @@ export function TaskManagement() {
               <Button variant="ghost" size="sm" className="hover:bg-transparent group">
                 <Settings className="h-4 w-4 group-hover:text-blue-600" />
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setIsCreateTaskOpen(true)} className="hover:bg-transparent group">
+              <Button variant="ghost" size="sm" onClick={handleCreateTask} className="hover:bg-transparent group">
                 <Plus className="h-4 w-4 group-hover:text-blue-600" />
               </Button>
             </div>
@@ -174,9 +202,13 @@ export function TaskManagement() {
             database={database} 
             view={selectedView || views.find(v => v.isDefault) || views[0]}
             isCreateTaskOpen={isCreateTaskOpen}
-            onCreateTaskClose={() => setIsCreateTaskOpen(false)}
+            onCreateTaskClose={() => {
+              setIsCreateTaskOpen(false);
+              setNewTaskId(null);
+            }}
             onCreateTaskOpen={() => setIsCreateTaskOpen(true)}
             searchQuery={searchQuery}
+            newTaskId={newTaskId}
           />
         </div>
       </div>

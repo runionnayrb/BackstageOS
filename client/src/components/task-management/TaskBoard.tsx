@@ -18,9 +18,10 @@ interface TaskBoardProps {
   onCreateTaskClose?: () => void;
   onCreateTaskOpen?: () => void;
   searchQuery?: string;
+  newTaskId?: number | null;
 }
 
-export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen, searchQuery = "" }: TaskBoardProps) {
+export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen, searchQuery = "", newTaskId = null }: TaskBoardProps) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const queryClient = useQueryClient();
 
@@ -131,6 +132,9 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
     setSelectedTask(task);
   };
 
+  // Get the task to edit when newTaskId is provided
+  const taskToEdit = newTaskId ? tasks.find(task => task.id === newTaskId) : null;
+
 
 
   // Render the appropriate view based on view type
@@ -212,14 +216,24 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
         )}
       </div>
 
-      {/* Create Task Dialog */}
-      <TaskDialog
-        isOpen={isCreateTaskOpen}
-        onClose={() => onCreateTaskClose?.()}
-        onSubmit={handleCreateTask}
-        properties={properties}
-        isLoading={createTaskMutation.isPending}
-      />
+      {/* Create/Edit New Task Dialog */}
+      {(isCreateTaskOpen && taskToEdit) && (
+        <TaskDialog
+          isOpen={isCreateTaskOpen}
+          onClose={() => onCreateTaskClose?.()}
+          onSubmit={(data) => {
+            handleUpdateTask(taskToEdit.id, data);
+            onCreateTaskClose?.();
+          }}
+          task={taskToEdit}
+          properties={properties}
+          isLoading={updateTaskMutation.isPending}
+          onDelete={() => {
+            handleDeleteTask(taskToEdit.id);
+            onCreateTaskClose?.();
+          }}
+        />
+      )}
 
       {/* Edit Task Dialog */}
       {selectedTask && (
