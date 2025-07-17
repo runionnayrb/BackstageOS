@@ -30,7 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CalendarIcon, Trash2, User, Tag, Clock, Flag, ArrowLeft, MoreHorizontal } from "lucide-react";
+import { CalendarIcon, Trash2, User, Tag, Clock, Flag, ArrowLeft, MoreHorizontal, ChevronDown, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import type { Task, TaskProperty } from "@shared/schema";
 
@@ -80,6 +80,7 @@ export function TaskDialog({
   isLoading 
 }: TaskDialogProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [propertiesCollapsed, setPropertiesCollapsed] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -291,26 +292,24 @@ export function TaskDialog({
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Type / to start..." 
-                        rows={6} 
-                        {...field} 
-                        className="border-none shadow-none resize-none focus-visible:ring-0 p-0 text-gray-700"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Properties section - Notion style */}
-              <div className="space-y-3 border-t pt-4">
+              {/* Collapsible Properties section - Above content */}
+              <div className="border rounded-lg">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setPropertiesCollapsed(!propertiesCollapsed)}
+                  className="w-full flex items-center justify-between p-3 h-auto hover:bg-gray-50"
+                >
+                  <span className="text-sm font-medium text-gray-700">Properties</span>
+                  {propertiesCollapsed ? (
+                    <ChevronRight className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
+                  )}
+                </Button>
+                
+                {!propertiesCollapsed && (
+                  <div className="px-3 pb-3 space-y-3 border-t">
                 {/* Status property */}
                 <div className="flex items-center space-x-3 py-1">
                   <div className="w-24 text-sm text-gray-600 shrink-0">Status</div>
@@ -417,18 +416,36 @@ export function TaskDialog({
                     )}
                   />
                 </div>
-              </div>
-            </div>
 
-            {/* Custom Properties */}
-            {properties.length > 0 && (
-              <div className="space-y-4">
-                <h4 className="text-sm font-medium">Custom Properties</h4>
-                <div className="space-y-4">
-                  {properties.map(renderPropertyField)}
-                </div>
+                {/* Custom Properties within collapsible section */}
+                {properties.length > 0 && (
+                  <div className="space-y-3 mt-4 pt-3 border-t">
+                    {properties.map(renderPropertyField)}
+                  </div>
+                )}
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Content area - Now after properties */}
+              <FormField
+                control={form.control}
+                name="content"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Type / to start..." 
+                        rows={6} 
+                        {...field} 
+                        className="border-none shadow-none resize-none focus-visible:ring-0 p-0 text-gray-700"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
           </form>
         </Form>
