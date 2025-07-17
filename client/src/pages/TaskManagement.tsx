@@ -108,7 +108,6 @@ export function TaskManagement() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Tasks</h2>
-              <p className="text-gray-600">Manage and track your project tasks</p>
             </div>
             
             <div className="flex items-center space-x-2">
@@ -143,9 +142,8 @@ export function TaskManagement() {
               <Button variant="ghost" size="sm" className="hover:bg-transparent group">
                 <Settings className="h-4 w-4 group-hover:text-blue-600" />
               </Button>
-              <Button onClick={() => setIsCreateTaskOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Task
+              <Button variant="ghost" size="sm" onClick={() => setIsCreateTaskOpen(true)} className="hover:bg-transparent group">
+                <Plus className="h-4 w-4 group-hover:text-blue-600" />
               </Button>
             </div>
           </div>
