@@ -172,7 +172,6 @@ export function TaskBoard({ database, view }: TaskBoardProps) {
         {filteredTasks.length === 0 && !searchQuery ? (
           <div className="h-full flex items-center justify-center">
             <div className="text-center">
-              <div className="text-6xl mb-4">📋</div>
               <h3 className="text-lg font-semibold mb-2">No tasks yet</h3>
               <p className="text-muted-foreground mb-4">
                 Create your first task to get started
