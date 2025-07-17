@@ -121,7 +121,7 @@ function DraggableColumnHeader({
     <TableHead
       ref={ref}
       style={{ width: column.width, opacity }}
-      className="relative group select-none px-2 align-top"
+      className="relative group select-none px-2"
       data-handler-id={handlerId}
     >
       <div 
@@ -133,7 +133,7 @@ function DraggableColumnHeader({
           }
         }}
       >
-        <span className="leading-none">{column.title}</span>
+        <span>{column.title}</span>
       </div>
       <div 
         className="resize-handle absolute right-0 top-0 w-2 h-full cursor-col-resize opacity-0 hover:opacity-100 bg-blue-500 hover:bg-blue-600 z-10"
@@ -280,9 +280,9 @@ export function TaskTableView({
       case 'task':
         return (
           <div className="space-y-1">
-            <div className="font-medium leading-none">{task.title}</div>
+            <div className="font-medium">{task.title}</div>
             {task.content && (
-              <div className="text-sm text-muted-foreground truncate max-w-[250px] leading-none">
+              <div className="text-sm text-muted-foreground truncate max-w-[250px]">
                 {String(task.content).replace(/<[^>]*>/g, '')}
               </div>
             )}
@@ -446,7 +446,7 @@ export function TaskTableView({
                 {columns.map((column, index) => {
                   if (column.type === 'checkbox') {
                     return (
-                      <TableHead key={column.id} style={{ width: column.width }} className="w-12 px-2 align-top">
+                      <TableHead key={column.id} style={{ width: column.width }} className="w-12 px-2">
                         <Checkbox
                           checked={selectAllClicked && selectedTasks.size === tasks.length && tasks.length > 0}
                           onCheckedChange={handleSelectAll}
@@ -481,7 +481,7 @@ export function TaskTableView({
                     <TableCell 
                       key={column.id} 
                       style={{ width: column.width }}
-                      className="px-2 py-1 align-top"
+                      className="px-2 py-1"
                     >
                       {renderCellContent(task, column)}
                     </TableCell>
