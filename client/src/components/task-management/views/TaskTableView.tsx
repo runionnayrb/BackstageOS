@@ -290,7 +290,8 @@ export function TaskTableView({
         );
 
       case 'status':
-        const statusConfig = STATUS_CONFIG[task.status as keyof typeof STATUS_CONFIG];
+        const taskStatus = task.status || 'not_started';
+        const statusConfig = STATUS_CONFIG[taskStatus as keyof typeof STATUS_CONFIG];
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -300,7 +301,7 @@ export function TaskTableView({
                     className="w-2 h-2 rounded-full" 
                     style={{ backgroundColor: statusConfig?.color || '#6B7280' }}
                   />
-                  <span className="text-xs">{statusConfig?.label || task.status}</span>
+                  <span className="text-xs">{statusConfig?.label || 'Not Started'}</span>
                 </div>
               </Button>
             </DropdownMenuTrigger>
@@ -324,7 +325,8 @@ export function TaskTableView({
         );
 
       case 'priority':
-        const priorityConfig = PRIORITY_CONFIG[task.priority as keyof typeof PRIORITY_CONFIG];
+        const taskPriority = task.priority || 'medium';
+        const priorityConfig = PRIORITY_CONFIG[taskPriority as keyof typeof PRIORITY_CONFIG];
         const PriorityIcon = priorityConfig?.icon || ArrowRight;
         return (
           <DropdownMenu>
@@ -335,7 +337,7 @@ export function TaskTableView({
                     className="h-3 w-3" 
                     style={{ color: priorityConfig?.color || '#6B7280' }} 
                   />
-                  <span className="text-xs">{priorityConfig?.label || task.priority}</span>
+                  <span className="text-xs">{priorityConfig?.label || 'Medium'}</span>
                 </div>
               </Button>
             </DropdownMenuTrigger>
