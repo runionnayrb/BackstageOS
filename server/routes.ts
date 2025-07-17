@@ -939,12 +939,27 @@ Respond with valid JSON only.`;
         return res.status(404).json({ error: 'Contact not found' });
       }
 
-      const fileExtension = path.extname(req.file.originalname);
-      const fileName = `contact-${contactId}-${Date.now()}${fileExtension}`;
-      const newPath = path.join(uploadsDir, fileName);
-      
-      // Move file to permanent location
-      fs.renameSync(req.file.path, newPath);
+      // Import sharp for image optimization
+      const sharp = require('sharp');
+
+      // Define optimized filename (always use .webp for best compression)
+      const fileName = `contact-${contactId}-${Date.now()}.webp`;
+      const optimizedPath = path.join(uploadsDir, fileName);
+
+      // Process and optimize the image
+      await sharp(req.file.path)
+        .resize(300, 300, { 
+          fit: 'cover', 
+          position: 'center' 
+        }) // Resize to 300x300 for consistency
+        .webp({ 
+          quality: 85, 
+          effort: 6 
+        }) // Convert to WebP with 85% quality
+        .toFile(optimizedPath);
+
+      // Delete the temporary uploaded file
+      fs.unlinkSync(req.file.path);
 
       // Delete old photo if it exists
       if (contact.photoUrl) {
@@ -960,7 +975,10 @@ Respond with valid JSON only.`;
       
       res.json({ 
         url: photoUrl,
-        contact: updatedContact
+        contact: updatedContact,
+        optimized: true,
+        format: 'webp',
+        size: '300x300'
       });
     } catch (error) {
       console.error('Contact photo upload error:', error);

@@ -370,7 +370,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
               disabled={isUploadingPhoto || uploadPhotoMutation.isPending}
             >
               <Upload className="h-4 w-4 mr-2" />
-              {isUploadingPhoto ? "Uploading..." : contact.photoUrl ? "Replace Photo" : "Add Photo"}
+              {isUploadingPhoto || uploadPhotoMutation.isPending ? "Optimizing..." : contact.photoUrl ? "Replace Photo" : "Add Photo"}
             </Button>
             
             {contact.photoUrl && (
@@ -387,7 +387,8 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
             )}
             
             <p className="text-xs text-gray-500">
-              JPG, PNG, or GIF up to 5MB
+              JPG, PNG, or GIF up to 5MB<br />
+              Images are automatically optimized to WebP format (300×300px)
             </p>
           </div>
         </div>
