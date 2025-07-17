@@ -314,7 +314,7 @@ export function TaskDialog({
                 </Button>
                 
                 {!propertiesCollapsed && (
-                  <div className="space-y-3">
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 {/* Status property */}
                 <div className="flex items-center space-x-3 py-1">
                   <div className="w-24 text-sm text-gray-600 shrink-0">Status</div>
