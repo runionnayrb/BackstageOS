@@ -100,6 +100,69 @@ export function EnhancedCollaborativeEditor({
   const contentWidth = pageWidthPx - (margins.left + margins.right) * 96;
   const contentHeight = pageHeightPx - (margins.top + margins.bottom) * 96;
 
+  // Enhanced keyboard navigation between pages  
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const selection = document.getSelection();
+      if (!selection || !selection.focusNode) return;
+
+      const currentPage = (selection.focusNode as HTMLElement)?.closest('[id^="page-"]') as HTMLElement;
+      if (!currentPage) return;
+
+      const pageId = parseInt(currentPage.id.replace('page-', ''), 10);
+      const previousPage = document.getElementById(`page-${pageId - 1}`);
+      const nextPage = document.getElementById(`page-${pageId + 1}`);
+
+      // Handle BACKSPACE at start of current page
+      if (e.key === 'Backspace') {
+        const range = selection.getRangeAt(0);
+        const isAtStart = range.collapsed && range.startOffset === 0;
+
+        if (isAtStart && previousPage) {
+          e.preventDefault();
+
+          const lastChild = previousPage.lastChild || previousPage;
+          const newRange = document.createRange();
+          newRange.selectNodeContents(lastChild);
+          newRange.collapse(false);
+
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+
+          previousPage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }
+      }
+
+      // Handle ENTER at end of current page
+      if (e.key === 'Enter') {
+        const range = selection.getRangeAt(0);
+        const isAtEnd =
+          range.collapsed &&
+          selection.focusNode?.nodeType === Node.TEXT_NODE &&
+          range.endOffset === selection.focusNode.textContent?.length;
+
+        if (isAtEnd && nextPage) {
+          e.preventDefault();
+
+          const firstChild = nextPage.firstChild || nextPage;
+          const newRange = document.createRange();
+          newRange.selectNodeContents(firstChild);
+          newRange.collapse(true);
+
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+
+          nextPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   // Initialize content
   useEffect(() => {
     if (!isInitialized && content) {
@@ -493,146 +556,11 @@ export function EnhancedCollaborativeEditor({
     return preRange.toString().length;
   };
 
-  // Handle key events for navigation between pages
+  // Simple key handler that doesn't interfere with the global handler
   const handleKeyDown = useCallback((e: React.KeyboardEvent, pageIndex: number) => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-    
-    const range = selection.getRangeAt(0);
-    const pageElement = document.getElementById(`page-${pageIndex}`);
-    if (!pageElement) return;
-    
-    // Better detection of cursor position at start
-    let isAtStart = false;
-    if (range.startOffset === 0) {
-      const container = range.startContainer;
-      // Check if we're at the very beginning of the page
-      if (container === pageElement || 
-          container === pageElement.firstChild ||
-          (container.nodeType === Node.TEXT_NODE && container.parentNode === pageElement.firstChild)) {
-        // Get the cursor position within the page
-        const cursorPos = getCursorPosition(pageElement);
-        isAtStart = cursorPos === 0;
-      }
-    }
-    
-    // Check if cursor is at the end of the page
-    const textContent = pageElement.textContent || '';
-    const cursorPos = getCursorPosition(pageElement);
-    const isAtEnd = cursorPos >= textContent.length - 1; // -1 for better detection
-    
-    // Handle backspace at beginning of page - just move cursor, let normal typing work
-    if (e.key === 'Backspace' && isAtStart && pageIndex > 0) {
-      console.log('Backspace at beginning of page', pageIndex);
-      e.preventDefault();
-      
-      // Simply move cursor to end of previous page
-      const prevPageEl = document.getElementById(`page-${pageIndex - 1}`);
-      if (prevPageEl) {
-        prevPageEl.focus();
-        
-        // Position cursor at the end
-        const range = document.createRange();
-        const sel = window.getSelection();
-        
-        range.selectNodeContents(prevPageEl);
-        range.collapse(false);
-        
-        sel?.removeAllRanges();
-        sel?.addRange(range);
-        
-        // Scroll to the previous page
-        prevPageEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-    
-    // Handle Enter key at end of page - just move cursor to next page
-    if (e.key === 'Enter' && isAtEnd && pageIndex < pages.length - 1) {
-      console.log('Enter at end of page', pageIndex);
-      // Don't prevent default - let Enter create the new line first
-      
-      // After the new line is created, move to next page
-      setTimeout(() => {
-        const nextPageEl = document.getElementById(`page-${pageIndex + 1}`);
-        if (nextPageEl) {
-          nextPageEl.focus();
-          
-          const range = document.createRange();
-          const sel = window.getSelection();
-          
-          // Position at the very beginning of the next page
-          range.selectNodeContents(nextPageEl);
-          range.collapse(true);
-          
-          sel?.removeAllRanges();
-          sel?.addRange(range);
-          
-          // Scroll to the next page
-          nextPageEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }, 50);
-    }
-    
-    // Handle arrow key navigation between pages
-    if (e.key === 'ArrowUp' && isAtStart && pageIndex > 0) {
-      e.preventDefault();
-      const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
-      if (prevPageElement) {
-        prevPageElement.focus();
-        const newRange = document.createRange();
-        newRange.selectNodeContents(prevPageElement);
-        newRange.collapse(false);
-        selection.removeAllRanges();
-        selection.addRange(newRange);
-      }
-    }
-    
-    if (e.key === 'ArrowDown' && isAtEnd && pageIndex < pages.length - 1) {
-      e.preventDefault();
-      const nextPageElement = document.getElementById(`page-${pageIndex + 1}`);
-      if (nextPageElement) {
-        nextPageElement.focus();
-        const newRange = document.createRange();
-        newRange.selectNodeContents(nextPageElement);
-        newRange.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(newRange);
-      }
-    }
-    
-    // Handle right arrow at end of page
-    if (e.key === 'ArrowRight' && isAtEnd && pageIndex < pages.length - 1) {
-      e.preventDefault();
-      const nextPageElement = document.getElementById(`page-${pageIndex + 1}`);
-      if (nextPageElement) {
-        nextPageElement.focus();
-        const newRange = document.createRange();
-        if (nextPageElement.firstChild) {
-          newRange.setStart(nextPageElement.firstChild, 0);
-          newRange.setEnd(nextPageElement.firstChild, 0);
-        } else {
-          newRange.selectNodeContents(nextPageElement);
-          newRange.collapse(true);
-        }
-        selection.removeAllRanges();
-        selection.addRange(newRange);
-      }
-    }
-    
-    // Handle left arrow at beginning of page
-    if (e.key === 'ArrowLeft' && isAtStart && pageIndex > 0) {
-      e.preventDefault();
-      const prevPageElement = document.getElementById(`page-${pageIndex - 1}`);
-      if (prevPageElement) {
-        prevPageElement.focus();
-        const newRange = document.createRange();
-        newRange.selectNodeContents(prevPageElement);
-        newRange.collapse(false);
-        selection.removeAllRanges();
-        selection.addRange(newRange);
-      }
-    }
-  }, [pages, onChange, pageBreakMode, contentHeight]);
+    // Let the global handler manage cross-page navigation
+    // This just handles page-specific logic if needed
+  }, []);
 
   // Format text selection
   const formatText = useCallback((command: string, value?: string) => {
@@ -1018,12 +946,20 @@ export function EnhancedCollaborativeEditor({
 
       {/* Editor Container */}
       <div className="bg-gray-100 dark:bg-gray-800 p-6 min-h-[600px]">
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div 
+          className="editor-scroll-wrapper max-w-4xl mx-auto"
+          style={{
+            height: '100vh',
+            overflowY: 'auto',
+            scrollBehavior: 'smooth',
+            scrollSnapType: 'y mandatory',
+          }}
+        >
           {/* Pages */}
           {pages.map((pageContent, pageIndex) => (
             <div
               key={pageIndex}
-              className="bg-white shadow-lg mx-auto relative"
+              className="bg-white shadow-lg mx-auto relative page mb-6"
               style={{
                 width: `${pageWidth}in`,
                 height: `${pageHeight}in`,
@@ -1032,7 +968,10 @@ export function EnhancedCollaborativeEditor({
                 fontSize: `${fontSize}pt`,
                 lineHeight: lineHeight,
                 boxSizing: 'border-box',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                scrollSnapAlign: 'start',
+                overflowWrap: 'break-word',
+                overflowAnchor: 'none'
               }}
             >
               {/* Page number */}
@@ -1056,6 +995,7 @@ export function EnhancedCollaborativeEditor({
                   overflow: 'hidden'
                 }}
                 suppressContentEditableWarning={true}
+                dangerouslySetInnerHTML={{ __html: pageContent }}
               />
 
               {/* Remove page button for manual mode */}
@@ -1076,6 +1016,10 @@ export function EnhancedCollaborativeEditor({
       {/* Script-specific styles */}
       <style dangerouslySetInnerHTML={{
         __html: `
+          .page {
+            overflow-anchor: none;
+          }
+          
           .script-character {
             font-weight: bold;
             text-transform: uppercase;

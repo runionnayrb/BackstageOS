@@ -1,0 +1,61 @@
+useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    const selection = document.getSelection();
+    if (!selection || !selection.focusNode) return;
+
+    const currentPage = (selection.focusNode as HTMLElement)?.closest('[id^="page-"]') as HTMLElement;
+    if (!currentPage) return;
+
+    const pageId = parseInt(currentPage.id.replace('page-', ''), 10);
+    const previousPage = document.getElementById(`page-${pageId - 1}`);
+    const nextPage = document.getElementById(`page-${pageId + 1}`);
+
+    // Handle BACKSPACE at start of current page
+    if (e.key === 'Backspace') {
+      const range = selection.getRangeAt(0);
+      const isAtStart = range.collapsed && range.startOffset === 0;
+
+      if (isAtStart && previousPage) {
+        e.preventDefault();
+
+        const lastChild = previousPage.lastChild || previousPage;
+        const newRange = document.createRange();
+        newRange.selectNodeContents(lastChild);
+        newRange.collapse(false);
+
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+
+        previousPage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+    }
+
+    // Handle ENTER at end of current page
+    if (e.key === 'Enter') {
+      const range = selection.getRangeAt(0);
+      const isAtEnd =
+        range.collapsed &&
+        selection.focusNode?.nodeType === Node.TEXT_NODE &&
+        range.endOffset === selection.focusNode.textContent?.length;
+
+      if (isAtEnd && nextPage) {
+        e.preventDefault();
+
+        const firstChild = nextPage.firstChild || nextPage;
+        const newRange = document.createRange();
+        newRange.selectNodeContents(firstChild);
+        newRange.collapse(true);
+
+        selection.removeAllRanges();
+        selection.addRange(newRange);
+
+        nextPage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
+  document.addEventListener('keydown', handleKeyDown);
+  return () => {
+    document.removeEventListener('keydown', handleKeyDown);
+  };
+}, []);
