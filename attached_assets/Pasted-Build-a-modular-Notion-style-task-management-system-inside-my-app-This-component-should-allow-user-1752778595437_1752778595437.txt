@@ -1,0 +1,70 @@
+Build a modular, Notion-style task management system inside my app. This component should allow users to create, manage, and interact with tasks using multiple views and a fully editable interface. It should be clean, modern, fast, and functionally match how Notion databases work. This task database will be reused across different shows and projects in my app.
+
+Global Navigation Requirement:
+Add a link to this Task Manager inside the hamburger menu in the app header. Label it “To-Do” or “Task Manager.” Clicking it should route users to the task dashboard.
+
+Core Features:
+	1.	View Modes (Toggleable)
+
+	•	List view (simple vertical list of tasks)
+	•	Table view (columns represent task fields)
+	•	Kanban view (drag-and-drop columns, based on a selected field like Status)
+
+	2.	Task Structure and Custom Properties
+Each task is a record/card that supports fully customizable fields. Users must be able to add or delete properties per database. Supported property types must include:
+
+	•	Text
+	•	Number
+	•	Date
+	•	Select (single-option dropdown)
+	•	Multi-select
+	•	Checkbox
+	•	Person (select from existing team members)
+	•	File or image upload
+
+Tasks must support status tracking and assignment to collaborators. Each database should allow users to customize which fields are visible in each view.
+	3.	Full-Page Task Modal (Editor View)
+Clicking on a task opens a full-page modal editor with:
+
+	•	Rich text editing (Google Docs style)
+	•	Headings, bold, italic, underline
+	•	Bullet lists, numbered lists, toggle lists
+	•	To-do checklists with checkmarks
+	•	Hyperlinked text
+	•	Uploading and embedding images or files
+	•	Autosave
+	•	Scrollable, responsive, fast
+
+	4.	Kanban Functionality
+
+	•	Kanban columns are based on any Select or Multi-Select property
+	•	Tasks must be draggable between columns, updating the associated property
+	•	Users can add or delete columns (property values) dynamically
+	•	Each task card on the board displays selected summary fields (user-selectable)
+
+	5.	Collaboration Support
+
+	•	Tasks can be assigned to collaborators (team members exist per show/project)
+	•	Assignments display as profile names or avatars
+	•	Task field visibility and edit permissions should support future role-based logic
+
+	6.	Field Management and Visibility
+
+	•	Users can add, delete, rename, and reorder fields at any time
+	•	Each view (List, Table, Kanban) supports custom field visibility
+	•	View preferences must persist per user or per project
+
+Design Requirements:
+	•	Modern UI inspired by Notion and Apple
+	•	Responsive for mobile and desktop
+	•	Smooth drag-and-drop, modal transitions, and editor performance
+	•	Intuitive UX with clean layouts
+	•	Minimalist but highly functional
+
+Technical Requirements:
+	•	Fully modular and reusable across multiple projects/shows in the larger app
+	•	Autosave and version-safe data persistence
+	•	All fields, views, and properties must be dynamic (not hardcoded)
+	•	Must integrate cleanly with other platform components (scheduling, contacts, reporting, file storage)
+
+The “To-Do” link must be accessible via the hamburger icon in the app header and route directly to the main view of this task system.
