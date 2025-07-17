@@ -113,22 +113,22 @@ export function TaskManagement() {
               
               <div className="flex items-center space-x-2">
                 {/* Expandable Search */}
-                {isSearchExpanded && (
-                  <div className="relative">
-                    <Input
-                      placeholder="Search tasks..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-64 pr-8"
-                      autoFocus
-                      onBlur={() => {
-                        if (!searchQuery) {
-                          setIsSearchExpanded(false);
-                        }
-                      }}
-                    />
-                  </div>
-                )}
+                <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                  isSearchExpanded ? 'w-64 opacity-100' : 'w-0 opacity-0'
+                }`}>
+                  <Input
+                    placeholder="Search tasks..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full border-0 bg-transparent focus:ring-0 focus:outline-none placeholder:text-muted-foreground"
+                    autoFocus={isSearchExpanded}
+                    onBlur={() => {
+                      if (!searchQuery) {
+                        setIsSearchExpanded(false);
+                      }
+                    }}
+                  />
+                </div>
                 <Button 
                   variant="ghost" 
                   size="sm" 
