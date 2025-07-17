@@ -1,0 +1,101 @@
+Build a performance and rehearsal tracking system inside my BackstageOS app.
+
+🧩 Core Functionality:
+This feature tracks cast performances, rehearsals, and pay bumps based on Actors’ Equity Association (AEA) contracts. It must support:
+- Multiple contract types
+- Editable values
+- Auto-calculation of pay triggers
+- Future support for uploading and parsing updated rulebooks
+
+---
+
+🎭 CONTRACT TYPE SELECTION
+
+On the Show Settings page, add a "Contract Type" dropdown with the following options:
+- Broadway (Production)
+- LORT A
+- LORT B
+- LORT C
+- LORT D
+- SPT Tier 1–10
+- COST (placeholder for future)
+
+Once a contract is selected, auto-populate the following default fields:
+- Base Weekly Salary
+- Understudy Pay Bump (e.g., $60/wk for Production)
+- Swing or Track Coverage Bonus (e.g., +1/8th for 5+ tracks)
+- Rehearsal Hour Cap (e.g., 10 hrs post-opening for Production, 8 hrs for others)
+- Overtime Trigger Rules
+
+Allow all these fields to remain **fully editable** by the user.
+
+---
+
+📥 RULEBOOK UPLOAD FEATURE
+
+Also on the Show Settings page:
+- Add an "Upload Contract Rulebook" button (PDF or text-based)
+- When a rulebook is uploaded, parse the file to extract new values for the selected contract type
+- Suggest updated defaults based on extracted data, with a preview and confirmation step before changes apply
+
+This ensures the app stays up to date as contracts evolve (e.g., new AEA rulebooks from 2027+)
+
+---
+
+📊 PERFORMANCE TRACKER TAB
+
+Let the user add/edit entries for each performance:
+- Date
+- Cast Member (dropdown)
+- Role Played
+- Cover Type [Assigned, Emergency, None]
+- Contract Track [Principal, Swing, Ensemble]
+- Was it a 5+ Track Performance? [Yes/No]
+- Auto-calculate Eligible Pay Bump using Show Settings defaults
+- Allow manual override of pay bump per entry
+- Notes field
+- Checkbox: Eligible for Bonus?
+
+Show weekly summaries per actor with total appearances, bump amount, and final calculated pay.
+
+---
+
+🕒 REHEARSAL TRACKER TAB
+
+Allow users to add/edit rehearsal entries:
+- Date
+- Cast Member
+- Rehearsal Type [Understudy, Dance, General, Fight Call]
+- Role Rehearsed
+- Duration (hours)
+- Auto-flag overtime if rehearsal exceeds allowed cap for contract
+- Show triggered overtime in summary table
+
+---
+
+📆 WEEKLY SUMMARY TAB
+
+Per-cast summary:
+- Total Performances by Role
+- Total Rehearsal Hours
+- Total Pay Bumps (w/ type: understudy, swing, etc.)
+- Contract Overtime
+- Export as PDF or CSV
+
+---
+
+🖥️ UI/UX
+
+- Clean, modern design inspired by Apple or Notion
+- Editable inline rows for performance logs
+- Contract type badge or color-coding for quick reference
+- Use dropdowns, toggles, and smart defaults
+- Modular structure for expanding more contract types
+
+---
+
+🧠 FUTURE PHASES (Optional)
+
+- Smart Contract Assistant: AI parses new rulebooks automatically
+- Contract versioning: Track which version of a contract a show is using
+- Payroll integration: Use performance data to auto-generate pay reports

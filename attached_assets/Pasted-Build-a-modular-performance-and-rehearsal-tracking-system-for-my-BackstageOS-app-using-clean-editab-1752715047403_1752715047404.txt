@@ -1,0 +1,105 @@
+Build a modular performance and rehearsal tracking system for my BackstageOS app using clean, editable data tables. This is Phase 1 of a larger contract-based tracking system for stage managers.
+
+This feature will support adding cast performance logs, rehearsal logs, and pay bumps based on Actors’ Equity Association (AEA) contract rules. It should include a show-level settings page that determines default values based on the contract type.
+
+---
+
+⚠️ IMPORTANT: This contract-based logic should only activate if **at least one cast member has "Equity Status" = true**. Stage managers are assumed to be Equity by default per union rules, so no additional checks are needed for crew.
+
+Only if an Equity actor exists in the cast should the app:
+- Display the Show Settings contract configuration
+- Apply pay bump and rehearsal cap logic
+- Enable performance and rehearsal tracking for Equity members only
+
+---
+
+📌 CORE MODULES TO BUILD (IN ORDER):
+
+### 1. SHOW SETTINGS PAGE (CONTRACT CONFIGURATION)
+
+Allow user to:
+- Select a contract type from dropdown:
+  ["Production", "LORT A", "LORT B", "LORT C", "LORT D", "SPT Tier 1", ..., "SPT Tier 10"]
+- Auto-fill the following editable contract values based on the selection:
+  - `baseSalary` (number)
+  - `understudyBump` (number)
+  - `swingBump` (number or rule)
+  - `rehearsalCap` (weekly hour limit)
+  - `overtimeTrigger` (rule or cap)
+
+All fields must remain fully editable after population.
+
+Also include an **"Upload Rulebook PDF"** button. This will not be functional yet but should be included as a placeholder for Phase 2.
+
+---
+
+### 2. PERFORMANCE TRACKER TAB
+
+Only show entries for cast members who have Equity Status = true.
+
+Editable table with these fields:
+- `date` (date picker)
+- `castMember` (dropdown from Equity-only cast list)
+- `rolePlayed` (text input)
+- `coverType` (dropdown: Assigned, Emergency, None)
+- `trackType` (dropdown: Principal, Swing, Ensemble)
+- `multiTrackBonus` (checkbox: true if 5+ tracks performed)
+- `calculatedPayBump` (auto-fill from Show Settings, editable)
+- `notes` (optional)
+
+Auto-calculate pay bump based on selected contract logic. Allow manual override.
+
+Include filters by cast member, date, and role.
+
+---
+
+### 3. REHEARSAL TRACKER TAB
+
+Editable table for tracking rehearsals, only for Equity actors.
+
+Fields:
+- `date`
+- `castMember` (Equity only)
+- `rehearsalType` (dropdown: Understudy, Dance, Fight, General)
+- `roleRehearsed` (text)
+- `duration` (number, in hours)
+- `paidRehearsal` (boolean, auto-flagged true if hours exceed cap but still editable)
+
+Auto-flag overtime based on the rehearsalCap in Show Settings.
+
+---
+
+### 4. WEEKLY SUMMARY TAB
+
+For each Equity cast member:
+- `totalPerformances`
+- `totalRehearsalHours`
+- `payBumpsTriggered`
+- `overtimeFlagged`
+- `totalCalculatedBonusPay`
+
+Add an “Export” button for generating a PDF or CSV report.
+
+---
+
+🖥️ DESIGN REQUIREMENTS
+
+- Clean, modern, mobile-friendly interface
+- Editable inline rows and dropdowns
+- Rehearsal caps and pay bump logic should be clearly visible
+- Use modular components that can scale in future phases
+
+---
+
+📁 FUTURE MODULES (PHASE 2 – DO NOT BUILD YET)
+
+Include these as comments or placeholders only:
+- Rulebook Upload Parsing: Accept PDF, extract contract values (salary, caps, bumps)
+- Suggested Value Update: Detect contract value changes and propose edits to Show Settings
+- Versioning: Track changes to contract rules over time for auditing
+
+---
+
+🏁 SUMMARY
+
+This system enables stage managers to track Equity actors' performance and rehearsal activity in line with AEA contract rules. It includes smart defaults, conditional activation based on cast Equity status, editable overrides, and modular expansion in future phases.
