@@ -572,7 +572,7 @@ export function TaskViewSettings({
                   </div>
                 </div>
               </>
-            )}
+            ) : null}
           </div>
         </>
       )}
