@@ -261,7 +261,9 @@ export function TaskTableView({
             checked={selectedTasks.has(task.id)}
             onCheckedChange={(checked) => handleSelectTask(task.id, !!checked)}
             onClick={(e) => e.stopPropagation()}
-            className="opacity-0 group-hover:opacity-100 transition-opacity"
+            className={`transition-opacity ${
+              selectedTasks.has(task.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            }`}
           />
         );
 
@@ -411,7 +413,9 @@ export function TaskTableView({
                         <Checkbox
                           checked={selectedTasks.size === tasks.length && tasks.length > 0}
                           onCheckedChange={handleSelectAll}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          className={`transition-opacity ${
+                            selectedTasks.size > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                          }`}
                         />
                       </TableHead>
                     );
