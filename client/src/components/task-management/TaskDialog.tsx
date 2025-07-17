@@ -274,10 +274,21 @@ export function TaskDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormControl>
-                      <Input 
+                      <textarea
                         placeholder="New page" 
                         {...field} 
-                        className="text-5xl font-bold border-none p-0 shadow-none focus-visible:ring-0 bg-transparent"
+                        className="text-5xl font-bold border-none p-0 shadow-none focus-visible:ring-0 bg-transparent resize-none overflow-hidden min-h-0 w-full"
+                        rows={1}
+                        style={{ 
+                          fontSize: '3rem', 
+                          lineHeight: '1.2',
+                          fontWeight: 'bold'
+                        }}
+                        onInput={(e) => {
+                          const target = e.target as HTMLTextAreaElement;
+                          target.style.height = 'auto';
+                          target.style.height = target.scrollHeight + 'px';
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
