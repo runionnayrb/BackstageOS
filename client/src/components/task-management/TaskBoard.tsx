@@ -36,10 +36,7 @@ export function TaskBoard({ database, view }: TaskBoardProps) {
 
   // Create task mutation
   const createTaskMutation = useMutation({
-    mutationFn: (data: any) => apiRequest(`/api/task-databases/${database.id}/tasks`, {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
+    mutationFn: (data: any) => apiRequest('POST', `/api/task-databases/${database.id}/tasks`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database.id, 'tasks'] });
       setIsCreateTaskOpen(false);
@@ -48,10 +45,7 @@ export function TaskBoard({ database, view }: TaskBoardProps) {
 
   // Update task mutation
   const updateTaskMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest(`/api/tasks/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data)
-    }),
+    mutationFn: ({ id, data }: { id: number; data: any }) => apiRequest('PUT', `/api/tasks/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database.id, 'tasks'] });
     }
@@ -59,9 +53,7 @@ export function TaskBoard({ database, view }: TaskBoardProps) {
 
   // Delete task mutation
   const deleteTaskMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/tasks/${id}`, {
-      method: 'DELETE'
-    }),
+    mutationFn: (id: number) => apiRequest('DELETE', `/api/tasks/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database.id, 'tasks'] });
     }
