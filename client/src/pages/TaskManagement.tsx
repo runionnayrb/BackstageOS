@@ -127,9 +127,6 @@ export function TaskManagement() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <h1 className="text-2xl font-bold">{selectedDatabase.name}</h1>
-                  {selectedDatabase.isGlobal && (
-                    <Badge variant="secondary">Global</Badge>
-                  )}
                 </div>
                 
                 <div className="flex items-center space-x-2">
@@ -211,9 +208,6 @@ export function TaskManagement() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold">{database.name}</h3>
-                  {database.isGlobal && (
-                    <Badge variant="secondary" className="mt-1">Global</Badge>
-                  )}
                 </div>
                 <Button
                   variant="ghost"
