@@ -41,11 +41,13 @@ export function TaskViewSettings({
   const triggerRef = useRef<HTMLDivElement>(null);
 
   const handleTriggerClick = (event: React.MouseEvent) => {
-    // Capture mouse position and offset to the left
-    const offsetX = 300; // Offset to the left of cursor
+    // Get the button element's position
+    const buttonRect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    
+    // Position popover to the left of the button, aligned with top
     setPopoverPosition({
-      x: event.clientX - offsetX,
-      y: event.clientY
+      x: buttonRect.left - 320, // 320px to the left (popover width + some spacing)
+      y: buttonRect.top
     });
     setIsOpen(true);
   };
@@ -99,8 +101,7 @@ export function TaskViewSettings({
             className="fixed z-50 w-80 bg-white rounded-md border shadow-lg p-0"
             style={{
               left: `${popoverPosition.x}px`,
-              top: `${popoverPosition.y}px`,
-              transform: 'translateY(-50%)'
+              top: `${popoverPosition.y}px`
             }}
           >
         <div className="px-6 py-4 border-b">
