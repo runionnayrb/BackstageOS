@@ -57,11 +57,18 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
   // Update task mutation
   const updateTaskMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      console.log('Mutation sending to server:', { id, data });
       const response = await apiRequest('PUT', `/api/tasks/${id}`, data);
-      return await response.json();
+      const result = await response.json();
+      console.log('Server response:', result);
+      return result;
     },
     onSuccess: () => {
+      console.log('Update successful, invalidating cache');
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database.id, 'tasks'] });
+    },
+    onError: (error) => {
+      console.error('Update error:', error);
     }
   });
 
@@ -90,6 +97,7 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
   };
 
   const handleUpdateTask = (id: number, data: any) => {
+    console.log('TaskBoard handleUpdateTask:', { id, data });
     updateTaskMutation.mutate({ id, data });
   };
 
