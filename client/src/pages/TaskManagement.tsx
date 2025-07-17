@@ -2,8 +2,9 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
-import { Database, Table, Calendar, Kanban, List, Grid, Settings, Filter, Plus } from "lucide-react";
+import { Database, Table, Calendar, Kanban, List, Grid, Settings, Filter, Plus, Search } from "lucide-react";
 import { TaskBoard } from "@/components/task-management/TaskBoard";
 import { apiRequest } from "@/lib/queryClient";
 import type { TaskDatabase, TaskView } from "@shared/schema";
@@ -12,6 +13,8 @@ export function TaskManagement() {
   const [location, navigate] = useLocation();
   const [selectedView, setSelectedView] = useState<TaskView | null>(null);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
 
   // Get current project from URL params if available
@@ -109,6 +112,30 @@ export function TaskManagement() {
               </div>
               
               <div className="flex items-center space-x-2">
+                {/* Expandable Search */}
+                {isSearchExpanded && (
+                  <div className="relative">
+                    <Input
+                      placeholder="Search tasks..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-64 pr-8"
+                      autoFocus
+                      onBlur={() => {
+                        if (!searchQuery) {
+                          setIsSearchExpanded(false);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
                 <Button variant="ghost" size="sm">
                   <Filter className="h-4 w-4" />
                 </Button>
@@ -150,6 +177,7 @@ export function TaskManagement() {
             isCreateTaskOpen={isCreateTaskOpen}
             onCreateTaskClose={() => setIsCreateTaskOpen(false)}
             onCreateTaskOpen={() => setIsCreateTaskOpen(true)}
+            searchQuery={searchQuery}
           />
         </div>
       </div>

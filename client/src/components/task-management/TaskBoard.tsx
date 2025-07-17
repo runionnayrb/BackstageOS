@@ -17,10 +17,10 @@ interface TaskBoardProps {
   isCreateTaskOpen?: boolean;
   onCreateTaskClose?: () => void;
   onCreateTaskOpen?: () => void;
+  searchQuery?: string;
 }
 
-export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen }: TaskBoardProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen, searchQuery = "" }: TaskBoardProps) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const queryClient = useQueryClient();
 
@@ -153,17 +153,6 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
       <div className="border-b bg-background px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search tasks..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-64"
-              />
-            </div>
-
             {/* Task count */}
             <div className="text-sm text-muted-foreground">
               {filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'}
@@ -171,7 +160,7 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
           </div>
 
           <div className="flex items-center space-x-2">
-            {/* New Task button moved to page header */}
+            {/* Search and New Task buttons moved to page header */}
           </div>
         </div>
       </div>
