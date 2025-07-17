@@ -17,10 +17,11 @@ interface TaskBoardProps {
   isCreateTaskOpen?: boolean;
   onCreateTaskClose?: () => void;
   onCreateTaskOpen?: () => void;
+  onAutoCreateTask?: () => void;
   searchQuery?: string;
 }
 
-export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen, searchQuery = "" }: TaskBoardProps) {
+export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen, onAutoCreateTask, searchQuery = "" }: TaskBoardProps) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const queryClient = useQueryClient();
 
@@ -130,6 +131,26 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
   const handleTaskSelect = (task: Task) => {
     setSelectedTask(task);
   };
+
+  // Auto-create task function
+  const handleAutoCreateTask = () => {
+    const defaultTask = {
+      title: "New Task",
+      content: "",
+      status: "not_started",
+      priority: "medium",
+      properties: {}
+    };
+    createTaskMutation.mutate(defaultTask);
+  };
+
+  // Expose auto-create function to parent
+  useEffect(() => {
+    if (onAutoCreateTask) {
+      // Replace the callback with our auto-create function
+      window.autoCreateTask = handleAutoCreateTask;
+    }
+  }, [onAutoCreateTask]);
 
   // Render the appropriate view based on view type
   const renderView = () => {

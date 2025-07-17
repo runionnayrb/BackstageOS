@@ -256,15 +256,7 @@ export function TaskDialog({
     <Sheet open={isOpen} onOpenChange={handleClose}>
       <SheetContent side="right" className="w-full sm:max-w-3xl p-0 overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleClose}
-            className="h-8 w-8 p-0"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center justify-between p-4">
           <div className="flex items-center space-x-2">
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
               <MoreHorizontal className="h-4 w-4" />
@@ -450,35 +442,21 @@ export function TaskDialog({
           </form>
         </Form>
 
-        {/* Sticky Footer */}
-        <div className="sticky bottom-0 bg-white border-t p-4 flex justify-between items-center">
-          <div>
-            {task && onDelete && (
-              <Button 
-                type="button" 
-                variant="ghost" 
-                size="sm"
-                onClick={onDelete}
-                disabled={isLoading}
-                className="text-red-600 hover:text-red-700"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
-          <div className="flex space-x-2">
-            <Button type="button" variant="ghost" size="sm" onClick={handleClose}>
-              Cancel
-            </Button>
+        {/* Minimal footer with only delete if editing */}
+        {task && onDelete && (
+          <div className="p-4 flex justify-start">
             <Button 
-              onClick={form.handleSubmit(handleSubmit)} 
-              disabled={isLoading}
+              type="button" 
+              variant="ghost" 
               size="sm"
+              onClick={onDelete}
+              disabled={isLoading}
+              className="text-red-600 hover:text-red-700"
             >
-              {isLoading ? "Saving..." : task ? "Update" : "Create"}
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-        </div>
+        )}
       </SheetContent>
     </Sheet>
   );
