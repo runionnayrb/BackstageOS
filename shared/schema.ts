@@ -790,6 +790,8 @@ export const taskDatabases = pgTable("task_databases", {
   name: varchar("name").notNull(),
   description: text("description"),
   icon: varchar("icon"), // emoji or icon identifier
+  color: varchar("color").default("#6B7280"), // hex color code
+  templateType: varchar("template_type"), // template identifier
   isGlobal: boolean("is_global").default(false), // for user-level databases
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),

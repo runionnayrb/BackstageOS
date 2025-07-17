@@ -36,13 +36,20 @@ export function TaskManagement() {
 
   // Create database mutation
   const createDatabaseMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/task-databases', {
-      method: 'POST',
-      body: JSON.stringify(data)
-    }),
-    onSuccess: () => {
+    mutationFn: (data: any) => {
+      console.log('Creating database with data:', data);
+      return apiRequest('/api/task-databases', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+    },
+    onSuccess: (result) => {
+      console.log('Database created successfully:', result);
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases'] });
       setIsCreateDatabaseOpen(false);
+    },
+    onError: (error) => {
+      console.error('Database creation failed:', error);
     }
   });
 
