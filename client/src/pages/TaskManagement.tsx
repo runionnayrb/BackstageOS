@@ -115,32 +115,33 @@ export function TaskManagement() {
         {/* Header */}
         <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setSelectedDatabase(null)}
-                  className="px-2"
-                >
-                  ← Back
-                </Button>
+            <div className="space-y-4">
+              <Button 
+                variant="ghost" 
+                onClick={() => setSelectedDatabase(null)}
+                className="px-2"
+              >
+                ← Back
+              </Button>
+              
+              <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <h1 className="text-2xl font-bold">{selectedDatabase.name}</h1>
                   {selectedDatabase.isGlobal && (
                     <Badge variant="secondary">Global</Badge>
                   )}
                 </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filter
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Settings
-                </Button>
+                
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm">
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filter
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Settings
+                  </Button>
+                </div>
               </div>
             </div>
 
