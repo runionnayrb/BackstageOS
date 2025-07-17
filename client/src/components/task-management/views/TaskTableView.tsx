@@ -279,8 +279,17 @@ export function TaskTableView({
 
       case 'task':
         return (
-          <div className="space-y-1">
-            <div className="font-medium">{task.title}</div>
+          <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
+            <input
+              className="font-medium bg-transparent border-0 outline-none w-full focus:bg-white focus:border focus:border-blue-200 focus:rounded px-1 -mx-1"
+              value={task.title}
+              onChange={(e) => onTaskUpdate(task.id, { title: e.target.value })}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.currentTarget.blur();
+                }
+              }}
+            />
             {task.content && (
               <div className="text-sm text-muted-foreground truncate max-w-[250px]">
                 {String(task.content).replace(/<[^>]*>/g, '')}
@@ -293,18 +302,19 @@ export function TaskTableView({
         const taskStatus = task.status || 'not_started';
         const statusConfig = STATUS_CONFIG[taskStatus as keyof typeof STATUS_CONFIG];
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-full justify-start" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center space-x-2">
-                  <div 
-                    className="w-2 h-2 rounded-full" 
-                    style={{ backgroundColor: statusConfig?.color || '#6B7280' }}
-                  />
-                  <span className="text-xs">{statusConfig?.label || 'Not Started'}</span>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
+          <div onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-full justify-start hover:bg-gray-100">
+                  <div className="flex items-center space-x-2">
+                    <div 
+                      className="w-2 h-2 rounded-full" 
+                      style={{ backgroundColor: statusConfig?.color || '#6B7280' }}
+                    />
+                    <span className="text-xs">{statusConfig?.label || 'Not Started'}</span>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
             <DropdownMenuContent>
               {Object.entries(STATUS_CONFIG).map(([status, config]) => (
                 <DropdownMenuItem
@@ -321,7 +331,8 @@ export function TaskTableView({
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
-          </DropdownMenu>
+            </DropdownMenu>
+          </div>
         );
 
       case 'priority':
@@ -329,18 +340,19 @@ export function TaskTableView({
         const priorityConfig = PRIORITY_CONFIG[taskPriority as keyof typeof PRIORITY_CONFIG];
         const PriorityIcon = priorityConfig?.icon || ArrowRight;
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-full justify-start" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center space-x-2">
-                  <PriorityIcon 
-                    className="h-3 w-3" 
-                    style={{ color: priorityConfig?.color || '#6B7280' }} 
-                  />
-                  <span className="text-xs">{priorityConfig?.label || 'Medium'}</span>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
+          <div onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-full justify-start hover:bg-gray-100">
+                  <div className="flex items-center space-x-2">
+                    <PriorityIcon 
+                      className="h-3 w-3" 
+                      style={{ color: priorityConfig?.color || '#6B7280' }} 
+                    />
+                    <span className="text-xs">{priorityConfig?.label || 'Medium'}</span>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
             <DropdownMenuContent>
               {Object.entries(PRIORITY_CONFIG).map(([priority, config]) => {
                 const Icon = config.icon;
@@ -360,18 +372,25 @@ export function TaskTableView({
                 );
               })}
             </DropdownMenuContent>
-          </DropdownMenu>
+            </DropdownMenu>
+          </div>
         );
 
       case 'date':
         if (column.key === 'dueDate') {
-          return task.dueDate ? (
-            <div className="flex items-center space-x-1 text-sm">
-              <Calendar className="h-3 w-3 text-muted-foreground" />
-              <span>{format(new Date(task.dueDate), 'MMM d')}</span>
+          return (
+            <div onClick={(e) => e.stopPropagation()} className="w-full">
+              <input
+                type="date"
+                value={task.dueDate ? format(new Date(task.dueDate), 'yyyy-MM-dd') : ''}
+                onChange={(e) => {
+                  const date = e.target.value ? new Date(e.target.value) : null;
+                  onTaskUpdate(task.id, { dueDate: date });
+                }}
+                className="w-full h-8 px-2 bg-transparent border-0 outline-none text-sm focus:bg-white focus:border focus:border-blue-200 focus:rounded"
+                placeholder="Set due date"
+              />
             </div>
-          ) : (
-            <span className="text-muted-foreground text-sm">—</span>
           );
         } else {
           return (
