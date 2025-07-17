@@ -277,7 +277,7 @@ export function TaskDialog({
                       <Input 
                         placeholder="New page" 
                         {...field} 
-                        className="text-3xl font-bold border-none p-0 shadow-none focus-visible:ring-0 bg-transparent"
+                        className="text-2xl font-bold border-none p-0 shadow-none focus-visible:ring-0 bg-transparent"
                       />
                     </FormControl>
                     <FormMessage />
