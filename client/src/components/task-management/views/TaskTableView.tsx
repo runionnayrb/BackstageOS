@@ -414,7 +414,7 @@ export function TaskTableView({
                           checked={selectedTasks.size === tasks.length && tasks.length > 0}
                           onCheckedChange={handleSelectAll}
                           className={`transition-opacity ${
-                            selectedTasks.size > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                            (selectedTasks.size === tasks.length && tasks.length > 0) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                           }`}
                         />
                       </TableHead>
