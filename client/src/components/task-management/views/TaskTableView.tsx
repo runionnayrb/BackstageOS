@@ -385,16 +385,13 @@ export function TaskTableView({
                 type="date"
                 value={dueDate ? format(new Date(dueDate), 'yyyy-MM-dd') : ''}
                 onChange={(e) => {
-                  console.log('Date change:', { value: e.target.value, type: typeof e.target.value });
                   let date = null;
                   if (e.target.value) {
                     // Create date at noon UTC to avoid timezone issues
                     const selectedDate = new Date(e.target.value + 'T12:00:00.000Z');
                     date = selectedDate.toISOString();
-                    console.log('Parsed date:', { selectedDate, isoString: date });
                   }
                   const updatedProperties = { ...(task.properties || {}), dueDate: date };
-                  console.log('Updating properties:', updatedProperties);
                   onTaskUpdate(task.id, { properties: updatedProperties });
                 }}
                 className="w-full h-8 px-2 bg-transparent border-0 outline-none text-sm focus:bg-white focus:border focus:border-blue-200 focus:rounded"

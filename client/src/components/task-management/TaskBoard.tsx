@@ -54,7 +54,7 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
     }
   });
 
-  // Update task mutation
+  // Update task mutation with optimistic updates
   const updateTaskMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
       console.log('Mutation sending to server:', { id, data });
@@ -63,12 +63,35 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
       console.log('Server response:', result);
       return result;
     },
-    onSuccess: () => {
-      console.log('Update successful, invalidating cache');
-      queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database.id, 'tasks'] });
+    onMutate: async ({ id, data }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/task-databases', database.id, 'tasks'] });
+      
+      // Snapshot the previous value
+      const previousTasks = queryClient.getQueryData(['/api/task-databases', database.id, 'tasks']);
+      
+      // Optimistically update the cache
+      queryClient.setQueryData(['/api/task-databases', database.id, 'tasks'], (old: any[]) => {
+        return old?.map((task: any) => 
+          task.id === id 
+            ? { ...task, ...data, updatedAt: new Date().toISOString() }
+            : task
+        ) || [];
+      });
+      
+      // Return context with snapshot
+      return { previousTasks };
     },
-    onError: (error) => {
-      console.error('Update error:', error);
+    onError: (err, { id, data }, context) => {
+      // Rollback on error
+      if (context?.previousTasks) {
+        queryClient.setQueryData(['/api/task-databases', database.id, 'tasks'], context.previousTasks);
+      }
+      console.error('Update error:', err);
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database.id, 'tasks'] });
     }
   });
 
@@ -97,7 +120,6 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
   };
 
   const handleUpdateTask = (id: number, data: any) => {
-    console.log('TaskBoard handleUpdateTask:', { id, data });
     updateTaskMutation.mutate({ id, data });
   };
 
