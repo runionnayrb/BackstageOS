@@ -133,16 +133,17 @@ export function TaskManagement() {
                   variant="ghost" 
                   size="sm" 
                   onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+                  className="hover:bg-transparent"
                 >
                   <Search className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="hover:bg-transparent">
                   <Filter className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="hover:bg-transparent">
                   <Settings className="h-4 w-4" />
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => setIsCreateTaskOpen(true)}>
+                <Button variant="ghost" size="sm" onClick={() => setIsCreateTaskOpen(true)} className="hover:bg-transparent">
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
