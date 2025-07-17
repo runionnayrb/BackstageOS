@@ -410,8 +410,8 @@ export function TaskTableView({
       <div className="h-full overflow-auto">
         <div className="overflow-x-auto">
           <Table style={{ minWidth: 'max-content', tableLayout: 'fixed', width: columns.reduce((sum, col) => sum + col.width, 0) }}>
-            <TableHeader className="sticky top-0 bg-background z-10 border-0">
-              <TableRow className="group border-0 border-b-0">
+            <TableHeader className="sticky top-0 bg-background z-10 [&_tr]:border-b-0">
+              <TableRow className="group !border-b-0">
                 {columns.map((column, index) => {
                   if (column.type === 'checkbox') {
                     return (
