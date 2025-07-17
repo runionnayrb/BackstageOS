@@ -322,10 +322,10 @@ export function TaskDialog({
                     control={form.control}
                     name="status"
                     render={({ field }) => (
-                      <FormItem className="flex-1">
+                      <FormItem className="w-auto">
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none">
+                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none w-auto [&>svg]:hidden">
                               <SelectValue placeholder="Not started" />
                             </SelectTrigger>
                           </FormControl>
@@ -356,10 +356,10 @@ export function TaskDialog({
                     control={form.control}
                     name="priority"
                     render={({ field }) => (
-                      <FormItem className="flex-1">
+                      <FormItem className="w-auto">
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none">
+                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none w-auto [&>svg]:hidden">
                               <SelectValue placeholder="Medium" />
                             </SelectTrigger>
                           </FormControl>
