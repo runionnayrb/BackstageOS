@@ -1,4 +1,4 @@
-import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus, FileText, Calendar } from "lucide-react";
+import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus, FileText, Calendar, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -345,6 +345,10 @@ export default function EnhancedHeader() {
                       <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/contacts`)}>
                         <Users className="h-4 w-4 mr-2" />
                         Contacts
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/performance-tracker`)}>
+                        <TrendingUp className="h-4 w-4 mr-2" />
+                        Performance Tracker
                       </DropdownMenuItem>
                     </>
                   )}

@@ -273,14 +273,7 @@ export default function Personnel() {
         </div>
         
         <div className="mb-2 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
-            <QuickSectionSwitcher 
-              currentShowId={projectId || ""}
-              currentShowName={(project as any)?.name || ""}
-              currentSection="contacts"
-            />
-          </div>
+          <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
           <Button
             onClick={handleNewContactClick}
             className="flex items-center gap-2"
