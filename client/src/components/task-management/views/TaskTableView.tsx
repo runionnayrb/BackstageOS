@@ -18,8 +18,42 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, ArrowUp, ArrowDown, ArrowRight, Calendar, User, Flag, GripVertical } from "lucide-react";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+} from "@/components/ui/context-menu";
+import { 
+  MoreHorizontal, 
+  ArrowUp, 
+  ArrowDown, 
+  ArrowRight, 
+  Calendar, 
+  User, 
+  Flag, 
+  GripVertical,
+  Type,
+  Settings,
+  Filter,
+  ArrowUpDown,
+  Group,
+  Calculator,
+  Lock,
+  EyeOff,
+  WrapText,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  Trash2,
+  ChevronDown
+} from "lucide-react";
 import { format } from "date-fns";
 import type { Task, TaskProperty } from "@shared/schema";
 import "react-resizable/css/styles.css";
@@ -48,7 +82,109 @@ interface DraggableColumnHeaderProps {
   index: number;
   moveColumn: (dragIndex: number, hoverIndex: number) => void;
   resizeColumn: (columnId: string, width: number) => void;
+  onColumnAction: (action: string, columnId: string) => void;
   children: React.ReactNode;
+}
+
+// Column Context Menu Component
+function ColumnContextMenu({ 
+  column, 
+  onAction, 
+  children 
+}: { 
+  column: Column; 
+  onAction: (action: string, columnId: string) => void; 
+  children: React.ReactNode; 
+}) {
+  const canDelete = !column.isSystemField && column.type === 'property';
+  
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        {children}
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-64">
+        <ContextMenuItem onClick={() => onAction('change-type', column.id)} className="flex items-center gap-2">
+          <Type className="w-4 h-4" />
+          Change type
+          <ChevronRight className="w-4 h-4 ml-auto" />
+        </ContextMenuItem>
+        
+        <ContextMenuItem onClick={() => onAction('autofill', column.id)} className="flex items-center gap-2">
+          <Settings className="w-4 h-4" />
+          Set up AI autofill
+        </ContextMenuItem>
+        
+        <ContextMenuSeparator />
+        
+        <ContextMenuItem onClick={() => onAction('filter', column.id)} className="flex items-center gap-2">
+          <Filter className="w-4 h-4" />
+          Filter
+        </ContextMenuItem>
+        
+        <ContextMenuItem onClick={() => onAction('sort', column.id)} className="flex items-center gap-2">
+          <ArrowUpDown className="w-4 h-4" />
+          Sort
+          <ChevronRight className="w-4 h-4 ml-auto" />
+        </ContextMenuItem>
+        
+        <ContextMenuItem onClick={() => onAction('group', column.id)} className="flex items-center gap-2">
+          <Group className="w-4 h-4" />
+          Group
+        </ContextMenuItem>
+        
+        <ContextMenuItem onClick={() => onAction('calculate', column.id)} className="flex items-center gap-2">
+          <Calculator className="w-4 h-4" />
+          Calculate
+          <ChevronRight className="w-4 h-4 ml-auto" />
+        </ContextMenuItem>
+        
+        <ContextMenuSeparator />
+        
+        <ContextMenuItem onClick={() => onAction('freeze', column.id)} className="flex items-center gap-2">
+          <Lock className="w-4 h-4" />
+          Freeze
+        </ContextMenuItem>
+        
+        <ContextMenuItem onClick={() => onAction('hide', column.id)} className="flex items-center gap-2">
+          <EyeOff className="w-4 h-4" />
+          Hide
+        </ContextMenuItem>
+        
+        <ContextMenuItem onClick={() => onAction('wrap-text', column.id)} className="flex items-center gap-2">
+          <WrapText className="w-4 h-4" />
+          Wrap text
+        </ContextMenuItem>
+        
+        <ContextMenuSeparator />
+        
+        <ContextMenuItem onClick={() => onAction('insert-left', column.id)} className="flex items-center gap-2">
+          <ChevronLeft className="w-4 h-4" />
+          Insert left
+        </ContextMenuItem>
+        
+        <ContextMenuItem onClick={() => onAction('insert-right', column.id)} className="flex items-center gap-2">
+          <ChevronRight className="w-4 h-4" />
+          Insert right
+        </ContextMenuItem>
+        
+        <ContextMenuItem onClick={() => onAction('duplicate', column.id)} className="flex items-center gap-2">
+          <Copy className="w-4 h-4" />
+          Duplicate property
+        </ContextMenuItem>
+        
+        {canDelete && (
+          <ContextMenuItem 
+            onClick={() => onAction('delete', column.id)} 
+            className="flex items-center gap-2 text-red-600 focus:text-red-600"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete property
+          </ContextMenuItem>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
+  );
 }
 
 const STATUS_CONFIG = {
@@ -72,6 +208,7 @@ function DraggableColumnHeader({
   index, 
   moveColumn, 
   resizeColumn, 
+  onColumnAction,
   children 
 }: DraggableColumnHeaderProps) {
   const ref = useRef<HTMLTableCellElement>(null);
@@ -125,17 +262,19 @@ function DraggableColumnHeader({
       className="relative group select-none px-2"
       data-handler-id={handlerId}
     >
-      <div 
-        className="flex items-center justify-between w-full h-full cursor-move"
-        onMouseDown={(e) => {
-          // Only trigger drag if not on resize handle
-          if ((e.target as HTMLElement).classList.contains('resize-handle')) {
-            return;
-          }
-        }}
-      >
-        <span>{column.title}</span>
-      </div>
+      <ColumnContextMenu column={column} onAction={onColumnAction}>
+        <div 
+          className="flex items-center justify-between w-full h-full cursor-move"
+          onMouseDown={(e) => {
+            // Only trigger drag if not on resize handle
+            if ((e.target as HTMLElement).classList.contains('resize-handle')) {
+              return;
+            }
+          }}
+        >
+          <span>{column.title}</span>
+        </div>
+      </ColumnContextMenu>
       <div 
         className="resize-handle absolute right-0 top-0 w-2 h-full cursor-col-resize opacity-0 hover:opacity-100 bg-blue-500 hover:bg-blue-600 z-10"
         onMouseDown={(e) => {
@@ -271,6 +410,67 @@ export function TaskTableView({
       priority: newPriority 
     };
     onTaskUpdate(taskId, { properties: updatedProperties });
+  };
+
+  const handleColumnAction = (action: string, columnId: string) => {
+    console.log(`Column action: ${action} for column: ${columnId}`);
+    
+    switch (action) {
+      case 'change-type':
+        // TODO: Implement change type dialog
+        console.log('Opening change type dialog for column:', columnId);
+        break;
+      case 'autofill':
+        // TODO: Implement AI autofill setup
+        console.log('Setting up AI autofill for column:', columnId);
+        break;
+      case 'filter':
+        // TODO: Implement column filtering
+        console.log('Opening filter for column:', columnId);
+        break;
+      case 'sort':
+        // TODO: Implement column sorting
+        console.log('Opening sort options for column:', columnId);
+        break;
+      case 'group':
+        // TODO: Implement column grouping
+        console.log('Grouping by column:', columnId);
+        break;
+      case 'calculate':
+        // TODO: Implement calculations
+        console.log('Opening calculate options for column:', columnId);
+        break;
+      case 'freeze':
+        // TODO: Implement column freezing
+        console.log('Freezing column:', columnId);
+        break;
+      case 'hide':
+        // TODO: Implement column hiding
+        console.log('Hiding column:', columnId);
+        break;
+      case 'wrap-text':
+        // TODO: Implement text wrapping
+        console.log('Toggling text wrap for column:', columnId);
+        break;
+      case 'insert-left':
+        // TODO: Implement insert column left
+        console.log('Inserting column left of:', columnId);
+        break;
+      case 'insert-right':
+        // TODO: Implement insert column right
+        console.log('Inserting column right of:', columnId);
+        break;
+      case 'duplicate':
+        // TODO: Implement duplicate property
+        console.log('Duplicating column:', columnId);
+        break;
+      case 'delete':
+        // TODO: Implement delete property
+        console.log('Deleting column:', columnId);
+        break;
+      default:
+        console.log('Unknown action:', action);
+    }
   };
 
   const renderCellContent = (task: Task, column: Column) => {
@@ -515,6 +715,7 @@ export function TaskTableView({
                       index={index}
                       moveColumn={moveColumn}
                       resizeColumn={resizeColumn}
+                      onColumnAction={handleColumnAction}
                     />
                   );
                 })}
