@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useQuery } from "@tanstack/react-query";
 import {
   Sheet,
   SheetContent,
@@ -44,6 +45,45 @@ const formSchema = z.object({
 });
 
 type FormData = z.infer<typeof formSchema>;
+
+// Project Assignment Property Component
+function ProjectAssignmentProperty({ form }: { form: any }) {
+  const { data: projects = [] } = useQuery({
+    queryKey: ["/api/projects"],
+  });
+
+  return (
+    <div className="flex items-center space-x-3 py-1">
+      <div className="w-24 text-sm text-gray-600 shrink-0">Project</div>
+      <FormField
+        control={form.control}
+        name="properties.project"
+        render={({ field }) => (
+          <FormItem className="w-auto">
+            <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormControl>
+                <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:border-none hover:border-none w-auto [&>svg]:hidden [&]:!border-none" style={{ border: 'none !important', outline: 'none !important', boxShadow: 'none !important' }}>
+                  <SelectValue placeholder="No project" />
+                </SelectTrigger>
+              </FormControl>
+              <SelectContent>
+                <SelectItem value="">
+                  <span className="text-gray-500">No project</span>
+                </SelectItem>
+                {projects.map((project: any) => (
+                  <SelectItem key={project.id} value={project.id.toString()}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+}
 
 interface TaskDialogProps {
   isOpen: boolean;
@@ -424,6 +464,9 @@ export function TaskDialog({
                     )}
                   />
                 </div>
+
+                {/* Project Assignment property */}
+                <ProjectAssignmentProperty form={form} />
 
                 {/* Custom Properties within collapsible section */}
                 {properties.length > 0 && (
