@@ -149,21 +149,6 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
 
   return (
     <div className="h-full flex flex-col">
-      {/* Toolbar */}
-      <div className="border-b bg-background px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            {/* Task count */}
-            <div className="text-sm text-muted-foreground">
-              {filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'}
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            {/* Search and New Task buttons moved to page header */}
-          </div>
-        </div>
-      </div>
 
       {/* View Content */}
       <div className="flex-1 overflow-hidden">
