@@ -3,12 +3,14 @@ import { useLocation, useParams } from "wouter";
 import { ArrowLeft, FileText, ChevronDown, Mail, Phone, GripVertical, Calendar, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ContactDetailModal } from "@/components/contact-detail-modal";
 import { WeeklyAvailabilityEditor } from "@/components/weekly-availability-editor";
+import { ContactForm } from "@/components/contact-form";
 
 interface PersonnelParams {
   id: string;
@@ -50,6 +52,7 @@ export default function Personnel() {
   const [showContactModal, setShowContactModal] = useState(false);
   const [availabilityContact, setAvailabilityContact] = useState<Contact | null>(null);
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false);
+  const [showNewContactModal, setShowNewContactModal] = useState(false);
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -171,6 +174,20 @@ export default function Personnel() {
     setAvailabilityContact(null);
   };
 
+  const handleNewContactClick = () => {
+    setShowNewContactModal(true);
+  };
+
+  const handleNewContactModalClose = () => {
+    setShowNewContactModal(false);
+  };
+
+  const handleNewContactSuccess = () => {
+    setShowNewContactModal(false);
+    // Refresh the contacts list
+    queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/contacts`] });
+  };
+
   const handleEmailContact = (email: string) => {
     setLocation(`/shows/${projectId}/compose?to=${encodeURIComponent(email)}`);
   };
@@ -257,7 +274,7 @@ export default function Personnel() {
         <div className="mb-2 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
           <Button
-            onClick={() => setLocation(`/shows/${projectId}/contacts/cast`)}
+            onClick={handleNewContactClick}
             className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
@@ -378,6 +395,21 @@ export default function Personnel() {
           onOpenChange={setShowAvailabilityModal}
         />
       )}
+
+      {/* New Contact Modal */}
+      <Dialog open={showNewContactModal} onOpenChange={setShowNewContactModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add New Contact</DialogTitle>
+          </DialogHeader>
+          <ContactForm
+            projectId={projectId}
+            category="cast" // Default to cast, user can change it in the form
+            onClose={handleNewContactModalClose}
+            onSuccess={handleNewContactSuccess}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
