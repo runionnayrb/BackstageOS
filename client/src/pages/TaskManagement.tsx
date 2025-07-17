@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 
-import { Database, Table, Calendar, Kanban, List, Grid, Settings, Filter } from "lucide-react";
+import { Database, Table, Calendar, Kanban, List, Grid, Settings, Filter, Plus } from "lucide-react";
 import { TaskBoard } from "@/components/task-management/TaskBoard";
 import { apiRequest } from "@/lib/queryClient";
 import type { TaskDatabase, TaskView } from "@shared/schema";
@@ -11,6 +11,7 @@ import type { TaskDatabase, TaskView } from "@shared/schema";
 export function TaskManagement() {
   const [location, navigate] = useLocation();
   const [selectedView, setSelectedView] = useState<TaskView | null>(null);
+  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // Get current project from URL params if available
@@ -114,6 +115,9 @@ export function TaskManagement() {
                 <Button variant="ghost" size="sm">
                   <Settings className="h-4 w-4" />
                 </Button>
+                <Button variant="ghost" size="sm" onClick={() => setIsCreateTaskOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                </Button>
               </div>
             </div>
 
@@ -143,6 +147,9 @@ export function TaskManagement() {
           <TaskBoard 
             database={database} 
             view={selectedView || views.find(v => v.isDefault) || views[0]}
+            isCreateTaskOpen={isCreateTaskOpen}
+            onCreateTaskClose={() => setIsCreateTaskOpen(false)}
+            onCreateTaskOpen={() => setIsCreateTaskOpen(true)}
           />
         </div>
       </div>

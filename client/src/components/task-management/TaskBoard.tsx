@@ -14,11 +14,13 @@ import type { TaskDatabase, TaskView, Task, TaskProperty } from "@shared/schema"
 interface TaskBoardProps {
   database: TaskDatabase;
   view?: TaskView;
+  isCreateTaskOpen?: boolean;
+  onCreateTaskClose?: () => void;
+  onCreateTaskOpen?: () => void;
 }
 
-export function TaskBoard({ database, view }: TaskBoardProps) {
+export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen }: TaskBoardProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const queryClient = useQueryClient();
 
@@ -48,7 +50,7 @@ export function TaskBoard({ database, view }: TaskBoardProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database.id, 'tasks'] });
-      setIsCreateTaskOpen(false);
+      onCreateTaskClose?.();
     }
   });
 
@@ -169,10 +171,7 @@ export function TaskBoard({ database, view }: TaskBoardProps) {
           </div>
 
           <div className="flex items-center space-x-2">
-            <Button onClick={() => setIsCreateTaskOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Task
-            </Button>
+            {/* New Task button moved to page header */}
           </div>
         </div>
       </div>
@@ -186,7 +185,7 @@ export function TaskBoard({ database, view }: TaskBoardProps) {
               <p className="text-muted-foreground mb-4">
                 Create your first task to get started
               </p>
-              <Button onClick={() => setIsCreateTaskOpen(true)}>
+              <Button onClick={() => onCreateTaskOpen?.()}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Task
               </Button>
@@ -210,7 +209,7 @@ export function TaskBoard({ database, view }: TaskBoardProps) {
       {/* Create Task Dialog */}
       <TaskDialog
         isOpen={isCreateTaskOpen}
-        onClose={() => setIsCreateTaskOpen(false)}
+        onClose={() => onCreateTaskClose?.()}
         onSubmit={handleCreateTask}
         properties={properties}
         isLoading={createTaskMutation.isPending}
