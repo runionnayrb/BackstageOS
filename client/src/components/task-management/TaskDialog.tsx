@@ -293,14 +293,13 @@ export function TaskDialog({
               />
 
               {/* Collapsible Properties section - Above content */}
-              <div className="border rounded-lg">
+              <div>
                 <Button
                   type="button"
                   variant="ghost"
                   onClick={() => setPropertiesCollapsed(!propertiesCollapsed)}
-                  className="w-full flex items-center justify-between p-3 h-auto hover:bg-gray-50"
+                  className="w-full flex items-center justify-end p-0 h-auto hover:bg-transparent"
                 >
-                  <span className="text-sm font-medium text-gray-700">Properties</span>
                   {propertiesCollapsed ? (
                     <ChevronRight className="h-4 w-4 text-gray-500" />
                   ) : (
@@ -309,7 +308,7 @@ export function TaskDialog({
                 </Button>
                 
                 {!propertiesCollapsed && (
-                  <div className="px-3 pb-3 space-y-3 border-t">
+                  <div className="space-y-3">
                 {/* Status property */}
                 <div className="flex items-center space-x-3 py-1">
                   <div className="w-24 text-sm text-gray-600 shrink-0">Status</div>
@@ -419,7 +418,7 @@ export function TaskDialog({
 
                 {/* Custom Properties within collapsible section */}
                 {properties.length > 0 && (
-                  <div className="space-y-3 mt-4 pt-3 border-t">
+                  <div className="space-y-3 mt-4">
                     {properties.map(renderPropertyField)}
                   </div>
                 )}
