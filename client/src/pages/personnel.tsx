@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ContactDetailModal } from "@/components/contact-detail-modal";
 import { WeeklyAvailabilityEditor } from "@/components/weekly-availability-editor";
 import { ContactForm } from "@/components/contact-form";
+import QuickSectionSwitcher from "@/components/navigation/quick-section-switcher";
 
 interface PersonnelParams {
   id: string;
@@ -272,7 +273,14 @@ export default function Personnel() {
         </div>
         
         <div className="mb-2 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
+            <QuickSectionSwitcher 
+              currentShowId={projectId || ""}
+              currentShowName={(project as any)?.name || ""}
+              currentSection="contacts"
+            />
+          </div>
           <Button
             onClick={handleNewContactClick}
             className="flex items-center gap-2"
