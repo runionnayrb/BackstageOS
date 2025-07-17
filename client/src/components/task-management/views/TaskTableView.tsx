@@ -253,14 +253,22 @@ export function TaskTableView({
   };
 
   const handleStatusChange = (taskId: number, newStatus: string) => {
-    onTaskUpdate(taskId, { 
+    const task = tasks.find(t => t.id === taskId);
+    const updatedProperties = { 
+      ...(task?.properties || {}), 
       status: newStatus,
       completedAt: newStatus === 'completed' ? new Date().toISOString() : null
-    });
+    };
+    onTaskUpdate(taskId, { properties: updatedProperties });
   };
 
   const handlePriorityChange = (taskId: number, newPriority: string) => {
-    onTaskUpdate(taskId, { priority: newPriority });
+    const task = tasks.find(t => t.id === taskId);
+    const updatedProperties = { 
+      ...(task?.properties || {}), 
+      priority: newPriority 
+    };
+    onTaskUpdate(taskId, { properties: updatedProperties });
   };
 
   const renderCellContent = (task: Task, column: Column) => {
@@ -299,7 +307,7 @@ export function TaskTableView({
         );
 
       case 'status':
-        const taskStatus = task.status || 'not_started';
+        const taskStatus = task.properties?.status || 'not_started';
         const statusConfig = STATUS_CONFIG[taskStatus as keyof typeof STATUS_CONFIG];
         return (
           <div onClick={(e) => e.stopPropagation()}>
@@ -336,7 +344,7 @@ export function TaskTableView({
         );
 
       case 'priority':
-        const taskPriority = task.priority || 'medium';
+        const taskPriority = task.properties?.priority || 'medium';
         const priorityConfig = PRIORITY_CONFIG[taskPriority as keyof typeof PRIORITY_CONFIG];
         const PriorityIcon = priorityConfig?.icon || ArrowRight;
         return (
