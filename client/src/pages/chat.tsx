@@ -12,7 +12,7 @@ export default function ChatPage() {
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Team Chat</h1>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Real-time messaging for your theater production teams. Connect instantly with cast, crew, and creative teams during rehearsals and performances.
+          Real-time messaging for your teams. Connect instantly with cast, crew, and creative teams during rehearsals and performances.
         </p>
         <Badge variant="secondary" className="mt-4">
           Coming Soon
