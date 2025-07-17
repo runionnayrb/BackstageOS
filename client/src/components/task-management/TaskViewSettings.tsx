@@ -10,6 +10,7 @@ import {
   X,
   LayoutGrid,
   Eye,
+  EyeOff,
   Filter,
   ArrowUpDown,
   Group,
@@ -27,6 +28,13 @@ import {
   Clock,
   FileText,
   ArrowLeft,
+  GripVertical,
+  Text,
+  Hash,
+  CalendarDays,
+  MapPin,
+  Building,
+  User,
 } from 'lucide-react';
 
 interface TaskViewSettingsProps {
@@ -40,11 +48,33 @@ export function TaskViewSettings({
   currentView, 
   onViewChange 
 }: TaskViewSettingsProps) {
-  const [visibleProperties] = useState(6); // Mock count for now
+  // Mock property data
+  const [properties, setProperties] = useState([
+    { id: 1, name: 'Task Name', type: 'text', icon: Text, visible: true, required: true },
+    { id: 2, name: 'Status', type: 'select', icon: Hash, visible: true, required: false },
+    { id: 3, name: 'Priority', type: 'select', icon: ArrowUpDown, visible: true, required: false },
+    { id: 4, name: 'Due Date', type: 'date', icon: CalendarDays, visible: true, required: false },
+    { id: 5, name: 'Project', type: 'relation', icon: Building, visible: true, required: false },
+    { id: 6, name: 'Assignee', type: 'person', icon: User, visible: false, required: false },
+  ]);
+
+  const visibleProperties = properties.filter(p => p.visible).length;
   const [isOpen, setIsOpen] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
-  const [currentPage, setCurrentPage] = useState<'main' | 'layout'>('main');
+  const [currentPage, setCurrentPage] = useState<'main' | 'layout' | 'properties'>('main');
   const triggerRef = useRef<HTMLDivElement>(null);
+
+  const togglePropertyVisibility = (propertyId: number) => {
+    setProperties(prev => prev.map(p => 
+      p.id === propertyId ? { ...p, visible: !p.visible } : p
+    ));
+  };
+
+  const hideAllProperties = () => {
+    setProperties(prev => prev.map(p => 
+      p.required ? p : { ...p, visible: false }
+    ));
+  };
 
   const handleTriggerClick = (event: React.MouseEvent) => {
     // Get the button element's position
@@ -156,10 +186,7 @@ export function TaskViewSettings({
             {/* Property visibility */}
             <div 
               className="flex items-center justify-between py-2 hover:bg-gray-50 rounded-md px-2 -mx-2 cursor-pointer"
-              onClick={() => {
-                // TODO: Open property visibility panel
-                console.log('Opening property visibility');
-              }}
+              onClick={() => setCurrentPage('properties')}
             >
               <div className="flex items-center gap-3">
                 <Eye className="w-4 h-4 text-gray-600" />
@@ -319,7 +346,7 @@ export function TaskViewSettings({
           </div>
         </div>
               </>
-            ) : (
+            ) : currentPage === 'layout' ? (
               <>
                 {/* Layout Selection Page */}
                 <div className="px-6 py-4 border-b">
@@ -457,6 +484,91 @@ export function TaskViewSettings({
                         <ChevronRight className="w-4 h-4" />
                       </div>
                     </div>
+                  </div>
+                </div>
+              </>
+            ) : currentPage === 'properties' ? (
+              <>
+                {/* Properties Page */}
+                <div className="px-6 py-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setCurrentPage('main')}
+                      className="p-1 h-auto hover:bg-gray-100"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </Button>
+                    <h3 className="text-base font-medium">Properties</h3>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  {/* Search */}
+                  <div className="mb-4">
+                    <input
+                      type="text"
+                      placeholder="Search for a property..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* Shown in table header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm font-medium">Shown in table</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={hideAllProperties}
+                      className="text-blue-600 hover:text-blue-700 text-sm h-auto p-0"
+                    >
+                      Hide all
+                    </Button>
+                  </div>
+
+                  {/* Property List */}
+                  <div className="space-y-1">
+                    {properties.map((property) => {
+                      const IconComponent = property.icon;
+                      return (
+                        <div
+                          key={property.id}
+                          className="flex items-center gap-3 py-2 px-2 hover:bg-gray-50 rounded-md group"
+                        >
+                          {/* Drag Handle */}
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab">
+                            <GripVertical className="w-4 h-4 text-gray-400" />
+                          </div>
+
+                          {/* Property Icon */}
+                          <IconComponent className="w-4 h-4 text-gray-600" />
+
+                          {/* Property Name */}
+                          <span className="flex-1 text-sm">{property.name}</span>
+
+                          {/* Visibility Toggle */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => togglePropertyVisibility(property.id)}
+                            disabled={property.required}
+                            className="h-8 w-8 p-0 hover:bg-gray-100"
+                          >
+                            {property.visible ? (
+                              <Eye className="w-4 h-4 text-gray-600" />
+                            ) : (
+                              <EyeOff className="w-4 h-4 text-gray-400" />
+                            )}
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Note */}
+                  <div className="mt-6 text-xs text-gray-500">
+                    Drag properties to reorder columns in your table view. The Task Name property cannot be hidden.
                   </div>
                 </div>
               </>
