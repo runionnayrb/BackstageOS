@@ -171,14 +171,21 @@ export function TaskTableView({
 }: TaskTableViewProps) {
   const [selectedTasks, setSelectedTasks] = useState<Set<number>>(new Set());
   
+  // Function to calculate minimum width based on text length
+  const getMinWidthForText = (text: string) => {
+    if (!text) return 48; // For empty headers like checkbox and actions
+    // Estimate roughly 8px per character + 32px padding
+    return Math.max(text.length * 8 + 32, 48);
+  };
+
   // Initialize columns with default layout
   const [columns, setColumns] = useState<Column[]>(() => {
     const defaultColumns: Column[] = [
       { id: 'checkbox', key: 'checkbox', title: '', width: 48, minWidth: 48, type: 'checkbox' },
-      { id: 'task', key: 'task', title: 'Task', width: 300, minWidth: 60, type: 'task' },
-      { id: 'status', key: 'status', title: 'Status', width: 128, minWidth: 70, type: 'status' },
-      { id: 'priority', key: 'priority', title: 'Priority', width: 100, minWidth: 80, type: 'priority' },
-      { id: 'dueDate', key: 'dueDate', title: 'Due Date', width: 128, minWidth: 90, type: 'date' },
+      { id: 'task', key: 'task', title: 'Task', width: 300, minWidth: getMinWidthForText('Task'), type: 'task' },
+      { id: 'status', key: 'status', title: 'Status', width: 128, minWidth: getMinWidthForText('Status'), type: 'status' },
+      { id: 'priority', key: 'priority', title: 'Priority', width: 100, minWidth: getMinWidthForText('Priority'), type: 'priority' },
+      { id: 'dueDate', key: 'dueDate', title: 'Due Date', width: 128, minWidth: getMinWidthForText('Due Date'), type: 'date' },
     ];
     
     // Add custom property columns
@@ -188,7 +195,7 @@ export function TaskTableView({
         key: property.name,
         title: property.name,
         width: 128,
-        minWidth: 60,
+        minWidth: getMinWidthForText(property.name),
         type: 'property',
         property
       });
@@ -196,7 +203,7 @@ export function TaskTableView({
     
     // Add created date and actions columns
     defaultColumns.push(
-      { id: 'created', key: 'created', title: 'Created', width: 128, minWidth: 80, type: 'date' },
+      { id: 'created', key: 'created', title: 'Created', width: 128, minWidth: getMinWidthForText('Created'), type: 'date' },
       { id: 'actions', key: 'actions', title: '', width: 48, minWidth: 48, type: 'actions' }
     );
     
