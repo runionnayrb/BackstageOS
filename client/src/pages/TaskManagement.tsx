@@ -22,7 +22,7 @@ export function TaskManagement() {
     queryKey: ['/api/task-databases', 'main', projectId || 'global'],
     queryFn: async () => {
       // Try to fetch existing database first
-      const response = await apiRequest('GET', `/api/task-databases${projectId ? `?projectId=${projectId}` : ''}`);
+      const response = await apiRequest(`/api/task-databases${projectId ? `?projectId=${projectId}` : ''}`);
       const databases = Array.isArray(response) ? response : [];
       
       // Look for existing main database
@@ -44,12 +44,15 @@ export function TaskManagement() {
       
       console.log('Main database created/fetched:', mainDatabase);
       return mainDatabase;
-    }
+    },
+    staleTime: 0, // Always refetch to get fresh data
+    cacheTime: 0  // Don't cache results
   });
 
   // Fetch views for the main database
   const { data: views = [], isLoading: loadingViews } = useQuery({
     queryKey: ['/api/task-databases', database?.id, 'views'],
+    queryFn: () => apiRequest(`/api/task-databases/${database?.id}/views`),
     enabled: !!database?.id
   });
 
