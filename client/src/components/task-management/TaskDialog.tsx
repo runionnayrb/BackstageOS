@@ -327,7 +327,7 @@ export function TaskDialog({
                       <FormItem className="w-auto">
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:border-none hover:border-none w-auto [&>svg]:hidden" style={{ border: 'none', outline: 'none' }}>
+                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:border-none hover:border-none w-auto [&>svg]:hidden [&]:!border-none" style={{ border: 'none !important', outline: 'none !important', boxShadow: 'none !important' }}>
                               <SelectValue placeholder="Not started" />
                             </SelectTrigger>
                           </FormControl>
@@ -361,7 +361,7 @@ export function TaskDialog({
                       <FormItem className="w-auto">
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:border-none hover:border-none w-auto [&>svg]:hidden" style={{ border: 'none', outline: 'none' }}>
+                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:border-none hover:border-none w-auto [&>svg]:hidden [&]:!border-none" style={{ border: 'none !important', outline: 'none !important', boxShadow: 'none !important' }}>
                               <SelectValue placeholder="Medium" />
                             </SelectTrigger>
                           </FormControl>
