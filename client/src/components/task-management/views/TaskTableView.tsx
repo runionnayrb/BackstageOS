@@ -32,6 +32,7 @@ interface Column {
   minWidth: number;
   type: 'checkbox' | 'task' | 'status' | 'priority' | 'date' | 'property' | 'actions';
   property?: TaskProperty;
+  isSystemField?: boolean;
 }
 
 interface TaskTableViewProps {
@@ -183,7 +184,7 @@ export function TaskTableView({
   const [columns, setColumns] = useState<Column[]>(() => {
     const defaultColumns: Column[] = [
       { id: 'checkbox', key: 'checkbox', title: '', width: 48, minWidth: 48, type: 'checkbox' },
-      { id: 'task', key: 'task', title: 'Task', width: 300, minWidth: getMinWidthForText('Task'), type: 'task' },
+      { id: 'task', key: 'task', title: 'Task', width: 300, minWidth: getMinWidthForText('Task'), type: 'task', isSystemField: true },
       { id: 'status', key: 'status', title: 'Status', width: 128, minWidth: getMinWidthForText('Status'), type: 'status' },
       { id: 'priority', key: 'priority', title: 'Priority', width: 100, minWidth: getMinWidthForText('Priority'), type: 'priority' },
       { id: 'dueDate', key: 'dueDate', title: 'Due Date', width: 128, minWidth: getMinWidthForText('Due Date'), type: 'date' },
@@ -202,9 +203,10 @@ export function TaskTableView({
       });
     });
     
-    // Add created date and actions columns
+    // Add created, updated date and actions columns
     defaultColumns.push(
-      { id: 'created', key: 'created', title: 'Created', width: 128, minWidth: getMinWidthForText('Created'), type: 'date' },
+      { id: 'created', key: 'created', title: 'Created', width: 160, minWidth: getMinWidthForText('Created'), type: 'date', isSystemField: true },
+      { id: 'updated', key: 'updated', title: 'Updated', width: 160, minWidth: getMinWidthForText('Updated'), type: 'date', isSystemField: true },
       { id: 'actions', key: 'actions', title: '', width: 48, minWidth: 48, type: 'actions' }
     );
     
@@ -408,6 +410,18 @@ export function TaskTableView({
                 placeholder="Set due date"
               />
             </div>
+          );
+        } else if (column.key === 'created') {
+          return (
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(task.createdAt), 'yyyy/MM/dd')} at {format(new Date(task.createdAt), 'h:mm a')}
+            </span>
+          );
+        } else if (column.key === 'updated') {
+          return (
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(task.updatedAt), 'yyyy/MM/dd')} at {format(new Date(task.updatedAt), 'h:mm a')}
+            </span>
           );
         } else {
           return (
