@@ -32,6 +32,9 @@ import {
   errorResolutionStatus,
   reportNotes,
   emailGroups,
+  showContractSettings,
+  performanceTracker,
+  rehearsalTracker,
 
   type User,
   type UpsertUser,
@@ -93,6 +96,12 @@ import {
   type InsertReportNote,
   type EmailGroup,
   type InsertEmailGroup,
+  type ShowContractSettings,
+  type InsertShowContractSettings,
+  type PerformanceTracker,
+  type InsertPerformanceTracker,
+  type RehearsalTracker,
+  type InsertRehearsalTracker,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -280,6 +289,25 @@ export interface IStorage {
   createSeoSettings(settings: InsertSeoSettings): Promise<SeoSettings>;
   updateSeoSettings(id: number, settings: Partial<InsertSeoSettings>): Promise<SeoSettings>;
   deleteSeoSettings(id: number): Promise<void>;
+
+  // Performance and Rehearsal Tracking operations
+  getShowContractSettings(projectId: number): Promise<ShowContractSettings | undefined>;
+  createShowContractSettings(settings: InsertShowContractSettings): Promise<ShowContractSettings>;
+  updateShowContractSettings(id: number, settings: Partial<InsertShowContractSettings>): Promise<ShowContractSettings>;
+  deleteShowContractSettings(id: number): Promise<void>;
+  
+  getPerformanceTracker(projectId: number): Promise<PerformanceTracker[]>;
+  createPerformanceEntry(entry: InsertPerformanceTracker): Promise<PerformanceTracker>;
+  updatePerformanceEntry(id: number, entry: Partial<InsertPerformanceTracker>): Promise<PerformanceTracker>;
+  deletePerformanceEntry(id: number): Promise<void>;
+  
+  getRehearsalTracker(projectId: number): Promise<RehearsalTracker[]>;
+  createRehearsalEntry(entry: InsertRehearsalTracker): Promise<RehearsalTracker>;
+  updateRehearsalEntry(id: number, entry: Partial<InsertRehearsalTracker>): Promise<RehearsalTracker>;
+  deleteRehearsalEntry(id: number): Promise<void>;
+  
+  getEquityCastMembers(projectId: number): Promise<Contact[]>;
+  hasEquityCastMembers(projectId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1935,6 +1963,114 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // Performance and Rehearsal Tracking operations
+  async getShowContractSettings(projectId: number): Promise<ShowContractSettings | undefined> {
+    const result = await db
+      .select()
+      .from(showContractSettings)
+      .where(eq(showContractSettings.projectId, projectId));
+    return result[0];
+  }
+
+  async createShowContractSettings(settings: InsertShowContractSettings): Promise<ShowContractSettings> {
+    const result = await db.insert(showContractSettings).values(settings).returning();
+    return result[0];
+  }
+
+  async updateShowContractSettings(id: number, settings: Partial<InsertShowContractSettings>): Promise<ShowContractSettings> {
+    const result = await db
+      .update(showContractSettings)
+      .set(settings)
+      .where(eq(showContractSettings.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteShowContractSettings(id: number): Promise<void> {
+    await db.delete(showContractSettings).where(eq(showContractSettings.id, id));
+  }
+
+  async getPerformanceTracker(projectId: number): Promise<PerformanceTracker[]> {
+    const result = await db
+      .select()
+      .from(performanceTracker)
+      .where(eq(performanceTracker.projectId, projectId))
+      .orderBy(desc(performanceTracker.date));
+    return result;
+  }
+
+  async createPerformanceEntry(entry: InsertPerformanceTracker): Promise<PerformanceTracker> {
+    const result = await db.insert(performanceTracker).values(entry).returning();
+    return result[0];
+  }
+
+  async updatePerformanceEntry(id: number, entry: Partial<InsertPerformanceTracker>): Promise<PerformanceTracker> {
+    const result = await db
+      .update(performanceTracker)
+      .set(entry)
+      .where(eq(performanceTracker.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deletePerformanceEntry(id: number): Promise<void> {
+    await db.delete(performanceTracker).where(eq(performanceTracker.id, id));
+  }
+
+  async getRehearsalTracker(projectId: number): Promise<RehearsalTracker[]> {
+    const result = await db
+      .select()
+      .from(rehearsalTracker)
+      .where(eq(rehearsalTracker.projectId, projectId))
+      .orderBy(desc(rehearsalTracker.date));
+    return result;
+  }
+
+  async createRehearsalEntry(entry: InsertRehearsalTracker): Promise<RehearsalTracker> {
+    const result = await db.insert(rehearsalTracker).values(entry).returning();
+    return result[0];
+  }
+
+  async updateRehearsalEntry(id: number, entry: Partial<InsertRehearsalTracker>): Promise<RehearsalTracker> {
+    const result = await db
+      .update(rehearsalTracker)
+      .set(entry)
+      .where(eq(rehearsalTracker.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteRehearsalEntry(id: number): Promise<void> {
+    await db.delete(rehearsalTracker).where(eq(rehearsalTracker.id, id));
+  }
+
+  async getEquityCastMembers(projectId: number): Promise<Contact[]> {
+    const result = await db
+      .select()
+      .from(contacts)
+      .where(
+        and(
+          eq(contacts.projectId, projectId),
+          eq(contacts.category, 'cast'),
+          eq(contacts.equityStatus, 'equity')
+        )
+      );
+    return result;
+  }
+
+  async hasEquityCastMembers(projectId: number): Promise<boolean> {
+    const result = await db
+      .select({ count: count() })
+      .from(contacts)
+      .where(
+        and(
+          eq(contacts.projectId, projectId),
+          eq(contacts.category, 'cast'),
+          eq(contacts.equityStatus, 'equity')
+        )
+      );
+    return result[0].count > 0;
+  }
 
 }
 

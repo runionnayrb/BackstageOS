@@ -809,6 +809,10 @@ export const usersRelations = relations(users, ({ many }) => ({
   emailCollaborations: many(emailCollaborations),
   createdSharedInboxes: many(sharedInboxes),
   createdArchiveRules: many(emailArchiveRules),
+  // Performance and rehearsal tracking relations
+  contractSettings: many(showContractSettings),
+  performanceTracker: many(performanceTracker),
+  rehearsalTracker: many(rehearsalTracker),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -841,6 +845,10 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   // Phase 5 shared inbox relations
   sharedInboxes: many(sharedInboxes),
   emailArchiveRules: many(emailArchiveRules),
+  // Performance and rehearsal tracking relations
+  contractSettings: many(showContractSettings),
+  performanceTracker: many(performanceTracker),
+  rehearsalTracker: many(rehearsalTracker),
 }));
 
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
@@ -1915,6 +1923,8 @@ export const insertErrorImpactAnalysisSchema = createInsertSchema(errorImpactAna
   analyzedAt: true,
 });
 
+
+
 // Type exports
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -1982,6 +1992,87 @@ export type WaitlistEmailSettings = typeof waitlistEmailSettings.$inferSelect;
 export type InsertWaitlistEmailSettings = z.infer<typeof insertWaitlistEmailSettingsSchema>;
 export type ApiSettings = typeof apiSettings.$inferSelect;
 export type InsertApiSettings = z.infer<typeof insertApiSettingsSchema>;
+
+// Performance and Rehearsal Tracking System (AEA Contract Management)
+// Only activates if at least one cast member has equityStatus = "equity"
+
+// Show contract settings for AEA rules
+export const showContractSettings = pgTable("show_contract_settings", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }).unique(),
+  contractType: varchar("contract_type").notNull(), // "Production", "LORT A", "LORT B", "LORT C", "LORT D", "SPT Tier 1", ..., "SPT Tier 10"
+  baseSalary: decimal("base_salary", { precision: 10, scale: 2 }).notNull(),
+  understudyBump: decimal("understudy_bump", { precision: 10, scale: 2 }).notNull(),
+  swingBump: decimal("swing_bump", { precision: 10, scale: 2 }).notNull(),
+  rehearsalCap: integer("rehearsal_cap").notNull(), // weekly hour limit
+  overtimeTrigger: integer("overtime_trigger").notNull(), // overtime trigger in hours
+  rulebookPdfUrl: varchar("rulebook_pdf_url"), // Placeholder for Phase 2
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Performance tracking for Equity actors only
+export const performanceTracker = pgTable("performance_tracker", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  contractSettingsId: integer("contract_settings_id").notNull().references(() => showContractSettings.id, { onDelete: "cascade" }),
+  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  date: date("date").notNull(),
+  rolePlayed: varchar("role_played").notNull(),
+  coverType: varchar("cover_type").notNull().default("None"), // "Assigned", "Emergency", "None"
+  trackType: varchar("track_type").notNull().default("Principal"), // "Principal", "Swing", "Ensemble"
+  multiTrackBonus: boolean("multi_track_bonus").default(false), // true if 5+ tracks performed
+  calculatedPayBump: decimal("calculated_pay_bump", { precision: 10, scale: 2 }).notNull(),
+  notes: text("notes"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Rehearsal tracking for Equity actors only
+export const rehearsalTracker = pgTable("rehearsal_tracker", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  contractSettingsId: integer("contract_settings_id").notNull().references(() => showContractSettings.id, { onDelete: "cascade" }),
+  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  date: date("date").notNull(),
+  rehearsalType: varchar("rehearsal_type").notNull().default("General"), // "Understudy", "Dance", "Fight", "General"
+  roleRehearsed: varchar("role_rehearsed").notNull(),
+  duration: decimal("duration", { precision: 4, scale: 2 }).notNull(), // hours
+  paidRehearsal: boolean("paid_rehearsal").default(false), // auto-flagged if hours exceed cap
+  notes: text("notes"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Insert schemas for new tables
+export const insertShowContractSettingsSchema = createInsertSchema(showContractSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPerformanceTrackerSchema = createInsertSchema(performanceTracker).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertRehearsalTrackerSchema = createInsertSchema(rehearsalTracker).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Type exports for new tables
+export type ShowContractSettings = typeof showContractSettings.$inferSelect;
+export type InsertShowContractSettings = z.infer<typeof insertShowContractSettingsSchema>;
+export type PerformanceTracker = typeof performanceTracker.$inferSelect;
+export type InsertPerformanceTracker = z.infer<typeof insertPerformanceTrackerSchema>;
+export type RehearsalTracker = typeof rehearsalTracker.$inferSelect;
+export type InsertRehearsalTracker = z.infer<typeof insertRehearsalTrackerSchema>;
 
 // ========== EMAIL SYSTEM ZODS AND TYPES ==========
 
@@ -2116,3 +2207,55 @@ export type EmailCollaboration = typeof emailCollaborations.$inferSelect;
 export type InsertEmailCollaboration = z.infer<typeof insertEmailCollaborationSchema>;
 export type EmailArchiveRule = typeof emailArchiveRules.$inferSelect;
 export type InsertEmailArchiveRule = z.infer<typeof insertEmailArchiveRuleSchema>;
+
+// Performance and Rehearsal Tracking Relations
+export const showContractSettingsRelations = relations(showContractSettings, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [showContractSettings.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [showContractSettings.createdBy],
+    references: [users.id],
+  }),
+  performanceEntries: many(performanceTracker),
+  rehearsalEntries: many(rehearsalTracker),
+}));
+
+export const performanceTrackerRelations = relations(performanceTracker, ({ one }) => ({
+  project: one(projects, {
+    fields: [performanceTracker.projectId],
+    references: [projects.id],
+  }),
+  contractSettings: one(showContractSettings, {
+    fields: [performanceTracker.contractSettingsId],
+    references: [showContractSettings.id],
+  }),
+  contact: one(contacts, {
+    fields: [performanceTracker.contactId],
+    references: [contacts.id],
+  }),
+  creator: one(users, {
+    fields: [performanceTracker.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const rehearsalTrackerRelations = relations(rehearsalTracker, ({ one }) => ({
+  project: one(projects, {
+    fields: [rehearsalTracker.projectId],
+    references: [projects.id],
+  }),
+  contractSettings: one(showContractSettings, {
+    fields: [rehearsalTracker.contractSettingsId],
+    references: [showContractSettings.id],
+  }),
+  contact: one(contacts, {
+    fields: [rehearsalTracker.contactId],
+    references: [contacts.id],
+  }),
+  creator: one(users, {
+    fields: [rehearsalTracker.createdBy],
+    references: [users.id],
+  }),
+}));

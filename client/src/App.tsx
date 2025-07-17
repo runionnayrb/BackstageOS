@@ -62,6 +62,7 @@ import TheaterEmail from "@/pages/theater-email";
 import TestImageUpload from "@/pages/test-image-upload";
 import Tools from "@/pages/tools";
 import Chat from "@/pages/chat";
+import PerformanceTracker from "@/pages/PerformanceTracker";
 
 
 function Router() {
@@ -181,6 +182,7 @@ function Router() {
         <Route path="/shows/:id/company-list" component={CompanyList} />
         <Route path="/shows/:id/contacts/:category" component={PersonnelCategory} />
         <Route path="/shows/:id/contacts/:contactId/availability" component={ContactAvailability} />
+        <Route path="/shows/:id/performance-tracker" component={PerformanceTracker} />
         <Route path="/shows/:id/templates/new" component={TemplateBuilder} />
         <Route path="/shows/:id/templates/:templateId/edit" component={TemplateBuilder} />
         <Route path="/shows/:id/templates" component={TemplateSettings} />

@@ -48,6 +48,11 @@ export default function QuickSectionSwitcher({
       id: "contacts",
       title: "Contacts",
       href: `/shows/${currentShowId}/contacts`
+    },
+    {
+      id: "performance-tracker",
+      title: "Performance Tracker",
+      href: `/shows/${currentShowId}/performance-tracker`
     }
   ];
 

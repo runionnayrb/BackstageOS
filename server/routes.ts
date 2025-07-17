@@ -13,7 +13,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -8078,6 +8078,346 @@ Respond with valid JSON only.`;
     } catch (error) {
       console.error("Error tracking email open:", error);
       res.status(500).end();
+    }
+  });
+
+  // Performance and Rehearsal Tracking API Routes
+  // Show Contract Settings
+  app.get("/api/projects/:id/show-contract-settings", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const settings = await storage.getShowContractSettings(projectId);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching show contract settings:", error);
+      res.status(500).json({ message: "Failed to fetch show contract settings" });
+    }
+  });
+
+  app.post("/api/projects/:id/show-contract-settings", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const settingsData = insertShowContractSettingsSchema.parse({
+        ...req.body,
+        projectId
+      });
+
+      const settings = await storage.createShowContractSettings(settingsData);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error creating show contract settings:", error);
+      res.status(500).json({ message: "Failed to create show contract settings" });
+    }
+  });
+
+  app.put("/api/projects/:id/show-contract-settings/:settingsId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const settingsId = parseInt(req.params.settingsId);
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const settingsData = insertShowContractSettingsSchema.partial().parse(req.body);
+      const settings = await storage.updateShowContractSettings(settingsId, settingsData);
+      res.json(settings);
+    } catch (error) {
+      console.error("Error updating show contract settings:", error);
+      res.status(500).json({ message: "Failed to update show contract settings" });
+    }
+  });
+
+  // Performance Tracking
+  app.get("/api/projects/:id/performance-tracker", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const performances = await storage.getPerformanceTracker(projectId);
+      res.json(performances);
+    } catch (error) {
+      console.error("Error fetching performance tracker:", error);
+      res.status(500).json({ message: "Failed to fetch performance tracker" });
+    }
+  });
+
+  app.post("/api/projects/:id/performance-tracker", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const performanceData = insertPerformanceTrackerSchema.parse({
+        ...req.body,
+        projectId
+      });
+
+      const performance = await storage.createPerformanceEntry(performanceData);
+      res.json(performance);
+    } catch (error) {
+      console.error("Error creating performance entry:", error);
+      res.status(500).json({ message: "Failed to create performance entry" });
+    }
+  });
+
+  app.put("/api/projects/:id/performance-tracker/:performanceId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const performanceId = parseInt(req.params.performanceId);
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const performanceData = insertPerformanceTrackerSchema.partial().parse(req.body);
+      const performance = await storage.updatePerformanceEntry(performanceId, performanceData);
+      res.json(performance);
+    } catch (error) {
+      console.error("Error updating performance entry:", error);
+      res.status(500).json({ message: "Failed to update performance entry" });
+    }
+  });
+
+  app.delete("/api/projects/:id/performance-tracker/:performanceId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const performanceId = parseInt(req.params.performanceId);
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      await storage.deletePerformanceEntry(performanceId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting performance entry:", error);
+      res.status(500).json({ message: "Failed to delete performance entry" });
+    }
+  });
+
+  // Rehearsal Tracking
+  app.get("/api/projects/:id/rehearsal-tracker", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const rehearsals = await storage.getRehearsalTracker(projectId);
+      res.json(rehearsals);
+    } catch (error) {
+      console.error("Error fetching rehearsal tracker:", error);
+      res.status(500).json({ message: "Failed to fetch rehearsal tracker" });
+    }
+  });
+
+  app.post("/api/projects/:id/rehearsal-tracker", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const rehearsalData = insertRehearsalTrackerSchema.parse({
+        ...req.body,
+        projectId
+      });
+
+      const rehearsal = await storage.createRehearsalEntry(rehearsalData);
+      res.json(rehearsal);
+    } catch (error) {
+      console.error("Error creating rehearsal entry:", error);
+      res.status(500).json({ message: "Failed to create rehearsal entry" });
+    }
+  });
+
+  app.put("/api/projects/:id/rehearsal-tracker/:rehearsalId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const rehearsalId = parseInt(req.params.rehearsalId);
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const rehearsalData = insertRehearsalTrackerSchema.partial().parse(req.body);
+      const rehearsal = await storage.updateRehearsalEntry(rehearsalId, rehearsalData);
+      res.json(rehearsal);
+    } catch (error) {
+      console.error("Error updating rehearsal entry:", error);
+      res.status(500).json({ message: "Failed to update rehearsal entry" });
+    }
+  });
+
+  app.delete("/api/projects/:id/rehearsal-tracker/:rehearsalId", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const rehearsalId = parseInt(req.params.rehearsalId);
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      await storage.deleteRehearsalEntry(rehearsalId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting rehearsal entry:", error);
+      res.status(500).json({ message: "Failed to delete rehearsal entry" });
+    }
+  });
+
+  // Equity Cast Members
+  app.get("/api/projects/:id/equity-cast-members", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const equityMembers = await storage.getEquityCastMembers(projectId);
+      res.json(equityMembers);
+    } catch (error) {
+      console.error("Error fetching equity cast members:", error);
+      res.status(500).json({ message: "Failed to fetch equity cast members" });
+    }
+  });
+
+  app.get("/api/projects/:id/has-equity-cast-members", isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const hasEquityMembers = await storage.hasEquityCastMembers(projectId);
+      res.json({ hasEquityMembers });
+    } catch (error) {
+      console.error("Error checking equity cast members:", error);
+      res.status(500).json({ message: "Failed to check equity cast members" });
     }
   });
 
