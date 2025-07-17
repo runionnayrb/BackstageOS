@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { Resizable } from "react-resizable";
 import {
   Table,
   TableBody,
@@ -16,9 +19,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, ArrowUp, ArrowDown, ArrowRight, Calendar, User, Flag } from "lucide-react";
+import { MoreHorizontal, ArrowUp, ArrowDown, ArrowRight, Calendar, User, Flag, GripVertical } from "lucide-react";
 import { format } from "date-fns";
 import type { Task, TaskProperty } from "@shared/schema";
+import "react-resizable/css/styles.css";
+
+interface Column {
+  id: string;
+  key: string;
+  title: string;
+  width: number;
+  minWidth: number;
+  type: 'checkbox' | 'task' | 'status' | 'priority' | 'date' | 'property' | 'actions';
+  property?: TaskProperty;
+}
 
 interface TaskTableViewProps {
   tasks: Task[];
@@ -26,6 +40,14 @@ interface TaskTableViewProps {
   onTaskUpdate: (id: number, data: any) => void;
   onTaskDelete: (id: number) => void;
   onTaskSelect: (task: Task) => void;
+}
+
+interface DraggableColumnHeaderProps {
+  column: Column;
+  index: number;
+  moveColumn: (dragIndex: number, hoverIndex: number) => void;
+  resizeColumn: (columnId: string, width: number) => void;
+  children: React.ReactNode;
 }
 
 const STATUS_CONFIG = {
@@ -43,6 +65,91 @@ const PRIORITY_CONFIG = {
   urgent: { label: "Urgent", icon: Flag, color: "#DC2626" },
 };
 
+// Draggable Column Header Component
+function DraggableColumnHeader({ 
+  column, 
+  index, 
+  moveColumn, 
+  resizeColumn, 
+  children 
+}: DraggableColumnHeaderProps) {
+  const ref = useRef<HTMLTableCellElement>(null);
+
+  const [{ handlerId }, drop] = useDrop({
+    accept: 'column',
+    collect(monitor) {
+      return {
+        handlerId: monitor.getHandlerId(),
+      };
+    },
+    hover(item: { index: number }, monitor) {
+      if (!ref.current) return;
+      
+      const dragIndex = item.index;
+      const hoverIndex = index;
+      
+      if (dragIndex === hoverIndex) return;
+      
+      const hoverBoundingRect = ref.current?.getBoundingClientRect();
+      const hoverMiddleX = (hoverBoundingRect.right - hoverBoundingRect.left) / 2;
+      const clientOffset = monitor.getClientOffset();
+      const hoverClientX = (clientOffset?.x ?? 0) - hoverBoundingRect.left;
+      
+      if (dragIndex < hoverIndex && hoverClientX < hoverMiddleX) return;
+      if (dragIndex > hoverIndex && hoverClientX > hoverMiddleX) return;
+      
+      moveColumn(dragIndex, hoverIndex);
+      item.index = hoverIndex;
+    },
+  });
+
+  const [{ isDragging }, drag, preview] = useDrag({
+    type: 'column',
+    item: () => ({ id: column.id, index }),
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  const opacity = isDragging ? 0.4 : 1;
+  
+  drag(drop(ref));
+
+  const handleResize = useCallback(
+    (event: React.SyntheticEvent, { size }: { size: { width: number; height: number } }) => {
+      resizeColumn(column.id, size.width);
+    },
+    [column.id, resizeColumn]
+  );
+
+  return (
+    <Resizable
+      width={column.width}
+      height={0}
+      onResize={handleResize}
+      draggableOpts={{ enableUserSelectHack: false }}
+      resizeHandles={['e']}
+    >
+      <TableHead
+        ref={ref}
+        style={{ width: column.width, opacity }}
+        className="relative border-r border-border group select-none"
+        data-handler-id={handlerId}
+      >
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center space-x-2">
+            <GripVertical 
+              className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 cursor-move" 
+            />
+            <span>{column.title}</span>
+          </div>
+        </div>
+        <div className="absolute right-0 top-0 w-1 h-full bg-border opacity-0 hover:opacity-100 cursor-col-resize" />
+      </TableHead>
+    </Resizable>
+  );
+}
+
 export function TaskTableView({ 
   tasks, 
   properties, 
@@ -51,6 +158,56 @@ export function TaskTableView({
   onTaskSelect 
 }: TaskTableViewProps) {
   const [selectedTasks, setSelectedTasks] = useState<Set<number>>(new Set());
+  
+  // Initialize columns with default layout
+  const [columns, setColumns] = useState<Column[]>(() => {
+    const defaultColumns: Column[] = [
+      { id: 'checkbox', key: 'checkbox', title: '', width: 48, minWidth: 48, type: 'checkbox' },
+      { id: 'task', key: 'task', title: 'Task', width: 300, minWidth: 200, type: 'task' },
+      { id: 'status', key: 'status', title: 'Status', width: 128, minWidth: 100, type: 'status' },
+      { id: 'priority', key: 'priority', title: 'Priority', width: 100, minWidth: 80, type: 'priority' },
+      { id: 'dueDate', key: 'dueDate', title: 'Due Date', width: 128, minWidth: 100, type: 'date' },
+    ];
+    
+    // Add custom property columns
+    properties.forEach((property) => {
+      defaultColumns.push({
+        id: `property-${property.id}`,
+        key: property.name,
+        title: property.name,
+        width: 128,
+        minWidth: 100,
+        type: 'property',
+        property
+      });
+    });
+    
+    // Add created date and actions columns
+    defaultColumns.push(
+      { id: 'created', key: 'created', title: 'Created', width: 128, minWidth: 100, type: 'date' },
+      { id: 'actions', key: 'actions', title: '', width: 48, minWidth: 48, type: 'actions' }
+    );
+    
+    return defaultColumns;
+  });
+
+  const moveColumn = useCallback((dragIndex: number, hoverIndex: number) => {
+    setColumns((prevColumns) => {
+      const dragColumn = prevColumns[dragIndex];
+      const newColumns = [...prevColumns];
+      newColumns.splice(dragIndex, 1);
+      newColumns.splice(hoverIndex, 0, dragColumn);
+      return newColumns;
+    });
+  }, []);
+
+  const resizeColumn = useCallback((columnId: string, width: number) => {
+    setColumns((prevColumns) =>
+      prevColumns.map((col) =>
+        col.id === columnId ? { ...col, width: Math.max(width, col.minWidth) } : col
+      )
+    );
+  }, []);
 
   const handleSelectTask = (taskId: number, checked: boolean) => {
     const newSelected = new Set(selectedTasks);
@@ -77,220 +234,243 @@ export function TaskTableView({
     });
   };
 
-  const renderPropertyValue = (task: Task, property: TaskProperty) => {
-    const value = task.properties?.[property.name];
-    
-    if (!value) return <span className="text-muted-foreground">—</span>;
-
-    switch (property.type) {
-      case 'date':
-        return value ? format(new Date(value), 'MMM d, yyyy') : '—';
+  const renderCellContent = (task: Task, column: Column) => {
+    switch (column.type) {
       case 'checkbox':
-        return <Checkbox checked={!!value} disabled />;
-      case 'select':
-        const option = property.config?.options?.find((opt: any) => opt.value === value);
-        return option ? (
-          <Badge variant="outline" style={{ borderColor: option.color, color: option.color }}>
-            {option.label}
-          </Badge>
-        ) : value;
-      case 'number':
-        return typeof value === 'number' ? value.toLocaleString() : value;
+        return (
+          <Checkbox
+            checked={selectedTasks.has(task.id)}
+            onCheckedChange={(checked) => handleSelectTask(task.id, !!checked)}
+            onClick={(e) => e.stopPropagation()}
+          />
+        );
+
+      case 'task':
+        return (
+          <div className="space-y-1">
+            <div className="font-medium">{task.title}</div>
+            {task.content && (
+              <div className="text-sm text-muted-foreground truncate max-w-[250px]">
+                {String(task.content).replace(/<[^>]*>/g, '')}
+              </div>
+            )}
+          </div>
+        );
+
+      case 'status':
+        const statusConfig = STATUS_CONFIG[task.status as keyof typeof STATUS_CONFIG];
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-full justify-start" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center space-x-2">
+                  <div 
+                    className="w-2 h-2 rounded-full" 
+                    style={{ backgroundColor: statusConfig?.color || '#6B7280' }}
+                  />
+                  <span className="text-xs">{statusConfig?.label || task.status}</span>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {Object.entries(STATUS_CONFIG).map(([status, config]) => (
+                <DropdownMenuItem
+                  key={status}
+                  onClick={() => handleStatusChange(task.id, status)}
+                >
+                  <div className="flex items-center space-x-2">
+                    <div 
+                      className="w-2 h-2 rounded-full" 
+                      style={{ backgroundColor: config.color }}
+                    />
+                    <span>{config.label}</span>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+
+      case 'priority':
+        const priorityConfig = PRIORITY_CONFIG[task.priority as keyof typeof PRIORITY_CONFIG];
+        const PriorityIcon = priorityConfig?.icon || ArrowRight;
+        return (
+          <div className="flex items-center space-x-1">
+            <PriorityIcon 
+              className="h-3 w-3" 
+              style={{ color: priorityConfig?.color || '#6B7280' }} 
+            />
+            <span className="text-xs">{priorityConfig?.label || task.priority}</span>
+          </div>
+        );
+
+      case 'date':
+        if (column.key === 'dueDate') {
+          return task.dueDate ? (
+            <div className="flex items-center space-x-1 text-sm">
+              <Calendar className="h-3 w-3 text-muted-foreground" />
+              <span>{format(new Date(task.dueDate), 'MMM d')}</span>
+            </div>
+          ) : (
+            <span className="text-muted-foreground text-sm">—</span>
+          );
+        } else {
+          return (
+            <span className="text-xs text-muted-foreground">
+              {format(new Date(task.createdAt), 'MMM d')}
+            </span>
+          );
+        }
+
+      case 'property':
+        if (!column.property) return <span className="text-muted-foreground">—</span>;
+        const value = task.properties?.[column.property.name];
+        
+        if (!value) return <span className="text-muted-foreground">—</span>;
+
+        switch (column.property.type) {
+          case 'date':
+            return value ? format(new Date(value), 'MMM d, yyyy') : '—';
+          case 'checkbox':
+            return <Checkbox checked={!!value} disabled />;
+          case 'select':
+            const options = column.property.options as any[];
+            const option = options?.find((opt: any) => opt.value === value);
+            return option ? (
+              <Badge variant="outline" style={{ borderColor: option.color, color: option.color }}>
+                {option.label}
+              </Badge>
+            ) : value;
+          case 'number':
+            return typeof value === 'number' ? value.toLocaleString() : value;
+          default:
+            return String(value);
+        }
+
+      case 'actions':
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={(e) => e.stopPropagation()}>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onTaskSelect(task)}>
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(task.title)}>
+                Copy title
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onTaskDelete(task.id)}
+                className="text-destructive"
+              >
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+
       default:
-        return String(value);
+        return null;
     }
   };
 
   return (
-    <div className="h-full overflow-auto">
-      <Table>
-        <TableHeader className="sticky top-0 bg-background z-10 border-b">
-          <TableRow>
-            <TableHead className="w-12">
-              <Checkbox
-                checked={selectedTasks.size === tasks.length && tasks.length > 0}
-                onCheckedChange={handleSelectAll}
-              />
-            </TableHead>
-            <TableHead className="min-w-[300px]">Task</TableHead>
-            <TableHead className="w-32">Status</TableHead>
-            <TableHead className="w-24">Priority</TableHead>
-            <TableHead className="w-32">Due Date</TableHead>
-            
-            {/* Custom property columns */}
-            {properties.map((property) => (
-              <TableHead key={property.id} className="w-32">
-                {property.name}
-              </TableHead>
-            ))}
-            
-            <TableHead className="w-32">Created</TableHead>
-            <TableHead className="w-12"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {tasks.map((task) => {
-            const statusConfig = STATUS_CONFIG[task.status as keyof typeof STATUS_CONFIG];
-            const priorityConfig = PRIORITY_CONFIG[task.priority as keyof typeof PRIORITY_CONFIG];
-            const PriorityIcon = priorityConfig?.icon || ArrowRight;
-            
-            return (
-              <TableRow 
-                key={task.id} 
-                className="hover:bg-muted/50 cursor-pointer"
-                onClick={() => onTaskSelect(task)}
-              >
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <Checkbox
-                    checked={selectedTasks.has(task.id)}
-                    onCheckedChange={(checked) => handleSelectTask(task.id, !!checked)}
-                  />
-                </TableCell>
-                
-                <TableCell>
-                  <div className="space-y-1">
-                    <div className="font-medium">{task.title}</div>
-                    {task.content && (
-                      <div className="text-sm text-muted-foreground truncate max-w-[250px]">
-                        {task.content.replace(/<[^>]*>/g, '')}
-                      </div>
-                    )}
-                  </div>
-                </TableCell>
-                
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-full justify-start">
-                        <div className="flex items-center space-x-2">
-                          <div 
-                            className="w-2 h-2 rounded-full" 
-                            style={{ backgroundColor: statusConfig?.color || '#6B7280' }}
-                          />
-                          <span className="text-xs">{statusConfig?.label || task.status}</span>
-                        </div>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      {Object.entries(STATUS_CONFIG).map(([status, config]) => (
-                        <DropdownMenuItem
-                          key={status}
-                          onClick={() => handleStatusChange(task.id, status)}
-                        >
-                          <div className="flex items-center space-x-2">
-                            <div 
-                              className="w-2 h-2 rounded-full" 
-                              style={{ backgroundColor: config.color }}
-                            />
-                            <span>{config.label}</span>
-                          </div>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-                
-                <TableCell>
-                  <div className="flex items-center space-x-1">
-                    <PriorityIcon 
-                      className="h-3 w-3" 
-                      style={{ color: priorityConfig?.color || '#6B7280' }} 
-                    />
-                    <span className="text-xs">{priorityConfig?.label || task.priority}</span>
-                  </div>
-                </TableCell>
-                
-                <TableCell>
-                  {task.dueDate ? (
-                    <div className="flex items-center space-x-1 text-sm">
-                      <Calendar className="h-3 w-3 text-muted-foreground" />
-                      <span>{format(new Date(task.dueDate), 'MMM d')}</span>
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">—</span>
-                  )}
-                </TableCell>
-                
-                {/* Custom property values */}
-                {properties.map((property) => (
-                  <TableCell key={property.id}>
-                    {renderPropertyValue(task, property)}
-                  </TableCell>
-                ))}
-                
-                <TableCell>
-                  <span className="text-xs text-muted-foreground">
-                    {format(new Date(task.createdAt), 'MMM d')}
-                  </span>
-                </TableCell>
-                
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onTaskSelect(task)}>
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigator.clipboard.writeText(task.title)}>
-                        Copy title
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => onTaskDelete(task.id)}
-                        className="text-destructive"
-                      >
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
+    <DndProvider backend={HTML5Backend}>
+      <div className="h-full overflow-auto">
+        <div className="overflow-x-auto">
+          <Table style={{ minWidth: columns.reduce((sum, col) => sum + col.width, 0) }}>
+            <TableHeader className="sticky top-0 bg-background z-10 border-b">
+              <TableRow>
+                {columns.map((column, index) => {
+                  if (column.type === 'checkbox') {
+                    return (
+                      <TableHead key={column.id} style={{ width: column.width }} className="w-12">
+                        <Checkbox
+                          checked={selectedTasks.size === tasks.length && tasks.length > 0}
+                          onCheckedChange={handleSelectAll}
+                        />
+                      </TableHead>
+                    );
+                  }
+                  
+                  return (
+                    <DraggableColumnHeader
+                      key={column.id}
+                      column={column}
+                      index={index}
+                      moveColumn={moveColumn}
+                      resizeColumn={resizeColumn}
+                    >
+                      {column.title}
+                    </DraggableColumnHeader>
+                  );
+                })}
               </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
-      
-      {selectedTasks.size > 0 && (
-        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-background border rounded-lg shadow-lg p-4">
-          <div className="flex items-center space-x-4">
-            <span className="text-sm font-medium">
-              {selectedTasks.size} task{selectedTasks.size > 1 ? 's' : ''} selected
-            </span>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => {
-                selectedTasks.forEach(taskId => {
-                  onTaskUpdate(taskId, { status: 'completed', completedAt: new Date().toISOString() });
-                });
-                setSelectedTasks(new Set());
-              }}
-            >
-              Mark Complete
-            </Button>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => {
-                selectedTasks.forEach(taskId => onTaskDelete(taskId));
-                setSelectedTasks(new Set());
-              }}
-            >
-              Delete
-            </Button>
-            <Button 
-              size="sm" 
-              variant="ghost"
-              onClick={() => setSelectedTasks(new Set())}
-            >
-              Clear
-            </Button>
-          </div>
+            </TableHeader>
+            <TableBody>
+              {tasks.map((task) => (
+                <TableRow 
+                  key={task.id} 
+                  className="hover:bg-muted/50 cursor-pointer"
+                  onClick={() => onTaskSelect(task)}
+                >
+                  {columns.map((column) => (
+                    <TableCell 
+                      key={column.id} 
+                      style={{ width: column.width }}
+                      className="border-r border-border last:border-r-0"
+                    >
+                      {renderCellContent(task, column)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
-      )}
-    </div>
+        
+        {selectedTasks.size > 0 && (
+          <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-background border rounded-lg shadow-lg p-4">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium">
+                {selectedTasks.size} task{selectedTasks.size > 1 ? 's' : ''} selected
+              </span>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => {
+                  selectedTasks.forEach(taskId => {
+                    onTaskUpdate(taskId, { status: 'completed', completedAt: new Date().toISOString() });
+                  });
+                  setSelectedTasks(new Set());
+                }}
+              >
+                Mark Complete
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={() => {
+                  selectedTasks.forEach(taskId => onTaskDelete(taskId));
+                  setSelectedTasks(new Set());
+                }}
+              >
+                Delete
+              </Button>
+              <Button 
+                size="sm" 
+                variant="ghost"
+                onClick={() => setSelectedTasks(new Set())}
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </DndProvider>
   );
 }

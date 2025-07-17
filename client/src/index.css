@@ -2,6 +2,41 @@
 @tailwind components;
 @tailwind utilities;
 
+/* React Resizable styles */
+.react-resizable {
+  position: relative;
+}
+
+.react-resizable-handle {
+  position: absolute;
+  width: 4px;
+  height: 100%;
+  bottom: 0;
+  right: -2px;
+  cursor: col-resize;
+  background: transparent;
+  border: none;
+  z-index: 1;
+}
+
+.react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: hsl(var(--border));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.react-resizable-handle:hover::after,
+.react-resizable-handle-active::after {
+  opacity: 1;
+  background: hsl(var(--primary));
+}
+
 
 
 /* Hide field type labels in template editor */
