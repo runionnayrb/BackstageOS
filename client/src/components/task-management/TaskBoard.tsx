@@ -228,6 +228,7 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
           task={taskToEdit}
           properties={properties}
           isLoading={updateTaskMutation.isPending}
+          onTaskUpdate={handleUpdateTask}
           onDelete={() => {
             handleDeleteTask(taskToEdit.id);
             onCreateTaskClose?.();
@@ -247,6 +248,7 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
           task={selectedTask}
           properties={properties}
           isLoading={updateTaskMutation.isPending}
+          onTaskUpdate={handleUpdateTask}
           onDelete={() => {
             handleDeleteTask(selectedTask.id);
             setSelectedTask(null);

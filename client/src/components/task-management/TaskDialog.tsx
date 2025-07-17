@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -93,6 +93,7 @@ interface TaskDialogProps {
   task?: Task;
   properties: TaskProperty[];
   isLoading: boolean;
+  onTaskUpdate?: (taskId: number, data: any) => void;
 }
 
 const STATUS_OPTIONS = [
@@ -117,10 +118,25 @@ export function TaskDialog({
   onDelete, 
   task, 
   properties, 
-  isLoading 
+  isLoading,
+  onTaskUpdate 
 }: TaskDialogProps) {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [propertiesCollapsed, setPropertiesCollapsed] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Create debounced update function for real-time title updates
+  const debouncedUpdate = useCallback((title: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    timeoutRef.current = setTimeout(() => {
+      if (task && onTaskUpdate && title !== task.title) {
+        onTaskUpdate(task.id, { title });
+      }
+    }, 300);
+  }, [task, onTaskUpdate]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -317,7 +333,7 @@ export function TaskDialog({
                   <FormItem>
                     <FormControl>
                       <textarea
-                        placeholder="New page" 
+                        placeholder="New Task" 
                         {...field} 
                         className="text-5xl font-bold border-none p-0 shadow-none focus-visible:ring-0 focus:ring-0 focus:outline-none focus:border-none bg-transparent resize-none overflow-hidden min-h-0 w-full"
                         rows={1}
@@ -327,6 +343,10 @@ export function TaskDialog({
                           fontWeight: 'bold',
                           border: 'none',
                           outline: 'none'
+                        }}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          debouncedUpdate(e.target.value);
                         }}
                         onInput={(e) => {
                           const target = e.target as HTMLTextAreaElement;

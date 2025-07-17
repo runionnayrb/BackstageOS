@@ -81,7 +81,7 @@ export function TaskManagement() {
   const createTaskMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest('POST', `/api/task-databases/${database?.id}/tasks`, {
-        title: "Untitled",
+        title: "New Task",
         content: "",
         properties: {
           status: "not_started",
