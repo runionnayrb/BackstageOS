@@ -450,7 +450,7 @@ export function TaskTableView({
                     <TableCell 
                       key={column.id} 
                       style={{ width: column.width }}
-                      className="px-2"
+                      className="px-2 py-2"
                     >
                       {renderCellContent(task, column)}
                     </TableCell>
