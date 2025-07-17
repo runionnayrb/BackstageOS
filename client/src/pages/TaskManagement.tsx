@@ -133,13 +133,11 @@ export function TaskManagement() {
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filter
+                  <Button variant="ghost" size="sm">
+                    <Filter className="h-4 w-4" />
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
+                  <Button variant="ghost" size="sm">
+                    <Settings className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
