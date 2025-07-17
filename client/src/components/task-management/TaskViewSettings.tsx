@@ -22,6 +22,11 @@ import {
   ChevronRight,
   Table,
   Calendar,
+  List,
+  BarChart3,
+  Clock,
+  FileText,
+  ArrowLeft,
 } from 'lucide-react';
 
 interface TaskViewSettingsProps {
@@ -38,6 +43,7 @@ export function TaskViewSettings({
   const [visibleProperties] = useState(6); // Mock count for now
   const [isOpen, setIsOpen] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
+  const [currentPage, setCurrentPage] = useState<'main' | 'layout'>('main');
   const triggerRef = useRef<HTMLDivElement>(null);
 
   const handleTriggerClick = (event: React.MouseEvent) => {
@@ -50,6 +56,12 @@ export function TaskViewSettings({
       y: buttonRect.top
     });
     setIsOpen(true);
+    setCurrentPage('main'); // Reset to main page when opening
+  };
+
+  const handleLayoutSelect = (layout: 'table' | 'kanban' | 'calendar') => {
+    onViewChange(layout);
+    setCurrentPage('main'); // Return to main page after selection
   };
 
   const handleViewSelect = (view: 'table' | 'kanban' | 'calendar') => {
@@ -104,11 +116,13 @@ export function TaskViewSettings({
               top: `${popoverPosition.y}px`
             }}
           >
-        <div className="px-6 py-4 border-b">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-medium">View settings</h3>
-          </div>
-        </div>
+            {currentPage === 'main' ? (
+              <>
+                <div className="px-6 py-4 border-b">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-medium">View settings</h3>
+                  </div>
+                </div>
 
         <div className="flex flex-col h-full">
           {/* View Settings Section */}
@@ -127,10 +141,7 @@ export function TaskViewSettings({
             {/* Layout */}
             <div 
               className="flex items-center justify-between py-2 hover:bg-gray-50 rounded-md px-2 -mx-2 cursor-pointer"
-              onClick={() => {
-                // TODO: Open layout selector
-                console.log('Opening layout selector');
-              }}
+              onClick={() => setCurrentPage('layout')}
             >
               <div className="flex items-center gap-3">
                 <LayoutGrid className="w-4 h-4 text-gray-600" />
@@ -307,6 +318,149 @@ export function TaskViewSettings({
             </div>
           </div>
         </div>
+              </>
+            ) : (
+              <>
+                {/* Layout Selection Page */}
+                <div className="px-6 py-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setCurrentPage('main')}
+                      className="p-1 h-auto hover:bg-gray-100"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </Button>
+                    <h3 className="text-base font-medium">Layout</h3>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  {/* Layout Options Grid */}
+                  <div className="grid grid-cols-4 gap-3 mb-6">
+                    {/* Table */}
+                    <div 
+                      className={`flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                        currentView === 'table' 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => handleLayoutSelect('table')}
+                    >
+                      <Table className="w-6 h-6 mb-2" />
+                      <span className="text-xs text-center">Table</span>
+                    </div>
+
+                    {/* Board */}
+                    <div 
+                      className={`flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                        currentView === 'kanban' 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => handleLayoutSelect('kanban')}
+                    >
+                      <LayoutGrid className="w-6 h-6 mb-2" />
+                      <span className="text-xs text-center">Board</span>
+                    </div>
+
+                    {/* Timeline */}
+                    <div className="flex flex-col items-center p-3 rounded-lg border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-colors opacity-50">
+                      <Clock className="w-6 h-6 mb-2" />
+                      <span className="text-xs text-center">Timeline</span>
+                    </div>
+
+                    {/* Calendar */}
+                    <div 
+                      className={`flex flex-col items-center p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                        currentView === 'calendar' 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                      onClick={() => handleLayoutSelect('calendar')}
+                    >
+                      <Calendar className="w-6 h-6 mb-2" />
+                      <span className="text-xs text-center">Calendar</span>
+                    </div>
+
+                    {/* List */}
+                    <div className="flex flex-col items-center p-3 rounded-lg border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-colors opacity-50">
+                      <List className="w-6 h-6 mb-2" />
+                      <span className="text-xs text-center">List</span>
+                    </div>
+
+                    {/* Gallery */}
+                    <div className="flex flex-col items-center p-3 rounded-lg border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-colors opacity-50">
+                      <LayoutGrid className="w-6 h-6 mb-2" />
+                      <span className="text-xs text-center">Gallery</span>
+                    </div>
+
+                    {/* Chart */}
+                    <div className="flex flex-col items-center p-3 rounded-lg border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-colors opacity-50">
+                      <BarChart3 className="w-6 h-6 mb-2" />
+                      <span className="text-xs text-center">Chart</span>
+                    </div>
+
+                    {/* Feed */}
+                    <div className="flex flex-col items-center p-3 rounded-lg border-2 border-gray-200 hover:border-gray-300 cursor-pointer transition-colors opacity-50">
+                      <FileText className="w-6 h-6 mb-2" />
+                      <span className="text-xs text-center">Feed</span>
+                    </div>
+                  </div>
+
+                  {/* Options */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Show database title</span>
+                      <div className="w-10 h-5 bg-blue-500 rounded-full relative">
+                        <div className="w-4 h-4 bg-white rounded-full absolute top-0.5 right-0.5"></div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Show vertical lines</span>
+                      <div className="w-10 h-5 bg-gray-300 rounded-full relative">
+                        <div className="w-4 h-4 bg-white rounded-full absolute top-0.5 left-0.5"></div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Show page icon</span>
+                      <div className="w-10 h-5 bg-blue-500 rounded-full relative">
+                        <div className="w-4 h-4 bg-white rounded-full absolute top-0.5 right-0.5"></div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Wrap all columns</span>
+                      <div className="w-10 h-5 bg-gray-300 rounded-full relative">
+                        <div className="w-4 h-4 bg-white rounded-full absolute top-0.5 left-0.5"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Additional Settings */}
+                  <div className="mt-6 space-y-3">
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm">Open pages in</span>
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <span className="text-sm">Side peek</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm">Load limit</span>
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <span className="text-sm">50</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </>
       )}
