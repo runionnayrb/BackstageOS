@@ -380,6 +380,7 @@ export const contacts = pgTable("contacts", {
   category: varchar("category").notNull(), // cast, crew, stage_management, creative_team, theater_staff
   role: varchar("role"), // specific role within category
   notes: text("notes"),
+  photoUrl: varchar("photo_url"), // Contact photo
   // Emergency contact information
   emergencyContactName: varchar("emergency_contact_name"),
   emergencyContactPhone: varchar("emergency_contact_phone"),

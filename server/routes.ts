@@ -923,6 +923,90 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Contact photo upload endpoint
+  app.post('/api/projects/:projectId/contacts/:contactId/photo', isAuthenticated, upload.single('photo'), async (req: any, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No photo uploaded' });
+      }
+
+      const projectId = parseInt(req.params.projectId);
+      const contactId = parseInt(req.params.contactId);
+
+      // Verify user has access to this project and contact exists
+      const contact = await storage.getContact(projectId, contactId);
+      if (!contact) {
+        return res.status(404).json({ error: 'Contact not found' });
+      }
+
+      const fileExtension = path.extname(req.file.originalname);
+      const fileName = `contact-${contactId}-${Date.now()}${fileExtension}`;
+      const newPath = path.join(uploadsDir, fileName);
+      
+      // Move file to permanent location
+      fs.renameSync(req.file.path, newPath);
+
+      // Delete old photo if it exists
+      if (contact.photoUrl) {
+        const oldPhotoPath = path.join(uploadsDir, path.basename(contact.photoUrl));
+        if (fs.existsSync(oldPhotoPath)) {
+          fs.unlinkSync(oldPhotoPath);
+        }
+      }
+
+      // Update contact with new photo URL
+      const photoUrl = `/uploads/${fileName}`;
+      const updatedContact = await storage.updateContact(projectId, contactId, { photoUrl });
+      
+      res.json({ 
+        url: photoUrl,
+        contact: updatedContact
+      });
+    } catch (error) {
+      console.error('Contact photo upload error:', error);
+      
+      // Clean up uploaded file on error
+      if (req.file?.path && fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
+      
+      res.status(500).json({ error: 'Photo upload failed' });
+    }
+  });
+
+  // Contact photo delete endpoint
+  app.delete('/api/projects/:projectId/contacts/:contactId/photo', isAuthenticated, async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const contactId = parseInt(req.params.contactId);
+
+      // Verify user has access to this project and contact exists
+      const contact = await storage.getContact(projectId, contactId);
+      if (!contact) {
+        return res.status(404).json({ error: 'Contact not found' });
+      }
+
+      // Delete photo file if it exists
+      if (contact.photoUrl) {
+        const photoPath = path.join(uploadsDir, path.basename(contact.photoUrl));
+        if (fs.existsSync(photoPath)) {
+          fs.unlinkSync(photoPath);
+        }
+      }
+
+      // Update contact to remove photo URL
+      const updatedContact = await storage.updateContact(projectId, contactId, { photoUrl: null });
+      
+      res.json({ 
+        message: 'Photo deleted successfully',
+        contact: updatedContact
+      });
+    } catch (error) {
+      console.error('Contact photo delete error:', error);
+      res.status(500).json({ error: 'Photo deletion failed' });
+    }
+  });
+
   // Serve uploaded files
   app.use('/uploads', (req, res, next) => {
     // Add cache headers for images

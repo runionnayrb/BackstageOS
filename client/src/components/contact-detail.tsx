@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit, X, Save, Mail, Phone } from "lucide-react";
+import { Edit, X, Save, Mail, Phone, Camera, Upload, Trash2 } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +35,7 @@ interface Contact {
   category: string;
   role?: string;
   notes?: string;
+  photoUrl?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactEmail?: string;
@@ -55,6 +56,8 @@ interface ContactDetailProps {
 
 export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     firstName: contact.firstName || '',
     lastName: contact.lastName || '',
@@ -124,6 +127,110 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
 
   const handleSave = () => {
     updateMutation.mutate(formData);
+  };
+
+  // Photo upload mutation
+  const uploadPhotoMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('photo', file);
+      
+      const response = await fetch(`/api/projects/${contact.projectId}/contacts/${contact.id}/photo`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload photo');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Update the contact object
+      contact.photoUrl = data.url;
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${contact.projectId}/contacts`] });
+      toast({
+        title: "Success",
+        description: "Photo uploaded successfully",
+      });
+      setIsUploadingPhoto(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload photo",
+        variant: "destructive",
+      });
+      setIsUploadingPhoto(false);
+    },
+  });
+
+  // Photo delete mutation
+  const deletePhotoMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/projects/${contact.projectId}/contacts/${contact.id}/photo`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete photo');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      // Update the contact object
+      contact.photoUrl = undefined;
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${contact.projectId}/contacts`] });
+      toast({
+        title: "Success",
+        description: "Photo deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete photo",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Error",
+          description: "Please select an image file",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Error",
+          description: "Image must be smaller than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setIsUploadingPhoto(true);
+      uploadPhotoMutation.mutate(file);
+    }
+  };
+
+  const handleDeletePhoto = () => {
+    deletePhotoMutation.mutate();
+  };
+
+  const triggerPhotoUpload = () => {
+    fileInputRef.current?.click();
   };
 
   const handleCancel = () => {
@@ -213,6 +320,76 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
           <Button variant="outline" size="sm" onClick={onClose}>
             <X className="h-4 w-4" />
           </Button>
+        </div>
+      </div>
+
+      {/* Photo Management */}
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold">Photo</h3>
+        <div className="flex items-start gap-4">
+          {/* Photo Display */}
+          <div className="flex-shrink-0">
+            {contact.photoUrl ? (
+              <div className="relative">
+                <img
+                  src={contact.photoUrl}
+                  alt={`${contact.firstName} ${contact.lastName}`}
+                  className="w-24 h-24 rounded-lg object-cover border"
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                  onClick={handleDeletePhoto}
+                  disabled={deletePhotoMutation.isPending}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            ) : (
+              <div className="w-24 h-24 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
+                <Camera className="h-8 w-8 text-gray-400" />
+              </div>
+            )}
+          </div>
+          
+          {/* Photo Controls */}
+          <div className="flex-grow space-y-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handlePhotoUpload}
+              accept="image/*"
+              className="hidden"
+            />
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={triggerPhotoUpload}
+              disabled={isUploadingPhoto || uploadPhotoMutation.isPending}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {isUploadingPhoto ? "Uploading..." : contact.photoUrl ? "Replace Photo" : "Add Photo"}
+            </Button>
+            
+            {contact.photoUrl && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDeletePhoto}
+                disabled={deletePhotoMutation.isPending}
+                className="ml-2"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {deletePhotoMutation.isPending ? "Removing..." : "Remove Photo"}
+              </Button>
+            )}
+            
+            <p className="text-xs text-gray-500">
+              JPG, PNG, or GIF up to 5MB
+            </p>
+          </div>
         </div>
       </div>
 
