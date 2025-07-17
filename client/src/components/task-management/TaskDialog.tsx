@@ -120,7 +120,7 @@ export function TaskDialog({
               <FormItem>
                 <FormLabel>{property.name}</FormLabel>
                 <FormControl>
-                  <Input placeholder={`Enter ${property.name.toLowerCase()}`} {...field} />
+                  <Input placeholder={`Enter ${property.name.toLowerCase()}`} {...field} className="border-none shadow-none focus-visible:ring-0" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -143,6 +143,7 @@ export function TaskDialog({
                     placeholder={`Enter ${property.name.toLowerCase()}`} 
                     {...field}
                     onChange={(e) => field.onChange(Number(e.target.value) || "")}
+                    className="border-none shadow-none focus-visible:ring-0"
                   />
                 </FormControl>
                 <FormMessage />
@@ -163,7 +164,7 @@ export function TaskDialog({
                 <FormLabel>{property.name}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="border-none shadow-none focus:ring-0 focus:border-none">
                       <SelectValue placeholder={`Select ${property.name.toLowerCase()}`} />
                     </SelectTrigger>
                   </FormControl>
@@ -219,7 +220,7 @@ export function TaskDialog({
                     <FormControl>
                       <Button
                         variant="outline"
-                        className="w-full pl-3 text-left font-normal"
+                        className="w-full pl-3 text-left font-normal border-none shadow-none focus:ring-0 focus:border-none"
                       >
                         {field.value ? (
                           format(new Date(field.value), "PPP")
@@ -319,7 +320,7 @@ export function TaskDialog({
                       <FormItem className="flex-1">
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="border-none shadow-none h-8 px-2">
+                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none">
                               <SelectValue placeholder="Not started" />
                             </SelectTrigger>
                           </FormControl>
@@ -353,7 +354,7 @@ export function TaskDialog({
                       <FormItem className="flex-1">
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="border-none shadow-none h-8 px-2">
+                            <SelectTrigger className="border-none shadow-none h-8 px-2 focus:ring-0 focus:border-none">
                               <SelectValue placeholder="Medium" />
                             </SelectTrigger>
                           </FormControl>
@@ -387,7 +388,7 @@ export function TaskDialog({
                             <FormControl>
                               <Button
                                 variant="ghost"
-                                className="h-8 px-2 justify-start font-normal border-none shadow-none"
+                                className="h-8 px-2 justify-start font-normal border-none shadow-none focus:ring-0 focus:border-none"
                               >
                                 {field.value ? (
                                   format(field.value, "MMM d, yyyy")
