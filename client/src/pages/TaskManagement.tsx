@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 
 import { Database, Table, Calendar, Kanban, List, Grid, Settings, Filter, Plus, Search } from "lucide-react";
 import { TaskBoard } from "@/components/task-management/TaskBoard";
+import { TaskViewSettings } from "@/components/task-management/TaskViewSettings";
 import { apiRequest } from "@/lib/queryClient";
 import type { TaskDatabase, TaskView } from "@shared/schema";
 
@@ -16,6 +17,7 @@ export function TaskManagement() {
   const [newTaskId, setNewTaskId] = useState<number | null>(null);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // Get current project from URL params if available
@@ -167,7 +169,12 @@ export function TaskManagement() {
               <Button variant="ghost" size="sm" className="hover:bg-transparent group">
                 <Filter className="h-4 w-4 group-hover:text-blue-600" />
               </Button>
-              <Button variant="ghost" size="sm" className="hover:bg-transparent group">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setIsSettingsOpen(true)}
+                className="hover:bg-transparent group"
+              >
                 <Settings className="h-4 w-4 group-hover:text-blue-600" />
               </Button>
               <Button variant="ghost" size="sm" onClick={handleCreateTask} className="hover:bg-transparent group">
@@ -211,6 +218,18 @@ export function TaskManagement() {
             newTaskId={newTaskId}
           />
         </div>
+
+        {/* Task View Settings Panel */}
+        <TaskViewSettings
+          isOpen={isSettingsOpen}
+          onOpenChange={setIsSettingsOpen}
+          currentView={selectedView?.type || 'table'}
+          onViewChange={(viewType) => {
+            // Create a temporary view object to change the view
+            const tempView = { ...selectedView, type: viewType } as TaskView;
+            setSelectedView(tempView);
+          }}
+        />
       </div>
     );
   }
