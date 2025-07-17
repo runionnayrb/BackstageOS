@@ -70,6 +70,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
     lastName: contact?.lastName || "",
     email: contact?.email || "",
     phone: contact?.phone ? formatPhoneNumber(contact.phone) : "",
+    category: contact?.category || category,
     role: contact?.role || "",
     notes: contact?.notes || "",
     emergencyContactName: contact?.emergencyContactName || "",
@@ -167,9 +168,8 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
       // Store unformatted phone numbers in database
       phone: parsePhoneNumber(formData.phone),
       emergencyContactPhone: parsePhoneNumber(formData.emergencyContactPhone),
-      category,
       // Only include equity status for cast members
-      equityStatus: category === 'cast' ? formData.equityStatus : null,
+      equityStatus: formData.category === 'cast' ? formData.equityStatus : null,
     };
     
     console.log("ContactForm submission data:", data);
@@ -250,6 +250,22 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
               </div>
             </div>
 
+            <div>
+              <Label htmlFor="category">Contact Type *</Label>
+              <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select contact type..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="creative_team">Creative Team</SelectItem>
+                  <SelectItem value="stage_management">Stage Management</SelectItem>
+                  <SelectItem value="cast">Cast</SelectItem>
+                  <SelectItem value="crew">Crew</SelectItem>
+                  <SelectItem value="theater_staff">Theater Staff</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="email">Email</Label>
@@ -290,7 +306,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
             </div>
 
             {/* Cast Types Section - Only for Cast Category */}
-            {category === 'cast' && (
+            {formData.category === 'cast' && (
               <div>
                 <Label>Cast Type</Label>
                 <div className="grid grid-cols-2 gap-2 mt-2">
@@ -311,7 +327,7 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
             )}
 
             {/* Equity Status Section - Only for Cast Category */}
-            {category === 'cast' && (
+            {formData.category === 'cast' && (
               <div>
                 <Label>Equity Status</Label>
                 <Select value={formData.equityStatus} onValueChange={(value) => setFormData(prev => ({ ...prev, equityStatus: value }))}>
