@@ -210,58 +210,31 @@ export function TaskManagement() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {databases.map((database: TaskDatabase) => (
-            <Card 
+            <div 
               key={database.id} 
-              className="cursor-pointer hover:shadow-md transition-shadow"
+              className="cursor-pointer hover:shadow-md transition-shadow p-4 rounded-lg"
               onClick={() => handleDatabaseSelect(database)}
             >
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div 
-                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white"
-                      style={{ backgroundColor: database.color }}
-                    >
-                      {database.icon ? (
-                        <span className="text-lg">{database.icon}</span>
-                      ) : (
-                        <Database className="h-5 w-5" />
-                      )}
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">{database.name}</CardTitle>
-                      {database.isGlobal && (
-                        <Badge variant="secondary" className="mt-1">Global</Badge>
-                      )}
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteDatabaseMutation.mutate(database.id);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    ×
-                  </Button>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">{database.name}</h3>
+                  {database.isGlobal && (
+                    <Badge variant="secondary" className="mt-1">Global</Badge>
+                  )}
                 </div>
-              </CardHeader>
-              <CardContent>
-                {database.description && (
-                  <p className="text-sm text-muted-foreground">{database.description}</p>
-                )}
-                <div className="flex items-center justify-between mt-4 text-xs text-muted-foreground">
-                  <span>
-                    {database.templateType && `Template: ${database.templateType}`}
-                  </span>
-                  <span>
-                    {new Date(database.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    deleteDatabaseMutation.mutate(database.id);
+                  }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  ×
+                </Button>
+              </div>
+            </div>
           ))}
         </div>
       )}
