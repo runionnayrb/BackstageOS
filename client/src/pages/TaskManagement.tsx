@@ -125,12 +125,6 @@ export function TaskManagement() {
                   ← Back
                 </Button>
                 <div className="flex items-center space-x-2">
-                  <div 
-                    className="w-6 h-6 rounded flex items-center justify-center text-white text-sm font-medium"
-                    style={{ backgroundColor: selectedDatabase.color }}
-                  >
-                    {selectedDatabase.icon || <Database className="h-3 w-3" />}
-                  </div>
                   <h1 className="text-2xl font-bold">{selectedDatabase.name}</h1>
                   {selectedDatabase.isGlobal && (
                     <Badge variant="secondary">Global</Badge>
