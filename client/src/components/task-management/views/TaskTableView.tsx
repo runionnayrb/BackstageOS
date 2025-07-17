@@ -170,6 +170,7 @@ export function TaskTableView({
   onTaskSelect 
 }: TaskTableViewProps) {
   const [selectedTasks, setSelectedTasks] = useState<Set<number>>(new Set());
+  const [selectAllClicked, setSelectAllClicked] = useState(false);
   
   // Function to calculate minimum width based on text length
   const getMinWidthForText = (text: string) => {
@@ -234,11 +235,16 @@ export function TaskTableView({
       newSelected.add(taskId);
     } else {
       newSelected.delete(taskId);
+      // If unchecking a task, reset selectAllClicked if it was previously true
+      if (selectAllClicked) {
+        setSelectAllClicked(false);
+      }
     }
     setSelectedTasks(newSelected);
   };
 
   const handleSelectAll = (checked: boolean) => {
+    setSelectAllClicked(checked);
     if (checked) {
       setSelectedTasks(new Set(tasks.map(task => task.id)));
     } else {
@@ -411,10 +417,10 @@ export function TaskTableView({
                     return (
                       <TableHead key={column.id} style={{ width: column.width }} className="w-12">
                         <Checkbox
-                          checked={selectedTasks.size === tasks.length && tasks.length > 0}
+                          checked={selectAllClicked && selectedTasks.size === tasks.length && tasks.length > 0}
                           onCheckedChange={handleSelectAll}
                           className={`transition-opacity ${
-                            (selectedTasks.size === tasks.length && tasks.length > 0) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                            selectAllClicked ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                           }`}
                         />
                       </TableHead>
