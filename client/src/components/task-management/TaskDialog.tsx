@@ -3,12 +3,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import {
   Form,
   FormControl,
@@ -31,7 +30,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CalendarIcon, Trash2, User, Tag, Clock, Flag } from "lucide-react";
+import { CalendarIcon, Trash2, User, Tag, Clock, Flag, ArrowLeft, MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import type { Task, TaskProperty } from "@shared/schema";
 
@@ -252,26 +251,40 @@ export function TaskDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {task ? "Edit Task" : "Create New Task"}
-          </DialogTitle>
-        </DialogHeader>
+    <Sheet open={isOpen} onOpenChange={handleClose}>
+      <SheetContent side="right" className="w-full sm:max-w-3xl p-0 overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleClose}
+            className="h-8 w-8 p-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex items-center space-x-2">
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            {/* Basic Task Info */}
-            <div className="space-y-4">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="p-4 space-y-6">
+            {/* Task Title - Notion style */}
+            <div className="space-y-6">
               <FormField
                 control={form.control}
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Task Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter task title" {...field} />
+                      <Input 
+                        placeholder="New page" 
+                        {...field} 
+                        className="text-3xl font-bold border-none p-0 shadow-none focus-visible:ring-0 bg-transparent"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -283,12 +296,12 @@ export function TaskDialog({
                 name="content"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="Add a description..." 
-                        rows={4} 
+                        placeholder="Type / to start..." 
+                        rows={6} 
                         {...field} 
+                        className="border-none shadow-none resize-none focus-visible:ring-0 p-0 text-gray-700"
                       />
                     </FormControl>
                     <FormMessage />
@@ -296,106 +309,115 @@ export function TaskDialog({
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {STATUS_OPTIONS.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              <div className="flex items-center space-x-2">
-                                <div 
-                                  className="w-3 h-3 rounded-full" 
-                                  style={{ backgroundColor: option.color }}
-                                />
-                                <span>{option.label}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {/* Properties section - Notion style */}
+              <div className="space-y-3 border-t pt-4">
+                {/* Status property */}
+                <div className="flex items-center space-x-3 py-1">
+                  <div className="w-24 text-sm text-gray-600 shrink-0">Status</div>
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="border-none shadow-none h-8 px-2">
+                              <SelectValue placeholder="Not started" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {STATUS_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                <div className="flex items-center space-x-2">
+                                  <div 
+                                    className="w-3 h-3 rounded-full" 
+                                    style={{ backgroundColor: option.color }}
+                                  />
+                                  <span>{option.label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="priority"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Priority</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {PRIORITY_OPTIONS.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              <div className="flex items-center space-x-2">
-                                <span>{option.icon}</span>
-                                <span>{option.label}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* Priority property */}
+                <div className="flex items-center space-x-3 py-1">
+                  <div className="w-24 text-sm text-gray-600 shrink-0">Priority</div>
+                  <FormField
+                    control={form.control}
+                    name="priority"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="border-none shadow-none h-8 px-2">
+                              <SelectValue placeholder="Medium" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {PRIORITY_OPTIONS.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                <div className="flex items-center space-x-2">
+                                  <span>{option.icon}</span>
+                                  <span>{option.label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {/* Due Date property */}
+                <div className="flex items-center space-x-3 py-1">
+                  <div className="w-24 text-sm text-gray-600 shrink-0">Due Date</div>
+                  <FormField
+                    control={form.control}
+                    name="dueDate"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="ghost"
+                                className="h-8 px-2 justify-start font-normal border-none shadow-none"
+                              >
+                                {field.value ? (
+                                  format(field.value, "MMM d, yyyy")
+                                ) : (
+                                  <span className="text-gray-500">Empty</span>
+                                )}
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={(date) => {
+                                field.onChange(date);
+                                setCalendarOpen(false);
+                              }}
+                              disabled={(date) => date < new Date("1900-01-01")}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
-
-              <FormField
-                control={form.control}
-                name="dueDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Due Date</FormLabel>
-                    <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            className="w-full pl-3 text-left font-normal"
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={(date) => {
-                            field.onChange(date);
-                            setCalendarOpen(false);
-                          }}
-                          disabled={(date) => date < new Date("1900-01-01")}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
             {/* Custom Properties */}
@@ -408,32 +430,39 @@ export function TaskDialog({
               </div>
             )}
 
-            <DialogFooter className="flex justify-between">
-              <div>
-                {task && onDelete && (
-                  <Button 
-                    type="button" 
-                    variant="destructive" 
-                    onClick={onDelete}
-                    disabled={isLoading}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                )}
-              </div>
-              <div className="flex space-x-2">
-                <Button type="button" variant="outline" onClick={handleClose}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Saving..." : task ? "Update Task" : "Create Task"}
-                </Button>
-              </div>
-            </DialogFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+
+        {/* Sticky Footer */}
+        <div className="sticky bottom-0 bg-white border-t p-4 flex justify-between items-center">
+          <div>
+            {task && onDelete && (
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm"
+                onClick={onDelete}
+                disabled={isLoading}
+                className="text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          <div className="flex space-x-2">
+            <Button type="button" variant="ghost" size="sm" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={form.handleSubmit(handleSubmit)} 
+              disabled={isLoading}
+              size="sm"
+            >
+              {isLoading ? "Saving..." : task ? "Update" : "Create"}
+            </Button>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
