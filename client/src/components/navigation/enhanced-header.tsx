@@ -307,6 +307,11 @@ export default function EnhancedHeader() {
                     )}
                   </DropdownMenuItem>
                   
+                  <DropdownMenuItem onClick={() => setLocation('/tasks')}>
+                    <CheckSquare className="h-4 w-4 mr-2" />
+                    Tasks
+                  </DropdownMenuItem>
+                  
                   <DropdownMenuSeparator />
                   
                   <DropdownMenuItem onClick={() => setLocation('/')}>
@@ -317,11 +322,6 @@ export default function EnhancedHeader() {
                   <DropdownMenuItem onClick={() => setLocation('/create-project')}>
                     <Plus className="h-4 w-4 mr-2" />
                     New Show
-                  </DropdownMenuItem>
-                  
-                  <DropdownMenuItem onClick={() => setLocation('/tasks')}>
-                    <CheckSquare className="h-4 w-4 mr-2" />
-                    Task Management
                   </DropdownMenuItem>
                   
                   {/* Show-specific navigation - only when in a show */}
