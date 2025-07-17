@@ -443,7 +443,7 @@ export function TaskTableView({
               {tasks.map((task) => (
                 <TableRow 
                   key={task.id} 
-                  className="hover:bg-muted/50 cursor-pointer group"
+                  className="hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer group transition-colors duration-150"
                   onClick={() => onTaskSelect(task)}
                 >
                   {columns.map((column) => (
