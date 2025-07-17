@@ -133,7 +133,7 @@ function DraggableColumnHeader({
           }
         }}
       >
-        <span>{column.title}</span>
+        <span className="leading-none">{column.title}</span>
       </div>
       <div 
         className="resize-handle absolute right-0 top-0 w-2 h-full cursor-col-resize opacity-0 hover:opacity-100 bg-blue-500 hover:bg-blue-600 z-10"
@@ -280,9 +280,9 @@ export function TaskTableView({
       case 'task':
         return (
           <div className="space-y-1">
-            <div className="font-medium">{task.title}</div>
+            <div className="font-medium leading-none">{task.title}</div>
             {task.content && (
-              <div className="text-sm text-muted-foreground truncate max-w-[250px]">
+              <div className="text-sm text-muted-foreground truncate max-w-[250px] leading-none">
                 {String(task.content).replace(/<[^>]*>/g, '')}
               </div>
             )}
