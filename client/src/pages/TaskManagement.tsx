@@ -36,12 +36,22 @@ export function TaskManagement() {
 
   // Create database mutation
   const createDatabaseMutation = useMutation({
-    mutationFn: (data: any) => {
+    mutationFn: async (data: any) => {
       console.log('Creating database with data:', data);
-      return apiRequest('/api/task-databases', {
-        method: 'POST',
-        body: JSON.stringify(data)
-      });
+      try {
+        const response = await apiRequest('/api/task-databases', {
+          method: 'POST',
+          body: JSON.stringify(data),
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        console.log('API response:', response);
+        return response;
+      } catch (error) {
+        console.error('API request failed:', error);
+        throw error;
+      }
     },
     onSuccess: (result) => {
       console.log('Database created successfully:', result);
@@ -50,6 +60,8 @@ export function TaskManagement() {
     },
     onError: (error) => {
       console.error('Database creation failed:', error);
+      console.error('Error type:', typeof error);
+      console.error('Error keys:', Object.keys(error || {}));
     }
   });
 

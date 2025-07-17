@@ -8454,15 +8454,25 @@ Respond with valid JSON only.`;
 
   app.post("/api/task-databases", isAuthenticated, async (req: any, res) => {
     try {
+      console.log("Raw request body:", req.body);
+      console.log("User from request:", req.user);
+      
       const databaseData = insertTaskDatabaseSchema.parse({
         ...req.body,
         createdBy: req.user.id
       });
+      
+      console.log("Parsed database data:", databaseData);
+      
       const database = await storage.createTaskDatabase(databaseData);
+      console.log("Created database:", database);
+      
       res.json(database);
     } catch (error) {
       console.error("Error creating task database:", error);
-      res.status(500).json({ message: "Failed to create task database" });
+      console.error("Error stack:", error.stack);
+      console.error("Error details:", JSON.stringify(error, null, 2));
+      res.status(500).json({ message: "Failed to create task database", error: error.message });
     }
   });
 
