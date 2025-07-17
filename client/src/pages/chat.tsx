@@ -79,7 +79,7 @@ export default function ChatPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-xl text-gray-700">Feature in Development</CardTitle>
           <CardDescription className="text-gray-500">
-            We're building a comprehensive chat system designed specifically for theater professionals. 
+            We're building a comprehensive chat system designed specifically for stage managers. 
             Stay tuned for updates!
           </CardDescription>
         </CardHeader>
