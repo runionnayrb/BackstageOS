@@ -287,9 +287,9 @@ export function TaskTableView({
 
       case 'task':
         return (
-          <div className="space-y-1" onClick={(e) => e.stopPropagation()}>
+          <div className="space-y-1">
             <input
-              className="font-medium bg-transparent border-0 outline-none w-full focus:bg-white px-1 -mx-1"
+              className="font-medium bg-transparent border-0 outline-none focus:bg-white px-1 -mx-1 min-w-0"
               value={task.title}
               onChange={(e) => onTaskUpdate(task.id, { title: e.target.value })}
               onKeyDown={(e) => {
@@ -297,6 +297,8 @@ export function TaskTableView({
                   e.currentTarget.blur();
                 }
               }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ width: `${Math.max(task.title.length * 8 + 16, 100)}px` }}
             />
             {task.content && (
               <div className="text-sm text-muted-foreground truncate max-w-[250px]">
