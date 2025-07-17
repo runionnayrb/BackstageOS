@@ -22,8 +22,9 @@ export function TaskManagement() {
     queryKey: ['/api/task-databases', 'main', projectId || 'global'],
     queryFn: async () => {
       // Try to fetch existing database first
-      const response = await apiRequest(`/api/task-databases${projectId ? `?projectId=${projectId}` : ''}`);
-      const databases = Array.isArray(response) ? response : [];
+      const response = await apiRequest('GET', `/api/task-databases${projectId ? `?projectId=${projectId}` : ''}`);
+      const data = await response.json();
+      const databases = Array.isArray(data) ? data : [];
       
       // Look for existing main database
       let mainDatabase = databases.find((db: TaskDatabase) => 
@@ -32,7 +33,7 @@ export function TaskManagement() {
       
       // If no main database exists, create one
       if (!mainDatabase) {
-        mainDatabase = await apiRequest('POST', '/api/task-databases', {
+        const createResponse = await apiRequest('POST', '/api/task-databases', {
           name: 'Tasks',
           description: 'Main task database',
           color: '#3B82F6',
@@ -40,6 +41,7 @@ export function TaskManagement() {
           projectId: projectId ? parseInt(projectId) : null,
           isGlobal: !projectId
         });
+        mainDatabase = await createResponse.json();
       }
       
       console.log('Main database created/fetched:', mainDatabase);
@@ -52,14 +54,18 @@ export function TaskManagement() {
   // Fetch views for the main database
   const { data: views = [], isLoading: loadingViews } = useQuery({
     queryKey: ['/api/task-databases', database?.id, 'views'],
-    queryFn: () => apiRequest(`/api/task-databases/${database?.id}/views`),
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/task-databases/${database?.id}/views`);
+      return await response.json();
+    },
     enabled: !!database?.id
   });
 
   // Create view mutation
   const createViewMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('POST', `/api/task-databases/${database?.id}/views`, data);
+      const response = await apiRequest('POST', `/api/task-databases/${database?.id}/views`, data);
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/task-databases', database?.id, 'views'] });
