@@ -63,6 +63,7 @@ import TestImageUpload from "@/pages/test-image-upload";
 import Tools from "@/pages/tools";
 import Chat from "@/pages/chat";
 import PerformanceTracker from "@/pages/PerformanceTracker";
+import TaskManagement from "@/pages/TaskManagement";
 
 
 function Router() {
@@ -183,6 +184,8 @@ function Router() {
         <Route path="/shows/:id/contacts/:category" component={PersonnelCategory} />
         <Route path="/shows/:id/contacts/:contactId/availability" component={ContactAvailability} />
         <Route path="/shows/:id/performance-tracker" component={PerformanceTracker} />
+        <Route path="/shows/:id/tasks" component={TaskManagement} />
+        <Route path="/tasks" component={TaskManagement} />
         <Route path="/shows/:id/templates/new" component={TemplateBuilder} />
         <Route path="/shows/:id/templates/:templateId/edit" component={TemplateBuilder} />
         <Route path="/shows/:id/templates" component={TemplateSettings} />

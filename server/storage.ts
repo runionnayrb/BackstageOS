@@ -35,6 +35,13 @@ import {
   showContractSettings,
   performanceTracker,
   rehearsalTracker,
+  taskDatabases,
+  taskProperties,
+  tasks,
+  taskAssignments,
+  taskComments,
+  taskAttachments,
+  taskViews,
 
   type User,
   type UpsertUser,
@@ -102,6 +109,20 @@ import {
   type InsertPerformanceTracker,
   type RehearsalTracker,
   type InsertRehearsalTracker,
+  type TaskDatabase,
+  type InsertTaskDatabase,
+  type TaskProperty,
+  type InsertTaskProperty,
+  type Task,
+  type InsertTask,
+  type TaskAssignment,
+  type InsertTaskAssignment,
+  type TaskComment,
+  type InsertTaskComment,
+  type TaskAttachment,
+  type InsertTaskAttachment,
+  type TaskView,
+  type InsertTaskView,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -308,6 +329,52 @@ export interface IStorage {
   
   getEquityCastMembers(projectId: number): Promise<Contact[]>;
   hasEquityCastMembers(projectId: number): Promise<boolean>;
+
+  // Task Management operations
+  // Task Databases
+  getTaskDatabases(projectId?: number, isGlobal?: boolean): Promise<TaskDatabase[]>;
+  getTaskDatabase(id: number): Promise<TaskDatabase | undefined>;
+  createTaskDatabase(database: InsertTaskDatabase): Promise<TaskDatabase>;
+  updateTaskDatabase(id: number, database: Partial<InsertTaskDatabase>): Promise<TaskDatabase>;
+  deleteTaskDatabase(id: number): Promise<void>;
+
+  // Task Properties
+  getTaskProperties(databaseId: number): Promise<TaskProperty[]>;
+  createTaskProperty(property: InsertTaskProperty): Promise<TaskProperty>;
+  updateTaskProperty(id: number, property: Partial<InsertTaskProperty>): Promise<TaskProperty>;
+  deleteTaskProperty(id: number): Promise<void>;
+  reorderTaskProperties(databaseId: number, propertyOrders: { id: number; sortOrder: number }[]): Promise<void>;
+
+  // Tasks
+  getTasks(databaseId: number): Promise<Task[]>;
+  getTask(id: number): Promise<Task | undefined>;
+  createTask(task: InsertTask): Promise<Task>;
+  updateTask(id: number, task: Partial<InsertTask>): Promise<Task>;
+  deleteTask(id: number): Promise<void>;
+  reorderTasks(databaseId: number, taskOrders: { id: number; sortOrder: number }[]): Promise<void>;
+
+  // Task Assignments
+  getTaskAssignments(taskId: number): Promise<TaskAssignment[]>;
+  createTaskAssignment(assignment: InsertTaskAssignment): Promise<TaskAssignment>;
+  deleteTaskAssignment(id: number): Promise<void>;
+
+  // Task Comments
+  getTaskComments(taskId: number): Promise<TaskComment[]>;
+  createTaskComment(comment: InsertTaskComment): Promise<TaskComment>;
+  updateTaskComment(id: number, comment: Partial<InsertTaskComment>): Promise<TaskComment>;
+  deleteTaskComment(id: number): Promise<void>;
+
+  // Task Attachments
+  getTaskAttachments(taskId: number): Promise<TaskAttachment[]>;
+  createTaskAttachment(attachment: InsertTaskAttachment): Promise<TaskAttachment>;
+  deleteTaskAttachment(id: number): Promise<void>;
+
+  // Task Views
+  getTaskViews(databaseId: number): Promise<TaskView[]>;
+  getTaskView(id: number): Promise<TaskView | undefined>;
+  createTaskView(view: InsertTaskView): Promise<TaskView>;
+  updateTaskView(id: number, view: Partial<InsertTaskView>): Promise<TaskView>;
+  deleteTaskView(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2070,6 +2137,245 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return result[0].count > 0;
+  }
+
+  // ========== TASK MANAGEMENT IMPLEMENTATIONS ==========
+
+  // Task Databases
+  async getTaskDatabases(projectId?: number, isGlobal?: boolean): Promise<TaskDatabase[]> {
+    let whereConditions = [];
+    
+    if (projectId !== undefined) {
+      whereConditions.push(eq(taskDatabases.projectId, projectId));
+    }
+    
+    if (isGlobal !== undefined) {
+      whereConditions.push(eq(taskDatabases.isGlobal, isGlobal));
+    }
+    
+    const result = await db
+      .select()
+      .from(taskDatabases)
+      .where(whereConditions.length > 0 ? and(...whereConditions) : undefined)
+      .orderBy(taskDatabases.createdAt);
+    
+    return result;
+  }
+
+  async getTaskDatabase(id: number): Promise<TaskDatabase | undefined> {
+    const result = await db
+      .select()
+      .from(taskDatabases)
+      .where(eq(taskDatabases.id, id));
+    return result[0];
+  }
+
+  async createTaskDatabase(database: InsertTaskDatabase): Promise<TaskDatabase> {
+    const result = await db.insert(taskDatabases).values(database).returning();
+    return result[0];
+  }
+
+  async updateTaskDatabase(id: number, database: Partial<InsertTaskDatabase>): Promise<TaskDatabase> {
+    const result = await db
+      .update(taskDatabases)
+      .set(database)
+      .where(eq(taskDatabases.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteTaskDatabase(id: number): Promise<void> {
+    await db.delete(taskDatabases).where(eq(taskDatabases.id, id));
+  }
+
+  // Task Properties
+  async getTaskProperties(databaseId: number): Promise<TaskProperty[]> {
+    const result = await db
+      .select()
+      .from(taskProperties)
+      .where(eq(taskProperties.databaseId, databaseId))
+      .orderBy(taskProperties.sortOrder);
+    return result;
+  }
+
+  async createTaskProperty(property: InsertTaskProperty): Promise<TaskProperty> {
+    const result = await db.insert(taskProperties).values(property).returning();
+    return result[0];
+  }
+
+  async updateTaskProperty(id: number, property: Partial<InsertTaskProperty>): Promise<TaskProperty> {
+    const result = await db
+      .update(taskProperties)
+      .set(property)
+      .where(eq(taskProperties.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteTaskProperty(id: number): Promise<void> {
+    await db.delete(taskProperties).where(eq(taskProperties.id, id));
+  }
+
+  async reorderTaskProperties(databaseId: number, propertyOrders: { id: number; sortOrder: number }[]): Promise<void> {
+    for (const order of propertyOrders) {
+      await db
+        .update(taskProperties)
+        .set({ sortOrder: order.sortOrder })
+        .where(and(
+          eq(taskProperties.id, order.id),
+          eq(taskProperties.databaseId, databaseId)
+        ));
+    }
+  }
+
+  // Tasks
+  async getTasks(databaseId: number): Promise<Task[]> {
+    const result = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.databaseId, databaseId))
+      .orderBy(tasks.sortOrder, tasks.createdAt);
+    return result;
+  }
+
+  async getTask(id: number): Promise<Task | undefined> {
+    const result = await db
+      .select()
+      .from(tasks)
+      .where(eq(tasks.id, id));
+    return result[0];
+  }
+
+  async createTask(task: InsertTask): Promise<Task> {
+    const result = await db.insert(tasks).values(task).returning();
+    return result[0];
+  }
+
+  async updateTask(id: number, task: Partial<InsertTask>): Promise<Task> {
+    const result = await db
+      .update(tasks)
+      .set({ ...task, updatedAt: new Date() })
+      .where(eq(tasks.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteTask(id: number): Promise<void> {
+    await db.delete(tasks).where(eq(tasks.id, id));
+  }
+
+  async reorderTasks(databaseId: number, taskOrders: { id: number; sortOrder: number }[]): Promise<void> {
+    for (const order of taskOrders) {
+      await db
+        .update(tasks)
+        .set({ sortOrder: order.sortOrder })
+        .where(and(
+          eq(tasks.id, order.id),
+          eq(tasks.databaseId, databaseId)
+        ));
+    }
+  }
+
+  // Task Assignments
+  async getTaskAssignments(taskId: number): Promise<TaskAssignment[]> {
+    const result = await db
+      .select()
+      .from(taskAssignments)
+      .where(eq(taskAssignments.taskId, taskId))
+      .orderBy(taskAssignments.assignedAt);
+    return result;
+  }
+
+  async createTaskAssignment(assignment: InsertTaskAssignment): Promise<TaskAssignment> {
+    const result = await db.insert(taskAssignments).values(assignment).returning();
+    return result[0];
+  }
+
+  async deleteTaskAssignment(id: number): Promise<void> {
+    await db.delete(taskAssignments).where(eq(taskAssignments.id, id));
+  }
+
+  // Task Comments
+  async getTaskComments(taskId: number): Promise<TaskComment[]> {
+    const result = await db
+      .select()
+      .from(taskComments)
+      .where(eq(taskComments.taskId, taskId))
+      .orderBy(taskComments.createdAt);
+    return result;
+  }
+
+  async createTaskComment(comment: InsertTaskComment): Promise<TaskComment> {
+    const result = await db.insert(taskComments).values(comment).returning();
+    return result[0];
+  }
+
+  async updateTaskComment(id: number, comment: Partial<InsertTaskComment>): Promise<TaskComment> {
+    const result = await db
+      .update(taskComments)
+      .set({ ...comment, updatedAt: new Date() })
+      .where(eq(taskComments.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteTaskComment(id: number): Promise<void> {
+    await db.delete(taskComments).where(eq(taskComments.id, id));
+  }
+
+  // Task Attachments
+  async getTaskAttachments(taskId: number): Promise<TaskAttachment[]> {
+    const result = await db
+      .select()
+      .from(taskAttachments)
+      .where(eq(taskAttachments.taskId, taskId))
+      .orderBy(taskAttachments.createdAt);
+    return result;
+  }
+
+  async createTaskAttachment(attachment: InsertTaskAttachment): Promise<TaskAttachment> {
+    const result = await db.insert(taskAttachments).values(attachment).returning();
+    return result[0];
+  }
+
+  async deleteTaskAttachment(id: number): Promise<void> {
+    await db.delete(taskAttachments).where(eq(taskAttachments.id, id));
+  }
+
+  // Task Views
+  async getTaskViews(databaseId: number): Promise<TaskView[]> {
+    const result = await db
+      .select()
+      .from(taskViews)
+      .where(eq(taskViews.databaseId, databaseId))
+      .orderBy(taskViews.createdAt);
+    return result;
+  }
+
+  async getTaskView(id: number): Promise<TaskView | undefined> {
+    const result = await db
+      .select()
+      .from(taskViews)
+      .where(eq(taskViews.id, id));
+    return result[0];
+  }
+
+  async createTaskView(view: InsertTaskView): Promise<TaskView> {
+    const result = await db.insert(taskViews).values(view).returning();
+    return result[0];
+  }
+
+  async updateTaskView(id: number, view: Partial<InsertTaskView>): Promise<TaskView> {
+    const result = await db
+      .update(taskViews)
+      .set({ ...view, updatedAt: new Date() })
+      .where(eq(taskViews.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteTaskView(id: number): Promise<void> {
+    await db.delete(taskViews).where(eq(taskViews.id, id));
   }
 
 }

@@ -1,4 +1,4 @@
-import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus, FileText, Calendar, TrendingUp } from "lucide-react";
+import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus, FileText, Calendar, TrendingUp, CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -319,6 +319,11 @@ export default function EnhancedHeader() {
                     New Show
                   </DropdownMenuItem>
                   
+                  <DropdownMenuItem onClick={() => setLocation('/tasks')}>
+                    <CheckSquare className="h-4 w-4 mr-2" />
+                    Task Management
+                  </DropdownMenuItem>
+                  
                   {/* Show-specific navigation - only when in a show */}
                   {navContext.showId && showData && (
                     <>
@@ -349,6 +354,10 @@ export default function EnhancedHeader() {
                       <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/performance-tracker`)}>
                         <TrendingUp className="h-4 w-4 mr-2" />
                         Performance Tracker
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/tasks`)}>
+                        <CheckSquare className="h-4 w-4 mr-2" />
+                        Tasks
                       </DropdownMenuItem>
                     </>
                   )}

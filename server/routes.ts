@@ -13,7 +13,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -8418,6 +8418,415 @@ Respond with valid JSON only.`;
     } catch (error) {
       console.error("Error checking equity cast members:", error);
       res.status(500).json({ message: "Failed to check equity cast members" });
+    }
+  });
+
+  // ========== TASK MANAGEMENT API ROUTES ==========
+
+  // Task Databases Routes
+  app.get("/api/task-databases", isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId, isGlobal } = req.query;
+      const databases = await storage.getTaskDatabases(
+        projectId ? parseInt(projectId) : undefined,
+        isGlobal === 'true' ? true : isGlobal === 'false' ? false : undefined
+      );
+      res.json(databases);
+    } catch (error) {
+      console.error("Error fetching task databases:", error);
+      res.status(500).json({ message: "Failed to fetch task databases" });
+    }
+  });
+
+  app.get("/api/task-databases/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const database = await storage.getTaskDatabase(id);
+      if (!database) {
+        return res.status(404).json({ message: "Task database not found" });
+      }
+      res.json(database);
+    } catch (error) {
+      console.error("Error fetching task database:", error);
+      res.status(500).json({ message: "Failed to fetch task database" });
+    }
+  });
+
+  app.post("/api/task-databases", isAuthenticated, async (req: any, res) => {
+    try {
+      const databaseData = insertTaskDatabaseSchema.parse({
+        ...req.body,
+        createdBy: req.user.id
+      });
+      const database = await storage.createTaskDatabase(databaseData);
+      res.json(database);
+    } catch (error) {
+      console.error("Error creating task database:", error);
+      res.status(500).json({ message: "Failed to create task database" });
+    }
+  });
+
+  app.put("/api/task-databases/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const databaseData = insertTaskDatabaseSchema.partial().parse(req.body);
+      const database = await storage.updateTaskDatabase(id, databaseData);
+      res.json(database);
+    } catch (error) {
+      console.error("Error updating task database:", error);
+      res.status(500).json({ message: "Failed to update task database" });
+    }
+  });
+
+  app.delete("/api/task-databases/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTaskDatabase(id);
+      res.json({ message: "Task database deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting task database:", error);
+      res.status(500).json({ message: "Failed to delete task database" });
+    }
+  });
+
+  // Task Properties Routes
+  app.get("/api/task-databases/:databaseId/properties", isAuthenticated, async (req: any, res) => {
+    try {
+      const databaseId = parseInt(req.params.databaseId);
+      const properties = await storage.getTaskProperties(databaseId);
+      res.json(properties);
+    } catch (error) {
+      console.error("Error fetching task properties:", error);
+      res.status(500).json({ message: "Failed to fetch task properties" });
+    }
+  });
+
+  app.post("/api/task-databases/:databaseId/properties", isAuthenticated, async (req: any, res) => {
+    try {
+      const databaseId = parseInt(req.params.databaseId);
+      const propertyData = insertTaskPropertySchema.parse({
+        ...req.body,
+        databaseId
+      });
+      const property = await storage.createTaskProperty(propertyData);
+      res.json(property);
+    } catch (error) {
+      console.error("Error creating task property:", error);
+      res.status(500).json({ message: "Failed to create task property" });
+    }
+  });
+
+  app.put("/api/task-properties/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const propertyData = insertTaskPropertySchema.partial().parse(req.body);
+      const property = await storage.updateTaskProperty(id, propertyData);
+      res.json(property);
+    } catch (error) {
+      console.error("Error updating task property:", error);
+      res.status(500).json({ message: "Failed to update task property" });
+    }
+  });
+
+  app.delete("/api/task-properties/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTaskProperty(id);
+      res.json({ message: "Task property deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting task property:", error);
+      res.status(500).json({ message: "Failed to delete task property" });
+    }
+  });
+
+  app.post("/api/task-databases/:databaseId/properties/reorder", isAuthenticated, async (req: any, res) => {
+    try {
+      const databaseId = parseInt(req.params.databaseId);
+      const { propertyOrders } = req.body;
+      await storage.reorderTaskProperties(databaseId, propertyOrders);
+      res.json({ message: "Task properties reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering task properties:", error);
+      res.status(500).json({ message: "Failed to reorder task properties" });
+    }
+  });
+
+  // Tasks Routes
+  app.get("/api/task-databases/:databaseId/tasks", isAuthenticated, async (req: any, res) => {
+    try {
+      const databaseId = parseInt(req.params.databaseId);
+      const tasks = await storage.getTasks(databaseId);
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      res.status(500).json({ message: "Failed to fetch tasks" });
+    }
+  });
+
+  app.get("/api/tasks/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const task = await storage.getTask(id);
+      if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+      }
+      res.json(task);
+    } catch (error) {
+      console.error("Error fetching task:", error);
+      res.status(500).json({ message: "Failed to fetch task" });
+    }
+  });
+
+  app.post("/api/task-databases/:databaseId/tasks", isAuthenticated, async (req: any, res) => {
+    try {
+      const databaseId = parseInt(req.params.databaseId);
+      const taskData = insertTaskSchema.parse({
+        ...req.body,
+        databaseId,
+        createdBy: req.user.id
+      });
+      const task = await storage.createTask(taskData);
+      res.json(task);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      res.status(500).json({ message: "Failed to create task" });
+    }
+  });
+
+  app.put("/api/tasks/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const taskData = insertTaskSchema.partial().parse(req.body);
+      const task = await storage.updateTask(id, taskData);
+      res.json(task);
+    } catch (error) {
+      console.error("Error updating task:", error);
+      res.status(500).json({ message: "Failed to update task" });
+    }
+  });
+
+  app.delete("/api/tasks/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTask(id);
+      res.json({ message: "Task deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      res.status(500).json({ message: "Failed to delete task" });
+    }
+  });
+
+  app.post("/api/task-databases/:databaseId/tasks/reorder", isAuthenticated, async (req: any, res) => {
+    try {
+      const databaseId = parseInt(req.params.databaseId);
+      const { taskOrders } = req.body;
+      await storage.reorderTasks(databaseId, taskOrders);
+      res.json({ message: "Tasks reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering tasks:", error);
+      res.status(500).json({ message: "Failed to reorder tasks" });
+    }
+  });
+
+  // Task Assignments Routes
+  app.get("/api/tasks/:taskId/assignments", isAuthenticated, async (req: any, res) => {
+    try {
+      const taskId = parseInt(req.params.taskId);
+      const assignments = await storage.getTaskAssignments(taskId);
+      res.json(assignments);
+    } catch (error) {
+      console.error("Error fetching task assignments:", error);
+      res.status(500).json({ message: "Failed to fetch task assignments" });
+    }
+  });
+
+  app.post("/api/tasks/:taskId/assignments", isAuthenticated, async (req: any, res) => {
+    try {
+      const taskId = parseInt(req.params.taskId);
+      const assignmentData = insertTaskAssignmentSchema.parse({
+        ...req.body,
+        taskId,
+        assignedBy: req.user.id
+      });
+      const assignment = await storage.createTaskAssignment(assignmentData);
+      res.json(assignment);
+    } catch (error) {
+      console.error("Error creating task assignment:", error);
+      res.status(500).json({ message: "Failed to create task assignment" });
+    }
+  });
+
+  app.delete("/api/task-assignments/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTaskAssignment(id);
+      res.json({ message: "Task assignment deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting task assignment:", error);
+      res.status(500).json({ message: "Failed to delete task assignment" });
+    }
+  });
+
+  // Task Comments Routes
+  app.get("/api/tasks/:taskId/comments", isAuthenticated, async (req: any, res) => {
+    try {
+      const taskId = parseInt(req.params.taskId);
+      const comments = await storage.getTaskComments(taskId);
+      res.json(comments);
+    } catch (error) {
+      console.error("Error fetching task comments:", error);
+      res.status(500).json({ message: "Failed to fetch task comments" });
+    }
+  });
+
+  app.post("/api/tasks/:taskId/comments", isAuthenticated, async (req: any, res) => {
+    try {
+      const taskId = parseInt(req.params.taskId);
+      const commentData = insertTaskCommentSchema.parse({
+        ...req.body,
+        taskId,
+        authorId: req.user.id
+      });
+      const comment = await storage.createTaskComment(commentData);
+      res.json(comment);
+    } catch (error) {
+      console.error("Error creating task comment:", error);
+      res.status(500).json({ message: "Failed to create task comment" });
+    }
+  });
+
+  app.put("/api/task-comments/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const commentData = insertTaskCommentSchema.partial().parse(req.body);
+      const comment = await storage.updateTaskComment(id, commentData);
+      res.json(comment);
+    } catch (error) {
+      console.error("Error updating task comment:", error);
+      res.status(500).json({ message: "Failed to update task comment" });
+    }
+  });
+
+  app.delete("/api/task-comments/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTaskComment(id);
+      res.json({ message: "Task comment deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting task comment:", error);
+      res.status(500).json({ message: "Failed to delete task comment" });
+    }
+  });
+
+  // Task Attachments Routes
+  app.get("/api/tasks/:taskId/attachments", isAuthenticated, async (req: any, res) => {
+    try {
+      const taskId = parseInt(req.params.taskId);
+      const attachments = await storage.getTaskAttachments(taskId);
+      res.json(attachments);
+    } catch (error) {
+      console.error("Error fetching task attachments:", error);
+      res.status(500).json({ message: "Failed to fetch task attachments" });
+    }
+  });
+
+  app.post("/api/tasks/:taskId/attachments", isAuthenticated, upload.single('file'), async (req: any, res) => {
+    try {
+      const taskId = parseInt(req.params.taskId);
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const attachmentData = insertTaskAttachmentSchema.parse({
+        taskId,
+        fileName: req.file.originalname,
+        filePath: req.file.path,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+        uploadedBy: req.user.id
+      });
+
+      const attachment = await storage.createTaskAttachment(attachmentData);
+      res.json(attachment);
+    } catch (error) {
+      console.error("Error creating task attachment:", error);
+      res.status(500).json({ message: "Failed to create task attachment" });
+    }
+  });
+
+  app.delete("/api/task-attachments/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTaskAttachment(id);
+      res.json({ message: "Task attachment deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting task attachment:", error);
+      res.status(500).json({ message: "Failed to delete task attachment" });
+    }
+  });
+
+  // Task Views Routes
+  app.get("/api/task-databases/:databaseId/views", isAuthenticated, async (req: any, res) => {
+    try {
+      const databaseId = parseInt(req.params.databaseId);
+      const views = await storage.getTaskViews(databaseId);
+      res.json(views);
+    } catch (error) {
+      console.error("Error fetching task views:", error);
+      res.status(500).json({ message: "Failed to fetch task views" });
+    }
+  });
+
+  app.get("/api/task-views/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const view = await storage.getTaskView(id);
+      if (!view) {
+        return res.status(404).json({ message: "Task view not found" });
+      }
+      res.json(view);
+    } catch (error) {
+      console.error("Error fetching task view:", error);
+      res.status(500).json({ message: "Failed to fetch task view" });
+    }
+  });
+
+  app.post("/api/task-databases/:databaseId/views", isAuthenticated, async (req: any, res) => {
+    try {
+      const databaseId = parseInt(req.params.databaseId);
+      const viewData = insertTaskViewSchema.parse({
+        ...req.body,
+        databaseId,
+        createdBy: req.user.id
+      });
+      const view = await storage.createTaskView(viewData);
+      res.json(view);
+    } catch (error) {
+      console.error("Error creating task view:", error);
+      res.status(500).json({ message: "Failed to create task view" });
+    }
+  });
+
+  app.put("/api/task-views/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const viewData = insertTaskViewSchema.partial().parse(req.body);
+      const view = await storage.updateTaskView(id, viewData);
+      res.json(view);
+    } catch (error) {
+      console.error("Error updating task view:", error);
+      res.status(500).json({ message: "Failed to update task view" });
+    }
+  });
+
+  app.delete("/api/task-views/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteTaskView(id);
+      res.json({ message: "Task view deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting task view:", error);
+      res.status(500).json({ message: "Failed to delete task view" });
     }
   });
 

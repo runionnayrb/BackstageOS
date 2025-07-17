@@ -781,6 +781,97 @@ export const emailArchiveRules = pgTable("email_archive_rules", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ========== TASK MANAGEMENT SYSTEM ==========
+
+// Task databases (equivalent to Notion databases)
+export const taskDatabases = pgTable("task_databases", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  icon: varchar("icon"), // emoji or icon identifier
+  isGlobal: boolean("is_global").default(false), // for user-level databases
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Custom properties for task databases
+export const taskProperties = pgTable("task_properties", {
+  id: serial("id").primaryKey(),
+  databaseId: integer("database_id").notNull().references(() => taskDatabases.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  type: varchar("type").notNull(), // 'text', 'number', 'date', 'select', 'multi_select', 'checkbox', 'person', 'file', 'url', 'email', 'phone'
+  options: jsonb("options"), // For select/multi-select types, file configurations, etc.
+  isRequired: boolean("is_required").default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  isVisible: boolean("is_visible").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Tasks (main records in a database)
+export const tasks = pgTable("tasks", {
+  id: serial("id").primaryKey(),
+  databaseId: integer("database_id").notNull().references(() => taskDatabases.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(),
+  content: jsonb("content"), // Rich text content for the full-page editor
+  properties: jsonb("properties"), // Dynamic property values stored as JSON
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  lastEditedBy: integer("last_edited_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Task assignments for collaboration
+export const taskAssignments = pgTable("task_assignments", {
+  id: serial("id").primaryKey(),
+  taskId: integer("task_id").notNull().references(() => tasks.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: varchar("role").default("assignee"), // 'assignee', 'reviewer', 'collaborator'
+  assignedBy: integer("assigned_by").notNull().references(() => users.id),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+});
+
+// Task comments for collaboration
+export const taskComments = pgTable("task_comments", {
+  id: serial("id").primaryKey(),
+  taskId: integer("task_id").notNull().references(() => tasks.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  parentId: integer("parent_id").references(() => taskComments.id), // For threaded replies
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Task file attachments
+export const taskAttachments = pgTable("task_attachments", {
+  id: serial("id").primaryKey(),
+  taskId: integer("task_id").notNull().references(() => tasks.id, { onDelete: "cascade" }),
+  fileName: varchar("file_name").notNull(),
+  fileUrl: varchar("file_url").notNull(),
+  fileSize: integer("file_size"),
+  mimeType: varchar("mime_type"),
+  uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// View configurations for different task views (list, table, kanban)
+export const taskViews = pgTable("task_views", {
+  id: serial("id").primaryKey(),
+  databaseId: integer("database_id").notNull().references(() => taskDatabases.id, { onDelete: "cascade" }),
+  name: varchar("name").notNull(),
+  type: varchar("type").notNull(), // 'list', 'table', 'kanban'
+  configuration: jsonb("configuration"), // View-specific settings (visible columns, kanban grouping, etc.)
+  filters: jsonb("filters"), // Filter configuration
+  sorts: jsonb("sorts"), // Sort configuration
+  isDefault: boolean("is_default").default(false),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
@@ -813,6 +904,15 @@ export const usersRelations = relations(users, ({ many }) => ({
   contractSettings: many(showContractSettings),
   performanceTracker: many(performanceTracker),
   rehearsalTracker: many(rehearsalTracker),
+  // Task management relations
+  taskDatabases: many(taskDatabases),
+  tasks: many(tasks, { relationName: "createdTasks" }),
+  editedTasks: many(tasks, { relationName: "editedTasks" }),
+  taskAssignments: many(taskAssignments, { relationName: "userAssignments" }),
+  assignedTasks: many(taskAssignments, { relationName: "assignedByUser" }),
+  taskComments: many(taskComments),
+  taskAttachments: many(taskAttachments),
+  taskViews: many(taskViews),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -849,6 +949,8 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   contractSettings: many(showContractSettings),
   performanceTracker: many(performanceTracker),
   rehearsalTracker: many(rehearsalTracker),
+  // Task management relations
+  taskDatabases: many(taskDatabases),
 }));
 
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
@@ -2261,3 +2363,155 @@ export const rehearsalTrackerRelations = relations(rehearsalTracker, ({ one }) =
     references: [users.id],
   }),
 }));
+
+// ========== TASK MANAGEMENT RELATIONS ==========
+
+export const taskDatabasesRelations = relations(taskDatabases, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [taskDatabases.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [taskDatabases.createdBy],
+    references: [users.id],
+  }),
+  properties: many(taskProperties),
+  tasks: many(tasks),
+  views: many(taskViews),
+}));
+
+export const taskPropertiesRelations = relations(taskProperties, ({ one }) => ({
+  database: one(taskDatabases, {
+    fields: [taskProperties.databaseId],
+    references: [taskDatabases.id],
+  }),
+}));
+
+export const tasksRelations = relations(tasks, ({ one, many }) => ({
+  database: one(taskDatabases, {
+    fields: [tasks.databaseId],
+    references: [taskDatabases.id],
+  }),
+  creator: one(users, {
+    fields: [tasks.createdBy],
+    references: [users.id],
+  }),
+  lastEditor: one(users, {
+    fields: [tasks.lastEditedBy],
+    references: [users.id],
+  }),
+  assignments: many(taskAssignments),
+  comments: many(taskComments),
+  attachments: many(taskAttachments),
+}));
+
+export const taskAssignmentsRelations = relations(taskAssignments, ({ one }) => ({
+  task: one(tasks, {
+    fields: [taskAssignments.taskId],
+    references: [tasks.id],
+  }),
+  user: one(users, {
+    fields: [taskAssignments.userId],
+    references: [users.id],
+  }),
+  assignedBy: one(users, {
+    fields: [taskAssignments.assignedBy],
+    references: [users.id],
+  }),
+}));
+
+export const taskCommentsRelations = relations(taskComments, ({ one, many }) => ({
+  task: one(tasks, {
+    fields: [taskComments.taskId],
+    references: [tasks.id],
+  }),
+  creator: one(users, {
+    fields: [taskComments.createdBy],
+    references: [users.id],
+  }),
+  parent: one(taskComments, {
+    fields: [taskComments.parentId],
+    references: [taskComments.id],
+  }),
+  replies: many(taskComments),
+}));
+
+export const taskAttachmentsRelations = relations(taskAttachments, ({ one }) => ({
+  task: one(tasks, {
+    fields: [taskAttachments.taskId],
+    references: [tasks.id],
+  }),
+  uploader: one(users, {
+    fields: [taskAttachments.uploadedBy],
+    references: [users.id],
+  }),
+}));
+
+export const taskViewsRelations = relations(taskViews, ({ one }) => ({
+  database: one(taskDatabases, {
+    fields: [taskViews.databaseId],
+    references: [taskDatabases.id],
+  }),
+  creator: one(users, {
+    fields: [taskViews.createdBy],
+    references: [users.id],
+  }),
+}));
+
+// ========== TASK MANAGEMENT INSERT SCHEMAS & TYPES ==========
+
+export const insertTaskDatabaseSchema = createInsertSchema(taskDatabases).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTaskPropertySchema = createInsertSchema(taskProperties).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTaskSchema = createInsertSchema(tasks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTaskAssignmentSchema = createInsertSchema(taskAssignments).omit({
+  id: true,
+  assignedAt: true,
+});
+
+export const insertTaskCommentSchema = createInsertSchema(taskComments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTaskAttachmentSchema = createInsertSchema(taskAttachments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTaskViewSchema = createInsertSchema(taskViews).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Task management types
+export type TaskDatabase = typeof taskDatabases.$inferSelect;
+export type InsertTaskDatabase = z.infer<typeof insertTaskDatabaseSchema>;
+export type TaskProperty = typeof taskProperties.$inferSelect;
+export type InsertTaskProperty = z.infer<typeof insertTaskPropertySchema>;
+export type Task = typeof tasks.$inferSelect;
+export type InsertTask = z.infer<typeof insertTaskSchema>;
+export type TaskAssignment = typeof taskAssignments.$inferSelect;
+export type InsertTaskAssignment = z.infer<typeof insertTaskAssignmentSchema>;
+export type TaskComment = typeof taskComments.$inferSelect;
+export type InsertTaskComment = z.infer<typeof insertTaskCommentSchema>;
+export type TaskAttachment = typeof taskAttachments.$inferSelect;
+export type InsertTaskAttachment = z.infer<typeof insertTaskAttachmentSchema>;
+export type TaskView = typeof taskViews.$inferSelect;
+export type InsertTaskView = z.infer<typeof insertTaskViewSchema>;
