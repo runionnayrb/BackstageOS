@@ -261,6 +261,7 @@ export function TaskTableView({
             checked={selectedTasks.has(task.id)}
             onCheckedChange={(checked) => handleSelectTask(task.id, !!checked)}
             onClick={(e) => e.stopPropagation()}
+            className="opacity-0 group-hover:opacity-100 transition-opacity"
           />
         );
 
@@ -402,7 +403,7 @@ export function TaskTableView({
         <div className="overflow-x-auto">
           <Table style={{ minWidth: 'max-content', tableLayout: 'fixed', width: columns.reduce((sum, col) => sum + col.width, 0) }}>
             <TableHeader className="sticky top-0 bg-background z-10">
-              <TableRow>
+              <TableRow className="group">
                 {columns.map((column, index) => {
                   if (column.type === 'checkbox') {
                     return (
@@ -410,6 +411,7 @@ export function TaskTableView({
                         <Checkbox
                           checked={selectedTasks.size === tasks.length && tasks.length > 0}
                           onCheckedChange={handleSelectAll}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity"
                         />
                       </TableHead>
                     );
@@ -431,7 +433,7 @@ export function TaskTableView({
               {tasks.map((task) => (
                 <TableRow 
                   key={task.id} 
-                  className="hover:bg-muted/50 cursor-pointer"
+                  className="hover:bg-muted/50 cursor-pointer group"
                   onClick={() => onTaskSelect(task)}
                 >
                   {columns.map((column) => (
