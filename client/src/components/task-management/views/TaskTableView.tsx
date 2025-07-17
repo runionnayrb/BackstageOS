@@ -115,38 +115,50 @@ function DraggableColumnHeader({
   
   drag(drop(ref));
 
-  const handleResize = useCallback(
-    (event: React.SyntheticEvent, { size }: { size: { width: number; height: number } }) => {
-      resizeColumn(column.id, size.width);
-    },
-    [column.id, resizeColumn]
-  );
+
 
   return (
-    <Resizable
-      width={column.width}
-      height={0}
-      onResize={handleResize}
-      draggableOpts={{ enableUserSelectHack: false }}
-      resizeHandles={['e']}
+    <TableHead
+      ref={ref}
+      style={{ width: column.width, opacity }}
+      className="relative group select-none"
+      data-handler-id={handlerId}
     >
-      <TableHead
-        ref={ref}
-        style={{ width: column.width, opacity }}
-        className="relative border-r border-border group select-none"
-        data-handler-id={handlerId}
+      <div 
+        className="flex items-center justify-between w-full h-full cursor-move"
+        onMouseDown={(e) => {
+          // Only trigger drag if not on resize handle
+          if ((e.target as HTMLElement).classList.contains('resize-handle')) {
+            return;
+          }
+        }}
       >
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center space-x-2">
-            <GripVertical 
-              className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 cursor-move" 
-            />
-            <span>{column.title}</span>
-          </div>
-        </div>
-        <div className="absolute right-0 top-0 w-1 h-full bg-border opacity-0 hover:opacity-100 cursor-col-resize" />
-      </TableHead>
-    </Resizable>
+        <span>{column.title}</span>
+      </div>
+      <div 
+        className="resize-handle absolute right-0 top-0 w-2 h-full cursor-col-resize opacity-0 hover:opacity-100 bg-blue-500 hover:bg-blue-600 z-10"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const startX = e.clientX;
+          const startWidth = column.width;
+          
+          const handleMouseMove = (e: MouseEvent) => {
+            const deltaX = e.clientX - startX;
+            const newWidth = Math.max(startWidth + deltaX, column.minWidth);
+            resizeColumn(column.id, newWidth);
+          };
+          
+          const handleMouseUp = () => {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+          };
+          
+          document.addEventListener('mousemove', handleMouseMove);
+          document.addEventListener('mouseup', handleMouseUp);
+        }}
+      />
+    </TableHead>
   );
 }
 
@@ -382,7 +394,7 @@ export function TaskTableView({
       <div className="h-full overflow-auto">
         <div className="overflow-x-auto">
           <Table style={{ minWidth: columns.reduce((sum, col) => sum + col.width, 0) }}>
-            <TableHeader className="sticky top-0 bg-background z-10 border-b">
+            <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
                 {columns.map((column, index) => {
                   if (column.type === 'checkbox') {
@@ -403,9 +415,7 @@ export function TaskTableView({
                       index={index}
                       moveColumn={moveColumn}
                       resizeColumn={resizeColumn}
-                    >
-                      {column.title}
-                    </DraggableColumnHeader>
+                    />
                   );
                 })}
               </TableRow>
@@ -421,7 +431,7 @@ export function TaskTableView({
                     <TableCell 
                       key={column.id} 
                       style={{ width: column.width }}
-                      className="border-r border-border last:border-r-0"
+                      className=""
                     >
                       {renderCellContent(task, column)}
                     </TableCell>
