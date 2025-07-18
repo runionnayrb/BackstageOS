@@ -42,6 +42,7 @@ interface PublicCalendarShareProps {
 export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<string>('');
+  const [selectedShareContact, setSelectedShareContact] = useState<string>('');
   const [expiresAt, setExpiresAt] = useState<string>('');
   const [isActive, setIsActive] = useState(true);
   const { toast } = useToast();
@@ -152,8 +153,20 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
     });
   };
 
-  const handleCopyLink = (token: string) => {
-    const link = `${window.location.origin}/public-calendar/${token}`;
+  const handleCopyLink = () => {
+    if (!selectedShareContact) {
+      toast({
+        title: "No Contact Selected",
+        description: "Please select a contact from the dropdown first.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact));
+    if (!share) return;
+    
+    const link = `${window.location.origin}/public-calendar/${share.token}`;
     navigator.clipboard.writeText(link);
     toast({
       title: "Link Copied",
@@ -161,8 +174,21 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
     });
   };
 
-  const handleDownloadICS = (token: string, contact: Contact) => {
-    const link = `${window.location.origin}/api/public-calendar/${token}/ics`;
+  const handleDownloadICS = () => {
+    if (!selectedShareContact) {
+      toast({
+        title: "No Contact Selected",
+        description: "Please select a contact from the dropdown first.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact));
+    const contact = getContactById(parseInt(selectedShareContact));
+    if (!share || !contact) return;
+    
+    const link = `${window.location.origin}/api/public-calendar/${share.token}/ics`;
     const anchor = document.createElement('a');
     anchor.href = link;
     anchor.download = `calendar-${contact.firstName}-${contact.lastName}.ics`;
@@ -285,123 +311,164 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
             </CardContent>
           </Card>
         ) : (
-          shares.map((share: PublicCalendarShare) => {
-            const contact = getContactById(share.contactId);
-            if (!contact) return null;
-
-            const expired = isExpired(share.expiresAt);
-            const publicLink = `${window.location.origin}/public-calendar/${share.token}`;
-
-            return (
-              <Card key={share.id} className={cn(
-                "transition-all hover:shadow-md",
-                !share.isActive && "opacity-60",
-                expired && "border-destructive"
-              )}>
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Users className="h-5 w-5 text-primary" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-base">
-                          {getContactDisplayName(contact)}
-                        </CardTitle>
-                        <CardDescription>{contact.email}</CardDescription>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {expired && (
-                        <Badge variant="destructive">Expired</Badge>
-                      )}
-                      {!share.isActive && (
-                        <Badge variant="secondary">Inactive</Badge>
-                      )}
-                      <Switch
-                        checked={share.isActive}
-                        onCheckedChange={(checked) => handleToggleActive(share.id, checked)}
-                        disabled={updateShareMutation.isPending}
-                      />
-                    </div>
+          <>
+            {/* Contact Selection and Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Select Individual Schedule</CardTitle>
+                <CardDescription>
+                  Choose a contact to copy their public calendar link or download their ICS file
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <div className="flex-1">
+                    <Label htmlFor="shareContact">Contact</Label>
+                    <Select value={selectedShareContact} onValueChange={setSelectedShareContact}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a contact to share" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {shares.map((share: PublicCalendarShare) => {
+                          const contact = getContactById(share.contactId);
+                          if (!contact) return null;
+                          
+                          const expired = isExpired(share.expiresAt);
+                          const isActive = share.isActive;
+                          
+                          return (
+                            <SelectItem 
+                              key={share.id} 
+                              value={share.contactId.toString()}
+                              disabled={!isActive || expired}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <span>{getContactDisplayName(contact)}</span>
+                                <div className="flex items-center space-x-1 ml-2">
+                                  {expired && (
+                                    <Badge variant="destructive" className="text-xs">Expired</Badge>
+                                  )}
+                                  {!isActive && (
+                                    <Badge variant="secondary" className="text-xs">Inactive</Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </CardHeader>
+                  
+                  <div className="flex items-center space-x-2 pt-6">
+                    <Button
+                      variant="outline"
+                      onClick={handleCopyLink}
+                      disabled={!selectedShareContact}
+                      className="gap-2"
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copy Link
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={handleDownloadICS}
+                      disabled={!selectedShareContact}
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Download ICS
+                    </Button>
+                  </div>
+                </div>
                 
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="font-medium">Created</p>
-                      <p className="text-muted-foreground">{formatDate(share.createdAt)}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Expires</p>
-                      <p className="text-muted-foreground">
-                        {share.expiresAt ? formatDate(share.expiresAt) : 'Never'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Access Count</p>
-                      <p className="text-muted-foreground">{share.accessCount}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium">Last Accessed</p>
-                      <p className="text-muted-foreground">
-                        {share.lastAccessed ? formatDate(share.lastAccessed) : 'Never'}
-                      </p>
-                    </div>
+                {selectedShareContact && (
+                  <div className="pt-4 border-t">
+                    {(() => {
+                      const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact));
+                      const contact = getContactById(parseInt(selectedShareContact));
+                      if (!share || !contact) return null;
+                      
+                      const expired = isExpired(share.expiresAt);
+                      const publicLink = `${window.location.origin}/public-calendar/${share.token}`;
+                      
+                      return (
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">{getContactDisplayName(contact)}</h4>
+                            <div className="flex items-center space-x-2">
+                              {expired && (
+                                <Badge variant="destructive">Expired</Badge>
+                              )}
+                              {!share.isActive && (
+                                <Badge variant="secondary">Inactive</Badge>
+                              )}
+                              <Switch
+                                checked={share.isActive}
+                                onCheckedChange={(checked) => handleToggleActive(share.id, checked)}
+                                disabled={updateShareMutation.isPending}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <p className="font-medium">Created</p>
+                              <p className="text-muted-foreground">{formatDate(share.createdAt)}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Expires</p>
+                              <p className="text-muted-foreground">
+                                {share.expiresAt ? formatDate(share.expiresAt) : 'Never'}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Access Count</p>
+                              <p className="text-muted-foreground">{share.accessCount}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium">Last Accessed</p>
+                              <p className="text-muted-foreground">
+                                {share.lastAccessed ? formatDate(share.lastAccessed) : 'Never'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm flex-1 pr-4">
+                              <p className="font-medium">Public Link</p>
+                              <p className="text-muted-foreground break-all">{publicLink}</p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.open(publicLink, '_blank')}
+                                className="gap-2"
+                              >
+                                <ExternalLink className="h-4 w-4" />
+                                View
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => deleteShareMutation.mutate(share.id)}
+                                disabled={deleteShareMutation.isPending}
+                                className="gap-2"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
-
-                  <Separator />
-
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm">
-                      <p className="font-medium">Public Link</p>
-                      <p className="text-muted-foreground truncate w-64">{publicLink}</p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleCopyLink(share.token)}
-                        className="gap-2"
-                      >
-                        <Copy className="h-4 w-4" />
-                        Copy Link
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownloadICS(share.token, contact)}
-                        className="gap-2"
-                      >
-                        <Download className="h-4 w-4" />
-                        Download ICS
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(publicLink, '_blank')}
-                        className="gap-2"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                        View
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => deleteShareMutation.mutate(share.id)}
-                        disabled={deleteShareMutation.isPending}
-                        className="gap-2"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })
+                )}
+              </CardContent>
+            </Card>
+          </>
         )}
       </div>
     </div>
