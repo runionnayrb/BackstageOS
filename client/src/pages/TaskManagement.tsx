@@ -247,6 +247,7 @@ export function TaskManagement() {
             searchQuery={searchQuery}
             newTaskId={newTaskId}
             propertyVisibility={propertyVisibility}
+            onPropertyReorder={setPropertyVisibility}
           />
         </div>
       </div>

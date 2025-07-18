@@ -29,9 +29,10 @@ interface TaskBoardProps {
   searchQuery?: string;
   newTaskId?: number | null;
   propertyVisibility?: PropertyVisibility[];
+  onPropertyReorder?: (properties: PropertyVisibility[]) => void;
 }
 
-export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen, searchQuery = "", newTaskId = null, propertyVisibility = [] }: TaskBoardProps) {
+export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen, searchQuery = "", newTaskId = null, propertyVisibility = [], onPropertyReorder }: TaskBoardProps) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const queryClient = useQueryClient();
 
@@ -181,6 +182,7 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
             onTaskDelete={handleDeleteTask}
             onTaskSelect={handleTaskSelect}
             propertyVisibility={propertyVisibility}
+            onPropertyReorder={onPropertyReorder}
           />
         );
     }

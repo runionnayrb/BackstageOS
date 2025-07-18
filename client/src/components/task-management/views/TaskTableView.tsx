@@ -85,6 +85,7 @@ interface TaskTableViewProps {
   onTaskDelete: (id: number) => void;
   onTaskSelect: (task: Task) => void;
   propertyVisibility?: PropertyVisibility[];
+  onPropertyReorder?: (properties: PropertyVisibility[]) => void;
 }
 
 interface DraggableColumnHeaderProps {
@@ -307,7 +308,8 @@ export function TaskTableView({
   onTaskUpdate, 
   onTaskDelete, 
   onTaskSelect,
-  propertyVisibility = []
+  propertyVisibility = [],
+  onPropertyReorder
 }: TaskTableViewProps) {
   const [selectedTasks, setSelectedTasks] = useState<Set<number>>(new Set());
   const [selectAllClicked, setSelectAllClicked] = useState(false);
@@ -319,19 +321,21 @@ export function TaskTableView({
     return Math.max(text.length * 8 + 32, 48);
   };
 
-  // Initialize columns with default layout
+  // Initialize columns with default layout and reorder based on property visibility
   const [columns, setColumns] = useState<Column[]>(() => {
-    const defaultColumns: Column[] = [
+    const allColumns: Column[] = [
       { id: 'checkbox', key: 'checkbox', title: '', width: 48, minWidth: 48, type: 'checkbox' },
       { id: 'task', key: 'task', title: 'Task', width: 300, minWidth: getMinWidthForText('Task'), type: 'task', isSystemField: true },
       { id: 'status', key: 'status', title: 'Status', width: 128, minWidth: getMinWidthForText('Status'), type: 'status' },
       { id: 'priority', key: 'priority', title: 'Priority', width: 100, minWidth: getMinWidthForText('Priority'), type: 'priority' },
       { id: 'dueDate', key: 'dueDate', title: 'Due Date', width: 128, minWidth: getMinWidthForText('Due Date'), type: 'date' },
+      { id: 'created', key: 'created', title: 'Created', width: 160, minWidth: getMinWidthForText('Created'), type: 'date', isSystemField: true },
+      { id: 'updated', key: 'updated', title: 'Updated', width: 160, minWidth: getMinWidthForText('Updated'), type: 'date', isSystemField: true },
     ];
     
     // Add custom property columns
     properties.forEach((property) => {
-      defaultColumns.push({
+      allColumns.push({
         id: `property-${property.id}`,
         key: property.name,
         title: property.name,
@@ -342,14 +346,46 @@ export function TaskTableView({
       });
     });
     
-    // Add created, updated date and actions columns
-    defaultColumns.push(
-      { id: 'created', key: 'created', title: 'Created', width: 160, minWidth: getMinWidthForText('Created'), type: 'date', isSystemField: true },
-      { id: 'updated', key: 'updated', title: 'Updated', width: 160, minWidth: getMinWidthForText('Updated'), type: 'date', isSystemField: true },
-      { id: 'actions', key: 'actions', title: '', width: 48, minWidth: 48, type: 'actions' }
-    );
+    // Add actions column at the end
+    allColumns.push({ id: 'actions', key: 'actions', title: '', width: 48, minWidth: 48, type: 'actions' });
     
-    return defaultColumns;
+    // If property visibility is set, reorder columns based on it
+    if (propertyVisibility.length > 0) {
+      const orderedColumns: Column[] = [
+        allColumns.find(col => col.type === 'checkbox')!
+      ];
+      
+      // Add columns in the order of property visibility
+      propertyVisibility.forEach(prop => {
+        const column = allColumns.find(col => {
+          switch (col.type) {
+            case 'task': return prop.name === 'Task Name';
+            case 'status': return prop.name === 'Status';
+            case 'priority': return prop.name === 'Priority';
+            case 'date':
+              if (col.id === 'dueDate') return prop.name === 'Due Date';
+              if (col.id === 'created') return prop.name === 'Created';
+              if (col.id === 'updated') return prop.name === 'Updated';
+              return false;
+            default: return false;
+          }
+        });
+        if (column && !orderedColumns.includes(column)) {
+          orderedColumns.push(column);
+        }
+      });
+      
+      // Add any remaining columns that weren't in property visibility
+      allColumns.forEach(col => {
+        if (!orderedColumns.includes(col)) {
+          orderedColumns.push(col);
+        }
+      });
+      
+      return orderedColumns;
+    }
+    
+    return allColumns;
   });
 
   // Filter columns based on property visibility
@@ -398,9 +434,46 @@ export function TaskTableView({
       const newColumns = [...prevColumns];
       newColumns.splice(dragIndex, 1);
       newColumns.splice(hoverIndex, 0, dragColumn);
+      
+      // Update property visibility order to match column reordering
+      if (onPropertyReorder && propertyVisibility.length > 0) {
+        // Map column IDs to property names
+        const getPropertyNameFromColumn = (column: Column) => {
+          switch (column.type) {
+            case 'task': return 'Task Name';
+            case 'status': return 'Status';
+            case 'priority': return 'Priority';
+            case 'date':
+              if (column.id === 'dueDate') return 'Due Date';
+              if (column.id === 'created') return 'Created';
+              if (column.id === 'updated') return 'Updated';
+              return null;
+            default: return null;
+          }
+        };
+        
+        // Get the property names for the reordered columns (excluding checkbox and actions)
+        const reorderedPropertyNames = newColumns
+          .filter(col => col.type !== 'checkbox' && col.type !== 'actions')
+          .map(getPropertyNameFromColumn)
+          .filter(name => name !== null);
+        
+        // Reorder the property visibility array to match
+        const reorderedProperties = reorderedPropertyNames.map(name => 
+          propertyVisibility.find(prop => prop.name === name)
+        ).filter(prop => prop !== undefined) as PropertyVisibility[];
+        
+        // Add any properties that weren't in the column list
+        const remainingProperties = propertyVisibility.filter(prop => 
+          !reorderedPropertyNames.includes(prop.name)
+        );
+        
+        onPropertyReorder([...reorderedProperties, ...remainingProperties]);
+      }
+      
       return newColumns;
     });
-  }, []);
+  }, [propertyVisibility, onPropertyReorder]);
 
   const resizeColumn = useCallback((columnId: string, width: number) => {
     setColumns((prevColumns) =>

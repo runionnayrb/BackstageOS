@@ -1,4 +1,6 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 import {
   Popover,
   PopoverContent,
@@ -54,6 +56,103 @@ interface TaskViewSettingsProps {
   onPropertyVisibilityChange: (properties: PropertyVisibility[]) => void;
 }
 
+interface DraggablePropertyItemProps {
+  property: PropertyVisibility;
+  index: number;
+  moveProperty: (dragIndex: number, hoverIndex: number) => void;
+  toggleVisibility: (propertyId: number) => void;
+}
+
+function DraggablePropertyItem({ property, index, moveProperty, toggleVisibility }: DraggablePropertyItemProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  
+  const [{ handlerId }, drop] = useDrop({
+    accept: 'property',
+    collect(monitor) {
+      return {
+        handlerId: monitor.getHandlerId(),
+      };
+    },
+    hover(item: { index: number }, monitor) {
+      if (!ref.current) {
+        return;
+      }
+      const dragIndex = item.index;
+      const hoverIndex = index;
+      
+      if (dragIndex === hoverIndex) {
+        return;
+      }
+      
+      const hoverBoundingRect = ref.current?.getBoundingClientRect();
+      const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+      const clientOffset = monitor.getClientOffset();
+      const hoverClientY = clientOffset!.y - hoverBoundingRect.top;
+      
+      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
+        return;
+      }
+      
+      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
+        return;
+      }
+      
+      moveProperty(dragIndex, hoverIndex);
+      item.index = hoverIndex;
+    },
+  });
+
+  const [{ isDragging }, drag, dragPreview] = useDrag({
+    type: 'property',
+    item: () => {
+      return { index };
+    },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+
+  drag(drop(ref));
+  
+  const IconComponent = property.icon;
+  
+  return (
+    <div
+      ref={ref}
+      data-handler-id={handlerId}
+      className={`flex items-center gap-3 py-2 px-2 hover:bg-gray-50 rounded-md group ${
+        isDragging ? 'opacity-50' : ''
+      }`}
+    >
+      {/* Drag Handle */}
+      <div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab">
+        <GripVertical className="w-4 h-4 text-gray-400" />
+      </div>
+
+      {/* Property Icon */}
+      <IconComponent className="w-4 h-4 text-gray-600" />
+
+      {/* Property Name */}
+      <span className="flex-1 text-sm">{property.name}</span>
+
+      {/* Visibility Toggle */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => toggleVisibility(property.id)}
+        disabled={property.required}
+        className="h-8 w-8 p-0 hover:bg-gray-100"
+      >
+        {property.visible ? (
+          <Eye className="w-4 h-4 text-gray-600" />
+        ) : (
+          <EyeOff className="w-4 h-4 text-gray-400" />
+        )}
+      </Button>
+    </div>
+  );
+}
+
 export function TaskViewSettings({ 
   children,
   currentView, 
@@ -80,6 +179,14 @@ export function TaskViewSettings({
     );
     onPropertyVisibilityChange(updatedProperties);
   };
+
+  const reorderProperties = useCallback((dragIndex: number, hoverIndex: number) => {
+    const draggedProperty = propertyVisibility[dragIndex];
+    const updatedProperties = [...propertyVisibility];
+    updatedProperties.splice(dragIndex, 1);
+    updatedProperties.splice(hoverIndex, 0, draggedProperty);
+    onPropertyVisibilityChange(updatedProperties);
+  }, [propertyVisibility, onPropertyVisibilityChange]);
 
   const handleTriggerClick = (event: React.MouseEvent) => {
     // Get the button element's position
@@ -533,43 +640,19 @@ export function TaskViewSettings({
                   </div>
 
                   {/* Property List */}
-                  <div className="space-y-1">
-                    {propertyVisibility.map((property) => {
-                      const IconComponent = property.icon;
-                      return (
-                        <div
+                  <DndProvider backend={HTML5Backend}>
+                    <div className="space-y-1">
+                      {propertyVisibility.map((property, index) => (
+                        <DraggablePropertyItem
                           key={property.id}
-                          className="flex items-center gap-3 py-2 px-2 hover:bg-gray-50 rounded-md group"
-                        >
-                          {/* Drag Handle */}
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity cursor-grab">
-                            <GripVertical className="w-4 h-4 text-gray-400" />
-                          </div>
-
-                          {/* Property Icon */}
-                          <IconComponent className="w-4 h-4 text-gray-600" />
-
-                          {/* Property Name */}
-                          <span className="flex-1 text-sm">{property.name}</span>
-
-                          {/* Visibility Toggle */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => togglePropertyVisibility(property.id)}
-                            disabled={property.required}
-                            className="h-8 w-8 p-0 hover:bg-gray-100"
-                          >
-                            {property.visible ? (
-                              <Eye className="w-4 h-4 text-gray-600" />
-                            ) : (
-                              <EyeOff className="w-4 h-4 text-gray-400" />
-                            )}
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
+                          property={property}
+                          index={index}
+                          moveProperty={reorderProperties}
+                          toggleVisibility={togglePropertyVisibility}
+                        />
+                      ))}
+                    </div>
+                  </DndProvider>
 
                   {/* Note */}
                   <div className="mt-6 text-xs text-gray-500">
