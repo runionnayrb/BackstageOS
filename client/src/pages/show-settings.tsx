@@ -744,53 +744,7 @@ export default function ShowSettings() {
     deleteLocationMutation.mutate(locationId);
   };
 
-  // Public calendar sharing functions
-  const copyCalendarLink = async (contactId: number) => {
-    try {
-      const response = await apiRequest("POST", `/api/projects/${params.id}/calendar/public-link`, { contactId });
-      const publicLink = response.publicLink;
-      
-      await navigator.clipboard.writeText(publicLink);
-      toast({
-        title: "Calendar Link Copied",
-        description: "The shareable calendar link has been copied to your clipboard.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to generate calendar link. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
-  const downloadCalendarFile = async (contactId: number) => {
-    try {
-      const response = await apiRequest("GET", `/api/projects/${params.id}/calendar/ics/${contactId}`);
-      const icsContent = response.icsContent;
-      
-      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${project?.name || 'schedule'}_${contacts.find((c: any) => c.id === contactId)?.name || 'contact'}.ics`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Calendar Downloaded",
-        description: "The ICS calendar file has been downloaded to your device.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to download calendar file. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
 
   if (isLoading) {
     return (
@@ -1912,53 +1866,7 @@ export default function ShowSettings() {
           </Card>
 
           {/* Public Calendar Sharing */}
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Share2 className="h-5 w-5" />
-                Public Calendar Sharing
-              </CardTitle>
-              <CardDescription>
-                Generate shareable calendar links for non-users (like producers) to add personal schedules to their Google Calendar.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {contacts.length > 0 ? (
-                <div className="space-y-3">
-                  {contacts.map((contact: any) => (
-                    <div key={contact.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">{contact.name}</h4>
-                        <p className="text-sm text-muted-foreground">{contact.email}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => copyCalendarLink(contact.id)}
-                        >
-                          <Copy className="h-4 w-4 mr-2" />
-                          Copy Link
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => downloadCalendarFile(contact.id)}
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Download ICS
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No contacts available. Add team members to generate shareable calendar links.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+          <PublicCalendarShare projectId={parseInt(params.id)} />
 
           {/* Team Notification Preferences */}
           <Card className="mt-6">
