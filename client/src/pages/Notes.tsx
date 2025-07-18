@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, Plus, FileText, Folder, MoreVertical, Pin, Archive, Tag, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { NoteEditor } from "../components/notes/NoteEditor";
 import { CreateNoteDialog } from "../components/notes/CreateNoteDialog";
 import { CreateFolderDialog } from "../components/notes/CreateFolderDialog";
+import { MobileNotesList } from "../components/notes/MobileNotesList";
 import type { Note, NoteFolder } from "@shared/schema";
 
 export default function Notes() {
@@ -26,9 +27,39 @@ export default function Notes() {
   const [isCreateNoteOpen, setIsCreateNoteOpen] = useState(false);
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [viewMode, setViewMode] = useState<"all" | "project">("all");
+  const [isMobile, setIsMobile] = useState(false);
 
   // Get current project from URL or context
   const projectId = new URLSearchParams(window.location.search).get('projectId');
+
+  // Mobile detection
+  useEffect(() => {
+    const checkIsMobile = () => {
+      const userAgent = navigator.userAgent;
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+      const isSmallScreen = window.innerWidth <= 768;
+      setIsMobile(isMobileUA || isSmallScreen);
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
+  // Set view mode based on projectId
+  useEffect(() => {
+    setViewMode(projectId ? "project" : "all");
+  }, [projectId]);
+
+  // If mobile, render mobile-optimized version
+  if (isMobile) {
+    return (
+      <MobileNotesList 
+        projectId={projectId}
+        viewMode={viewMode}
+      />
+    );
+  }
 
   // Fetch folders
   const { data: folders = [] } = useQuery({

@@ -1435,15 +1435,7 @@ Respond with valid JSON only.`;
   });
 
   // User profile routes
-  app.get('/api/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const user = req.user;
-      res.json(user);
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      res.status(500).json({ message: "Failed to fetch user data" });
-    }
-  });
+  // NOTE: /api/user route is defined in auth.ts with Safari admin bypass functionality
 
   app.patch('/api/user/profile', isAuthenticated, async (req: any, res) => {
     try {

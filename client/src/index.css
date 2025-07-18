@@ -666,3 +666,101 @@
 .layout-editor .react-grid-item.react-resizable-resizing {
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
+
+/* Mobile Notes optimizations */
+@media (max-width: 768px) {
+  /* Prevent text selection during swipe gestures */
+  .mobile-notes-container {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Enhanced touch targets for mobile */
+  .mobile-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Smooth animations for mobile interactions */
+  .mobile-card-transition {
+    transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+  }
+
+  .mobile-card-transition:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Optimize text input for mobile */
+  .mobile-text-input {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Better scroll momentum on iOS */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Native-like button press animations */
+  .mobile-button:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease-out;
+  }
+}
+
+/* TipTap editor mobile optimizations */
+.ProseMirror {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+@media (max-width: 768px) {
+  .ProseMirror {
+    font-size: 16px; /* Prevents zoom on iOS */
+    line-height: 1.6;
+    padding: 1rem;
+  }
+
+  /* Better mobile typography */
+  .ProseMirror h1 {
+    font-size: 1.75rem;
+    line-height: 1.3;
+    margin: 1rem 0 0.5rem 0;
+  }
+
+  .ProseMirror h2 {
+    font-size: 1.5rem;
+    line-height: 1.3;
+    margin: 1rem 0 0.5rem 0;
+  }
+
+  .ProseMirror h3 {
+    font-size: 1.25rem;
+    line-height: 1.3;
+    margin: 1rem 0 0.5rem 0;
+  }
+
+  .ProseMirror p {
+    margin: 0.5rem 0;
+  }
+
+  .ProseMirror ul,
+  .ProseMirror ol {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .ProseMirror blockquote {
+    margin: 1rem 0;
+    padding: 0.5rem 1rem;
+    border-left: 4px solid #e5e7eb;
+    background: #f9fafb;
+  }
+}
