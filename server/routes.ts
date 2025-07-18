@@ -9968,10 +9968,34 @@ Respond with valid JSON only.`;
     }
   });
 
-  // Google Calendar OAuth callback route
+  // Google Calendar OAuth callback route  
   app.get('/auth/google/callback', async (req: any, res) => {
     try {
-      const { code, state } = req.query;
+      const { code, state, error } = req.query;
+      
+      // Handle Google OAuth errors (like access_denied)
+      if (error) {
+        console.log('Google OAuth error:', error);
+        return res.send(`
+          <html>
+            <body>
+              <h3>Development Note</h3>
+              <p>Google OAuth error: ${error}</p>
+              <p>For development testing, you need to:</p>
+              <ol>
+                <li>Go to Google Cloud Console</li>
+                <li>Find your OAuth consent screen</li>
+                <li>Ensure it's set to "External" user type and "Testing" status</li>
+                <li>Add your email (runion.bryan@gmail.com) as a test user</li>
+              </ol>
+              <button onclick="window.close()">Close</button>
+              <script>
+                window.opener?.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: 'OAuth access denied - need to add test user' }, '*');
+              </script>
+            </body>
+          </html>
+        `);
+      }
       
       if (!code || !state) {
         return res.status(400).send(`
