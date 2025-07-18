@@ -361,20 +361,26 @@ export function TaskTableView({
 
   // Helper function to create columns
   const createColumns = useCallback(() => {
-    // Get the current Task Name from property visibility, fallback to 'Task'
-    const taskNameProperty = propertyVisibility.find(prop => prop.required && prop.id === 1);
-    const taskTitle = taskNameProperty?.name || 'Task';
+    // Get the current property names from property visibility, with fallbacks
+    const taskTitle = propertyVisibility.find(prop => prop.required && prop.id === 1)?.name || 'Task';
+    const statusTitle = propertyVisibility.find(prop => prop.id === 2)?.name || 'Status';
+    const priorityTitle = propertyVisibility.find(prop => prop.id === 3)?.name || 'Priority';
+    const dueDateTitle = propertyVisibility.find(prop => prop.id === 4)?.name || 'Due Date';
+    const projectTitle = propertyVisibility.find(prop => prop.id === 5)?.name || 'Show';
+    const assigneeTitle = propertyVisibility.find(prop => prop.id === 6)?.name || 'Assignee';
+    const createdTitle = propertyVisibility.find(prop => prop.id === 7)?.name || 'Created';
+    const updatedTitle = propertyVisibility.find(prop => prop.id === 8)?.name || 'Updated';
     
     const allColumns: Column[] = [
       { id: 'checkbox', key: 'checkbox', title: '', width: 48, minWidth: 48, type: 'checkbox' },
       { id: 'task', key: 'task', title: taskTitle, width: 300, minWidth: getMinWidthForText(taskTitle), type: 'task', isSystemField: true },
-      { id: 'status', key: 'status', title: 'Status', width: 128, minWidth: getMinWidthForText('Status'), type: 'status' },
-      { id: 'priority', key: 'priority', title: 'Priority', width: 100, minWidth: getMinWidthForText('Priority'), type: 'priority' },
-      { id: 'dueDate', key: 'dueDate', title: 'Due Date', width: 128, minWidth: getMinWidthForText('Due Date'), type: 'date' },
-      { id: 'project', key: 'project', title: 'Show', width: 150, minWidth: getMinWidthForText('Show'), type: 'project' },
-      { id: 'assignee', key: 'assignee', title: 'Assignee', width: 150, minWidth: getMinWidthForText('Assignee'), type: 'assignee' },
-      { id: 'created', key: 'created', title: 'Created', width: 160, minWidth: getMinWidthForText('Created'), type: 'date', isSystemField: true },
-      { id: 'updated', key: 'updated', title: 'Updated', width: 160, minWidth: getMinWidthForText('Updated'), type: 'date', isSystemField: true },
+      { id: 'status', key: 'status', title: statusTitle, width: 128, minWidth: getMinWidthForText(statusTitle), type: 'status' },
+      { id: 'priority', key: 'priority', title: priorityTitle, width: 100, minWidth: getMinWidthForText(priorityTitle), type: 'priority' },
+      { id: 'dueDate', key: 'dueDate', title: dueDateTitle, width: 128, minWidth: getMinWidthForText(dueDateTitle), type: 'date' },
+      { id: 'project', key: 'project', title: projectTitle, width: 150, minWidth: getMinWidthForText(projectTitle), type: 'project' },
+      { id: 'assignee', key: 'assignee', title: assigneeTitle, width: 150, minWidth: getMinWidthForText(assigneeTitle), type: 'assignee' },
+      { id: 'created', key: 'created', title: createdTitle, width: 160, minWidth: getMinWidthForText(createdTitle), type: 'date', isSystemField: true },
+      { id: 'updated', key: 'updated', title: updatedTitle, width: 160, minWidth: getMinWidthForText(updatedTitle), type: 'date', isSystemField: true },
     ];
     
     // Add custom property columns
@@ -495,37 +501,33 @@ export function TaskTableView({
       
       // Update property visibility order to match column reordering
       if (onPropertyReorder && propertyVisibility.length > 0) {
-        // Map column IDs to property names
-        const getPropertyNameFromColumn = (column: Column) => {
+        // Map column IDs to property IDs for ID-based matching
+        const getPropertyFromColumn = (column: Column) => {
           switch (column.type) {
-            case 'task': return 'Task Name';
-            case 'status': return 'Status';
-            case 'priority': return 'Priority';
-            case 'project': return 'Show';
-            case 'assignee': return 'Assignee';
+            case 'task': return propertyVisibility.find(prop => prop.required && prop.id === 1);
+            case 'status': return propertyVisibility.find(prop => prop.id === 2);
+            case 'priority': return propertyVisibility.find(prop => prop.id === 3);
             case 'date':
-              if (column.id === 'dueDate') return 'Due Date';
-              if (column.id === 'created') return 'Created';
-              if (column.id === 'updated') return 'Updated';
+              if (column.id === 'dueDate') return propertyVisibility.find(prop => prop.id === 4);
+              if (column.id === 'created') return propertyVisibility.find(prop => prop.id === 7);
+              if (column.id === 'updated') return propertyVisibility.find(prop => prop.id === 8);
               return null;
+            case 'project': return propertyVisibility.find(prop => prop.id === 5);
+            case 'assignee': return propertyVisibility.find(prop => prop.id === 6);
             default: return null;
           }
         };
         
-        // Get the property names for the reordered columns (excluding checkbox and actions)
-        const reorderedPropertyNames = newColumns
+        // Get the properties for the reordered columns (excluding checkbox and actions)
+        const reorderedProperties = newColumns
           .filter(col => col.type !== 'checkbox' && col.type !== 'actions')
-          .map(getPropertyNameFromColumn)
-          .filter(name => name !== null);
-        
-        // Reorder the property visibility array to match
-        const reorderedProperties = reorderedPropertyNames.map(name => 
-          propertyVisibility.find(prop => prop.name === name)
-        ).filter(prop => prop !== undefined) as PropertyVisibility[];
+          .map(getPropertyFromColumn)
+          .filter(prop => prop !== null && prop !== undefined) as PropertyVisibility[];
         
         // Add any properties that weren't in the column list
+        const reorderedPropertyIds = reorderedProperties.map(prop => prop.id);
         const remainingProperties = propertyVisibility.filter(prop => 
-          !reorderedPropertyNames.includes(prop.name)
+          !reorderedPropertyIds.includes(prop.id)
         );
         
         onPropertyReorder([...reorderedProperties, ...remainingProperties]);
