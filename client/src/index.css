@@ -711,6 +711,30 @@
     transform: scale(0.95);
     transition: transform 0.1s ease-out;
   }
+
+  /* Mobile Note Creation Sheet */
+  .mobile-note-sheet {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    animation: slideUpFromBottom 0.3s ease-out;
+  }
+
+  @keyframes slideUpFromBottom {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .mobile-note-input {
+    font-size: 16px !important; /* Prevent iOS zoom */
+  }
+
+  .mobile-note-input:focus {
+    font-size: 16px !important; /* Maintain size on focus */
+  }
 }
 
 /* TipTap editor mobile optimizations */

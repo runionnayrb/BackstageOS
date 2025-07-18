@@ -14,7 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import { MobileNoteEditor } from "./MobileNoteEditor";
-import { CreateNoteDialog } from "./CreateNoteDialog";
+import { MobileNoteCreationSheet } from "./MobileNoteCreationSheet";
 import { CreateFolderDialog } from "./CreateFolderDialog";
 import { MobilePullToRefresh } from "./MobilePullToRefresh";
 import type { Note, NoteFolder } from "@shared/schema";
@@ -31,7 +31,7 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
-  const [isCreateNoteOpen, setIsCreateNoteOpen] = useState(false);
+  const [isCreateNoteSheetOpen, setIsCreateNoteSheetOpen] = useState(false);
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [currentView, setCurrentView] = useState<"folders" | "notes" | "editor">("folders");
@@ -188,7 +188,7 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsCreateNoteOpen(true)}>
+                <DropdownMenuItem onClick={() => setIsCreateNoteSheetOpen(true)}>
                   <FileText className="w-4 h-4 mr-2" />
                   New Note
                 </DropdownMenuItem>
@@ -204,7 +204,7 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsCreateNoteOpen(true)}
+              onClick={() => setIsCreateNoteSheetOpen(true)}
               className="p-1 h-8 w-8"
             >
               <Plus className="h-5 w-5" />
@@ -328,7 +328,7 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No notes yet</h3>
             <p className="text-gray-500 mb-6">Create your first note to get started</p>
-            <Button onClick={() => setIsCreateNoteOpen(true)}>
+            <Button onClick={() => setIsCreateNoteSheetOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Create Note
             </Button>
@@ -419,12 +419,12 @@ export function MobileNotesList({ projectId, viewMode }: MobileNotesListProps) {
         
         {currentView === "folders" ? <FoldersView /> : <NotesView />}
 
-        {/* Create dialogs */}
-        <CreateNoteDialog 
-          open={isCreateNoteOpen}
-          onOpenChange={setIsCreateNoteOpen}
+        {/* Create note sheet */}
+        <MobileNoteCreationSheet 
+          isOpen={isCreateNoteSheetOpen}
+          onClose={() => setIsCreateNoteSheetOpen(false)}
+          projectId={projectId ? parseInt(projectId) : undefined}
           folderId={selectedFolder}
-          projectId={projectId}
         />
         
         <CreateFolderDialog 
