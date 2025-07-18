@@ -32,42 +32,13 @@ export default function Notes() {
   // Get current project from URL or context
   const projectId = new URLSearchParams(window.location.search).get('projectId');
 
-  // Mobile detection
-  useEffect(() => {
-    const checkIsMobile = () => {
-      const userAgent = navigator.userAgent;
-      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-      const isSmallScreen = window.innerWidth <= 768;
-      setIsMobile(isMobileUA || isSmallScreen);
-    };
-
-    checkIsMobile();
-    window.addEventListener('resize', checkIsMobile);
-    return () => window.removeEventListener('resize', checkIsMobile);
-  }, []);
-
-  // Set view mode based on projectId
-  useEffect(() => {
-    setViewMode(projectId ? "project" : "all");
-  }, [projectId]);
-
-  // If mobile, render mobile-optimized version
-  if (isMobile) {
-    return (
-      <MobileNotesList 
-        projectId={projectId}
-        viewMode={viewMode}
-      />
-    );
-  }
-
-  // Fetch folders
+  // Fetch folders - always call hooks first
   const { data: folders = [] } = useQuery({
     queryKey: ['/api/note-folders', projectId, viewMode === "all"],
     queryFn: () => apiRequest(`/api/note-folders?${projectId ? `projectId=${projectId}` : 'isGlobal=true'}`)
   });
 
-  // Fetch notes
+  // Fetch notes - always call hooks first
   const { data: notes = [], isLoading: notesLoading } = useQuery({
     queryKey: ['/api/notes', projectId, selectedFolder, searchQuery],
     queryFn: () => {
@@ -121,6 +92,35 @@ export default function Notes() {
     const regular = filteredNotes.filter((note: Note) => !note.isPinned);
     return { pinnedNotes: pinned, regularNotes: regular };
   }, [filteredNotes]);
+
+  // Mobile detection
+  useEffect(() => {
+    const checkIsMobile = () => {
+      const userAgent = navigator.userAgent;
+      const isMobileUA = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+      const isSmallScreen = window.innerWidth <= 768;
+      setIsMobile(isMobileUA || isSmallScreen);
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
+  // Set view mode based on projectId
+  useEffect(() => {
+    setViewMode(projectId ? "project" : "all");
+  }, [projectId]);
+
+  // If mobile, render mobile-optimized version
+  if (isMobile) {
+    return (
+      <MobileNotesList 
+        projectId={projectId}
+        viewMode={viewMode}
+      />
+    );
+  }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
