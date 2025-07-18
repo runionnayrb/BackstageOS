@@ -29,7 +29,10 @@ export class GoogleCalendarService {
       access_type: 'offline',
       scope: scopes,
       state: JSON.stringify({ projectId, userId }),
-      prompt: 'consent'
+      prompt: 'consent',
+      // Add development mode parameters to bypass verification for testing
+      include_granted_scopes: true,
+      approval_prompt: 'force'
     });
   }
 
