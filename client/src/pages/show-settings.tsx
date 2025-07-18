@@ -1040,27 +1040,6 @@ export default function ShowSettings() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                      <Label className="text-sm font-medium">Personal Email</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Personal email management and communication
-                      </p>
-                    </div>
-                    <Switch
-                      checked={(settings as any)?.featureSettings?.email?.personal ?? true}
-                      onCheckedChange={(checked) =>
-                        handleSettingsUpdate("featureSettings", { 
-                          ...(settings as any)?.featureSettings,
-                          email: {
-                            ...(settings as any)?.featureSettings?.email,
-                            personal: checked
-                          }
-                        })
-                      }
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
                       <Label className="text-sm font-medium">Team Email</Label>
                       <p className="text-xs text-muted-foreground">
                         Team-wide email management and notifications

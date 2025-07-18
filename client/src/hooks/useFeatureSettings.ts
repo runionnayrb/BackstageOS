@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 
 interface FeatureSettings {
   email: {
-    personal: boolean;
     team: boolean;
   };
   chat: boolean;
@@ -19,7 +18,6 @@ interface ShowSettings {
 
 const defaultFeatureSettings: FeatureSettings = {
   email: {
-    personal: true,
     team: true,
   },
   chat: true,
@@ -38,7 +36,7 @@ export function useFeatureSettings(showId?: string) {
 
   const featureSettings = (settings as ShowSettings)?.featureSettings || defaultFeatureSettings;
 
-  const isFeatureEnabled = (feature: keyof Omit<FeatureSettings, 'email'> | 'email.personal' | 'email.team'): boolean => {
+  const isFeatureEnabled = (feature: keyof Omit<FeatureSettings, 'email'> | 'email.team'): boolean => {
     if (feature.includes('.')) {
       const [parentFeature, childFeature] = feature.split('.');
       return featureSettings[parentFeature as keyof FeatureSettings]?.[childFeature as any] ?? true;
@@ -47,7 +45,10 @@ export function useFeatureSettings(showId?: string) {
   };
 
   const isEmailEnabled = () => {
-    return featureSettings.email.personal || featureSettings.email.team;
+    // When outside a show context (showId is undefined), always show email
+    // When inside a show context, only show if team email is enabled
+    if (!showId) return true;
+    return featureSettings.email.team;
   };
 
   return {
