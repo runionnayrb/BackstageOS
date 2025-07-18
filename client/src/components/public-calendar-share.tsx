@@ -365,15 +365,6 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
   };
 
   const handleCopyEventTypeLink = (token: string, eventTypeName: string) => {
-    const link = `${window.location.origin}/public-calendar/event-type/${token}`;
-    navigator.clipboard.writeText(link);
-    toast({
-      title: "Link Copied",
-      description: `The ${eventTypeName} calendar link has been copied to your clipboard.`
-    });
-  };
-
-  const handleCopyEventTypeSubscriptionLink = (token: string, eventTypeName: string) => {
     const subscriptionLink = `${window.location.origin}/api/public-calendar/event-type/${token}/subscribe.ics`;
     navigator.clipboard.writeText(subscriptionLink);
     toast({
@@ -526,15 +517,6 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
                         Download
                       </Button>
                     </div>
-                    <Button 
-                      size="sm" 
-                      variant="secondary" 
-                      className="w-full text-xs h-8"
-                      onClick={() => handleCopyEventTypeSubscriptionLink(share.token, share.eventTypeName)}
-                    >
-                      <Calendar className="h-3 w-3 mr-1" />
-                      Copy Dynamic Subscription
-                    </Button>
                   </div>
                 </CardContent>
               </Card>
