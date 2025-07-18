@@ -84,7 +84,7 @@ export function EmailSidebar({
     <div
       className={cn(
         "absolute left-0 top-0 bottom-0 bg-white border-r border-gray-200 transition-all duration-300 ease-in-out z-40 flex flex-col",
-        isCollapsed ? "w-16" : "w-64"
+        isCollapsed ? "w-20" : "w-64"
       )}
     >
       {/* Header with Fixed Height for Consistent Icon Positioning */}
@@ -118,7 +118,7 @@ export function EmailSidebar({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-center p-3"
+                  className="w-full justify-center p-4"
                   onClick={(e) => {
                     e.preventDefault();
                     onCompose();
@@ -128,7 +128,7 @@ export function EmailSidebar({
                     setDropdownOpen(true);
                   }}
                 >
-                  <Edit className="h-6 w-6 text-gray-600" />
+                  <Edit className="h-8 w-8 text-gray-600" />
                 </Button>
                 
                 {/* Right-click dropdown */}
@@ -214,7 +214,7 @@ export function EmailSidebar({
                 title={isCollapsed ? folder.name : undefined}
               >
 {isCollapsed ? (
-                  <IconComponent className="h-6 w-6" />
+                  <IconComponent className="h-8 w-8" />
                 ) : (
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center space-x-2">
@@ -246,7 +246,7 @@ export function EmailSidebar({
             title={isCollapsed ? "Settings" : undefined}
           >
             {isCollapsed ? (
-              <Settings className="h-6 w-6" />
+              <Settings className="h-8 w-8" />
             ) : (
               <div className="flex items-center space-x-2">
                 <Settings className="h-5 w-5" />
