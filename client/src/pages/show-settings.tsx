@@ -439,6 +439,30 @@ export default function ShowSettings() {
   // Phase 5 mutations
   const connectGoogleCalendar = useMutation({
     mutationFn: async () => {
+      // Development mode: Create mock integration for testing
+      if (process.env.NODE_ENV === 'development' || window.location.hostname.includes('replit.dev')) {
+        console.log('Creating development mock Google Calendar integration...');
+        const mockIntegration = await apiRequest('POST', `/api/projects/${params.id}/calendar/mock-integration`, {
+          calendarId: 'primary',
+          calendarName: 'Bryan\'s Calendar (Development)',
+          accessToken: 'mock_access_token_for_development',
+          refreshToken: 'mock_refresh_token_for_development',
+          syncSettings: {
+            syncPersonalSchedules: true,
+            syncEventTypes: [],
+            defaultReminders: [{ method: 'email', minutes: 15 }]
+          }
+        });
+        
+        toast({
+          title: "Google Calendar Connected (Development)",
+          description: "Mock Google Calendar integration created for testing.",
+        });
+        
+        return mockIntegration;
+      }
+      
+      // Production mode: Use real OAuth flow
       console.log('Starting Google Calendar connection...');
       const response = await apiRequest('GET', `/api/projects/${params.id}/calendar/auth-url`);
       console.log('API Response:', response);

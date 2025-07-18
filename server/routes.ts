@@ -9968,6 +9968,36 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Development mock Google Calendar integration
+  app.post('/api/projects/:projectId/calendar/mock-integration', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const userId = req.user.id;
+      
+      console.log('Creating mock Google Calendar integration for development testing');
+      
+      const mockIntegration = await storage.createGoogleCalendarIntegration({
+        projectId,
+        userId,
+        calendarId: req.body.calendarId || 'primary',
+        calendarName: req.body.calendarName || 'Development Calendar',
+        accessToken: req.body.accessToken || 'mock_access_token',
+        refreshToken: req.body.refreshToken || 'mock_refresh_token',
+        tokenExpiry: new Date(Date.now() + 3600 * 1000), // 1 hour from now
+        syncSettings: req.body.syncSettings || {
+          syncPersonalSchedules: true,
+          syncEventTypes: [],
+          defaultReminders: [{ method: 'email', minutes: 15 }]
+        }
+      });
+      
+      res.json(mockIntegration);
+    } catch (error) {
+      console.error("Error creating mock Google Calendar integration:", error);
+      res.status(500).json({ message: "Failed to create mock integration" });
+    }
+  });
+
   // Google Calendar OAuth callback route  
   app.get('/auth/google/callback', async (req: any, res) => {
     try {
