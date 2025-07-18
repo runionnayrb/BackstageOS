@@ -2360,6 +2360,20 @@ export const publicCalendarShares = pgTable("public_calendar_shares", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Event type calendar subscriptions for public access
+export const eventTypeCalendarShares = pgTable("event_type_calendar_shares", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  eventTypeName: varchar("event_type_name").notNull(), // "Show Schedule", "Meetings", "Costume Fittings", etc.
+  eventTypeCategory: varchar("event_type_category").notNull(), // "show_schedule", "individual"
+  token: text("token").notNull().unique(),
+  isActive: boolean("is_active").default(true),
+  lastAccessed: timestamp("last_accessed"),
+  accessCount: integer("access_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Phase 5: Notification Preferences
 export const notificationPreferences = pgTable("notification_preferences", {
   id: serial("id").primaryKey(),
@@ -2506,6 +2520,20 @@ export const insertPublicCalendarShareSchema = createInsertSchema(publicCalendar
   updatedAt: true,
 });
 
+export const insertEventTypeCalendarShareSchema = createInsertSchema(eventTypeCalendarShares).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Relations for event type calendar shares
+export const eventTypeCalendarSharesRelations = relations(eventTypeCalendarShares, ({ one }) => ({
+  project: one(projects, {
+    fields: [eventTypeCalendarShares.projectId],
+    references: [projects.id],
+  }),
+}));
+
 // Types for Phase 5
 export type GoogleCalendarIntegration = typeof googleCalendarIntegrations.$inferSelect;
 export type InsertGoogleCalendarIntegration = z.infer<typeof insertGoogleCalendarIntegrationSchema>;
@@ -2517,6 +2545,8 @@ export type EmailTemplateCategory = typeof emailTemplateCategories.$inferSelect;
 export type InsertEmailTemplateCategory = z.infer<typeof insertEmailTemplateCategorySchema>;
 export type PublicCalendarShare = typeof publicCalendarShares.$inferSelect;
 export type InsertPublicCalendarShare = z.infer<typeof insertPublicCalendarShareSchema>;
+export type EventTypeCalendarShare = typeof eventTypeCalendarShares.$inferSelect;
+export type InsertEventTypeCalendarShare = z.infer<typeof insertEventTypeCalendarShareSchema>;
 
 // Performance and Rehearsal Tracking System (AEA Contract Management)
 // Only activates if at least one cast member has equityStatus = "equity"

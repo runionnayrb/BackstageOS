@@ -67,6 +67,7 @@ import TaskManagement from "@/pages/TaskManagement";
 import Notes from "@/pages/Notes";
 import PersonalScheduleViewer from "@/pages/personal-schedule";
 import PublicCalendar from "@/pages/public-calendar";
+import PublicEventTypeCalendar from "@/pages/public-event-type-calendar";
 
 
 function Router() {
@@ -126,6 +127,10 @@ function Router() {
   }
 
   // Public calendar viewer route - public access with token
+  if (window.location.pathname.startsWith('/public-calendar/event-type/')) {
+    return <PublicEventTypeCalendar />;
+  }
+  
   if (window.location.pathname.startsWith('/public-calendar/')) {
     return <PublicCalendar />;
   }

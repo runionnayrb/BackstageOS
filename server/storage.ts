@@ -56,6 +56,7 @@ import {
   scheduleVersionComparisons,
   emailTemplateCategories,
   publicCalendarShares,
+  eventTypeCalendarShares,
 
   type User,
   type UpsertUser,
@@ -165,6 +166,8 @@ import {
   type InsertEmailTemplateCategory,
   type PublicCalendarShare,
   type InsertPublicCalendarShare,
+  type EventTypeCalendarShare,
+  type InsertEventTypeCalendarShare,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -488,6 +491,15 @@ export interface IStorage {
   updatePublicCalendarShare(id: number, share: Partial<InsertPublicCalendarShare>): Promise<PublicCalendarShare>;
   deletePublicCalendarShare(id: number): Promise<void>;
   updatePublicCalendarShareAccess(token: string): Promise<void>;
+
+  // Event Type Calendar Shares  
+  getEventTypeCalendarSharesByProjectId(projectId: number): Promise<EventTypeCalendarShare[]>;
+  getEventTypeCalendarShareByToken(token: string): Promise<EventTypeCalendarShare | undefined>;
+  getEventTypeCalendarShareByEventType(eventTypeName: string, projectId: number): Promise<EventTypeCalendarShare | undefined>;
+  createEventTypeCalendarShare(share: InsertEventTypeCalendarShare): Promise<EventTypeCalendarShare>;
+  updateEventTypeCalendarShare(id: number, share: Partial<InsertEventTypeCalendarShare>): Promise<EventTypeCalendarShare>;
+  deleteEventTypeCalendarShare(id: number): Promise<void>;
+  updateEventTypeCalendarShareAccess(token: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3230,6 +3242,65 @@ export class DatabaseStorage implements IStorage {
         lastAccessedAt: new Date()
       })
       .where(eq(publicCalendarShares.token, token));
+  }
+
+  // Event Type Calendar Share Methods
+  async getEventTypeCalendarSharesByProjectId(projectId: number): Promise<EventTypeCalendarShare[]> {
+    const result = await db
+      .select()
+      .from(eventTypeCalendarShares)
+      .where(eq(eventTypeCalendarShares.projectId, projectId))
+      .orderBy(eventTypeCalendarShares.createdAt);
+    return result;
+  }
+
+  async getEventTypeCalendarShareByToken(token: string): Promise<EventTypeCalendarShare | undefined> {
+    const result = await db
+      .select()
+      .from(eventTypeCalendarShares)
+      .where(eq(eventTypeCalendarShares.token, token));
+    return result[0];
+  }
+
+  async getEventTypeCalendarShareByEventType(eventTypeName: string, projectId: number): Promise<EventTypeCalendarShare | undefined> {
+    const result = await db
+      .select()
+      .from(eventTypeCalendarShares)
+      .where(
+        and(
+          eq(eventTypeCalendarShares.eventTypeName, eventTypeName),
+          eq(eventTypeCalendarShares.projectId, projectId)
+        )
+      );
+    return result[0];
+  }
+
+  async createEventTypeCalendarShare(share: InsertEventTypeCalendarShare): Promise<EventTypeCalendarShare> {
+    const result = await db.insert(eventTypeCalendarShares).values(share).returning();
+    return result[0];
+  }
+
+  async updateEventTypeCalendarShare(id: number, share: Partial<InsertEventTypeCalendarShare>): Promise<EventTypeCalendarShare> {
+    const result = await db
+      .update(eventTypeCalendarShares)
+      .set({ ...share, updatedAt: new Date() })
+      .where(eq(eventTypeCalendarShares.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteEventTypeCalendarShare(id: number): Promise<void> {
+    await db.delete(eventTypeCalendarShares).where(eq(eventTypeCalendarShares.id, id));
+  }
+
+  async updateEventTypeCalendarShareAccess(token: string): Promise<void> {
+    await db
+      .update(eventTypeCalendarShares)
+      .set({ 
+        accessCount: sql`${eventTypeCalendarShares.accessCount} + 1`,
+        lastAccessed: new Date()
+      })
+      .where(eq(eventTypeCalendarShares.token, token));
   }
 
   async getPersonalScheduleByContact(contactId: number, projectId: number): Promise<PersonalSchedule | undefined> {

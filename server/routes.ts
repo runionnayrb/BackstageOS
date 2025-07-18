@@ -126,6 +126,86 @@ function generateICSSubscriptionContent(events: any[], project: any, contact: an
   return icsContent.join('\r\n');
 }
 
+// Helper function to generate ICS content for event type subscriptions
+function generateEventTypeICSSubscriptionContent(events: any[], project: any, share: any, hostname: string): string {
+  const formatDate = (date: string, time?: string) => {
+    const d = new Date(date);
+    if (time) {
+      const [hours, minutes] = time.split(':');
+      d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    }
+    return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  };
+
+  const escapeText = (text: string) => {
+    return text.replace(/[,;\\]/g, '\\$&').replace(/\n/g, '\\n');
+  };
+
+  const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  
+  let calendarName = `${project.name} - ${share.eventTypeName}`;
+  let calendarDesc = `Live ${share.eventTypeName} events for ${project.name} - Updates automatically`;
+  
+  let icsContent = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//BackstageOS//Event Type Calendar Subscription//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    `X-WR-CALNAME:${escapeText(calendarName)}`,
+    `X-WR-CALDESC:${escapeText(calendarDesc)}`,
+    `X-PUBLISHED-TTL:PT1H`, // Refresh every hour
+    `X-WR-TIMEZONE:UTC`,
+    `LAST-MODIFIED:${now}`,
+    `DTSTAMP:${now}`
+  ];
+
+  events.forEach(event => {
+    let startDateTime, endDateTime;
+    
+    if (event.isAllDay) {
+      // All-day events use DATE format
+      const eventDate = new Date(event.date);
+      const dateStr = eventDate.toISOString().split('T')[0].replace(/-/g, '');
+      startDateTime = dateStr;
+      endDateTime = dateStr;
+    } else {
+      // Timed events use DATETIME format
+      startDateTime = formatDate(event.date, event.startTime);
+      endDateTime = formatDate(event.date, event.endTime);
+    }
+    
+    const uid = `${event.id}-${share.eventTypeName.toLowerCase().replace(/\s+/g, '-')}-${project.id}@${hostname || 'backstageos.com'}`;
+    
+    let eventEntry = [
+      'BEGIN:VEVENT',
+      `UID:${uid}`,
+      `DTSTAMP:${now}`,
+      `LAST-MODIFIED:${now}`,
+      `SUMMARY:${escapeText(event.title)}`,
+      `DESCRIPTION:${escapeText(event.description || '')}`,
+      `LOCATION:${escapeText(event.location || '')}`,
+      `STATUS:CONFIRMED`,
+      `TRANSP:OPAQUE`,
+      `SEQUENCE:0`
+    ];
+
+    if (event.isAllDay) {
+      eventEntry.splice(4, 0, `DTSTART;VALUE=DATE:${startDateTime}`);
+      eventEntry.splice(5, 0, `DTEND;VALUE=DATE:${endDateTime}`);
+    } else {
+      eventEntry.splice(4, 0, `DTSTART:${startDateTime}`);
+      eventEntry.splice(5, 0, `DTEND:${endDateTime}`);
+    }
+
+    eventEntry.push('END:VEVENT');
+    icsContent.push(...eventEntry);
+  });
+
+  icsContent.push('END:VCALENDAR');
+  return icsContent.join('\r\n');
+}
+
 // Configure multer for image uploads
 const upload = multer({
   storage: multer.diskStorage({
@@ -10317,6 +10397,199 @@ Respond with valid JSON only.`;
     } catch (error) {
       console.error("Error fetching public calendar:", error);
       res.status(500).json({ message: "Failed to fetch public calendar" });
+    }
+  });
+
+  // Event Type Calendar Shares Routes
+  app.get('/api/projects/:projectId/event-type-calendar-shares', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const shares = await storage.getEventTypeCalendarSharesByProjectId(projectId);
+      res.json(shares);
+    } catch (error) {
+      console.error("Error fetching event type calendar shares:", error);
+      res.status(500).json({ message: "Failed to fetch event type calendar shares" });
+    }
+  });
+
+  app.post('/api/projects/:projectId/event-type-calendar-shares', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Generate unique token
+      const { nanoid } = await import('nanoid');
+      const token = nanoid(32);
+      
+      const shareData = {
+        projectId,
+        eventTypeName: req.body.eventTypeName,
+        eventTypeCategory: req.body.eventTypeCategory,
+        token,
+        isActive: true
+      };
+
+      const share = await storage.createEventTypeCalendarShare(shareData);
+      res.json(share);
+    } catch (error) {
+      console.error("Error creating event type calendar share:", error);
+      res.status(500).json({ message: "Failed to create event type calendar share" });
+    }
+  });
+
+  app.delete('/api/projects/:projectId/event-type-calendar-shares/:shareId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const shareId = parseInt(req.params.shareId);
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteEventTypeCalendarShare(shareId);
+      res.json({ message: "Event type calendar share deleted" });
+    } catch (error) {
+      console.error("Error deleting event type calendar share:", error);
+      res.status(500).json({ message: "Failed to delete event type calendar share" });
+    }
+  });
+
+  // Public Event Type Calendar Access (no auth required)
+  app.get('/api/public-event-calendar/:token', async (req: any, res) => {
+    try {
+      const token = req.params.token;
+      
+      // Find calendar share by token
+      const share = await storage.getEventTypeCalendarShareByToken(token);
+      
+      if (!share) {
+        return res.status(404).json({ message: "Calendar not found" });
+      }
+
+      if (!share.isActive) {
+        return res.status(403).json({ message: "Calendar access has been deactivated" });
+      }
+
+      // Get project details
+      const project = await storage.getProjectById(share.projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Get all schedule events for this project
+      const scheduleEvents = await storage.getScheduleEventsByProjectId(share.projectId);
+      
+      // Filter events by event type
+      const filteredEvents = scheduleEvents.filter(event => {
+        if (share.eventTypeCategory === 'show_schedule') {
+          // Show schedule events
+          return ['rehearsal', 'tech_rehearsal', 'performance', 'preview', 'meeting', 'dark'].includes(event.type);
+        } else {
+          // Individual events - match by event type name
+          return event.type === share.eventTypeName.toLowerCase().replace(/\s+/g, '_');
+        }
+      });
+
+      // Update access tracking
+      await storage.updateEventTypeCalendarShareAccess(token);
+
+      res.json({
+        project: {
+          id: project.id,
+          name: project.name,
+          description: project.description
+        },
+        eventType: {
+          name: share.eventTypeName,
+          category: share.eventTypeCategory
+        },
+        events: filteredEvents
+      });
+    } catch (error) {
+      console.error("Error fetching public event type calendar:", error);
+      res.status(500).json({ message: "Failed to fetch calendar" });
+    }
+  });
+
+  // Public Event Type Calendar Dynamic Subscription (no auth required)
+  app.get('/api/public-event-calendar/:token/subscribe.ics', async (req: any, res) => {
+    try {
+      const token = req.params.token;
+      
+      // Find calendar share by token
+      const share = await storage.getEventTypeCalendarShareByToken(token);
+      
+      if (!share) {
+        return res.status(404).send('Calendar not found');
+      }
+
+      if (!share.isActive) {
+        return res.status(403).send('Calendar access has been deactivated');
+      }
+
+      // Get project details
+      const project = await storage.getProjectById(share.projectId);
+      
+      if (!project) {
+        return res.status(404).send('Project not found');
+      }
+
+      // Get all schedule events for this project
+      const scheduleEvents = await storage.getScheduleEventsByProjectId(share.projectId);
+      
+      // Filter events by event type
+      const filteredEvents = scheduleEvents.filter(event => {
+        if (share.eventTypeCategory === 'show_schedule') {
+          // Show schedule events
+          return ['rehearsal', 'tech_rehearsal', 'performance', 'preview', 'meeting', 'dark'].includes(event.type);
+        } else {
+          // Individual events - match by event type name
+          return event.type === share.eventTypeName.toLowerCase().replace(/\s+/g, '_');
+        }
+      });
+
+      // Generate ICS file content with calendar subscription headers
+      const icsContent = generateEventTypeICSSubscriptionContent(filteredEvents, project, share, req.get('host'));
+
+      // Update access tracking
+      await storage.updateEventTypeCalendarShareAccess(token);
+
+      // Set headers for dynamic calendar subscription
+      res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+      res.setHeader('Content-Disposition', 'inline');
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      res.setHeader('X-Published-TTL', 'PT1H'); // Refresh every hour
+      res.send(icsContent);
+    } catch (error) {
+      console.error("Error generating event type subscription ICS file:", error);
+      res.status(500).send('Failed to generate calendar subscription');
     }
   });
 

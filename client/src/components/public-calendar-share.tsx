@@ -35,18 +35,44 @@ interface Contact {
   contactType: string;
 }
 
+interface EventTypeCalendarShare {
+  id: number;
+  projectId: number;
+  eventTypeName: string;
+  eventTypeCategory: string;
+  token: string;
+  isActive: boolean;
+  accessCount: number;
+  lastAccessed: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface PublicCalendarShareProps {
   projectId: number;
 }
 
 export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCreateEventTypeDialogOpen, setIsCreateEventTypeDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<string>('');
   const [selectedShareContact, setSelectedShareContact] = useState<string>('');
+  const [selectedEventType, setSelectedEventType] = useState<string>('');
+  const [selectedEventTypeCategory, setSelectedEventTypeCategory] = useState<string>('');
   const [expiresAt, setExpiresAt] = useState<string>('');
   const [isActive, setIsActive] = useState(true);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Event type options
+  const eventTypeOptions = [
+    { category: 'show_schedule', name: 'Show Schedule', description: 'All rehearsals, techs, performances, and meetings' },
+    { category: 'individual', name: 'Meetings', description: 'All meeting events' },
+    { category: 'individual', name: 'Costume Fittings', description: 'All costume fitting events' },
+    { category: 'individual', name: 'Wig Fittings', description: 'All wig fitting events' },
+    { category: 'individual', name: 'Hair and Make-Up', description: 'All hair and make-up events' },
+    { category: 'individual', name: 'Vocal Coaching', description: 'All vocal coaching events' }
+  ];
 
   // Fetch public calendar shares
   const { data: sharesData = [] } = useQuery({
@@ -65,6 +91,15 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
 
   // Ensure contacts is always an array
   const contacts = Array.isArray(contactsData) ? contactsData : [];
+
+  // Fetch event type calendar shares
+  const { data: eventTypeSharesData = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/event-type-calendar-shares`],
+    queryFn: () => apiRequest('GET', `/api/projects/${projectId}/event-type-calendar-shares`)
+  });
+
+  // Ensure event type shares is always an array
+  const eventTypeShares = Array.isArray(eventTypeSharesData) ? eventTypeSharesData : [];
 
   // Create share mutation
   const createShareMutation = useMutation({
@@ -125,6 +160,49 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
       toast({
         title: "Error Deleting Share",
         description: error.message || "Failed to delete public calendar share",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Create event type share mutation
+  const createEventTypeShareMutation = useMutation({
+    mutationFn: (data: { eventTypeName: string; eventTypeCategory: string }) =>
+      apiRequest('POST', `/api/projects/${projectId}/event-type-calendar-shares`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/event-type-calendar-shares`] });
+      setIsCreateEventTypeDialogOpen(false);
+      setSelectedEventType('');
+      setSelectedEventTypeCategory('');
+      toast({
+        title: "Event Type Share Created",
+        description: "Your event type calendar share has been created successfully."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Creating Event Type Share",
+        description: error.message || "Failed to create event type calendar share",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Delete event type share mutation
+  const deleteEventTypeShareMutation = useMutation({
+    mutationFn: (shareId: number) =>
+      apiRequest('DELETE', `/api/projects/${projectId}/event-type-calendar-shares/${shareId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/event-type-calendar-shares`] });
+      toast({
+        title: "Share Deleted",
+        description: "The event type calendar share has been deleted successfully."
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Deleting Share",
+        description: error.message || "Failed to delete event type calendar share",
         variant: "destructive"
       });
     }
@@ -237,6 +315,61 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
     return new Date() > new Date(expiresAt);
   };
 
+  // Event type helper functions
+  const handleCreateEventTypeShare = () => {
+    if (!selectedEventType) {
+      toast({
+        title: "No Event Type Selected",
+        description: "Please select an event type to share.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const eventType = eventTypeOptions.find(opt => opt.name === selectedEventType);
+    if (!eventType) return;
+
+    createEventTypeShareMutation.mutate({
+      eventTypeName: eventType.name,
+      eventTypeCategory: eventType.category
+    });
+  };
+
+  const handleCopyEventTypeLink = (token: string, eventTypeName: string) => {
+    const link = `${window.location.origin}/public-calendar/event-type/${token}`;
+    navigator.clipboard.writeText(link);
+    toast({
+      title: "Link Copied",
+      description: `The ${eventTypeName} calendar link has been copied to your clipboard.`
+    });
+  };
+
+  const handleCopyEventTypeSubscriptionLink = (token: string, eventTypeName: string) => {
+    const subscriptionLink = `${window.location.origin}/api/public-calendar/event-type/${token}/subscribe.ics`;
+    navigator.clipboard.writeText(subscriptionLink);
+    toast({
+      title: "Subscription Link Copied",
+      description: `The ${eventTypeName} dynamic calendar subscription link has been copied. Add this to Google Calendar or Apple Calendar for automatic updates.`
+    });
+  };
+
+  const handleDownloadEventTypeICS = (token: string, eventTypeName: string) => {
+    const link = `${window.location.origin}/api/public-calendar/event-type/${token}/subscribe.ics`;
+    const anchor = document.createElement('a');
+    anchor.href = link;
+    anchor.download = `calendar-${eventTypeName.toLowerCase().replace(/\s+/g, '-')}.ics`;
+    anchor.click();
+    toast({
+      title: "Dynamic Calendar Downloaded",
+      description: `The auto-updating ${eventTypeName} calendar file has been downloaded. Import this into Google Calendar or Apple Calendar for automatic updates.`
+    });
+  };
+
+  // Filter event types that don't already have shares
+  const availableEventTypes = eventTypeOptions.filter(eventType =>
+    !eventTypeShares.some((share: EventTypeCalendarShare) => share.eventTypeName === eventType.name)
+  );
+
   // Filter contacts that don't already have shares
   const availableContacts = contacts.filter((contact: Contact) => 
     !shares.some((share: PublicCalendarShare) => share.contactId === contact.id)
@@ -244,11 +377,169 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
 
   return (
     <div className="space-y-6">
+      {/* Event Type Calendar Shares Section */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold">Event Type Calendar Subscriptions</h3>
+            <p className="text-sm text-muted-foreground">
+              Share dynamic calendar subscriptions for specific event types that automatically update
+            </p>
+          </div>
+          <Dialog open={isCreateEventTypeDialogOpen} onOpenChange={setIsCreateEventTypeDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2" variant="outline">
+                <Calendar className="h-4 w-4" />
+                Create Event Type Share
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Event Type Calendar Share</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="eventType">Event Type</Label>
+                  <Select value={selectedEventType} onValueChange={setSelectedEventType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an event type to share" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableEventTypes.map((eventType) => (
+                        <SelectItem key={eventType.name} value={eventType.name}>
+                          <div>
+                            <div className="font-medium">{eventType.name}</div>
+                            <div className="text-sm text-muted-foreground">{eventType.description}</div>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <Button 
+                    onClick={() => setIsCreateEventTypeDialogOpen(false)} 
+                    variant="outline" 
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleCreateEventTypeShare} 
+                    className="flex-1 gap-2"
+                    disabled={createEventTypeShareMutation.isPending}
+                  >
+                    {createEventTypeShareMutation.isPending ? (
+                      <>Creating...</>
+                    ) : (
+                      <>
+                        <Share2 className="h-4 w-4" />
+                        Create Share
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Event Type Shares List */}
+        {eventTypeShares.length > 0 ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {eventTypeShares.map((share: EventTypeCalendarShare) => (
+              <Card key={share.id} className="border">
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-sm">{share.eventTypeName}</CardTitle>
+                      <Badge variant={share.eventTypeCategory === 'show_schedule' ? 'default' : 'secondary'} className="mt-1">
+                        {share.eventTypeCategory === 'show_schedule' ? 'Show Events' : 'Individual Events'}
+                      </Badge>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteEventTypeShareMutation.mutate(share.id)}
+                      disabled={deleteEventTypeShareMutation.isPending}
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-3">
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <div>Access count: {share.accessCount}</div>
+                      {share.lastAccessed && (
+                        <div>Last accessed: {formatDate(share.lastAccessed)}</div>
+                      )}
+                      <div>Created: {formatDate(share.createdAt)}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1 text-xs h-8"
+                        onClick={() => handleCopyEventTypeLink(share.token, share.eventTypeName)}
+                      >
+                        <Copy className="h-3 w-3 mr-1" />
+                        Copy Link
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1 text-xs h-8"
+                        onClick={() => handleDownloadEventTypeICS(share.token, share.eventTypeName)}
+                      >
+                        <Download className="h-3 w-3 mr-1" />
+                        Download
+                      </Button>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="secondary" 
+                      className="w-full text-xs h-8"
+                      onClick={() => handleCopyEventTypeSubscriptionLink(share.token, share.eventTypeName)}
+                    >
+                      <Calendar className="h-3 w-3 mr-1" />
+                      Copy Dynamic Subscription
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card className="border-dashed">
+            <CardContent className="py-8 text-center">
+              <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h4 className="text-sm font-medium mb-1">No Event Type Shares</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Create calendar shares for specific event types to automatically sync with external calendars
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => setIsCreateEventTypeDialogOpen(true)}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Create First Event Type Share
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <Separator />
+
+      {/* Individual Contact Calendar Shares Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Public Calendar Sharing</h3>
+          <h3 className="text-lg font-semibold">Individual Contact Calendar Shares</h3>
           <p className="text-sm text-muted-foreground">
-            Share individual calendars with external collaborators without requiring login
+            Share individual contact calendars with external collaborators without requiring login
           </p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
