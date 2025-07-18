@@ -254,8 +254,14 @@ export function EmailSidebar({
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-100 flex-shrink-0">
-        <div className="flex items-center justify-between mb-4">
+      <div className={cn(
+        "border-b border-gray-100 flex-shrink-0",
+        isCollapsed ? "p-2" : "p-4"
+      )}>
+        <div className={cn(
+          "flex items-center justify-between",
+          !isCollapsed && "mb-4"
+        )}>
           {!isCollapsed && <h2 className="text-lg font-semibold text-gray-900 ml-2">Email</h2>}
           <Button
             variant="ghost"
@@ -275,43 +281,24 @@ export function EmailSidebar({
         </div>
 
         {/* Account Selector */}
-        {selectedAccount && (
+        {selectedAccount && !isCollapsed && (
           <div className="space-y-2">
             <div className="relative">
-              <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  {isCollapsed ? (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-center p-2"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        onCompose();
-                      }}
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        setDropdownOpen(true);
-                      }}
-                    >
-                      <Edit className="h-4 w-4 text-gray-600" />
-                    </Button>
-                  ) : (
-                    <div className="flex items-center justify-between p-2 pr-12 rounded-md cursor-pointer transition-colors hover:bg-gray-50">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {selectedAccount.displayName}
-                        </p>
-                        <p className="text-xs text-gray-500 truncate">
-                          {selectedAccount.emailAddress}
-                        </p>
-                      </div>
-                      <div className="flex items-center">
-                        <ChevronDown className="h-4 w-4 text-gray-400" />
-                      </div>
+                  <div className="flex items-center justify-between p-2 pr-12 rounded-md cursor-pointer transition-colors hover:bg-gray-50">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {selectedAccount.displayName}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {selectedAccount.emailAddress}
+                      </p>
                     </div>
-                  )}
+                    <div className="flex items-center">
+                      <ChevronDown className="h-4 w-4 text-gray-400" />
+                    </div>
+                  </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent 
                   className="w-60 max-w-[calc(100vw-32px)]" 
@@ -427,6 +414,104 @@ export function EmailSidebar({
           </div>
         )}
       </div>
+
+      {/* Collapsed State Compose Button */}
+      {isCollapsed && selectedAccount && (
+        <div className="px-4 py-2 border-b border-gray-100">
+          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-center p-2"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onCompose();
+                }}
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  setDropdownOpen(true);
+                }}
+              >
+                <Edit className="h-4 w-4 text-gray-600" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              className="w-60 max-w-[calc(100vw-32px)]" 
+              align="start"
+              side="right"
+              sideOffset={4}
+              avoidCollisions={true}
+              collisionPadding={16}
+            >
+              {/* Personal Accounts */}
+              {emailAccounts.filter(account => account.accountType === 'personal').map((account) => (
+                <DropdownMenuItem
+                  key={account.id}
+                  onClick={() => onAccountSelect(account)}
+                  className={cn(
+                    "flex flex-col items-start space-y-1 p-3",
+                    selectedAccount?.id === account.id && "bg-gray-50"
+                  )}
+                >
+                  <p className="text-sm font-medium text-gray-900">
+                    {account.displayName}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {account.emailAddress}
+                  </p>
+                </DropdownMenuItem>
+              ))}
+              
+              {/* Shared Inboxes */}
+              {allSharedInboxes && allSharedInboxes.length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50">
+                    Shared Inboxes
+                  </div>
+                  {allSharedInboxes.map((inbox: SharedInbox) => (
+                    <DropdownMenuItem
+                      key={inbox.id}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const matchingAccount = emailAccounts.find(account => 
+                          account.emailAddress === inbox.emailAddress
+                        );
+                        if (matchingAccount) {
+                          onAccountSelect(matchingAccount);
+                        }
+                      }}
+                      className={cn(
+                        "flex flex-col items-start space-y-1 p-3 cursor-pointer",
+                        selectedAccount?.emailAddress === inbox.emailAddress && "bg-gray-50"
+                      )}
+                    >
+                      <p className="text-sm font-medium text-gray-900">
+                        {inbox.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {inbox.emailAddress}
+                      </p>
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
+              
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={onCreateAccount}
+                className="flex items-center space-x-2 p-3"
+              >
+                <Plus className="h-4 w-4" />
+                <span className="text-sm">{hasPersonalAccount && !isAdmin ? "Add new team account" : "Add new account"}</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
 
       {/* Folders */}
       <div className="flex-1 overflow-y-auto py-4">
