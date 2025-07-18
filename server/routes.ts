@@ -9450,7 +9450,11 @@ Respond with valid JSON only.`;
       const projectId = parseInt(req.params.projectId);
       const userId = parseInt(req.user.id);
       
-      const { googleCalendarService } = await import('./services/googleCalendarService.js');
+      // Get the current hostname from the request
+      const hostname = req.get('host');
+      
+      const { GoogleCalendarService } = await import('./services/googleCalendarService.js');
+      const googleCalendarService = new GoogleCalendarService(hostname);
       const authUrl = googleCalendarService.generateAuthUrl(projectId, userId);
       
       res.json({ authUrl });
@@ -9464,7 +9468,9 @@ Respond with valid JSON only.`;
     try {
       const { code, state } = req.body;
       
-      const { googleCalendarService } = await import('./services/googleCalendarService.js');
+      const { GoogleCalendarService } = await import('./services/googleCalendarService.js');
+      const hostname = req.get('host');
+      const googleCalendarService = new GoogleCalendarService(hostname);
       const integration = await googleCalendarService.handleOAuthCallback(code, state);
       
       res.json(integration);
@@ -9491,7 +9497,9 @@ Respond with valid JSON only.`;
       const integrationId = parseInt(req.params.integrationId);
       const { syncSettings } = req.body;
       
-      const { googleCalendarService } = await import('./services/googleCalendarService.js');
+      const { GoogleCalendarService } = await import('./services/googleCalendarService.js');
+      const hostname = req.get('host');
+      const googleCalendarService = new GoogleCalendarService(hostname);
       const integration = await googleCalendarService.updateSyncSettings(integrationId, syncSettings);
       
       res.json(integration);
@@ -9687,6 +9695,61 @@ Respond with valid JSON only.`;
     } catch (error) {
       console.error("Error deleting email template category:", error);
       res.status(500).json({ message: "Failed to delete email template category" });
+    }
+  });
+
+  // Google Calendar OAuth callback route
+  app.get('/auth/google/callback', async (req: any, res) => {
+    try {
+      const { code, state } = req.query;
+      
+      if (!code || !state) {
+        return res.status(400).send(`
+          <html>
+            <body>
+              <script>
+                window.opener?.postMessage({ type: 'GOOGLE_AUTH_ERROR', error: 'Missing authorization code or state' }, '*');
+                window.close();
+              </script>
+            </body>
+          </html>
+        `);
+      }
+
+      const { GoogleCalendarService } = await import('./services/googleCalendarService.js');
+      const hostname = req.get('host');
+      const googleCalendarService = new GoogleCalendarService(hostname);
+      const integration = await googleCalendarService.handleOAuthCallback(code, state);
+      
+      // Send success message to parent window and close popup
+      res.send(`
+        <html>
+          <body>
+            <script>
+              window.opener?.postMessage({ 
+                type: 'GOOGLE_AUTH_SUCCESS', 
+                data: ${JSON.stringify(integration)}
+              }, '*');
+              window.close();
+            </script>
+          </body>
+        </html>
+      `);
+    } catch (error) {
+      console.error("Error in Google Calendar OAuth callback:", error);
+      res.status(500).send(`
+        <html>
+          <body>
+            <script>
+              window.opener?.postMessage({ 
+                type: 'GOOGLE_AUTH_ERROR', 
+                error: '${error instanceof Error ? error.message : 'Unknown error'}'
+              }, '*');
+              window.close();
+            </script>
+          </body>
+        </html>
+      `);
     }
   });
 

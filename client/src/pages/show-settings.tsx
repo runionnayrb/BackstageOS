@@ -437,13 +437,46 @@ export default function ShowSettings() {
   const connectGoogleCalendar = useMutation({
     mutationFn: async () => {
       const response = await apiRequest('GET', `/api/projects/${id}/calendar/auth-url`);
-      window.open(response.authUrl, '_blank', 'width=500,height=600');
-      return response;
+      
+      return new Promise((resolve, reject) => {
+        const popup = window.open(response.authUrl, '_blank', 'width=500,height=600');
+        
+        // Listen for messages from the popup
+        const messageHandler = (event: MessageEvent) => {
+          if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
+            window.removeEventListener('message', messageHandler);
+            queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/calendar/integrations`] });
+            resolve(event.data.data);
+            toast({
+              title: "Google Calendar Connected",
+              description: "Successfully connected to Google Calendar.",
+            });
+          } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
+            window.removeEventListener('message', messageHandler);
+            reject(new Error(event.data.error));
+          }
+        };
+        
+        window.addEventListener('message', messageHandler);
+        
+        // Handle popup being closed manually
+        const checkClosed = setInterval(() => {
+          if (popup?.closed) {
+            clearInterval(checkClosed);
+            window.removeEventListener('message', messageHandler);
+            reject(new Error('Authorization window was closed'));
+          }
+        }, 1000);
+      });
     },
     onSuccess: () => {
+      // Success handled in the promise above
+    },
+    onError: (error) => {
       toast({
-        title: "Google Calendar",
-        description: "Please complete the authorization in the popup window.",
+        title: "Connection Failed",
+        description: error instanceof Error ? error.message : "Failed to connect to Google Calendar",
+        variant: "destructive",
       });
     },
   });
