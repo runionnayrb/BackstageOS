@@ -611,8 +611,12 @@ export function TaskTableView({
         console.log('Freezing column:', columnId);
         break;
       case 'hide':
-        // Find the property name for this column
-        const propertyName = getPropertyNameFromColumn(allColumns.find(col => col.id === columnId)!);
+        // Find the column object by ID from the visible columns
+        const targetColumn = visibleColumns.find(col => col.id === columnId);
+        if (!targetColumn) return;
+        
+        // Get the property name for this column
+        const propertyName = getPropertyNameFromColumn(targetColumn);
         
         // Update property visibility to hide this column
         if (onPropertyReorder && propertyName) {
