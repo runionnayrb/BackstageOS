@@ -1865,6 +1865,13 @@ export default function ShowSettings() {
             </CardContent>
           </Card>
 
+          {/* Public Calendar Sharing */}
+          <Card className="mt-6">
+            <CardContent className="pt-6">
+              <PublicCalendarShare projectId={parseInt(params.id)} />
+            </CardContent>
+          </Card>
+
           {/* Schedule Version Analytics */}
           <Card className="mt-6">
             <CardHeader>
