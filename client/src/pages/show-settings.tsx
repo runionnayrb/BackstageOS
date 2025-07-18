@@ -440,9 +440,12 @@ export default function ShowSettings() {
   const connectGoogleCalendar = useMutation({
     mutationFn: async () => {
       const response = await apiRequest('GET', `/api/projects/${params.id}/calendar/auth-url`);
+      console.log('Auth URL response:', response);
       
       return new Promise((resolve, reject) => {
-        const popup = window.open(response.authUrl, '_blank', 'width=500,height=600');
+        const authUrl = response.authUrl || response;
+        console.log('Opening popup with URL:', authUrl);
+        const popup = window.open(authUrl, '_blank', 'width=500,height=600');
         
         // Listen for messages from the popup
         const messageHandler = (event: MessageEvent) => {

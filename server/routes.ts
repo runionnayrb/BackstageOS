@@ -9724,6 +9724,9 @@ Respond with valid JSON only.`;
       const googleCalendarService = new GoogleCalendarService(hostname);
       const authUrl = googleCalendarService.generateAuthUrl(projectId, userId);
       
+      console.log('Generated auth URL:', authUrl);
+      console.log('Hostname used:', hostname);
+      
       res.json({ authUrl });
     } catch (error) {
       console.error("Error generating Google Calendar auth URL:", error);
