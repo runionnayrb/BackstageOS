@@ -12,6 +12,7 @@ import {
   GripVertical
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
+import { useFeatureSettings } from "@/hooks/useFeatureSettings";
 
 interface ShowDetailParams {
   id: string;
@@ -29,33 +30,36 @@ export default function ShowDetail() {
   const [isReordering, setIsReordering] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
-  // Default sections array
+  // Import feature settings hook
+  const { isFeatureEnabled } = useFeatureSettings(projectId);
+  
+  // Default sections array - filtered by feature settings
   const defaultSections = [
-    {
+    ...(isFeatureEnabled('reports') ? [{
       id: "reports",
       title: "Reports",
       href: `/shows/${projectId}/reports`,
-    },
-    {
+    }] : []),
+    ...(isFeatureEnabled('calendar') ? [{
       id: "calendar",
       title: "Calendar",
       href: `/shows/${projectId}/calendar`,
-    },
-    {
+    }] : []),
+    ...(isFeatureEnabled('script') ? [{
       id: "script",
       title: "Script",
       href: `/shows/${projectId}/script`,
-    },
-    {
+    }] : []),
+    ...(isFeatureEnabled('props') ? [{
       id: "props-costumes",
       title: "Props",
       href: `/shows/${projectId}/props`,
-    },
-    {
+    }] : []),
+    ...(isFeatureEnabled('contacts') ? [{
       id: "contacts",
       title: "Contacts",
       href: `/shows/${projectId}/contacts`,
-    },
+    }] : []),
   ];
 
   // State for sections - start empty to prevent flash

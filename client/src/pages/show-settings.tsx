@@ -1030,7 +1030,7 @@ export default function ShowSettings() {
             <CardHeader>
               <CardTitle>App Features</CardTitle>
               <CardDescription>
-                Choose which features are available for this {showLabel.toLowerCase()}. Hidden features won't appear in navigation.
+                Choose which features are available for this show. Hidden features won't appear in navigation.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">

@@ -89,6 +89,9 @@ export default function MobileBottomNav() {
       if (isFeatureEnabled('calendar')) {
         menuItems.push({ label: 'Calendar', href: `/shows/${currentShowId}/calendar`, icon: Calendar });
       }
+      if (isFeatureEnabled('script')) {
+        menuItems.push({ label: 'Script', href: `/shows/${currentShowId}/script`, icon: FileText });
+      }
       if (isFeatureEnabled('props')) {
         menuItems.push({ label: 'Props', href: `/shows/${currentShowId}/props`, icon: Package });
       }
