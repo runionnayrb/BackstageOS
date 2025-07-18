@@ -1481,17 +1481,16 @@ export default function ShowSettings() {
                           style={{ backgroundColor: eventType.color }}
                         />
                         <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{eventType.name}</h4>
-                            {eventType.isDefault && (
-                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                                System
-                              </span>
-                            )}
-                          </div>
+                          <h4 className="font-medium">{eventType.name}</h4>
                         </div>
                       </div>
-                      <Switch
+                      <div className="flex items-center gap-2">
+                        {eventType.isDefault && (
+                          <span className="text-xs text-blue-700 font-medium">
+                            System
+                          </span>
+                        )}
+                        <Switch
                         checked={(() => {
                           const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                             ? safeJsonParse((settings as any).scheduleSettings, {}) 
@@ -1524,6 +1523,7 @@ export default function ShowSettings() {
                           });
                         }}
                       />
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1571,17 +1571,15 @@ export default function ShowSettings() {
                           style={{ backgroundColor: eventType.color }}
                         />
                         <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{eventType.name}</h4>
-                            {eventType.isDefault && (
-                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                                System
-                              </span>
-                            )}
-                          </div>
+                          <h4 className="font-medium">{eventType.name}</h4>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
+                        {eventType.isDefault && (
+                          <span className="text-xs text-blue-700 font-medium">
+                            System
+                          </span>
+                        )}
                         <Button
                           variant="ghost"
                           size="sm"
