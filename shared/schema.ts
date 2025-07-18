@@ -2346,6 +2346,20 @@ export const googleCalendarIntegrations = pgTable("google_calendar_integrations"
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Public Calendar Sharing
+export const publicCalendarShares = pgTable("public_calendar_shares", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at"), // Optional expiration
+  isActive: boolean("is_active").default(true),
+  lastAccessed: timestamp("last_accessed"),
+  accessCount: integer("access_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Phase 5: Notification Preferences
 export const notificationPreferences = pgTable("notification_preferences", {
   id: serial("id").primaryKey(),
@@ -2413,6 +2427,17 @@ export const googleCalendarIntegrationsRelations = relations(googleCalendarInteg
   }),
 }));
 
+export const publicCalendarSharesRelations = relations(publicCalendarShares, ({ one }) => ({
+  project: one(projects, {
+    fields: [publicCalendarShares.projectId],
+    references: [projects.id],
+  }),
+  contact: one(contacts, {
+    fields: [publicCalendarShares.contactId],
+    references: [contacts.id],
+  }),
+}));
+
 export const notificationPreferencesRelations = relations(notificationPreferences, ({ one }) => ({
   contact: one(contacts, {
     fields: [notificationPreferences.contactId],
@@ -2475,6 +2500,12 @@ export const insertEmailTemplateCategorySchema = createInsertSchema(emailTemplat
   updatedAt: true,
 });
 
+export const insertPublicCalendarShareSchema = createInsertSchema(publicCalendarShares).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types for Phase 5
 export type GoogleCalendarIntegration = typeof googleCalendarIntegrations.$inferSelect;
 export type InsertGoogleCalendarIntegration = z.infer<typeof insertGoogleCalendarIntegrationSchema>;
@@ -2484,6 +2515,8 @@ export type ScheduleVersionComparison = typeof scheduleVersionComparisons.$infer
 export type InsertScheduleVersionComparison = z.infer<typeof insertScheduleVersionComparisonSchema>;
 export type EmailTemplateCategory = typeof emailTemplateCategories.$inferSelect;
 export type InsertEmailTemplateCategory = z.infer<typeof insertEmailTemplateCategorySchema>;
+export type PublicCalendarShare = typeof publicCalendarShares.$inferSelect;
+export type InsertPublicCalendarShare = z.infer<typeof insertPublicCalendarShareSchema>;
 
 // Performance and Rehearsal Tracking System (AEA Contract Management)
 // Only activates if at least one cast member has equityStatus = "equity"

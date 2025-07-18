@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { PublicCalendarShare } from "@/components/public-calendar-share";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +47,7 @@ import {
   Eye,
   EyeOff,
   Copy,
+  Download,
   Shield,
   Clock,
   ArrowLeft,
@@ -118,7 +120,7 @@ interface ShowSettings {
 }
 
 export default function ShowSettings() {
-  const { id } = useParams<ShowSettingsParams>();
+  const params = useParams<ShowSettingsParams>();
   const { user } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -145,62 +147,62 @@ export default function ShowSettings() {
   const showLabel = isFullTime ? "Show" : "Project";
 
   const { data: project, isLoading: projectLoading, error: projectError } = useQuery({
-    queryKey: [`/api/projects/${id}`],
-    enabled: !!id,
+    queryKey: [`/api/projects/${params.id}`],
+    enabled: !!params.id,
   });
 
   const { data: settings, isLoading } = useQuery({
-    queryKey: [`/api/projects/${id}/settings`],
-    enabled: !!id,
+    queryKey: [`/api/projects/${params.id}/settings`],
+    enabled: !!params.id,
   });
 
   const { data: eventTypes = [], refetch: refetchEventTypes } = useQuery({
-    queryKey: [`/api/projects/${id}/event-types`],
-    enabled: !!id && !!user,
+    queryKey: [`/api/projects/${params.id}/event-types`],
+    enabled: !!params.id && !!user,
   });
 
   const { data: locations = [], refetch: refetchLocations } = useQuery({
-    queryKey: [`/api/projects/${id}/event-locations`],
-    enabled: !!id && !!user,
+    queryKey: [`/api/projects/${params.id}/event-locations`],
+    enabled: !!params.id && !!user,
   });
 
   // Phase 5 queries
   const { data: calendarIntegrations = [] } = useQuery({
-    queryKey: [`/api/projects/${id}/calendar/integrations`],
-    enabled: !!id,
+    queryKey: [`/api/projects/${params.id}/calendar/integrations`],
+    enabled: !!params.id,
   });
 
   const { data: notificationPreferences = [] } = useQuery({
-    queryKey: [`/api/projects/${id}/notification-preferences`],
-    enabled: !!id,
+    queryKey: [`/api/projects/${params.id}/notification-preferences`],
+    enabled: !!params.id,
   });
 
   const { data: scheduleComparisons = [] } = useQuery({
-    queryKey: [`/api/projects/${id}/schedule/comparisons`],
-    enabled: !!id,
+    queryKey: [`/api/projects/${params.id}/schedule/comparisons`],
+    enabled: !!params.id,
   });
 
   const { data: changeStats } = useQuery({
-    queryKey: [`/api/projects/${id}/schedule/change-stats`],
-    enabled: !!id,
+    queryKey: [`/api/projects/${params.id}/schedule/change-stats`],
+    enabled: !!params.id,
   });
 
   const { data: emailTemplateCategories = [] } = useQuery({
-    queryKey: [`/api/projects/${id}/email-template-categories`],
-    enabled: !!id,
+    queryKey: [`/api/projects/${params.id}/email-template-categories`],
+    enabled: !!params.id,
   });
 
   const { data: contacts = [] } = useQuery({
-    queryKey: [`/api/projects/${id}/contacts`],
-    enabled: !!id,
+    queryKey: [`/api/projects/${params.id}/contacts`],
+    enabled: !!params.id,
   });
 
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: Partial<ShowSettings>) => {
-      return await apiRequest("PATCH", `/api/projects/${id}/settings`, data);
+      return await apiRequest("PATCH", `/api/projects/${params.id}/settings`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/settings`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/settings`] });
       toast({
         title: "Settings Updated",
         description: "Your settings have been saved successfully.",
@@ -221,10 +223,10 @@ export default function ShowSettings() {
 
   const saveProjectMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("PATCH", `/api/projects/${id}`, projectUpdates);
+      return await apiRequest("PATCH", `/api/projects/${params.id}`, projectUpdates);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}`] });
       toast({
         title: "Important Dates Updated",
         description: "Your production dates have been saved successfully.",
@@ -241,10 +243,10 @@ export default function ShowSettings() {
 
   const updateBasicInfoMutation = useMutation({
     mutationFn: async (data: { name?: string; venue?: string; description?: string }) => {
-      return await apiRequest("PUT", `/api/projects/${id}`, data);
+      return await apiRequest("PUT", `/api/projects/${params.id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}`] });
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       setIsEditingBasicInfo(false);
       toast({
@@ -263,7 +265,7 @@ export default function ShowSettings() {
 
   const deleteProjectMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("DELETE", `/api/projects/${id}`);
+      return await apiRequest("DELETE", `/api/projects/${params.id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
@@ -284,7 +286,7 @@ export default function ShowSettings() {
 
   const generateShareLinkMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("POST", `/api/projects/${id}/share-link`);
+      return await apiRequest("POST", `/api/projects/${params.id}/share-link`);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects", id, "settings"] });
@@ -298,7 +300,7 @@ export default function ShowSettings() {
   // Event type mutations
   const createEventTypeMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("POST", `/api/projects/${id}/event-types`, data);
+      return await apiRequest("POST", `/api/projects/${params.id}/event-types`, data);
     },
     onSuccess: () => {
       refetchEventTypes();
@@ -369,10 +371,10 @@ export default function ShowSettings() {
   // Location mutations
   const createLocationMutation = useMutation({
     mutationFn: async (data: any) => {
-      return await apiRequest("POST", `/api/projects/${id}/event-locations`, data);
+      return await apiRequest("POST", `/api/projects/${params.id}/event-locations`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/event-locations`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/event-locations`] });
       refetchLocations();
       setIsLocationDialogOpen(false);
       setLocationForm({ name: '', address: '', description: '', capacity: '', notes: '' });
@@ -437,7 +439,7 @@ export default function ShowSettings() {
   // Phase 5 mutations
   const connectGoogleCalendar = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('GET', `/api/projects/${id}/calendar/auth-url`);
+      const response = await apiRequest('GET', `/api/projects/${params.id}/calendar/auth-url`);
       
       return new Promise((resolve, reject) => {
         const popup = window.open(response.authUrl, '_blank', 'width=500,height=600');
@@ -446,7 +448,7 @@ export default function ShowSettings() {
         const messageHandler = (event: MessageEvent) => {
           if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
             window.removeEventListener('message', messageHandler);
-            queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/calendar/integrations`] });
+            queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/calendar/integrations`] });
             resolve(event.data.data);
             toast({
               title: "Google Calendar Connected",
@@ -484,10 +486,10 @@ export default function ShowSettings() {
 
   const updateSyncSettings = useMutation({
     mutationFn: async ({ integrationId, syncSettings }: { integrationId: number; syncSettings: any }) => {
-      return apiRequest('PUT', `/api/projects/${id}/calendar/integrations/${integrationId}`, { syncSettings });
+      return apiRequest('PUT', `/api/projects/${params.id}/calendar/integrations/${integrationId}`, { syncSettings });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/calendar/integrations`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/calendar/integrations`] });
       toast({
         title: "Settings updated",
         description: "Google Calendar sync settings have been updated.",
@@ -497,10 +499,10 @@ export default function ShowSettings() {
 
   const disconnectCalendar = useMutation({
     mutationFn: async (integrationId: number) => {
-      return apiRequest('DELETE', `/api/projects/${id}/calendar/integrations/${integrationId}`);
+      return apiRequest('DELETE', `/api/projects/${params.id}/calendar/integrations/${integrationId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/calendar/integrations`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/calendar/integrations`] });
       toast({
         title: "Calendar disconnected",
         description: "Google Calendar has been disconnected.",
@@ -510,10 +512,10 @@ export default function ShowSettings() {
 
   const updateNotificationPreferences = useMutation({
     mutationFn: async ({ contactId, preferences }: { contactId: number; preferences: any }) => {
-      return apiRequest('PUT', `/api/projects/${id}/notification-preferences/${contactId}`, preferences);
+      return apiRequest('PUT', `/api/projects/${params.id}/notification-preferences/${contactId}`, preferences);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/notification-preferences`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/notification-preferences`] });
       toast({
         title: "Preferences updated",
         description: "Notification preferences have been updated.",
@@ -523,10 +525,10 @@ export default function ShowSettings() {
 
   const createTemplateCategory = useMutation({
     mutationFn: async (categoryData: { name: string; description: string }) => {
-      return apiRequest('POST', `/api/projects/${id}/email-template-categories`, categoryData);
+      return apiRequest('POST', `/api/projects/${params.id}/email-template-categories`, categoryData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/email-template-categories`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/email-template-categories`] });
       setShowNewCategoryDialog(false);
       setNewTemplateCategory({ name: '', description: '' });
       toast({
@@ -538,10 +540,10 @@ export default function ShowSettings() {
 
   const deleteTemplateCategory = useMutation({
     mutationFn: async (categoryId: number) => {
-      return apiRequest('DELETE', `/api/projects/${id}/email-template-categories/${categoryId}`);
+      return apiRequest('DELETE', `/api/projects/${params.id}/email-template-categories/${categoryId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/email-template-categories`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/email-template-categories`] });
       toast({
         title: "Category deleted",
         description: "Email template category has been deleted.",
@@ -720,6 +722,54 @@ export default function ShowSettings() {
     deleteLocationMutation.mutate(locationId);
   };
 
+  // Public calendar sharing functions
+  const copyCalendarLink = async (contactId: number) => {
+    try {
+      const response = await apiRequest("POST", `/api/projects/${params.id}/calendar/public-link`, { contactId });
+      const publicLink = response.publicLink;
+      
+      await navigator.clipboard.writeText(publicLink);
+      toast({
+        title: "Calendar Link Copied",
+        description: "The shareable calendar link has been copied to your clipboard.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate calendar link. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const downloadCalendarFile = async (contactId: number) => {
+    try {
+      const response = await apiRequest("GET", `/api/projects/${params.id}/calendar/ics/${contactId}`);
+      const icsContent = response.icsContent;
+      
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${project?.name || 'schedule'}_${contacts.find((c: any) => c.id === contactId)?.name || 'contact'}.ics`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Calendar Downloaded",
+        description: "The ICS calendar file has been downloaded to your device.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to download calendar file. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -741,7 +791,7 @@ export default function ShowSettings() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation(`/shows/${id}`)}
+            onClick={() => setLocation(`/shows/${params.id}`)}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -1839,6 +1889,55 @@ export default function ShowSettings() {
             </CardContent>
           </Card>
 
+          {/* Public Calendar Sharing */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Share2 className="h-5 w-5" />
+                Public Calendar Sharing
+              </CardTitle>
+              <CardDescription>
+                Generate shareable calendar links for non-users (like producers) to add personal schedules to their Google Calendar.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {contacts.length > 0 ? (
+                <div className="space-y-3">
+                  {contacts.map((contact: any) => (
+                    <div key={contact.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <h4 className="font-medium">{contact.name}</h4>
+                        <p className="text-sm text-muted-foreground">{contact.email}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => copyCalendarLink(contact.id)}
+                        >
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy Link
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => downloadCalendarFile(contact.id)}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download ICS
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No contacts available. Add team members to generate shareable calendar links.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Team Notification Preferences */}
           <Card className="mt-6">
             <CardHeader>
@@ -2047,6 +2146,13 @@ export default function ShowSettings() {
                   <p>No template categories created yet. Organize your email templates by creating categories.</p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Public Calendar Sharing */}
+          <Card className="mt-6">
+            <CardContent className="pt-6">
+              <PublicCalendarShare projectId={parseInt(params.id)} />
             </CardContent>
           </Card>
 

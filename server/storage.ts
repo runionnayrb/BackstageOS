@@ -55,6 +55,7 @@ import {
   notificationPreferences,
   scheduleVersionComparisons,
   emailTemplateCategories,
+  publicCalendarShares,
 
   type User,
   type UpsertUser,
@@ -162,6 +163,8 @@ import {
   type InsertScheduleVersionComparison,
   type EmailTemplateCategory,
   type InsertEmailTemplateCategory,
+  type PublicCalendarShare,
+  type InsertPublicCalendarShare,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -476,6 +479,15 @@ export interface IStorage {
   createScheduleEmailTemplate(template: InsertScheduleEmailTemplate): Promise<ScheduleEmailTemplate>;
   updateScheduleEmailTemplate(id: number, template: Partial<InsertScheduleEmailTemplate>): Promise<ScheduleEmailTemplate>;
   deleteScheduleEmailTemplate(id: number): Promise<void>;
+
+  // Public Calendar Shares
+  getPublicCalendarSharesByProjectId(projectId: number): Promise<PublicCalendarShare[]>;
+  getPublicCalendarShareByToken(token: string): Promise<PublicCalendarShare | undefined>;
+  getPublicCalendarShareByContact(contactId: number, projectId: number): Promise<PublicCalendarShare | undefined>;
+  createPublicCalendarShare(share: InsertPublicCalendarShare): Promise<PublicCalendarShare>;
+  updatePublicCalendarShare(id: number, share: Partial<InsertPublicCalendarShare>): Promise<PublicCalendarShare>;
+  deletePublicCalendarShare(id: number): Promise<void>;
+  updatePublicCalendarShareAccess(token: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3158,6 +3170,79 @@ export class DatabaseStorage implements IStorage {
           eq(scheduleVersionComparisons.toVersionId, toVersionId)
         )
       );
+    return result[0];
+  }
+
+  // Public Calendar Share Methods
+  async getPublicCalendarSharesByProjectId(projectId: number): Promise<PublicCalendarShare[]> {
+    const result = await db
+      .select()
+      .from(publicCalendarShares)
+      .where(eq(publicCalendarShares.projectId, projectId))
+      .orderBy(publicCalendarShares.createdAt);
+    return result;
+  }
+
+  async getPublicCalendarShareByToken(token: string): Promise<PublicCalendarShare | undefined> {
+    const result = await db
+      .select()
+      .from(publicCalendarShares)
+      .where(eq(publicCalendarShares.token, token));
+    return result[0];
+  }
+
+  async getPublicCalendarShareByContact(contactId: number, projectId: number): Promise<PublicCalendarShare | undefined> {
+    const result = await db
+      .select()
+      .from(publicCalendarShares)
+      .where(
+        and(
+          eq(publicCalendarShares.contactId, contactId),
+          eq(publicCalendarShares.projectId, projectId)
+        )
+      );
+    return result[0];
+  }
+
+  async createPublicCalendarShare(share: InsertPublicCalendarShare): Promise<PublicCalendarShare> {
+    const result = await db.insert(publicCalendarShares).values(share).returning();
+    return result[0];
+  }
+
+  async updatePublicCalendarShare(id: number, share: Partial<InsertPublicCalendarShare>): Promise<PublicCalendarShare> {
+    const result = await db
+      .update(publicCalendarShares)
+      .set({ ...share, updatedAt: new Date() })
+      .where(eq(publicCalendarShares.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deletePublicCalendarShare(id: number): Promise<void> {
+    await db.delete(publicCalendarShares).where(eq(publicCalendarShares.id, id));
+  }
+
+  async updatePublicCalendarShareAccess(token: string): Promise<void> {
+    await db
+      .update(publicCalendarShares)
+      .set({ 
+        accessCount: sql`${publicCalendarShares.accessCount} + 1`,
+        lastAccessedAt: new Date()
+      })
+      .where(eq(publicCalendarShares.token, token));
+  }
+
+  async getPersonalScheduleByContact(contactId: number, projectId: number): Promise<PersonalSchedule | undefined> {
+    const result = await db
+      .select()
+      .from(personalSchedules)
+      .where(
+        and(
+          eq(personalSchedules.contactId, contactId),
+          eq(personalSchedules.projectId, projectId)
+        )
+      )
+      .orderBy(desc(personalSchedules.createdAt));
     return result[0];
   }
 

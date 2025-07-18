@@ -66,6 +66,7 @@ import PerformanceTracker from "@/pages/PerformanceTracker";
 import TaskManagement from "@/pages/TaskManagement";
 import Notes from "@/pages/Notes";
 import PersonalScheduleViewer from "@/pages/personal-schedule";
+import PublicCalendar from "@/pages/public-calendar";
 
 
 function Router() {
@@ -122,6 +123,11 @@ function Router() {
   if (window.location.pathname.startsWith('/personal-schedule/')) {
     const token = window.location.pathname.split('/personal-schedule/')[1];
     return <PersonalScheduleViewer token={token} />;
+  }
+
+  // Public calendar viewer route - public access with token
+  if (window.location.pathname.startsWith('/public-calendar/')) {
+    return <PublicCalendar />;
   }
 
   

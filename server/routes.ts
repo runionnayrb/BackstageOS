@@ -13,13 +13,61 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
 import { scheduleNotificationService } from "./services/scheduleNotificationService.js";
 import { z } from "zod";
 import sgMail from "@sendgrid/mail";
+
+// Helper function to generate ICS content
+function generateICSContent(events: any[], project: any, contact: any): string {
+  const formatDate = (date: string, time?: string) => {
+    const d = new Date(date);
+    if (time) {
+      const [hours, minutes] = time.split(':');
+      d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    }
+    return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  };
+
+  const escapeText = (text: string) => {
+    return text.replace(/[,;\\]/g, '\\$&').replace(/\n/g, '\\n');
+  };
+
+  let icsContent = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//BackstageOS//Personal Schedule//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    `X-WR-CALNAME:${escapeText(project.name)} - ${escapeText(contact.firstName)} ${escapeText(contact.lastName)}`,
+    `X-WR-CALDESC:Personal schedule for ${escapeText(contact.firstName)} ${escapeText(contact.lastName)} in ${escapeText(project.name)}`
+  ];
+
+  events.forEach(event => {
+    const startDateTime = formatDate(event.date, event.startTime);
+    const endDateTime = formatDate(event.date, event.endTime);
+    const uid = `${event.id}@backstageos.com`;
+    
+    icsContent.push(
+      'BEGIN:VEVENT',
+      `UID:${uid}`,
+      `DTSTART:${startDateTime}`,
+      `DTEND:${endDateTime}`,
+      `SUMMARY:${escapeText(event.title)}`,
+      `DESCRIPTION:${escapeText(event.description || '')}`,
+      `LOCATION:${escapeText(event.location || '')}`,
+      `STATUS:CONFIRMED`,
+      `TRANSP:OPAQUE`,
+      'END:VEVENT'
+    );
+  });
+
+  icsContent.push('END:VCALENDAR');
+  return icsContent.join('\r\n');
+}
 
 // Configure multer for image uploads
 const upload = multer({
@@ -9444,6 +9492,225 @@ Respond with valid JSON only.`;
     }
   });
 
+  // PUBLIC CALENDAR SHARING ROUTES
+  // Get public calendar shares for a project
+  app.get('/api/projects/:projectId/public-calendar-shares', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const shares = await storage.getPublicCalendarSharesByProjectId(projectId);
+      res.json(shares);
+    } catch (error) {
+      console.error("Error fetching public calendar shares:", error);
+      res.status(500).json({ message: "Failed to fetch public calendar shares" });
+    }
+  });
+
+  // Create public calendar share
+  app.post('/api/projects/:projectId/public-calendar-shares', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Generate unique token
+      const token = require('crypto').randomBytes(32).toString('hex');
+      
+      const shareData = {
+        projectId,
+        contactId: req.body.contactId,
+        token,
+        expiresAt: req.body.expiresAt || null,
+        isActive: true
+      };
+
+      const share = await storage.createPublicCalendarShare(shareData);
+      res.json(share);
+    } catch (error) {
+      console.error("Error creating public calendar share:", error);
+      res.status(500).json({ message: "Failed to create public calendar share" });
+    }
+  });
+
+  // Update public calendar share
+  app.put('/api/projects/:projectId/public-calendar-shares/:shareId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const shareId = parseInt(req.params.shareId);
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const share = await storage.updatePublicCalendarShare(shareId, req.body);
+      res.json(share);
+    } catch (error) {
+      console.error("Error updating public calendar share:", error);
+      res.status(500).json({ message: "Failed to update public calendar share" });
+    }
+  });
+
+  // Delete public calendar share
+  app.delete('/api/projects/:projectId/public-calendar-shares/:shareId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const shareId = parseInt(req.params.shareId);
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deletePublicCalendarShare(shareId);
+      res.json({ message: "Public calendar share deleted" });
+    } catch (error) {
+      console.error("Error deleting public calendar share:", error);
+      res.status(500).json({ message: "Failed to delete public calendar share" });
+    }
+  });
+
+  // Public Calendar Access (no auth required)
+  app.get('/api/public-calendar/:token', async (req: any, res) => {
+    try {
+      const token = req.params.token;
+      
+      // Find calendar share by token
+      const share = await storage.getPublicCalendarShareByToken(token);
+      
+      if (!share) {
+        return res.status(404).json({ message: "Calendar not found" });
+      }
+
+      // Check if token is expired
+      if (share.expiresAt && new Date() > new Date(share.expiresAt)) {
+        return res.status(410).json({ message: "Calendar access has expired" });
+      }
+
+      if (!share.isActive) {
+        return res.status(403).json({ message: "Calendar access has been deactivated" });
+      }
+
+      // Get project and contact details
+      const project = await storage.getProjectById(share.projectId);
+      const contact = await storage.getContactById(share.contactId);
+      
+      if (!project || !contact) {
+        return res.status(404).json({ message: "Project or contact not found" });
+      }
+
+      // Get all schedule events for this project
+      const scheduleEvents = await storage.getScheduleEventsByProjectId(share.projectId);
+      
+      // Filter events that involve this contact
+      const contactEvents = scheduleEvents.filter(event => 
+        event.participants && event.participants.some((p: any) => p.contactId === contact.id)
+      );
+
+      // Update access tracking
+      await storage.updatePublicCalendarShareAccess(token);
+
+      res.json({
+        project: {
+          id: project.id,
+          name: project.name,
+          description: project.description
+        },
+        contact: {
+          id: contact.id,
+          firstName: contact.firstName,
+          lastName: contact.lastName,
+          email: contact.email,
+          contactType: contact.contactType
+        },
+        events: contactEvents
+      });
+    } catch (error) {
+      console.error("Error fetching public calendar:", error);
+      res.status(500).json({ message: "Failed to fetch calendar" });
+    }
+  });
+
+  // Public Calendar ICS Download (no auth required)
+  app.get('/api/public-calendar/:token/ics', async (req: any, res) => {
+    try {
+      const token = req.params.token;
+      
+      // Find calendar share by token
+      const share = await storage.getPublicCalendarShareByToken(token);
+      
+      if (!share) {
+        return res.status(404).json({ message: "Calendar not found" });
+      }
+
+      // Check if token is expired
+      if (share.expiresAt && new Date() > new Date(share.expiresAt)) {
+        return res.status(410).json({ message: "Calendar access has expired" });
+      }
+
+      if (!share.isActive) {
+        return res.status(403).json({ message: "Calendar access has been deactivated" });
+      }
+
+      // Get project and contact details
+      const project = await storage.getProjectById(share.projectId);
+      const contact = await storage.getContactById(share.contactId);
+      
+      if (!project || !contact) {
+        return res.status(404).json({ message: "Project or contact not found" });
+      }
+
+      // Get all schedule events for this project
+      const scheduleEvents = await storage.getScheduleEventsByProjectId(share.projectId);
+      
+      // Filter events that involve this contact
+      const contactEvents = scheduleEvents.filter(event => 
+        event.participants && event.participants.some((p: any) => p.contactId === contact.id)
+      );
+
+      // Generate ICS file content
+      const icsContent = generateICSContent(contactEvents, project, contact);
+
+      // Update access tracking
+      await storage.updatePublicCalendarShareAccess(token);
+
+      res.setHeader('Content-Type', 'text/calendar');
+      res.setHeader('Content-Disposition', `attachment; filename="${project.name}-${contact.firstName}_${contact.lastName}.ics"`);
+      res.send(icsContent);
+    } catch (error) {
+      console.error("Error generating ICS file:", error);
+      res.status(500).json({ message: "Failed to generate calendar file" });
+    }
+  });
+
   // Phase 5: Google Calendar Integration Routes
   app.get('/api/projects/:projectId/calendar/auth-url', isAuthenticated, async (req: any, res) => {
     try {
@@ -9750,6 +10017,113 @@ Respond with valid JSON only.`;
           </body>
         </html>
       `);
+    }
+  });
+
+  // Phase 5: Public Calendar Sharing Routes
+  app.get('/api/projects/:projectId/public-calendar-shares', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const shares = await storage.getPublicCalendarSharesByProjectId(projectId);
+      res.json(shares);
+    } catch (error) {
+      console.error("Error fetching public calendar shares:", error);
+      res.status(500).json({ message: "Failed to fetch public calendar shares" });
+    }
+  });
+
+  app.post('/api/projects/:projectId/public-calendar-shares', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { nanoid } = await import('nanoid');
+      
+      const shareData = {
+        ...req.body,
+        projectId,
+        token: nanoid(32),
+        createdBy: req.user.id
+      };
+      
+      const share = await storage.createPublicCalendarShare(shareData);
+      res.json(share);
+    } catch (error) {
+      console.error("Error creating public calendar share:", error);
+      res.status(500).json({ message: "Failed to create public calendar share" });
+    }
+  });
+
+  app.put('/api/projects/:projectId/public-calendar-shares/:shareId', isAuthenticated, async (req: any, res) => {
+    try {
+      const shareId = parseInt(req.params.shareId);
+      const share = await storage.updatePublicCalendarShare(shareId, req.body);
+      res.json(share);
+    } catch (error) {
+      console.error("Error updating public calendar share:", error);
+      res.status(500).json({ message: "Failed to update public calendar share" });
+    }
+  });
+
+  app.delete('/api/projects/:projectId/public-calendar-shares/:shareId', isAuthenticated, async (req: any, res) => {
+    try {
+      const shareId = parseInt(req.params.shareId);
+      await storage.deletePublicCalendarShare(shareId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting public calendar share:", error);
+      res.status(500).json({ message: "Failed to delete public calendar share" });
+    }
+  });
+
+  // Public access route for calendar sharing (no auth required)
+  app.get('/api/public-calendar/:token', async (req: any, res) => {
+    try {
+      const { token } = req.params;
+      const share = await storage.getPublicCalendarShareByToken(token);
+      
+      if (!share) {
+        return res.status(404).json({ message: "Calendar share not found" });
+      }
+
+      if (!share.isActive) {
+        return res.status(403).json({ message: "Calendar share is inactive" });
+      }
+
+      // Update access count
+      await storage.updatePublicCalendarShareAccess(token);
+
+      // Get project and contact details
+      const project = await storage.getProject(share.projectId);
+      const contact = await storage.getContact(share.contactId);
+
+      if (!project || !contact) {
+        return res.status(404).json({ message: "Project or contact not found" });
+      }
+
+      // Get personal schedule for this contact
+      const personalSchedule = await storage.getPersonalScheduleByContact(share.contactId, share.projectId);
+
+      res.json({
+        project: {
+          id: project.id,
+          name: project.name,
+          description: project.description
+        },
+        contact: {
+          id: contact.id,
+          name: contact.name,
+          email: contact.email
+        },
+        schedule: personalSchedule,
+        share: {
+          title: share.title,
+          description: share.description,
+          lastAccessedAt: share.lastAccessedAt,
+          accessCount: share.accessCount
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching public calendar:", error);
+      res.status(500).json({ message: "Failed to fetch public calendar" });
     }
   });
 
