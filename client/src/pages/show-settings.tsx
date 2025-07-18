@@ -1036,7 +1036,7 @@ export default function ShowSettings() {
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
-                {/* Email Section */}
+                {/* Communication Features */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
@@ -1058,10 +1058,7 @@ export default function ShowSettings() {
                       }
                     />
                   </div>
-                </div>
 
-                {/* Core Features */}
-                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label className="text-sm font-medium">Chat</Label>
@@ -1097,7 +1094,10 @@ export default function ShowSettings() {
                       }
                     />
                   </div>
+                </div>
 
+                {/* Production Features */}
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label className="text-sm font-medium">Calendar</Label>
@@ -1115,10 +1115,7 @@ export default function ShowSettings() {
                       }
                     />
                   </div>
-                </div>
 
-                {/* Production Features */}
-                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label className="text-sm font-medium">Script</Label>
