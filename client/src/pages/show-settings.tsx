@@ -126,6 +126,7 @@ export default function ShowSettings() {
   const [projectUpdates, setProjectUpdates] = useState<any>({});
   const [showBasicInfo, setShowBasicInfo] = useState<any>({});
   const [isEditingBasicInfo, setIsEditingBasicInfo] = useState(false);
+  const [activeTab, setActiveTab] = useState("general");
   
   // Event types and locations management state
   const [isEventTypeDialogOpen, setIsEventTypeDialogOpen] = useState(false);
@@ -756,8 +757,9 @@ export default function ShowSettings() {
           <p className="text-muted-foreground">{(project as any)?.name} • Configure settings and permissions</p>
         </div>
 
-      <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Desktop tabs - hidden on mobile */}
+        <TabsList className="hidden md:grid w-full grid-cols-7">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <Edit3 className="h-4 w-4" />
             General
@@ -787,6 +789,62 @@ export default function ShowSettings() {
             Important Dates
           </TabsTrigger>
         </TabsList>
+
+        {/* Mobile dropdown - shown only on mobile */}
+        <div className="md:hidden mb-6">
+          <Select
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value)}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="general">
+                <div className="flex items-center gap-2">
+                  <Edit3 className="h-4 w-4" />
+                  General
+                </div>
+              </SelectItem>
+              <SelectItem value="team">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Team
+                </div>
+              </SelectItem>
+              <SelectItem value="sharing">
+                <div className="flex items-center gap-2">
+                  <Share2 className="h-4 w-4" />
+                  Sharing
+                </div>
+              </SelectItem>
+              <SelectItem value="templates">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Templates
+                </div>
+              </SelectItem>
+              <SelectItem value="reports">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Reports
+                </div>
+              </SelectItem>
+              <SelectItem value="schedule">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  Schedule
+                </div>
+              </SelectItem>
+              <SelectItem value="dates">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Important Dates
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         <TabsContent value="general" className="mt-6">
           <Card>
