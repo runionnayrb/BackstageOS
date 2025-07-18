@@ -753,7 +753,7 @@ export function TaskTableView({
                 onTaskUpdate(task.id, { properties: updatedProperties });
               }}
             >
-              <SelectTrigger className="h-8 w-full justify-start hover:bg-gray-100 border-0 shadow-none bg-transparent">
+              <SelectTrigger className="h-8 w-full justify-start hover:bg-gray-100 border-0 shadow-none bg-transparent [&>svg]:hidden">
                 <SelectValue placeholder="No Project" />
               </SelectTrigger>
               <SelectContent>
