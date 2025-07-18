@@ -465,7 +465,7 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold">Event Type Calendar Subscriptions</h3>
+            <h3 className="text-lg font-semibold">Schedule Sharing</h3>
             <p className="text-sm text-muted-foreground">
               Share dynamic calendar subscriptions for specific event types that automatically update
             </p>
