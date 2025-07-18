@@ -4,13 +4,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History } from "lucide-react";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import MobileWeeklyScheduleView from "@/components/mobile-weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
 import MonthlyScheduleView from "@/components/monthly-schedule-view-new";
 import ScheduleFilter from "@/components/schedule-filter";
 import EventForm from "@/components/event-form";
+import { ScheduleVersionHistory } from "@/components/schedule-version-control/schedule-version-history";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -35,6 +37,7 @@ export default function Schedule() {
     startTime?: string;
     endTime?: string;
   }>({});
+  const [showVersionControl, setShowVersionControl] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -279,6 +282,15 @@ export default function Schedule() {
               <button onClick={goToNext} className="p-1 hover:bg-gray-100 rounded-r transition-colors">
                 <ChevronRight className="h-4 w-4" />
               </button>
+              <Button
+                onClick={() => setShowVersionControl(true)}
+                variant="outline"
+                size="sm"
+                className="gap-1 text-xs px-2 py-1 h-auto ml-2"
+              >
+                <History className="h-3 w-3" />
+                Versions
+              </Button>
               <button 
                 onClick={() => setCreateEventDialog(true)} 
                 className="p-1 hover:bg-gray-100 rounded ml-2 transition-colors"
@@ -628,6 +640,16 @@ export default function Schedule() {
           </div>
         </>
       )}
+
+      {/* Version Control Dialog */}
+      <Dialog open={showVersionControl} onOpenChange={setShowVersionControl}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+          <ScheduleVersionHistory 
+            projectId={projectId}
+            onClose={() => setShowVersionControl(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

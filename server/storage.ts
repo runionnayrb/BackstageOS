@@ -442,6 +442,7 @@ export interface IStorage {
   createScheduleVersion(version: InsertScheduleVersion): Promise<ScheduleVersion>;
   updateScheduleVersion(id: number, version: Partial<InsertScheduleVersion>): Promise<ScheduleVersion>;
   deleteScheduleVersion(id: number): Promise<void>;
+  markScheduleVersionsAsNotCurrent(projectId: number): Promise<void>;
   
   // Personal Schedules
   getPersonalSchedulesByProjectId(projectId: number): Promise<PersonalSchedule[]>;
@@ -2709,6 +2710,13 @@ export class DatabaseStorage implements IStorage {
 
   async deleteScheduleVersion(id: number): Promise<void> {
     await db.delete(scheduleVersions).where(eq(scheduleVersions.id, id));
+  }
+
+  async markScheduleVersionsAsNotCurrent(projectId: number): Promise<void> {
+    await db
+      .update(scheduleVersions)
+      .set({ isCurrent: false })
+      .where(eq(scheduleVersions.projectId, projectId));
   }
 
   // Personal Schedules

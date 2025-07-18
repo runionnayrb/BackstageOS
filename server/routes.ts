@@ -9144,6 +9144,204 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Schedule Version Control API Routes
+  
+  // Get schedule versions for a project
+  app.get('/api/projects/:projectId/schedule-versions', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Check access (owner or team member)
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const versions = await storage.getScheduleVersionsByProjectId(projectId);
+      res.json(versions);
+    } catch (error) {
+      console.error("Error fetching schedule versions:", error);
+      res.status(500).json({ message: "Failed to fetch schedule versions" });
+    }
+  });
+
+  // Get specific schedule version
+  app.get('/api/schedule-versions/:versionId', isAuthenticated, async (req: any, res) => {
+    try {
+      const versionId = parseInt(req.params.versionId);
+      const version = await storage.getScheduleVersionById(versionId);
+      
+      if (!version) {
+        return res.status(404).json({ message: "Schedule version not found" });
+      }
+      
+      // Verify project access
+      const project = await storage.getProjectById(version.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      res.json(version);
+    } catch (error) {
+      console.error("Error fetching schedule version:", error);
+      res.status(500).json({ message: "Failed to fetch schedule version" });
+    }
+  });
+
+  // Create/publish new schedule version
+  app.post('/api/projects/:projectId/schedule-versions', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Check access (owner or team member)
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get current schedule events to create snapshot
+      const scheduleEvents = await storage.getScheduleEventsByProjectId(projectId);
+      
+      const versionData = {
+        projectId,
+        version: req.body.version,
+        versionType: req.body.versionType,
+        title: req.body.title,
+        description: req.body.description || null,
+        scheduleData: {
+          events: scheduleEvents,
+          exportedAt: new Date().toISOString(),
+          totalEvents: scheduleEvents.length
+        },
+        publishedBy: parseInt(req.user.id),
+        isCurrent: true // New version becomes current
+      };
+
+      // Mark all previous versions as not current
+      await storage.markScheduleVersionsAsNotCurrent(projectId);
+      
+      // Create new version
+      const newVersion = await storage.createScheduleVersion(versionData);
+      
+      // Update or create personal schedules for all contacts
+      const contacts = await storage.getContactsByProjectId(projectId);
+      for (const contact of contacts) {
+        const existingPersonalSchedule = await storage.getPersonalScheduleByContactId(contact.id, projectId);
+        
+        if (existingPersonalSchedule) {
+          // Update existing personal schedule to point to new version
+          await storage.updatePersonalSchedule(existingPersonalSchedule.id, {
+            currentVersionId: newVersion.id
+          });
+        } else {
+          // Create new personal schedule
+          const accessToken = `ps_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`;
+          await storage.createPersonalSchedule({
+            contactId: contact.id,
+            projectId,
+            currentVersionId: newVersion.id,
+            accessToken,
+            emailPreferences: {
+              newVersion: true,
+              reminders: false,
+              dailyDigest: true
+            }
+          });
+        }
+      }
+
+      res.json(newVersion);
+    } catch (error) {
+      console.error("Error creating schedule version:", error);
+      res.status(500).json({ message: "Failed to create schedule version" });
+    }
+  });
+
+  // Get personal schedules for a project
+  app.get('/api/projects/:projectId/personal-schedules', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const personalSchedules = await storage.getPersonalSchedulesByProjectId(projectId);
+      res.json(personalSchedules);
+    } catch (error) {
+      console.error("Error fetching personal schedules:", error);
+      res.status(500).json({ message: "Failed to fetch personal schedules" });
+    }
+  });
+
+  // Get schedule email templates for a project
+  app.get('/api/projects/:projectId/schedule-email-templates', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const templates = await storage.getScheduleEmailTemplatesByProjectId(projectId);
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching schedule email templates:", error);
+      res.status(500).json({ message: "Failed to fetch schedule email templates" });
+    }
+  });
+
+  // Create schedule email template
+  app.post('/api/projects/:projectId/schedule-email-templates', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const templateData = {
+        ...req.body,
+        projectId,
+        createdBy: parseInt(req.user.id)
+      };
+
+      const template = await storage.createScheduleEmailTemplate(templateData);
+      res.json(template);
+    } catch (error) {
+      console.error("Error creating schedule email template:", error);
+      res.status(500).json({ message: "Failed to create schedule email template" });
+    }
+  });
+
   const server = createServer(app);
   
   // Start email cleanup scheduler for automatic 30-day trash cleanup
