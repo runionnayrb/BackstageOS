@@ -718,10 +718,10 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
                             size="sm" 
                             variant="outline" 
                             className="text-xs h-8"
-                            onClick={() => handleCopyLinkForContact(share.contactId)}
+                            onClick={() => window.open(publicLink, '_blank')}
                           >
-                            <Copy className="h-3 w-3 mr-1" />
-                            Copy Link
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            View Schedule
                           </Button>
                           <Button 
                             size="sm" 
@@ -731,15 +731,6 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
                           >
                             <Download className="h-3 w-3 mr-1" />
                             Download
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(publicLink, '_blank')}
-                            className="text-xs h-8"
-                          >
-                            <ExternalLink className="h-3 w-3 mr-1" />
-                            View
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
