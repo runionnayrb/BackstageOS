@@ -466,9 +466,7 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-semibold">Schedule Sharing</h3>
-            <p className="text-sm text-muted-foreground">
-              Share dynamic calendar subscriptions for specific event types that automatically update
-            </p>
+            <p className="text-sm text-muted-foreground">Publicly share schedules with external calendar applications that automatically update when published</p>
           </div>
           <Dialog open={isCreateEventTypeDialogOpen} onOpenChange={setIsCreateEventTypeDialogOpen}>
             <DialogTrigger asChild>
@@ -615,9 +613,7 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
           </Card>
         )}
       </div>
-
       <Separator />
-
       {/* Contact Schedule Sharing Section */}
       <div className="flex items-center justify-between">
         <div>
@@ -627,7 +623,6 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
           </p>
         </div>
       </div>
-
       {/* Unified Contact Schedule Sharing Interface */}
       <div className="space-y-4">
         {contacts.length === 0 ? (
@@ -780,7 +775,6 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
           </div>
         )}
       </div>
-
       {/* Create Share Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent>
