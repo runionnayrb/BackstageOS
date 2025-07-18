@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Copy, Download, ExternalLink, Plus, Settings, Share2, Trash2, Users } from "lucide-react";
+import { Calendar, Copy, Download, ExternalLink, Mail, Plus, Settings, Share2, Trash2, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { cn } from "@/lib/utils";
@@ -131,6 +131,12 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
   // Ensure event type shares is always an array
   const eventTypeShares = Array.isArray(eventTypeSharesData) ? eventTypeSharesData : [];
 
+  // Fetch notification preferences for unified interface
+  const { data: notificationPreferences = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/notification-preferences`],
+    queryFn: () => apiRequest('GET', `/api/projects/${projectId}/notification-preferences`)
+  });
+
   // Create share mutation
   const createShareMutation = useMutation({
     mutationFn: (data: { contactId: number; expiresAt?: string }) =>
@@ -233,6 +239,22 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
       toast({
         title: "Error Deleting Share",
         description: error.message || "Failed to delete event type calendar share",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Update notification preferences mutation
+  const updateNotificationPreferences = useMutation({
+    mutationFn: ({ contactId, preferences }: { contactId: number; preferences: any }) =>
+      apiRequest('PUT', `/api/projects/${projectId}/contacts/${contactId}/notification-preferences`, preferences),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/notification-preferences`] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Updating Preferences",
+        description: error.message || "Failed to update notification preferences",
         variant: "destructive"
       });
     }
@@ -595,183 +617,155 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
 
       <Separator />
 
-      {/* Individual Contact Calendar Shares Section */}
+      {/* Contact Schedule Sharing Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Individual Contact Calendar Shares</h3>
+          <h3 className="text-lg font-semibold">Contact Schedule Sharing</h3>
           <p className="text-sm text-muted-foreground">
-            Share individual contact calendars with external collaborators without requiring login
+            Manage how individual contacts receive schedule information through calendar subscriptions and email notifications
           </p>
         </div>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create Share
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Public Calendar Share</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="contact">Contact</Label>
-                <Select value={selectedContact} onValueChange={setSelectedContact}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a contact" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableContacts.map((contact: Contact) => (
-                      <SelectItem key={contact.id} value={contact.id.toString()}>
-                        {getContactDisplayName(contact)} - {contact.email}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="expires">Expires (Optional)</Label>
-                <Input
-                  id="expires"
-                  type="datetime-local"
-                  value={expiresAt}
-                  onChange={(e) => setExpiresAt(e.target.value)}
-                />
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="active"
-                  checked={isActive}
-                  onCheckedChange={setIsActive}
-                />
-                <Label htmlFor="active">Active</Label>
-              </div>
-              
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreateShare}
-                  disabled={createShareMutation.isPending}
-                >
-                  {createShareMutation.isPending ? 'Creating...' : 'Create Share'}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
 
-      <Separator />
-
+      {/* Unified Contact Schedule Sharing Interface */}
       <div className="space-y-4">
-        {shares.length === 0 ? (
+        {contacts.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="py-8 text-center">
-              <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h4 className="text-sm font-medium mb-1">No Individual Contact Shares</h4>
-              <p className="text-sm text-muted-foreground mb-4">
-                Create calendar shares for individual contacts to share their personal schedules
+              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h4 className="text-sm font-medium mb-1">No Contacts Found</h4>
+              <p className="text-sm text-muted-foreground">
+                Add contacts to your show to configure their schedule sharing preferences
               </p>
-              <Button 
-                variant="outline" 
-                onClick={() => setIsCreateDialogOpen(true)}
-                className="gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Create First Individual Share
-              </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-2">
-            {shares.map((share: PublicCalendarShare) => {
-              const contact = getContactById(share.contactId);
-              if (!contact) return null;
-              
-              const expired = isExpired(share.expiresAt);
-              const publicLink = `${window.location.origin}/public-calendar/${share.token}`;
+          <div className="space-y-4">
+            {contacts.map((contact: any) => {
+              const preferences = notificationPreferences.find((p: any) => p.contactId === contact.id) || {};
+              const existingShare = shares.find((s: any) => s.contactId === contact.id);
               
               return (
-                <div key={share.id} className="flex items-center justify-between py-3 px-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
+                <div key={contact.id} className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h4 className="font-medium">{getContactDisplayName(contact)}</h4>
+                      <p className="text-sm text-muted-foreground">{contact.email}</p>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {contact.contactType}
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Email Notifications */}
+                    <div className="space-y-3">
                       <div className="flex items-center gap-2">
-                        <h4 className="font-medium">{getContactDisplayName(contact)}</h4>
-                        {expired && (
-                          <Badge variant="destructive" className="text-xs">Expired</Badge>
-                        )}
-                        {!share.isActive && (
-                          <Badge variant="secondary" className="text-xs">Inactive</Badge>
-                        )}
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <h5 className="text-sm font-medium">Email Notifications</h5>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground">
-                          {share.accessCount} access{share.accessCount !== 1 ? 'es' : ''} • Created {formatDate(share.createdAt)}
+                      
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Schedule Updates</Label>
+                          <Switch
+                            checked={preferences.scheduleUpdates !== false}
+                            onCheckedChange={(checked) =>
+                              updateNotificationPreferences.mutate({
+                                contactId: contact.id,
+                                preferences: { ...preferences, scheduleUpdates: checked },
+                              })
+                            }
+                          />
                         </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="text-xs h-8"
-                            onClick={() => handleCopyLinkForContact(share.contactId)}
-                          >
-                            <Copy className="h-3 w-3 mr-1" />
-                            Copy Link
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="text-xs h-8"
-                            onClick={() => handleDownloadICSForContact(share.contactId)}
-                          >
-                            <Download className="h-3 w-3 mr-1" />
-                            Download
-                          </Button>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Email Enabled</Label>
+                          <Switch
+                            checked={preferences.emailEnabled !== false}
+                            onCheckedChange={(checked) =>
+                              updateNotificationPreferences.mutate({
+                                contactId: contact.id,
+                                preferences: { ...preferences, emailEnabled: checked },
+                              })
+                            }
+                          />
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <Label className="text-sm">Major Versions Only</Label>
+                          <Switch
+                            checked={preferences.majorVersionsOnly || false}
+                            onCheckedChange={(checked) =>
+                              updateNotificationPreferences.mutate({
+                                contactId: contact.id,
+                                preferences: { ...preferences, majorVersionsOnly: checked },
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Calendar Sharing */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
+                        <h5 className="text-sm font-medium">Calendar Sharing</h5>
+                      </div>
+                      
+                      {existingShare ? (
+                        <div className="space-y-2">
+                          <div className="text-xs text-muted-foreground">
+                            {existingShare.accessCount} access{existingShare.accessCount !== 1 ? 'es' : ''} • Created {formatDate(existingShare.createdAt)}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-xs h-8 flex-1"
+                              onClick={() => handleCopyLinkForContact(contact.id)}
+                            >
+                              <Copy className="h-3 w-3 mr-1" />
+                              Copy Link
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="text-xs h-8 flex-1"
+                              onClick={() => handleDownloadICSForContact(contact.id)}
+                            >
+                              <Download className="h-3 w-3 mr-1" />
+                              Download
+                            </Button>
+                          </div>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => window.open(publicLink, '_blank')}
-                            className="text-xs h-8"
+                            onClick={() => window.open(`${window.location.origin}/public-calendar/${existingShare.token}`, '_blank')}
+                            className="text-xs h-8 w-full"
                           >
                             <ExternalLink className="h-3 w-3 mr-1" />
-                            View
+                            View Calendar
                           </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                disabled={deleteShareMutation.isPending}
-                                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Delete Calendar Share</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Are you sure you want to delete the calendar share for "{getContactDisplayName(contact)}"? This will permanently remove access for all users with this link and cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => deleteShareMutation.mutate(share.id)}
-                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                >
-                                  Delete
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <p className="text-xs text-muted-foreground">No calendar share created</p>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedContact(contact.id.toString());
+                              setIsCreateDialogOpen(true);
+                            }}
+                            className="text-xs h-8 w-full gap-2"
+                          >
+                            <Plus className="h-3 w-3" />
+                            Create Calendar Share
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -780,6 +774,50 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
           </div>
         )}
       </div>
+
+      {/* Create Share Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Calendar Share</DialogTitle>
+            <DialogDescription>
+              Create a public calendar share for this contact to access their personal schedule
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="expires">Expires (Optional)</Label>
+              <Input
+                id="expires"
+                type="datetime-local"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="active"
+                checked={isActive}
+                onCheckedChange={setIsActive}
+              />
+              <Label htmlFor="active">Active</Label>
+            </div>
+            
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCreateShare}
+                disabled={createShareMutation.isPending}
+              >
+                {createShareMutation.isPending ? 'Creating...' : 'Create Share'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
