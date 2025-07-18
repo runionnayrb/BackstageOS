@@ -641,181 +641,147 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
             </CardContent>
           </Card>
         ) : (
-          <div className="border rounded-lg overflow-hidden">
-            <div className="grid grid-cols-3 bg-gray-50 border-b font-medium text-sm">
-              <div className="p-4">Full Name</div>
-              <div className="p-4">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button className="text-left hover:text-blue-600 transition-colors">
-                      Notification Settings
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80">
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Email Notification Settings</h4>
-                      <p className="text-xs text-muted-foreground">Configure how contacts receive schedule updates</p>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="p-4">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button className="text-left hover:text-blue-600 transition-colors">
-                      Calendar Sharing
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-80">
-                    <div className="space-y-2">
-                      <h4 className="font-medium text-sm">Calendar Sharing Options</h4>
-                      <p className="text-xs text-muted-foreground">Share calendar subscriptions with contacts</p>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-            
+          <div className="space-y-4">
             {contacts.map((contact: any) => {
               const preferences = notificationPreferences.find((p: any) => p.contactId === contact.id) || {};
               const existingShare = shares.find((s: any) => s.contactId === contact.id);
               
               return (
-                <div key={contact.id} className="grid grid-cols-3 border-b last:border-b-0">
-                  <div className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div>
-                        <div className="font-medium">{getContactDisplayName(contact)}</div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className="text-xs">
-                            {contact.contactType}
-                          </Badge>
-                        </div>
-                      </div>
+                <div key={contact.id} className="p-4 border rounded-lg">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h4 className="font-medium">{getContactDisplayName(contact)}</h4>
+                      <Badge variant="outline" className="text-xs mt-1">
+                        {contact.contactType}
+                      </Badge>
                     </div>
                   </div>
                   
-                  <div className="p-4">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="w-full">
-                          Configure
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80" align="start">
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="font-medium text-sm mb-2">Email Notifications</h4>
-                            <div className="space-y-3">
-                              <div className="flex items-center justify-between">
-                                <Label className="text-sm">Schedule Updates</Label>
-                                <Switch
-                                  checked={preferences.scheduleUpdates !== false}
-                                  onCheckedChange={(checked) =>
-                                    updateNotificationPreferences.mutate({
-                                      contactId: contact.id,
-                                      preferences: { ...preferences, scheduleUpdates: checked },
-                                    })
-                                  }
-                                />
-                              </div>
-                              
-                              <div className="flex items-center justify-between">
-                                <Label className="text-sm">Email Enabled</Label>
-                                <Switch
-                                  checked={preferences.emailEnabled !== false}
-                                  onCheckedChange={(checked) =>
-                                    updateNotificationPreferences.mutate({
-                                      contactId: contact.id,
-                                      preferences: { ...preferences, emailEnabled: checked },
-                                    })
-                                  }
-                                />
-                              </div>
-                              
-                              <div className="flex items-center justify-between">
-                                <Label className="text-sm">Major Versions Only</Label>
-                                <Switch
-                                  checked={preferences.majorVersionsOnly || false}
-                                  onCheckedChange={(checked) =>
-                                    updateNotificationPreferences.mutate({
-                                      contactId: contact.id,
-                                      preferences: { ...preferences, majorVersionsOnly: checked },
-                                    })
-                                  }
-                                />
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Notification Settings */}
+                    <div className="space-y-3">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button className="text-left hover:text-blue-600 transition-colors text-sm font-medium">
+                            Notification Settings
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80" align="start">
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="font-medium text-sm mb-2">Email Notifications</h4>
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <Label className="text-sm">Schedule Updates</Label>
+                                  <Switch
+                                    checked={preferences.scheduleUpdates !== false}
+                                    onCheckedChange={(checked) =>
+                                      updateNotificationPreferences.mutate({
+                                        contactId: contact.id,
+                                        preferences: { ...preferences, scheduleUpdates: checked },
+                                      })
+                                    }
+                                  />
+                                </div>
+                                
+                                <div className="flex items-center justify-between">
+                                  <Label className="text-sm">Email Enabled</Label>
+                                  <Switch
+                                    checked={preferences.emailEnabled !== false}
+                                    onCheckedChange={(checked) =>
+                                      updateNotificationPreferences.mutate({
+                                        contactId: contact.id,
+                                        preferences: { ...preferences, emailEnabled: checked },
+                                      })
+                                    }
+                                  />
+                                </div>
+                                
+                                <div className="flex items-center justify-between">
+                                  <Label className="text-sm">Major Versions Only</Label>
+                                  <Switch
+                                    checked={preferences.majorVersionsOnly || false}
+                                    onCheckedChange={(checked) =>
+                                      updateNotificationPreferences.mutate({
+                                        contactId: contact.id,
+                                        preferences: { ...preferences, majorVersionsOnly: checked },
+                                      })
+                                    }
+                                  />
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  
-                  <div className="p-4">
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className="w-full">
-                          {existingShare ? 'Manage' : 'Create'}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80" align="start">
-                        <div className="space-y-4">
-                          <div>
-                            <h4 className="font-medium text-sm mb-2">Calendar Sharing</h4>
-                            {existingShare ? (
-                              <div className="space-y-2">
-                                <div className="text-xs text-muted-foreground">
-                                  {existingShare.accessCount} access{existingShare.accessCount !== 1 ? 'es' : ''} • Created {formatDate(existingShare.createdAt)}
-                                </div>
-                                <div className="flex gap-2">
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    
+                    {/* Calendar Sharing */}
+                    <div className="space-y-3">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button className="text-left hover:text-blue-600 transition-colors text-sm font-medium">
+                            Calendar Sharing
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80" align="start">
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="font-medium text-sm mb-2">Calendar Sharing</h4>
+                              {existingShare ? (
+                                <div className="space-y-2">
+                                  <div className="text-xs text-muted-foreground">
+                                    {existingShare.accessCount} access{existingShare.accessCount !== 1 ? 'es' : ''} • Created {formatDate(existingShare.createdAt)}
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      onClick={() => handleCopyLinkForContact(contact.id)}
+                                      variant="outline"
+                                      size="sm"
+                                      className="flex-1 gap-1"
+                                    >
+                                      <Copy className="h-3 w-3" />
+                                      Copy Link
+                                    </Button>
+                                    <Button
+                                      onClick={() => handleDownloadICSForContact(contact.id)}
+                                      variant="outline"
+                                      size="sm"
+                                      className="flex-1 gap-1"
+                                    >
+                                      <Download className="h-3 w-3" />
+                                      Download
+                                    </Button>
+                                  </div>
                                   <Button
-                                    onClick={() => handleCopyLinkForContact(contact.id)}
+                                    onClick={() => window.open(`${window.location.origin}/public-calendar/${existingShare.token}`, '_blank')}
                                     variant="outline"
                                     size="sm"
-                                    className="flex-1 gap-1"
+                                    className="w-full gap-1"
                                   >
-                                    <Copy className="h-3 w-3" />
-                                    Copy Link
-                                  </Button>
-                                  <Button
-                                    onClick={() => handleDownloadICSForContact(contact.id)}
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex-1 gap-1"
-                                  >
-                                    <Download className="h-3 w-3" />
-                                    Download
+                                    <ExternalLink className="h-3 w-3" />
+                                    View Calendar
                                   </Button>
                                 </div>
+                              ) : (
                                 <Button
-                                  onClick={() => window.open(`${window.location.origin}/public-calendar/${existingShare.token}`, '_blank')}
+                                  onClick={() => {
+                                    setSelectedContact(contact.id.toString());
+                                    setIsCreateDialogOpen(true);
+                                  }}
                                   variant="outline"
                                   size="sm"
-                                  className="w-full gap-1"
+                                  className="w-full gap-2"
                                 >
-                                  <ExternalLink className="h-3 w-3" />
-                                  View Calendar
+                                  <Plus className="h-4 w-4" />
+                                  Create Calendar Share
                                 </Button>
-                              </div>
-                            ) : (
-                              <Button
-                                onClick={() => {
-                                  setSelectedContact(contact.id.toString());
-                                  setIsCreateDialogOpen(true);
-                                }}
-                                variant="outline"
-                                size="sm"
-                                className="w-full gap-2"
-                              >
-                                <Plus className="h-4 w-4" />
-                                Create Calendar Share
-                              </Button>
-                            )}
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
                   </div>
                 </div>
               );
