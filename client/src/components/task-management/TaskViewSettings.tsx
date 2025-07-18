@@ -167,10 +167,42 @@ export function TaskViewSettings({
   const triggerRef = useRef<HTMLDivElement>(null);
 
   const togglePropertyVisibility = (propertyId: number) => {
-    const updatedProperties = propertyVisibility.map(p => 
-      p.id === propertyId ? { ...p, visible: !p.visible } : p
-    );
-    onPropertyVisibilityChange(updatedProperties);
+    const targetProperty = propertyVisibility.find(p => p.id === propertyId);
+    if (!targetProperty) return;
+
+    const isBecomingHidden = targetProperty.visible; // Currently visible, will be hidden
+    const updatedProperty = { ...targetProperty, visible: !targetProperty.visible };
+    
+    // Remove the target property from the current list
+    const otherProperties = propertyVisibility.filter(p => p.id !== propertyId);
+    
+    if (isBecomingHidden) {
+      // Field is being hidden: place at top of hidden fields (bottom of visible fields)
+      const visibleProperties = otherProperties.filter(p => p.visible);
+      const hiddenProperties = otherProperties.filter(p => !p.visible);
+      
+      // Order: visible fields + newly hidden field + existing hidden fields
+      const reorderedProperties = [
+        ...visibleProperties,
+        updatedProperty,
+        ...hiddenProperties
+      ];
+      
+      onPropertyVisibilityChange(reorderedProperties);
+    } else {
+      // Field is being shown: place at bottom of visible fields
+      const visibleProperties = otherProperties.filter(p => p.visible);
+      const hiddenProperties = otherProperties.filter(p => !p.visible);
+      
+      // Order: existing visible fields + newly visible field + hidden fields
+      const reorderedProperties = [
+        ...visibleProperties,
+        updatedProperty,
+        ...hiddenProperties
+      ];
+      
+      onPropertyVisibilityChange(reorderedProperties);
+    }
   };
 
   const hideAllProperties = () => {
