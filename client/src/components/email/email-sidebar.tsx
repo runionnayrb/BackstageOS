@@ -218,7 +218,7 @@ export function EmailSidebar({
                 ) : (
                   <div className="flex items-center justify-between w-full">
                     <div className="flex items-center space-x-2">
-                      <IconComponent className="h-5 w-5" />
+                      <IconComponent className="h-8 w-8" />
                       <span>{folder.name}</span>
                     </div>
                     {folder.count > 0 && (
@@ -249,7 +249,7 @@ export function EmailSidebar({
               <Settings className="h-8 w-8" />
             ) : (
               <div className="flex items-center space-x-2">
-                <Settings className="h-5 w-5" />
+                <Settings className="h-8 w-8" />
                 <span>Settings</span>
               </div>
             )}
