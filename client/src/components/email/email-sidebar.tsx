@@ -118,7 +118,7 @@ export function EmailSidebar({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full justify-center p-2"
+                  className="w-full justify-center p-3"
                   onClick={(e) => {
                     e.preventDefault();
                     onCompose();
@@ -213,20 +213,24 @@ export function EmailSidebar({
                 )}
                 title={isCollapsed ? folder.name : undefined}
               >
-                <div className="flex items-center justify-between w-full">
-                  <div className="flex items-center space-x-2">
-                    <IconComponent className="h-4 w-4" />
-                    {!isCollapsed && <span>{folder.name}</span>}
+{isCollapsed ? (
+                  <IconComponent className="h-4 w-4" />
+                ) : (
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center space-x-2">
+                      <IconComponent className="h-4 w-4" />
+                      <span>{folder.name}</span>
+                    </div>
+                    {folder.count > 0 && (
+                      <Badge
+                        variant="secondary"
+                        className="text-xs bg-gray-100 text-gray-600"
+                      >
+                        {folder.count}
+                      </Badge>
+                    )}
                   </div>
-                  {!isCollapsed && folder.count > 0 && (
-                    <Badge
-                      variant="secondary"
-                      className="text-xs bg-gray-100 text-gray-600"
-                    >
-                      {folder.count}
-                    </Badge>
-                  )}
-                </div>
+                )}
               </button>
             );
           })}
@@ -237,12 +241,18 @@ export function EmailSidebar({
           <button 
             className={cn(
               "w-full flex items-center rounded-md hover:bg-gray-50 transition-colors text-gray-700",
-              isCollapsed ? "justify-center p-3" : "space-x-2 px-3 py-2 text-sm"
+              isCollapsed ? "justify-center p-3" : "px-3 py-2 text-sm"
             )}
             title={isCollapsed ? "Settings" : undefined}
           >
-            <Settings className="h-4 w-4" />
-            {!isCollapsed && <span>Settings</span>}
+            {isCollapsed ? (
+              <Settings className="h-4 w-4" />
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Settings className="h-4 w-4" />
+                <span>Settings</span>
+              </div>
+            )}
           </button>
         </div>
       </div>
