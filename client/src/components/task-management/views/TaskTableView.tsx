@@ -117,6 +117,7 @@ function ColumnContextMenu({
   children: React.ReactNode; 
 }) {
   const canDelete = !column.isSystemField && column.type === 'property';
+  const canHide = column.type !== 'task'; // Task Name field cannot be hidden
   
   return (
     <ContextMenu>
@@ -155,7 +156,11 @@ function ColumnContextMenu({
           Freeze
         </ContextMenuItem>
         
-        <ContextMenuItem onClick={() => onAction('hide', column.id)} className="flex items-center gap-2">
+        <ContextMenuItem 
+          onClick={canHide ? () => onAction('hide', column.id) : undefined} 
+          className={`flex items-center gap-2 ${!canHide ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={!canHide}
+        >
           <EyeOff className="w-4 h-4" />
           Hide
         </ContextMenuItem>
@@ -571,6 +576,14 @@ export function TaskTableView({
     onTaskUpdate(taskId, { properties: updatedProperties });
   };
 
+  // Helper function to get property name from column
+  const getPropertyNameFromColumn = (column: Column): string | null => {
+    if (column.type === 'task') return null; // Task name cannot be hidden
+    if (column.type === 'property') return column.key;
+    // For system fields, return their key
+    return column.key;
+  };
+
   const handleColumnAction = (action: string, columnId: string) => {
     console.log(`Column action: ${action} for column: ${columnId}`);
     
@@ -598,8 +611,21 @@ export function TaskTableView({
         console.log('Freezing column:', columnId);
         break;
       case 'hide':
-        // TODO: Implement column hiding
-        console.log('Hiding column:', columnId);
+        // Find the property name for this column
+        const propertyName = getPropertyNameFromColumn(allColumns.find(col => col.id === columnId)!);
+        
+        // Update property visibility to hide this column
+        if (onPropertyReorder && propertyName) {
+          // Get current property visibility state and update it
+          const updatedVisibility = propertyVisibility.map(prop => 
+            prop.name === propertyName 
+              ? { ...prop, visible: false }
+              : prop
+          );
+          
+          // Call the parent's property reorder function to update visibility
+          onPropertyReorder(updatedVisibility);
+        }
         break;
       case 'wrap-text':
         // TODO: Implement text wrapping
