@@ -124,6 +124,7 @@ export function EmailSidebar({
   const [showEditAccount, setShowEditAccount] = useState(false);
   const [showCreateSharedInbox, setShowCreateSharedInbox] = useState(false);
   const [selectedProjectForInbox, setSelectedProjectForInbox] = useState<Project | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // Fetch projects for shared inbox dropdown
   const { data: projects } = useQuery({
@@ -277,7 +278,7 @@ export function EmailSidebar({
         {selectedAccount && (
           <div className="space-y-2">
             <div className="relative">
-              <DropdownMenu>
+              <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
                 <DropdownMenuTrigger asChild>
                   {isCollapsed ? (
                     <Button
@@ -288,6 +289,10 @@ export function EmailSidebar({
                         e.preventDefault();
                         e.stopPropagation();
                         onCompose();
+                      }}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        setDropdownOpen(true);
                       }}
                     >
                       <Edit className="h-4 w-4 text-gray-600" />
