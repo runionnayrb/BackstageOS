@@ -171,7 +171,7 @@ import {
 
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, ne, sql, gte, lte, or, isNull, count } from "drizzle-orm";
+import { eq, and, desc, ne, sql, gte, lte, or, isNull, count, max } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (email/password auth)
@@ -318,6 +318,13 @@ export interface IStorage {
   updateLocationAvailability(id: number, availability: Partial<InsertLocationAvailability>): Promise<LocationAvailability>;
   deleteLocationAvailability(id: number): Promise<void>;
   bulkDeleteLocationAvailability(ids: number[]): Promise<void>;
+
+  // Event location operations
+  getEventLocationsByProjectId(projectId: number): Promise<EventLocation[]>;
+  createEventLocation(location: InsertEventLocation): Promise<EventLocation>;
+  updateEventLocation(locationId: number, updates: Partial<InsertEventLocation>): Promise<EventLocation>;
+  deleteEventLocation(locationId: number): Promise<void>;
+  reorderEventLocations(projectId: number, locationIds: number[]): Promise<void>;
 
   // Props operations
   getPropsByProjectId(projectId: number): Promise<Prop[]>;
@@ -1622,12 +1629,22 @@ export class DatabaseStorage implements IStorage {
     const result = await db.select()
       .from(eventLocations)
       .where(eq(eventLocations.projectId, projectId))
-      .orderBy(eventLocations.name);
+      .orderBy(eventLocations.sortOrder, eventLocations.name);
     return result;
   }
 
   async createEventLocation(location: any): Promise<any> {
-    const result = await db.insert(eventLocations).values(location).returning();
+    // Get the highest sortOrder for this project
+    const maxOrder = await db.select({ maxOrder: max(eventLocations.sortOrder) })
+      .from(eventLocations)
+      .where(eq(eventLocations.projectId, location.projectId));
+    
+    const nextOrder = (maxOrder[0]?.maxOrder || 0) + 1;
+    
+    const result = await db.insert(eventLocations).values({
+      ...location,
+      sortOrder: nextOrder
+    }).returning();
     return result[0];
   }
 
@@ -1641,6 +1658,20 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEventLocation(locationId: number): Promise<void> {
     await db.delete(eventLocations).where(eq(eventLocations.id, locationId));
+  }
+
+  async reorderEventLocations(projectId: number, locationIds: number[]): Promise<void> {
+    // Update sortOrder for each location based on its new position
+    const updatePromises = locationIds.map((locationId, index) =>
+      db.update(eventLocations)
+        .set({ sortOrder: index + 1, updatedAt: new Date() })
+        .where(and(
+          eq(eventLocations.id, locationId),
+          eq(eventLocations.projectId, projectId)
+        ))
+    );
+    
+    await Promise.all(updatePromises);
   }
 
   // Event types management

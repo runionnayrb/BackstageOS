@@ -466,6 +466,7 @@ export const eventLocations = pgTable("event_locations", {
   description: text("description"),
   capacity: integer("capacity"),
   notes: text("notes"),
+  sortOrder: integer("sort_order").default(0),
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

@@ -53,6 +53,7 @@ import {
   ArrowLeft,
   Edit3,
   Plus,
+  GripVertical,
   MapPin,
   Tag,
   Palette,
@@ -135,6 +136,10 @@ export default function ShowSettings() {
   const [isLocationDialogOpen, setIsLocationDialogOpen] = useState(false);
   const [editingEventType, setEditingEventType] = useState<any>(null);
   const [editingLocation, setEditingLocation] = useState<any>(null);
+  
+  // Drag and drop state for locations
+  const [draggedLocationId, setDraggedLocationId] = useState<number | null>(null);
+  const [dragOverLocationId, setDragOverLocationId] = useState<number | null>(null);
   const [eventTypeForm, setEventTypeForm] = useState({ name: '', description: '', color: '#3b82f6' });
   const [locationForm, setLocationForm] = useState({ name: '', address: '', description: '', capacity: '', notes: '' });
 
@@ -435,6 +440,77 @@ export default function ShowSettings() {
       });
     },
   });
+
+  const reorderLocationsMutation = useMutation({
+    mutationFn: async (locationIds: number[]) => {
+      return await apiRequest("PUT", `/api/projects/${params.id}/event-locations/reorder`, {
+        locationIds
+      });
+    },
+    onSuccess: () => {
+      refetchLocations();
+      toast({
+        title: "Locations Reordered",
+        description: "Location order has been updated successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to reorder locations. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Drag and drop handlers for locations
+  const handleLocationDragStart = (e: React.DragEvent, locationId: number) => {
+    setDraggedLocationId(locationId);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleLocationDragOver = (e: React.DragEvent, locationId: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverLocationId(locationId);
+  };
+
+  const handleLocationDragLeave = () => {
+    setDragOverLocationId(null);
+  };
+
+  const handleLocationDrop = (e: React.DragEvent, dropLocationId: number) => {
+    e.preventDefault();
+    
+    if (!draggedLocationId || draggedLocationId === dropLocationId) {
+      setDraggedLocationId(null);
+      setDragOverLocationId(null);
+      return;
+    }
+
+    // Create new order array
+    const locationsCopy = [...locations];
+    const draggedIndex = locationsCopy.findIndex(loc => loc.id === draggedLocationId);
+    const dropIndex = locationsCopy.findIndex(loc => loc.id === dropLocationId);
+
+    if (draggedIndex === -1 || dropIndex === -1) return;
+
+    // Remove dragged item and insert at new position
+    const [draggedItem] = locationsCopy.splice(draggedIndex, 1);
+    locationsCopy.splice(dropIndex, 0, draggedItem);
+
+    // Update sort order and send to server
+    const locationIds = locationsCopy.map(loc => loc.id);
+    reorderLocationsMutation.mutate(locationIds);
+
+    setDraggedLocationId(null);
+    setDragOverLocationId(null);
+  };
+
+  const handleLocationDragEnd = () => {
+    setDraggedLocationId(null);
+    setDragOverLocationId(null);
+  };
 
   // Phase 5 mutations
   const connectGoogleCalendar = useMutation({
@@ -1650,30 +1726,53 @@ export default function ShowSettings() {
                   </p>
                 ) : (
                   locations.map((location: any) => (
-                    <div key={location.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">{location.name}</h4>
-                        {location.address && (
-                          <p className="text-sm text-muted-foreground">{location.address}</p>
-                        )}
-                        {location.description && (
-                          <p className="text-sm text-muted-foreground">{location.description}</p>
-                        )}
-                        {location.capacity && (
-                          <p className="text-sm text-muted-foreground">Capacity: {location.capacity}</p>
-                        )}
+                    <div 
+                      key={location.id} 
+                      draggable
+                      onDragStart={(e) => handleLocationDragStart(e, location.id)}
+                      onDragOver={(e) => handleLocationDragOver(e, location.id)}
+                      onDragLeave={handleLocationDragLeave}
+                      onDrop={(e) => handleLocationDrop(e, location.id)}
+                      onDragEnd={handleLocationDragEnd}
+                      className={`flex items-center p-3 border rounded-lg cursor-move transition-colors ${
+                        draggedLocationId === location.id ? 'opacity-50' : ''
+                      } ${
+                        dragOverLocationId === location.id ? 'border-primary bg-muted/50' : ''
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 flex-1">
+                        <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <div className="flex-1">
+                          <h4 className="font-medium">{location.name}</h4>
+                          {location.address && (
+                            <p className="text-sm text-muted-foreground">{location.address}</p>
+                          )}
+                          {location.description && (
+                            <p className="text-sm text-muted-foreground">{location.description}</p>
+                          )}
+                          {location.capacity && (
+                            <p className="text-sm text-muted-foreground">Capacity: {location.capacity}</p>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleEditLocation(location)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditLocation(location);
+                          }}
                         >
                           <Edit3 className="h-4 w-4" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>

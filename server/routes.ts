@@ -4629,6 +4629,33 @@ Respond with valid JSON only.`;
     }
   });
 
+  app.put('/api/projects/:id/event-locations/reorder', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { locationIds } = req.body;
+      
+      // Check project access
+      const project = await storage.getProjectById(projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      if (!Array.isArray(locationIds)) {
+        return res.status(400).json({ message: "locationIds must be an array" });
+      }
+
+      await storage.reorderEventLocations(projectId, locationIds);
+      res.json({ message: "Event locations reordered successfully" });
+    } catch (error) {
+      console.error("Error reordering event locations:", error);
+      res.status(500).json({ message: "Failed to reorder event locations" });
+    }
+  });
+
   // Event types routes
   app.get('/api/projects/:id/event-types', isAuthenticated, async (req: any, res) => {
     try {
