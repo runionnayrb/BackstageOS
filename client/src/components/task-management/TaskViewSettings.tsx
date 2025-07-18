@@ -357,9 +357,13 @@ export function TaskViewSettings({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Opening properties editor, current page:', currentPage);
-                setCurrentPage('editProperties');
-                console.log('Set page to: editProperties');
+                console.log('BEFORE: Current page is:', currentPage);
+                setCurrentPage((prev) => {
+                  console.log('STATE UPDATE: Previous page was:', prev);
+                  console.log('STATE UPDATE: Setting page to: editProperties');
+                  return 'editProperties';
+                });
+                console.log('AFTER: Called setCurrentPage');
               }}
             >
               <div className="flex items-center gap-3">
