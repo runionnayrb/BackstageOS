@@ -48,16 +48,22 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
   const queryClient = useQueryClient();
 
   // Fetch public calendar shares
-  const { data: shares = [] } = useQuery({
+  const { data: sharesData = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/public-calendar-shares`],
     queryFn: () => apiRequest('GET', `/api/projects/${projectId}/public-calendar-shares`)
   });
 
+  // Ensure shares is always an array
+  const shares = Array.isArray(sharesData) ? sharesData : [];
+
   // Fetch contacts
-  const { data: contacts = [] } = useQuery({
+  const { data: contactsData = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/contacts`],
     queryFn: () => apiRequest('GET', `/api/projects/${projectId}/contacts`)
   });
+
+  // Ensure contacts is always an array
+  const contacts = Array.isArray(contactsData) ? contactsData : [];
 
   // Create share mutation
   const createShareMutation = useMutation({
