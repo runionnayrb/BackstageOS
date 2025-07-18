@@ -10481,7 +10481,7 @@ Respond with valid JSON only.`;
   });
 
   // Public Event Type Calendar Access (no auth required)
-  app.get('/api/public-event-calendar/:token', async (req: any, res) => {
+  app.get('/api/public-calendar/event-type/:token', async (req: any, res) => {
     try {
       const token = req.params.token;
       
@@ -10506,11 +10506,15 @@ Respond with valid JSON only.`;
       // Get all schedule events for this project
       const scheduleEvents = await storage.getScheduleEventsByProjectId(share.projectId);
       
+      // Get project settings to determine enabled event types
+      const projectSettings = await storage.getProjectSettings(share.projectId);
+      
       // Filter events by event type
       const filteredEvents = scheduleEvents.filter(event => {
         if (share.eventTypeCategory === 'show_schedule') {
-          // Show schedule events
-          return ['rehearsal', 'tech_rehearsal', 'performance', 'preview', 'meeting', 'dark'].includes(event.type);
+          // Show schedule events - use enabled event types from project settings
+          const enabledEventTypes = projectSettings?.enabledEventTypes || [];
+          return enabledEventTypes.includes(event.type);
         } else {
           // Individual events - match by event type name
           return event.type === share.eventTypeName.toLowerCase().replace(/\s+/g, '_');
@@ -10539,7 +10543,7 @@ Respond with valid JSON only.`;
   });
 
   // Public Event Type Calendar Dynamic Subscription (no auth required)
-  app.get('/api/public-event-calendar/:token/subscribe.ics', async (req: any, res) => {
+  app.get('/api/public-calendar/event-type/:token/subscribe.ics', async (req: any, res) => {
     try {
       const token = req.params.token;
       
@@ -10564,11 +10568,15 @@ Respond with valid JSON only.`;
       // Get all schedule events for this project
       const scheduleEvents = await storage.getScheduleEventsByProjectId(share.projectId);
       
+      // Get project settings to determine enabled event types
+      const projectSettings = await storage.getProjectSettings(share.projectId);
+      
       // Filter events by event type
       const filteredEvents = scheduleEvents.filter(event => {
         if (share.eventTypeCategory === 'show_schedule') {
-          // Show schedule events
-          return ['rehearsal', 'tech_rehearsal', 'performance', 'preview', 'meeting', 'dark'].includes(event.type);
+          // Show schedule events - use enabled event types from project settings
+          const enabledEventTypes = projectSettings?.enabledEventTypes || [];
+          return enabledEventTypes.includes(event.type);
         } else {
           // Individual events - match by event type name
           return event.type === share.eventTypeName.toLowerCase().replace(/\s+/g, '_');

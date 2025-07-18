@@ -64,15 +64,44 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Event type options
-  const eventTypeOptions = [
-    { category: 'show_schedule', name: 'Show Schedule', description: 'All rehearsals, techs, performances, and meetings' },
-    { category: 'individual', name: 'Meetings', description: 'All meeting events' },
-    { category: 'individual', name: 'Costume Fittings', description: 'All costume fitting events' },
-    { category: 'individual', name: 'Wig Fittings', description: 'All wig fitting events' },
-    { category: 'individual', name: 'Hair and Make-Up', description: 'All hair and make-up events' },
-    { category: 'individual', name: 'Vocal Coaching', description: 'All vocal coaching events' }
-  ];
+  // Fetch project settings to determine enabled event types for Show Schedule
+  const { data: projectSettingsData } = useQuery({
+    queryKey: [`/api/projects/${projectId}/settings`],
+    queryFn: () => apiRequest('GET', `/api/projects/${projectId}/settings`)
+  });
+
+  // Dynamic event type options based on project settings
+  const getEventTypeOptions = () => {
+    const enabledEventTypes = projectSettingsData?.enabledEventTypes || [];
+    
+    // Create dynamic description for Show Schedule based on enabled event types
+    const enabledTypeNames = enabledEventTypes.map((type: string) => {
+      switch(type) {
+        case 'rehearsal': return 'rehearsals';
+        case 'tech_rehearsal': return 'tech rehearsals';
+        case 'performance': return 'performances';
+        case 'preview': return 'previews';
+        case 'meeting': return 'meetings';
+        case 'dark': return 'dark days';
+        default: return type.replace(/_/g, ' ');
+      }
+    });
+    
+    const showScheduleDescription = enabledTypeNames.length > 0 
+      ? `All ${enabledTypeNames.join(', ')}` 
+      : 'All enabled show schedule events';
+
+    return [
+      { category: 'show_schedule', name: 'Show Schedule', description: showScheduleDescription },
+      { category: 'individual', name: 'Meetings', description: 'All meeting events' },
+      { category: 'individual', name: 'Costume Fittings', description: 'All costume fitting events' },
+      { category: 'individual', name: 'Wig Fittings', description: 'All wig fitting events' },
+      { category: 'individual', name: 'Hair and Make-Up', description: 'All hair and make-up events' },
+      { category: 'individual', name: 'Vocal Coaching', description: 'All vocal coaching events' }
+    ];
+  };
+
+  const eventTypeOptions = getEventTypeOptions();
 
   // Fetch public calendar shares
   const { data: sharesData = [] } = useQuery({
