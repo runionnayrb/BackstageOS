@@ -1773,75 +1773,7 @@ export default function ShowSettings() {
             </CardContent>
           </Card>
 
-          {/* Schedule Version Analytics */}
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <GitCompare className="h-5 w-5" />
-                Schedule Version Analytics
-              </CardTitle>
-              <CardDescription>
-                Track and analyze changes between schedule versions.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {changeStats ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{changeStats.totalVersions || 0}</div>
-                    <div className="text-sm text-blue-600">Total Versions</div>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{changeStats.totalChanges || 0}</div>
-                    <div className="text-sm text-green-600">Total Changes</div>
-                  </div>
-                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-600">{changeStats.eventsAdded || 0}</div>
-                    <div className="text-sm text-yellow-600">Events Added</div>
-                  </div>
-                  <div className="text-center p-4 bg-red-50 rounded-lg">
-                    <div className="text-2xl font-bold text-red-600">{changeStats.eventsRemoved || 0}</div>
-                    <div className="text-sm text-red-600">Events Removed</div>
-                  </div>
-                </div>
-              ) : null}
-              
-              {scheduleComparisons.length > 0 ? (
-                <div className="space-y-3">
-                  <h4 className="font-medium">Recent Comparisons</h4>
-                  {scheduleComparisons.slice(0, 5).map((comparison: any) => (
-                    <div key={comparison.id} className="p-3 border rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium">
-                            Version {comparison.fromVersionId} → Version {comparison.toVersionId}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(comparison.createdAt).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium">
-                            {comparison.comparisonData?.summary?.totalChanges || 0} changes
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            +{comparison.comparisonData?.summary?.eventsAdded || 0} 
-                            ~{comparison.comparisonData?.summary?.eventsModified || 0} 
-                            -{comparison.comparisonData?.summary?.eventsRemoved || 0}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <GitCompare className="h-12 w-12 mx-auto mb-4" />
-                  <p>No version comparisons yet. Comparisons are generated automatically when schedules are published.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+
 
           {/* Email Template Categories */}
           <Card className="mt-6">
