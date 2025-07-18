@@ -580,8 +580,21 @@ export function TaskTableView({
   const getPropertyNameFromColumn = (column: Column): string | null => {
     if (column.type === 'task') return null; // Task name cannot be hidden
     if (column.type === 'property') return column.key;
-    // For system fields, return their key
-    return column.key;
+    
+    // For system fields, map to the correct property names used in visibility settings
+    switch (column.type) {
+      case 'status': return 'Status';
+      case 'priority': return 'Priority';
+      case 'project': return 'Project';
+      case 'assignee': return 'Assignee';
+      case 'date':
+        if (column.id === 'dueDate') return 'Due Date';
+        if (column.id === 'created') return 'Created';
+        if (column.id === 'updated') return 'Updated';
+        return null;
+      default:
+        return column.key;
+    }
   };
 
   const handleColumnAction = (action: string, columnId: string) => {
@@ -613,13 +626,10 @@ export function TaskTableView({
       case 'hide':
         // Find the column object by ID from the visible columns
         const targetColumn = visibleColumns.find(col => col.id === columnId);
-        console.log('Target column:', targetColumn);
         if (!targetColumn) return;
         
         // Get the property name for this column
         const propertyName = getPropertyNameFromColumn(targetColumn);
-        console.log('Property name for column:', propertyName);
-        console.log('Current property visibility:', propertyVisibility);
         
         // Update property visibility to hide this column
         if (onPropertyReorder && propertyName) {
@@ -630,12 +640,8 @@ export function TaskTableView({
               : prop
           );
           
-          console.log('Updated visibility:', updatedVisibility);
-          
           // Call the parent's property reorder function to update visibility
           onPropertyReorder(updatedVisibility);
-        } else {
-          console.log('Missing onPropertyReorder or propertyName:', { onPropertyReorder: !!onPropertyReorder, propertyName });
         }
         break;
       case 'wrap-text':
