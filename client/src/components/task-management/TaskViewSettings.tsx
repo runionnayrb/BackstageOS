@@ -833,8 +833,19 @@ export function TaskViewSettings({
                         type="text"
                         value={selectedProperty.name}
                         onChange={(e) => {
-                          // TODO: Update property name
-                          console.log('Updating property name:', e.target.value);
+                          const newName = e.target.value;
+                          console.log('Updating property name:', newName);
+                          
+                          // Update the selected property
+                          setSelectedProperty(prev => prev ? { ...prev, name: newName } : null);
+                          
+                          // Update the property in the visibility list
+                          const updatedProperties = propertyVisibility.map(prop => 
+                            prop.id === selectedProperty.id 
+                              ? { ...prop, name: newName }
+                              : prop
+                          );
+                          onPropertyVisibilityChange(updatedProperties);
                         }}
                         className="flex-1 bg-transparent border-0 outline-none text-sm"
                         placeholder="Property name"
