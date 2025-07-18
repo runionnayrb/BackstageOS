@@ -283,7 +283,7 @@ export function EmailSidebar({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-10 w-10 mx-auto p-0 hover:bg-gray-50"
+                      className="w-full justify-center p-2"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
