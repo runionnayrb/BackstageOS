@@ -351,27 +351,23 @@ export function TaskViewSettings({
               </div>
             </div>
 
-            {/* Edit properties */}
-            <div 
-              className="flex items-center justify-between py-2 hover:bg-gray-50 rounded-md px-2 -mx-2 cursor-pointer"
+            {/* Edit properties - FIXED VERSION */}
+            <button 
+              className="w-full flex items-center justify-between py-2 hover:bg-gray-50 rounded-md px-2 -mx-2 cursor-pointer border-0 bg-transparent"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('BEFORE: Current page is:', currentPage);
-                setCurrentPage((prev) => {
-                  console.log('STATE UPDATE: Previous page was:', prev);
-                  console.log('STATE UPDATE: Setting page to: editProperties');
-                  return 'editProperties';
-                });
-                console.log('AFTER: Called setCurrentPage');
+                console.log('NEW HANDLER: Current page is:', currentPage);
+                setCurrentPage('editProperties');
+                console.log('NEW HANDLER: Called setCurrentPage with editProperties');
               }}
             >
               <div className="flex items-center gap-3">
                 <Settings className="w-4 h-4 text-gray-600" />
-                <span className="text-sm">Edit properties</span>
+                <span className="text-sm">Edit properties (FIXED)</span>
               </div>
               <ChevronRight className="w-4 h-4 text-gray-400" />
-            </div>
+            </button>
 
             {/* Filter */}
             <div 
@@ -477,8 +473,8 @@ export function TaskViewSettings({
               <div 
                 className="flex items-center justify-between py-2 hover:bg-gray-50 rounded-md px-2 -mx-2 cursor-pointer"
                 onClick={() => {
-                  // TODO: Open properties editor
-                  console.log('Opening properties editor');
+                  console.log('LAYOUT PAGE: Edit properties clicked');
+                  setCurrentPage('editProperties');
                 }}
               >
                 <div className="flex items-center gap-3">
