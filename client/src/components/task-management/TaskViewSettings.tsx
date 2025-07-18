@@ -6,6 +6,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -165,6 +175,7 @@ export function TaskViewSettings({
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
   const [currentPage, setCurrentPage] = useState<'main' | 'layout' | 'properties' | 'editProperties' | 'editProperty'>('main');
   const [selectedProperty, setSelectedProperty] = useState<PropertyVisibility | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Debug effect to monitor page changes
   useEffect(() => {
@@ -882,8 +893,7 @@ export function TaskViewSettings({
                       <div 
                         className="flex items-center gap-3 py-3 hover:bg-red-50 rounded-md px-2 -mx-2 cursor-pointer text-red-600"
                         onClick={() => {
-                          // TODO: Handle property deletion
-                          console.log('Deleting property:', selectedProperty.name);
+                          setShowDeleteDialog(true);
                         }}
                       >
                         <span className="w-4 h-4 flex items-center justify-center">🗑</span>
@@ -897,6 +907,31 @@ export function TaskViewSettings({
           </div>
         </>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete property</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the "{selectedProperty?.name}" property? This action cannot be undone and will remove this column from all views.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => {
+                console.log('Confirmed: Deleting property:', selectedProperty?.name);
+                // TODO: Implement actual property deletion logic
+                setShowDeleteDialog(false);
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
