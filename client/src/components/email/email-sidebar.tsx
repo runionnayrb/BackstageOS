@@ -284,8 +284,13 @@ export function EmailSidebar({
                       variant="ghost"
                       size="sm"
                       className="h-10 w-10 mx-auto p-0 hover:bg-gray-50"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onCompose();
+                      }}
                     >
-                      <Mail className="h-4 w-4 text-gray-600" />
+                      <Edit className="h-4 w-4 text-gray-600" />
                     </Button>
                   ) : (
                     <div className="flex items-center justify-between p-2 pr-12 rounded-md cursor-pointer transition-colors hover:bg-gray-50">
