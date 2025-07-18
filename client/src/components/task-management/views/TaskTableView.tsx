@@ -801,13 +801,13 @@ export function TaskTableView({
                 onTaskUpdate(task.id, { properties: updatedProperties });
               }}
             >
-              <SelectTrigger className="h-8 w-full justify-start hover:bg-gray-100 border-0 shadow-none bg-transparent [&>svg]:hidden">
-                <SelectValue placeholder="No Show" />
+              <SelectTrigger className="h-8 w-full justify-start hover:bg-gray-100 border-0 shadow-none bg-transparent [&>svg]:hidden text-left">
+                <SelectValue placeholder="No Show" className="text-left truncate" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No Show</SelectItem>
+              <SelectContent className="min-w-[200px]">
+                <SelectItem value="none" className="cursor-pointer">No Show</SelectItem>
                 {projects.map((project: any) => (
-                  <SelectItem key={project.id} value={project.id.toString()}>
+                  <SelectItem key={project.id} value={project.id.toString()} className="cursor-pointer">
                     {project.name}
                   </SelectItem>
                 ))}
