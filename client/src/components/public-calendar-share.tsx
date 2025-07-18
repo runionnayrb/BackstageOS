@@ -532,7 +532,7 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
         {eventTypeShares.length > 0 ? (
           <div className="space-y-2">
             {eventTypeShares.map((share: EventTypeCalendarShare) => (
-              <div key={share.id} className="flex items-center justify-between py-3 px-4 border rounded-lg">
+              <div key={share.id} className="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50/50">
                 <div className="flex-1">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium">{share.eventTypeName}</h4>
@@ -596,7 +596,7 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
             ))}
           </div>
         ) : (
-          <Card className="border-dashed">
+          <Card className="border-0 shadow-none">
             <CardContent className="py-8 text-center">
               <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h4 className="text-sm font-medium mb-1">No Event Type Shares</h4>
@@ -631,7 +631,7 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
       {/* Unified Contact Schedule Sharing Interface */}
       <div className="space-y-4">
         {contacts.length === 0 ? (
-          <Card className="border-dashed">
+          <Card className="border-0 shadow-none">
             <CardContent className="py-8 text-center">
               <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <h4 className="text-sm font-medium mb-1">No Contacts Found</h4>
@@ -647,7 +647,7 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
               const existingShare = shares.find((s: any) => s.contactId === contact.id);
               
               return (
-                <div key={contact.id} className="p-4 border rounded-lg">
+                <div key={contact.id} className="p-4 rounded-lg bg-gray-50/50">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium">{getContactDisplayName(contact)}</h4>
                     
