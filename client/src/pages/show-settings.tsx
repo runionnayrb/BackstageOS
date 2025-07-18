@@ -1988,12 +1988,7 @@ export default function ShowSettings() {
             </CardContent>
           </Card>
 
-          {/* Public Calendar Sharing */}
-          <Card className="mt-6">
-            <CardContent className="pt-6">
-              <PublicCalendarShare projectId={parseInt(params.id)} />
-            </CardContent>
-          </Card>
+
 
           {/* New Template Category Dialog */}
           <Dialog open={showNewCategoryDialog} onOpenChange={setShowNewCategoryDialog}>
