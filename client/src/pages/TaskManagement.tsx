@@ -36,6 +36,8 @@ export function TaskManagement() {
     { id: 4, name: 'Due Date', type: 'date', icon: CalendarDays, visible: true, required: false },
     { id: 5, name: 'Project', type: 'relation', icon: Building, visible: true, required: false },
     { id: 6, name: 'Assignee', type: 'person', icon: User, visible: false, required: false },
+    { id: 7, name: 'Created', type: 'date', icon: CalendarDays, visible: false, required: false },
+    { id: 8, name: 'Updated', type: 'date', icon: CalendarDays, visible: false, required: false },
   ]);
 
   // Get current project from URL params if available
