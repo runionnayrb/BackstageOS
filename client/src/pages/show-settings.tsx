@@ -1466,6 +1466,9 @@ export default function ShowSettings() {
           <Card className="mt-6">
             <CardHeader>
               <CardTitle>Show Schedule Filtering</CardTitle>
+              <CardDescription>
+                Configure which event types appear in your schedule views by default. Only enabled types will be shown in monthly, weekly, and daily views.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -1546,6 +1549,9 @@ export default function ShowSettings() {
                   <CardTitle>
                     Event Types
                   </CardTitle>
+                  <CardDescription>
+                    Manage custom event types for your schedule
+                  </CardDescription>
                 </div>
                 <Button onClick={handleCreateEventType} size="sm">
                   <Plus className="h-4 w-4 mr-2" />
