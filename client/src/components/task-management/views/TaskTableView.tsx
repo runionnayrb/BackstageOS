@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { Resizable } from "react-resizable";
@@ -321,8 +321,8 @@ export function TaskTableView({
     return Math.max(text.length * 8 + 32, 48);
   };
 
-  // Initialize columns with default layout and reorder based on property visibility
-  const [columns, setColumns] = useState<Column[]>(() => {
+  // Helper function to create columns
+  const createColumns = useCallback(() => {
     const allColumns: Column[] = [
       { id: 'checkbox', key: 'checkbox', title: '', width: 48, minWidth: 48, type: 'checkbox' },
       { id: 'task', key: 'task', title: 'Task', width: 300, minWidth: getMinWidthForText('Task'), type: 'task', isSystemField: true },
@@ -386,7 +386,15 @@ export function TaskTableView({
     }
     
     return allColumns;
-  });
+  }, [properties, propertyVisibility]);
+
+  // Initialize columns with default layout and reorder based on property visibility
+  const [columns, setColumns] = useState<Column[]>(createColumns);
+
+  // Update columns when propertyVisibility or properties change
+  useEffect(() => {
+    setColumns(createColumns());
+  }, [createColumns]);
 
   // Filter columns based on property visibility
   const visibleColumns = columns.filter(column => {
