@@ -374,6 +374,46 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
     });
   };
 
+  const handleCopyLinkForContact = (contactId: number) => {
+    const share = shares.find((s: PublicCalendarShare) => s.contactId === contactId);
+    if (!share) return;
+    
+    const subscriptionLink = `${window.location.origin}/api/public-calendar/${share.token}/subscribe.ics`;
+    navigator.clipboard.writeText(subscriptionLink);
+    
+    const contact = getContactById(contactId);
+    const contactName = contact ? getContactDisplayName(contact) : 'Contact';
+    
+    toast({
+      title: "Subscription Link Copied",
+      description: `The ${contactName} calendar subscription link has been copied. Add this to Google Calendar or Apple Calendar for automatic updates.`
+    });
+  };
+
+  const handleDownloadICSForContact = (contactId: number) => {
+    const share = shares.find((s: PublicCalendarShare) => s.contactId === contactId);
+    if (!share) return;
+    
+    const contact = getContactById(contactId);
+    const contactName = contact ? getContactDisplayName(contact) : 'Contact';
+    
+    const subscriptionLink = `${window.location.origin}/api/public-calendar/${share.token}/subscribe.ics`;
+    const filename = `${contactName.replace(/\s+/g, '_')}_calendar.ics`;
+    
+    // Create a temporary link to download the ICS file
+    const link = document.createElement('a');
+    link.href = subscriptionLink;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast({
+      title: "Calendar Downloaded",
+      description: `The ${contactName} calendar has been downloaded as ${filename}.`
+    });
+  };
+
   const handleDownloadEventTypeICS = (token: string, eventTypeName: string) => {
     const link = `${window.location.origin}/api/public-calendar/event-type/${token}/subscribe.ics`;
     const anchor = document.createElement('a');
@@ -630,186 +670,114 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
 
       <div className="space-y-4">
         {shares.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-8">
-              <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Public Shares</h3>
-              <p className="text-sm text-muted-foreground text-center mb-4">
-                Create public calendar shares to allow external collaborators to access individual schedules
+          <Card className="border-dashed">
+            <CardContent className="py-8 text-center">
+              <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h4 className="text-sm font-medium mb-1">No Individual Contact Shares</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Create calendar shares for individual contacts to share their personal schedules
               </p>
-              <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="gap-2"
+              >
                 <Plus className="h-4 w-4" />
-                Create Your First Share
+                Create First Individual Share
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <>
-            {/* Contact Selection and Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Select Individual Schedule</CardTitle>
-                <CardDescription>
-                  Choose a contact to access their schedule: View Link (web browser), Download ICS (auto-updating), or Copy Subscription (same as download but copies URL)
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-4">
+          <div className="space-y-2">
+            {shares.map((share: PublicCalendarShare) => {
+              const contact = getContactById(share.contactId);
+              if (!contact) return null;
+              
+              const expired = isExpired(share.expiresAt);
+              const publicLink = `${window.location.origin}/public-calendar/${share.token}`;
+              
+              return (
+                <div key={share.id} className="flex items-center justify-between py-3 px-4 border rounded-lg">
                   <div className="flex-1">
-                    <Label htmlFor="shareContact">Contact</Label>
-                    <Select value={selectedShareContact} onValueChange={setSelectedShareContact}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a contact to share" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {shares.map((share: PublicCalendarShare) => {
-                          const contact = getContactById(share.contactId);
-                          if (!contact) return null;
-                          
-                          const expired = isExpired(share.expiresAt);
-                          const isActive = share.isActive;
-                          
-                          return (
-                            <SelectItem 
-                              key={share.id} 
-                              value={share.contactId.toString()}
-                              disabled={!isActive || expired}
-                            >
-                              <div className="flex items-center justify-between w-full">
-                                <span>{getContactDisplayName(contact)}</span>
-                                <div className="flex items-center space-x-1 ml-2">
-                                  {expired && (
-                                    <Badge variant="destructive" className="text-xs">Expired</Badge>
-                                  )}
-                                  {!isActive && (
-                                    <Badge variant="secondary" className="text-xs">Inactive</Badge>
-                                  )}
-                                </div>
-                              </div>
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2 pt-6">
-                    <Button
-                      variant="outline"
-                      onClick={handleCopyLink}
-                      disabled={!selectedShareContact}
-                      className="gap-2"
-                    >
-                      <Copy className="h-4 w-4" />
-                      Copy Link
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleDownloadICS}
-                      disabled={!selectedShareContact}
-                      className="gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      Download ICS
-                    </Button>
-                    <Button
-                      onClick={handleCopySubscriptionLink}
-                      disabled={!selectedShareContact}
-                      className="gap-2"
-                    >
-                      <Calendar className="h-4 w-4" />
-                      Copy Subscription
-                    </Button>
-                  </div>
-                </div>
-                
-                {selectedShareContact && (
-                  <div className="pt-4 border-t">
-                    {(() => {
-                      const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact));
-                      const contact = getContactById(parseInt(selectedShareContact));
-                      if (!share || !contact) return null;
-                      
-                      const expired = isExpired(share.expiresAt);
-                      const publicLink = `${window.location.origin}/public-calendar/${share.token}`;
-                      
-                      return (
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium">{getContactDisplayName(contact)}</h4>
-                            <div className="flex items-center space-x-2">
-                              {expired && (
-                                <Badge variant="destructive">Expired</Badge>
-                              )}
-                              {!share.isActive && (
-                                <Badge variant="secondary">Inactive</Badge>
-                              )}
-                              <Switch
-                                checked={share.isActive}
-                                onCheckedChange={(checked) => handleToggleActive(share.id, checked)}
-                                disabled={updateShareMutation.isPending}
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                              <p className="font-medium">Created</p>
-                              <p className="text-muted-foreground">{formatDate(share.createdAt)}</p>
-                            </div>
-                            <div>
-                              <p className="font-medium">Expires</p>
-                              <p className="text-muted-foreground">
-                                {share.expiresAt ? formatDate(share.expiresAt) : 'Never'}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="font-medium">Access Count</p>
-                              <p className="text-muted-foreground">{share.accessCount}</p>
-                            </div>
-                            <div>
-                              <p className="font-medium">Last Accessed</p>
-                              <p className="text-muted-foreground">
-                                {share.lastAccessed ? formatDate(share.lastAccessed) : 'Never'}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <div className="text-sm flex-1 pr-4">
-                              <p className="font-medium">Public Link</p>
-                              <p className="text-muted-foreground break-all">{publicLink}</p>
-                            </div>
-                            <div className="flex items-center space-x-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium">{getContactDisplayName(contact)}</h4>
+                        {expired && (
+                          <Badge variant="destructive" className="text-xs">Expired</Badge>
+                        )}
+                        {!share.isActive && (
+                          <Badge variant="secondary" className="text-xs">Inactive</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-xs text-muted-foreground">
+                          {share.accessCount} access{share.accessCount !== 1 ? 'es' : ''} • Created {formatDate(share.createdAt)}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-xs h-8"
+                            onClick={() => handleCopyLinkForContact(share.contactId)}
+                          >
+                            <Copy className="h-3 w-3 mr-1" />
+                            Copy Link
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="text-xs h-8"
+                            onClick={() => handleDownloadICSForContact(share.contactId)}
+                          >
+                            <Download className="h-3 w-3 mr-1" />
+                            Download
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(publicLink, '_blank')}
+                            className="text-xs h-8"
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            View
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
                               <Button
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
-                                onClick={() => window.open(publicLink, '_blank')}
-                                className="gap-2"
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                                View
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => deleteShareMutation.mutate(share.id)}
                                 disabled={deleteShareMutation.isPending}
-                                className="gap-2"
+                                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
                               >
                                 <Trash2 className="h-4 w-4" />
-                                Delete
                               </Button>
-                            </div>
-                          </div>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Calendar Share</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to delete the calendar share for "{getContactDisplayName(contact)}"? This will permanently remove access for all users with this link and cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => deleteShareMutation.mutate(share.id)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
-                      );
-                    })()}
+                      </div>
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
