@@ -439,30 +439,7 @@ export default function ShowSettings() {
   // Phase 5 mutations
   const connectGoogleCalendar = useMutation({
     mutationFn: async () => {
-      // Development mode: Create mock integration for testing
-      if (process.env.NODE_ENV === 'development' || window.location.hostname.includes('replit.dev')) {
-        console.log('Creating development mock Google Calendar integration...');
-        const mockIntegration = await apiRequest('POST', `/api/projects/${params.id}/calendar/mock-integration`, {
-          calendarId: 'primary',
-          calendarName: 'Bryan\'s Calendar (Development)',
-          accessToken: 'mock_access_token_for_development',
-          refreshToken: 'mock_refresh_token_for_development',
-          syncSettings: {
-            syncPersonalSchedules: true,
-            syncEventTypes: [],
-            defaultReminders: [{ method: 'email', minutes: 15 }]
-          }
-        });
-        
-        toast({
-          title: "Google Calendar Connected (Development)",
-          description: "Mock Google Calendar integration created for testing.",
-        });
-        
-        return mockIntegration;
-      }
-      
-      // Production mode: Use real OAuth flow
+      // Always use real OAuth flow - let server handle development bypasses
       console.log('Starting Google Calendar connection...');
       const response = await apiRequest('GET', `/api/projects/${params.id}/calendar/auth-url`);
       console.log('API Response:', response);
@@ -486,10 +463,19 @@ export default function ShowSettings() {
             window.removeEventListener('message', messageHandler);
             queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/calendar/integrations`] });
             resolve(event.data.data);
-            toast({
-              title: "Google Calendar Connected",
-              description: "Successfully connected to Google Calendar.",
-            });
+            
+            // Handle both real and temporary integrations
+            if (event.data.data.temporary) {
+              toast({
+                title: "Google Calendar Connected (Temporary)",
+                description: "Temporary integration created for testing OAuth consent screen configuration.",
+              });
+            } else {
+              toast({
+                title: "Google Calendar Connected",
+                description: "Successfully connected to Google Calendar.",
+              });
+            }
           } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
             window.removeEventListener('message', messageHandler);
             reject(new Error(event.data.error));
