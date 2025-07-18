@@ -69,29 +69,29 @@ export function TaskManagement() {
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
   const projectId = showId || urlParams.get('projectId');
 
-  // Fetch or create the main task database
+  // Fetch or create the main task database - always use global database for consistency
   const { data: database, isLoading: loadingDatabase } = useQuery({
-    queryKey: ['/api/task-databases', 'main', projectId || 'global'],
+    queryKey: ['/api/task-databases', 'main', 'global'],
     queryFn: async () => {
-      // Try to fetch existing database first
-      const response = await apiRequest('GET', `/api/task-databases${projectId ? `?projectId=${projectId}` : ''}`);
+      // Always fetch the global database to ensure consistency
+      const response = await apiRequest('GET', `/api/task-databases`);
       const data = await response.json();
       const databases = Array.isArray(data) ? data : [];
       
-      // Look for existing main database
+      // Look for existing global main database
       let mainDatabase = databases.find((db: TaskDatabase) => 
-        db.name === 'Tasks' && (projectId ? db.projectId === parseInt(projectId) : db.isGlobal)
+        db.name === 'Tasks' && db.isGlobal
       );
       
-      // If no main database exists, create one
+      // If no global main database exists, create one
       if (!mainDatabase) {
         const createResponse = await apiRequest('POST', '/api/task-databases', {
           name: 'Tasks',
           description: 'Main task database',
           color: '#3B82F6',
           templateType: 'custom',
-          projectId: projectId ? parseInt(projectId) : null,
-          isGlobal: !projectId
+          projectId: null,
+          isGlobal: true
         });
         mainDatabase = await createResponse.json();
       }

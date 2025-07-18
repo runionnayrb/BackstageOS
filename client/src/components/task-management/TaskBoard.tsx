@@ -42,7 +42,9 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
     queryKey: ['/api/task-databases', database.id, 'tasks'],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/task-databases/${database.id}/tasks`);
-      return await response.json();
+      const result = await response.json();
+      console.log('Tasks fetched for database:', database.id, 'Project:', projectId, 'Tasks:', result);
+      return result;
     }
   });
 
@@ -129,6 +131,17 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
     const matchesProject = projectId 
       ? (task.properties?.project === projectId.toString())
       : true; // Show all tasks when not in a show context
+    
+    // Debug logging
+    if (projectId) {
+      console.log('Filtering debug:', {
+        taskTitle: task.title,
+        taskProject: task.properties?.project,
+        expectedProjectId: projectId.toString(),
+        matchesProject,
+        matchesSearch
+      });
+    }
     
     return matchesSearch && matchesProject;
   });
