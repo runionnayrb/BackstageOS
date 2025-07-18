@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,7 +36,6 @@ interface PublicCalendarData {
 }
 
 export default function PublicCalendar() {
-  const params = useParams<{ token: string }>();
   const [calendarData, setCalendarData] = useState<PublicCalendarData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -46,11 +44,15 @@ export default function PublicCalendar() {
   useEffect(() => {
     const fetchCalendarData = async () => {
       try {
-        if (!params.token) {
+        // Extract token from URL manually since this route is outside wouter routing
+        const pathParts = window.location.pathname.split('/');
+        const token = pathParts[pathParts.length - 1];
+        
+        if (!token || token === 'public-calendar') {
           throw new Error('No token provided');
         }
 
-        const data = await apiRequest('GET', `/api/public-calendar/${params.token}`);
+        const data = await apiRequest('GET', `/api/public-calendar/${token}`);
         setCalendarData(data);
       } catch (err: any) {
         setError(err.message || 'Failed to load calendar');
@@ -65,7 +67,7 @@ export default function PublicCalendar() {
     };
 
     fetchCalendarData();
-  }, [params.token, toast]);
+  }, [toast]);
 
   const generateGoogleCalendarLink = () => {
     if (!calendarData?.events || calendarData.events.length === 0) return '';
