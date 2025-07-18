@@ -206,31 +206,27 @@ export function EmailSidebar({
                 onClick={() => setActiveFolder(folder.id)}
                 className={cn(
                   "w-full flex items-center rounded-md transition-colors",
-                  isCollapsed ? "justify-center p-3" : "justify-between px-3 py-2 text-sm",
+                  isCollapsed ? "justify-center p-3" : "px-3 py-2 text-sm",
                   activeFolder === folder.id
                     ? "bg-blue-50 text-blue-700 font-medium"
                     : "text-gray-700 hover:bg-gray-50"
                 )}
                 title={isCollapsed ? folder.name : undefined}
               >
-                {isCollapsed ? (
-                  <IconComponent className="h-6 w-6" />
-                ) : (
-                  <>
-                    <div className="flex items-center space-x-2">
-                      <IconComponent className="h-4 w-4" />
-                      <span>{folder.name}</span>
-                    </div>
-                    {folder.count > 0 && (
-                      <Badge
-                        variant="secondary"
-                        className="text-xs bg-gray-100 text-gray-600"
-                      >
-                        {folder.count}
-                      </Badge>
-                    )}
-                  </>
-                )}
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center space-x-2">
+                    <IconComponent className={cn(isCollapsed ? "h-6 w-6" : "h-4 w-4")} />
+                    {!isCollapsed && <span>{folder.name}</span>}
+                  </div>
+                  {!isCollapsed && folder.count > 0 && (
+                    <Badge
+                      variant="secondary"
+                      className="text-xs bg-gray-100 text-gray-600"
+                    >
+                      {folder.count}
+                    </Badge>
+                  )}
+                </div>
               </button>
             );
           })}
