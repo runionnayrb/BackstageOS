@@ -2322,6 +2322,169 @@ export type InsertScheduleVersionNotification = z.infer<typeof insertScheduleVer
 export type ScheduleEmailTemplate = typeof scheduleEmailTemplates.$inferSelect;
 export type InsertScheduleEmailTemplate = z.infer<typeof insertScheduleEmailTemplateSchema>;
 
+// Phase 5: Google Calendar Integration
+export const googleCalendarIntegrations = pgTable("google_calendar_integrations", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  calendarId: text("calendar_id").notNull(),
+  calendarName: text("calendar_name").notNull(),
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token").notNull(),
+  tokenExpiry: timestamp("token_expiry"),
+  isActive: boolean("is_active").default(true),
+  syncSettings: jsonb("sync_settings").$type<{
+    syncPersonalSchedules: boolean;
+    syncEventTypes: string[];
+    defaultReminders: { method: string; minutes: number }[];
+  }>().default({
+    syncPersonalSchedules: true,
+    syncEventTypes: [],
+    defaultReminders: [{ method: 'email', minutes: 15 }]
+  }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Phase 5: Notification Preferences
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: serial("id").primaryKey(),
+  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  scheduleUpdates: boolean("schedule_updates").default(true),
+  majorVersionsOnly: boolean("major_versions_only").default(false),
+  emailEnabled: boolean("email_enabled").default(true),
+  calendarSync: boolean("calendar_sync").default(false),
+  reminderSettings: jsonb("reminder_settings").$type<{
+    scheduleChanges: number; // hours before
+    newVersions: number; // hours before
+    personalScheduleUpdates: boolean;
+  }>().default({
+    scheduleChanges: 24,
+    newVersions: 2,
+    personalScheduleUpdates: true
+  }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Phase 5: Schedule Version Comparisons
+export const scheduleVersionComparisons = pgTable("schedule_version_comparisons", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  fromVersionId: integer("from_version_id").notNull().references(() => scheduleVersions.id, { onDelete: "cascade" }),
+  toVersionId: integer("to_version_id").notNull().references(() => scheduleVersions.id, { onDelete: "cascade" }),
+  comparisonData: jsonb("comparison_data").$type<{
+    added: any[];
+    modified: any[];
+    removed: any[];
+    summary: {
+      totalChanges: number;
+      eventsAdded: number;
+      eventsModified: number;
+      eventsRemoved: number;
+    };
+  }>(),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Enhanced email template categories
+export const emailTemplateCategories = pgTable("email_template_categories", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  color: text("color").default("#3b82f6"),
+  isSystem: boolean("is_system").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Relations for Phase 5
+export const googleCalendarIntegrationsRelations = relations(googleCalendarIntegrations, ({ one }) => ({
+  project: one(projects, {
+    fields: [googleCalendarIntegrations.projectId],
+    references: [projects.id],
+  }),
+  user: one(users, {
+    fields: [googleCalendarIntegrations.userId],
+    references: [users.id],
+  }),
+}));
+
+export const notificationPreferencesRelations = relations(notificationPreferences, ({ one }) => ({
+  contact: one(contacts, {
+    fields: [notificationPreferences.contactId],
+    references: [contacts.id],
+  }),
+  project: one(projects, {
+    fields: [notificationPreferences.projectId],
+    references: [projects.id],
+  }),
+}));
+
+export const scheduleVersionComparisonsRelations = relations(scheduleVersionComparisons, ({ one }) => ({
+  project: one(projects, {
+    fields: [scheduleVersionComparisons.projectId],
+    references: [projects.id],
+  }),
+  fromVersion: one(scheduleVersions, {
+    fields: [scheduleVersionComparisons.fromVersionId],
+    references: [scheduleVersions.id],
+  }),
+  toVersion: one(scheduleVersions, {
+    fields: [scheduleVersionComparisons.toVersionId],
+    references: [scheduleVersions.id],
+  }),
+  creator: one(users, {
+    fields: [scheduleVersionComparisons.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const emailTemplateCategoriesRelations = relations(emailTemplateCategories, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [emailTemplateCategories.projectId],
+    references: [projects.id],
+  }),
+  templates: many(scheduleEmailTemplates),
+}));
+
+// Insert schemas for Phase 5
+export const insertGoogleCalendarIntegrationSchema = createInsertSchema(googleCalendarIntegrations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNotificationPreferencesSchema = createInsertSchema(notificationPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleVersionComparisonSchema = createInsertSchema(scheduleVersionComparisons).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertEmailTemplateCategorySchema = createInsertSchema(emailTemplateCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Types for Phase 5
+export type GoogleCalendarIntegration = typeof googleCalendarIntegrations.$inferSelect;
+export type InsertGoogleCalendarIntegration = z.infer<typeof insertGoogleCalendarIntegrationSchema>;
+export type NotificationPreferences = typeof notificationPreferences.$inferSelect;
+export type InsertNotificationPreferences = z.infer<typeof insertNotificationPreferencesSchema>;
+export type ScheduleVersionComparison = typeof scheduleVersionComparisons.$inferSelect;
+export type InsertScheduleVersionComparison = z.infer<typeof insertScheduleVersionComparisonSchema>;
+export type EmailTemplateCategory = typeof emailTemplateCategories.$inferSelect;
+export type InsertEmailTemplateCategory = z.infer<typeof insertEmailTemplateCategorySchema>;
+
 // Performance and Rehearsal Tracking System (AEA Contract Management)
 // Only activates if at least one cast member has equityStatus = "equity"
 

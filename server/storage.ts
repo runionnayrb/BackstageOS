@@ -51,6 +51,10 @@ import {
   personalSchedules,
   scheduleVersionNotifications,
   scheduleEmailTemplates,
+  googleCalendarIntegrations,
+  notificationPreferences,
+  scheduleVersionComparisons,
+  emailTemplateCategories,
 
   type User,
   type UpsertUser,
@@ -150,6 +154,14 @@ import {
   type InsertScheduleVersionNotification,
   type ScheduleEmailTemplate,
   type InsertScheduleEmailTemplate,
+  type GoogleCalendarIntegration,
+  type InsertGoogleCalendarIntegration,
+  type NotificationPreferences,
+  type InsertNotificationPreferences,
+  type ScheduleVersionComparison,
+  type InsertScheduleVersionComparison,
+  type EmailTemplateCategory,
+  type InsertEmailTemplateCategory,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -2886,6 +2898,266 @@ export class DatabaseStorage implements IStorage {
       .set({ ...version, updatedAt: new Date() })
       .where(eq(schedule_versions.id, id))
       .returning();
+    return result[0];
+  }
+
+  // Google Calendar Integration (Phase 5)
+  async getGoogleCalendarIntegrationsByProjectId(projectId: number): Promise<GoogleCalendarIntegration[]> {
+    const result = await db
+      .select()
+      .from(googleCalendarIntegrations)
+      .where(eq(googleCalendarIntegrations.projectId, projectId))
+      .orderBy(googleCalendarIntegrations.createdAt);
+    return result;
+  }
+
+  async getGoogleCalendarIntegrationByUserId(userId: number, projectId: number): Promise<GoogleCalendarIntegration | undefined> {
+    const result = await db
+      .select()
+      .from(googleCalendarIntegrations)
+      .where(
+        and(
+          eq(googleCalendarIntegrations.userId, userId),
+          eq(googleCalendarIntegrations.projectId, projectId),
+          eq(googleCalendarIntegrations.isActive, true)
+        )
+      );
+    return result[0];
+  }
+
+  async createGoogleCalendarIntegration(integration: InsertGoogleCalendarIntegration): Promise<GoogleCalendarIntegration> {
+    const result = await db.insert(googleCalendarIntegrations).values(integration).returning();
+    return result[0];
+  }
+
+  async updateGoogleCalendarIntegration(id: number, integration: Partial<InsertGoogleCalendarIntegration>): Promise<GoogleCalendarIntegration> {
+    const result = await db
+      .update(googleCalendarIntegrations)
+      .set({ ...integration, updatedAt: new Date() })
+      .where(eq(googleCalendarIntegrations.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteGoogleCalendarIntegration(id: number): Promise<void> {
+    await db.delete(googleCalendarIntegrations).where(eq(googleCalendarIntegrations.id, id));
+  }
+
+  // Notification Preferences (Phase 5)
+  async getNotificationPreferences(contactId: number, projectId: number): Promise<NotificationPreferences | undefined> {
+    const result = await db
+      .select()
+      .from(notificationPreferences)
+      .where(
+        and(
+          eq(notificationPreferences.contactId, contactId),
+          eq(notificationPreferences.projectId, projectId)
+        )
+      );
+    return result[0];
+  }
+
+  async getNotificationPreferencesByProjectId(projectId: number): Promise<NotificationPreferences[]> {
+    const result = await db
+      .select()
+      .from(notificationPreferences)
+      .where(eq(notificationPreferences.projectId, projectId))
+      .orderBy(notificationPreferences.createdAt);
+    return result;
+  }
+
+  async createNotificationPreferences(preferences: InsertNotificationPreferences): Promise<NotificationPreferences> {
+    const result = await db.insert(notificationPreferences).values(preferences).returning();
+    return result[0];
+  }
+
+  async updateNotificationPreferences(id: number, preferences: Partial<InsertNotificationPreferences>): Promise<NotificationPreferences> {
+    const result = await db
+      .update(notificationPreferences)
+      .set({ ...preferences, updatedAt: new Date() })
+      .where(eq(notificationPreferences.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteNotificationPreferences(id: number): Promise<void> {
+    await db.delete(notificationPreferences).where(eq(notificationPreferences.id, id));
+  }
+
+  // Schedule Version Comparisons (Phase 5)
+  async getScheduleVersionComparison(fromVersionId: number, toVersionId: number): Promise<ScheduleVersionComparison | undefined> {
+    const result = await db
+      .select()
+      .from(scheduleVersionComparisons)
+      .where(
+        and(
+          eq(scheduleVersionComparisons.fromVersionId, fromVersionId),
+          eq(scheduleVersionComparisons.toVersionId, toVersionId)
+        )
+      );
+    return result[0];
+  }
+
+  async getScheduleVersionComparisonsByProjectId(projectId: number): Promise<ScheduleVersionComparison[]> {
+    const result = await db
+      .select()
+      .from(scheduleVersionComparisons)
+      .where(eq(scheduleVersionComparisons.projectId, projectId))
+      .orderBy(scheduleVersionComparisons.createdAt);
+    return result;
+  }
+
+  async createScheduleVersionComparison(comparison: InsertScheduleVersionComparison): Promise<ScheduleVersionComparison> {
+    const result = await db.insert(scheduleVersionComparisons).values(comparison).returning();
+    return result[0];
+  }
+
+  async deleteScheduleVersionComparison(id: number): Promise<void> {
+    await db.delete(scheduleVersionComparisons).where(eq(scheduleVersionComparisons.id, id));
+  }
+
+  // Email Template Categories (Phase 5)
+  async getEmailTemplateCategoriesByProjectId(projectId: number): Promise<EmailTemplateCategory[]> {
+    const result = await db
+      .select()
+      .from(emailTemplateCategories)
+      .where(eq(emailTemplateCategories.projectId, projectId))
+      .orderBy(emailTemplateCategories.name);
+    return result;
+  }
+
+  async createEmailTemplateCategory(category: InsertEmailTemplateCategory): Promise<EmailTemplateCategory> {
+    const result = await db.insert(emailTemplateCategories).values(category).returning();
+    return result[0];
+  }
+
+  async updateEmailTemplateCategory(id: number, category: Partial<InsertEmailTemplateCategory>): Promise<EmailTemplateCategory> {
+    const result = await db
+      .update(emailTemplateCategories)
+      .set({ ...category, updatedAt: new Date() })
+      .where(eq(emailTemplateCategories.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteEmailTemplateCategory(id: number): Promise<void> {
+    await db.delete(emailTemplateCategories).where(eq(emailTemplateCategories.id, id));
+  }
+
+  // Phase 5: Google Calendar Integration Methods
+  async getGoogleCalendarIntegrationsByProjectId(projectId: number): Promise<GoogleCalendarIntegration[]> {
+    const result = await db
+      .select()
+      .from(googleCalendarIntegrations)
+      .where(eq(googleCalendarIntegrations.projectId, projectId))
+      .orderBy(googleCalendarIntegrations.createdAt);
+    return result;
+  }
+
+  async getGoogleCalendarIntegrationById(id: number): Promise<GoogleCalendarIntegration | undefined> {
+    const result = await db
+      .select()
+      .from(googleCalendarIntegrations)
+      .where(eq(googleCalendarIntegrations.id, id));
+    return result[0];
+  }
+
+  async createGoogleCalendarIntegration(integration: InsertGoogleCalendarIntegration): Promise<GoogleCalendarIntegration> {
+    const result = await db.insert(googleCalendarIntegrations).values(integration).returning();
+    return result[0];
+  }
+
+  async updateGoogleCalendarIntegration(id: number, integration: Partial<InsertGoogleCalendarIntegration>): Promise<GoogleCalendarIntegration> {
+    const result = await db
+      .update(googleCalendarIntegrations)
+      .set({ ...integration, updatedAt: new Date() })
+      .where(eq(googleCalendarIntegrations.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteGoogleCalendarIntegration(id: number): Promise<void> {
+    await db.delete(googleCalendarIntegrations).where(eq(googleCalendarIntegrations.id, id));
+  }
+
+  // Phase 5: Notification Preferences Methods
+  async getNotificationPreferencesByProjectId(projectId: number): Promise<NotificationPreferences[]> {
+    const result = await db
+      .select()
+      .from(notificationPreferences)
+      .where(eq(notificationPreferences.projectId, projectId))
+      .orderBy(notificationPreferences.createdAt);
+    return result;
+  }
+
+  async getNotificationPreferences(contactId: number, projectId: number): Promise<NotificationPreferences | undefined> {
+    const result = await db
+      .select()
+      .from(notificationPreferences)
+      .where(
+        and(
+          eq(notificationPreferences.contactId, contactId),
+          eq(notificationPreferences.projectId, projectId)
+        )
+      );
+    return result[0];
+  }
+
+  async createNotificationPreferences(preferences: InsertNotificationPreferences): Promise<NotificationPreferences> {
+    const result = await db.insert(notificationPreferences).values(preferences).returning();
+    return result[0];
+  }
+
+  async updateNotificationPreferences(id: number, preferences: Partial<InsertNotificationPreferences>): Promise<NotificationPreferences> {
+    const result = await db
+      .update(notificationPreferences)
+      .set({ ...preferences, updatedAt: new Date() })
+      .where(eq(notificationPreferences.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteNotificationPreferences(id: number): Promise<void> {
+    await db.delete(notificationPreferences).where(eq(notificationPreferences.id, id));
+  }
+
+  // Phase 5: Schedule Version Comparison Methods
+  async getScheduleVersionComparisonsByProjectId(projectId: number): Promise<ScheduleVersionComparison[]> {
+    const result = await db
+      .select()
+      .from(scheduleVersionComparisons)
+      .where(eq(scheduleVersionComparisons.projectId, projectId))
+      .orderBy(desc(scheduleVersionComparisons.createdAt));
+    return result;
+  }
+
+  async getScheduleVersionComparisonById(id: number): Promise<ScheduleVersionComparison | undefined> {
+    const result = await db
+      .select()
+      .from(scheduleVersionComparisons)
+      .where(eq(scheduleVersionComparisons.id, id));
+    return result[0];
+  }
+
+  async createScheduleVersionComparison(comparison: InsertScheduleVersionComparison): Promise<ScheduleVersionComparison> {
+    const result = await db.insert(scheduleVersionComparisons).values(comparison).returning();
+    return result[0];
+  }
+
+  async deleteScheduleVersionComparison(id: number): Promise<void> {
+    await db.delete(scheduleVersionComparisons).where(eq(scheduleVersionComparisons.id, id));
+  }
+
+  async getScheduleVersionComparisonByVersions(fromVersionId: number, toVersionId: number): Promise<ScheduleVersionComparison | undefined> {
+    const result = await db
+      .select()
+      .from(scheduleVersionComparisons)
+      .where(
+        and(
+          eq(scheduleVersionComparisons.fromVersionId, fromVersionId),
+          eq(scheduleVersionComparisons.toVersionId, toVersionId)
+        )
+      );
     return result[0];
   }
 

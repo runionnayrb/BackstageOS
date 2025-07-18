@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings } from "lucide-react";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import MobileWeeklyScheduleView from "@/components/mobile-weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
@@ -13,6 +13,7 @@ import MonthlyScheduleView from "@/components/monthly-schedule-view-new";
 import ScheduleFilter from "@/components/schedule-filter";
 import EventForm from "@/components/event-form";
 import { ScheduleVersionHistory } from "@/components/schedule-version-control/schedule-version-history";
+import { SchedulePhase5Settings } from "@/components/schedule-phase5/SchedulePhase5Settings";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -38,6 +39,7 @@ export default function Schedule() {
     endTime?: string;
   }>({});
   const [showVersionControl, setShowVersionControl] = useState(false);
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -200,7 +202,15 @@ export default function Schedule() {
           </Button>
           
           <div className="flex items-center gap-2">
-
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAdvancedSettings(true)}
+              className="text-xs px-2 py-1 h-auto"
+            >
+              <Settings className="h-3 w-3 mr-1" />
+              Advanced
+            </Button>
           </div>
         </div>
         
@@ -656,6 +666,18 @@ export default function Schedule() {
             projectId={projectId}
             onClose={() => setShowVersionControl(false)}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Advanced Settings Dialog */}
+      <Dialog open={showAdvancedSettings} onOpenChange={setShowAdvancedSettings}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+          <div className="p-6">
+            <SchedulePhase5Settings 
+              projectId={parseInt(projectId)}
+              projectName={project?.name || 'Project'}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </div>

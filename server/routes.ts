@@ -9444,6 +9444,252 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Phase 5: Google Calendar Integration Routes
+  app.get('/api/projects/:projectId/calendar/auth-url', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const userId = parseInt(req.user.id);
+      
+      const { googleCalendarService } = await import('./services/googleCalendarService.js');
+      const authUrl = googleCalendarService.generateAuthUrl(projectId, userId);
+      
+      res.json({ authUrl });
+    } catch (error) {
+      console.error("Error generating Google Calendar auth URL:", error);
+      res.status(500).json({ message: "Failed to generate authorization URL" });
+    }
+  });
+
+  app.post('/api/projects/:projectId/calendar/callback', isAuthenticated, async (req: any, res) => {
+    try {
+      const { code, state } = req.body;
+      
+      const { googleCalendarService } = await import('./services/googleCalendarService.js');
+      const integration = await googleCalendarService.handleOAuthCallback(code, state);
+      
+      res.json(integration);
+    } catch (error) {
+      console.error("Error handling Google Calendar OAuth callback:", error);
+      res.status(500).json({ message: "Failed to complete Google Calendar setup" });
+    }
+  });
+
+  app.get('/api/projects/:projectId/calendar/integrations', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const integrations = await storage.getGoogleCalendarIntegrationsByProjectId(projectId);
+      
+      res.json(integrations);
+    } catch (error) {
+      console.error("Error fetching calendar integrations:", error);
+      res.status(500).json({ message: "Failed to fetch calendar integrations" });
+    }
+  });
+
+  app.put('/api/projects/:projectId/calendar/integrations/:integrationId', isAuthenticated, async (req: any, res) => {
+    try {
+      const integrationId = parseInt(req.params.integrationId);
+      const { syncSettings } = req.body;
+      
+      const { googleCalendarService } = await import('./services/googleCalendarService.js');
+      const integration = await googleCalendarService.updateSyncSettings(integrationId, syncSettings);
+      
+      res.json(integration);
+    } catch (error) {
+      console.error("Error updating calendar integration:", error);
+      res.status(500).json({ message: "Failed to update calendar integration" });
+    }
+  });
+
+  app.delete('/api/projects/:projectId/calendar/integrations/:integrationId', isAuthenticated, async (req: any, res) => {
+    try {
+      const integrationId = parseInt(req.params.integrationId);
+      await storage.deleteGoogleCalendarIntegration(integrationId);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting calendar integration:", error);
+      res.status(500).json({ message: "Failed to delete calendar integration" });
+    }
+  });
+
+  // Phase 5: Notification Preferences Routes
+  app.get('/api/projects/:projectId/notification-preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const preferences = await storage.getNotificationPreferencesByProjectId(projectId);
+      
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error fetching notification preferences:", error);
+      res.status(500).json({ message: "Failed to fetch notification preferences" });
+    }
+  });
+
+  app.get('/api/projects/:projectId/contacts/:contactId/notification-preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const contactId = parseInt(req.params.contactId);
+      
+      let preferences = await storage.getNotificationPreferences(contactId, projectId);
+      
+      // Create default preferences if none exist
+      if (!preferences) {
+        preferences = await storage.createNotificationPreferences({
+          contactId,
+          projectId,
+          scheduleUpdates: true,
+          majorVersionsOnly: false,
+          emailEnabled: true,
+          calendarSync: false,
+          reminderSettings: {
+            scheduleChanges: 24,
+            newVersions: 2,
+            personalScheduleUpdates: true
+          }
+        });
+      }
+      
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error fetching contact notification preferences:", error);
+      res.status(500).json({ message: "Failed to fetch notification preferences" });
+    }
+  });
+
+  app.put('/api/projects/:projectId/contacts/:contactId/notification-preferences', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const contactId = parseInt(req.params.contactId);
+      
+      let preferences = await storage.getNotificationPreferences(contactId, projectId);
+      
+      if (preferences) {
+        preferences = await storage.updateNotificationPreferences(preferences.id, req.body);
+      } else {
+        preferences = await storage.createNotificationPreferences({
+          contactId,
+          projectId,
+          ...req.body
+        });
+      }
+      
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error updating notification preferences:", error);
+      res.status(500).json({ message: "Failed to update notification preferences" });
+    }
+  });
+
+  // Phase 5: Schedule Version Comparison Routes
+  app.get('/api/projects/:projectId/schedule/versions/:fromVersionId/compare/:toVersionId', isAuthenticated, async (req: any, res) => {
+    try {
+      const fromVersionId = parseInt(req.params.fromVersionId);
+      const toVersionId = parseInt(req.params.toVersionId);
+      
+      const { scheduleComparisonService } = await import('./services/scheduleComparisonService.js');
+      
+      // Check for cached comparison first
+      let comparison = await scheduleComparisonService.getCachedComparison(fromVersionId, toVersionId);
+      
+      if (!comparison) {
+        // Generate new comparison
+        const fromVersion = await storage.getScheduleVersionById(fromVersionId);
+        const toVersion = await storage.getScheduleVersionById(toVersionId);
+        
+        if (!fromVersion || !toVersion) {
+          return res.status(404).json({ message: "Schedule version not found" });
+        }
+        
+        comparison = await scheduleComparisonService.compareScheduleVersions(fromVersion, toVersion);
+      }
+      
+      res.json(comparison);
+    } catch (error) {
+      console.error("Error comparing schedule versions:", error);
+      res.status(500).json({ message: "Failed to compare schedule versions" });
+    }
+  });
+
+  app.get('/api/projects/:projectId/schedule/comparisons', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const comparisons = await storage.getScheduleVersionComparisonsByProjectId(projectId);
+      
+      res.json(comparisons);
+    } catch (error) {
+      console.error("Error fetching schedule comparisons:", error);
+      res.status(500).json({ message: "Failed to fetch schedule comparisons" });
+    }
+  });
+
+  app.get('/api/projects/:projectId/schedule/change-stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      const { scheduleComparisonService } = await import('./services/scheduleComparisonService.js');
+      const stats = await scheduleComparisonService.getProjectScheduleChangeStats(projectId);
+      
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching schedule change stats:", error);
+      res.status(500).json({ message: "Failed to fetch schedule change statistics" });
+    }
+  });
+
+  // Phase 5: Enhanced Email Template Categories Routes
+  app.get('/api/projects/:projectId/email-template-categories', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const categories = await storage.getEmailTemplateCategoriesByProjectId(projectId);
+      
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching email template categories:", error);
+      res.status(500).json({ message: "Failed to fetch email template categories" });
+    }
+  });
+
+  app.post('/api/projects/:projectId/email-template-categories', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const categoryData = {
+        ...req.body,
+        projectId
+      };
+      
+      const category = await storage.createEmailTemplateCategory(categoryData);
+      res.json(category);
+    } catch (error) {
+      console.error("Error creating email template category:", error);
+      res.status(500).json({ message: "Failed to create email template category" });
+    }
+  });
+
+  app.put('/api/projects/:projectId/email-template-categories/:categoryId', isAuthenticated, async (req: any, res) => {
+    try {
+      const categoryId = parseInt(req.params.categoryId);
+      const category = await storage.updateEmailTemplateCategory(categoryId, req.body);
+      
+      res.json(category);
+    } catch (error) {
+      console.error("Error updating email template category:", error);
+      res.status(500).json({ message: "Failed to update email template category" });
+    }
+  });
+
+  app.delete('/api/projects/:projectId/email-template-categories/:categoryId', isAuthenticated, async (req: any, res) => {
+    try {
+      const categoryId = parseInt(req.params.categoryId);
+      await storage.deleteEmailTemplateCategory(categoryId);
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting email template category:", error);
+      res.status(500).json({ message: "Failed to delete email template category" });
+    }
+  });
+
   const server = createServer(app);
   
   // Start email cleanup scheduler for automatic 30-day trash cleanup
