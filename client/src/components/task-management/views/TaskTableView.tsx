@@ -719,7 +719,7 @@ export function TaskTableView({
           <div onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-full justify-start hover:bg-gray-100">
+                <Button variant="ghost" size="sm" className="h-8 w-full justify-start hover:bg-gray-100 px-0">
                   <div className="flex items-center space-x-2">
                     <div 
                       className="w-2 h-2 rounded-full" 
@@ -757,7 +757,7 @@ export function TaskTableView({
           <div onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 w-full justify-start hover:bg-gray-100">
+                <Button variant="ghost" size="sm" className="h-8 w-full justify-start hover:bg-gray-100 px-0">
                   <div className="flex items-center space-x-2">
                     <PriorityIcon 
                       className="h-3 w-3" 
@@ -801,7 +801,7 @@ export function TaskTableView({
                 onTaskUpdate(task.id, { properties: updatedProperties });
               }}
             >
-              <SelectTrigger className="h-8 w-full justify-start hover:bg-gray-100 border-0 shadow-none bg-transparent [&>svg]:hidden text-left">
+              <SelectTrigger className="h-8 w-full justify-start hover:bg-gray-100 border-0 shadow-none bg-transparent [&>svg]:hidden text-left px-0">
                 <SelectValue placeholder="No Show" className="text-left truncate" />
               </SelectTrigger>
               <SelectContent className="min-w-[200px]">
@@ -865,7 +865,7 @@ export function TaskTableView({
                 onTaskUpdate(task.id, { properties: updatedProperties });
               }}
             >
-              <SelectTrigger className="h-8 w-full justify-start hover:bg-gray-100 border-0 shadow-none bg-transparent [&>svg]:hidden">
+              <SelectTrigger className="h-8 w-full justify-start hover:bg-gray-100 border-0 shadow-none bg-transparent [&>svg]:hidden px-0">
                 <SelectValue>
                   <span className="text-sm">{displayValue}</span>
                 </SelectValue>
@@ -900,7 +900,7 @@ export function TaskTableView({
                   const updatedProperties = { ...(task.properties || {}), dueDate: date };
                   onTaskUpdate(task.id, { properties: updatedProperties });
                 }}
-                className="w-full h-8 px-2 bg-transparent border-0 outline-none text-sm focus:bg-white focus:border focus:border-blue-200 focus:rounded"
+                className="w-full h-8 px-0 bg-transparent border-0 outline-none text-sm focus:bg-white focus:border focus:border-blue-200 focus:rounded"
                 placeholder="Set due date"
               />
             </div>
