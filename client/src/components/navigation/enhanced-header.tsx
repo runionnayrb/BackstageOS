@@ -357,7 +357,7 @@ export default function EnhancedHeader() {
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/tasks`)}>
                         <CheckSquare className="h-4 w-4 mr-2" />
-                        Tasks
+                        Show Tasks
                       </DropdownMenuItem>
                     </>
                   )}
