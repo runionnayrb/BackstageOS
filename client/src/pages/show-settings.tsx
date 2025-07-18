@@ -53,7 +53,11 @@ import {
   Plus,
   MapPin,
   Tag,
-  Palette
+  Palette,
+  Link,
+  Unlink,
+  Mail,
+  GitCompare
 } from "lucide-react";
 
 // Helper function to safely parse JSON with error handling
@@ -131,6 +135,11 @@ export default function ShowSettings() {
   const [eventTypeForm, setEventTypeForm] = useState({ name: '', description: '', color: '#3b82f6' });
   const [locationForm, setLocationForm] = useState({ name: '', address: '', description: '', capacity: '', notes: '' });
 
+  // Phase 5 schedule settings state
+  const [showGoogleAuth, setShowGoogleAuth] = useState(false);
+  const [newTemplateCategory, setNewTemplateCategory] = useState({ name: '', description: '' });
+  const [showNewCategoryDialog, setShowNewCategoryDialog] = useState(false);
+
   const isFullTime = user?.profileType === "fulltime";
   const showLabel = isFullTime ? "Show" : "Project";
 
@@ -152,6 +161,37 @@ export default function ShowSettings() {
   const { data: locations = [], refetch: refetchLocations } = useQuery({
     queryKey: [`/api/projects/${id}/event-locations`],
     enabled: !!id && !!user,
+  });
+
+  // Phase 5 queries
+  const { data: calendarIntegrations = [] } = useQuery({
+    queryKey: [`/api/projects/${id}/calendar/integrations`],
+    enabled: !!id,
+  });
+
+  const { data: notificationPreferences = [] } = useQuery({
+    queryKey: [`/api/projects/${id}/notification-preferences`],
+    enabled: !!id,
+  });
+
+  const { data: scheduleComparisons = [] } = useQuery({
+    queryKey: [`/api/projects/${id}/schedule/comparisons`],
+    enabled: !!id,
+  });
+
+  const { data: changeStats } = useQuery({
+    queryKey: [`/api/projects/${id}/schedule/change-stats`],
+    enabled: !!id,
+  });
+
+  const { data: emailTemplateCategories = [] } = useQuery({
+    queryKey: [`/api/projects/${id}/email-template-categories`],
+    enabled: !!id,
+  });
+
+  const { data: contacts = [] } = useQuery({
+    queryKey: [`/api/projects/${id}/contacts`],
+    enabled: !!id,
   });
 
   const updateSettingsMutation = useMutation({
@@ -389,6 +429,88 @@ export default function ShowSettings() {
         title: "Error",
         description: "Failed to delete location. Please try again.",
         variant: "destructive",
+      });
+    },
+  });
+
+  // Phase 5 mutations
+  const connectGoogleCalendar = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('GET', `/api/projects/${id}/calendar/auth-url`);
+      window.open(response.authUrl, '_blank', 'width=500,height=600');
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Google Calendar",
+        description: "Please complete the authorization in the popup window.",
+      });
+    },
+  });
+
+  const updateSyncSettings = useMutation({
+    mutationFn: async ({ integrationId, syncSettings }: { integrationId: number; syncSettings: any }) => {
+      return apiRequest('PUT', `/api/projects/${id}/calendar/integrations/${integrationId}`, { syncSettings });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/calendar/integrations`] });
+      toast({
+        title: "Settings updated",
+        description: "Google Calendar sync settings have been updated.",
+      });
+    },
+  });
+
+  const disconnectCalendar = useMutation({
+    mutationFn: async (integrationId: number) => {
+      return apiRequest('DELETE', `/api/projects/${id}/calendar/integrations/${integrationId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/calendar/integrations`] });
+      toast({
+        title: "Calendar disconnected",
+        description: "Google Calendar has been disconnected.",
+      });
+    },
+  });
+
+  const updateNotificationPreferences = useMutation({
+    mutationFn: async ({ contactId, preferences }: { contactId: number; preferences: any }) => {
+      return apiRequest('PUT', `/api/projects/${id}/notification-preferences/${contactId}`, preferences);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/notification-preferences`] });
+      toast({
+        title: "Preferences updated",
+        description: "Notification preferences have been updated.",
+      });
+    },
+  });
+
+  const createTemplateCategory = useMutation({
+    mutationFn: async (categoryData: { name: string; description: string }) => {
+      return apiRequest('POST', `/api/projects/${id}/email-template-categories`, categoryData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/email-template-categories`] });
+      setShowNewCategoryDialog(false);
+      setNewTemplateCategory({ name: '', description: '' });
+      toast({
+        title: "Category created",
+        description: "Email template category has been created.",
+      });
+    },
+  });
+
+  const deleteTemplateCategory = useMutation({
+    mutationFn: async (categoryId: number) => {
+      return apiRequest('DELETE', `/api/projects/${id}/email-template-categories/${categoryId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${id}/email-template-categories`] });
+      toast({
+        title: "Category deleted",
+        description: "Email template category has been deleted.",
       });
     },
   });
@@ -1525,6 +1647,360 @@ export default function ShowSettings() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Google Calendar Integration */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Google Calendar Integration
+              </CardTitle>
+              <CardDescription>
+                One-way sync from BackstageOS to Google Calendar for team coordination.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {calendarIntegrations.length > 0 ? (
+                <div className="space-y-4">
+                  {calendarIntegrations.map((integration: any) => (
+                    <div key={integration.id} className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <Link className="h-5 w-5 text-green-600" />
+                          <div>
+                            <h4 className="font-medium">{integration.calendarName}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Connected {new Date(integration.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => disconnectCalendar.mutate(integration.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Unlink className="h-4 w-4 mr-2" />
+                          Disconnect
+                        </Button>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <Label>Sync Personal Schedules</Label>
+                          <Switch
+                            checked={integration.syncSettings?.syncPersonalSchedules || false}
+                            onCheckedChange={(checked) =>
+                              updateSyncSettings.mutate({
+                                integrationId: integration.id,
+                                syncSettings: {
+                                  ...integration.syncSettings,
+                                  syncPersonalSchedules: checked,
+                                },
+                              })
+                            }
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="text-sm font-medium">Default Reminders</Label>
+                          <div className="mt-2 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                min="0"
+                                max="1440"
+                                placeholder="15"
+                                value={integration.syncSettings?.defaultReminders?.[0]?.minutes || ''}
+                                onChange={(e) => {
+                                  const minutes = parseInt(e.target.value) || 0;
+                                  updateSyncSettings.mutate({
+                                    integrationId: integration.id,
+                                    syncSettings: {
+                                      ...integration.syncSettings,
+                                      defaultReminders: [{ method: 'popup', minutes }],
+                                    },
+                                  });
+                                }}
+                                className="w-24"
+                              />
+                              <span className="text-sm text-muted-foreground">minutes before event</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Connect Google Calendar</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Sync your schedule to Google Calendar for better team coordination.
+                  </p>
+                  <Button onClick={() => connectGoogleCalendar.mutate()}>
+                    <Link className="h-4 w-4 mr-2" />
+                    Connect Google Calendar
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Team Notification Preferences */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5" />
+                Team Notification Preferences
+              </CardTitle>
+              <CardDescription>
+                Configure how team members receive schedule update notifications.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {contacts.length > 0 ? (
+                <div className="space-y-4">
+                  {contacts.map((contact: any) => {
+                    const prefs = notificationPreferences.find((p: any) => p.contactId === contact.id) || {};
+                    return (
+                      <div key={contact.id} className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between mb-4">
+                          <div>
+                            <h4 className="font-medium">{contact.name}</h4>
+                            <p className="text-sm text-muted-foreground">{contact.email}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Schedule Updates</Label>
+                            <Switch
+                              checked={prefs.scheduleUpdates !== false}
+                              onCheckedChange={(checked) =>
+                                updateNotificationPreferences.mutate({
+                                  contactId: contact.id,
+                                  preferences: { ...prefs, scheduleUpdates: checked },
+                                })
+                              }
+                            />
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Major Versions Only</Label>
+                            <Switch
+                              checked={prefs.majorVersionsOnly || false}
+                              onCheckedChange={(checked) =>
+                                updateNotificationPreferences.mutate({
+                                  contactId: contact.id,
+                                  preferences: { ...prefs, majorVersionsOnly: checked },
+                                })
+                              }
+                            />
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Email Notifications</Label>
+                            <Switch
+                              checked={prefs.emailEnabled !== false}
+                              onCheckedChange={(checked) =>
+                                updateNotificationPreferences.mutate({
+                                  contactId: contact.id,
+                                  preferences: { ...prefs, emailEnabled: checked },
+                                })
+                              }
+                            />
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Calendar Sync</Label>
+                            <Switch
+                              checked={prefs.calendarSync || false}
+                              onCheckedChange={(checked) =>
+                                updateNotificationPreferences.mutate({
+                                  contactId: contact.id,
+                                  preferences: { ...prefs, calendarSync: checked },
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="h-12 w-12 mx-auto mb-4" />
+                  <p>No team members found. Add contacts to configure notification preferences.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Schedule Version Analytics */}
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GitCompare className="h-5 w-5" />
+                Schedule Version Analytics
+              </CardTitle>
+              <CardDescription>
+                Track and analyze changes between schedule versions.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {changeStats ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">{changeStats.totalVersions || 0}</div>
+                    <div className="text-sm text-blue-600">Total Versions</div>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">{changeStats.totalChanges || 0}</div>
+                    <div className="text-sm text-green-600">Total Changes</div>
+                  </div>
+                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                    <div className="text-2xl font-bold text-yellow-600">{changeStats.eventsAdded || 0}</div>
+                    <div className="text-sm text-yellow-600">Events Added</div>
+                  </div>
+                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <div className="text-2xl font-bold text-red-600">{changeStats.eventsRemoved || 0}</div>
+                    <div className="text-sm text-red-600">Events Removed</div>
+                  </div>
+                </div>
+              ) : null}
+              
+              {scheduleComparisons.length > 0 ? (
+                <div className="space-y-3">
+                  <h4 className="font-medium">Recent Comparisons</h4>
+                  {scheduleComparisons.slice(0, 5).map((comparison: any) => (
+                    <div key={comparison.id} className="p-3 border rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium">
+                            Version {comparison.fromVersionId} → Version {comparison.toVersionId}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(comparison.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium">
+                            {comparison.comparisonData?.summary?.totalChanges || 0} changes
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            +{comparison.comparisonData?.summary?.eventsAdded || 0} 
+                            ~{comparison.comparisonData?.summary?.eventsModified || 0} 
+                            -{comparison.comparisonData?.summary?.eventsRemoved || 0}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <GitCompare className="h-12 w-12 mx-auto mb-4" />
+                  <p>No version comparisons yet. Comparisons are generated automatically when schedules are published.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Email Template Categories */}
+          <Card className="mt-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Palette className="h-5 w-5" />
+                    Email Template Categories
+                  </CardTitle>
+                  <CardDescription>
+                    Organize schedule notification templates by purpose or audience.
+                  </CardDescription>
+                </div>
+                <Button onClick={() => setShowNewCategoryDialog(true)} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Category
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {emailTemplateCategories.length > 0 ? (
+                <div className="space-y-3">
+                  {emailTemplateCategories.map((category: any) => (
+                    <div key={category.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <h4 className="font-medium">{category.name}</h4>
+                        {category.description && (
+                          <p className="text-sm text-muted-foreground">{category.description}</p>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteTemplateCategory.mutate(category.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Palette className="h-12 w-12 mx-auto mb-4" />
+                  <p>No template categories created yet. Organize your email templates by creating categories.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* New Template Category Dialog */}
+          <Dialog open={showNewCategoryDialog} onOpenChange={setShowNewCategoryDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create Template Category</DialogTitle>
+                <DialogDescription>
+                  Create a new category to organize your schedule notification templates.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="categoryName">Category Name</Label>
+                  <Input
+                    id="categoryName"
+                    value={newTemplateCategory.name}
+                    onChange={(e) => setNewTemplateCategory({ ...newTemplateCategory, name: e.target.value })}
+                    placeholder="e.g., Cast Notifications, Crew Updates"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="categoryDescription">Description (Optional)</Label>
+                  <Input
+                    id="categoryDescription"
+                    value={newTemplateCategory.description}
+                    onChange={(e) => setNewTemplateCategory({ ...newTemplateCategory, description: e.target.value })}
+                    placeholder="Brief description of this category"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-6">
+                <Button variant="outline" onClick={() => setShowNewCategoryDialog(false)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => createTemplateCategory.mutate(newTemplateCategory)}
+                  disabled={!newTemplateCategory.name}
+                >
+                  Create Category
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         <TabsContent value="dates" className="mt-6">
