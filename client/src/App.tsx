@@ -65,6 +65,7 @@ import Chat from "@/pages/chat";
 import PerformanceTracker from "@/pages/PerformanceTracker";
 import TaskManagement from "@/pages/TaskManagement";
 import Notes from "@/pages/Notes";
+import PersonalScheduleViewer from "@/pages/personal-schedule";
 
 
 function Router() {
@@ -117,6 +118,11 @@ function Router() {
     return <SEOTest />;
   }
   
+  // Personal schedule viewer route - public access with token
+  if (window.location.pathname.startsWith('/personal-schedule/')) {
+    const token = window.location.pathname.split('/personal-schedule/')[1];
+    return <PersonalScheduleViewer token={token} />;
+  }
 
   
   // If this is the join domain, redirect to /landing

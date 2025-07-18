@@ -2830,6 +2830,65 @@ export class DatabaseStorage implements IStorage {
     await db.delete(scheduleEmailTemplates).where(eq(scheduleEmailTemplates.id, id));
   }
 
+  // Personal Schedules
+  async getPersonalSchedulesByProjectId(projectId: number): Promise<PersonalSchedule[]> {
+    const result = await db
+      .select()
+      .from(personalSchedules)
+      .where(eq(personalSchedules.projectId, projectId))
+      .orderBy(personalSchedules.createdAt);
+    return result;
+  }
+
+  async getPersonalScheduleByContactId(contactId: number, projectId: number): Promise<PersonalSchedule | undefined> {
+    const result = await db
+      .select()
+      .from(personalSchedules)
+      .where(
+        and(
+          eq(personalSchedules.contactId, contactId),
+          eq(personalSchedules.projectId, projectId)
+        )
+      );
+    return result[0];
+  }
+
+  async getPersonalScheduleByToken(accessToken: string): Promise<PersonalSchedule | undefined> {
+    const result = await db
+      .select()
+      .from(personalSchedules)
+      .where(eq(personalSchedules.accessToken, accessToken));
+    return result[0];
+  }
+
+  async createPersonalSchedule(schedule: InsertPersonalSchedule): Promise<PersonalSchedule> {
+    const result = await db.insert(personalSchedules).values(schedule).returning();
+    return result[0];
+  }
+
+  async updatePersonalSchedule(id: number, schedule: Partial<InsertPersonalSchedule>): Promise<PersonalSchedule> {
+    const result = await db
+      .update(personalSchedules)
+      .set({ ...schedule, updatedAt: new Date() })
+      .where(eq(personalSchedules.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deletePersonalSchedule(id: number): Promise<void> {
+    await db.delete(personalSchedules).where(eq(personalSchedules.id, id));
+  }
+
+  // Schedule Version update method
+  async updateScheduleVersion(id: number, version: Partial<InsertScheduleVersion>): Promise<ScheduleVersion> {
+    const result = await db
+      .update(schedule_versions)
+      .set({ ...version, updatedAt: new Date() })
+      .where(eq(schedule_versions.id, id))
+      .returning();
+    return result[0];
+  }
+
 }
 
 export const storage = new DatabaseStorage();

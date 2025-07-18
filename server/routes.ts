@@ -17,6 +17,7 @@ import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insert
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
+import { scheduleNotificationService } from "./services/scheduleNotificationService.js";
 import { z } from "zod";
 import sgMail from "@sendgrid/mail";
 
@@ -9260,6 +9261,27 @@ Respond with valid JSON only.`;
         }
       }
 
+      // Add changelog field with default message if not provided
+      const changelog = req.body.changelog || `${req.body.versionType === 'major' ? 'Major' : 'Minor'} schedule update published by stage management. Please review your updated personal schedule.`;
+      
+      // Update the version with changelog
+      await storage.updateScheduleVersion(newVersion.id, { changelog });
+      
+      // Send email notifications to all contacts asynchronously
+      // Don't wait for email completion to avoid blocking the response
+      setImmediate(async () => {
+        try {
+          await scheduleNotificationService.sendScheduleUpdateNotifications(
+            newVersion.id,
+            projectId,
+            parseInt(req.user.id)
+          );
+        } catch (emailError) {
+          console.error('Email notification error (non-blocking):', emailError);
+        }
+      });
+
+      console.log(`✅ Schedule version ${newVersion.version} published for project ${projectId}. Email notifications queued.`);
       res.json(newVersion);
     } catch (error) {
       console.error("Error creating schedule version:", error);
@@ -9339,6 +9361,86 @@ Respond with valid JSON only.`;
     } catch (error) {
       console.error("Error creating schedule email template:", error);
       res.status(500).json({ message: "Failed to create schedule email template" });
+    }
+  });
+
+  // Public Personal Schedule Viewer (no authentication required - token-based access)
+  app.get('/api/schedule/:accessToken', async (req: any, res) => {
+    try {
+      const accessToken = req.params.accessToken;
+      
+      // Find personal schedule by access token
+      const personalSchedule = await storage.getPersonalScheduleByToken(accessToken);
+      
+      if (!personalSchedule) {
+        return res.status(404).json({ message: "Personal schedule not found or access token expired" });
+      }
+
+      // Check if token is expired
+      if (personalSchedule.expiresAt && new Date() > new Date(personalSchedule.expiresAt)) {
+        return res.status(410).json({ message: "Access token has expired" });
+      }
+
+      if (!personalSchedule.isActive) {
+        return res.status(403).json({ message: "Personal schedule access has been deactivated" });
+      }
+
+      // Get project details
+      const project = await storage.getProjectById(personalSchedule.projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Get contact details
+      const contact = await storage.getContactById(personalSchedule.contactId);
+      if (!contact) {
+        return res.status(404).json({ message: "Contact not found" });
+      }
+
+      // Get schedule version
+      const version = await storage.getScheduleVersionById(personalSchedule.versionId);
+      if (!version) {
+        return res.status(404).json({ message: "Schedule version not found" });
+      }
+
+      // Get events that involve this contact from the version snapshot
+      const allEvents = version.scheduleData?.events || [];
+      const contactEvents = allEvents.filter((event: any) => 
+        event.participants && event.participants.some((p: any) => p.contactId === contact.id)
+      );
+
+      res.json({
+        personalSchedule: {
+          id: personalSchedule.id,
+          accessToken: personalSchedule.accessToken,
+          expiresAt: personalSchedule.expiresAt,
+          isActive: personalSchedule.isActive
+        },
+        project: {
+          id: project.id,
+          name: project.name,
+          description: project.description
+        },
+        contact: {
+          id: contact.id,
+          firstName: contact.firstName,
+          lastName: contact.lastName,
+          email: contact.email,
+          contactType: contact.contactType
+        },
+        version: {
+          id: version.id,
+          version: version.version,
+          versionType: version.versionType,
+          title: version.title,
+          description: version.description,
+          publishedAt: version.publishedAt
+        },
+        events: contactEvents
+      });
+    } catch (error) {
+      console.error("Error fetching personal schedule:", error);
+      res.status(500).json({ message: "Failed to fetch personal schedule" });
     }
   });
 
