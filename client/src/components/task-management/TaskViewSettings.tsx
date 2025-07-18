@@ -163,7 +163,8 @@ export function TaskViewSettings({
   const visibleProperties = propertyVisibility.filter(p => p.visible).length;
   const [isOpen, setIsOpen] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
-  const [currentPage, setCurrentPage] = useState<'main' | 'layout' | 'properties'>('main');
+  const [currentPage, setCurrentPage] = useState<'main' | 'layout' | 'properties' | 'editProperties' | 'editProperty'>('main');
+  const [selectedProperty, setSelectedProperty] = useState<PropertyVisibility | null>(null);
   const triggerRef = useRef<HTMLDivElement>(null);
 
   const togglePropertyVisibility = (propertyId: number) => {
@@ -340,6 +341,18 @@ export function TaskViewSettings({
                 <span className="text-sm text-gray-500">{visibleProperties}</span>
                 <ChevronRight className="w-4 h-4 text-gray-400" />
               </div>
+            </div>
+
+            {/* Edit properties */}
+            <div 
+              className="flex items-center justify-between py-2 hover:bg-gray-50 rounded-md px-2 -mx-2 cursor-pointer"
+              onClick={() => setCurrentPage('editProperties')}
+            >
+              <div className="flex items-center gap-3">
+                <Settings className="w-4 h-4 text-gray-600" />
+                <span className="text-sm">Edit properties</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-gray-400" />
             </div>
 
             {/* Filter */}
@@ -689,6 +702,180 @@ export function TaskViewSettings({
                   {/* Note */}
                   <div className="mt-6 text-xs text-gray-500">
                     Drag properties to reorder columns in your table view. The Task Name property cannot be hidden.
+                  </div>
+                </div>
+              </>
+            ) : currentPage === 'editProperties' ? (
+              <>
+                {/* Edit Properties List Page */}
+                <div className="px-6 py-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setCurrentPage('main')}
+                      className="p-1 h-auto hover:bg-gray-100"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </Button>
+                    <h3 className="text-base font-medium">Properties</h3>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  {/* Search */}
+                  <div className="mb-4">
+                    <input
+                      type="text"
+                      placeholder="Search for a property..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  {/* Property List for Editing */}
+                  <div className="space-y-2">
+                    {propertyVisibility.map((property) => {
+                      const IconComponent = property.icon;
+                      return (
+                        <div
+                          key={property.id}
+                          className="flex items-center gap-3 py-2 px-2 hover:bg-gray-50 rounded-md cursor-pointer"
+                          onClick={() => {
+                            setSelectedProperty(property);
+                            setCurrentPage('editProperty');
+                          }}
+                        >
+                          <IconComponent className="w-4 h-4 text-gray-600" />
+                          <span className="flex-1 text-sm">{property.name}</span>
+                          <ChevronRight className="w-4 h-4 text-gray-400" />
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* New Property Button */}
+                  <div className="mt-6 pt-4 border-t">
+                    <div 
+                      className="flex items-center gap-3 py-2 px-2 hover:bg-gray-50 rounded-md cursor-pointer text-blue-600"
+                      onClick={() => {
+                        // TODO: Handle new property creation
+                        console.log('Creating new property');
+                      }}
+                    >
+                      <span className="w-4 h-4 flex items-center justify-center text-lg font-light">+</span>
+                      <span className="text-sm">New property</span>
+                    </div>
+                  </div>
+
+                  {/* Learn about properties */}
+                  <div className="mt-4">
+                    <div 
+                      className="flex items-center gap-3 py-2 px-2 hover:bg-gray-50 rounded-md cursor-pointer text-gray-600"
+                      onClick={() => {
+                        // TODO: Open help documentation
+                        console.log('Opening property help');
+                      }}
+                    >
+                      <span className="w-4 h-4 flex items-center justify-center">?</span>
+                      <span className="text-sm">Learn about properties</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : currentPage === 'editProperty' && selectedProperty ? (
+              <>
+                {/* Edit Individual Property Page */}
+                <div className="px-6 py-4 border-b">
+                  <div className="flex items-center gap-3">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setCurrentPage('editProperties')}
+                      className="p-1 h-auto hover:bg-gray-100"
+                    >
+                      <ArrowLeft className="w-4 h-4" />
+                    </Button>
+                    <h3 className="text-base font-medium">Edit property</h3>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  {/* Property Name Field */}
+                  <div className="mb-6">
+                    <div className="flex items-center gap-3 py-3 px-3 bg-gray-50 rounded-md">
+                      <selectedProperty.icon className="w-4 h-4 text-gray-600" />
+                      <input
+                        type="text"
+                        value={selectedProperty.name}
+                        onChange={(e) => {
+                          // TODO: Update property name
+                          console.log('Updating property name:', e.target.value);
+                        }}
+                        className="flex-1 bg-transparent border-0 outline-none text-sm"
+                        placeholder="Property name"
+                      />
+                      <span className="w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs">
+                        {selectedProperty.required ? '!' : '?'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Property Options */}
+                  <div className="space-y-4">
+                    {/* Type */}
+                    <div className="flex items-center justify-between py-3 hover:bg-gray-50 rounded-md px-2 -mx-2 cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <Text className="w-4 h-4 text-gray-600" />
+                        <span className="text-sm">Type</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <span className="text-sm">Text</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
+                    </div>
+
+                    {/* AI autofill */}
+                    <div className="flex items-center justify-between py-3 hover:bg-gray-50 rounded-md px-2 -mx-2 cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        <Zap className="w-4 h-4 text-gray-600" />
+                        <span className="text-sm">AI autofill</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <span className="text-sm">Off</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
+                    </div>
+
+                    {/* Wrap in view */}
+                    <div className="flex items-center justify-between py-3">
+                      <div className="flex items-center gap-3">
+                        <MoreHorizontal className="w-4 h-4 text-gray-600" />
+                        <span className="text-sm">Wrap in view</span>
+                      </div>
+                      <div className="w-10 h-5 bg-gray-300 rounded-full relative cursor-pointer">
+                        <div className="w-4 h-4 bg-white rounded-full absolute top-0.5 left-0.5"></div>
+                      </div>
+                    </div>
+
+                    {/* Duplicate property */}
+                    <div className="flex items-center gap-3 py-3 hover:bg-gray-50 rounded-md px-2 -mx-2 cursor-pointer">
+                      <MoreHorizontal className="w-4 h-4 text-gray-600" />
+                      <span className="text-sm">Duplicate property</span>
+                    </div>
+
+                    {/* Delete property */}
+                    {!selectedProperty.required && (
+                      <div 
+                        className="flex items-center gap-3 py-3 hover:bg-red-50 rounded-md px-2 -mx-2 cursor-pointer text-red-600"
+                        onClick={() => {
+                          // TODO: Handle property deletion
+                          console.log('Deleting property:', selectedProperty.name);
+                        }}
+                      >
+                        <span className="w-4 h-4 flex items-center justify-center">🗑</span>
+                        <span className="text-sm">Delete property</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </>
