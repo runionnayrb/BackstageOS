@@ -409,13 +409,15 @@ export function EmailSidebar({
                 </DropdownMenuContent>
               </DropdownMenu>
               
-              {/* Compose button positioned absolutely */}
-              <div
-                onClick={onCompose}
-                className="absolute top-2 right-2 h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 hover:text-blue-600 cursor-pointer z-10"
-              >
-                <Edit className="h-4 w-4" />
-              </div>
+              {/* Compose button positioned absolutely - only show when not collapsed */}
+              {!isCollapsed && (
+                <div
+                  onClick={onCompose}
+                  className="absolute top-2 right-2 h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 hover:text-blue-600 cursor-pointer z-10"
+                >
+                  <Edit className="h-4 w-4" />
+                </div>
+              )}
             </div>
           </div>
         )}
