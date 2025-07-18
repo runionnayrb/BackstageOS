@@ -796,14 +796,17 @@ export function TaskTableView({
           });
         }
         
+        // If no assignee is set and no project is selected, default to current user
+        const effectiveAssigneeId = assigneeId || ((!taskProjectId || taskProjectId === 'none') ? currentUser?.id : null);
+        
         // Find assigned user name
-        const assignedUser = availableAssignees.find(user => user.id === assigneeId);
+        const assignedUser = availableAssignees.find(user => user.id === effectiveAssigneeId);
         const displayValue = assignedUser ? assignedUser.name : "Unassigned";
         
         return (
           <div onClick={(e) => e.stopPropagation()}>
             <Select
-              value={assigneeId ? String(assigneeId) : "unassigned"}
+              value={effectiveAssigneeId ? String(effectiveAssigneeId) : "unassigned"}
               onValueChange={(value) => {
                 const updatedProperties = { 
                   ...(task.properties || {}), 
@@ -812,7 +815,7 @@ export function TaskTableView({
                 onTaskUpdate(task.id, { properties: updatedProperties });
               }}
             >
-              <SelectTrigger className="h-8 w-full justify-start hover:bg-gray-100 border-0 shadow-none bg-transparent">
+              <SelectTrigger className="h-8 w-full justify-start hover:bg-gray-100 border-0 shadow-none bg-transparent [&>svg]:hidden">
                 <SelectValue>
                   <span className="text-sm">{displayValue}</span>
                 </SelectValue>
