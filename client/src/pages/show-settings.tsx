@@ -1386,7 +1386,7 @@ export default function ShowSettings() {
         </TabsContent>
 
         <TabsContent value="schedule" className="mt-6">
-          <Card>
+          <Card className="border-0 shadow-none">
             <CardHeader>
               <CardTitle>Schedule Settings</CardTitle>
               <CardDescription>
@@ -1539,7 +1539,7 @@ export default function ShowSettings() {
           </Card>
 
           {/* Show Schedule Filtering */}
-          <Card className="mt-6">
+          <Card className="mt-6 border-0 shadow-none">
             <CardHeader>
               <CardTitle>Show Schedule Filtering</CardTitle>
               <CardDescription>
@@ -1550,7 +1550,7 @@ export default function ShowSettings() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   {eventTypes.map((eventType: any) => (
-                    <div key={eventType.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div key={eventType.id} className="flex items-center justify-between p-3 rounded-lg">
                       <div className="flex items-center gap-3">
                         <div
                           className="w-4 h-4 rounded-full"
@@ -1604,7 +1604,7 @@ export default function ShowSettings() {
                   ))}
                 </div>
                 
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <div className="mt-4 p-3 bg-blue-50/50 rounded-lg">
                   <p className="text-sm text-blue-700">
                     <strong>Note:</strong> These settings control which event types appear in your schedule views. 
                     You can still create all event types, but only enabled ones will be visible in the calendar.
@@ -1615,7 +1615,7 @@ export default function ShowSettings() {
           </Card>
 
           {/* Event Types Management */}
-          <Card className="mt-6">
+          <Card className="mt-6 border-0 shadow-none">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -1640,7 +1640,7 @@ export default function ShowSettings() {
                   </p>
                 ) : (
                   eventTypes.map((eventType: any) => (
-                    <div key={eventType.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div key={eventType.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50/50">
                       <div className="flex items-center gap-3">
                         <div
                           className="w-4 h-4 rounded-full"
@@ -1701,7 +1701,7 @@ export default function ShowSettings() {
           </Card>
 
           {/* Event Locations Management */}
-          <Card className="mt-6">
+          <Card className="mt-6 border-0 shadow-none">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -1734,10 +1734,10 @@ export default function ShowSettings() {
                       onDragLeave={handleLocationDragLeave}
                       onDrop={(e) => handleLocationDrop(e, location.id)}
                       onDragEnd={handleLocationDragEnd}
-                      className={`flex items-center p-3 border rounded-lg cursor-move transition-colors ${
+                      className={`flex items-center p-3 rounded-lg cursor-move transition-colors bg-gray-50/50 ${
                         draggedLocationId === location.id ? 'opacity-50' : ''
                       } ${
-                        dragOverLocationId === location.id ? 'border-primary bg-muted/50' : ''
+                        dragOverLocationId === location.id ? 'bg-blue-50/50' : ''
                       }`}
                     >
                       <div className="flex items-center gap-3 flex-1">
@@ -1804,7 +1804,7 @@ export default function ShowSettings() {
 
 
           {/* Public Calendar Sharing */}
-          <Card className="mt-6">
+          <Card className="mt-6 border-0 shadow-none">
             <CardContent className="pt-6">
               <PublicCalendarShare projectId={parseInt(params.id)} />
             </CardContent>
@@ -1813,7 +1813,7 @@ export default function ShowSettings() {
 
 
           {/* Email Template Categories */}
-          <Card className="mt-6">
+          <Card className="mt-6 border-0 shadow-none">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -1835,7 +1835,7 @@ export default function ShowSettings() {
               {emailTemplateCategories.length > 0 ? (
                 <div className="space-y-3">
                   {emailTemplateCategories.map((category: any) => (
-                    <div key={category.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div key={category.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50/50">
                       <div>
                         <h4 className="font-medium">{category.name}</h4>
                         {category.description && (
@@ -1989,7 +1989,7 @@ export default function ShowSettings() {
                 </div>
               </div>
               
-              <div className="pt-4 border-t">
+              <div className="pt-4">
                 <Button 
                   onClick={() => saveProjectMutation.mutate()}
                   disabled={saveProjectMutation.isPending}
