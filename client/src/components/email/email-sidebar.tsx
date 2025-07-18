@@ -128,7 +128,7 @@ export function EmailSidebar({
                     setDropdownOpen(true);
                   }}
                 >
-                  <Edit className="h-4 w-4 text-gray-600" />
+                  <Edit className="h-5 w-5 text-gray-600" />
                 </Button>
                 
                 {/* Right-click dropdown */}
@@ -214,7 +214,7 @@ export function EmailSidebar({
                 title={isCollapsed ? folder.name : undefined}
               >
                 {isCollapsed ? (
-                  <IconComponent className="h-4 w-4" />
+                  <IconComponent className="h-5 w-5" />
                 ) : (
                   <>
                     <div className="flex items-center space-x-2">
@@ -245,7 +245,7 @@ export function EmailSidebar({
             )}
             title={isCollapsed ? "Settings" : undefined}
           >
-            <Settings className="h-4 w-4" />
+            <Settings className={cn(isCollapsed ? "h-5 w-5" : "h-4 w-4")} />
             {!isCollapsed && <span>Settings</span>}
           </button>
         </div>
