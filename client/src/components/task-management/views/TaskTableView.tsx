@@ -333,6 +333,11 @@ export function TaskTableView({
     queryKey: ['/api/user'],
   });
 
+  // Fetch all projects for the project dropdown
+  const { data: projects = [] } = useQuery({
+    queryKey: ['/api/projects'],
+  });
+
   // Get project from tasks to determine which team members to fetch
   const currentProjectId = tasks.length > 0 ? tasks.find(task => task.properties?.project && task.properties.project !== 'none')?.properties?.project : null;
 
@@ -362,7 +367,7 @@ export function TaskTableView({
       { id: 'status', key: 'status', title: 'Status', width: 128, minWidth: getMinWidthForText('Status'), type: 'status' },
       { id: 'priority', key: 'priority', title: 'Priority', width: 100, minWidth: getMinWidthForText('Priority'), type: 'priority' },
       { id: 'dueDate', key: 'dueDate', title: 'Due Date', width: 128, minWidth: getMinWidthForText('Due Date'), type: 'date' },
-      { id: 'project', key: 'project', title: 'Project', width: 150, minWidth: getMinWidthForText('Project'), type: 'project' },
+      { id: 'project', key: 'project', title: 'Show', width: 150, minWidth: getMinWidthForText('Show'), type: 'project' },
       { id: 'assignee', key: 'assignee', title: 'Assignee', width: 150, minWidth: getMinWidthForText('Assignee'), type: 'assignee' },
       { id: 'created', key: 'created', title: 'Created', width: 160, minWidth: getMinWidthForText('Created'), type: 'date', isSystemField: true },
       { id: 'updated', key: 'updated', title: 'Updated', width: 160, minWidth: getMinWidthForText('Updated'), type: 'date', isSystemField: true },
@@ -585,7 +590,7 @@ export function TaskTableView({
     switch (column.type) {
       case 'status': return 'Status';
       case 'priority': return 'Priority';
-      case 'project': return 'Project';
+      case 'project': return 'Show';
       case 'assignee': return 'Assignee';
       case 'date':
         if (column.id === 'dueDate') return 'Due Date';
@@ -797,13 +802,15 @@ export function TaskTableView({
               }}
             >
               <SelectTrigger className="h-8 w-full justify-start hover:bg-gray-100 border-0 shadow-none bg-transparent [&>svg]:hidden">
-                <SelectValue placeholder="No Project" />
+                <SelectValue placeholder="No Show" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No Project</SelectItem>
-                <SelectItem value="show1">Show 1</SelectItem>
-                <SelectItem value="show2">Show 2</SelectItem>
-                <SelectItem value="show3">Show 3</SelectItem>
+                <SelectItem value="none">No Show</SelectItem>
+                {projects.map((project: any) => (
+                  <SelectItem key={project.id} value={project.id.toString()}>
+                    {project.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

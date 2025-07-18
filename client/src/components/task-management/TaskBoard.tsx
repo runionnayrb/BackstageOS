@@ -33,7 +33,7 @@ interface TaskBoardProps {
   projectId?: number;
 }
 
-export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen, searchQuery = "", newTaskId = null, propertyVisibility = [], onPropertyReorder }: TaskBoardProps) {
+export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen, searchQuery = "", newTaskId = null, propertyVisibility = [], onPropertyReorder, projectId }: TaskBoardProps) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const queryClient = useQueryClient();
 
@@ -119,11 +119,19 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
     }
   });
 
-  // Filter tasks based on search query
-  const filteredTasks = tasks.filter((task: Task) =>
-    task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (task.content && task.content.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  // Filter tasks based on search query and project ID (when in show context)
+  const filteredTasks = tasks.filter((task: Task) => {
+    // Search query filtering
+    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (task.content && task.content.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    // Project filtering: if projectId is provided (show context), only show tasks for that project
+    const matchesProject = projectId 
+      ? (task.properties?.project === projectId.toString())
+      : true; // Show all tasks when not in a show context
+    
+    return matchesSearch && matchesProject;
+  });
 
   const handleCreateTask = (data: any) => {
     console.log('Creating task with database:', database);
