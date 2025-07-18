@@ -152,12 +152,12 @@ export function CreateNoteDialog({
 
           <div className="space-y-2">
             <Label htmlFor="folder">Folder (optional)</Label>
-            <Select value={selectedFolderId?.toString() || ""} onValueChange={(value) => setSelectedFolderId(value ? parseInt(value) : null)}>
+            <Select value={selectedFolderId?.toString() || "none"} onValueChange={(value) => setSelectedFolderId(value === "none" ? null : parseInt(value))}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a folder or leave unorganized" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">No folder (unorganized)</SelectItem>
+                <SelectItem value="none">No folder (unorganized)</SelectItem>
                 {folders.map((folder: NoteFolder) => (
                   <SelectItem key={folder.id} value={folder.id.toString()}>
                     {folder.name}
