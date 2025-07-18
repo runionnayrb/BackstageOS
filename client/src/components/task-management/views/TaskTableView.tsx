@@ -613,10 +613,13 @@ export function TaskTableView({
       case 'hide':
         // Find the column object by ID from the visible columns
         const targetColumn = visibleColumns.find(col => col.id === columnId);
+        console.log('Target column:', targetColumn);
         if (!targetColumn) return;
         
         // Get the property name for this column
         const propertyName = getPropertyNameFromColumn(targetColumn);
+        console.log('Property name for column:', propertyName);
+        console.log('Current property visibility:', propertyVisibility);
         
         // Update property visibility to hide this column
         if (onPropertyReorder && propertyName) {
@@ -627,8 +630,12 @@ export function TaskTableView({
               : prop
           );
           
+          console.log('Updated visibility:', updatedVisibility);
+          
           // Call the parent's property reorder function to update visibility
           onPropertyReorder(updatedVisibility);
+        } else {
+          console.log('Missing onPropertyReorder or propertyName:', { onPropertyReorder: !!onPropertyReorder, propertyName });
         }
         break;
       case 'wrap-text':
