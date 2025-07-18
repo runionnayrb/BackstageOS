@@ -1028,6 +1028,179 @@ export default function ShowSettings() {
 
           <Card className="mt-6">
             <CardHeader>
+              <CardTitle>App Features</CardTitle>
+              <CardDescription>
+                Choose which features are available for this {showLabel.toLowerCase()}. Hidden features won't appear in navigation.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Email Section */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">Personal Email</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Personal email management and communication
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(settings as any)?.featureSettings?.email?.personal ?? true}
+                      onCheckedChange={(checked) =>
+                        handleSettingsUpdate("featureSettings", { 
+                          ...(settings as any)?.featureSettings,
+                          email: {
+                            ...(settings as any)?.featureSettings?.email,
+                            personal: checked
+                          }
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">Team Email</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Team-wide email management and notifications
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(settings as any)?.featureSettings?.email?.team ?? true}
+                      onCheckedChange={(checked) =>
+                        handleSettingsUpdate("featureSettings", { 
+                          ...(settings as any)?.featureSettings,
+                          email: {
+                            ...(settings as any)?.featureSettings?.email,
+                            team: checked
+                          }
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Core Features */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">Chat</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Team messaging and communication
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(settings as any)?.featureSettings?.chat ?? true}
+                      onCheckedChange={(checked) =>
+                        handleSettingsUpdate("featureSettings", { 
+                          ...(settings as any)?.featureSettings,
+                          chat: checked
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">Reports</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Rehearsal, tech, and performance reports
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(settings as any)?.featureSettings?.reports ?? true}
+                      onCheckedChange={(checked) =>
+                        handleSettingsUpdate("featureSettings", { 
+                          ...(settings as any)?.featureSettings,
+                          reports: checked
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">Calendar</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Show schedule and event management
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(settings as any)?.featureSettings?.calendar ?? true}
+                      onCheckedChange={(checked) =>
+                        handleSettingsUpdate("featureSettings", { 
+                          ...(settings as any)?.featureSettings,
+                          calendar: checked
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Production Features */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">Script</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Script editing and collaboration tools
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(settings as any)?.featureSettings?.script ?? true}
+                      onCheckedChange={(checked) =>
+                        handleSettingsUpdate("featureSettings", { 
+                          ...(settings as any)?.featureSettings,
+                          script: checked
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">Props</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Props and costume tracking
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(settings as any)?.featureSettings?.props ?? true}
+                      onCheckedChange={(checked) =>
+                        handleSettingsUpdate("featureSettings", { 
+                          ...(settings as any)?.featureSettings,
+                          props: checked
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label className="text-sm font-medium">Contacts</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Cast and crew contact management
+                      </p>
+                    </div>
+                    <Switch
+                      checked={(settings as any)?.featureSettings?.contacts ?? true}
+                      onCheckedChange={(checked) =>
+                        handleSettingsUpdate("featureSettings", { 
+                          ...(settings as any)?.featureSettings,
+                          contacts: checked
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mt-6">
+            <CardHeader>
               <CardTitle className="text-red-600">Danger Zone</CardTitle>
               <CardDescription>
                 Permanently delete this show and all associated data.

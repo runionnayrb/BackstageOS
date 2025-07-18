@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { isAdmin } from "@/lib/admin";
+import { useFeatureSettings } from "@/hooks/useFeatureSettings";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,7 +49,10 @@ export default function MobileBottomNav() {
   // Parse current show ID from URL
   const currentShowId = location.match(/\/shows\/(\d+)/)?.[1];
   
-  // Fixed navigation items (always visible)
+  // Get feature settings for the current show
+  const { isFeatureEnabled, isEmailEnabled } = useFeatureSettings(currentShowId);
+  
+  // Fixed navigation items (conditionally visible based on feature settings)
   const fixedNavItems: NavItem[] = [
     {
       id: 'shows',
@@ -56,32 +60,46 @@ export default function MobileBottomNav() {
       icon: FolderOpen,
       href: '/',
     },
-    {
+    // Only show email if enabled globally or if email features are enabled for the current show
+    ...((!currentShowId || isEmailEnabled()) ? [{
       id: 'email',
       label: 'Email',
       icon: Mail,
       href: '/email',
       badge: unreadCount > 0 ? unreadCount : undefined,
-    },
-    {
+    }] : []),
+    // Only show chat if enabled globally or if chat is enabled for the current show
+    ...((!currentShowId || isFeatureEnabled('chat')) ? [{
       id: 'chat',
       label: 'Chat',
       icon: MessageCircle,
       href: '/chat',
-    },
+    }] : []),
   ];
 
   // Get contextual menu items based on current location
   const getContextualMenuItems = (): MenuItem[] => {
     if (currentShowId) {
-      // In a show context - show production tools
-      return [
-        { label: 'Reports', href: `/shows/${currentShowId}/reports`, icon: FileText },
-        { label: 'Calendar', href: `/shows/${currentShowId}/calendar`, icon: Calendar },
-        { label: 'Props', href: `/shows/${currentShowId}/props`, icon: Package },
-        { label: 'Contacts', href: `/shows/${currentShowId}/contacts`, icon: Users },
-        { label: 'Settings', href: `/shows/${currentShowId}/settings`, icon: Settings },
-      ];
+      // In a show context - show production tools based on feature settings
+      const menuItems: MenuItem[] = [];
+      
+      if (isFeatureEnabled('reports')) {
+        menuItems.push({ label: 'Reports', href: `/shows/${currentShowId}/reports`, icon: FileText });
+      }
+      if (isFeatureEnabled('calendar')) {
+        menuItems.push({ label: 'Calendar', href: `/shows/${currentShowId}/calendar`, icon: Calendar });
+      }
+      if (isFeatureEnabled('props')) {
+        menuItems.push({ label: 'Props', href: `/shows/${currentShowId}/props`, icon: Package });
+      }
+      if (isFeatureEnabled('contacts')) {
+        menuItems.push({ label: 'Contacts', href: `/shows/${currentShowId}/contacts`, icon: Users });
+      }
+      
+      // Settings always available
+      menuItems.push({ label: 'Settings', href: `/shows/${currentShowId}/settings`, icon: Settings });
+      
+      return menuItems;
     } else {
       // Global context - show general tools
       const generalItems: MenuItem[] = [

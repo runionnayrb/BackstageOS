@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useRef } from "react";
+import { useFeatureSettings } from "@/hooks/useFeatureSettings";
 import BreadcrumbNavigation from "./breadcrumb-navigation";
 
 interface SwitchStatus {
@@ -90,6 +91,9 @@ export default function EnhancedHeader() {
     enabled: !!navContext.showId,
     select: (data: any) => data || {},
   });
+
+  // Get feature settings for the current show
+  const { isFeatureEnabled, isEmailEnabled } = useFeatureSettings(navContext.showId);
 
   // Generate breadcrumbs based on current location
   const getBreadcrumbs = () => {
@@ -297,15 +301,17 @@ export default function EnhancedHeader() {
                   </div>
                   <DropdownMenuSeparator />
                   
-                  <DropdownMenuItem onClick={() => setLocation('/email')}>
-                    <Mail className="h-4 w-4 mr-2" />
-                    Email
-                    {unreadEmailData?.totalUnread > 0 && (
-                      <span className="ml-auto bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                        {unreadEmailData.totalUnread}
-                      </span>
-                    )}
-                  </DropdownMenuItem>
+                  {(!navContext.showId || isEmailEnabled()) && (
+                    <DropdownMenuItem onClick={() => setLocation('/email')}>
+                      <Mail className="h-4 w-4 mr-2" />
+                      Email
+                      {unreadEmailData?.totalUnread > 0 && (
+                        <span className="ml-auto bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                          {unreadEmailData.totalUnread}
+                        </span>
+                      )}
+                    </DropdownMenuItem>
+                  )}
                   
                   <DropdownMenuItem onClick={() => setLocation('/tasks')}>
                     <CheckSquare className="h-4 w-4 mr-2" />
@@ -336,26 +342,36 @@ export default function EnhancedHeader() {
                       <div className="px-3 py-2 text-sm font-semibold text-gray-900">
                         {showData.name}
                       </div>
-                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/reports`)}>
-                        <FileText className="h-4 w-4 mr-2" />
-                        Reports
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/calendar`)}>
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Calendar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/script`)}>
-                        <FileText className="h-4 w-4 mr-2" />
-                        Script
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/props`)}>
-                        <FolderOpen className="h-4 w-4 mr-2" />
-                        Props
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/contacts`)}>
-                        <Users className="h-4 w-4 mr-2" />
-                        Contacts
-                      </DropdownMenuItem>
+                      {isFeatureEnabled('reports') && (
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/reports`)}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Reports
+                        </DropdownMenuItem>
+                      )}
+                      {isFeatureEnabled('calendar') && (
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/calendar`)}>
+                          <Calendar className="h-4 w-4 mr-2" />
+                          Calendar
+                        </DropdownMenuItem>
+                      )}
+                      {isFeatureEnabled('script') && (
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/script`)}>
+                          <FileText className="h-4 w-4 mr-2" />
+                          Script
+                        </DropdownMenuItem>
+                      )}
+                      {isFeatureEnabled('props') && (
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/props`)}>
+                          <FolderOpen className="h-4 w-4 mr-2" />
+                          Props
+                        </DropdownMenuItem>
+                      )}
+                      {isFeatureEnabled('contacts') && (
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/contacts`)}>
+                          <Users className="h-4 w-4 mr-2" />
+                          Contacts
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/performance-tracker`)}>
                         <TrendingUp className="h-4 w-4 mr-2" />
                         Performance Tracker
