@@ -47,6 +47,10 @@ import {
   noteCollaborators,
   noteComments,
   noteAttachments,
+  scheduleVersions,
+  personalSchedules,
+  scheduleVersionNotifications,
+  scheduleEmailTemplates,
 
   type User,
   type UpsertUser,
@@ -138,6 +142,14 @@ import {
   type InsertNoteComment,
   type NoteAttachment,
   type InsertNoteAttachment,
+  type ScheduleVersion,
+  type InsertScheduleVersion,
+  type PersonalSchedule,
+  type InsertPersonalSchedule,
+  type ScheduleVersionNotification,
+  type InsertScheduleVersionNotification,
+  type ScheduleEmailTemplate,
+  type InsertScheduleEmailTemplate,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -422,6 +434,35 @@ export interface IStorage {
   getNoteAttachments(noteId: number): Promise<NoteAttachment[]>;
   createNoteAttachment(attachment: InsertNoteAttachment): Promise<NoteAttachment>;
   deleteNoteAttachment(id: number): Promise<void>;
+
+  // Schedule Version Control System
+  getScheduleVersionsByProjectId(projectId: number): Promise<ScheduleVersion[]>;
+  getScheduleVersionById(id: number): Promise<ScheduleVersion | undefined>;
+  getCurrentScheduleVersion(projectId: number): Promise<ScheduleVersion | undefined>;
+  createScheduleVersion(version: InsertScheduleVersion): Promise<ScheduleVersion>;
+  updateScheduleVersion(id: number, version: Partial<InsertScheduleVersion>): Promise<ScheduleVersion>;
+  deleteScheduleVersion(id: number): Promise<void>;
+  
+  // Personal Schedules
+  getPersonalSchedulesByProjectId(projectId: number): Promise<PersonalSchedule[]>;
+  getPersonalScheduleByToken(token: string): Promise<PersonalSchedule | undefined>;
+  getPersonalScheduleByContactId(contactId: number, projectId: number): Promise<PersonalSchedule | undefined>;
+  createPersonalSchedule(schedule: InsertPersonalSchedule): Promise<PersonalSchedule>;
+  updatePersonalSchedule(id: number, schedule: Partial<InsertPersonalSchedule>): Promise<PersonalSchedule>;
+  deletePersonalSchedule(id: number): Promise<void>;
+  
+  // Schedule Version Notifications
+  getScheduleVersionNotifications(versionId: number): Promise<ScheduleVersionNotification[]>;
+  createScheduleVersionNotification(notification: InsertScheduleVersionNotification): Promise<ScheduleVersionNotification>;
+  updateScheduleVersionNotification(id: number, notification: Partial<InsertScheduleVersionNotification>): Promise<ScheduleVersionNotification>;
+  deleteScheduleVersionNotification(id: number): Promise<void>;
+  
+  // Schedule Email Templates
+  getScheduleEmailTemplatesByProjectId(projectId: number): Promise<ScheduleEmailTemplate[]>;
+  getScheduleEmailTemplateById(id: number): Promise<ScheduleEmailTemplate | undefined>;
+  createScheduleEmailTemplate(template: InsertScheduleEmailTemplate): Promise<ScheduleEmailTemplate>;
+  updateScheduleEmailTemplate(id: number, template: Partial<InsertScheduleEmailTemplate>): Promise<ScheduleEmailTemplate>;
+  deleteScheduleEmailTemplate(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2620,6 +2661,165 @@ export class DatabaseStorage implements IStorage {
 
   async deleteNoteAttachment(id: number): Promise<void> {
     await db.delete(noteAttachments).where(eq(noteAttachments.id, id));
+  }
+
+  // ========== SCHEDULE VERSION CONTROL IMPLEMENTATIONS ==========
+
+  // Schedule Versions
+  async getScheduleVersionsByProjectId(projectId: number): Promise<ScheduleVersion[]> {
+    const result = await db
+      .select()
+      .from(scheduleVersions)
+      .where(eq(scheduleVersions.projectId, projectId))
+      .orderBy(desc(scheduleVersions.publishedAt));
+    return result;
+  }
+
+  async getScheduleVersionById(id: number): Promise<ScheduleVersion | undefined> {
+    const result = await db
+      .select()
+      .from(scheduleVersions)
+      .where(eq(scheduleVersions.id, id));
+    return result[0];
+  }
+
+  async getCurrentScheduleVersion(projectId: number): Promise<ScheduleVersion | undefined> {
+    const result = await db
+      .select()
+      .from(scheduleVersions)
+      .where(eq(scheduleVersions.projectId, projectId))
+      .orderBy(desc(scheduleVersions.publishedAt))
+      .limit(1);
+    return result[0];
+  }
+
+  async createScheduleVersion(version: InsertScheduleVersion): Promise<ScheduleVersion> {
+    const result = await db.insert(scheduleVersions).values(version).returning();
+    return result[0];
+  }
+
+  async updateScheduleVersion(id: number, version: Partial<InsertScheduleVersion>): Promise<ScheduleVersion> {
+    const result = await db
+      .update(scheduleVersions)
+      .set(version)
+      .where(eq(scheduleVersions.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteScheduleVersion(id: number): Promise<void> {
+    await db.delete(scheduleVersions).where(eq(scheduleVersions.id, id));
+  }
+
+  // Personal Schedules
+  async getPersonalSchedulesByProjectId(projectId: number): Promise<PersonalSchedule[]> {
+    const result = await db
+      .select()
+      .from(personalSchedules)
+      .where(eq(personalSchedules.projectId, projectId))
+      .orderBy(personalSchedules.createdAt);
+    return result;
+  }
+
+  async getPersonalScheduleByToken(token: string): Promise<PersonalSchedule | undefined> {
+    const result = await db
+      .select()
+      .from(personalSchedules)
+      .where(eq(personalSchedules.accessToken, token));
+    return result[0];
+  }
+
+  async getPersonalScheduleByContactId(contactId: number, projectId: number): Promise<PersonalSchedule | undefined> {
+    const result = await db
+      .select()
+      .from(personalSchedules)
+      .where(and(
+        eq(personalSchedules.contactId, contactId),
+        eq(personalSchedules.projectId, projectId)
+      ));
+    return result[0];
+  }
+
+  async createPersonalSchedule(schedule: InsertPersonalSchedule): Promise<PersonalSchedule> {
+    const result = await db.insert(personalSchedules).values(schedule).returning();
+    return result[0];
+  }
+
+  async updatePersonalSchedule(id: number, schedule: Partial<InsertPersonalSchedule>): Promise<PersonalSchedule> {
+    const result = await db
+      .update(personalSchedules)
+      .set({ ...schedule, updatedAt: new Date() })
+      .where(eq(personalSchedules.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deletePersonalSchedule(id: number): Promise<void> {
+    await db.delete(personalSchedules).where(eq(personalSchedules.id, id));
+  }
+
+  // Schedule Version Notifications
+  async getScheduleVersionNotifications(versionId: number): Promise<ScheduleVersionNotification[]> {
+    const result = await db
+      .select()
+      .from(scheduleVersionNotifications)
+      .where(eq(scheduleVersionNotifications.versionId, versionId))
+      .orderBy(scheduleVersionNotifications.sentAt);
+    return result;
+  }
+
+  async createScheduleVersionNotification(notification: InsertScheduleVersionNotification): Promise<ScheduleVersionNotification> {
+    const result = await db.insert(scheduleVersionNotifications).values(notification).returning();
+    return result[0];
+  }
+
+  async updateScheduleVersionNotification(id: number, notification: Partial<InsertScheduleVersionNotification>): Promise<ScheduleVersionNotification> {
+    const result = await db
+      .update(scheduleVersionNotifications)
+      .set(notification)
+      .where(eq(scheduleVersionNotifications.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteScheduleVersionNotification(id: number): Promise<void> {
+    await db.delete(scheduleVersionNotifications).where(eq(scheduleVersionNotifications.id, id));
+  }
+
+  // Schedule Email Templates
+  async getScheduleEmailTemplatesByProjectId(projectId: number): Promise<ScheduleEmailTemplate[]> {
+    const result = await db
+      .select()
+      .from(scheduleEmailTemplates)
+      .where(eq(scheduleEmailTemplates.projectId, projectId))
+      .orderBy(scheduleEmailTemplates.createdAt);
+    return result;
+  }
+
+  async getScheduleEmailTemplateById(id: number): Promise<ScheduleEmailTemplate | undefined> {
+    const result = await db
+      .select()
+      .from(scheduleEmailTemplates)
+      .where(eq(scheduleEmailTemplates.id, id));
+    return result[0];
+  }
+
+  async createScheduleEmailTemplate(template: InsertScheduleEmailTemplate): Promise<ScheduleEmailTemplate> {
+    const result = await db.insert(scheduleEmailTemplates).values(template).returning();
+    return result[0];
+  }
+
+  async updateScheduleEmailTemplate(id: number, template: Partial<InsertScheduleEmailTemplate>): Promise<ScheduleEmailTemplate> {
+    const result = await db
+      .update(scheduleEmailTemplates)
+      .set({ ...template, updatedAt: new Date() })
+      .where(eq(scheduleEmailTemplates.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteScheduleEmailTemplate(id: number): Promise<void> {
+    await db.delete(scheduleEmailTemplates).where(eq(scheduleEmailTemplates.id, id));
   }
 
 }

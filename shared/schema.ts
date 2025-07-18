@@ -485,6 +485,69 @@ export const locationAvailability = pgTable("location_availability", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ========== SCHEDULE VERSION CONTROL SYSTEM ==========
+
+// Schedule versions for version control similar to script editor
+export const scheduleVersions = pgTable("schedule_versions", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  version: varchar("version").notNull(), // "1.0", "1.1", "2.0", etc.
+  versionType: varchar("version_type").notNull(), // 'major' | 'minor'
+  weekStartDate: date("week_start_date").notNull(), // week this version covers
+  weekEndDate: date("week_end_date").notNull(),
+  changeSummary: text("change_summary"), // description of changes
+  eventsSnapshot: jsonb("events_snapshot").notNull(), // complete snapshot of all events for this week
+  publishedBy: integer("published_by").notNull().references(() => users.id),
+  publishedAt: timestamp("published_at").defaultNow(),
+  isCurrent: boolean("is_current").default(false), // current active version
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Personal schedules for individual contact schedule access
+export const personalSchedules = pgTable("personal_schedules", {
+  id: serial("id").primaryKey(),
+  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  currentVersionId: integer("current_version_id").references(() => scheduleVersions.id, { onDelete: "set null" }),
+  accessToken: varchar("access_token").notNull().unique(), // secure access for external viewing
+  googleCalendarSyncEnabled: boolean("google_calendar_sync_enabled").default(false),
+  googleCalendarId: text("google_calendar_id"),
+  googleAccessToken: text("google_access_token"), // encrypted
+  googleRefreshToken: text("google_refresh_token"), // encrypted
+  lastAccessed: timestamp("last_accessed"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Schedule version notifications for tracking notification delivery
+export const scheduleVersionNotifications = pgTable("schedule_version_notifications", {
+  id: serial("id").primaryKey(),
+  versionId: integer("version_id").notNull().references(() => scheduleVersions.id, { onDelete: "cascade" }),
+  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  emailSentAt: timestamp("email_sent_at"),
+  emailOpenedAt: timestamp("email_opened_at"),
+  scheduleViewedAt: timestamp("schedule_viewed_at"),
+  notificationType: varchar("notification_type").notNull(), // 'major_version' | 'minor_version'
+  deliveryStatus: varchar("delivery_status").default("pending"), // 'pending' | 'sent' | 'delivered' | 'failed'
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Custom email templates for schedule notifications
+export const scheduleEmailTemplates = pgTable("schedule_email_templates", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  templateName: varchar("template_name").notNull(), // "Default", "Tech Week", "Performance", etc.
+  templateType: varchar("template_type").notNull(), // 'major_version' | 'minor_version' | 'custom'
+  subjectTemplate: text("subject_template").notNull(), // with variables like {{showName}}, {{version}}
+  bodyTemplate: text("body_template").notNull(), // rich text with variable placeholders
+  isDefault: boolean("is_default").default(false), // default template for this project
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // ========== EMAIL SYSTEM TABLES ==========
 
 // Email accounts (user@backstageos.com, showname@backstageos.com)
@@ -1320,6 +1383,58 @@ export const eventTypesRelations = relations(eventTypes, ({ one, many }) => ({
   scheduleEvents: many(scheduleEvents),
 }));
 
+// ========== SCHEDULE VERSION CONTROL RELATIONS ==========
+
+export const scheduleVersionsRelations = relations(scheduleVersions, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [scheduleVersions.projectId],
+    references: [projects.id],
+  }),
+  publisher: one(users, {
+    fields: [scheduleVersions.publishedBy],
+    references: [users.id],
+  }),
+  notifications: many(scheduleVersionNotifications),
+  personalSchedules: many(personalSchedules),
+}));
+
+export const personalSchedulesRelations = relations(personalSchedules, ({ one }) => ({
+  contact: one(contacts, {
+    fields: [personalSchedules.contactId],
+    references: [contacts.id],
+  }),
+  project: one(projects, {
+    fields: [personalSchedules.projectId],
+    references: [projects.id],
+  }),
+  currentVersion: one(scheduleVersions, {
+    fields: [personalSchedules.currentVersionId],
+    references: [scheduleVersions.id],
+  }),
+}));
+
+export const scheduleVersionNotificationsRelations = relations(scheduleVersionNotifications, ({ one }) => ({
+  version: one(scheduleVersions, {
+    fields: [scheduleVersionNotifications.versionId],
+    references: [scheduleVersions.id],
+  }),
+  contact: one(contacts, {
+    fields: [scheduleVersionNotifications.contactId],
+    references: [contacts.id],
+  }),
+}));
+
+export const scheduleEmailTemplatesRelations = relations(scheduleEmailTemplates, ({ one }) => ({
+  project: one(projects, {
+    fields: [scheduleEmailTemplates.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [scheduleEmailTemplates.createdBy],
+    references: [users.id],
+  }),
+}));
+
 // Contact sheet versions table for version control
 export const contactSheetVersions = pgTable("contact_sheet_versions", {
   id: serial("id").primaryKey(),
@@ -1930,6 +2045,32 @@ export const insertEventTypeSchema = createInsertSchema(eventTypes).omit({
   updatedAt: true,
 });
 
+// Schedule versioning insert schemas
+export const insertScheduleVersionSchema = createInsertSchema(scheduleVersions).omit({
+  id: true,
+  publishedAt: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPersonalScheduleSchema = createInsertSchema(personalSchedules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleVersionNotificationSchema = createInsertSchema(scheduleVersionNotifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleEmailTemplateSchema = createInsertSchema(scheduleEmailTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type ContactAvailability = typeof contactAvailability.$inferSelect;
 export type InsertContactAvailability = z.infer<typeof insertContactAvailabilitySchema>;
@@ -2176,6 +2317,16 @@ export type WaitlistEmailSettings = typeof waitlistEmailSettings.$inferSelect;
 export type InsertWaitlistEmailSettings = z.infer<typeof insertWaitlistEmailSettingsSchema>;
 export type ApiSettings = typeof apiSettings.$inferSelect;
 export type InsertApiSettings = z.infer<typeof insertApiSettingsSchema>;
+
+// Schedule versioning types
+export type ScheduleVersion = typeof scheduleVersions.$inferSelect;
+export type InsertScheduleVersion = z.infer<typeof insertScheduleVersionSchema>;
+export type PersonalSchedule = typeof personalSchedules.$inferSelect;
+export type InsertPersonalSchedule = z.infer<typeof insertPersonalScheduleSchema>;
+export type ScheduleVersionNotification = typeof scheduleVersionNotifications.$inferSelect;
+export type InsertScheduleVersionNotification = z.infer<typeof insertScheduleVersionNotificationSchema>;
+export type ScheduleEmailTemplate = typeof scheduleEmailTemplates.$inferSelect;
+export type InsertScheduleEmailTemplate = z.infer<typeof insertScheduleEmailTemplateSchema>;
 
 // Performance and Rehearsal Tracking System (AEA Contract Management)
 // Only activates if at least one cast member has equityStatus = "equity"
