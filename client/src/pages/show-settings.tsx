@@ -1489,9 +1489,6 @@ export default function ShowSettings() {
                               </span>
                             )}
                           </div>
-                          {eventType.description && (
-                            <p className="text-sm text-muted-foreground">{eventType.description}</p>
-                          )}
                         </div>
                       </div>
                       <Switch
@@ -1582,9 +1579,6 @@ export default function ShowSettings() {
                               </span>
                             )}
                           </div>
-                          {eventType.description && (
-                            <p className="text-sm text-muted-foreground">{eventType.description}</p>
-                          )}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
