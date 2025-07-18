@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import {
@@ -165,6 +165,11 @@ export function TaskViewSettings({
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
   const [currentPage, setCurrentPage] = useState<'main' | 'layout' | 'properties' | 'editProperties' | 'editProperty'>('main');
   const [selectedProperty, setSelectedProperty] = useState<PropertyVisibility | null>(null);
+
+  // Debug effect to monitor page changes
+  useEffect(() => {
+    console.log('Page state changed to:', currentPage);
+  }, [currentPage]);
   const triggerRef = useRef<HTMLDivElement>(null);
 
   const togglePropertyVisibility = (propertyId: number) => {
@@ -291,6 +296,8 @@ export function TaskViewSettings({
               top: `${popoverPosition.y}px`
             }}
           >
+            {/* Debug current page */}
+            {console.log('Current page is:', currentPage)}
             {currentPage === 'main' ? (
               <>
                 <div className="px-6 py-4 border-b">
@@ -346,7 +353,11 @@ export function TaskViewSettings({
             {/* Edit properties */}
             <div 
               className="flex items-center justify-between py-2 hover:bg-gray-50 rounded-md px-2 -mx-2 cursor-pointer"
-              onClick={() => setCurrentPage('editProperties')}
+              onClick={() => {
+                console.log('Opening properties editor, current page:', currentPage);
+                setCurrentPage('editProperties');
+                console.log('Set page to: editProperties');
+              }}
             >
               <div className="flex items-center gap-3">
                 <Settings className="w-4 h-4 text-gray-600" />
