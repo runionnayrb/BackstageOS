@@ -69,12 +69,22 @@ interface Column {
   isSystemField?: boolean;
 }
 
+interface PropertyVisibility {
+  id: number;
+  name: string;
+  type: string;
+  icon: any;
+  visible: boolean;
+  required: boolean;
+}
+
 interface TaskTableViewProps {
   tasks: Task[];
   properties: TaskProperty[];
   onTaskUpdate: (id: number, data: any) => void;
   onTaskDelete: (id: number) => void;
   onTaskSelect: (task: Task) => void;
+  propertyVisibility?: PropertyVisibility[];
 }
 
 interface DraggableColumnHeaderProps {
@@ -296,7 +306,8 @@ export function TaskTableView({
   properties, 
   onTaskUpdate, 
   onTaskDelete, 
-  onTaskSelect 
+  onTaskSelect,
+  propertyVisibility = []
 }: TaskTableViewProps) {
   const [selectedTasks, setSelectedTasks] = useState<Set<number>>(new Set());
   const [selectAllClicked, setSelectAllClicked] = useState(false);
@@ -339,6 +350,46 @@ export function TaskTableView({
     );
     
     return defaultColumns;
+  });
+
+  // Filter columns based on property visibility
+  const visibleColumns = columns.filter(column => {
+    // Always show checkbox and actions columns
+    if (column.type === 'checkbox' || column.type === 'actions') {
+      return true;
+    }
+    
+    // If no property visibility is set, show all columns (backwards compatibility)
+    if (propertyVisibility.length === 0) {
+      return true;
+    }
+    
+    // For system fields, find corresponding property in visibility settings
+    const correspondingProperty = propertyVisibility.find(prop => {
+      switch (column.type) {
+        case 'task':
+          return prop.name === 'Task Name';
+        case 'status':
+          return prop.name === 'Status';
+        case 'priority':
+          return prop.name === 'Priority';
+        case 'date':
+          if (column.id === 'dueDate') return prop.name === 'Due Date';
+          if (column.id === 'created') return prop.name === 'Created';
+          if (column.id === 'updated') return prop.name === 'Updated';
+          return false;
+        default:
+          return false;
+      }
+    });
+    
+    // If we found a corresponding property, use its visibility setting
+    if (correspondingProperty) {
+      return correspondingProperty.visible;
+    }
+    
+    // For property columns, show if visible (default to true if not found)
+    return true;
   });
 
   const moveColumn = useCallback((dragIndex: number, hoverIndex: number) => {
@@ -673,10 +724,10 @@ export function TaskTableView({
     <DndProvider backend={HTML5Backend}>
       <div className="h-full overflow-auto">
         <div className="overflow-x-auto">
-          <Table style={{ minWidth: 'max-content', tableLayout: 'fixed', width: columns.reduce((sum, col) => sum + col.width, 0) }}>
+          <Table style={{ minWidth: 'max-content', tableLayout: 'fixed', width: visibleColumns.reduce((sum, col) => sum + col.width, 0) }}>
             <TableHeader className="sticky top-0 bg-background z-10 [&_tr]:border-b-0">
               <TableRow className="group !border-b-0">
-                {columns.map((column, index) => {
+                {visibleColumns.map((column, index) => {
                   if (column.type === 'checkbox') {
                     return (
                       <TableHead key={column.id} style={{ width: column.width }} className="w-12 px-2">
@@ -711,7 +762,7 @@ export function TaskTableView({
                   className="hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer group transition-colors duration-150"
                   onClick={() => onTaskSelect(task)}
                 >
-                  {columns.map((column) => (
+                  {visibleColumns.map((column) => (
                     <TableCell 
                       key={column.id} 
                       style={{ width: column.width }}

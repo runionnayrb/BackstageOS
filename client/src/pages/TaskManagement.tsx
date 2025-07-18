@@ -4,11 +4,20 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-import { Database, Table, Calendar, Kanban, List, Grid, Settings, Filter, Plus, Search } from "lucide-react";
+import { Database, Table, Calendar, Kanban, List, Grid, Settings, Filter, Plus, Search, Text, Hash, ArrowUpDown, CalendarDays, Building, User } from "lucide-react";
 import { TaskBoard } from "@/components/task-management/TaskBoard";
 import { TaskViewSettings } from "@/components/task-management/TaskViewSettings";
 import { apiRequest } from "@/lib/queryClient";
 import type { TaskDatabase, TaskView } from "@shared/schema";
+
+interface PropertyVisibility {
+  id: number;
+  name: string;
+  type: string;
+  icon: any;
+  visible: boolean;
+  required: boolean;
+}
 
 export function TaskManagement() {
   const [location, navigate] = useLocation();
@@ -18,6 +27,16 @@ export function TaskManagement() {
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
+
+  // Property visibility state
+  const [propertyVisibility, setPropertyVisibility] = useState<PropertyVisibility[]>([
+    { id: 1, name: 'Task Name', type: 'text', icon: Text, visible: true, required: true },
+    { id: 2, name: 'Status', type: 'select', icon: Hash, visible: true, required: false },
+    { id: 3, name: 'Priority', type: 'select', icon: ArrowUpDown, visible: true, required: false },
+    { id: 4, name: 'Due Date', type: 'date', icon: CalendarDays, visible: true, required: false },
+    { id: 5, name: 'Project', type: 'relation', icon: Building, visible: true, required: false },
+    { id: 6, name: 'Assignee', type: 'person', icon: User, visible: false, required: false },
+  ]);
 
   // Get current project from URL params if available
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
@@ -175,6 +194,8 @@ export function TaskManagement() {
                   const tempView = { ...selectedView, type: viewType } as TaskView;
                   setSelectedView(tempView);
                 }}
+                propertyVisibility={propertyVisibility}
+                onPropertyVisibilityChange={setPropertyVisibility}
               >
                 <Button 
                   variant="ghost" 
@@ -223,6 +244,7 @@ export function TaskManagement() {
             onCreateTaskOpen={() => setIsCreateTaskOpen(true)}
             searchQuery={searchQuery}
             newTaskId={newTaskId}
+            propertyVisibility={propertyVisibility}
           />
         </div>
       </div>

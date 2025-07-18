@@ -11,6 +11,15 @@ import { TaskDialog } from "./TaskDialog";
 import { apiRequest } from "@/lib/queryClient";
 import type { TaskDatabase, TaskView, Task, TaskProperty } from "@shared/schema";
 
+interface PropertyVisibility {
+  id: number;
+  name: string;
+  type: string;
+  icon: any;
+  visible: boolean;
+  required: boolean;
+}
+
 interface TaskBoardProps {
   database: TaskDatabase;
   view?: TaskView;
@@ -19,9 +28,10 @@ interface TaskBoardProps {
   onCreateTaskOpen?: () => void;
   searchQuery?: string;
   newTaskId?: number | null;
+  propertyVisibility?: PropertyVisibility[];
 }
 
-export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen, searchQuery = "", newTaskId = null }: TaskBoardProps) {
+export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen, searchQuery = "", newTaskId = null, propertyVisibility = [] }: TaskBoardProps) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const queryClient = useQueryClient();
 
@@ -170,6 +180,7 @@ export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTa
             onTaskUpdate={handleUpdateTask}
             onTaskDelete={handleDeleteTask}
             onTaskSelect={handleTaskSelect}
+            propertyVisibility={propertyVisibility}
           />
         );
     }

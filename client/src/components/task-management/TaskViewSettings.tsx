@@ -37,43 +37,48 @@ import {
   User,
 } from 'lucide-react';
 
+interface PropertyVisibility {
+  id: number;
+  name: string;
+  type: string;
+  icon: any;
+  visible: boolean;
+  required: boolean;
+}
+
 interface TaskViewSettingsProps {
   children: React.ReactNode;
   currentView: 'table' | 'kanban' | 'calendar';
   onViewChange: (view: 'table' | 'kanban' | 'calendar') => void;
+  propertyVisibility: PropertyVisibility[];
+  onPropertyVisibilityChange: (properties: PropertyVisibility[]) => void;
 }
 
 export function TaskViewSettings({ 
   children,
   currentView, 
-  onViewChange 
+  onViewChange,
+  propertyVisibility,
+  onPropertyVisibilityChange
 }: TaskViewSettingsProps) {
-  // Mock property data
-  const [properties, setProperties] = useState([
-    { id: 1, name: 'Task Name', type: 'text', icon: Text, visible: true, required: true },
-    { id: 2, name: 'Status', type: 'select', icon: Hash, visible: true, required: false },
-    { id: 3, name: 'Priority', type: 'select', icon: ArrowUpDown, visible: true, required: false },
-    { id: 4, name: 'Due Date', type: 'date', icon: CalendarDays, visible: true, required: false },
-    { id: 5, name: 'Project', type: 'relation', icon: Building, visible: true, required: false },
-    { id: 6, name: 'Assignee', type: 'person', icon: User, visible: false, required: false },
-  ]);
-
-  const visibleProperties = properties.filter(p => p.visible).length;
+  const visibleProperties = propertyVisibility.filter(p => p.visible).length;
   const [isOpen, setIsOpen] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 });
   const [currentPage, setCurrentPage] = useState<'main' | 'layout' | 'properties'>('main');
   const triggerRef = useRef<HTMLDivElement>(null);
 
   const togglePropertyVisibility = (propertyId: number) => {
-    setProperties(prev => prev.map(p => 
+    const updatedProperties = propertyVisibility.map(p => 
       p.id === propertyId ? { ...p, visible: !p.visible } : p
-    ));
+    );
+    onPropertyVisibilityChange(updatedProperties);
   };
 
   const hideAllProperties = () => {
-    setProperties(prev => prev.map(p => 
+    const updatedProperties = propertyVisibility.map(p => 
       p.required ? p : { ...p, visible: false }
-    ));
+    );
+    onPropertyVisibilityChange(updatedProperties);
   };
 
   const handleTriggerClick = (event: React.MouseEvent) => {
@@ -529,7 +534,7 @@ export function TaskViewSettings({
 
                   {/* Property List */}
                   <div className="space-y-1">
-                    {properties.map((property) => {
+                    {propertyVisibility.map((property) => {
                       const IconComponent = property.icon;
                       return (
                         <div
