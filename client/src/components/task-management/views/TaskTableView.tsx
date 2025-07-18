@@ -273,7 +273,7 @@ function DraggableColumnHeader({
     <TableHead
       ref={ref}
       style={{ width: column.width, opacity }}
-      className="relative group select-none px-2"
+      className="relative group select-none px-2 align-middle"
       data-handler-id={handlerId}
     >
       <ColumnContextMenu column={column} onAction={onColumnAction}>
@@ -990,7 +990,7 @@ export function TaskTableView({
                 {visibleColumns.map((column, index) => {
                   if (column.type === 'checkbox') {
                     return (
-                      <TableHead key={column.id} style={{ width: column.width }} className="w-12 px-2">
+                      <TableHead key={column.id} style={{ width: column.width }} className="w-12 px-2 align-middle">
                         <Checkbox
                           checked={selectAllClicked && selectedTasks.size === tasks.length && tasks.length > 0}
                           onCheckedChange={handleSelectAll}
@@ -1026,7 +1026,7 @@ export function TaskTableView({
                     <TableCell 
                       key={column.id} 
                       style={{ width: column.width }}
-                      className="px-2 py-1"
+                      className="px-2 py-1 align-middle text-left"
                     >
                       {renderCellContent(task, column)}
                     </TableCell>
