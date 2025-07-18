@@ -648,13 +648,12 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
               
               return (
                 <div key={contact.id} className="p-4 border rounded-lg">
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-3">
-                      <h4 className="font-medium">{getContactDisplayName(contact)}</h4>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">{getContactDisplayName(contact)}</h4>
                     
-                    {/* Notification Settings */}
-                    <Popover>
+                    <div className="flex items-center gap-6">
+                      {/* Notification Settings */}
+                      <Popover>
                       <PopoverTrigger asChild>
                         <button className="text-left hover:text-blue-600 transition-colors text-sm font-medium">
                           Notification Settings
@@ -773,6 +772,7 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
                         </div>
                       </PopoverContent>
                     </Popover>
+                    </div>
                   </div>
                 </div>
               );
