@@ -30,6 +30,7 @@ interface TaskBoardProps {
   newTaskId?: number | null;
   propertyVisibility?: PropertyVisibility[];
   onPropertyReorder?: (properties: PropertyVisibility[]) => void;
+  projectId?: number;
 }
 
 export function TaskBoard({ database, view, isCreateTaskOpen = false, onCreateTaskClose, onCreateTaskOpen, searchQuery = "", newTaskId = null, propertyVisibility = [], onPropertyReorder }: TaskBoardProps) {

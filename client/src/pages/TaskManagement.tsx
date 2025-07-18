@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,20 @@ export function TaskManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const queryClient = useQueryClient();
 
+  // Extract show ID from URL if we're in show context
+  const showMatch = location.match(/^\/shows\/(\d+)\/tasks/);
+  const showId = showMatch ? showMatch[1] : null;
+  
+  // Fetch show data if we're in show context
+  const { data: showData } = useQuery({
+    queryKey: ['/api/projects', showId],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/projects/${showId}`);
+      return await response.json();
+    },
+    enabled: !!showId
+  });
+
   // Property visibility state
   const [propertyVisibility, setPropertyVisibility] = useState<PropertyVisibility[]>([
     { id: 1, name: 'Task Name', type: 'text', icon: Text, visible: true, required: true },
@@ -40,9 +54,20 @@ export function TaskManagement() {
     { id: 8, name: 'Updated', type: 'date', icon: CalendarDays, visible: false, required: false },
   ]);
 
-  // Get current project from URL params if available
+  // Update property visibility based on context - hide Project column when in show context
+  useEffect(() => {
+    setPropertyVisibility(prev => 
+      prev.map(prop => 
+        prop.name === 'Project' 
+          ? { ...prop, visible: !showId } 
+          : prop
+      )
+    );
+  }, [showId]);
+
+  // Get current project from URL params if available, or use showId
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
-  const projectId = urlParams.get('projectId');
+  const projectId = showId || urlParams.get('projectId');
 
   // Fetch or create the main task database
   const { data: database, isLoading: loadingDatabase } = useQuery({
@@ -163,7 +188,9 @@ export function TaskManagement() {
         <div className="px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tasks</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {showId && showData ? `Tasks - ${showData.name}` : 'Tasks'}
+              </h2>
             </div>
             
             <div className="flex items-center space-x-2">
@@ -254,6 +281,7 @@ export function TaskManagement() {
             newTaskId={newTaskId}
             propertyVisibility={propertyVisibility}
             onPropertyReorder={setPropertyVisibility}
+            projectId={showId ? parseInt(showId) : undefined}
           />
         </div>
       </div>
