@@ -466,60 +466,49 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
 
         {/* Event Type Shares List */}
         {eventTypeShares.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="space-y-2">
             {eventTypeShares.map((share: EventTypeCalendarShare) => (
-              <Card key={share.id} className="border">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-sm">{share.eventTypeName}</CardTitle>
-                      <Badge variant={share.eventTypeCategory === 'show_schedule' ? 'default' : 'secondary'} className="mt-1">
-                        {share.eventTypeCategory === 'show_schedule' ? 'Show Events' : 'Individual Events'}
-                      </Badge>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteEventTypeShareMutation.mutate(share.id)}
-                      disabled={deleteEventTypeShareMutation.isPending}
-                      className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    <div className="text-xs text-muted-foreground space-y-1">
-                      <div>Access count: {share.accessCount}</div>
-                      {share.lastAccessed && (
-                        <div>Last accessed: {formatDate(share.lastAccessed)}</div>
-                      )}
-                      <div>Created: {formatDate(share.createdAt)}</div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="flex-1 text-xs h-8"
-                        onClick={() => handleCopyEventTypeLink(share.token, share.eventTypeName)}
-                      >
-                        <Copy className="h-3 w-3 mr-1" />
-                        Copy Link
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="flex-1 text-xs h-8"
-                        onClick={() => handleDownloadEventTypeICS(share.token, share.eventTypeName)}
-                      >
-                        <Download className="h-3 w-3 mr-1" />
-                        Download
-                      </Button>
+              <div key={share.id} className="flex items-center justify-between py-3 px-4 border rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium">{share.eventTypeName}</h4>
+                    <div className="flex items-center gap-2">
+                      <div className="text-xs text-muted-foreground">
+                        {share.accessCount} access{share.accessCount !== 1 ? 'es' : ''} • Created {formatDate(share.createdAt)}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs h-8"
+                          onClick={() => handleCopyEventTypeLink(share.token, share.eventTypeName)}
+                        >
+                          <Copy className="h-3 w-3 mr-1" />
+                          Copy Link
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="text-xs h-8"
+                          onClick={() => handleDownloadEventTypeICS(share.token, share.eventTypeName)}
+                        >
+                          <Download className="h-3 w-3 mr-1" />
+                          Download
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteEventTypeShareMutation.mutate(share.id)}
+                          disabled={deleteEventTypeShareMutation.isPending}
+                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         ) : (
