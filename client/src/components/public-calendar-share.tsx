@@ -199,6 +199,27 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
     });
   };
 
+  const handleCopySubscriptionLink = () => {
+    if (!selectedShareContact) {
+      toast({
+        title: "No Contact Selected",
+        description: "Please select a contact from the dropdown first.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact));
+    if (!share) return;
+    
+    const subscriptionLink = `${window.location.origin}/api/public-calendar/${share.token}/subscribe.ics`;
+    navigator.clipboard.writeText(subscriptionLink);
+    toast({
+      title: "Subscription Link Copied",
+      description: "The dynamic calendar subscription link has been copied. Add this to Google Calendar or Apple Calendar for automatic updates."
+    });
+  };
+
   const getContactById = (contactId: number): Contact | undefined => {
     return contacts.find((c: Contact) => c.id === contactId);
   };
@@ -317,7 +338,7 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
               <CardHeader>
                 <CardTitle className="text-base">Select Individual Schedule</CardTitle>
                 <CardDescription>
-                  Choose a contact to copy their public calendar link or download their ICS file
+                  Choose a contact to access their schedule: View Link (web browser), Download ICS (one-time import), or Copy Subscription (auto-updating calendar)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -378,6 +399,14 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
                     >
                       <Download className="h-4 w-4" />
                       Download ICS
+                    </Button>
+                    <Button
+                      onClick={handleCopySubscriptionLink}
+                      disabled={!selectedShareContact}
+                      className="gap-2"
+                    >
+                      <Calendar className="h-4 w-4" />
+                      Copy Subscription
                     </Button>
                   </div>
                 </div>

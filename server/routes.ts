@@ -70,6 +70,62 @@ function generateICSContent(events: any[], project: any, contact: any): string {
   return icsContent.join('\r\n');
 }
 
+function generateICSSubscriptionContent(events: any[], project: any, contact: any, hostname: string): string {
+  const formatDate = (date: string, time?: string) => {
+    const d = new Date(date);
+    if (time) {
+      const [hours, minutes] = time.split(':');
+      d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    }
+    return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  };
+
+  const escapeText = (text: string) => {
+    return text.replace(/[,;\\]/g, '\\$&').replace(/\n/g, '\\n');
+  };
+
+  const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  
+  let icsContent = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//BackstageOS//Dynamic Schedule Subscription//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    `X-WR-CALNAME:${escapeText(project.name)} - ${escapeText(contact.firstName)} ${escapeText(contact.lastName)}`,
+    `X-WR-CALDESC:Live schedule for ${escapeText(contact.firstName)} ${escapeText(contact.lastName)} in ${escapeText(project.name)} - Updates automatically`,
+    `X-PUBLISHED-TTL:PT1H`, // Refresh every hour
+    `X-WR-TIMEZONE:UTC`,
+    `LAST-MODIFIED:${now}`,
+    `DTSTAMP:${now}`
+  ];
+
+  events.forEach(event => {
+    const startDateTime = formatDate(event.date, event.startTime);
+    const endDateTime = formatDate(event.date, event.endTime);
+    const uid = `${event.id}-${project.id}@${hostname || 'backstageos.com'}`;
+    
+    icsContent.push(
+      'BEGIN:VEVENT',
+      `UID:${uid}`,
+      `DTSTART:${startDateTime}`,
+      `DTEND:${endDateTime}`,
+      `DTSTAMP:${now}`,
+      `LAST-MODIFIED:${now}`,
+      `SUMMARY:${escapeText(event.title)}`,
+      `DESCRIPTION:${escapeText(event.description || '')}`,
+      `LOCATION:${escapeText(event.location || '')}`,
+      `STATUS:CONFIRMED`,
+      `TRANSP:OPAQUE`,
+      `SEQUENCE:0`,
+      'END:VEVENT'
+    );
+  });
+
+  icsContent.push('END:VCALENDAR');
+  return icsContent.join('\r\n');
+}
+
 // Configure multer for image uploads
 const upload = multer({
   storage: multer.diskStorage({
@@ -9709,6 +9765,61 @@ Respond with valid JSON only.`;
     } catch (error) {
       console.error("Error generating ICS file:", error);
       res.status(500).json({ message: "Failed to generate calendar file" });
+    }
+  });
+
+  // Public Calendar Dynamic Subscription (no auth required) - for automatic updates
+  app.get('/api/public-calendar/:token/subscribe.ics', async (req: any, res) => {
+    try {
+      const token = req.params.token;
+      
+      // Find calendar share by token
+      const share = await storage.getPublicCalendarShareByToken(token);
+      
+      if (!share) {
+        return res.status(404).send('Calendar not found');
+      }
+
+      // Check if token is expired
+      if (share.expiresAt && new Date() > new Date(share.expiresAt)) {
+        return res.status(410).send('Calendar access has expired');
+      }
+
+      if (!share.isActive) {
+        return res.status(403).send('Calendar access has been deactivated');
+      }
+
+      // Get project and contact details
+      const project = await storage.getProjectById(share.projectId);
+      const contact = await storage.getContactById(share.contactId);
+      
+      if (!project || !contact) {
+        return res.status(404).send('Project or contact not found');
+      }
+
+      // Get all schedule events for this project
+      const scheduleEvents = await storage.getScheduleEventsByProjectId(share.projectId);
+      
+      // Filter events that involve this contact
+      const contactEvents = scheduleEvents.filter(event => 
+        event.participants && event.participants.some((p: any) => p.contactId === contact.id)
+      );
+
+      // Generate ICS file content with calendar subscription headers
+      const icsContent = generateICSSubscriptionContent(contactEvents, project, contact, req.get('host'));
+
+      // Update access tracking
+      await storage.updatePublicCalendarShareAccess(token);
+
+      // Set headers for dynamic calendar subscription
+      res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+      res.setHeader('Content-Disposition', 'inline');
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      res.setHeader('X-Published-TTL', 'PT1H'); // Refresh every hour
+      res.send(icsContent);
+    } catch (error) {
+      console.error("Error generating subscription ICS file:", error);
+      res.status(500).send('Failed to generate calendar subscription');
     }
   });
 
