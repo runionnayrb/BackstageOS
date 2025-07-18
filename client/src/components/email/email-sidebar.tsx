@@ -254,36 +254,38 @@ export function EmailSidebar({
       )}
     >
       {/* Header */}
-      <div className={cn(
-        "border-b border-gray-100 flex-shrink-0",
-        isCollapsed ? "p-2" : "p-4"
-      )}>
-        <div className={cn(
-          "flex items-center justify-between",
-          !isCollapsed && "mb-4"
-        )}>
-          {!isCollapsed && <h2 className="text-lg font-semibold text-gray-900 ml-2">Email</h2>}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onToggleCollapse}
-            className={cn(
-              "h-8 w-8 p-0 hover:bg-gray-100",
-              isCollapsed && "mx-auto"
-            )}
-          >
-            {isCollapsed ? (
+      <div className="border-b border-gray-100 flex-shrink-0">
+        {isCollapsed ? (
+          // Collapsed state: Just the toggle button with consistent padding
+          <div className="p-4 flex justify-center">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onToggleCollapse}
+              className="h-8 w-8 p-0 hover:bg-gray-100"
+            >
               <ArrowRight className="h-4 w-4" />
-            ) : (
-              <ArrowLeft className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
+            </Button>
+          </div>
+        ) : (
+          // Expanded state: Title + toggle button + account selector
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 ml-2">Email</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleCollapse}
+                className="h-8 w-8 p-0 hover:bg-gray-100"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </div>
 
-        {/* Account Selector */}
-        {selectedAccount && !isCollapsed && (
-          <div className="space-y-2">
-            <div className="relative">
+            {/* Account Selector */}
+            {selectedAccount && (
+              <div className="space-y-2">
+                <div className="relative">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="flex items-center justify-between p-2 pr-12 rounded-md cursor-pointer transition-colors hover:bg-gray-50">
@@ -411,6 +413,8 @@ export function EmailSidebar({
                 </div>
               )}
             </div>
+              </div>
+            )}
           </div>
         )}
       </div>
