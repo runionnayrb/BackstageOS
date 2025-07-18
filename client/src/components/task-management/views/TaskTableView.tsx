@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
+import { apiRequest } from "@/lib/queryClient";
 import { Resizable } from "react-resizable";
 import {
   Table,
@@ -320,6 +322,25 @@ export function TaskTableView({
 }: TaskTableViewProps) {
   const [selectedTasks, setSelectedTasks] = useState<Set<number>>(new Set());
   const [selectAllClicked, setSelectAllClicked] = useState(false);
+
+  // Fetch current user
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/user'],
+  });
+
+  // Get project from tasks to determine which team members to fetch
+  const currentProjectId = tasks.length > 0 ? tasks.find(task => task.properties?.project && task.properties.project !== 'none')?.properties?.project : null;
+
+  // Fetch team members for the current project
+  const { data: teamMembers = [] } = useQuery({
+    queryKey: ['/api/projects', currentProjectId, 'team'],
+    queryFn: async () => {
+      if (!currentProjectId || currentProjectId === 'none') return [];
+      const response = await apiRequest('GET', `/api/projects/${currentProjectId}/team`);
+      return await response.json();
+    },
+    enabled: !!currentProjectId && currentProjectId !== 'none'
+  });
   
   // Function to calculate minimum width based on text length
   const getMinWidthForText = (text: string) => {
@@ -337,6 +358,7 @@ export function TaskTableView({
       { id: 'priority', key: 'priority', title: 'Priority', width: 100, minWidth: getMinWidthForText('Priority'), type: 'priority' },
       { id: 'dueDate', key: 'dueDate', title: 'Due Date', width: 128, minWidth: getMinWidthForText('Due Date'), type: 'date' },
       { id: 'project', key: 'project', title: 'Project', width: 150, minWidth: getMinWidthForText('Project'), type: 'project' },
+      { id: 'assignee', key: 'assignee', title: 'Assignee', width: 150, minWidth: getMinWidthForText('Assignee'), type: 'assignee' },
       { id: 'created', key: 'created', title: 'Created', width: 160, minWidth: getMinWidthForText('Created'), type: 'date', isSystemField: true },
       { id: 'updated', key: 'updated', title: 'Updated', width: 160, minWidth: getMinWidthForText('Updated'), type: 'date', isSystemField: true },
     ];
@@ -371,6 +393,7 @@ export function TaskTableView({
             case 'status': return prop.name === 'Status';
             case 'priority': return prop.name === 'Priority';
             case 'project': return prop.name === 'Project';
+            case 'assignee': return prop.name === 'Assignee';
             case 'date':
               if (col.id === 'dueDate') return prop.name === 'Due Date';
               if (col.id === 'created') return prop.name === 'Created';
@@ -428,6 +451,8 @@ export function TaskTableView({
           return prop.name === 'Priority';
         case 'project':
           return prop.name === 'Project';
+        case 'assignee':
+          return prop.name === 'Assignee';
         case 'date':
           if (column.id === 'dueDate') return prop.name === 'Due Date';
           if (column.id === 'created') return prop.name === 'Created';
@@ -463,6 +488,7 @@ export function TaskTableView({
             case 'status': return 'Status';
             case 'priority': return 'Priority';
             case 'project': return 'Project';
+            case 'assignee': return 'Assignee';
             case 'date':
               if (column.id === 'dueDate') return 'Due Date';
               if (column.id === 'created') return 'Created';
@@ -620,6 +646,7 @@ export function TaskTableView({
             <input
               className="font-medium bg-transparent border-0 outline-none focus:bg-white px-1 -mx-1 min-w-0"
               value={task.title}
+              placeholder="Task name"
               onChange={(e) => onTaskUpdate(task.id, { title: e.target.value })}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
@@ -734,6 +761,69 @@ export function TaskTableView({
                 <SelectItem value="show1">Show 1</SelectItem>
                 <SelectItem value="show2">Show 2</SelectItem>
                 <SelectItem value="show3">Show 3</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        );
+
+      case 'assignee':
+        const assigneeId = task.properties?.assignee;
+        
+        // Get available assignees: current user if no project selected, or team members if project selected
+        const taskProjectId = task.properties?.project;
+        const availableAssignees = [];
+        
+        // Always add current user
+        if (currentUser) {
+          availableAssignees.push({
+            id: currentUser.id,
+            name: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.email,
+            email: currentUser.email
+          });
+        }
+        
+        // Add team members if project is selected and different from 'none'
+        if (taskProjectId && taskProjectId !== 'none' && teamMembers.length > 0) {
+          teamMembers.forEach((member: any) => {
+            // Avoid duplicates with current user
+            if (!availableAssignees.find(a => a.id === member.userId)) {
+              availableAssignees.push({
+                id: member.userId,
+                name: member.name || member.email,
+                email: member.email
+              });
+            }
+          });
+        }
+        
+        // Find assigned user name
+        const assignedUser = availableAssignees.find(user => user.id === assigneeId);
+        const displayValue = assignedUser ? assignedUser.name : "Unassigned";
+        
+        return (
+          <div onClick={(e) => e.stopPropagation()}>
+            <Select
+              value={assigneeId ? String(assigneeId) : "unassigned"}
+              onValueChange={(value) => {
+                const updatedProperties = { 
+                  ...(task.properties || {}), 
+                  assignee: value === "unassigned" ? null : parseInt(value)
+                };
+                onTaskUpdate(task.id, { properties: updatedProperties });
+              }}
+            >
+              <SelectTrigger className="h-8 w-full justify-start hover:bg-gray-100 border-0 shadow-none bg-transparent">
+                <SelectValue>
+                  <span className="text-sm">{displayValue}</span>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="unassigned">Unassigned</SelectItem>
+                {availableAssignees.map(user => (
+                  <SelectItem key={user.id} value={String(user.id)}>
+                    {user.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

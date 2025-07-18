@@ -35,7 +35,7 @@ export function TaskManagement() {
     { id: 3, name: 'Priority', type: 'select', icon: ArrowUpDown, visible: true, required: false },
     { id: 4, name: 'Due Date', type: 'date', icon: CalendarDays, visible: true, required: false },
     { id: 5, name: 'Project', type: 'relation', icon: Building, visible: true, required: false },
-    { id: 6, name: 'Assignee', type: 'person', icon: User, visible: false, required: false },
+    { id: 6, name: 'Assignee', type: 'person', icon: User, visible: true, required: false },
     { id: 7, name: 'Created', type: 'date', icon: CalendarDays, visible: false, required: false },
     { id: 8, name: 'Updated', type: 'date', icon: CalendarDays, visible: false, required: false },
   ]);
@@ -99,6 +99,11 @@ export function TaskManagement() {
     }
   });
 
+  // Fetch current user
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/user'],
+  });
+
   // Create task mutation
   const createTaskMutation = useMutation({
     mutationFn: async () => {
@@ -108,7 +113,8 @@ export function TaskManagement() {
         properties: {
           status: "not_started",
           priority: "medium",
-          project: "none"
+          project: "none",
+          assignee: currentUser?.id || null
         }
       });
       return await response.json();
