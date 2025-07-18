@@ -1314,65 +1314,11 @@ export default function ShowSettings() {
             <CardHeader>
               <CardTitle>Schedule Settings</CardTitle>
               <CardDescription>
-                Configure timezone, working hours, and scheduling preferences.
+                Configure timezone and scheduling preferences.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-5 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="workStart">Work Start Time</Label>
-                  <Input
-                    id="workStart"
-                    type="time"
-                    value={(() => {
-                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                        : ((settings as any)?.scheduleSettings || {});
-                      return scheduleSettings?.workingHours?.start || "09:00";
-                    })()}
-                    onChange={(e) =>
-                      handleSettingsUpdate("scheduleSettings", {
-                        workingHours: {
-                          ...(() => {
-                            const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                              ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                              : ((settings as any)?.scheduleSettings || {});
-                            return scheduleSettings?.workingHours || {};
-                          })(),
-                          start: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="workEnd">Work End Time</Label>
-                  <Input
-                    id="workEnd"
-                    type="time"
-                    value={(() => {
-                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                        : ((settings as any)?.scheduleSettings || {});
-                      return scheduleSettings?.workingHours?.end || "18:00";
-                    })()}
-                    onChange={(e) =>
-                      handleSettingsUpdate("scheduleSettings", {
-                        workingHours: {
-                          ...(() => {
-                            const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                              ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                              : ((settings as any)?.scheduleSettings || {});
-                            return scheduleSettings?.workingHours || {};
-                          })(),
-                          end: e.target.value,
-                        },
-                      })
-                    }
-                  />
-                </div>
-
+              <div className="grid grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="timeZone">Time Zone</Label>
                   <Select
@@ -1520,9 +1466,6 @@ export default function ShowSettings() {
           <Card className="mt-6">
             <CardHeader>
               <CardTitle>Show Schedule Filtering</CardTitle>
-              <CardDescription>
-                Configure which event types appear in your schedule views by default. Only enabled types will be shown in monthly, weekly, and daily views.
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -1603,9 +1546,6 @@ export default function ShowSettings() {
                   <CardTitle>
                     Event Types
                   </CardTitle>
-                  <CardDescription>
-                    Manage custom event types for your schedule
-                  </CardDescription>
                 </div>
                 <Button onClick={handleCreateEventType} size="sm">
                   <Plus className="h-4 w-4 mr-2" />
