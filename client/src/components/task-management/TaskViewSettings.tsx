@@ -303,6 +303,7 @@ export function TaskViewSettings({
                 <div className="px-6 py-4 border-b">
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-medium">View settings</h3>
+                    <span className="text-xs text-gray-400">Page: {currentPage}</span>
                   </div>
                 </div>
 
@@ -353,7 +354,9 @@ export function TaskViewSettings({
             {/* Edit properties */}
             <div 
               className="flex items-center justify-between py-2 hover:bg-gray-50 rounded-md px-2 -mx-2 cursor-pointer"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 console.log('Opening properties editor, current page:', currentPage);
                 setCurrentPage('editProperties');
                 console.log('Set page to: editProperties');
