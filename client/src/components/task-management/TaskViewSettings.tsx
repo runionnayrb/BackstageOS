@@ -859,17 +859,7 @@ export function TaskViewSettings({
                       </div>
                     </div>
 
-                    {/* AI autofill */}
-                    <div className="flex items-center justify-between py-3 hover:bg-gray-50 rounded-md px-2 -mx-2 cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <Zap className="w-4 h-4 text-gray-600" />
-                        <span className="text-sm">AI autofill</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-gray-500">
-                        <span className="text-sm">Off</span>
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
-                    </div>
+
 
                     {/* Wrap in view */}
                     <div className="flex items-center justify-between py-3">
@@ -889,7 +879,9 @@ export function TaskViewSettings({
                     </div>
 
                     {/* Delete property */}
-                    {!selectedProperty.required && (
+                    {!selectedProperty.required && 
+                     selectedProperty.name !== 'Created' && 
+                     selectedProperty.name !== 'Updated' && (
                       <div 
                         className="flex items-center gap-3 py-3 hover:bg-red-50 rounded-md px-2 -mx-2 cursor-pointer text-red-600"
                         onClick={() => {
