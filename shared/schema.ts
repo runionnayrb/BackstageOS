@@ -493,29 +493,24 @@ export const scheduleVersions = pgTable("schedule_versions", {
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
   version: varchar("version").notNull(), // "1.0", "1.1", "2.0", etc.
   versionType: varchar("version_type").notNull(), // 'major' | 'minor'
-  weekStartDate: date("week_start_date").notNull(), // week this version covers
-  weekEndDate: date("week_end_date").notNull(),
-  changeSummary: text("change_summary"), // description of changes
-  eventsSnapshot: jsonb("events_snapshot").notNull(), // complete snapshot of all events for this week
+  title: varchar("title").notNull(), // version title/name
+  description: text("description"), // version description
+  changelog: text("changelog"), // description of changes
+  scheduleData: jsonb("schedule_data").notNull(), // complete snapshot of schedule data
   publishedBy: integer("published_by").notNull().references(() => users.id),
   publishedAt: timestamp("published_at").defaultNow(),
   isCurrent: boolean("is_current").default(false), // current active version
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Personal schedules for individual contact schedule access
 export const personalSchedules = pgTable("personal_schedules", {
   id: serial("id").primaryKey(),
-  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
+  contactId: integer("contact_id").references(() => contacts.id, { onDelete: "cascade" }),
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  currentVersionId: integer("current_version_id").references(() => scheduleVersions.id, { onDelete: "set null" }),
   accessToken: varchar("access_token").notNull().unique(), // secure access for external viewing
-  googleCalendarSyncEnabled: boolean("google_calendar_sync_enabled").default(false),
-  googleCalendarId: text("google_calendar_id"),
-  googleAccessToken: text("google_access_token"), // encrypted
-  googleRefreshToken: text("google_refresh_token"), // encrypted
-  lastAccessed: timestamp("last_accessed"),
+  currentVersionId: integer("current_version_id").references(() => scheduleVersions.id, { onDelete: "set null" }),
+  emailPreferences: jsonb("email_preferences"),
+  lastViewedAt: timestamp("last_viewed_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -524,14 +519,13 @@ export const personalSchedules = pgTable("personal_schedules", {
 export const scheduleVersionNotifications = pgTable("schedule_version_notifications", {
   id: serial("id").primaryKey(),
   versionId: integer("version_id").notNull().references(() => scheduleVersions.id, { onDelete: "cascade" }),
-  contactId: integer("contact_id").notNull().references(() => contacts.id, { onDelete: "cascade" }),
-  emailSentAt: timestamp("email_sent_at"),
-  emailOpenedAt: timestamp("email_opened_at"),
-  scheduleViewedAt: timestamp("schedule_viewed_at"),
+  contactId: integer("contact_id").references(() => contacts.id, { onDelete: "cascade" }),
   notificationType: varchar("notification_type").notNull(), // 'major_version' | 'minor_version'
-  deliveryStatus: varchar("delivery_status").default("pending"), // 'pending' | 'sent' | 'delivered' | 'failed'
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  status: varchar("status").default("pending"), // 'pending' | 'sent' | 'delivered' | 'failed'
+  sentAt: timestamp("sent_at"),
+  emailSubject: text("email_subject"),
+  emailBody: text("email_body"),
+  errorMessage: text("error_message"),
 });
 
 // Custom email templates for schedule notifications
