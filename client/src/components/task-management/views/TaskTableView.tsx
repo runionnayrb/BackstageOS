@@ -361,9 +361,13 @@ export function TaskTableView({
 
   // Helper function to create columns
   const createColumns = useCallback(() => {
+    // Get the current Task Name from property visibility, fallback to 'Task'
+    const taskNameProperty = propertyVisibility.find(prop => prop.required && prop.id === 1);
+    const taskTitle = taskNameProperty?.name || 'Task';
+    
     const allColumns: Column[] = [
       { id: 'checkbox', key: 'checkbox', title: '', width: 48, minWidth: 48, type: 'checkbox' },
-      { id: 'task', key: 'task', title: 'Task', width: 300, minWidth: getMinWidthForText('Task'), type: 'task', isSystemField: true },
+      { id: 'task', key: 'task', title: taskTitle, width: 300, minWidth: getMinWidthForText(taskTitle), type: 'task', isSystemField: true },
       { id: 'status', key: 'status', title: 'Status', width: 128, minWidth: getMinWidthForText('Status'), type: 'status' },
       { id: 'priority', key: 'priority', title: 'Priority', width: 100, minWidth: getMinWidthForText('Priority'), type: 'priority' },
       { id: 'dueDate', key: 'dueDate', title: 'Due Date', width: 128, minWidth: getMinWidthForText('Due Date'), type: 'date' },
@@ -399,7 +403,7 @@ export function TaskTableView({
       propertyVisibility.forEach(prop => {
         const column = allColumns.find(col => {
           switch (col.type) {
-            case 'task': return prop.name === 'Task Name';
+            case 'task': return prop.required && prop.id === 1; // Match by ID instead of name for task column
             case 'status': return prop.name === 'Status';
             case 'priority': return prop.name === 'Priority';
             case 'project': return prop.name === 'Show';
@@ -454,7 +458,7 @@ export function TaskTableView({
     const correspondingProperty = propertyVisibility.find(prop => {
       switch (column.type) {
         case 'task':
-          return prop.name === 'Task Name';
+          return prop.required && prop.id === 1; // Match by ID instead of name for task column
         case 'status':
           return prop.name === 'Status';
         case 'priority':
