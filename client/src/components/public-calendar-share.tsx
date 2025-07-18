@@ -188,14 +188,14 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
     const contact = getContactById(parseInt(selectedShareContact));
     if (!share || !contact) return;
     
-    const link = `${window.location.origin}/api/public-calendar/${share.token}/ics`;
+    const link = `${window.location.origin}/api/public-calendar/${share.token}/subscribe.ics`;
     const anchor = document.createElement('a');
     anchor.href = link;
     anchor.download = `calendar-${contact.firstName}-${contact.lastName}.ics`;
     anchor.click();
     toast({
-      title: "Download Started",
-      description: "The ICS calendar file download has started."
+      title: "Dynamic Calendar Downloaded",
+      description: "The auto-updating calendar file has been downloaded. Import this into Google Calendar or Apple Calendar for automatic updates."
     });
   };
 
@@ -338,7 +338,7 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
               <CardHeader>
                 <CardTitle className="text-base">Select Individual Schedule</CardTitle>
                 <CardDescription>
-                  Choose a contact to access their schedule: View Link (web browser), Download ICS (one-time import), or Copy Subscription (auto-updating calendar)
+                  Choose a contact to access their schedule: View Link (web browser), Download ICS (auto-updating), or Copy Subscription (same as download but copies URL)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
