@@ -665,7 +665,7 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
                             <h4 className="font-medium text-sm mb-2">Email Notifications</h4>
                             <div className="space-y-3">
                               <div className="flex items-center justify-between">
-                                <Label className="text-sm">Schedule Updates</Label>
+                                <Label className="text-sm font-normal">Schedule Updates</Label>
                                 <Switch
                                   checked={preferences.scheduleUpdates !== false}
                                   onCheckedChange={(checked) =>
@@ -678,7 +678,7 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
                               </div>
                               
                               <div className="flex items-center justify-between">
-                                <Label className="text-sm">Email Enabled</Label>
+                                <Label className="text-sm font-normal">Email Enabled</Label>
                                 <Switch
                                   checked={preferences.emailEnabled !== false}
                                   onCheckedChange={(checked) =>
@@ -691,7 +691,7 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
                               </div>
                               
                               <div className="flex items-center justify-between">
-                                <Label className="text-sm">Major Versions Only</Label>
+                                <Label className="text-sm font-normal">Major Versions Only</Label>
                                 <Switch
                                   checked={preferences.majorVersionsOnly || false}
                                   onCheckedChange={(checked) =>
