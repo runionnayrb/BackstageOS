@@ -14,6 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -329,6 +336,7 @@ export function TaskTableView({
       { id: 'status', key: 'status', title: 'Status', width: 128, minWidth: getMinWidthForText('Status'), type: 'status' },
       { id: 'priority', key: 'priority', title: 'Priority', width: 100, minWidth: getMinWidthForText('Priority'), type: 'priority' },
       { id: 'dueDate', key: 'dueDate', title: 'Due Date', width: 128, minWidth: getMinWidthForText('Due Date'), type: 'date' },
+      { id: 'project', key: 'project', title: 'Project', width: 150, minWidth: getMinWidthForText('Project'), type: 'project' },
       { id: 'created', key: 'created', title: 'Created', width: 160, minWidth: getMinWidthForText('Created'), type: 'date', isSystemField: true },
       { id: 'updated', key: 'updated', title: 'Updated', width: 160, minWidth: getMinWidthForText('Updated'), type: 'date', isSystemField: true },
     ];
@@ -362,6 +370,7 @@ export function TaskTableView({
             case 'task': return prop.name === 'Task Name';
             case 'status': return prop.name === 'Status';
             case 'priority': return prop.name === 'Priority';
+            case 'project': return prop.name === 'Project';
             case 'date':
               if (col.id === 'dueDate') return prop.name === 'Due Date';
               if (col.id === 'created') return prop.name === 'Created';
@@ -417,6 +426,8 @@ export function TaskTableView({
           return prop.name === 'Status';
         case 'priority':
           return prop.name === 'Priority';
+        case 'project':
+          return prop.name === 'Project';
         case 'date':
           if (column.id === 'dueDate') return prop.name === 'Due Date';
           if (column.id === 'created') return prop.name === 'Created';
@@ -451,6 +462,7 @@ export function TaskTableView({
             case 'task': return 'Task Name';
             case 'status': return 'Status';
             case 'priority': return 'Priority';
+            case 'project': return 'Project';
             case 'date':
               if (column.id === 'dueDate') return 'Due Date';
               if (column.id === 'created') return 'Created';
@@ -700,6 +712,30 @@ export function TaskTableView({
               })}
             </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+        );
+
+      case 'project':
+        const projectValue = task.properties?.project || 'none';
+        return (
+          <div onClick={(e) => e.stopPropagation()}>
+            <Select
+              value={projectValue}
+              onValueChange={(value) => {
+                const updatedProperties = { ...(task.properties || {}), project: value };
+                onTaskUpdate(task.id, { properties: updatedProperties });
+              }}
+            >
+              <SelectTrigger className="h-8 w-full justify-start hover:bg-gray-100 border-0 shadow-none bg-transparent">
+                <SelectValue placeholder="No Project" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No Project</SelectItem>
+                <SelectItem value="show1">Show 1</SelectItem>
+                <SelectItem value="show2">Show 2</SelectItem>
+                <SelectItem value="show3">Show 3</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         );
 
