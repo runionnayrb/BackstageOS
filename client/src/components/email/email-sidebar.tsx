@@ -17,6 +17,7 @@ import {
   Archive,
   Trash2,
   ArrowLeft,
+  ArrowRight,
   ChevronDown,
   ChevronRight,
   Plus,
@@ -247,22 +248,28 @@ export function EmailSidebar({
   return (
     <div
       className={cn(
-        "absolute left-0 top-0 bottom-0 bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out z-40 flex flex-col",
-        isCollapsed ? "-translate-x-full" : "translate-x-0",
-        "w-64"
+        "absolute left-0 top-0 bottom-0 bg-white border-r border-gray-200 transition-all duration-300 ease-in-out z-40 flex flex-col",
+        isCollapsed ? "w-16" : "w-64"
       )}
     >
       {/* Header */}
       <div className="p-4 border-b border-gray-100 flex-shrink-0">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 ml-2">Email</h2>
+          {!isCollapsed && <h2 className="text-lg font-semibold text-gray-900 ml-2">Email</h2>}
           <Button
             variant="ghost"
             size="sm"
             onClick={onToggleCollapse}
-            className="h-8 w-8 p-0 hover:bg-gray-100"
+            className={cn(
+              "h-8 w-8 p-0 hover:bg-gray-100",
+              isCollapsed && "mx-auto"
+            )}
           >
-            <ArrowLeft className="h-4 w-4" />
+            {isCollapsed ? (
+              <ArrowRight className="h-4 w-4" />
+            ) : (
+              <ArrowLeft className="h-4 w-4" />
+            )}
           </Button>
         </div>
 
@@ -272,19 +279,29 @@ export function EmailSidebar({
             <div className="relative">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className="flex items-center justify-between p-2 pr-12 rounded-md cursor-pointer transition-colors hover:bg-gray-50">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {selectedAccount.displayName}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {selectedAccount.emailAddress}
-                      </p>
+                  {isCollapsed ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-10 w-10 mx-auto p-0 hover:bg-gray-50"
+                    >
+                      <Mail className="h-4 w-4 text-gray-600" />
+                    </Button>
+                  ) : (
+                    <div className="flex items-center justify-between p-2 pr-12 rounded-md cursor-pointer transition-colors hover:bg-gray-50">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          {selectedAccount.displayName}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {selectedAccount.emailAddress}
+                        </p>
+                      </div>
+                      <div className="flex items-center">
+                        <ChevronDown className="h-4 w-4 text-gray-400" />
+                      </div>
                     </div>
-                    <div className="flex items-center">
-                      <ChevronDown className="h-4 w-4 text-gray-400" />
-                    </div>
-                  </div>
+                  )}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent 
                   className="w-60 max-w-[calc(100vw-32px)]" 
@@ -410,14 +427,24 @@ export function EmailSidebar({
                 variant={activeFolder === folder.id ? "secondary" : "ghost"}
                 size="sm"
                 onClick={() => onFolderChange?.(folder.id)}
-                className="w-full justify-start"
+                className={cn(
+                  "w-full",
+                  isCollapsed ? "justify-center p-2" : "justify-start"
+                )}
               >
-                <IconComponent className="h-4 w-4 mr-2" />
-                <span className="flex-1 text-left">{folder.name}</span>
-                {folder.count > 0 && (
-                  <Badge variant="secondary" className="h-5 min-w-[20px] text-xs">
-                    {folder.count}
-                  </Badge>
+                <IconComponent className={cn(
+                  "h-4 w-4",
+                  !isCollapsed && "mr-2"
+                )} />
+                {!isCollapsed && (
+                  <>
+                    <span className="flex-1 text-left">{folder.name}</span>
+                    {folder.count > 0 && (
+                      <Badge variant="secondary" className="h-5 min-w-[20px] text-xs">
+                        {folder.count}
+                      </Badge>
+                    )}
+                  </>
                 )}
               </Button>
             );
@@ -430,12 +457,18 @@ export function EmailSidebar({
         <Button 
           variant="ghost" 
           size="sm" 
-          className="w-full justify-start"
+          className={cn(
+            "w-full",
+            isCollapsed ? "justify-center p-2" : "justify-start"
+          )}
           onClick={() => setShowEmailSettings(true)}
           data-settings-trigger
         >
-          <Settings className="h-4 w-4 mr-2" />
-          Settings
+          <Settings className={cn(
+            "h-4 w-4",
+            !isCollapsed && "mr-2"
+          )} />
+          {!isCollapsed && "Settings"}
         </Button>
       </div>
 

@@ -633,7 +633,7 @@ export default function EmailManager() {
         {/* Main Content - Mobile Full Width, Desktop With Sidebar */}
         <div 
           className={`transition-all duration-300 ease-in-out ${
-            isSidebarCollapsed ? "md:ml-0" : "md:ml-64"
+            isSidebarCollapsed ? "md:ml-16" : "md:ml-64"
           } relative`}
         >
 
