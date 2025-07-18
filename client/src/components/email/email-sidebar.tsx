@@ -417,25 +417,28 @@ export function EmailSidebar({
 
       {/* Collapsed State Compose Button */}
       {isCollapsed && selectedAccount && (
-        <div className="px-4 py-2 border-b border-gray-100">
+        <div className="px-4 py-2 border-b border-gray-100 relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-center p-2"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onCompose();
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              setDropdownOpen(true);
+            }}
+          >
+            <Edit className="h-4 w-4 text-gray-600" />
+          </Button>
+          
+          {/* Right-click Account Selector Dropdown */}
           <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-center p-2"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onCompose();
-                }}
-                onContextMenu={(e) => {
-                  e.preventDefault();
-                  setDropdownOpen(true);
-                }}
-              >
-                <Edit className="h-4 w-4 text-gray-600" />
-              </Button>
+              <div className="absolute inset-0 pointer-events-none" />
             </DropdownMenuTrigger>
             <DropdownMenuContent 
               className="w-60 max-w-[calc(100vw-32px)]" 
