@@ -439,11 +439,20 @@ export default function ShowSettings() {
   // Phase 5 mutations
   const connectGoogleCalendar = useMutation({
     mutationFn: async () => {
+      console.log('Starting Google Calendar connection...');
       const response = await apiRequest('GET', `/api/projects/${params.id}/calendar/auth-url`);
-      console.log('Auth URL response:', response);
+      console.log('API Response:', response);
+      console.log('Response type:', typeof response);
+      console.log('Auth URL:', response?.authUrl);
       
       return new Promise((resolve, reject) => {
-        const authUrl = response.authUrl || response;
+        const authUrl = response?.authUrl;
+        if (!authUrl) {
+          console.error('No authUrl in response:', response);
+          reject(new Error('No auth URL received from server'));
+          return;
+        }
+        
         console.log('Opening popup with URL:', authUrl);
         const popup = window.open(authUrl, '_blank', 'width=500,height=600');
         
