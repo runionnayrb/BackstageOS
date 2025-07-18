@@ -312,6 +312,11 @@ export default function EnhancedHeader() {
                     Tasks
                   </DropdownMenuItem>
                   
+                  <DropdownMenuItem onClick={() => setLocation('/notes')}>
+                    <FileText className="h-4 w-4 mr-2" />
+                    Notes
+                  </DropdownMenuItem>
+                  
                   <DropdownMenuSeparator />
                   
                   <DropdownMenuItem onClick={() => setLocation('/')}>
@@ -358,6 +363,10 @@ export default function EnhancedHeader() {
                       <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/tasks`)}>
                         <CheckSquare className="h-4 w-4 mr-2" />
                         Show Tasks
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/notes`)}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Show Notes
                       </DropdownMenuItem>
                     </>
                   )}

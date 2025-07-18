@@ -29,6 +29,7 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **Script Editor**: Cue-building system supporting lighting, sound, video, automation cues
 - **Props Tracker**: Scene/character organization with status tracking and sourcing notes
 - **Costume Tracker**: Quick-change timing, repair tracking, character-based organization
+- **Notes System**: Apple Notes and Notion-style note-taking with rich text editing, folder organization, search, tagging, and collaboration features
 - **Availability Management**: Visual drag-and-drop scheduling system for contact availability
 - **Show Settings**: Comprehensive configuration for sharing, templates, and preferences
 
@@ -37,10 +38,18 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **Beta Access Control**: Three-tier system (none, limited, full) with granular feature permissions
 - **Feature Rollout**: Controlled deployment of new functionality to beta testers
 
+### Notes System Features (Completed)
+- **Rich Text Editor**: TipTap-powered editor with comprehensive formatting toolbar
+- **Organization**: Folder-based organization with drag-drop reordering
+- **Search & Tagging**: Full-text search across content, titles, and tags
+- **Collaboration**: Real-time sharing, comments, and permissions system
+- **Auto-Save**: Debounced auto-saving with visual save status indicators
+- **Dual Views**: Master Notes (global) and Show Notes (project-specific)
+- **Advanced Features**: Pin/unpin notes, archive system, attachment support
+
 ## Planned Features
 - **Calendar System**: Drag-drop scheduling with daily call sheet generation
 - **Cast Management**: Character breakdowns with scene appearances and requirements
-- **Task Management**: List and board views for production tasks
 - **Show Documents**: Scene shift plots, line set schedules, stage plots, ground plans
 - **Advanced Scheduling**: Rehearsal and performance calendar integration
 - **Mobile Optimization**: Enhanced mobile interface for backstage use

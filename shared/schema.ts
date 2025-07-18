@@ -12,6 +12,7 @@ import {
   date,
   time,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -874,6 +875,75 @@ export const taskViews = pgTable("task_views", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ========== NOTES SYSTEM ==========
+
+// Note folders for organizing notes
+export const noteFolders = pgTable("note_folders", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }), // null for global folders
+  name: varchar("name").notNull(),
+  description: text("description"),
+  color: varchar("color").default("#6B7280"), // hex color code
+  parentId: integer("parent_id").references(() => noteFolders.id), // for nested folders
+  sortOrder: integer("sort_order").notNull().default(0),
+  isGlobal: boolean("is_global").default(false), // for user-level folders
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Notes (Apple Notes/Notion style rich text documents)
+export const notes = pgTable("notes", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }), // null for global notes
+  folderId: integer("folder_id").references(() => noteFolders.id, { onDelete: "set null" }),
+  title: varchar("title").notNull(),
+  content: jsonb("content"), // Rich text content in TipTap JSON format
+  excerpt: text("excerpt"), // Plain text preview for search and display
+  isPinned: boolean("is_pinned").default(false),
+  tags: text("tags").array().default(sql`ARRAY[]::text[]`), // Array of tags for filtering
+  isArchived: boolean("is_archived").default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  lastEditedBy: integer("last_edited_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Note collaborators for sharing access
+export const noteCollaborators = pgTable("note_collaborators", {
+  id: serial("id").primaryKey(),
+  noteId: integer("note_id").notNull().references(() => notes.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  permission: varchar("permission").notNull().default("view"), // 'view', 'edit', 'admin'
+  invitedBy: integer("invited_by").notNull().references(() => users.id),
+  invitedAt: timestamp("invited_at").defaultNow(),
+});
+
+// Note comments for collaboration
+export const noteComments = pgTable("note_comments", {
+  id: serial("id").primaryKey(),
+  noteId: integer("note_id").notNull().references(() => notes.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  parentId: integer("parent_id").references(() => noteComments.id), // For threaded replies
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Note attachments for images and files
+export const noteAttachments = pgTable("note_attachments", {
+  id: serial("id").primaryKey(),
+  noteId: integer("note_id").notNull().references(() => notes.id, { onDelete: "cascade" }),
+  fileName: varchar("file_name").notNull(),
+  fileUrl: varchar("file_url").notNull(),
+  fileSize: integer("file_size"),
+  mimeType: varchar("mime_type"),
+  altText: text("alt_text"), // For images
+  uploadedBy: integer("uploaded_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   projects: many(projects),
@@ -915,6 +985,13 @@ export const usersRelations = relations(users, ({ many }) => ({
   taskComments: many(taskComments),
   taskAttachments: many(taskAttachments),
   taskViews: many(taskViews),
+  // Notes system relations
+  noteFolders: many(noteFolders),
+  notes: many(notes, { relationName: "createdNotes" }),
+  editedNotes: many(notes, { relationName: "editedNotes" }),
+  noteCollaborators: many(noteCollaborators),
+  noteComments: many(noteComments),
+  noteAttachments: many(noteAttachments),
 }));
 
 export const projectsRelations = relations(projects, ({ one, many }) => ({
@@ -953,6 +1030,9 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   rehearsalTracker: many(rehearsalTracker),
   // Task management relations
   taskDatabases: many(taskDatabases),
+  // Notes system relations
+  noteFolders: many(noteFolders),
+  notes: many(notes),
 }));
 
 export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
@@ -2460,6 +2540,89 @@ export const taskViewsRelations = relations(taskViews, ({ one }) => ({
   }),
 }));
 
+// ========== NOTES SYSTEM RELATIONS ==========
+
+export const noteFoldersRelations = relations(noteFolders, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [noteFolders.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [noteFolders.createdBy],
+    references: [users.id],
+  }),
+  parentFolder: one(noteFolders, {
+    fields: [noteFolders.parentId],
+    references: [noteFolders.id],
+  }),
+  notes: many(notes),
+  subFolders: many(noteFolders),
+}));
+
+export const notesRelations = relations(notes, ({ one, many }) => ({
+  project: one(projects, {
+    fields: [notes.projectId],
+    references: [projects.id],
+  }),
+  folder: one(noteFolders, {
+    fields: [notes.folderId],
+    references: [noteFolders.id],
+  }),
+  creator: one(users, {
+    fields: [notes.createdBy],
+    references: [users.id],
+  }),
+  lastEditor: one(users, {
+    fields: [notes.lastEditedBy],
+    references: [users.id],
+  }),
+  collaborators: many(noteCollaborators),
+  comments: many(noteComments),
+  attachments: many(noteAttachments),
+}));
+
+export const noteCollaboratorsRelations = relations(noteCollaborators, ({ one }) => ({
+  note: one(notes, {
+    fields: [noteCollaborators.noteId],
+    references: [notes.id],
+  }),
+  user: one(users, {
+    fields: [noteCollaborators.userId],
+    references: [users.id],
+  }),
+  inviter: one(users, {
+    fields: [noteCollaborators.invitedBy],
+    references: [users.id],
+  }),
+}));
+
+export const noteCommentsRelations = relations(noteComments, ({ one, many }) => ({
+  note: one(notes, {
+    fields: [noteComments.noteId],
+    references: [notes.id],
+  }),
+  creator: one(users, {
+    fields: [noteComments.createdBy],
+    references: [users.id],
+  }),
+  parentComment: one(noteComments, {
+    fields: [noteComments.parentId],
+    references: [noteComments.id],
+  }),
+  replies: many(noteComments),
+}));
+
+export const noteAttachmentsRelations = relations(noteAttachments, ({ one }) => ({
+  note: one(notes, {
+    fields: [noteAttachments.noteId],
+    references: [notes.id],
+  }),
+  uploader: one(users, {
+    fields: [noteAttachments.uploadedBy],
+    references: [users.id],
+  }),
+}));
+
 // ========== TASK MANAGEMENT INSERT SCHEMAS & TYPES ==========
 
 export const insertTaskDatabaseSchema = createInsertSchema(taskDatabases).omit({
@@ -2502,6 +2665,36 @@ export const insertTaskViewSchema = createInsertSchema(taskViews).omit({
   updatedAt: true,
 });
 
+// ========== NOTES SYSTEM INSERT SCHEMAS ==========
+
+export const insertNoteFolderSchema = createInsertSchema(noteFolders).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNoteSchema = createInsertSchema(notes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNoteCollaboratorSchema = createInsertSchema(noteCollaborators).omit({
+  id: true,
+  invitedAt: true,
+});
+
+export const insertNoteCommentSchema = createInsertSchema(noteComments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNoteAttachmentSchema = createInsertSchema(noteAttachments).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Task management types
 export type TaskDatabase = typeof taskDatabases.$inferSelect;
 export type InsertTaskDatabase = z.infer<typeof insertTaskDatabaseSchema>;
@@ -2517,3 +2710,16 @@ export type TaskAttachment = typeof taskAttachments.$inferSelect;
 export type InsertTaskAttachment = z.infer<typeof insertTaskAttachmentSchema>;
 export type TaskView = typeof taskViews.$inferSelect;
 export type InsertTaskView = z.infer<typeof insertTaskViewSchema>;
+
+// ========== NOTES SYSTEM TYPES ==========
+
+export type NoteFolder = typeof noteFolders.$inferSelect;
+export type InsertNoteFolder = z.infer<typeof insertNoteFolderSchema>;
+export type Note = typeof notes.$inferSelect;
+export type InsertNote = z.infer<typeof insertNoteSchema>;
+export type NoteCollaborator = typeof noteCollaborators.$inferSelect;
+export type InsertNoteCollaborator = z.infer<typeof insertNoteCollaboratorSchema>;
+export type NoteComment = typeof noteComments.$inferSelect;
+export type InsertNoteComment = z.infer<typeof insertNoteCommentSchema>;
+export type NoteAttachment = typeof noteAttachments.$inferSelect;
+export type InsertNoteAttachment = z.infer<typeof insertNoteAttachmentSchema>;

@@ -64,6 +64,7 @@ import Tools from "@/pages/tools";
 import Chat from "@/pages/chat";
 import PerformanceTracker from "@/pages/PerformanceTracker";
 import TaskManagement from "@/pages/TaskManagement";
+import Notes from "@/pages/Notes";
 
 
 function Router() {
@@ -186,6 +187,8 @@ function Router() {
         <Route path="/shows/:id/performance-tracker" component={PerformanceTracker} />
         <Route path="/shows/:id/tasks" component={TaskManagement} />
         <Route path="/tasks" component={TaskManagement} />
+        <Route path="/shows/:id/notes" component={Notes} />
+        <Route path="/notes" component={Notes} />
         <Route path="/shows/:id/templates/new" component={TemplateBuilder} />
         <Route path="/shows/:id/templates/:templateId/edit" component={TemplateBuilder} />
         <Route path="/shows/:id/templates" component={TemplateSettings} />

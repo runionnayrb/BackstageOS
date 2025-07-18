@@ -42,6 +42,11 @@ import {
   taskComments,
   taskAttachments,
   taskViews,
+  noteFolders,
+  notes,
+  noteCollaborators,
+  noteComments,
+  noteAttachments,
 
   type User,
   type UpsertUser,
@@ -123,6 +128,16 @@ import {
   type InsertTaskAttachment,
   type TaskView,
   type InsertTaskView,
+  type NoteFolder,
+  type InsertNoteFolder,
+  type Note,
+  type InsertNote,
+  type NoteCollaborator,
+  type InsertNoteCollaborator,
+  type NoteComment,
+  type InsertNoteComment,
+  type NoteAttachment,
+  type InsertNoteAttachment,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -375,6 +390,38 @@ export interface IStorage {
   createTaskView(view: InsertTaskView): Promise<TaskView>;
   updateTaskView(id: number, view: Partial<InsertTaskView>): Promise<TaskView>;
   deleteTaskView(id: number): Promise<void>;
+
+  // Notes System - Folders
+  getNoteFolders(projectId?: number, isGlobal?: boolean): Promise<NoteFolder[]>;
+  getNoteFolder(id: number): Promise<NoteFolder | undefined>;
+  createNoteFolder(folder: InsertNoteFolder): Promise<NoteFolder>;
+  updateNoteFolder(id: number, folder: Partial<InsertNoteFolder>): Promise<NoteFolder>;
+  deleteNoteFolder(id: number): Promise<void>;
+
+  // Notes System - Notes
+  getNotes(projectId?: number, folderId?: number, searchQuery?: string): Promise<Note[]>;
+  getNote(id: number): Promise<Note | undefined>;
+  createNote(note: InsertNote): Promise<Note>;
+  updateNote(id: number, note: Partial<InsertNote>): Promise<Note>;
+  deleteNote(id: number): Promise<void>;
+  searchNotes(query: string, projectId?: number): Promise<Note[]>;
+
+  // Notes System - Collaborators
+  getNoteCollaborators(noteId: number): Promise<NoteCollaborator[]>;
+  createNoteCollaborator(collaborator: InsertNoteCollaborator): Promise<NoteCollaborator>;
+  updateNoteCollaborator(id: number, collaborator: Partial<InsertNoteCollaborator>): Promise<NoteCollaborator>;
+  deleteNoteCollaborator(id: number): Promise<void>;
+
+  // Notes System - Comments
+  getNoteComments(noteId: number): Promise<NoteComment[]>;
+  createNoteComment(comment: InsertNoteComment): Promise<NoteComment>;
+  updateNoteComment(id: number, comment: Partial<InsertNoteComment>): Promise<NoteComment>;
+  deleteNoteComment(id: number): Promise<void>;
+
+  // Notes System - Attachments
+  getNoteAttachments(noteId: number): Promise<NoteAttachment[]>;
+  createNoteAttachment(attachment: InsertNoteAttachment): Promise<NoteAttachment>;
+  deleteNoteAttachment(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2376,6 +2423,203 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTaskView(id: number): Promise<void> {
     await db.delete(taskViews).where(eq(taskViews.id, id));
+  }
+
+  // Notes System - Folders Implementation
+  async getNoteFolders(projectId?: number, isGlobal?: boolean): Promise<NoteFolder[]> {
+    let query = db.select().from(noteFolders);
+    
+    if (isGlobal) {
+      query = query.where(isNull(noteFolders.projectId));
+    } else if (projectId !== undefined) {
+      query = query.where(eq(noteFolders.projectId, projectId));
+    }
+    
+    const result = await query.orderBy(noteFolders.sortOrder, noteFolders.name);
+    return result;
+  }
+
+  async getNoteFolder(id: number): Promise<NoteFolder | undefined> {
+    const result = await db
+      .select()
+      .from(noteFolders)
+      .where(eq(noteFolders.id, id));
+    return result[0];
+  }
+
+  async createNoteFolder(folder: InsertNoteFolder): Promise<NoteFolder> {
+    const result = await db.insert(noteFolders).values(folder).returning();
+    return result[0];
+  }
+
+  async updateNoteFolder(id: number, folder: Partial<InsertNoteFolder>): Promise<NoteFolder> {
+    const result = await db
+      .update(noteFolders)
+      .set({ ...folder, updatedAt: new Date() })
+      .where(eq(noteFolders.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteNoteFolder(id: number): Promise<void> {
+    await db.delete(noteFolders).where(eq(noteFolders.id, id));
+  }
+
+  // Notes System - Notes Implementation
+  async getNotes(projectId?: number, folderId?: number, searchQuery?: string): Promise<Note[]> {
+    let query = db.select().from(notes);
+    
+    const conditions = [];
+    
+    if (projectId !== undefined) {
+      conditions.push(eq(notes.projectId, projectId));
+    }
+    
+    if (folderId !== undefined) {
+      conditions.push(eq(notes.folderId, folderId));
+    }
+    
+    if (searchQuery) {
+      conditions.push(
+        or(
+          sql`${notes.title} ILIKE ${`%${searchQuery}%`}`,
+          sql`${notes.excerpt} ILIKE ${`%${searchQuery}%`}`
+        )
+      );
+    }
+    
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    const result = await query
+      .where(eq(notes.isArchived, false))
+      .orderBy(desc(notes.isPinned), notes.sortOrder, desc(notes.updatedAt));
+    return result;
+  }
+
+  async getNote(id: number): Promise<Note | undefined> {
+    const result = await db
+      .select()
+      .from(notes)
+      .where(eq(notes.id, id));
+    return result[0];
+  }
+
+  async createNote(note: InsertNote): Promise<Note> {
+    const result = await db.insert(notes).values(note).returning();
+    return result[0];
+  }
+
+  async updateNote(id: number, note: Partial<InsertNote>): Promise<Note> {
+    const result = await db
+      .update(notes)
+      .set({ ...note, updatedAt: new Date() })
+      .where(eq(notes.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteNote(id: number): Promise<void> {
+    await db.delete(notes).where(eq(notes.id, id));
+  }
+
+  async searchNotes(query: string, projectId?: number): Promise<Note[]> {
+    let searchQuery = db
+      .select()
+      .from(notes)
+      .where(
+        and(
+          or(
+            sql`${notes.title} ILIKE ${`%${query}%`}`,
+            sql`${notes.excerpt} ILIKE ${`%${query}%`}`,
+            sql`array_to_string(${notes.tags}, ' ') ILIKE ${`%${query}%`}`
+          ),
+          eq(notes.isArchived, false)
+        )
+      );
+    
+    if (projectId !== undefined) {
+      searchQuery = searchQuery.where(eq(notes.projectId, projectId));
+    }
+    
+    const result = await searchQuery.orderBy(desc(notes.updatedAt));
+    return result;
+  }
+
+  // Notes System - Collaborators Implementation
+  async getNoteCollaborators(noteId: number): Promise<NoteCollaborator[]> {
+    const result = await db
+      .select()
+      .from(noteCollaborators)
+      .where(eq(noteCollaborators.noteId, noteId))
+      .orderBy(noteCollaborators.invitedAt);
+    return result;
+  }
+
+  async createNoteCollaborator(collaborator: InsertNoteCollaborator): Promise<NoteCollaborator> {
+    const result = await db.insert(noteCollaborators).values(collaborator).returning();
+    return result[0];
+  }
+
+  async updateNoteCollaborator(id: number, collaborator: Partial<InsertNoteCollaborator>): Promise<NoteCollaborator> {
+    const result = await db
+      .update(noteCollaborators)
+      .set(collaborator)
+      .where(eq(noteCollaborators.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteNoteCollaborator(id: number): Promise<void> {
+    await db.delete(noteCollaborators).where(eq(noteCollaborators.id, id));
+  }
+
+  // Notes System - Comments Implementation
+  async getNoteComments(noteId: number): Promise<NoteComment[]> {
+    const result = await db
+      .select()
+      .from(noteComments)
+      .where(eq(noteComments.noteId, noteId))
+      .orderBy(noteComments.createdAt);
+    return result;
+  }
+
+  async createNoteComment(comment: InsertNoteComment): Promise<NoteComment> {
+    const result = await db.insert(noteComments).values(comment).returning();
+    return result[0];
+  }
+
+  async updateNoteComment(id: number, comment: Partial<InsertNoteComment>): Promise<NoteComment> {
+    const result = await db
+      .update(noteComments)
+      .set({ ...comment, updatedAt: new Date() })
+      .where(eq(noteComments.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteNoteComment(id: number): Promise<void> {
+    await db.delete(noteComments).where(eq(noteComments.id, id));
+  }
+
+  // Notes System - Attachments Implementation
+  async getNoteAttachments(noteId: number): Promise<NoteAttachment[]> {
+    const result = await db
+      .select()
+      .from(noteAttachments)
+      .where(eq(noteAttachments.noteId, noteId))
+      .orderBy(noteAttachments.createdAt);
+    return result;
+  }
+
+  async createNoteAttachment(attachment: InsertNoteAttachment): Promise<NoteAttachment> {
+    const result = await db.insert(noteAttachments).values(attachment).returning();
+    return result[0];
+  }
+
+  async deleteNoteAttachment(id: number): Promise<void> {
+    await db.delete(noteAttachments).where(eq(noteAttachments.id, id));
   }
 
 }

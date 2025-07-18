@@ -2,6 +2,133 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Line clamp utilities */
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* TipTap Editor Styles */
+.ProseMirror {
+  outline: none;
+  padding: 1rem;
+  min-height: 200px;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  height: 0;
+}
+
+.ProseMirror h1 {
+  font-size: 1.875rem;
+  font-weight: bold;
+  margin: 1.5rem 0 1rem 0;
+  line-height: 1.2;
+}
+
+.ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 1.25rem 0 0.75rem 0;
+  line-height: 1.3;
+}
+
+.ProseMirror h3 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 1rem 0 0.5rem 0;
+  line-height: 1.4;
+}
+
+.ProseMirror p {
+  margin: 0.75rem 0;
+  line-height: 1.6;
+}
+
+.ProseMirror ul, .ProseMirror ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.ProseMirror li {
+  margin: 0.25rem 0;
+}
+
+.ProseMirror blockquote {
+  border-left: 4px solid hsl(var(--border));
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+.ProseMirror code {
+  background: hsl(var(--muted));
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-family: 'Courier New', monospace;
+  font-size: 0.875rem;
+}
+
+.ProseMirror pre {
+  background: hsl(var(--muted));
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.ProseMirror pre code {
+  background: none;
+  padding: 0;
+}
+
+.ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.ProseMirror ul[data-type="taskList"] li input[type="checkbox"] {
+  margin-top: 0.25rem;
+  cursor: pointer;
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+.ProseMirror a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ProseMirror a:hover {
+  color: hsl(var(--primary)/80%);
+}
+
 /* React Resizable styles */
 .react-resizable {
   position: relative;

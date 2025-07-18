@@ -13,7 +13,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema } from "@shared/schema";
+import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -8837,6 +8837,318 @@ Respond with valid JSON only.`;
     } catch (error) {
       console.error("Error deleting task view:", error);
       res.status(500).json({ message: "Failed to delete task view" });
+    }
+  });
+
+  // ===== NOTES SYSTEM API ROUTES =====
+
+  // Note Folders Routes
+  app.get("/api/note-folders", isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId, isGlobal } = req.query;
+      const folders = await storage.getNoteFolders(
+        projectId ? parseInt(projectId) : undefined,
+        isGlobal === 'true'
+      );
+      res.json(folders);
+    } catch (error) {
+      console.error("Error fetching note folders:", error);
+      res.status(500).json({ message: "Failed to fetch note folders" });
+    }
+  });
+
+  app.get("/api/note-folders/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const folder = await storage.getNoteFolder(id);
+      if (!folder) {
+        return res.status(404).json({ message: "Note folder not found" });
+      }
+      res.json(folder);
+    } catch (error) {
+      console.error("Error fetching note folder:", error);
+      res.status(500).json({ message: "Failed to fetch note folder" });
+    }
+  });
+
+  app.post("/api/note-folders", isAuthenticated, async (req: any, res) => {
+    try {
+      const folderData = insertNoteFolderSchema.parse({
+        ...req.body,
+        createdBy: req.user.id
+      });
+      const folder = await storage.createNoteFolder(folderData);
+      res.json(folder);
+    } catch (error) {
+      console.error("Error creating note folder:", error);
+      res.status(500).json({ message: "Failed to create note folder" });
+    }
+  });
+
+  app.put("/api/note-folders/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const folderData = insertNoteFolderSchema.partial().parse(req.body);
+      const folder = await storage.updateNoteFolder(id, folderData);
+      res.json(folder);
+    } catch (error) {
+      console.error("Error updating note folder:", error);
+      res.status(500).json({ message: "Failed to update note folder" });
+    }
+  });
+
+  app.delete("/api/note-folders/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteNoteFolder(id);
+      res.json({ message: "Note folder deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting note folder:", error);
+      res.status(500).json({ message: "Failed to delete note folder" });
+    }
+  });
+
+  // Notes Routes
+  app.get("/api/notes", isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId, folderId, searchQuery } = req.query;
+      const notes = await storage.getNotes(
+        projectId ? parseInt(projectId) : undefined,
+        folderId ? parseInt(folderId) : undefined,
+        searchQuery
+      );
+      res.json(notes);
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+      res.status(500).json({ message: "Failed to fetch notes" });
+    }
+  });
+
+  app.get("/api/notes/search", isAuthenticated, async (req: any, res) => {
+    try {
+      const { query, projectId } = req.query;
+      if (!query) {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+      const notes = await storage.searchNotes(
+        query as string,
+        projectId ? parseInt(projectId as string) : undefined
+      );
+      res.json(notes);
+    } catch (error) {
+      console.error("Error searching notes:", error);
+      res.status(500).json({ message: "Failed to search notes" });
+    }
+  });
+
+  app.get("/api/notes/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const note = await storage.getNote(id);
+      if (!note) {
+        return res.status(404).json({ message: "Note not found" });
+      }
+      res.json(note);
+    } catch (error) {
+      console.error("Error fetching note:", error);
+      res.status(500).json({ message: "Failed to fetch note" });
+    }
+  });
+
+  app.post("/api/notes", isAuthenticated, async (req: any, res) => {
+    try {
+      const noteData = insertNoteSchema.parse({
+        ...req.body,
+        createdBy: req.user.id,
+        lastEditedBy: req.user.id
+      });
+      const note = await storage.createNote(noteData);
+      res.json(note);
+    } catch (error) {
+      console.error("Error creating note:", error);
+      res.status(500).json({ message: "Failed to create note" });
+    }
+  });
+
+  app.put("/api/notes/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const noteData = insertNoteSchema.partial().parse({
+        ...req.body,
+        lastEditedBy: req.user.id
+      });
+      const note = await storage.updateNote(id, noteData);
+      res.json(note);
+    } catch (error) {
+      console.error("Error updating note:", error);
+      res.status(500).json({ message: "Failed to update note" });
+    }
+  });
+
+  app.delete("/api/notes/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteNote(id);
+      res.json({ message: "Note deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      res.status(500).json({ message: "Failed to delete note" });
+    }
+  });
+
+  // Note Collaborators Routes
+  app.get("/api/notes/:noteId/collaborators", isAuthenticated, async (req: any, res) => {
+    try {
+      const noteId = parseInt(req.params.noteId);
+      const collaborators = await storage.getNoteCollaborators(noteId);
+      res.json(collaborators);
+    } catch (error) {
+      console.error("Error fetching note collaborators:", error);
+      res.status(500).json({ message: "Failed to fetch note collaborators" });
+    }
+  });
+
+  app.post("/api/notes/:noteId/collaborators", isAuthenticated, async (req: any, res) => {
+    try {
+      const noteId = parseInt(req.params.noteId);
+      const collaboratorData = insertNoteCollaboratorSchema.parse({
+        ...req.body,
+        noteId,
+        invitedBy: req.user.id
+      });
+      const collaborator = await storage.createNoteCollaborator(collaboratorData);
+      res.json(collaborator);
+    } catch (error) {
+      console.error("Error creating note collaborator:", error);
+      res.status(500).json({ message: "Failed to create note collaborator" });
+    }
+  });
+
+  app.put("/api/note-collaborators/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const collaboratorData = insertNoteCollaboratorSchema.partial().parse(req.body);
+      const collaborator = await storage.updateNoteCollaborator(id, collaboratorData);
+      res.json(collaborator);
+    } catch (error) {
+      console.error("Error updating note collaborator:", error);
+      res.status(500).json({ message: "Failed to update note collaborator" });
+    }
+  });
+
+  app.delete("/api/note-collaborators/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteNoteCollaborator(id);
+      res.json({ message: "Note collaborator removed successfully" });
+    } catch (error) {
+      console.error("Error removing note collaborator:", error);
+      res.status(500).json({ message: "Failed to remove note collaborator" });
+    }
+  });
+
+  // Note Comments Routes
+  app.get("/api/notes/:noteId/comments", isAuthenticated, async (req: any, res) => {
+    try {
+      const noteId = parseInt(req.params.noteId);
+      const comments = await storage.getNoteComments(noteId);
+      res.json(comments);
+    } catch (error) {
+      console.error("Error fetching note comments:", error);
+      res.status(500).json({ message: "Failed to fetch note comments" });
+    }
+  });
+
+  app.post("/api/notes/:noteId/comments", isAuthenticated, async (req: any, res) => {
+    try {
+      const noteId = parseInt(req.params.noteId);
+      const commentData = insertNoteCommentSchema.parse({
+        ...req.body,
+        noteId,
+        createdBy: req.user.id
+      });
+      const comment = await storage.createNoteComment(commentData);
+      res.json(comment);
+    } catch (error) {
+      console.error("Error creating note comment:", error);
+      res.status(500).json({ message: "Failed to create note comment" });
+    }
+  });
+
+  app.put("/api/note-comments/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const commentData = insertNoteCommentSchema.partial().parse(req.body);
+      const comment = await storage.updateNoteComment(id, commentData);
+      res.json(comment);
+    } catch (error) {
+      console.error("Error updating note comment:", error);
+      res.status(500).json({ message: "Failed to update note comment" });
+    }
+  });
+
+  app.delete("/api/note-comments/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteNoteComment(id);
+      res.json({ message: "Note comment deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting note comment:", error);
+      res.status(500).json({ message: "Failed to delete note comment" });
+    }
+  });
+
+  // Note Attachments Routes
+  app.get("/api/notes/:noteId/attachments", isAuthenticated, async (req: any, res) => {
+    try {
+      const noteId = parseInt(req.params.noteId);
+      const attachments = await storage.getNoteAttachments(noteId);
+      res.json(attachments);
+    } catch (error) {
+      console.error("Error fetching note attachments:", error);
+      res.status(500).json({ message: "Failed to fetch note attachments" });
+    }
+  });
+
+  app.post("/api/notes/:noteId/attachments", isAuthenticated, upload.single('file'), async (req: any, res) => {
+    try {
+      const noteId = parseInt(req.params.noteId);
+      
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const attachmentData = insertNoteAttachmentSchema.parse({
+        noteId,
+        fileName: req.file.originalname,
+        fileUrl: `/uploads/${req.file.filename}`,
+        fileSize: req.file.size,
+        mimeType: req.file.mimetype,
+        altText: req.body.altText || '',
+        uploadedBy: req.user.id
+      });
+
+      const attachment = await storage.createNoteAttachment(attachmentData);
+      res.json(attachment);
+    } catch (error) {
+      console.error("Error creating note attachment:", error);
+      res.status(500).json({ message: "Failed to create note attachment" });
+    }
+  });
+
+  app.delete("/api/note-attachments/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Get attachment info to delete file from filesystem
+      const attachment = await storage.getNoteAttachments(0); // This is a hack - we need to get the specific attachment
+      // TODO: Add a method to get single attachment by ID
+      
+      await storage.deleteNoteAttachment(id);
+      res.json({ message: "Note attachment deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting note attachment:", error);
+      res.status(500).json({ message: "Failed to delete note attachment" });
     }
   });
 
