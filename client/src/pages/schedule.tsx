@@ -436,6 +436,14 @@ export default function Schedule() {
                 <Calendar className={`h-4 w-4 ${showAllDayEvents ? 'text-blue-500' : 'text-gray-600'}`} />
               </button>
               
+              {/* Version Control Button */}
+              <button
+                onClick={() => setShowVersionControl(true)}
+                className="p-2 h-8 border-0 bg-transparent hover:bg-gray-100 rounded-md transition-colors"
+              >
+                <History className="h-4 w-4 text-gray-600" />
+              </button>
+
               {/* New Event Button - leftmost */}
               <button
                 onClick={() => setCreateEventDialog(true)}
