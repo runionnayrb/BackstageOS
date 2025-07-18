@@ -1,0 +1,66 @@
+I want to build a Notes page for my BackstageOS app, inspired by Apple Notes and Notion. This page will live in the main hamburger menu under “Tasks,” directly below it. It should match the existing design system used throughout the app — clean, modern, minimalist, with no borders and the same fonts, spacing, and visual style.
+
+This will be a two-part system:
+
+⸻
+
+🗂 1. Master Notes Page (Global View)
+	•	Lives under “Tasks” in the hamburger menu
+	•	Shows all notes across all shows the user is involved in
+	•	Notes are organized into folders on the left sidebar
+	•	Notes can be sorted or searched by title or content
+	•	Each note displays which show it belongs to (show tag or label)
+	•	Users can filter notes by show, folder, or keyword
+
+⸻
+
+🎭 2. Show Notes Page (Scoped View)
+	•	This is the filtered view for each show, accessible via the Show Navigation in the hamburger menu, just like how “Show Tasks” are implemented
+	•	This page only displays notes assigned to that show
+	•	Folder organization is still available, scoped to the show
+	•	Same editor functionality, but limited to data from that specific production
+
+⸻
+
+📝 Note Editor Requirements (Shared for both views)
+	•	Clicking a note opens a document-style rich text editor in the main panel
+	•	Editor must support:
+	•	Headers (H1, H2, H3)
+	•	Subtitles
+	•	Bold, Italics, Underline
+	•	Bullet and numbered lists
+	•	Task checklists (with strikethrough on completion)
+	•	Adding and resizing images (drag & drop or upload)
+	•	Hyperlinks
+	•	Autosave on input
+	•	Title field that is editable and becomes the display name
+
+⸻
+
+🧠 UX & Design Notes
+	•	Use same design styling as Tasks and Script Editor pages
+	•	No visible borders or hard lines — clean and spacious
+	•	Sidebar on left for folders, main note view on right
+	•	Responsive for desktop (mobile optional in later phase)
+	•	Light/dark mode support if the rest of the app already supports it
+
+⸻
+
+📁 Folder System
+	•	Users can create, rename, or delete folders
+	•	Folders are scoped to the master view or individual show
+	•	Drag and drop notes between folders (optional for later)
+
+⸻
+
+🔍 Search + Filters
+	•	Include a search bar at the top of the master page and show page
+	•	Should search note titles and body content
+	•	Allow filtering by show, folder, or tag (optional in future)
+
+⸻
+
+⚙️ Tech Stack / Build Suggestions
+	•	Use a modern rich text editor that supports Notion-style editing like TipTap, Slate.js, or Quill
+	•	Use modular data models for easy filtering and expansion
+	•	Store note metadata: title, content, folder, showId, createdAt, updatedAt, pinned (optional), tags (optional)
