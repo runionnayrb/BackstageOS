@@ -410,15 +410,15 @@ export function TaskTableView({
         const column = allColumns.find(col => {
           switch (col.type) {
             case 'task': return prop.required && prop.id === 1; // Match by ID instead of name for task column
-            case 'status': return prop.name === 'Status';
-            case 'priority': return prop.name === 'Priority';
-            case 'project': return prop.name === 'Show';
-            case 'assignee': return prop.name === 'Assignee';
+            case 'status': return prop.id === 2;
+            case 'priority': return prop.id === 3;
             case 'date':
-              if (col.id === 'dueDate') return prop.name === 'Due Date';
-              if (col.id === 'created') return prop.name === 'Created';
-              if (col.id === 'updated') return prop.name === 'Updated';
+              if (col.id === 'dueDate') return prop.id === 4;
+              if (col.id === 'created') return prop.id === 7;
+              if (col.id === 'updated') return prop.id === 8;
               return false;
+            case 'project': return prop.id === 5;
+            case 'assignee': return prop.id === 6;
             default: return false;
           }
         });
@@ -445,7 +445,11 @@ export function TaskTableView({
 
   // Update columns when propertyVisibility or properties change
   useEffect(() => {
-    setColumns(createColumns());
+    console.log('🔄 Recreating columns due to property/visibility change');
+    console.log('Current propertyVisibility:', propertyVisibility.map(p => `${p.name}(${p.id})`));
+    const newColumns = createColumns();
+    console.log('New columns created:', newColumns.map(c => `${c.title}(${c.id}-${c.type})`));
+    setColumns(newColumns);
   }, [createColumns]);
 
   // Filter columns based on property visibility
