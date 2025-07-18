@@ -54,6 +54,11 @@ export default function EnhancedHeader() {
   const currentY = useRef(0);
   const headerRef = useRef<HTMLDivElement>(null);
 
+  // Show name animation state
+  const [showNameVisible, setShowNameVisible] = useState(false);
+  const [showNameAnimation, setShowNameAnimation] = useState<'enter' | 'exit' | 'none'>('none');
+  const previousShowId = useRef<string | undefined>();
+
   // Fetch total unread email count
   const { data: unreadEmailData } = useQuery({
     queryKey: ['/api/email/unread-count'],
@@ -151,6 +156,41 @@ export default function EnhancedHeader() {
       }
     }
   }, [allUsers, defaultUserId]);
+
+  // Handle show name animation when entering/exiting shows
+  useEffect(() => {
+    const currentShowId = navContext.showId;
+    const hadPreviousShow = !!previousShowId.current;
+    const hasCurrentShow = !!currentShowId;
+
+    // Entering a show for the first time or switching shows
+    if (currentShowId && currentShowId !== previousShowId.current) {
+      if (hadPreviousShow) {
+        // Switching shows - exit then enter
+        setShowNameAnimation('exit');
+        setTimeout(() => {
+          setShowNameVisible(true);
+          setShowNameAnimation('enter');
+          setTimeout(() => setShowNameAnimation('none'), 300);
+        }, 300);
+      } else {
+        // Entering first show
+        setShowNameVisible(true);
+        setShowNameAnimation('enter');
+        setTimeout(() => setShowNameAnimation('none'), 300);
+      }
+    }
+    // Exiting a show
+    else if (!currentShowId && hadPreviousShow) {
+      setShowNameAnimation('exit');
+      setTimeout(() => {
+        setShowNameVisible(false);
+        setShowNameAnimation('none');
+      }, 300);
+    }
+
+    previousShowId.current = currentShowId;
+  }, [navContext.showId]);
 
   // Pull-to-reveal breadcrumb functionality
   useEffect(() => {
@@ -397,6 +437,29 @@ export default function EnhancedHeader() {
               </DropdownMenu>
             </div>
 
+            {/* Animated Show Name Indicator */}
+            {showNameVisible && showData?.name && (
+              <div 
+                className="flex items-center text-sm font-medium text-gray-600 transition-all duration-300 ease-out"
+                style={{
+                  transform: showNameAnimation === 'enter' 
+                    ? 'translateX(0)' 
+                    : showNameAnimation === 'exit'
+                    ? 'translateX(-16px)'
+                    : showNameAnimation === 'none'
+                    ? 'translateX(0)'
+                    : 'translateX(16px)', // Initial state - comes from right
+                  opacity: showNameAnimation === 'exit' 
+                    ? 0 
+                    : showNameAnimation === 'enter' || showNameAnimation === 'none'
+                    ? 1 
+                    : 0, // Initially hidden
+                }}
+              >
+                <span className="mx-2 text-gray-300">•</span>
+                <span className="truncate max-w-[200px]">{showData.name}</span>
+              </div>
+            )}
 
           </div>
 
