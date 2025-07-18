@@ -647,7 +647,7 @@ export default function EmailManager() {
                 size="sm"
                 onClick={openMobileMenu}
                 className={cn(
-                  "md:hidden h-8 w-8 p-0 hover:bg-gray-100 flex-shrink-0 transition-transform duration-300",
+                  "md:hidden h-8 w-8 p-0 hover:bg-gray-100 flex-shrink-0 transition-transform duration-300 border-0 !border-none focus:border-0 focus:!border-none active:border-0 active:!border-none hover:border-0 hover:!border-none",
                   isMobileMenuOpen && "scale-110"
                 )}
               >
