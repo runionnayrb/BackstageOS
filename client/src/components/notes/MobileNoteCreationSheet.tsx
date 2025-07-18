@@ -1,17 +1,14 @@
-import { useState, useRef, useEffect } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { X, Send, Folder, Tag, Hash } from "lucide-react";
+import React, { useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Check } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
+import { useHapticFeedback } from "@/hooks/useHapticFeedback";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { useHapticFeedback } from "@/hooks/useHapticFeedback";
-import { apiRequest } from "@/lib/queryClient";
 import { insertNoteSchema } from "@shared/schema";
-import type { NoteFolder } from "@shared/schema";
 
 interface MobileNoteCreationSheetProps {
   isOpen: boolean;
@@ -20,30 +17,14 @@ interface MobileNoteCreationSheetProps {
   folderId?: number | null;
 }
 
-export function MobileNoteCreationSheet({
-  isOpen,
-  onClose,
-  projectId,
-  folderId
-}: MobileNoteCreationSheetProps) {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const { triggerSelection, triggerNotification } = useHapticFeedback();
-  const sheetRef = useRef<HTMLDivElement>(null);
-  
+export function MobileNoteCreationSheet({ isOpen, onClose, projectId, folderId }: MobileNoteCreationSheetProps) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [selectedFolderId, setSelectedFolderId] = useState<number | null>(folderId || null);
-  const [tags, setTags] = useState<string[]>([]);
-  const [newTag, setNewTag] = useState("");
-
-  // Fetch folders for selection
-  const { data: folders = [] } = useQuery({
-    queryKey: ['/api/note-folders', projectId],
-    queryFn: () => apiRequest(`/api/note-folders?${projectId ? `projectId=${projectId}` : 'isGlobal=true'}`),
-    enabled: isOpen
-  });
+  
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { triggerSelection, triggerNotification } = useHapticFeedback();
+  const { toast } = useToast();
 
   const createNoteMutation = useMutation({
     mutationFn: (noteData: any) => apiRequest('/api/notes', {
@@ -73,26 +54,10 @@ export function MobileNoteCreationSheet({
     triggerSelection();
     setTitle("");
     setContent("");
-    setSelectedFolderId(folderId || null);
-    setTags([]);
-    setNewTag("");
     onClose();
   };
 
-  const addTag = () => {
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
-      setNewTag("");
-      triggerSelection();
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-    triggerSelection();
-  };
-
-  const handleCreate = () => {
+  const handleSubmit = () => {
     if (!title.trim()) {
       toast({
         title: "Title required",
@@ -108,8 +73,8 @@ export function MobileNoteCreationSheet({
         content: content ? { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: content }] }] } : null,
         excerpt: content.slice(0, 200),
         projectId: projectId || null,
-        folderId: selectedFolderId,
-        tags,
+        folderId: folderId || null,
+        tags: [],
         isPinned: false,
         isArchived: false,
         sortOrder: 0,
@@ -128,220 +93,70 @@ export function MobileNoteCreationSheet({
     }
   };
 
-  // Prevent body scroll when sheet is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = '';
-      };
-    }
-  }, [isOpen]);
-
-  // Handle swipe down to close
-  useEffect(() => {
-    let startY = 0;
-    let isDragging = false;
-
-    const handleTouchStart = (e: TouchEvent) => {
-      startY = e.touches[0].clientY;
-      isDragging = true;
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!isDragging) return;
-      const currentY = e.touches[0].clientY;
-      const diff = currentY - startY;
-      
-      if (diff > 150) {
-        handleClose();
-        isDragging = false;
-      }
-    };
-
-    const handleTouchEnd = () => {
-      isDragging = false;
-    };
-
-    if (isOpen && sheetRef.current) {
-      const sheet = sheetRef.current;
-      sheet.addEventListener('touchstart', handleTouchStart);
-      sheet.addEventListener('touchmove', handleTouchMove);
-      sheet.addEventListener('touchend', handleTouchEnd);
-
-      return () => {
-        sheet.removeEventListener('touchstart', handleTouchStart);
-        sheet.removeEventListener('touchmove', handleTouchMove);
-        sheet.removeEventListener('touchend', handleTouchEnd);
-      };
-    }
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black/50 z-40"
-        onClick={handleClose}
-      />
-      
-      {/* Mobile bottom sheet */}
-      <div 
-        ref={sheetRef}
-        className="fixed left-0 right-0 z-50 bg-white flex flex-col mobile-note-sheet"
-        style={{ 
-          top: '60px', // Just below the BackstageOS header
-          height: 'calc(100vh - 60px)' // Full height minus header
-        }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
-          <Button 
-            variant="ghost" 
-            onClick={handleClose}
-            className="text-gray-500 hover:text-gray-700 p-1 h-auto"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-          <h1 className="text-lg font-semibold text-black">New Note</h1>
-          <Button
-            variant="ghost"
-            onClick={handleCreate}
-            disabled={createNoteMutation.isPending || !title.trim()}
-            className="text-blue-500 hover:text-blue-600 p-1 h-auto disabled:opacity-50"
-          >
-            <Send className="h-6 w-6" />
-          </Button>
-        </div>
+    <div 
+      className="fixed inset-0 z-50 bg-white mobile-note-sheet"
+      style={{ 
+        top: 'var(--header-height, 64px)',
+        height: 'calc(100vh - var(--header-height, 64px))'
+      }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 bg-white">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleClose}
+          className="p-2 h-10 w-10"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        
+        <Button
+          onClick={handleSubmit}
+          size="sm"
+          className="px-4 h-10 bg-blue-600 hover:bg-blue-700"
+          disabled={createNoteMutation.isPending || !title.trim()}
+        >
+          {createNoteMutation.isPending ? (
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              Creating...
+            </div>
+          ) : (
+            <>
+              <Check className="h-4 w-4 mr-1" />
+              Done
+            </>
+          )}
+        </Button>
+      </div>
 
-        {/* Swipe indicator */}
-        <div className="flex justify-center py-2 border-b border-gray-100">
-          <div className="w-12 h-1 bg-gray-300 rounded-full"></div>
+      {/* Form Content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        {/* Title */}
+        <div>
+          <Input
+            placeholder="Note title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="mobile-note-input border-0 shadow-none text-xl font-medium placeholder:text-gray-400 px-0 focus-visible:ring-0"
+            autoFocus
+          />
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4 space-y-6">
-            {/* Title */}
-            <div>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Note title..."
-                className="text-lg font-medium border-0 px-0 focus-visible:ring-0 mobile-note-input"
-                style={{ fontSize: '18px' }} // Prevent iOS zoom
-              />
-            </div>
-
-            {/* Folder selection */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Folder className="h-4 w-4" />
-                <span>Folder</span>
-              </div>
-              <Select 
-                value={selectedFolderId?.toString() || "none"} 
-                onValueChange={(value) => {
-                  setSelectedFolderId(value === "none" ? null : parseInt(value));
-                  triggerSelection();
-                }}
-              >
-                <SelectTrigger className="border-gray-200">
-                  <SelectValue placeholder="Select a folder or leave unorganized" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No folder (unorganized)</SelectItem>
-                  {folders.map((folder: NoteFolder) => (
-                    <SelectItem key={folder.id} value={folder.id.toString()}>
-                      {folder.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Tags */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Tag className="h-4 w-4" />
-                <span>Tags</span>
-              </div>
-              <div className="flex flex-wrap gap-2 mb-2">
-                {tags.map(tag => (
-                  <Badge key={tag} variant="secondary" className="cursor-pointer mobile-touch-target">
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => removeTag(tag)}
-                      className="ml-1 hover:text-destructive"
-                    >
-                      ×
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  placeholder="Add a tag..."
-                  className="border-gray-200"
-                  style={{ fontSize: '16px' }} // Prevent iOS zoom
-                  onKeyPress={(e) => e.key === 'Enter' && addTag()}
-                />
-                <Button 
-                  onClick={addTag} 
-                  disabled={!newTag.trim()}
-                  variant="outline"
-                  size="sm"
-                  className="mobile-touch-target"
-                >
-                  <Hash className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span>Content</span>
-              </div>
-              <Textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Start writing your note..."
-                className="min-h-[200px] border-gray-200 resize-none"
-                style={{ fontSize: '16px' }} // Prevent iOS zoom
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Sticky footer for mobile nav compatibility */}
-        <div 
-          className="flex-shrink-0 p-4 border-t border-gray-200 bg-white"
-          style={{ marginBottom: '80px' }} // Space for mobile navigation
-        >
-          <div className="flex gap-3">
-            <Button
-              onClick={handleClose}
-              variant="outline"
-              className="flex-1 mobile-touch-target"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreate}
-              disabled={createNoteMutation.isPending || !title.trim()}
-              className="flex-1 mobile-touch-target"
-            >
-              {createNoteMutation.isPending ? 'Creating...' : 'Create Note'}
-            </Button>
-          </div>
+        <div>
+          <Textarea
+            placeholder="Start writing..."
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            className="mobile-note-input border-0 shadow-none text-base resize-none min-h-[400px] placeholder:text-gray-400 px-0 focus-visible:ring-0"
+          />
         </div>
       </div>
-    </>
+    </div>
   );
 }
