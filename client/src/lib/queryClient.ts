@@ -23,7 +23,7 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
-): Promise<Response> {
+): Promise<any> {
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
@@ -32,6 +32,14 @@ export async function apiRequest(
   });
 
   await throwIfResNotOk(res);
+  
+  // Parse JSON response if content-type indicates JSON
+  const contentType = res.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return await res.json();
+  }
+  
+  // For non-JSON responses, return the response object
   return res;
 }
 
