@@ -402,7 +402,7 @@ export function TaskTableView({
             case 'task': return prop.name === 'Task Name';
             case 'status': return prop.name === 'Status';
             case 'priority': return prop.name === 'Priority';
-            case 'project': return prop.name === 'Project';
+            case 'project': return prop.name === 'Show';
             case 'assignee': return prop.name === 'Assignee';
             case 'date':
               if (col.id === 'dueDate') return prop.name === 'Due Date';
@@ -460,7 +460,7 @@ export function TaskTableView({
         case 'priority':
           return prop.name === 'Priority';
         case 'project':
-          return prop.name === 'Project';
+          return prop.name === 'Show';
         case 'assignee':
           return prop.name === 'Assignee';
         case 'date':
@@ -497,7 +497,7 @@ export function TaskTableView({
             case 'task': return 'Task Name';
             case 'status': return 'Status';
             case 'priority': return 'Priority';
-            case 'project': return 'Project';
+            case 'project': return 'Show';
             case 'assignee': return 'Assignee';
             case 'date':
               if (column.id === 'dueDate') return 'Due Date';
