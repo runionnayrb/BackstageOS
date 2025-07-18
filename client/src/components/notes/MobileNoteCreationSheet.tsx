@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,6 +93,37 @@ export function MobileNoteCreationSheet({ isOpen, onClose, projectId, folderId }
     }
   };
 
+  // Prevent viewport movement on iOS when focusing inputs
+  useEffect(() => {
+    if (isOpen) {
+      // Store original viewport meta tag
+      const viewport = document.querySelector('meta[name="viewport"]');
+      const originalContent = viewport?.getAttribute('content') || '';
+      
+      // Set viewport to prevent zoom and movement
+      if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+      }
+      
+      // Prevent body scroll
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = '0';
+      
+      return () => {
+        // Restore original settings
+        if (viewport) {
+          viewport.setAttribute('content', originalContent);
+        }
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.width = '';
+        document.body.style.top = '';
+      };
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return (
@@ -144,6 +175,11 @@ export function MobileNoteCreationSheet({ isOpen, onClose, projectId, folderId }
             onChange={(e) => setTitle(e.target.value)}
             className="mobile-note-input border-0 shadow-none text-xl font-medium placeholder:text-gray-400 px-0 focus-visible:ring-0"
             autoFocus
+            onFocus={(e) => {
+              // Prevent iOS viewport jump
+              e.preventDefault();
+              e.target.scrollIntoView = () => {};
+            }}
           />
         </div>
 
@@ -154,6 +190,11 @@ export function MobileNoteCreationSheet({ isOpen, onClose, projectId, folderId }
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className="mobile-note-input border-0 shadow-none text-base resize-none min-h-[400px] placeholder:text-gray-400 px-0 focus-visible:ring-0"
+            onFocus={(e) => {
+              // Prevent iOS viewport jump
+              e.preventDefault();
+              e.target.scrollIntoView = () => {};
+            }}
           />
         </div>
       </div>
