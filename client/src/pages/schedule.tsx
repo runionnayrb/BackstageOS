@@ -222,16 +222,16 @@ The Production Team`
       });
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Test Email Sent",
-        description: `A test email has been sent to ${testEmailAddress.trim() || 'your account email'}.`,
+        description: `Test email sent successfully to ${data.sentTo || testEmailAddress || user?.email} with sender name "${data.senderName}".`,
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error Sending Test Email",
-        description: error.message || "There was an error sending the test email.",
+        title: "Error",
+        description: error.message || "Failed to send test email. Please try again.",
         variant: "destructive",
       });
     },
