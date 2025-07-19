@@ -472,7 +472,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
             <DialogTrigger asChild>
               <Button className="gap-2" variant="outline">
                 <Calendar className="h-4 w-4" />
-                Create Event Type Share
+                Share
               </Button>
             </DialogTrigger>
             <DialogContent>
