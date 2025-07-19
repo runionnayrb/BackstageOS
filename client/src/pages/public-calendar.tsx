@@ -69,6 +69,55 @@ export default function PublicCalendar() {
     fetchCalendarData();
   }, [toast]);
 
+  // Group events by date
+  const eventsByDate = calendarData?.events ? 
+    calendarData.events.reduce((acc, event) => {
+      const dateKey = event.date;
+      if (!acc[dateKey]) {
+        acc[dateKey] = [];
+      }
+      acc[dateKey].push(event);
+      return acc;
+    }, {} as Record<string, typeof calendarData.events>) : {};
+
+  // Sort events within each date by time
+  Object.values(eventsByDate).forEach(dayEvents => {
+    dayEvents.sort((a, b) => {
+      const timeA = a.startTime || '00:00:00';
+      const timeB = b.startTime || '00:00:00';
+      return timeA.localeCompare(timeB);
+    });
+  });
+
+  const formatDate = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric', 
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const formatTime = (timeString: string) => {
+    try {
+      const [hours, minutes] = timeString.split(':');
+      const date = new Date();
+      date.setHours(parseInt(hours), parseInt(minutes));
+      return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      });
+    } catch {
+      return timeString;
+    }
+  };
+
   const generateGoogleCalendarLink = () => {
     if (!calendarData?.events || calendarData.events.length === 0) return '';
 
@@ -78,14 +127,14 @@ export default function PublicCalendar() {
       const startDateTime = new Date(`${firstEvent.date}T${firstEvent.startTime}`);
       const endDateTime = new Date(`${firstEvent.date}T${firstEvent.endTime}`);
       
-      const formatDate = (date: Date) => {
+      const formatDateForGoogle = (date: Date) => {
         return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
       };
 
       const params = new URLSearchParams({
         action: 'TEMPLATE',
         text: firstEvent.title,
-        dates: `${formatDate(startDateTime)}/${formatDate(endDateTime)}`,
+        dates: `${formatDateForGoogle(startDateTime)}/${formatDateForGoogle(endDateTime)}`,
         details: firstEvent.description || '',
         location: firstEvent.location || '',
         sprop: 'name:BackstageOS'
@@ -269,54 +318,72 @@ export default function PublicCalendar() {
               Your personal schedule for {calendarData.project.name}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {calendarData.events?.length ? (
-              <div className="space-y-4">
-                {calendarData.events
-                  .sort((a, b) => new Date(`${a.date}T${a.startTime}`).getTime() - new Date(`${b.date}T${b.startTime}`).getTime())
-                  .map((event) => (
-                    <div key={event.id} className="border rounded-lg p-4 bg-white">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                        <h3 className="font-semibold text-lg">{event.title}</h3>
-                        <Badge variant="outline" className="self-start sm:self-center">
-                          {event.eventType}
-                        </Badge>
-                      </div>
-                      
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          <span>
-                            {new Date(`${event.date}T${event.startTime}`).toLocaleString()} - {new Date(`${event.date}T${event.endTime}`).toLocaleString()}
-                          </span>
-                        </div>
-                        
-                        {event.location && (
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4" />
-                            <span>{event.location}</span>
-                          </div>
-                        )}
-                        
-                        {event.description && (
-                          <div className="mt-2">
-                            <p className="font-medium">Description:</p>
-                            <p className="text-gray-700">{event.description}</p>
-                          </div>
-                        )}
-                        
-                        {event.notes && (
-                          <div className="mt-2">
-                            <p className="font-medium">Notes:</p>
-                            <p className="text-gray-700">{event.notes}</p>
-                          </div>
-                        )}
-                      </div>
+              <div>
+                {Object.entries(eventsByDate).map(([date, dayEvents], dateIndex) => (
+                  <div key={date} className={dateIndex > 0 ? 'border-t' : ''}>
+                    {/* Date Header */}
+                    <div className="px-6 py-4 bg-gray-50 border-b">
+                      <h3 className="text-lg font-semibold text-gray-900">{formatDate(date)}</h3>
+                      <p className="text-sm text-gray-600">
+                        {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}
+                      </p>
                     </div>
-                  ))}
+                    
+                    {/* Events for this date */}
+                    <div className="divide-y">
+                      {dayEvents.map((event) => (
+                        <div key={event.id} className="p-6 hover:bg-gray-50 transition-colors">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-start gap-3">
+                              <div className="text-sm text-gray-600 min-w-[80px] pt-1">
+                                <span className="font-medium">
+                                  {formatTime(event.startTime)}
+                                </span>
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-gray-900 mb-1">{event.title}</h4>
+                                <div className="flex items-center gap-4 text-sm text-gray-600">
+                                  {event.endTime && (
+                                    <span className="flex items-center gap-1">
+                                      <Clock className="h-4 w-4" />
+                                      Until {formatTime(event.endTime)}
+                                    </span>
+                                  )}
+                                  {event.location && (
+                                    <span className="flex items-center gap-1">
+                                      <MapPin className="h-4 w-4" />
+                                      {event.location}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <Badge variant="outline" className="flex-shrink-0">
+                              {event.eventType}
+                            </Badge>
+                          </div>
+
+                          {event.description && (
+                            <div className="ml-[92px]">
+                              <p className="text-gray-700 text-sm">{event.description}</p>
+                            </div>
+                          )}
+
+                          {event.notes && (
+                            <div className="ml-[92px] mt-2">
+                              <p className="text-gray-600 text-sm italic">{event.notes}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 px-6">
                 <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                 <p>No events scheduled at this time.</p>
               </div>
