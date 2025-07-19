@@ -9821,11 +9821,31 @@ Respond with valid JSON only.`;
       // Get current schedule events to create snapshot
       const scheduleEvents = await storage.getScheduleEventsByProjectId(projectId);
       
+      // Calculate version number based on weekly versioning logic
+      const currentDate = new Date();
+      const startOfWeek = new Date(currentDate);
+      startOfWeek.setDate(currentDate.getDate() - currentDate.getDay()); // Sunday
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6); // Saturday
+      endOfWeek.setHours(23, 59, 59, 999);
+      
+      // Get all versions from this week
+      const allVersions = await storage.getScheduleVersionsByProjectId(projectId);
+      const versionsThisWeek = allVersions.filter(v => {
+        const versionDate = new Date(v.createdAt);
+        return versionDate >= startOfWeek && versionDate <= endOfWeek;
+      });
+      
+      // Determine version number: first version in a week should be version 1
+      const newVersionNumber = versionsThisWeek.length === 0 ? 1 : versionsThisWeek.length + 1;
+      
       const versionData = {
         projectId,
-        version: req.body.version,
+        version: newVersionNumber.toString(),
         versionType: req.body.versionType,
-        title: req.body.title,
+        title: req.body.title || `${req.body.versionType === 'major' ? 'Major' : 'Minor'} Version ${newVersionNumber}`,
         description: req.body.description || null,
         scheduleData: {
           events: scheduleEvents,

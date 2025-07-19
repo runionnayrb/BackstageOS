@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText } from "lucide-react";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import MobileWeeklyScheduleView from "@/components/mobile-weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
@@ -41,6 +42,8 @@ export default function Schedule() {
   const [showVersionControl, setShowVersionControl] = useState(false);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
+  const [selectedVersionType, setSelectedVersionType] = useState<'major' | 'minor'>('major');
+  const [showPublishVersionConfirm, setShowPublishVersionConfirm] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -146,6 +149,36 @@ export default function Schedule() {
       }
     },
   });
+
+  // Publish schedule version mutation
+  const publishVersionMutation = useMutation({
+    mutationFn: ({ versionType }: { versionType: 'major' | 'minor' }) => {
+      return apiRequest('POST', `/api/projects/${projectId}/schedule-versions`, {
+        versionType
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-versions`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/personal-schedules`] });
+      setShowPublishVersionConfirm(false);
+      toast({
+        title: "Schedule published successfully",
+        description: `Your ${selectedVersionType} version has been published and shared with team members.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error publishing schedule",
+        description: error.message || "Failed to publish schedule version. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle publish confirmation
+  const handlePublishConfirm = () => {
+    publishVersionMutation.mutate({ versionType: selectedVersionType });
+  };
 
   if (!project) {
     return (
@@ -334,15 +367,37 @@ export default function Schedule() {
               <button onClick={goToNext} className="p-1 hover:bg-gray-100 rounded-r transition-colors">
                 <ChevronRight className="h-4 w-4" />
               </button>
-              <Button
-                onClick={() => setShowVersionControl(true)}
-                variant="outline"
-                size="sm"
-                className="gap-1 text-xs px-2 py-1 h-auto ml-2"
-              >
-                <History className="h-3 w-3" />
-                Versions
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1 text-xs px-2 py-1 h-auto ml-2"
+                  >
+                    <FileText className="h-3 w-3" />
+                    Publish
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelectedVersionType('major');
+                      setShowPublishVersionConfirm(true);
+                    }}
+                  >
+                    Major Version
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelectedVersionType('minor');
+                      setShowPublishVersionConfirm(true);
+                    }}
+                  >
+                    Minor Version
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               <button 
                 onClick={() => setCreateEventDialog(true)} 
                 className="p-1 hover:bg-gray-100 rounded ml-2 transition-colors"
@@ -816,6 +871,28 @@ export default function Schedule() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Publish Version Confirmation Dialog */}
+      <AlertDialog open={showPublishVersionConfirm} onOpenChange={setShowPublishVersionConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Publish {selectedVersionType === 'major' ? 'Major' : 'Minor'} Version?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will create a new {selectedVersionType} version of your schedule and send it to all team members with active calendar subscriptions. 
+              {selectedVersionType === 'major' ? ' Major versions typically indicate significant schedule changes.' : ' Minor versions typically indicate small adjustments or corrections.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handlePublishConfirm}
+              disabled={publishVersionMutation.isPending}
+            >
+              {publishVersionMutation.isPending ? 'Publishing...' : `Publish ${selectedVersionType === 'major' ? 'Major' : 'Minor'} Version`}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
