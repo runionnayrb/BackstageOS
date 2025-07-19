@@ -1978,15 +1978,15 @@ The Production Team`
                     <p className="text-xs text-gray-500">This name will appear as the sender in recipients' inboxes</p>
                   </div>
 
-                  {/* Account Type Selection */}
+                  {/* Reply-To Selection */}
                   <div className="space-y-2">
-                    <Label htmlFor="accountType">Send From</Label>
+                    <Label htmlFor="replyToType">Reply-To</Label>
                     <Select
                       value={(() => {
                         const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                           ? safeJsonParse((settings as any).scheduleSettings, {}) 
                           : ((settings as any)?.scheduleSettings || {});
-                        return scheduleSettings?.emailSender?.accountType || 'show_team';
+                        return scheduleSettings?.emailSender?.replyToType || 'personal';
                       })()}
                       onValueChange={(value) => {
                         const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
@@ -1996,7 +1996,7 @@ The Production Team`
                         let replyToEmail;
                         if (value === 'personal') {
                           replyToEmail = user?.email;
-                        } else if (value === 'show_team') {
+                        } else if (value === 'team') {
                           replyToEmail = 'schedules@backstageos.com';
                         } else {
                           // For external, keep existing reply-to or clear it
@@ -2007,74 +2007,36 @@ The Production Team`
                           ...scheduleSettings,
                           emailSender: {
                             ...scheduleSettings?.emailSender,
-                            accountType: value,
-                            replyToEmail: replyToEmail,
-                            // Clear external email when switching away from external
-                            ...(value !== 'external' && { externalEmail: undefined })
+                            replyToType: value,
+                            replyToEmail: replyToEmail
                           }
                         });
                       }}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select account type" />
+                        <SelectValue placeholder="Select reply-to address" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="show_team">Show Team Account (schedules@backstageos.com)</SelectItem>
-                        <SelectItem value="personal">Personal BackstageOS Account ({user?.email})</SelectItem>
-                        <SelectItem value="external">External Email Account</SelectItem>
+                        <SelectItem value="personal">Personal Email ({user?.email})</SelectItem>
+                        <SelectItem value="team">Team Email (schedules@backstageos.com)</SelectItem>
+                        <SelectItem value="external">Custom Email Address</SelectItem>
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-gray-500">Choose which email address to send from</p>
+                    <p className="text-xs text-gray-500">Where replies from team members will be sent</p>
                   </div>
                 </div>
 
-                {/* External Email Configuration - Show when external is selected */}
+                {/* Custom Reply-To Email - Show when external is selected */}
                 {(() => {
                   const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                     ? safeJsonParse((settings as any).scheduleSettings, {}) 
                     : ((settings as any)?.scheduleSettings || {});
-                  return scheduleSettings?.emailSender?.accountType === 'external';
+                  return scheduleSettings?.emailSender?.replyToType === 'external';
                 })() && (
                   <div className="space-y-2">
-                    <Label htmlFor="externalEmail">External Email Address</Label>
+                    <Label htmlFor="customReplyToEmail">Custom Reply-To Email</Label>
                     <Input
-                      id="externalEmail"
-                      type="email"
-                      placeholder="your-email@example.com"
-                      value={(() => {
-                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                          : ((settings as any)?.scheduleSettings || {});
-                        return scheduleSettings?.emailSender?.externalEmail || '';
-                      })()}
-                      onChange={(e) => {
-                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                          : ((settings as any)?.scheduleSettings || {});
-                        handleSettingsUpdate("scheduleSettings", {
-                          ...scheduleSettings,
-                          emailSender: {
-                            ...scheduleSettings?.emailSender,
-                            externalEmail: e.target.value
-                          }
-                        });
-                      }}
-                    />
-                    <p className="text-xs text-gray-500">Enter the email address you want to send from</p>
-                  </div>
-                )}
-
-                {/* Reply-To Configuration - Only show for external email */}
-                {(() => {
-                  const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                    ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                    : ((settings as any)?.scheduleSettings || {});
-                  return scheduleSettings?.emailSender?.accountType === 'external';
-                })() && (
-                  <div className="space-y-2">
-                    <Label htmlFor="replyToEmail">Reply-To Email</Label>
-                    <Input
-                      id="replyToEmail"
+                      id="customReplyToEmail"
                       type="email"
                       placeholder="stage.manager@example.com"
                       value={(() => {
@@ -2101,12 +2063,6 @@ The Production Team`
                     </p>
                   </div>
                 )}
-
-                <div className="p-3 bg-amber-50/50 rounded-lg">
-                  <p className="text-sm text-amber-700">
-                    <strong>Important:</strong> Configure the Reply-To email to ensure all responses from team members about schedule changes reach the stage management team. This prevents lost communication.
-                  </p>
-                </div>
               </div>
 
               {/* Email Template Section */}
