@@ -126,6 +126,62 @@ function generateICSSubscriptionContent(events: any[], project: any, contact: an
   return icsContent.join('\r\n');
 }
 
+// Helper function to generate ICS content for personal schedule subscriptions
+function generatePersonalScheduleICSSubscriptionContent(events: any[], project: any, contact: any, version: any, hostname: string): string {
+  const formatDate = (date: string, time?: string) => {
+    const d = new Date(date);
+    if (time) {
+      const [hours, minutes] = time.split(':');
+      d.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    }
+    return d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  };
+
+  const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const calendarName = `${contact.firstName} ${contact.lastName} - ${project.name}`;
+  
+  let icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//BackstageOS//Personal Schedule//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:${calendarName}
+X-WR-CALDESC:Personal schedule for ${contact.firstName} ${contact.lastName} in ${project.name} (Version ${version.version})
+X-WR-TIMEZONE:America/New_York
+X-PUBLISHED-TTL:PT1H
+REFRESH-INTERVAL:PT1H
+X-ORIGINAL-URL:https://${hostname}/api/schedule/${contact.id}/subscribe.ics
+`;
+
+  events.forEach((event: any) => {
+    const eventStart = event.isAllDay ? formatDate(event.date) : formatDate(event.date, event.startTime);
+    const eventEnd = event.isAllDay ? formatDate(event.date) : formatDate(event.date, event.endTime);
+    
+    // Generate a unique UID for each event
+    const uid = `personal-schedule-${event.id}-${project.id}@backstageos.com`;
+    
+    icsContent += `BEGIN:VEVENT
+UID:${uid}
+DTSTAMP:${now}
+DTSTART${event.isAllDay ? ';VALUE=DATE:' + eventStart.split('T')[0].replace(/\D/g, '') : ':' + eventStart}
+DTEND${event.isAllDay ? ';VALUE=DATE:' + eventEnd.split('T')[0].replace(/\D/g, '') : ':' + eventEnd}
+SUMMARY:${event.title.replace(/[,\n\r]/g, '\\$&')}
+DESCRIPTION:${(event.description || '').replace(/[,\n\r]/g, '\\$&')}${event.notes ? '\\n\\nNotes: ' + event.notes.replace(/[,\n\r]/g, '\\$&') : ''}
+LOCATION:${(event.location || '').replace(/[,\n\r]/g, '\\$&')}
+STATUS:CONFIRMED
+CATEGORIES:${event.type.replace(/[,\n\r]/g, '\\$&')}
+CLASS:PUBLIC
+CREATED:${now}
+LAST-MODIFIED:${now}
+SEQUENCE:0
+END:VEVENT
+`;
+  });
+
+  icsContent += 'END:VCALENDAR';
+  return icsContent;
+}
+
 // Helper function to generate ICS content for event type subscriptions
 function generateEventTypeICSSubscriptionContent(events: any[], project: any, share: any, hostname: string): string {
   const formatDate = (date: string, time?: string) => {
@@ -9993,6 +10049,66 @@ Respond with valid JSON only.`;
     } catch (error) {
       console.error("Error fetching personal schedule:", error);
       res.status(500).json({ message: "Failed to fetch personal schedule" });
+    }
+  });
+
+  // Personal Schedule ICS Subscription (no auth required) - for calendar apps
+  app.get('/api/schedule/:accessToken/subscribe.ics', async (req: any, res) => {
+    try {
+      const accessToken = req.params.accessToken;
+      
+      // Find personal schedule by access token
+      const personalSchedule = await storage.getPersonalScheduleByToken(accessToken);
+      
+      if (!personalSchedule) {
+        return res.status(404).send('Personal schedule not found or access token expired');
+      }
+
+      // Check if token is expired
+      if (personalSchedule.expiresAt && new Date() > new Date(personalSchedule.expiresAt)) {
+        return res.status(410).send('Access token has expired');
+      }
+
+      if (!personalSchedule.isActive) {
+        return res.status(403).send('Personal schedule access has been deactivated');
+      }
+
+      // Get project details
+      const project = await storage.getProjectById(personalSchedule.projectId);
+      if (!project) {
+        return res.status(404).send('Project not found');
+      }
+
+      // Get contact details
+      const contact = await storage.getContactById(personalSchedule.contactId);
+      if (!contact) {
+        return res.status(404).send('Contact not found');
+      }
+
+      // Get schedule version
+      const version = await storage.getScheduleVersionById(personalSchedule.versionId);
+      if (!version) {
+        return res.status(404).send('Schedule version not found');
+      }
+
+      // Get events that involve this contact from the version snapshot
+      const allEvents = version.scheduleData?.events || [];
+      const contactEvents = allEvents.filter((event: any) => 
+        event.participants && event.participants.some((p: any) => p.contactId === contact.id)
+      );
+
+      // Generate ICS file content with calendar subscription headers
+      const icsContent = generatePersonalScheduleICSSubscriptionContent(contactEvents, project, contact, version, req.get('host'));
+
+      // Set headers for dynamic calendar subscription
+      res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+      res.setHeader('Content-Disposition', 'inline');
+      res.setHeader('Cache-Control', 'public, max-age=3600'); // Cache for 1 hour
+      res.setHeader('X-Published-TTL', 'PT1H'); // Refresh every hour
+      res.send(icsContent);
+    } catch (error) {
+      console.error("Error generating personal schedule subscription ICS file:", error);
+      res.status(500).send('Failed to generate calendar subscription');
     }
   });
 

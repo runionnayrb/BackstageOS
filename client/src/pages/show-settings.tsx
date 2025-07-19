@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { PublicCalendarShare } from "@/components/public-calendar-share";
+import { PersonalScheduleShare } from "@/components/personal-schedule-share";
 import {
   Dialog,
   DialogContent,
@@ -1962,10 +1962,10 @@ export default function ShowSettings() {
           </Card>
 
 
-          {/* Public Calendar Sharing */}
+          {/* Personal Schedule Sharing */}
           <Card className="mt-6 border-0 shadow-none">
             <CardContent className="pt-6">
-              <PublicCalendarShare projectId={parseInt(params.id)} />
+              <PersonalScheduleShare projectId={parseInt(params.id)} />
             </CardContent>
           </Card>
 

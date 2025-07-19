@@ -54,7 +54,7 @@ interface PublicCalendarShareProps {
   projectId: number;
 }
 
-export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
+export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateEventTypeDialogOpen, setIsCreateEventTypeDialogOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<string>('');
@@ -297,11 +297,11 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
     const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact));
     if (!share) return;
     
-    const link = `${window.location.origin}/public-calendar/${share.token}`;
+    const link = `${window.location.origin}/personal-schedule/${share.token}`;
     navigator.clipboard.writeText(link);
     toast({
       title: "Link Copied",
-      description: "The public calendar link has been copied to your clipboard."
+      description: "The personal schedule link has been copied to your clipboard."
     });
   };
 
@@ -319,14 +319,14 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
     const contact = getContactById(parseInt(selectedShareContact));
     if (!share || !contact) return;
     
-    const link = `${window.location.origin}/api/public-calendar/${share.token}/subscribe.ics`;
+    const link = `${window.location.origin}/api/schedule/${share.token}/subscribe.ics`;
     const anchor = document.createElement('a');
     anchor.href = link;
-    anchor.download = `calendar-${contact.firstName}-${contact.lastName}.ics`;
+    anchor.download = `personal-schedule-${contact.firstName}-${contact.lastName}.ics`;
     anchor.click();
     toast({
-      title: "Dynamic Calendar Downloaded",
-      description: "The auto-updating calendar file has been downloaded. Import this into Google Calendar or Apple Calendar for automatic updates."
+      title: "Personal Schedule Downloaded",
+      description: "The auto-updating personal schedule file has been downloaded. Import this into Google Calendar or Apple Calendar for automatic updates."
     });
   };
 
@@ -343,11 +343,11 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
     const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact));
     if (!share) return;
     
-    const subscriptionLink = `${window.location.origin}/api/public-calendar/${share.token}/subscribe.ics`;
+    const subscriptionLink = `${window.location.origin}/api/schedule/${share.token}/subscribe.ics`;
     navigator.clipboard.writeText(subscriptionLink);
     toast({
       title: "Subscription Link Copied",
-      description: "The dynamic calendar subscription link has been copied. Add this to Google Calendar or Apple Calendar for automatic updates."
+      description: "The personal schedule subscription link has been copied. Add this to Google Calendar or Apple Calendar for automatic updates."
     });
   };
 
@@ -465,8 +465,8 @@ export function PublicCalendarShare({ projectId }: PublicCalendarShareProps) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold">Schedule Sharing</h3>
-            <p className="text-sm text-muted-foreground">Publicly share schedules with external calendar applications that automatically update when published</p>
+            <h3 className="text-lg font-semibold">Personal Schedule Sharing</h3>
+            <p className="text-sm text-muted-foreground">Share individual personal schedules with external calendar applications that automatically update when published</p>
           </div>
           <Dialog open={isCreateEventTypeDialogOpen} onOpenChange={setIsCreateEventTypeDialogOpen}>
             <DialogTrigger asChild>
