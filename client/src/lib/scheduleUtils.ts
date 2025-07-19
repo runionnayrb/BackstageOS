@@ -28,6 +28,11 @@ export function filterEventsBySettings(events: any[], scheduleSettings: any, eve
   
   // Filter events based on enabled types
   return events.filter((event: any) => {
+    // Always include important date events regardless of filtering
+    if (event.type === 'important_date') {
+      return true;
+    }
+    
     // Normalize event type for comparison (handle underscore vs space inconsistencies)
     const normalizedEventType = event.type.replace(/_/g, ' ').toLowerCase();
     

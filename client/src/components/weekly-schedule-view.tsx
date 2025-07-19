@@ -199,11 +199,17 @@ export default function WeeklyScheduleView({
     let eventsToFilter = events;
     
     // Apply event type filtering based on user selections
-    // If no event types are selected at all, show no events
+    // Always include important date events regardless of filtering
+    // If no event types are selected at all, show only important dates
     if (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
-      eventsToFilter = [];
+      eventsToFilter = eventsToFilter.filter(event => event.type === 'important_date');
     } else {
       eventsToFilter = eventsToFilter.filter(event => {
+        // Always include important date events
+        if (event.type === 'important_date') {
+          return true;
+        }
+        
         // Normalize event type for comparison
         const normalizedEventType = event.type.replace(/_/g, ' ').toLowerCase();
         
