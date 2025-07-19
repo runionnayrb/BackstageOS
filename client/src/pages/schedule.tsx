@@ -4,7 +4,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText, User } from "lucide-react";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
@@ -41,6 +45,7 @@ export default function Schedule() {
   }>({});
   const [showVersionControl, setShowVersionControl] = useState(false);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const [showScheduleSettings, setShowScheduleSettings] = useState(false);
   const [editingEvent, setEditingEvent] = useState<any>(null);
   const [selectedVersionType, setSelectedVersionType] = useState<'major' | 'minor'>('major');
   const [showPublishVersionConfirm, setShowPublishVersionConfirm] = useState(false);
@@ -208,6 +213,58 @@ export default function Schedule() {
     publishVersionMutation.mutate({ versionType: selectedVersionType });
   };
 
+  // Safe JSON parse helper
+  const safeJsonParse = (jsonString: any, defaultValue: any = {}) => {
+    if (typeof jsonString !== 'string') return jsonString || defaultValue;
+    try {
+      return JSON.parse(jsonString);
+    } catch {
+      return defaultValue;
+    }
+  };
+
+  // Settings update mutation
+  const updateSettingsMutation = useMutation({
+    mutationFn: ({ field, value }: { field: string; value: any }) => {
+      return apiRequest('PATCH', `/api/projects/${projectId}/settings`, {
+        [field]: value
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
+      toast({
+        title: "Settings updated",
+        description: "Your schedule settings have been saved.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error updating settings",
+        description: error.message || "Failed to update settings. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle settings update
+  const handleSettingsUpdate = (field: string, value: any) => {
+    if (field === "scheduleSettings") {
+      const currentScheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+        ? safeJsonParse((settings as any).scheduleSettings, {})
+        : ((settings as any)?.scheduleSettings || {});
+      
+      const newSettings = {
+        ...currentScheduleSettings,
+        ...value
+      };
+      
+      updateSettingsMutation.mutate({ 
+        field: "scheduleSettings", 
+        value: newSettings 
+      });
+    }
+  };
+
   if (!project) {
     return (
       <div className="min-h-screen bg-background">
@@ -308,11 +365,11 @@ export default function Schedule() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowAdvancedSettings(true)}
+              onClick={() => setShowScheduleSettings(true)}
               className="text-xs px-2 py-1 h-auto"
             >
               <Settings className="h-3 w-3 mr-1" />
-              Advanced
+              Settings
             </Button>
           </div>
         </div>
@@ -979,6 +1036,246 @@ export default function Schedule() {
               projectId={parseInt(projectId)}
               projectName={project?.name || 'Project'}
             />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Settings Modal */}
+      <Dialog open={showScheduleSettings} onOpenChange={setShowScheduleSettings}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Schedule Settings</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Schedule Settings Card */}
+            <Card className="border-0 shadow-none">
+              <CardHeader>
+                <CardTitle>Schedule Settings</CardTitle>
+                <CardDescription>
+                  Configure timezone and scheduling preferences.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="timeZone">Time Zone</Label>
+                    <Select
+                      value={(() => {
+                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                          : ((settings as any)?.scheduleSettings || {});
+                        return scheduleSettings?.timeZone || "America/New_York";
+                      })()}
+                      onValueChange={(value) =>
+                        handleSettingsUpdate("scheduleSettings", { timeZone: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="America/New_York">Eastern Time</SelectItem>
+                        <SelectItem value="America/Chicago">Central Time</SelectItem>
+                        <SelectItem value="America/Denver">Mountain Time</SelectItem>
+                        <SelectItem value="America/Los_Angeles">Pacific Time</SelectItem>
+                        <SelectItem value="Europe/London">London</SelectItem>
+                        <SelectItem value="Europe/Paris">Paris</SelectItem>
+                        <SelectItem value="Asia/Tokyo">Tokyo</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="weekStart">Week Start</Label>
+                    <Select
+                      value={(() => {
+                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                          : ((settings as any)?.scheduleSettings || {});
+                        return scheduleSettings?.weekStartDay || "sunday";
+                      })()}
+                      onValueChange={(value) =>
+                        handleSettingsUpdate("scheduleSettings", { weekStartDay: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sunday">Sunday</SelectItem>
+                        <SelectItem value="monday">Monday</SelectItem>
+                        <SelectItem value="tuesday">Tuesday</SelectItem>
+                        <SelectItem value="wednesday">Wednesday</SelectItem>
+                        <SelectItem value="thursday">Thursday</SelectItem>
+                        <SelectItem value="friday">Friday</SelectItem>
+                        <SelectItem value="saturday">Saturday</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="timeFormat">Time Format</Label>
+                    <Select
+                      value={(() => {
+                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                          : ((settings as any)?.scheduleSettings || {});
+                        return scheduleSettings?.timeFormat || "12";
+                      })()}
+                      onValueChange={(value) =>
+                        handleSettingsUpdate("scheduleSettings", { timeFormat: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="12">12-Hour (AM/PM)</SelectItem>
+                        <SelectItem value="24">24-Hour</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Allow Schedule Conflicts</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Permit overlapping events in the schedule
+                    </p>
+                  </div>
+                  <Switch
+                    checked={(() => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      return scheduleSettings?.allowConflicts || false;
+                    })()}
+                    onCheckedChange={(checked) =>
+                      handleSettingsUpdate("scheduleSettings", { allowConflicts: checked })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label>Event Reminders</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Send reminders before scheduled events
+                    </p>
+                  </div>
+                  <Switch
+                    checked={(settings as any)?.scheduleSettings?.reminderSettings?.enabled !== false}
+                    onCheckedChange={(checked) =>
+                      handleSettingsUpdate("scheduleSettings", {
+                        reminderSettings: {
+                          ...(settings as any)?.scheduleSettings?.reminderSettings,
+                          enabled: checked,
+                        },
+                      })
+                    }
+                  />
+                </div>
+
+                {(settings as any)?.scheduleSettings?.reminderSettings?.enabled !== false && (
+                  <div className="space-y-2">
+                    <Label htmlFor="reminderMinutes">Reminder Time (Minutes Before)</Label>
+                    <Input
+                      id="reminderMinutes"
+                      type="number"
+                      min="5"
+                      max="1440"
+                      value={(settings as any)?.scheduleSettings?.reminderSettings?.minutesBefore || 30}
+                      onChange={(e) =>
+                        handleSettingsUpdate("scheduleSettings", {
+                          reminderSettings: {
+                            ...(settings as any)?.scheduleSettings?.reminderSettings,
+                            minutesBefore: parseInt(e.target.value),
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Show Schedule Filtering */}
+            <Card className="border-0 shadow-none">
+              <CardHeader>
+                <CardTitle>Show Schedule Filtering</CardTitle>
+                <CardDescription>
+                  Configure which event types appear in your schedule views by default. Only enabled types will be shown in monthly, weekly, and daily views.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    {eventTypes.map((eventType: any) => (
+                      <div key={eventType.id} className="flex items-center justify-between p-3 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-4 h-4 rounded-full"
+                            style={{ backgroundColor: eventType.color }}
+                          />
+                          <div>
+                            <h4 className="font-medium">{eventType.name}</h4>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {eventType.isDefault && (
+                            <span className="text-xs text-blue-700 font-medium">
+                              System
+                            </span>
+                          )}
+                          <Switch
+                            checked={(() => {
+                              const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                                ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                                : ((settings as any)?.scheduleSettings || {});
+                              const enabledTypes = scheduleSettings?.enabledEventTypes || [];
+                              return enabledTypes.includes(eventType.id) || enabledTypes.includes(eventType.name);
+                            })()}
+                            onCheckedChange={(checked) => {
+                              const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                                ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                                : ((settings as any)?.scheduleSettings || {});
+                              let enabledTypes = scheduleSettings?.enabledEventTypes || [];
+                              
+                              if (checked) {
+                                // Add the event type (using name for system types, id for custom types)
+                                const typeIdentifier = eventType.isDefault ? eventType.name : eventType.id;
+                                if (!enabledTypes.includes(typeIdentifier)) {
+                                  enabledTypes = [...enabledTypes, typeIdentifier];
+                                }
+                              } else {
+                                // Remove the event type
+                                enabledTypes = enabledTypes.filter((type: any) => 
+                                  type !== eventType.id && type !== eventType.name
+                                );
+                              }
+                              
+                              handleSettingsUpdate("scheduleSettings", {
+                                ...scheduleSettings,
+                                enabledEventTypes: enabledTypes
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-blue-50/50 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                      <strong>Note:</strong> These settings control which event types appear in your schedule views. 
+                      You can still create all event types, but only enabled ones will be visible in the calendar.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </DialogContent>
       </Dialog>
