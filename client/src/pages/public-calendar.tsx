@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Download, ExternalLink, Clock, MapPin, User, Mail, Eye } from 'lucide-react';
+import { Calendar, Download, ExternalLink, Clock, MapPin, User, Mail, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -39,7 +39,15 @@ export default function PublicCalendar() {
   const [calendarData, setCalendarData] = useState<PublicCalendarData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedEvents, setExpandedEvents] = useState<Record<number, boolean>>({});
   const { toast } = useToast();
+
+  const toggleEventExpansion = (eventId: number) => {
+    setExpandedEvents(prev => ({
+      ...prev,
+      [eventId]: !prev[eventId]
+    }));
+  };
 
   useEffect(() => {
     const fetchCalendarData = async () => {
@@ -361,15 +369,38 @@ export default function PublicCalendar() {
                             </Badge>
                           </div>
 
+                          {/* View Details Link */}
                           {event.description && (
-                            <div className="ml-[92px]">
-                              <p className="text-gray-700 text-sm">{event.description}</p>
+                            <div className="ml-[92px] mb-3">
+                              <button
+                                onClick={() => toggleEventExpansion(event.id)}
+                                className="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1 transition-colors"
+                              >
+                                View details
+                                {expandedEvents[event.id] ? (
+                                  <ChevronUp className="h-3 w-3" />
+                                ) : (
+                                  <ChevronDown className="h-3 w-3" />
+                                )}
+                              </button>
                             </div>
                           )}
 
-                          {event.notes && (
-                            <div className="ml-[92px] mt-2">
-                              <p className="text-gray-600 text-sm italic">{event.notes}</p>
+                          {/* Expandable Details */}
+                          {event.description && expandedEvents[event.id] && (
+                            <div className="ml-[92px] border-t pt-3">
+                              <div className="space-y-2">
+                                <div>
+                                  <p className="text-sm font-medium text-gray-700 mb-1">Description</p>
+                                  <p className="text-gray-700 text-sm">{event.description}</p>
+                                </div>
+                                {event.notes && (
+                                  <div>
+                                    <p className="text-sm font-medium text-gray-700 mb-1">Notes</p>
+                                    <p className="text-gray-600 text-sm italic">{event.notes}</p>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
