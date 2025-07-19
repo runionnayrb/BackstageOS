@@ -281,7 +281,7 @@ export default function ShowSettings() {
       
       const start = input.selectionStart || 0;
       const end = input.selectionEnd || 0;
-      const currentValue = input.value;
+      const currentValue = input.value || '';
       const newValue = currentValue.substring(0, start) + displayText + currentValue.substring(end);
       
       setLocalEmailSubject(newValue);
@@ -292,21 +292,16 @@ export default function ShowSettings() {
         input.setSelectionRange(newCursorPos, newCursorPos);
       }, 0);
     } else if (field === 'body') {
-      const input = emailBodyRef.current;
-      if (!input) return;
+      // For rich text editor, we need to handle it differently
+      const currentContent = localEmailBody || (() => {
+        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+          ? safeJsonParse((settings as any).scheduleSettings, {}) 
+          : ((settings as any)?.scheduleSettings || {});
+        return scheduleSettings?.emailTemplate?.body || "";
+      })();
       
-      const start = input.selectionStart || 0;
-      const end = input.selectionEnd || 0;
-      const currentValue = input.value;
-      const newValue = currentValue.substring(0, start) + displayText + currentValue.substring(end);
-      
-      setLocalEmailBody(newValue);
-      
-      setTimeout(() => {
-        input.focus();
-        const newCursorPos = start + displayText.length;
-        input.setSelectionRange(newCursorPos, newCursorPos);
-      }, 0);
+      const newContent = currentContent + (currentContent ? ' ' : '') + displayText;
+      setLocalEmailBody(newContent);
     }
   }
 
