@@ -320,8 +320,8 @@ The Production Team`,
       return;
     }
 
-    // Use proper template variable syntax instead of display name
-    const displayText = `{{${variable}}}`;
+    // Use the variable key directly (already includes braces)
+    const displayText = variable;
     
     if (field === 'subject') {
       const input = emailSubjectRef.current;
