@@ -213,7 +213,10 @@ export default function Header() {
                 {/* Account Switcher */}
                 <div className="hidden lg:flex items-center space-x-2">
                   <Users className="h-4 w-4 text-gray-500" />
-                  <Select onValueChange={handleAccountSwitch}>
+                  <Select 
+                    value={switchStatus?.isViewingAs ? switchStatus?.viewingUser?.id?.toString() : defaultUserId} 
+                    onValueChange={handleAccountSwitch}
+                  >
                     <SelectTrigger className="w-40 h-8 text-xs">
                       <SelectValue placeholder={
                         switchStatus?.isViewingAs 
@@ -332,7 +335,10 @@ export default function Header() {
                     {/* Mobile Account Switcher */}
                     <div className="lg:hidden px-2 py-1">
                       <div className="text-xs text-gray-600 mb-1">Switch Account:</div>
-                      <Select onValueChange={handleAccountSwitch}>
+                      <Select 
+                        value={switchStatus?.isViewingAs ? switchStatus?.viewingUser?.id?.toString() : defaultUserId} 
+                        onValueChange={handleAccountSwitch}
+                      >
                         <SelectTrigger className="w-full h-7 text-xs">
                           <SelectValue placeholder={
                             switchStatus?.isViewingAs 
