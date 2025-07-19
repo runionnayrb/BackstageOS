@@ -52,6 +52,9 @@ interface EmailSidebarProps {
   hasPersonalAccount?: boolean;
   isAdmin?: boolean;
   onCreateSharedInbox?: () => void;
+  activeFolder: string;
+  onFolderChange: (folder: string) => void;
+  onSettings?: () => void;
 }
 
 export function EmailSidebar({
@@ -66,9 +69,11 @@ export function EmailSidebar({
   sharedInboxes = [],
   hasPersonalAccount = false,
   isAdmin = false,
-  onCreateSharedInbox = () => {}
+  onCreateSharedInbox = () => {},
+  activeFolder,
+  onFolderChange,
+  onSettings
 }: EmailSidebarProps) {
-  const [activeFolder, setActiveFolder] = useState("inbox");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const folders = [
@@ -274,7 +279,7 @@ export function EmailSidebar({
             return (
               <button
                 key={folder.id}
-                onClick={() => setActiveFolder(folder.id)}
+                onClick={() => onFolderChange(folder.id)}
                 className={cn(
                   "w-full flex items-center rounded-md transition-colors",
                   isCollapsed ? "justify-center p-3" : "px-3 py-2 text-sm",
@@ -310,6 +315,7 @@ export function EmailSidebar({
         {/* Settings Button */}
         <div className={cn("mt-6 pt-4 border-t border-gray-100", isCollapsed ? "px-2" : "px-4")}>
           <button 
+            onClick={onSettings}
             className={cn(
               "w-full flex items-center rounded-md hover:bg-gray-50 transition-colors text-gray-700",
               isCollapsed ? "justify-center p-3" : "px-3 py-2 text-sm"

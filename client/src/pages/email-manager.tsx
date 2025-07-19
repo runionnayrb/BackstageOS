@@ -621,12 +621,11 @@ export default function EmailManager() {
             accountStats={accountStats as EmailStats}
             activeFolder={activeFolder}
             onFolderChange={setActiveFolder}
-            onTheaterGroupEmail={() => setShowGroupManager(true)}
-            onTheaterTemplates={() => setShowTemplateManager(true)}
-            onSharedInboxes={() => {}}
+            onSettings={() => setShowMobileSettings(true)}
+            sharedInboxes={[]}
             hasPersonalAccount={hasPersonalAccount}
             isAdmin={user?.isAdmin || false}
-            user={user}
+            onCreateSharedInbox={() => {}}
           />
         </div>
 
