@@ -133,7 +133,7 @@ export function ChangeSummaryEditor({ content, onChange, placeholder = "Changes 
       <div className="relative">
         <EditorContent 
           editor={editor} 
-          className="prose prose-sm max-w-none [&_.ProseMirror]:min-h-[100px] [&_.ProseMirror]:outline-none [&_.ProseMirror]:p-3"
+          className="prose prose-sm max-w-none [&_.ProseMirror]:min-h-[100px] [&_.ProseMirror]:outline-none [&_.ProseMirror]:p-3 [&_span[style*='#2563eb']]:text-blue-600 [&_span[style*='#2563eb']]:font-medium"
         />
         
         {/* Placeholder when empty */}

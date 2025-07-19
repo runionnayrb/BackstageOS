@@ -1877,12 +1877,12 @@ export default function ShowSettings() {
                 <Input
                   ref={emailSubjectRef}
                   id="emailSubject"
-                  placeholder="Schedule Update - Show Name (Version Number)"
+                  placeholder="Schedule Update - <span style='color: #2563eb; font-weight: 500;'>Show Name</span> (<span style='color: #2563eb; font-weight: 500;'>Version Number</span>)"
                   value={(() => {
                     const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                       ? safeJsonParse((settings as any).scheduleSettings, {}) 
                       : ((settings as any)?.scheduleSettings || {});
-                    return scheduleSettings?.emailTemplate?.subject || "Schedule Update - Show Name (Version Number)";
+                    return scheduleSettings?.emailTemplate?.subject || "Schedule Update - <span style=\"color: #2563eb; font-weight: 500;\">Show Name</span> (<span style=\"color: #2563eb; font-weight: 500;\">Version Number</span>)";
                   })()}
                   onChange={(e) => {
                     const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
@@ -1918,17 +1918,17 @@ export default function ShowSettings() {
                   ref={emailBodyRef}
                   id="emailBody"
                   className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="Hi Contact Name,
+                  placeholder="Hi <span style='color: #2563eb; font-weight: 500;'>Contact Name</span>,
 
-The schedule for Show Name has been updated with version Version Number.
+The schedule for <span style='color: #2563eb; font-weight: 500;'>Show Name</span> has been updated with version <span style='color: #2563eb; font-weight: 500;'>Version Number</span>.
 
-Added Events
+<span style='color: #2563eb; font-weight: 500;'>Added Events</span>
 
-Changed Events
+<span style='color: #2563eb; font-weight: 500;'>Changed Events</span>
 
-Removed Events
+<span style='color: #2563eb; font-weight: 500;'>Removed Events</span>
 
-You can view your personal schedule here: Personal Schedule Link
+You can view your personal schedule here: <span style='color: #2563eb; font-weight: 500;'>Personal Schedule Link</span>
 
 Best regards,
 The Production Team"
@@ -1936,17 +1936,17 @@ The Production Team"
                     const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                       ? safeJsonParse((settings as any).scheduleSettings, {}) 
                       : ((settings as any)?.scheduleSettings || {});
-                    return scheduleSettings?.emailTemplate?.body || `Hi Contact Name,
+                    return scheduleSettings?.emailTemplate?.body || `Hi <span style="color: #2563eb; font-weight: 500;">Contact Name</span>,
 
-The schedule for Show Name has been updated with version Version Number.
+The schedule for <span style="color: #2563eb; font-weight: 500;">Show Name</span> has been updated with version <span style="color: #2563eb; font-weight: 500;">Version Number</span>.
 
-Added Events
+<span style="color: #2563eb; font-weight: 500;">Added Events</span>
 
-Changed Events
+<span style="color: #2563eb; font-weight: 500;">Changed Events</span>
 
-Removed Events
+<span style="color: #2563eb; font-weight: 500;">Removed Events</span>
 
-You can view your personal schedule here: Personal Schedule Link
+You can view your personal schedule here: <span style="color: #2563eb; font-weight: 500;">Personal Schedule Link</span>
 
 Best regards,
 The Production Team`;
