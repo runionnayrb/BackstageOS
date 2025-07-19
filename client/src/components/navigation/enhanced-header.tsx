@@ -45,13 +45,6 @@ export default function EnhancedHeader() {
   const [selectedProfileType, setSelectedProfileType] = useState<string>("freelance");
   const [defaultUserId, setDefaultUserId] = useState<string>("");
   
-  // Pull-to-reveal breadcrumb state
-  const [showBreadcrumbs, setShowBreadcrumbs] = useState(false);
-  const [isAtTop, setIsAtTop] = useState(true);
-  const [pullDistance, setPullDistance] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const startY = useRef(0);
-  const currentY = useRef(0);
   const headerRef = useRef<HTMLDivElement>(null);
 
   // Show name animation state
@@ -195,76 +188,7 @@ export default function EnhancedHeader() {
     previousShowId.current = currentShowId;
   }, [navContext.showId, showNameVisible, showNameAnimation]);
 
-  // Pull-to-reveal breadcrumb functionality
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      setIsAtTop(scrollTop === 0);
-      
-      // Hide breadcrumbs if user scrolls down
-      if (scrollTop > 0 && showBreadcrumbs) {
-        setShowBreadcrumbs(false);
-        setPullDistance(0);
-      }
-    };
 
-    const handleTouchStart = (e: TouchEvent) => {
-      if (!isAtTop) return;
-      
-      startY.current = e.touches[0].clientY;
-      setIsDragging(true);
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      if (!isDragging || !isAtTop) return;
-      
-      currentY.current = e.touches[0].clientY;
-      const distance = currentY.current - startY.current;
-      
-      // Only allow pulling down (positive distance)
-      if (distance > 0) {
-        setPullDistance(Math.min(distance, 100)); // Max 100px pull
-        
-        // Show breadcrumbs immediately when any pull down happens at top
-        if (distance > 5 && !showBreadcrumbs) {
-          setShowBreadcrumbs(true);
-          // Add haptic feedback if available
-          if ('vibrate' in navigator) {
-            navigator.vibrate(50);
-          }
-        }
-      }
-    };
-
-    const handleTouchEnd = () => {
-      if (!isDragging) return;
-      
-      setIsDragging(false);
-      
-      // If pull distance is less than 25px, hide breadcrumbs (very forgiving)
-      if (pullDistance < 25) {
-        setShowBreadcrumbs(false);
-      }
-      
-      setPullDistance(0);
-    };
-
-    // Add event listeners
-    window.addEventListener('scroll', handleScroll);
-    window.addEventListener('touchstart', handleTouchStart, { passive: false });
-    window.addEventListener('touchmove', handleTouchMove, { passive: false });
-    window.addEventListener('touchend', handleTouchEnd);
-
-    // Initial scroll check
-    handleScroll();
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchmove', handleTouchMove);
-      window.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, [isAtTop, showBreadcrumbs, pullDistance, isDragging]);
 
   // Fetch current switch status
   const { data: switchStatus } = useQuery<SwitchStatus>({
@@ -440,10 +364,10 @@ export default function EnhancedHeader() {
               </DropdownMenu>
             </div>
 
-            {/* Animated Show Name Indicator */}
+            {/* Animated Show Name Indicator with Breadcrumbs */}
             {showNameVisible && showData?.name && (
               <div 
-                className="flex items-center text-xl font-bold text-gray-900 ml-4"
+                className="flex items-center ml-4"
                 style={{
                   transform: showNameAnimation === 'enter' 
                     ? 'translateX(0px)' 
@@ -460,7 +384,21 @@ export default function EnhancedHeader() {
                   transition: 'all 0.5s ease-out',
                 }}
               >
-                <span className="truncate max-w-[300px]">{showData.name}</span>
+                <span className="text-xl font-bold text-gray-900 truncate max-w-[200px] md:max-w-[300px]">{showData.name}</span>
+                {/* Breadcrumbs - Desktop and Mobile */}
+                {breadcrumbs.length > 1 && (
+                  <div className="hidden sm:flex items-center ml-3">
+                    <span className="text-gray-400 mx-2">/</span>
+                    <BreadcrumbNavigation items={breadcrumbs.slice(1)} className="text-sm" />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Standalone Breadcrumbs when not in show context */}
+            {!showNameVisible && breadcrumbs.length > 0 && (
+              <div className="flex items-center ml-4">
+                <BreadcrumbNavigation items={breadcrumbs} className="text-sm" />
               </div>
             )}
 
@@ -555,30 +493,7 @@ export default function EnhancedHeader() {
         </div>
       </div>
 
-      {/* Pull-to-reveal Breadcrumb Navigation */}
-      {breadcrumbs.length > 0 && (
-        <div 
-          className="overflow-hidden bg-gray-50 border-t border-gray-100"
-          style={{
-            height: isDragging 
-              ? `${Math.min(pullDistance * 1.2, 64)}px` 
-              : showBreadcrumbs 
-                ? '64px' 
-                : '0px',
-            opacity: isDragging 
-              ? Math.min(pullDistance / 30, 1) 
-              : showBreadcrumbs 
-                ? 1 
-                : 0,
-            transform: isDragging ? `translateY(${pullDistance * 0.3}px)` : 'translateY(0)',
-            transition: isDragging ? 'none' : 'all 0.3s ease-out'
-          }}
-        >
-          <div className="px-4 sm:px-6 lg:px-8 py-2 h-full flex items-center">
-            <BreadcrumbNavigation items={breadcrumbs} />
-          </div>
-        </div>
-      )}
+
     </div>
   );
 }
