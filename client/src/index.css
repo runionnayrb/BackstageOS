@@ -71,7 +71,16 @@
 
 .ProseMirror p {
   margin: 0.75rem 0;
-  line-height: 1.6;
+  line-height: 1.2;
+}
+
+/* Email body editor specific styling */
+.email-body-editor .ProseMirror p {
+  line-height: 1.2;
+}
+
+.email-body-editor .ProseMirror {
+  line-height: 1.2;
 }
 
 .ProseMirror ul, .ProseMirror ol {

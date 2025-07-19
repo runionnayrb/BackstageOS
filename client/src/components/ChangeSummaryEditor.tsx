@@ -77,7 +77,7 @@ export function ChangeSummaryEditor({ content, onChange, placeholder = "Changes 
   }
 
   return (
-    <div className="relative border border-gray-200 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
+    <div className="relative border border-gray-200 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 email-body-editor">
       {/* Toolbar */}
       <div className="border-b border-gray-200 p-2 flex gap-1">
         <Button
