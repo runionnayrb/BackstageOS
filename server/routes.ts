@@ -10029,7 +10029,7 @@ The BackstageOS Team`;
       res.json({ 
         message: "Test email sent successfully",
         sentTo: recipientEmail,
-        senderName,
+        senderName: senderName,
         subject: testSubject 
       });
     } catch (error: any) {

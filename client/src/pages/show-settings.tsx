@@ -166,6 +166,7 @@ export default function ShowSettings() {
   const emailSubjectRef = useRef<HTMLInputElement>(null);
   const emailBodyRef = useRef<HTMLTextAreaElement>(null);
   const [localChangeSummary, setLocalChangeSummary] = useState('');
+  const [testEmailAddress, setTestEmailAddress] = useState('');
 
   const isFullTime = user?.profileType === "fulltime";
   const showLabel = isFullTime ? "Show" : "Project";
@@ -257,15 +258,15 @@ export default function ShowSettings() {
       const emailData = {
         subject: localEmailSubject || scheduleSettings?.emailTemplate?.subject || "Schedule Update - Test Show (Test Version)",
         body: localEmailBody || scheduleSettings?.emailTemplate?.body || "This is a test of your schedule email template with the dynamic sender name.",
-        testEmail: user?.email || ""
+        testEmail: testEmailAddress || user?.email || ""
       };
       
       return await apiRequest("POST", `/api/projects/${params.id}/send-test-email`, emailData);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast({
         title: "Test Email Sent",
-        description: "A test email has been sent to your email address with the current template.",
+        description: `Test email sent successfully to ${data.sentTo || testEmailAddress || user?.email} with sender name "${data.senderName}".`,
       });
     },
     onError: (error: any) => {
@@ -2005,7 +2006,19 @@ The Production Team`}
                 <p className="text-sm text-blue-700 font-medium">Click the variable buttons above to insert them at your cursor position, or type them manually in the template fields.</p>
               </div>
               
-              <div className="flex justify-end gap-3 pt-4">
+              <div className="space-y-3 pt-4">
+                <div>
+                  <Label htmlFor="testEmailAddress">Test Email Address (Optional)</Label>
+                  <Input
+                    id="testEmailAddress"
+                    type="email"
+                    placeholder={`Leave blank to send to ${user?.email || 'your email'}`}
+                    value={testEmailAddress}
+                    onChange={(e) => setTestEmailAddress(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex justify-end gap-3">
                 <Button
                   onClick={sendTestEmail}
                   variant="outline"
@@ -2019,6 +2032,7 @@ The Production Team`}
                 >
                   Save Email Template as Default
                 </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
