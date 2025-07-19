@@ -188,7 +188,7 @@ BackstageOS • Professional Stage Management
     contact: ContactNotificationData,
     personalScheduleUrl: string
   ): Promise<string> {
-    const contactName = contact.firstName ? `${contact.firstName} ${contact.lastName || ''}`.trim() : contact.email;
+    const contactName = contact.firstName || contact.email;
     const publishedBy = data.publishedBy.firstName 
       ? `${data.publishedBy.firstName} ${data.publishedBy.lastName || ''}`.trim()
       : data.publishedBy.email;

@@ -10022,7 +10022,7 @@ The Production Team`;
 
 
       // Create test data for variable substitution
-      const testContactName = req.user.firstName ? `${req.user.firstName} ${req.user.lastName || ''}`.trim() : req.user.email;
+      const testContactName = req.user.firstName || req.user.email;
       const testVersion = "Test v1.0";
       const testPublishDate = new Date().toLocaleDateString('en-US', {
         weekday: 'long',
