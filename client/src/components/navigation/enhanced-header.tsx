@@ -468,6 +468,19 @@ export default function EnhancedHeader() {
 
           {/* Right side - User menu and admin controls */}
           <div className="flex items-center gap-4">
+            {/* Show Settings Button - appears when in a show */}
+            {navContext.showId && showData?.name && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLocation(`/shows/${navContext.showId}/settings`)}
+                className="flex items-center gap-2"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">Show Settings</span>
+              </Button>
+            )}
+
             {/* Admin View As Controls */}
             {isAdmin(user) && switchStatus?.isViewingAs && (
               <div className="flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-800 rounded-md text-sm">
