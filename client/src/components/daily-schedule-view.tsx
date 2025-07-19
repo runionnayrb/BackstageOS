@@ -91,10 +91,11 @@ export default function DailyScheduleView({
   createEventDialog,
   setCreateEventDialog,
   viewMode,
-  setViewMode
+  setViewMode,
+  editingEvent,
+  setEditingEvent
 }: DailyScheduleViewProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [editingEvent, setEditingEvent] = useState<ScheduleEvent | null>(null);
   const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
 
   // Touch handling for swipe navigation

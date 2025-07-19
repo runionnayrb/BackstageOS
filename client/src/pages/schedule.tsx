@@ -613,6 +613,8 @@ export default function Schedule() {
             setCreateEventDialog={setCreateEventDialog}
             viewMode={viewMode}
             setViewMode={setViewMode}
+            editingEvent={editingEvent}
+            setEditingEvent={setEditingEvent}
           />
         )}
       </div>

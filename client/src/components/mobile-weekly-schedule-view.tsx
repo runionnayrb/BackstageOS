@@ -5,7 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, ChevronRight, Plus, Clock, Users, Calendar } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Clock, Users, Calendar, Edit, MapPin } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -100,6 +101,7 @@ export default function MobileWeeklyScheduleView({
   const queryClient = useQueryClient();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [openPopoverId, setOpenPopoverId] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<Date>(() => {
     // Start with current date, but align to start of week
     const date = currentDate || new Date();
@@ -289,6 +291,12 @@ export default function MobileWeeklyScheduleView({
       return `${displayHours}:${mins.toString().padStart(2, '0')} ${period}`;
     }
     return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+  };
+
+  const formatEventTime = (timeStr: string) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes;
+    return formatTime(totalMinutes);
   };
 
   const timeToMinutes = (timeString: string) => {
@@ -585,14 +593,56 @@ export default function MobileWeeklyScheduleView({
                         .map((event) => {
                           const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
                           return (
-                            <div
+                            <Popover 
                               key={event.id}
-                              className="text-white rounded px-2 py-1 text-xs mb-1 cursor-pointer hover:opacity-90 transition-opacity"
-                              style={{ backgroundColor: eventTypeColor }}
-                              onClick={() => onDateClick(day)}
+                              open={openPopoverId === `${event.id}-allday`}
+                              onOpenChange={(open) => setOpenPopoverId(open ? `${event.id}-allday` : null)}
                             >
-                              <div className="font-medium truncate">{event.title}</div>
-                            </div>
+                              <PopoverTrigger asChild>
+                                <div
+                                  className="text-white rounded px-2 py-1 text-xs mb-1 cursor-pointer hover:opacity-90 transition-opacity"
+                                  style={{ backgroundColor: eventTypeColor }}
+                                >
+                                  <div className="font-medium truncate">{event.title}</div>
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80" align="start">
+                                <div className="space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: eventTypeColor }}></div>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        onClick={() => {
+                                          setOpenPopoverId(null);
+                                          onEventEdit?.(event);
+                                        }}
+                                      >
+                                        <Edit className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-medium text-sm">{event.title}</h4>
+                                    <p className="text-xs text-gray-500 mt-1">All Day</p>
+                                  </div>
+                                  {event.location && (
+                                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                                      <MapPin className="h-3 w-3" />
+                                      <span>{event.location}</span>
+                                    </div>
+                                  )}
+                                  {event.description && (
+                                    <div className="text-xs text-gray-600">
+                                      <p className="font-medium mb-1">Description:</p>
+                                      <p>{event.description}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </PopoverContent>
+                            </Popover>
                           );
                         })}
                     </div>
@@ -633,47 +683,61 @@ export default function MobileWeeklyScheduleView({
                           const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
 
                           return (
-                            <div
+                            <Popover 
                               key={event.id}
-                              className="absolute left-1 right-1 text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                              style={{
-                                top: `${top}px`,
-                                height: `${height}px`,
-                                backgroundColor: eventTypeColor,
-                              }}
-                              onClick={() => onDateClick(day)}
-                              onTouchStart={(e) => {
-                                e.stopPropagation();
-                                const touchTimer = setTimeout(() => {
-                                  // Haptic feedback if available
-                                  if ('vibrate' in navigator) {
-                                    navigator.vibrate(50);
-                                  }
-                                  onEventEdit?.(event);
-                                }, 500);
-                                
-                                const currentTarget = e.currentTarget;
-                                const handleTouchEnd = () => {
-                                  clearTimeout(touchTimer);
-                                  if (currentTarget) {
-                                    currentTarget.removeEventListener('touchend', handleTouchEnd);
-                                    currentTarget.removeEventListener('touchmove', handleTouchEnd);
-                                  }
-                                };
-                                
-                                if (currentTarget) {
-                                  currentTarget.addEventListener('touchend', handleTouchEnd);
-                                  currentTarget.addEventListener('touchmove', handleTouchEnd);
-                                }
-                              }}
+                              open={openPopoverId === `${event.id}-timed`}
+                              onOpenChange={(open) => setOpenPopoverId(open ? `${event.id}-timed` : null)}
                             >
-                              <div className="font-medium truncate">{event.title}</div>
-                              {height > 40 && (
-                                <div className="text-xs opacity-90 truncate">
-                                  {formatTime(startMinutes)} - {formatTime(endMinutes)}
+                              <PopoverTrigger asChild>
+                                <div
+                                  className="absolute left-1 right-1 text-white rounded px-2 py-1 text-xs overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                                  style={{
+                                    top: `${top}px`,
+                                    height: `${height}px`,
+                                    backgroundColor: eventTypeColor,
+                                  }}
+                                >
+                                  <div className="font-medium truncate">{event.title}</div>
+                                  <div className="text-xs opacity-90">{formatEventTime(event.startTime)} - {formatEventTime(event.endTime)}</div>
                                 </div>
-                              )}
-                            </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80" align="start">
+                                <div className="space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: eventTypeColor }}></div>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-6 w-6 p-0"
+                                        onClick={() => {
+                                          setOpenPopoverId(null);
+                                          onEventEdit?.(event);
+                                        }}
+                                      >
+                                        <Edit className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <h4 className="font-medium text-sm">{event.title}</h4>
+                                    <p className="text-xs text-gray-500 mt-1">{formatEventTime(event.startTime)} - {formatEventTime(event.endTime)}</p>
+                                  </div>
+                                  {event.location && (
+                                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                                      <MapPin className="h-3 w-3" />
+                                      <span>{event.location}</span>
+                                    </div>
+                                  )}
+                                  {event.description && (
+                                    <div className="text-xs text-gray-600">
+                                      <p className="font-medium mb-1">Description:</p>
+                                      <p>{event.description}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </PopoverContent>
+                            </Popover>
                           );
                         })}
                     </div>
