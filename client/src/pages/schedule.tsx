@@ -1934,7 +1934,7 @@ The Production Team`}
 
       {/* Resend Schedule Dialog */}
       <Dialog open={showResendScheduleDialog} onOpenChange={setShowResendScheduleDialog}>
-        <DialogContent className="sm:max-w-lg h-[600px] flex flex-col">
+        <DialogContent className="sm:max-w-lg h-[600px] flex flex-col p-6">
           <DialogHeader>
             <DialogTitle>Resend Schedule</DialogTitle>
             <DialogDescription>
@@ -1959,7 +1959,7 @@ The Production Team`}
             </div>
 
             {/* Contact List organized by type */}
-            <div className="flex-1 space-y-4 overflow-y-auto">
+            <div className="flex-1 space-y-4 overflow-y-auto min-h-0 pr-2">
               {Object.keys(organizedContacts).length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
