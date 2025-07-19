@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
-import { isAdmin } from "@/lib/admin";
+import { isAdmin, isEffectiveAdmin, isOriginalAdmin } from "@/lib/admin";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -130,7 +130,7 @@ export default function EnhancedHeader() {
   // Fetch all users for account switching (admin only)
   const { data: allUsers = [] } = useQuery({
     queryKey: ['/api/admin/users'],
-    enabled: isAdmin(user),
+    enabled: isOriginalAdmin(user),
     select: (data: any[]) => data || [],
   });
 
@@ -154,7 +154,7 @@ export default function EnhancedHeader() {
   // Fetch current switch status
   const { data: switchStatus } = useQuery<SwitchStatus>({
     queryKey: ['/api/admin/switch-status'],
-    enabled: isAdmin(user),
+    enabled: isOriginalAdmin(user),
   });
 
   // Switch account mutation
@@ -334,8 +334,8 @@ export default function EnhancedHeader() {
 
           </div>
 
-          {/* Admin Dropdowns - Only visible to admins */}
-          {isAdmin(user) && (
+          {/* Admin Dropdowns - Only visible to original admins */}
+          {isOriginalAdmin(user) && (
             <div className="flex items-center space-x-3">
               {/* User Selector */}
               <Select value={defaultUserId} onValueChange={(userId) => {
@@ -390,15 +390,18 @@ export default function EnhancedHeader() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center gap-2">
                     <span className="font-medium">
-                      {user.firstName} {user.lastName}
-                      {isAdmin(user) && " - Admin"}
+                      {switchStatus?.isViewingAs ? switchStatus.viewingUser?.firstName + ' ' + (switchStatus.viewingUser?.lastName || '') : user.firstName + ' ' + (user.lastName || '')}
+                      {isEffectiveAdmin(user, switchStatus) && " - Admin"}
                     </span>
                     <ChevronDown className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64">
                   <div className="px-3 py-2 text-sm text-gray-500">
-                    {user.profileType ? user.profileType.charAt(0).toUpperCase() + user.profileType.slice(1) : 'Unknown'} • {user.betaAccess ? 'Beta' : 'No Beta'} Access
+                    {switchStatus?.isViewingAs 
+                      ? `${switchStatus.viewingUser?.profileType ? switchStatus.viewingUser.profileType.charAt(0).toUpperCase() + switchStatus.viewingUser.profileType.slice(1) : 'Unknown'} • ${switchStatus.viewingUser?.betaAccess ? 'Beta' : 'No Beta'} Access`
+                      : `${user.profileType ? user.profileType.charAt(0).toUpperCase() + user.profileType.slice(1) : 'Unknown'} • ${user.betaAccess ? 'Beta' : 'No Beta'} Access`
+                    }
                   </div>
                   
                   <DropdownMenuSeparator />
@@ -411,7 +414,7 @@ export default function EnhancedHeader() {
                     Send Feedback
                   </DropdownMenuItem>
 
-                  {isAdmin(user) && (
+                  {isEffectiveAdmin(user, switchStatus) && (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => setLocation('/admin')}>
@@ -422,6 +425,20 @@ export default function EnhancedHeader() {
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setLocation('/admin/dns')}>
                         DNS Manager
+                      </DropdownMenuItem>
+                    </>
+                  )}
+
+                  {/* Switch back option for original admins */}
+                  {isOriginalAdmin(user) && switchStatus?.isViewingAs && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        onClick={() => switchBackMutation.mutate()}
+                        disabled={switchBackMutation.isPending}
+                        className="text-blue-600 hover:text-blue-700"
+                      >
+                        Switch Back to Admin
                       </DropdownMenuItem>
                     </>
                   )}
