@@ -35,6 +35,7 @@ export function ChangeSummaryEditor({ content, onChange, placeholder = "Changes 
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none min-h-[100px] p-3',
+        style: 'line-height: 1.2;',
       },
     },
   });
