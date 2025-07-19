@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -188,6 +188,12 @@ The Production Team`
     queryKey: [`/api/projects/${projectId}/settings`],
   });
 
+  // Get schedule versions to find current published version
+  const { data: scheduleVersions = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/schedule-versions`],
+    enabled: !!projectId
+  });
+
   // Fetch contacts for event creation
   const { data: contacts = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/contacts`],
@@ -308,6 +314,19 @@ The Production Team`
 
   // Get all contact IDs for "Full Company" toggle
   const allContactIds = contacts.map((contact: any) => contact.id);
+
+  // Get the current published version for dynamic description
+  const currentPublishedVersion = useMemo(() => {
+    if (!scheduleVersions || scheduleVersions.length === 0) return null;
+    
+    // Sort versions by creation date, latest first
+    const sortedVersions = [...scheduleVersions].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+    
+    // Return the most recent version
+    return sortedVersions[0];
+  }, [scheduleVersions]);
 
   // Handle Full Company toggle
   const handleFullCompanyToggle = (checked: boolean) => {
@@ -1938,7 +1957,7 @@ The Production Team`}
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>Resend Schedule</DialogTitle>
             <DialogDescription>
-              Select contacts to resend the most recent published schedule version.
+              Select contacts to resend {currentPublishedVersion ? `version ${currentPublishedVersion.majorVersion}.${currentPublishedVersion.minorVersion}` : 'the most recent published version'} of the schedule.
             </DialogDescription>
           </DialogHeader>
           
