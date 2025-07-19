@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,66 @@ export default function Schedule() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Email template refs
+  const emailSubjectRef = useRef<HTMLInputElement>(null);
+  const emailBodyRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Template variables for email templates
+  const templateVariables = [
+    { key: '{{contactName}}', description: 'Contact\'s name' },
+    { key: '{{showName}}', description: 'Show/project name' },
+    { key: '{{version}}', description: 'Version number' },
+    { key: '{{personalScheduleLink}}', description: 'Personal schedule link' },
+    { key: '{{changesSummary}}', description: 'Summary of changes' },
+    { key: '{{publishDate}}', description: 'Publication date' }
+  ];
+  
+  // Function to insert variable into email template fields
+  const insertVariable = (field: 'subject' | 'body', variable: string) => {
+    const ref = field === 'subject' ? emailSubjectRef : emailBodyRef;
+    const input = ref.current;
+    if (!input) return;
+    
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const currentValue = input.value;
+    const newValue = currentValue.substring(0, start) + variable + currentValue.substring(end);
+    
+    // Update the value through the change handler
+    const event = { target: { value: newValue } };
+    
+    if (field === 'subject') {
+      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+        : ((settings as any)?.scheduleSettings || {});
+      handleSettingsUpdate("scheduleSettings", {
+        ...scheduleSettings,
+        emailTemplate: {
+          ...scheduleSettings?.emailTemplate,
+          subject: newValue
+        }
+      });
+    } else {
+      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+        : ((settings as any)?.scheduleSettings || {});
+      handleSettingsUpdate("scheduleSettings", {
+        ...scheduleSettings,
+        emailTemplate: {
+          ...scheduleSettings?.emailTemplate,
+          body: newValue
+        }
+      });
+    }
+    
+    // Focus back to the input and set cursor position
+    setTimeout(() => {
+      input.focus();
+      const newCursorPos = start + variable.length;
+      input.setSelectionRange(newCursorPos, newCursorPos);
+    }, 0);
+  };
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -1284,6 +1344,7 @@ export default function Schedule() {
                 <div className="space-y-2">
                   <Label htmlFor="emailSubject">Email Subject</Label>
                   <Input
+                    ref={(el) => { emailSubjectRef.current = el; }}
                     id="emailSubject"
                     placeholder="Schedule Update - {{showName}} ({{version}})"
                     value={(() => {
@@ -1305,11 +1366,25 @@ export default function Schedule() {
                       });
                     }}
                   />
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {templateVariables.map((variable) => (
+                      <button
+                        key={variable.key}
+                        type="button"
+                        className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                        onClick={() => insertVariable('subject', variable.key)}
+                        title={variable.description}
+                      >
+                        {variable.key}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="emailBody">Email Body</Label>
                   <textarea
+                    ref={(el) => { emailBodyRef.current = el; }}
                     id="emailBody"
                     className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     placeholder={`Hi {{contactName}},
@@ -1352,18 +1427,23 @@ The Production Team`;
                       });
                     }}
                   />
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {templateVariables.map((variable) => (
+                      <button
+                        key={variable.key}
+                        type="button"
+                        className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                        onClick={() => insertVariable('body', variable.key)}
+                        title={variable.description}
+                      >
+                        {variable.key}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="p-3 bg-blue-50/50 rounded-lg">
-                  <p className="text-sm text-blue-700 font-medium mb-2">Available Variables:</p>
-                  <div className="grid grid-cols-2 gap-2 text-xs text-blue-600">
-                    <div><code>{"{{contactName}}"}</code> - Contact's name</div>
-                    <div><code>{"{{showName}}"}</code> - Show/project name</div>
-                    <div><code>{"{{version}}"}</code> - Version number</div>
-                    <div><code>{"{{personalScheduleLink}}"}</code> - Personal schedule link</div>
-                    <div><code>{"{{changesSummary}}"}</code> - Summary of changes</div>
-                    <div><code>{"{{publishDate}}"}</code> - Publication date</div>
-                  </div>
+                  <p className="text-sm text-blue-700 font-medium">Click the variable buttons above to insert them at your cursor position, or type them manually in the template fields.</p>
                 </div>
               </CardContent>
             </Card>
