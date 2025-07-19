@@ -1957,7 +1957,7 @@ The Production Team`}
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>Resend Schedule</DialogTitle>
             <DialogDescription>
-              Select contacts to resend {currentPublishedVersion ? `version ${currentPublishedVersion.majorVersion}.${currentPublishedVersion.minorVersion}` : 'the most recent published version'} of the schedule.
+              Select contacts to resend {currentPublishedVersion ? `version ${currentPublishedVersion.version}` : 'the most recent published version'} of the schedule.
             </DialogDescription>
           </DialogHeader>
           
