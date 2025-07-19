@@ -2017,8 +2017,10 @@ The Production Team`
                         <SelectValue placeholder="Select reply-to address" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="personal">Personal Email ({user?.email})</SelectItem>
-                        <SelectItem value="team">Team Email (schedules@backstageos.com)</SelectItem>
+                        {user?.email?.includes('@backstageos.com') && (
+                          <SelectItem value="backstage_email">{user.email}</SelectItem>
+                        )}
+                        <SelectItem value="account">{user?.email}</SelectItem>
                         <SelectItem value="external">Custom Email Address</SelectItem>
                       </SelectContent>
                     </Select>

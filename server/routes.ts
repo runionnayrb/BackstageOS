@@ -10197,17 +10197,18 @@ The Production Team`;
       // Dynamic sender name with fallback to show name SM format
       const senderName = emailSenderConfig.senderName || `${project.name} SM`;
       
-      // Determine sender email based on account type
-      let fromEmail = 'schedules@backstageos.com'; // Default show team account
-      if (emailSenderConfig.accountType === 'personal') {
-        // Use user's personal BackstageOS email if available
-        fromEmail = req.user?.email || 'schedules@backstageos.com';
-      } else if (emailSenderConfig.accountType === 'external' && emailSenderConfig.externalEmail) {
-        fromEmail = emailSenderConfig.externalEmail;
-      }
+      // All emails send from schedules@backstageos.com
+      const fromEmail = 'schedules@backstageos.com';
       
-      // Set reply-to email to ensure responses reach the stage management team
-      const replyToEmail = emailSenderConfig.replyToEmail || req.user?.email;
+      // Determine reply-to email based on reply-to type
+      let replyToEmail = req.user?.email; // Default fallback
+      if (emailSenderConfig.replyToType === 'backstage_email') {
+        replyToEmail = req.user?.email;
+      } else if (emailSenderConfig.replyToType === 'account') {
+        replyToEmail = req.user?.email;
+      } else if (emailSenderConfig.replyToType === 'external' && emailSenderConfig.replyToEmail) {
+        replyToEmail = emailSenderConfig.replyToEmail;
+      }
 
       const msg = {
         to: recipientEmail,
