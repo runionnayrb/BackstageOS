@@ -9990,7 +9990,7 @@ Respond with valid JSON only.`;
       }
 
       // Get project settings for email template
-      const settings = await storage.getProjectSettings(projectId);
+      const settings = await storage.getShowSettingsByProjectId(projectId);
       let scheduleSettings = {};
       if (settings?.scheduleSettings) {
         try {
