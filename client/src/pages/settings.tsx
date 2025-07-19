@@ -384,8 +384,7 @@ export default function Settings() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
+                <CardTitle>
                   Seasons
                 </CardTitle>
                 <CardDescription>
@@ -412,7 +411,7 @@ export default function Settings() {
                   {seasons.map((season) => (
                     <div
                       key={season.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
+                      className="flex items-center justify-between p-3"
                     >
                       <div>
                         <div className="font-medium">{season.name}</div>
@@ -450,8 +449,7 @@ export default function Settings() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <div>
-                <CardTitle className="flex items-center gap-2">
-                  <MapPin className="h-5 w-5" />
+                <CardTitle>
                   Venues
                 </CardTitle>
                 <CardDescription>
@@ -478,7 +476,7 @@ export default function Settings() {
                   {venues.map((venue) => (
                     <div
                       key={venue.id}
-                      className="flex items-center justify-between p-3 border rounded-lg"
+                      className="flex items-center justify-between p-3"
                     >
                       <div>
                         <div className="font-medium">{venue.name}</div>
