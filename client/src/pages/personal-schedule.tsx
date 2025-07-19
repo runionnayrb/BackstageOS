@@ -287,14 +287,10 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                           <div className="flex-1">
                             <h4 className="font-semibold text-gray-900 mb-1">{event.title}</h4>
                             {event.location && (
-                              <div className="text-sm text-gray-700 mb-1 flex items-center gap-1">
-                                <MapPin className="h-4 w-4" />
+                              <div className="text-sm text-gray-700 mb-1">
                                 {event.location}
                               </div>
                             )}
-                            <div className="text-xs text-gray-500 capitalize">
-                              {event.type.replace(/_/g, ' ')}
-                            </div>
                           </div>
                         </div>
                       </div>
