@@ -18,7 +18,7 @@ import { isAdmin } from "@/lib/admin";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useErrorLogging } from "@/hooks/useErrorLogging";
-import { Feedback as FeedbackType } from "@/../../shared/schema";
+import { Feedback as FeedbackType } from "@shared/schema";
 
 const feedbackSchema = z.object({
   type: z.enum(["bug", "feature", "improvement", "other"]),
