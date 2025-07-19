@@ -94,7 +94,7 @@ export default function VersionFooter() {
                     Release Notes
                   </DialogTitle>
                   <DialogDescription>
-                    Latest updates and improvements to BackstageOS
+                    Latest updates and improvements to BackstageOS. Weekly Updates.
                   </DialogDescription>
                 </DialogHeader>
                 
