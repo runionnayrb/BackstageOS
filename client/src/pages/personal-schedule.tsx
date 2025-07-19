@@ -218,9 +218,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                 <p className="text-gray-600">{project.name}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <span>Secure Access</span>
-            </div>
+
           </div>
         </div>
       </div>
