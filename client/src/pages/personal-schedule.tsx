@@ -254,7 +254,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                     {dayEvents.map((event) => (
                       <div 
                         key={event.id} 
-                        className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                        className="px-6 pt-2 pb-6 cursor-pointer hover:bg-gray-50 transition-colors"
                         onClick={() => setSelectedEvent(event)}
                       >
                         <div 
