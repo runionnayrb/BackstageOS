@@ -4697,13 +4697,13 @@ Respond with valid JSON only.`;
     }
 
     const importantDateMapping: { [key: string]: string } = {
-      'Prep Start': 'prepStartDate',
-      'First Rehearsal': 'firstRehearsalDate', 
-      'Designer Run': 'designerRunDate',
-      'First Tech': 'firstTechDate',
-      'First Preview': 'firstPreviewDate',
-      'Opening Night': 'openingNight',
-      'Closing': 'closingDate'
+      'Prep Start': 'prep_start_date',
+      'First Rehearsal': 'first_rehearsal_date', 
+      'Designer Run': 'designer_run_date',
+      'First Tech': 'first_tech_date',
+      'First Preview': 'first_preview_date',
+      'Opening Night': 'opening_night',
+      'Closing': 'closing_date'
     };
 
     const projectField = importantDateMapping[event.title];
