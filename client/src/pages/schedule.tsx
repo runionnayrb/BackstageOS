@@ -82,9 +82,20 @@ export default function Schedule() {
   ];
   
   // Function to insert variable into email template fields
-  const insertVariable = (field: 'subject' | 'body', variable: string) => {
-    const ref = field === 'subject' ? emailSubjectRef : emailBodyRef;
-    const input = ref.current;
+  const insertVariable = (field: 'subject' | 'body' | 'changeSummary', variable: string) => {
+    let ref;
+    if (field === 'subject') {
+      ref = emailSubjectRef;
+    } else if (field === 'body') {
+      ref = emailBodyRef;
+    } else if (field === 'changeSummary') {
+      ref = document.getElementById('changeSummary') as HTMLTextAreaElement;
+      if (!ref) return;
+    } else {
+      return;
+    }
+    
+    const input = ref instanceof HTMLElement ? ref : ref.current;
     if (!input) return;
     
     const start = input.selectionStart || 0;
@@ -93,12 +104,11 @@ export default function Schedule() {
     const newValue = currentValue.substring(0, start) + variable + currentValue.substring(end);
     
     // Update the value through the change handler
-    const event = { target: { value: newValue } };
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
     
     if (field === 'subject') {
-      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-        ? safeJsonParse((settings as any).scheduleSettings, {}) 
-        : ((settings as any)?.scheduleSettings || {});
       handleSettingsUpdate("scheduleSettings", {
         ...scheduleSettings,
         emailTemplate: {
@@ -106,16 +116,18 @@ export default function Schedule() {
           subject: newValue
         }
       });
-    } else {
-      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-        ? safeJsonParse((settings as any).scheduleSettings, {}) 
-        : ((settings as any)?.scheduleSettings || {});
+    } else if (field === 'body') {
       handleSettingsUpdate("scheduleSettings", {
         ...scheduleSettings,
         emailTemplate: {
           ...scheduleSettings?.emailTemplate,
           body: newValue
         }
+      });
+    } else if (field === 'changeSummary') {
+      handleSettingsUpdate("scheduleSettings", {
+        ...scheduleSettings,
+        changeSummary: newValue
       });
     }
     
@@ -1542,8 +1554,26 @@ The Production Team`;
                       });
                     }}
                   />
-                  <p className="text-xs text-gray-500">
-                    This summary is automatically generated from schedule changes and can be edited. It will be used in the {`{{changesSummary}}`} variable.
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {[
+                      { key: '{{addedEvents}}', displayName: 'Added Events', description: 'List of newly added events' },
+                      { key: '{{changedEvents}}', displayName: 'Changed Events', description: 'List of modified events' },
+                      { key: '{{removedEvents}}', displayName: 'Removed Events', description: 'List of cancelled events' },
+                      { key: '{{changesSummary}}', displayName: 'Full Summary', description: 'Complete summary of all changes' }
+                    ].map((variable) => (
+                      <button
+                        key={variable.key}
+                        type="button"
+                        className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                        onClick={() => insertVariable('changeSummary', variable.key)}
+                        title={variable.description}
+                      >
+                        {variable.displayName}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    This summary is automatically generated from schedule changes and can be edited. Use template variables to customize the format.
                   </p>
                 </div>
               </CardContent>
