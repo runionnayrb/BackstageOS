@@ -440,7 +440,7 @@ export default function EnhancedHeader() {
             {/* Animated Show Name Indicator */}
             {showNameVisible && showData?.name && (
               <div 
-                className="flex items-center text-sm font-medium text-gray-600 transition-all duration-300 ease-out"
+                className="flex items-center text-xl font-bold text-gray-900 transition-all duration-300 ease-out ml-4"
                 style={{
                   transform: showNameAnimation === 'enter' 
                     ? 'translateX(0)' 
@@ -456,8 +456,7 @@ export default function EnhancedHeader() {
                     : 0, // Initially hidden
                 }}
               >
-                <span className="mx-2 text-gray-300">•</span>
-                <span className="truncate max-w-[200px]">{showData.name}</span>
+                <span className="truncate max-w-[300px]">{showData.name}</span>
               </div>
             )}
 
