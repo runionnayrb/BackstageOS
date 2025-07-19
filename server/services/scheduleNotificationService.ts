@@ -259,13 +259,19 @@ BackstageOS • Professional Stage Management
       const htmlContent = await this.replaceTemplateVariables(template.htmlContent, data, contact, personalScheduleUrl);
       const textContent = await this.replaceTemplateVariables(template.textContent, data, contact, personalScheduleUrl);
 
+      // Dynamic sender name based on project and publisher
+      const publisherName = data.publishedBy.firstName 
+        ? `${data.publishedBy.firstName} ${data.publishedBy.lastName || ''}`.trim()
+        : data.publishedBy.email;
+      const senderName = `${publisherName} (${data.project.name})`;
+
       await standaloneEmailService.sendEmail({
         to: contact.email,
         subject,
         html: htmlContent,
         text: textContent,
         from: {
-          name: 'BackstageOS Schedule Updates',
+          name: senderName,
           email: 'schedules@backstageos.com'
         }
       });
