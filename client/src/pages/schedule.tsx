@@ -1403,12 +1403,12 @@ export default function Schedule() {
                   <Input
                     ref={(el) => { emailSubjectRef.current = el; }}
                     id="emailSubject"
-                    placeholder="Schedule Update - {{showName}} ({{version}})"
+                    placeholder="Schedule Update - Show Name (Version Number)"
                     value={(() => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                         ? safeJsonParse((settings as any).scheduleSettings, {}) 
                         : ((settings as any)?.scheduleSettings || {});
-                      return scheduleSettings?.emailTemplate?.subject || "Schedule Update - {{showName}} ({{version}})";
+                      return scheduleSettings?.emailTemplate?.subject || "Schedule Update - Show Name (Version Number)";
                     })()}
                     onChange={(e) => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
