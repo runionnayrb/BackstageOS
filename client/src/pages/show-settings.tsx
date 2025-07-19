@@ -84,7 +84,10 @@ const templateVariables = [
   { key: '{{addedEvents}}', displayName: 'Added Events', description: 'List of newly added events' },
   { key: '{{changedEvents}}', displayName: 'Changed Events', description: 'List of modified events' },
   { key: '{{removedEvents}}', displayName: 'Removed Events', description: 'List of cancelled events' },
-  { key: '{{publishDate}}', displayName: 'Publish Date', description: 'Publication date' }
+  { key: '{{publishDate}}', displayName: 'Publish Date', description: 'Publication date' },
+  { key: '{{weekStart}}', displayName: 'Week Start', description: 'Week start date (e.g., Sun, Jul 13, 2025)' },
+  { key: '{{weekEnd}}', displayName: 'Week End', description: 'Week end date (e.g., Sat, Jul 18, 2025)' },
+  { key: '{{weekRange}}', displayName: 'Week Range', description: 'Full week range (e.g., Sun, Jul 13, 2025 - Sat, Jul 18, 2025)' }
 ];
 
 interface ShowSettingsParams {

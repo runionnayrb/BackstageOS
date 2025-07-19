@@ -10073,6 +10073,67 @@ The Production Team`;
         minute: '2-digit'
       });
 
+      // Calculate current week range based on user settings
+      const getCurrentWeekRange = (scheduleSettings: any) => {
+        const now = new Date();
+        const weekStartDay = scheduleSettings?.weekStartDay || 'Sunday';
+        
+        // Convert weekStartDay to number (0 = Sunday, 1 = Monday, etc.)
+        const weekStartDayNum = weekStartDay.toLowerCase() === 'monday' ? 1 : 0;
+        
+        // Get current day of week (0 = Sunday, 1 = Monday, etc.)
+        const currentDayOfWeek = now.getDay();
+        
+        // Calculate days to subtract to get to week start
+        let daysToWeekStart;
+        if (weekStartDayNum === 0) { // Sunday start
+          daysToWeekStart = currentDayOfWeek;
+        } else { // Monday start
+          daysToWeekStart = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
+        }
+        
+        // Calculate week start date
+        const weekStart = new Date(now);
+        weekStart.setDate(now.getDate() - daysToWeekStart);
+        weekStart.setHours(0, 0, 0, 0);
+        
+        // Calculate week end date (6 days after week start)
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekStart.getDate() + 6);
+        weekEnd.setHours(23, 59, 59, 999);
+        
+        return { weekStart, weekEnd };
+      };
+
+      // Format date in the requested format (e.g., "Sun, Jul 13, 2025")
+      const formatWeekDate = (date: Date, timezone: string = 'America/New_York') => {
+        try {
+          return date.toLocaleDateString('en-US', {
+            timeZone: timezone,
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+        } catch (error) {
+          console.error('Error formatting week date:', error);
+          // Fallback to basic formatting
+          return date.toLocaleDateString('en-US', {
+            weekday: 'short',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+        }
+      };
+
+      // Calculate week dates based on schedule settings
+      const timezone = scheduleSettings.timezone || 'America/New_York';
+      const { weekStart, weekEnd } = getCurrentWeekRange(scheduleSettings);
+      const weekStartFormatted = formatWeekDate(weekStart, timezone);
+      const weekEndFormatted = formatWeekDate(weekEnd, timezone);
+      const weekRangeFormatted = `${weekStartFormatted} - ${weekEndFormatted}`;
+
       // Get actual schedule changes for realistic test data
       let structuredChanges = { addedEvents: '', changedEvents: '', removedEvents: '', fullSummary: '' };
       try {
@@ -10102,7 +10163,10 @@ The Production Team`;
         personalScheduleLink: `${process.env.REPLIT_HOST || 'https://backstageos.com'}/personal-schedule/test-token-preview`,
         personalScheduleUrl: `${process.env.REPLIT_HOST || 'https://backstageos.com'}/personal-schedule/test-token-preview`,
         publishDate: testPublishDate,
-        publishedDate: testPublishDate
+        publishedDate: testPublishDate,
+        weekStart: weekStartFormatted,
+        weekEnd: weekEndFormatted,
+        weekRange: weekRangeFormatted
       };
 
       // Replace template variables in subject and body

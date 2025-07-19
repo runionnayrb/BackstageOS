@@ -180,6 +180,64 @@ BackstageOS • Professional Stage Management
   }
 
   /**
+   * Get current week range based on user's week start day preference
+   */
+  private getCurrentWeekRange(scheduleSettings: any): { weekStart: Date, weekEnd: Date } {
+    const now = new Date();
+    const weekStartDay = scheduleSettings?.weekStartDay || 'Sunday';
+    
+    // Convert weekStartDay to number (0 = Sunday, 1 = Monday, etc.)
+    const weekStartDayNum = weekStartDay.toLowerCase() === 'monday' ? 1 : 0;
+    
+    // Get current day of week (0 = Sunday, 1 = Monday, etc.)
+    const currentDayOfWeek = now.getDay();
+    
+    // Calculate days to subtract to get to week start
+    let daysToWeekStart;
+    if (weekStartDayNum === 0) { // Sunday start
+      daysToWeekStart = currentDayOfWeek;
+    } else { // Monday start
+      daysToWeekStart = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
+    }
+    
+    // Calculate week start date
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - daysToWeekStart);
+    weekStart.setHours(0, 0, 0, 0);
+    
+    // Calculate week end date (6 days after week start)
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+    
+    return { weekStart, weekEnd };
+  }
+
+  /**
+   * Format date in the requested format (e.g., "Sun, Jul 13, 2025")
+   */
+  private formatWeekDate(date: Date, timezone: string = 'America/New_York'): string {
+    try {
+      return date.toLocaleDateString('en-US', {
+        timeZone: timezone,
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting week date:', error);
+      // Fallback to basic formatting
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    }
+  }
+
+  /**
    * Replace template variables with actual data
    */
   private async replaceTemplateVariables(
@@ -201,6 +259,17 @@ BackstageOS • Professional Stage Management
       hour: 'numeric',
       minute: '2-digit'
     });
+
+    // Get schedule settings for week calculations
+    const showSettings = await storage.getShowSettingsByProjectId(data.project.id);
+    const scheduleSettings = showSettings?.scheduleSettings || {};
+    const timezone = scheduleSettings.timezone || 'America/New_York';
+    
+    // Calculate current week range
+    const { weekStart, weekEnd } = this.getCurrentWeekRange(scheduleSettings);
+    const weekStartFormatted = this.formatWeekDate(weekStart, timezone);
+    const weekEndFormatted = this.formatWeekDate(weekEnd, timezone);
+    const weekRangeFormatted = `${weekStartFormatted} - ${weekEndFormatted}`;
 
     // Get structured changes for individual template variables
     let structuredChanges = { addedEvents: '', changedEvents: '', removedEvents: '', fullSummary: '' };
@@ -226,7 +295,10 @@ BackstageOS • Professional Stage Management
       personalScheduleUrl: personalScheduleUrl,
       personalScheduleLink: personalScheduleUrl,
       publishDate: publishedDate,
-      publishedDate
+      publishedDate,
+      weekStart: weekStartFormatted,
+      weekEnd: weekEndFormatted,
+      weekRange: weekRangeFormatted
     };
 
     let result = template;
