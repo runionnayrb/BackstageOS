@@ -198,7 +198,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
   // Note: Expiry checking removed as it's handled server-side
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
@@ -223,7 +223,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
       <div className="max-w-4xl mx-auto px-4 py-6">
 
         {/* Events List */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-gray-50 rounded-lg shadow">
           <div className="px-6 py-4 border-b">
             <h2 className="text-lg font-semibold text-gray-900">My Schedule</h2>
             <p className="text-gray-600 text-sm">
