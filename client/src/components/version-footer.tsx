@@ -13,22 +13,31 @@ const RELEASE_NOTES = [
     date: "July 19, 2025",
     type: "Major",
     features: [
-      "Schedule publishing with version control - track exactly when schedules were last published and updated",
-      "Professional email notifications for schedule updates with customizable templates and sender options",
-      "Complete schedule change tracking showing what specifically changed between versions",
-      "Personal schedule pages for team members with secure token-based access",
-      "Comprehensive email template system with variables for contact names, show details, and week dates",
-      "Advanced schedule settings with timezone control, time format preferences, and event filtering",
-      "Royal-themed version publishing options with Queen (Major) and King (Minor) version types",
-      "Schedule resending capabilities with organized contact lists and notification preferences",
-      "Enhanced calendar views with consistent formatting across monthly, weekly, and daily displays",
-      "Professional contact photo management with automatic image optimization",
-      "Task management system with Notion-style interface, custom properties, and project-based collaboration",
-      "Notes system with Apple Notes and Notion-style features including folders, search, and real-time collaboration",
-      "Mobile calendar interface with native feel, pull-to-refresh, and swipe gestures",
-      "Performance tracking system for equity contracts with rehearsal and show statistics",
-      "Advanced availability management with drag-and-drop scheduling and conflict detection",
-      "Email sidebar with collapsible functionality and multi-account support"
+      "Schedule publishing with version control - track exactly when schedules were last published and updated (July 19, 2025)",
+      "Professional email notifications for schedule updates with customizable templates and sender options (July 19, 2025)",
+      "Complete schedule change tracking showing what specifically changed between versions (July 19, 2025)", 
+      "Personal schedule pages for team members with secure token-based access (July 18, 2025)",
+      "Comprehensive email template system with variables for contact names, show details, and week dates (July 19, 2025)",
+      "Advanced schedule settings with timezone control, time format preferences, and event filtering (July 18, 2025)",
+      "Royal-themed version publishing options with Queen (Major) and King (Minor) version types (July 18, 2025)",
+      "Schedule resending capabilities with organized contact lists and notification preferences (July 18, 2025)",
+      "Enhanced calendar views with consistent formatting across monthly, weekly, and daily displays (July 15-16, 2025)",
+      "Professional contact photo management with automatic image optimization (July 17, 2025)",
+      "Task management system with Notion-style interface, custom properties, and project-based collaboration (July 17-18, 2025)",
+      "Notes system with Apple Notes and Notion-style features including folders, search, and real-time collaboration (July 18, 2025)",
+      "Mobile calendar interface with native feel, pull-to-refresh, and swipe gestures (July 18, 2025)",
+      "Performance tracking system for equity contracts with rehearsal and show statistics (July 17, 2025)",
+      "Advanced availability management with drag-and-drop scheduling and conflict detection (July 14-16, 2025)",
+      "Email sidebar with collapsible functionality and multi-account support (July 18, 2025)",
+      "Script editor with cue-building system for lighting, sound, video, and automation cues (June 26, 2025)",
+      "Props and costume tracking with scene organization and status management (June 26, 2025)",
+      "Complete show settings system with team member management and sharing controls (June 26, 2025)",
+      "Advanced report template system with drag-drop field reordering and live preview (June 26, 2025)",
+      "Show-centric architecture with complete data isolation between productions (June 25, 2025)",
+      "Professional authentication system with profile type selection for freelance vs full-time users (June 25, 2025)",
+      "Unified admin dashboard with comprehensive user management and beta feature controls (June 27, 2025)",
+      "Google Docs-like interface for reports with borderless inputs and clean document layout (June 27, 2025)",
+      "Version tracking system with clickable footer and comprehensive release notes (June 27, 2025)"
     ]
   },
   {
@@ -40,91 +49,6 @@ const RELEASE_NOTES = [
       "Advanced team availability management with visual timeline interface",
       "Complete contact sheet system with professional formatting and version control",
       "Enhanced script editor with inline formatting and collaboration features"
-    ]
-  },
-  {
-    version: "1.5.0",
-    date: "June 27, 2025",
-    type: "Feature",
-    features: [
-      "Version tracking system with clickable footer displaying current version on every page",
-      "Comprehensive release notes modal with chronological update history",
-      "Color-coded release types (Major, Feature, Bugfix, Initial) with badges",
-      "Scrollable release notes interface with detailed feature descriptions",
-      "Automatic version display with 'Current' badge for latest release"
-    ]
-  },
-  {
-    version: "1.4.2",
-    date: "June 27, 2025",
-    type: "Major",
-    features: [
-      "Unified Admin Dashboard with tabbed interface for user management and beta features",
-      "Comprehensive beta access control system with three-tier permissions (None, Limited, Full)",
-      "Feature categorization system for Production Tools, Reports & Templates, Team Management, and Planning",
-      "Granular beta feature controls for controlled rollout of new functionality",
-      "Enhanced admin security with proper authentication guards and middleware protection"
-    ]
-  },
-  {
-    version: "1.4.1",
-    date: "June 27, 2025",
-    type: "Feature",
-    features: [
-      "Google Docs-like interface for reports with borderless inputs and clean document layout",
-      "Page numbering controls in rich text editor with customizable formats",
-      "Dynamic back buttons with show-specific navigation context",
-      "Form validation improvements for template settings",
-      "Removed status badges for cleaner, minimal interface design"
-    ]
-  },
-  {
-    version: "1.4.0",
-    date: "June 26, 2025",
-    type: "Major",
-    features: [
-      "Complete show settings system with team member management and sharing controls",
-      "Advanced template customization with drag-drop field reordering and live preview",
-      "Hierarchical navigation with clean list format and click-through workflow",
-      "Script Editor with cue-building system supporting lighting, sound, video, and automation cues",
-      "Props Tracker with scene/character organization and status tracking",
-      "Costume Tracker with quick-change timing and repair tracking"
-    ]
-  },
-  {
-    version: "1.3.0",
-    date: "June 25, 2025",
-    type: "Major",
-    features: [
-      "Show-centric architecture with complete data isolation between productions",
-      "Dual profile type support for freelance vs full-time theater professionals",
-      "Advanced report template system with dynamic field types",
-      "Show-specific tables for documents, schedules, and character management",
-      "Streamlined navigation with organized categories for Reports, Calendar, Script, Cast, and Tasks"
-    ]
-  },
-  {
-    version: "1.2.0",
-    date: "June 25, 2025",
-    type: "Feature",
-    features: [
-      "Complete authentication system with Replit Auth integration",
-      "Profile type selection workflow for user onboarding",
-      "Database schema optimization and authentication flow improvements",
-      "Removed dashboard statistics per user feedback",
-      "Template builder functionality with working add/edit field buttons"
-    ]
-  },
-  {
-    version: "1.1.0",
-    date: "June 25, 2025",
-    type: "Initial",
-    features: [
-      "Initial platform setup with React, Express, and PostgreSQL",
-      "Basic project management and team collaboration features",
-      "Report creation and template system foundation",
-      "User authentication and session management",
-      "Responsive design with Tailwind CSS and Shadcn/UI components"
     ]
   }
 ];
