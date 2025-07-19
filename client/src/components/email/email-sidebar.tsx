@@ -137,6 +137,42 @@ export function EmailSidebar({
                     <div className="absolute inset-0 pointer-events-none" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-60" align="center" side="right" sideOffset={4}>
+                    {/* Existing email accounts */}
+                    {emailAccounts.map((account) => (
+                      <DropdownMenuItem 
+                        key={account.id} 
+                        onClick={() => onAccountSelect(account)}
+                        className={cn(
+                          "flex-col items-start p-3",
+                          selectedAccount?.id === account.id && "bg-blue-50"
+                        )}
+                      >
+                        <div className="flex items-center justify-between w-full">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {account.displayName}
+                            </p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {account.emailAddress}
+                            </p>
+                            {account.accountType && (
+                              <p className="text-xs text-blue-600 capitalize">
+                                {account.accountType} Account
+                              </p>
+                            )}
+                          </div>
+                          {selectedAccount?.id === account.id && (
+                            <div className="ml-2">
+                              <div className="h-2 w-2 rounded-full bg-blue-600"></div>
+                            </div>
+                          )}
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                    
+                    {emailAccounts.length > 0 && <DropdownMenuSeparator />}
+                    
+                    {/* Action options */}
                     <DropdownMenuItem onClick={onCreateAccount}>
                       <Plus className="h-4 w-4 mr-2" />
                       Add Account
@@ -169,7 +205,42 @@ export function EmailSidebar({
                       </div>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-60" align="start">
-                      {/* Account options */}
+                      {/* Existing email accounts */}
+                      {emailAccounts.map((account) => (
+                        <DropdownMenuItem 
+                          key={account.id} 
+                          onClick={() => onAccountSelect(account)}
+                          className={cn(
+                            "flex-col items-start p-3",
+                            selectedAccount?.id === account.id && "bg-blue-50"
+                          )}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {account.displayName}
+                              </p>
+                              <p className="text-xs text-gray-500 truncate">
+                                {account.emailAddress}
+                              </p>
+                              {account.accountType && (
+                                <p className="text-xs text-blue-600 capitalize">
+                                  {account.accountType} Account
+                                </p>
+                              )}
+                            </div>
+                            {selectedAccount?.id === account.id && (
+                              <div className="ml-2">
+                                <div className="h-2 w-2 rounded-full bg-blue-600"></div>
+                              </div>
+                            )}
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                      
+                      {emailAccounts.length > 0 && <DropdownMenuSeparator />}
+                      
+                      {/* Action options */}
                       <DropdownMenuItem onClick={onCreateAccount}>
                         <Plus className="h-4 w-4 mr-2" />
                         Add Account
