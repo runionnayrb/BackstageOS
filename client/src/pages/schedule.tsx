@@ -86,6 +86,7 @@ export default function Schedule() {
   const [localEmailSubject, setLocalEmailSubject] = useState('');
   const [localEmailBody, setLocalEmailBody] = useState('');
   const [emailBodyEditor, setEmailBodyEditor] = useState(null);
+  const [localChangeSummary, setLocalChangeSummary] = useState('');
 
   const insertVariable = (field: 'subject' | 'body' | 'changeSummary', variable: string) => {
     if (field === 'changeSummary') {
@@ -94,13 +95,10 @@ export default function Schedule() {
         ? safeJsonParse((settings as any).scheduleSettings, {}) 
         : ((settings as any)?.scheduleSettings || {});
       
-      const currentContent = scheduleSettings.changeSummary || autoChangesSummary?.changesSummary || '';
+      const currentContent = localChangeSummary || scheduleSettings.changeSummary || autoChangesSummary?.changesSummary || '';
       const newContent = currentContent + (currentContent ? ' ' : '') + variable;
       
-      handleSettingsUpdate("scheduleSettings", {
-        ...scheduleSettings,
-        changeSummary: newContent
-      });
+      setLocalChangeSummary(newContent);
       return;
     }
 
@@ -1521,7 +1519,7 @@ The Production Team`}
                 <div className="space-y-2">
                   <Label htmlFor="changeSummary">Summary of Changes</Label>
                   <ChangeSummaryEditor
-                    content={(() => {
+                    content={localChangeSummary || (() => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                         ? safeJsonParse((settings as any).scheduleSettings, {}) 
                         : ((settings as any)?.scheduleSettings || {});
@@ -1535,13 +1533,7 @@ The Production Team`}
                       return scheduleSettings.changeSummaryTemplate || autoChangesSummary?.changesSummary || '';
                     })()}
                     onChange={(content) => {
-                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                        : ((settings as any)?.scheduleSettings || {});
-                      handleSettingsUpdate("scheduleSettings", {
-                        ...scheduleSettings,
-                        changeSummary: content
-                      });
+                      setLocalChangeSummary(content);
                     }}
                     placeholder="Changes will be automatically detected and displayed here..."
                   />
@@ -1576,15 +1568,18 @@ The Production Team`}
                           ? safeJsonParse((settings as any).scheduleSettings, {}) 
                           : ((settings as any)?.scheduleSettings || {});
                         
-                        if (scheduleSettings.changeSummary) {
+                        const contentToSave = localChangeSummary || scheduleSettings.changeSummary;
+                        if (contentToSave) {
                           handleSettingsUpdate("scheduleSettings", {
                             ...scheduleSettings,
-                            changeSummaryTemplate: scheduleSettings.changeSummary
+                            changeSummary: contentToSave,
+                            changeSummaryTemplate: contentToSave
                           });
                           toast({
                             title: "Template Saved",
                             description: "Your formatted changes have been saved as the default template.",
                           });
+                          setLocalChangeSummary(''); // Clear local state after saving
                         }
                       }}
                       className="text-xs"
