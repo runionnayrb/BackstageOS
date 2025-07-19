@@ -2,25 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Simple gradient hover effect */
-.logo-gradient-hover {
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #06b6d4);
-  background-size: 200% 100%;
+/* BackstageOS gradient hover effect */
+.backstage-logo {
+  position: relative;
+  display: inline-block;
+  color: #111827;
+  transition: color 0.3s ease;
+}
+
+.backstage-logo::after {
+  content: "BackstageOS";
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  transition: all 0.4s ease;
-  background-position: 200% 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
 
-.logo-gradient-hover:hover {
-  background-position: 0% 0;
-  animation: gradientShift 2s ease infinite;
+.backstage-logo:hover::after {
+  opacity: 1;
 }
 
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 0; }
-  50% { background-position: 100% 0; }
+.backstage-logo:hover {
+  color: transparent;
 }
 
 /* Line clamp utilities */
