@@ -9920,6 +9920,91 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Activate personal schedule sharing for a contact
+  app.post('/api/projects/:projectId/personal-schedules/activate', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { contactId, expiresAt } = req.body;
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Check if personal schedule already exists for this contact
+      const existingSchedule = await storage.getPersonalScheduleByContactId(contactId, projectId);
+      
+      if (existingSchedule) {
+        // Activate existing schedule
+        await storage.updatePersonalSchedule(existingSchedule.id, {
+          isActive: true,
+          expiresAt: expiresAt || null
+        });
+        res.json(existingSchedule);
+      } else {
+        // Create new personal schedule if none exists (shouldn't happen if schedule was published)
+        const accessToken = `ps_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`;
+        
+        // Get current schedule version for this project
+        const currentVersion = await storage.getCurrentScheduleVersionByProjectId(projectId);
+        if (!currentVersion) {
+          return res.status(400).json({ message: "No schedule version has been published yet. Please publish a schedule first." });
+        }
+        
+        const newSchedule = await storage.createPersonalSchedule({
+          contactId,
+          projectId,
+          currentVersionId: currentVersion.id,
+          accessToken,
+          isActive: true,
+          expiresAt: expiresAt || null,
+          emailPreferences: {
+            newVersion: true,
+            reminders: false,
+            dailyDigest: true
+          }
+        });
+        res.json(newSchedule);
+      }
+    } catch (error) {
+      console.error("Error activating personal schedule:", error);
+      res.status(500).json({ message: "Failed to activate personal schedule" });
+    }
+  });
+
+  // Update personal schedule
+  app.put('/api/projects/:projectId/personal-schedules/:scheduleId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const scheduleId = parseInt(req.params.scheduleId);
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Update the personal schedule
+      await storage.updatePersonalSchedule(scheduleId, req.body);
+      
+      // Get updated schedule
+      const updatedSchedule = await storage.getPersonalScheduleById(scheduleId);
+      res.json(updatedSchedule);
+    } catch (error) {
+      console.error("Error updating personal schedule:", error);
+      res.status(500).json({ message: "Failed to update personal schedule" });
+    }
+  });
+
   // Get schedule email templates for a project
   app.get('/api/projects/:projectId/schedule-email-templates', isAuthenticated, async (req: any, res) => {
     try {

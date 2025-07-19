@@ -105,10 +105,10 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
 
   const eventTypeOptions = getEventTypeOptions();
 
-  // Fetch personal schedule shares
+  // Fetch personal schedules
   const { data: sharesData = [] } = useQuery({
-    queryKey: [`/api/projects/${projectId}/public-calendar-shares`],
-    queryFn: () => apiRequest('GET', `/api/projects/${projectId}/public-calendar-shares`)
+    queryKey: [`/api/projects/${projectId}/personal-schedules`],
+    queryFn: () => apiRequest('GET', `/api/projects/${projectId}/personal-schedules`)
   });
 
   // Ensure shares is always an array
@@ -141,16 +141,16 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
   // Create share mutation
   const createShareMutation = useMutation({
     mutationFn: (data: { contactId: number; expiresAt?: string }) =>
-      apiRequest('POST', `/api/projects/${projectId}/public-calendar-shares`, data),
+      apiRequest('POST', `/api/projects/${projectId}/personal-schedules/activate`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/public-calendar-shares`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/personal-schedules`] });
       setIsCreateDialogOpen(false);
       setSelectedContact('');
       setExpiresAt('');
       setIsActive(true);
       toast({
-        title: "Personal Schedule Share Created",
-        description: "The personal schedule share has been created successfully."
+        title: "Personal Schedule Share Activated",
+        description: "The personal schedule share has been activated successfully."
       });
     },
     onError: (error: any) => {
@@ -164,10 +164,10 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
 
   // Update share mutation
   const updateShareMutation = useMutation({
-    mutationFn: ({ shareId, data }: { shareId: number; data: Partial<PublicCalendarShare> }) =>
-      apiRequest('PUT', `/api/projects/${projectId}/public-calendar-shares/${shareId}`, data),
+    mutationFn: ({ shareId, data }: { shareId: number; data: any }) =>
+      apiRequest('PUT', `/api/projects/${projectId}/personal-schedules/${shareId}`, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/public-calendar-shares`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/personal-schedules`] });
       toast({
         title: "Share Updated",
         description: "The personal schedule share has been updated successfully."
@@ -185,12 +185,12 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
   // Delete share mutation
   const deleteShareMutation = useMutation({
     mutationFn: (shareId: number) =>
-      apiRequest('DELETE', `/api/projects/${projectId}/public-calendar-shares/${shareId}`),
+      apiRequest('PUT', `/api/projects/${projectId}/personal-schedules/${shareId}`, { isActive: false }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/public-calendar-shares`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/personal-schedules`] });
       toast({
-        title: "Share Deleted",
-        description: "The personal schedule share has been deleted successfully."
+        title: "Share Deactivated",
+        description: "The personal schedule share has been deactivated successfully."
       });
     },
     onError: (error: any) => {
@@ -398,10 +398,10 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
   };
 
   const handleCopyLinkForContact = (contactId: number) => {
-    const share = shares.find((s: PublicCalendarShare) => s.contactId === contactId);
+    const share = shares.find((s: any) => s.contactId === contactId);
     if (!share) return;
     
-    const subscriptionLink = `${window.location.origin}/api/schedule/${share.token}/subscribe.ics`;
+    const subscriptionLink = `${window.location.origin}/api/schedule/${share.accessToken}/subscribe.ics`;
     navigator.clipboard.writeText(subscriptionLink);
     
     const contact = getContactById(contactId);
@@ -414,13 +414,13 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
   };
 
   const handleDownloadICSForContact = (contactId: number) => {
-    const share = shares.find((s: PublicCalendarShare) => s.contactId === contactId);
+    const share = shares.find((s: any) => s.contactId === contactId);
     if (!share) return;
     
     const contact = getContactById(contactId);
     const contactName = contact ? getContactDisplayName(contact) : 'Contact';
     
-    const subscriptionLink = `${window.location.origin}/api/schedule/${share.token}/subscribe.ics`;
+    const subscriptionLink = `${window.location.origin}/api/schedule/${share.accessToken}/subscribe.ics`;
     const filename = `${contactName.replace(/\s+/g, '_')}_personal_schedule.ics`;
     
     // Create a temporary link to download the ICS file
@@ -635,6 +635,24 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
               </p>
             </CardContent>
           </Card>
+        ) : shares.length === 0 ? (
+          <Card className="border-0 shadow-none">
+            <CardContent className="py-8 text-center">
+              <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h4 className="text-sm font-medium mb-1">No Schedule Published Yet</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                You need to publish a schedule version first to enable personal schedule sharing for your team members.
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => {/* Navigate to schedule version publishing */}}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Publish First Schedule
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-4">
             {contacts.map((contact: any) => {
@@ -740,7 +758,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
                                   </Button>
                                 </div>
                                 <Button
-                                  onClick={() => window.open(`${window.location.origin}/personal-schedule/${existingShare.token}`, '_blank')}
+                                  onClick={() => window.open(`${window.location.origin}/personal-schedule/${existingShare.accessToken}`, '_blank')}
                                   variant="outline"
                                   size="sm"
                                   className="w-full gap-1"

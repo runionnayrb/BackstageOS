@@ -491,6 +491,7 @@ export interface IStorage {
   
   // Personal Schedules
   getPersonalSchedulesByProjectId(projectId: number): Promise<PersonalSchedule[]>;
+  getPersonalScheduleById(id: number): Promise<PersonalSchedule | undefined>;
   getPersonalScheduleByToken(token: string): Promise<PersonalSchedule | undefined>;
   getPersonalScheduleByContactId(contactId: number, projectId: number): Promise<PersonalSchedule | undefined>;
   createPersonalSchedule(schedule: InsertPersonalSchedule): Promise<PersonalSchedule>;
@@ -2868,6 +2869,14 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
+  async getPersonalScheduleById(id: number): Promise<PersonalSchedule | undefined> {
+    const result = await db
+      .select()
+      .from(personalSchedules)
+      .where(eq(personalSchedules.id, id));
+    return result[0];
+  }
+
   async getPersonalScheduleByToken(token: string): Promise<PersonalSchedule | undefined> {
     const result = await db
       .select()
@@ -2989,6 +2998,14 @@ export class DatabaseStorage implements IStorage {
           eq(personalSchedules.projectId, projectId)
         )
       );
+    return result[0];
+  }
+
+  async getPersonalScheduleById(id: number): Promise<PersonalSchedule | undefined> {
+    const result = await db
+      .select()
+      .from(personalSchedules)
+      .where(eq(personalSchedules.id, id));
     return result[0];
   }
 
