@@ -1527,8 +1527,13 @@ The Production Team`;
                         ? safeJsonParse((settings as any).scheduleSettings, {}) 
                         : ((settings as any)?.scheduleSettings || {});
                       
-                      // Use saved summary if available, otherwise use auto-generated one
-                      return scheduleSettings.changeSummary || autoChangesSummary?.changesSummary || '';
+                      // If there's custom content, use it; otherwise show saved template or auto-generated as default preview
+                      if (scheduleSettings.changeSummary) {
+                        return scheduleSettings.changeSummary;
+                      }
+                      
+                      // Use saved template as default, fallback to auto-generated content
+                      return scheduleSettings.changeSummaryTemplate || autoChangesSummary?.changesSummary || '';
                     })()}
                     onChange={(content) => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
@@ -1559,9 +1564,35 @@ The Production Team`;
                       </button>
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    This summary is automatically generated from schedule changes and can be edited. Use template variables to customize the format.
-                  </p>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-gray-500">
+                      This summary is automatically generated from schedule changes and can be edited. Use template variables to customize the format.
+                    </p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                          : ((settings as any)?.scheduleSettings || {});
+                        
+                        if (scheduleSettings.changeSummary) {
+                          handleSettingsUpdate("scheduleSettings", {
+                            ...scheduleSettings,
+                            changeSummaryTemplate: scheduleSettings.changeSummary
+                          });
+                          toast({
+                            title: "Template Saved",
+                            description: "Your formatted changes have been saved as the default template.",
+                          });
+                        }
+                      }}
+                      className="text-xs"
+                    >
+                      Save as Default
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
