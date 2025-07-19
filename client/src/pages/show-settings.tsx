@@ -1918,17 +1918,17 @@ export default function ShowSettings() {
                   ref={emailBodyRef}
                   id="emailBody"
                   className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  placeholder="Hi {{contactName}},
+                  placeholder="Hi Contact Name,
 
-The schedule for {{showName}} has been updated with version {{version}}.
+The schedule for Show Name has been updated with version Version Number.
 
-{{addedEvents}}
+Added Events
 
-{{changedEvents}}
+Changed Events
 
-{{removedEvents}}
+Removed Events
 
-You can view your personal schedule here: {{personalScheduleLink}}
+You can view your personal schedule here: Personal Schedule Link
 
 Best regards,
 The Production Team"
@@ -1936,17 +1936,17 @@ The Production Team"
                     const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                       ? safeJsonParse((settings as any).scheduleSettings, {}) 
                       : ((settings as any)?.scheduleSettings || {});
-                    return scheduleSettings?.emailTemplate?.body || `Hi {{contactName}},
+                    return scheduleSettings?.emailTemplate?.body || `Hi Contact Name,
 
-The schedule for {{showName}} has been updated with version {{version}}.
+The schedule for Show Name has been updated with version Version Number.
 
-{{addedEvents}}
+Added Events
 
-{{changedEvents}}
+Changed Events
 
-{{removedEvents}}
+Removed Events
 
-You can view your personal schedule here: {{personalScheduleLink}}
+You can view your personal schedule here: Personal Schedule Link
 
 Best regards,
 The Production Team`;
