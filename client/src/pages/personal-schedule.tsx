@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Calendar, AlertCircle, ChevronDown, ChevronRight } from "lucide-react";
+import { Calendar, AlertCircle, X, MapPin, Clock, Users } from "lucide-react";
 import { format, parseISO, isValid } from "date-fns";
 
 interface PersonalScheduleData {
@@ -48,24 +48,14 @@ interface PersonalScheduleViewerProps {
 }
 
 function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
-  const [expandedEventIds, setExpandedEventIds] = useState<Set<number>>(new Set());
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
 
   const { data: scheduleData, isLoading, error } = useQuery<PersonalScheduleData>({
     queryKey: token === "test" ? [`/api/schedule/test-personal`] : [`/api/schedule/${token}`],
     enabled: !!token,
   });
 
-  const toggleEventExpansion = (eventId: number) => {
-    setExpandedEventIds(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(eventId)) {
-        newSet.delete(eventId);
-      } else {
-        newSet.add(eventId);
-      }
-      return newSet;
-    });
-  };
+
 
   if (isLoading) {
     return (
@@ -262,9 +252,13 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                   {/* Events for this date */}
                   <div className="divide-y">
                     {dayEvents.map((event) => (
-                      <div key={event.id} className="p-6">
+                      <div 
+                        key={event.id} 
+                        className="p-6 cursor-pointer hover:bg-gray-50 transition-colors"
+                        onClick={() => setSelectedEvent(event)}
+                      >
                         <div 
-                          className="flex items-start gap-3 mb-3 p-4 rounded-lg border-l-4" 
+                          className="flex items-start gap-3 p-4 rounded-lg border-l-4" 
                           style={{ 
                             borderLeftColor: getEventTypeColor(event.type),
                             backgroundColor: `${getEventTypeColor(event.type)}10`
@@ -293,45 +287,16 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                           <div className="flex-1">
                             <h4 className="font-semibold text-gray-900 mb-1">{event.title}</h4>
                             {event.location && (
-                              <div className="text-sm text-gray-700 mb-1">
+                              <div className="text-sm text-gray-700 mb-1 flex items-center gap-1">
+                                <MapPin className="h-4 w-4" />
                                 {event.location}
                               </div>
                             )}
+                            <div className="text-xs text-gray-500 capitalize">
+                              {event.type.replace(/_/g, ' ')}
+                            </div>
                           </div>
                         </div>
-
-                        {event.description && (
-                          <div className="mt-3">
-                            {!expandedEventIds.has(event.id) ? (
-                              <button
-                                onClick={() => toggleEventExpansion(event.id)}
-                                className="flex items-center gap-2 text-white hover:bg-black/20 rounded px-2 py-1 text-sm font-medium transition-colors"
-                              >
-                                <ChevronRight className="h-4 w-4" />
-                                View details
-                              </button>
-                            ) : (
-                              <div>
-                                <button
-                                  onClick={() => toggleEventExpansion(event.id)}
-                                  className="flex items-center gap-2 text-white hover:bg-black/20 rounded px-2 py-1 text-sm font-medium mb-2 transition-colors"
-                                >
-                                  <ChevronDown className="h-4 w-4" />
-                                  Hide details
-                                </button>
-                                <div className="bg-gray-50 rounded-lg p-3 border">
-                                  <p className="text-gray-700 text-sm whitespace-pre-wrap">{event.description}</p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {event.notes && (
-                          <div className="mt-2">
-                            <p className="text-gray-600 text-sm italic">{event.notes}</p>
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -347,6 +312,75 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
           <p>Powered by BackstageOS</p>
         </div>
       </div>
+
+      {/* Event Details Modal */}
+      {selectedEvent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[80vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b">
+              <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
+              <button
+                onClick={() => setSelectedEvent(null)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-4">
+              {/* Title */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">{selectedEvent.title}</h3>
+                <div 
+                  className="inline-block px-3 py-1 rounded text-xs font-medium text-white"
+                  style={{ backgroundColor: getEventTypeColor(selectedEvent.type) }}
+                >
+                  {selectedEvent.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                </div>
+              </div>
+
+              {/* Time */}
+              <div className="flex items-center gap-2 text-gray-700">
+                <Clock className="h-4 w-4 text-gray-400" />
+                <span>
+                  {selectedEvent.isAllDay ? 'All Day' : (
+                    <>
+                      {formatTime(selectedEvent.startTime)}
+                      {selectedEvent.endTime && ` - ${formatTime(selectedEvent.endTime)}`}
+                    </>
+                  )}
+                </span>
+              </div>
+
+              {/* Location */}
+              {selectedEvent.location && (
+                <div className="flex items-center gap-2 text-gray-700">
+                  <MapPin className="h-4 w-4 text-gray-400" />
+                  <span>{selectedEvent.location}</span>
+                </div>
+              )}
+
+              {/* Description */}
+              {selectedEvent.description && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Description</h4>
+                  <p className="text-gray-700 whitespace-pre-wrap">{selectedEvent.description}</p>
+                </div>
+              )}
+
+              {/* Notes */}
+              {selectedEvent.notes && (
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-2">Notes</h4>
+                  <p className="text-gray-600 italic">{selectedEvent.notes}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
