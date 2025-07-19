@@ -247,8 +247,42 @@ export default function ShowSettings() {
     },
   });
 
+  // Test email mutation
+  const sendTestEmailMutation = useMutation({
+    mutationFn: async () => {
+      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+        : ((settings as any)?.scheduleSettings || {});
+      
+      const emailData = {
+        subject: localEmailSubject || scheduleSettings?.emailTemplate?.subject || "Schedule Update - Test Show (Test Version)",
+        body: localEmailBody || scheduleSettings?.emailTemplate?.body || "This is a test of your schedule email template with the dynamic sender name.",
+        testEmail: user?.email || ""
+      };
+      
+      return await apiRequest("POST", `/api/projects/${params.id}/send-test-email`, emailData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Test Email Sent",
+        description: "A test email has been sent to your email address with the current template.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send test email. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleProjectUpdate = (updates: any) => {
     setProjectUpdates((prev: any) => ({ ...prev, ...updates }));
+  };
+  
+  const sendTestEmail = () => {
+    sendTestEmailMutation.mutate();
   };
 
   // Function to insert variable into email template fields
@@ -1971,7 +2005,14 @@ The Production Team`}
                 <p className="text-sm text-blue-700 font-medium">Click the variable buttons above to insert them at your cursor position, or type them manually in the template fields.</p>
               </div>
               
-              <div className="flex justify-end pt-4">
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  onClick={sendTestEmail}
+                  variant="outline"
+                  disabled={sendTestEmailMutation.isPending}
+                >
+                  {sendTestEmailMutation.isPending ? 'Sending Test Email...' : 'Send Test Email'}
+                </Button>
                 <Button
                   onClick={saveEmailTemplate}
                   className="bg-blue-600 hover:bg-blue-700"

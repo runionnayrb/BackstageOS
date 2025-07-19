@@ -9967,6 +9967,80 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Send test email with email template
+  app.post('/api/projects/:id/send-test-email', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { subject, body, testEmail } = req.body;
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Get test email address - default to user's email if not provided
+      const recipientEmail = testEmail || req.user.email;
+      if (!recipientEmail) {
+        return res.status(400).json({ message: "No email address available for test" });
+      }
+
+      // Set up SendGrid API key
+      const sendGridApiKey = process.env.SENDGRID_API_KEY;
+      if (!sendGridApiKey) {
+        console.error('SENDGRID_API_KEY environment variable is not set');
+        return res.status(500).json({ message: "Email service not configured" });
+      }
+
+      sgMail.setApiKey(sendGridApiKey);
+      
+      // Create email with dynamic sender name format "[Show Name] SM"
+      const senderName = `${project.name} SM`;
+      const fromEmail = 'schedules@backstageos.com';
+
+      const testSubject = subject || `Test Email: ${project.name} Schedule Update`;
+      const testBody = body || `This is a test email for ${project.name} schedule notifications.
+
+This email is sent from: ${senderName}
+
+You can customize this template in Show Settings → Schedule tab.
+
+Best regards,
+The BackstageOS Team`;
+
+      const msg = {
+        to: recipientEmail,
+        from: {
+          email: fromEmail,
+          name: senderName
+        },
+        subject: testSubject,
+        html: testBody.replace(/\n/g, '<br>'),
+        text: testBody
+      };
+
+      await sgMail.send(msg);
+      
+      console.log(`✅ Test email sent to ${recipientEmail} from "${senderName}" <${fromEmail}>`);
+      res.json({ 
+        message: "Test email sent successfully",
+        sentTo: recipientEmail,
+        senderName,
+        subject: testSubject 
+      });
+    } catch (error: any) {
+      console.error("Error sending test email:", error);
+      res.status(500).json({ 
+        message: "Failed to send test email", 
+        error: error.message || "Unknown error"
+      });
+    }
+  });
+
   // Get personal schedules for a project
   app.get('/api/projects/:projectId/personal-schedules', isAuthenticated, async (req: any, res) => {
     try {
