@@ -74,12 +74,14 @@ export default function Schedule() {
   // Organize personal schedules by contact type
   const organizedSchedules = personalSchedules.reduce((acc: any, schedule: any) => {
     if (schedule.contact) {
-      const contactType = schedule.contact.contactType;
-      if (!acc[contactType]) {
-        acc[contactType] = [];
+      const contactType = schedule.contact.category || 'Other';
+      const typeName = contactType.charAt(0).toUpperCase() + contactType.slice(1).replace(/_/g, ' ');
+      
+      if (!acc[typeName]) {
+        acc[typeName] = [];
       }
-      acc[contactType].push({
-        name: `${schedule.contact.firstName} ${schedule.contact.lastName}`.trim() || schedule.contact.email,
+      acc[typeName].push({
+        name: `${schedule.contact.firstName || ''} ${schedule.contact.lastName || ''}`.trim() || schedule.contact.email || 'Unknown Contact',
         token: schedule.accessToken,
         contactId: schedule.contact.id
       });
@@ -441,7 +443,7 @@ export default function Schedule() {
                     {Object.entries(organizedSchedules).map(([contactType, contacts]: [string, any[]]) => (
                       <div key={contactType}>
                         <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase border-b">
-                          {contactType.replace(/_/g, ' ')}
+                          {contactType}
                         </div>
                         {contacts.map((contact) => (
                           <DropdownMenuItem
@@ -530,7 +532,7 @@ export default function Schedule() {
                     {Object.entries(organizedSchedules).map(([contactType, contacts]: [string, any[]]) => (
                       <div key={contactType}>
                         <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase border-b">
-                          {contactType.replace(/_/g, ' ')}
+                          {contactType}
                         </div>
                         {contacts.map((contact) => (
                           <DropdownMenuItem
