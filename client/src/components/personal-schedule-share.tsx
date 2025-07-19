@@ -105,7 +105,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
 
   const eventTypeOptions = getEventTypeOptions();
 
-  // Fetch public calendar shares
+  // Fetch personal schedule shares
   const { data: sharesData = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/public-calendar-shares`],
     queryFn: () => apiRequest('GET', `/api/projects/${projectId}/public-calendar-shares`)
@@ -149,14 +149,14 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
       setExpiresAt('');
       setIsActive(true);
       toast({
-        title: "Public Calendar Share Created",
-        description: "The public calendar share has been created successfully."
+        title: "Personal Schedule Share Created",
+        description: "The personal schedule share has been created successfully."
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error Creating Share",
-        description: error.message || "Failed to create public calendar share",
+        description: error.message || "Failed to create personal schedule share",
         variant: "destructive"
       });
     }
@@ -170,13 +170,13 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/public-calendar-shares`] });
       toast({
         title: "Share Updated",
-        description: "The public calendar share has been updated successfully."
+        description: "The personal schedule share has been updated successfully."
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error Updating Share",
-        description: error.message || "Failed to update public calendar share",
+        description: error.message || "Failed to update personal schedule share",
         variant: "destructive"
       });
     }
@@ -190,13 +190,13 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/public-calendar-shares`] });
       toast({
         title: "Share Deleted",
-        description: "The public calendar share has been deleted successfully."
+        description: "The personal schedule share has been deleted successfully."
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error Deleting Share",
-        description: error.message || "Failed to delete public calendar share",
+        description: error.message || "Failed to delete personal schedule share",
         variant: "destructive"
       });
     }
@@ -389,7 +389,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
   };
 
   const handleCopyEventTypeLink = (token: string, eventTypeName: string) => {
-    const subscriptionLink = `${window.location.origin}/api/public-calendar/event-type/${token}/subscribe.ics`;
+    const subscriptionLink = `${window.location.origin}/api/schedule/event-type/${token}/subscribe.ics`;
     navigator.clipboard.writeText(subscriptionLink);
     toast({
       title: "Subscription Link Copied",
@@ -401,7 +401,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
     const share = shares.find((s: PublicCalendarShare) => s.contactId === contactId);
     if (!share) return;
     
-    const subscriptionLink = `${window.location.origin}/api/public-calendar/${share.token}/subscribe.ics`;
+    const subscriptionLink = `${window.location.origin}/api/schedule/${share.token}/subscribe.ics`;
     navigator.clipboard.writeText(subscriptionLink);
     
     const contact = getContactById(contactId);
@@ -409,7 +409,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
     
     toast({
       title: "Subscription Link Copied",
-      description: `The ${contactName} calendar subscription link has been copied. Add this to Google Calendar or Apple Calendar for automatic updates.`
+      description: `The ${contactName} personal schedule subscription link has been copied. Add this to Google Calendar or Apple Calendar for automatic updates.`
     });
   };
 
@@ -420,8 +420,8 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
     const contact = getContactById(contactId);
     const contactName = contact ? getContactDisplayName(contact) : 'Contact';
     
-    const subscriptionLink = `${window.location.origin}/api/public-calendar/${share.token}/subscribe.ics`;
-    const filename = `${contactName.replace(/\s+/g, '_')}_calendar.ics`;
+    const subscriptionLink = `${window.location.origin}/api/schedule/${share.token}/subscribe.ics`;
+    const filename = `${contactName.replace(/\s+/g, '_')}_personal_schedule.ics`;
     
     // Create a temporary link to download the ICS file
     const link = document.createElement('a');
@@ -432,20 +432,20 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
     document.body.removeChild(link);
     
     toast({
-      title: "Calendar Downloaded",
-      description: `The ${contactName} calendar has been downloaded as ${filename}.`
+      title: "Personal Schedule Downloaded",
+      description: `The ${contactName} personal schedule has been downloaded as ${filename}.`
     });
   };
 
   const handleDownloadEventTypeICS = (token: string, eventTypeName: string) => {
-    const link = `${window.location.origin}/api/public-calendar/event-type/${token}/subscribe.ics`;
+    const link = `${window.location.origin}/api/schedule/event-type/${token}/subscribe.ics`;
     const anchor = document.createElement('a');
     anchor.href = link;
-    anchor.download = `calendar-${eventTypeName.toLowerCase().replace(/\s+/g, '-')}.ics`;
+    anchor.download = `schedule-${eventTypeName.toLowerCase().replace(/\s+/g, '-')}.ics`;
     anchor.click();
     toast({
-      title: "Dynamic Calendar Downloaded",
-      description: `The auto-updating ${eventTypeName} calendar file has been downloaded. Import this into Google Calendar or Apple Calendar for automatic updates.`
+      title: "Event Type Schedule Downloaded",
+      description: `The auto-updating ${eventTypeName} schedule file has been downloaded. Import this into Google Calendar or Apple Calendar for automatic updates.`
     });
   };
 
@@ -740,13 +740,13 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
                                   </Button>
                                 </div>
                                 <Button
-                                  onClick={() => window.open(`${window.location.origin}/public-calendar/${existingShare.token}`, '_blank')}
+                                  onClick={() => window.open(`${window.location.origin}/personal-schedule/${existingShare.token}`, '_blank')}
                                   variant="outline"
                                   size="sm"
                                   className="w-full gap-1"
                                 >
                                   <ExternalLink className="h-3 w-3" />
-                                  View Calendar
+                                  View Personal Schedule
                                 </Button>
                               </div>
                             ) : (
@@ -760,7 +760,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
                                 className="w-full gap-2"
                               >
                                 <Plus className="h-4 w-4" />
-                                Create Calendar Share
+                                Create Personal Schedule Share
                               </Button>
                             )}
                           </div>
@@ -781,7 +781,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
           <DialogHeader>
             <DialogTitle>Create Calendar Share</DialogTitle>
             <DialogDescription>
-              Create a public calendar share for this contact to access their personal schedule
+              Create a personal schedule share for this contact to access their assigned events
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
