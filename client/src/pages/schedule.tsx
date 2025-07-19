@@ -1559,10 +1559,11 @@ The Production Team`}
                     <p className="text-xs text-gray-500">
                       This summary is automatically generated from schedule changes and can be edited. Use template variables to customize the format.
                     </p>
+                  </div>
+                  
+                  <div className="flex justify-end pt-4">
                     <Button
                       type="button"
-                      size="sm"
-                      variant="outline"
                       onClick={() => {
                         const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                           ? safeJsonParse((settings as any).scheduleSettings, {}) 
@@ -1582,9 +1583,9 @@ The Production Team`}
                           setLocalChangeSummary(''); // Clear local state after saving
                         }
                       }}
-                      className="text-xs"
+                      className="bg-blue-600 hover:bg-blue-700"
                     >
-                      Save as Default
+                      Save Change Summary as Default
                     </Button>
                   </div>
                 </div>
