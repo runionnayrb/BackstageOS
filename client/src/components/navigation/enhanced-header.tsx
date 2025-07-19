@@ -47,10 +47,7 @@ export default function EnhancedHeader() {
   
   const headerRef = useRef<HTMLDivElement>(null);
 
-  // Show name animation state
-  const [showNameVisible, setShowNameVisible] = useState(false);
-  const [showNameAnimation, setShowNameAnimation] = useState<'enter' | 'exit' | 'none'>('none');
-  const previousShowId = useRef<string | undefined>();
+
 
   // Fetch total unread email count
   const { data: unreadEmailData } = useQuery({
@@ -150,43 +147,7 @@ export default function EnhancedHeader() {
     }
   }, [allUsers, defaultUserId]);
 
-  // Handle show name animation when entering/exiting shows
-  useEffect(() => {
-    const currentShowId = navContext.showId;
-    const hadPreviousShow = !!previousShowId.current;
 
-    // Entering a show for the first time or switching shows
-    if (currentShowId && currentShowId !== previousShowId.current) {
-      if (hadPreviousShow) {
-        // Switching shows - exit then enter
-        setShowNameAnimation('exit');
-        setTimeout(() => {
-          setShowNameVisible(true);
-          setShowNameAnimation('enter');
-          setTimeout(() => {
-            setShowNameAnimation('none');
-          }, 500);
-        }, 500);
-      } else {
-        // Entering first show
-        setShowNameVisible(true);
-        setShowNameAnimation('enter');
-        setTimeout(() => {
-          setShowNameAnimation('none');
-        }, 500);
-      }
-    }
-    // Exiting a show
-    else if (!currentShowId && hadPreviousShow) {
-      setShowNameAnimation('exit');
-      setTimeout(() => {
-        setShowNameVisible(false);
-        setShowNameAnimation('none');
-      }, 500);
-    }
-
-    previousShowId.current = currentShowId;
-  }, [navContext.showId, showNameVisible, showNameAnimation]);
 
 
 
@@ -364,39 +325,8 @@ export default function EnhancedHeader() {
               </DropdownMenu>
             </div>
 
-            {/* Animated Show Name Indicator with Breadcrumbs */}
-            {showNameVisible && showData?.name && (
-              <div 
-                className="flex items-center ml-4"
-                style={{
-                  transform: showNameAnimation === 'enter' 
-                    ? 'translateX(0px)' 
-                    : showNameAnimation === 'exit'
-                    ? 'translateX(-80px)'
-                    : showNameAnimation === 'none'
-                    ? 'translateX(0px)'
-                    : 'translateX(80px)', // Initial state - comes from right
-                  opacity: showNameAnimation === 'exit' 
-                    ? 0 
-                    : showNameAnimation === 'enter' || showNameAnimation === 'none'
-                    ? 1 
-                    : 0, // Initially hidden
-                  transition: 'all 0.5s ease-out',
-                }}
-              >
-                <span className="text-xl font-bold text-gray-900 truncate max-w-[200px] md:max-w-[300px]">{showData.name}</span>
-                {/* Breadcrumbs - Desktop and Mobile */}
-                {breadcrumbs.length > 1 && (
-                  <div className="hidden sm:flex items-center ml-3">
-                    <span className="text-gray-400 mx-2">/</span>
-                    <BreadcrumbNavigation items={breadcrumbs.slice(1)} className="text-sm" />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Standalone Breadcrumbs when not in show context */}
-            {!showNameVisible && breadcrumbs.length > 0 && (
+            {/* Breadcrumb Navigation */}
+            {breadcrumbs.length > 0 && (
               <div className="flex items-center ml-4">
                 <BreadcrumbNavigation items={breadcrumbs} className="text-sm" />
               </div>
