@@ -1637,6 +1637,7 @@ The Production Team`
                   </div>
                 </div>
                 
+                <div>
                 <div className="space-y-2">
                   <Label htmlFor="emailBody">Email Body</Label>
                   <div ref={(el) => { emailBodyRef.current = el; }} className="min-h-32 w-full rounded-md border border-input bg-background">
