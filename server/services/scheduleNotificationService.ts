@@ -259,11 +259,8 @@ BackstageOS • Professional Stage Management
       const htmlContent = await this.replaceTemplateVariables(template.htmlContent, data, contact, personalScheduleUrl);
       const textContent = await this.replaceTemplateVariables(template.textContent, data, contact, personalScheduleUrl);
 
-      // Dynamic sender name based on project and publisher
-      const publisherName = data.publishedBy.firstName 
-        ? `${data.publishedBy.firstName} ${data.publishedBy.lastName || ''}`.trim()
-        : data.publishedBy.email;
-      const senderName = `${publisherName} (${data.project.name})`;
+      // Dynamic sender name based on show name
+      const senderName = `${data.project.name} SM`;
 
       await standaloneEmailService.sendEmail({
         to: contact.email,
