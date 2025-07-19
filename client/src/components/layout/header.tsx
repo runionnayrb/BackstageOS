@@ -152,10 +152,12 @@ export default function Header() {
             <Button
               variant="ghost"
               onClick={() => setLocation("/")}
-              className="text-xl font-semibold p-0 hover:bg-transparent gradient-text-container relative"
+              className="text-xl font-semibold p-0 hover:bg-transparent"
             >
-              <span className="gradient-text-normal text-gray-900">BackstageOS</span>
-              <span className="gradient-text-hover absolute inset-0">BackstageOS</span>
+              <span className="gradient-text-container">
+                <span className="normal-text text-gray-900">BackstageOS</span>
+                <span className="gradient-hover-text">BackstageOS</span>
+              </span>
             </Button>
           </div>
           

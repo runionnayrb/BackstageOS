@@ -3,25 +3,41 @@
 @tailwind utilities;
 
 /* Gradient text hover effects */
-.gradient-text-hover {
+.gradient-hover-text {
   background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4);
   background-size: 200% 200%;
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
+  transition: all 0.3s ease-in-out;
   opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: inherit;
+  font-weight: inherit;
 }
 
-.gradient-text-container:hover .gradient-text-hover {
+.gradient-text-container {
+  position: relative;
+  display: inline-block;
+}
+
+.gradient-text-container:hover .gradient-hover-text {
   opacity: 1;
 }
 
-.gradient-text-container:hover .gradient-text-normal {
+.gradient-text-container:hover .normal-text {
   opacity: 0;
 }
 
-.gradient-text-normal {
+.normal-text {
   transition: opacity 0.3s ease-in-out;
 }
 
