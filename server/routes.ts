@@ -10019,6 +10019,11 @@ You can view your personal schedule here: {{personalScheduleLink}}
 Best regards,
 The Production Team`;
 
+      console.log('🔍 EMAIL TEMPLATE DEBUG:');
+      console.log('Original subject:', testSubject);
+      console.log('Original body:', testBody);
+      console.log('Email template from settings:', scheduleSettings.emailTemplate);
+
       // Create test data for variable substitution
       const testContactName = req.user.firstName ? `${req.user.firstName} ${req.user.lastName || ''}`.trim() : req.user.email;
       const testVersion = "Test v1.0";
@@ -10064,11 +10069,27 @@ The Production Team`;
       };
 
       // Replace template variables in subject and body
+      console.log('🔍 VARIABLE SUBSTITUTION DEBUG:');
+      console.log('Variables:', variables);
+      
       Object.entries(variables).forEach(([key, value]) => {
         const regex = new RegExp(`{{${key}}}`, 'g');
+        const beforeSubject = testSubject;
+        const beforeBody = testBody;
         testSubject = testSubject.replace(regex, value);
         testBody = testBody.replace(regex, value);
+        
+        if (beforeSubject !== testSubject) {
+          console.log(`✅ Subject - replaced {{${key}}} with "${value}"`);
+        }
+        if (beforeBody !== testBody) {
+          console.log(`✅ Body - replaced {{${key}}} with "${value}"`);
+        }
       });
+      
+      console.log('🔍 FINAL PROCESSED CONTENT:');
+      console.log('Final subject:', testSubject);
+      console.log('Final body preview:', testBody.substring(0, 200) + '...');
 
       // Handle conditional blocks (simple {{#if description}} logic)
       testBody = testBody.replace(/{{#if description}}(.*?){{\/if}}/gs, (match, content) => {
