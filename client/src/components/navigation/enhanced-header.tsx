@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useRef } from "react";
 import { useFeatureSettings } from "@/hooks/useFeatureSettings";
 import BreadcrumbNavigation from "./breadcrumb-navigation";
+import { useAdminView } from "@/contexts/AdminViewContext";
 
 interface SwitchStatus {
   isViewingAs: boolean;
@@ -41,8 +42,7 @@ export default function EnhancedHeader() {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedBetaAccess, setSelectedBetaAccess] = useState<string>("admin");
-  const [selectedProfileType, setSelectedProfileType] = useState<string>("freelance");
+  const { selectedBetaAccess, setSelectedBetaAccess, selectedProfileType, setSelectedProfileType } = useAdminView();
   const [defaultUserId, setDefaultUserId] = useState<string>("");
   
   const headerRef = useRef<HTMLDivElement>(null);
@@ -336,35 +336,29 @@ export default function EnhancedHeader() {
 
           {/* Admin Dropdowns - Only visible to admins */}
           {isAdmin(user) && (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               {/* Beta Access Level Selector */}
-              <div className="flex items-center space-x-2 bg-red-100 p-2 border border-red-500">
-                <Shield className="h-4 w-4 text-gray-500" />
-                <Select value={selectedBetaAccess} onValueChange={setSelectedBetaAccess}>
-                  <SelectTrigger className="w-32 h-8 text-xs">
-                    <SelectValue placeholder="Access View" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">Admin View</SelectItem>
-                    <SelectItem value="beta">Beta View</SelectItem>
-                    <SelectItem value="standard">Standard View</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select value={selectedBetaAccess} onValueChange={setSelectedBetaAccess}>
+                <SelectTrigger className="w-32 h-8 text-xs">
+                  <SelectValue placeholder="Access View" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin View</SelectItem>
+                  <SelectItem value="beta">Beta View</SelectItem>
+                  <SelectItem value="standard">Standard View</SelectItem>
+                </SelectContent>
+              </Select>
 
               {/* Profile Type Selector */}
-              <div className="flex items-center space-x-2 bg-blue-100 p-2 border border-blue-500">
-                <UserCheck className="h-4 w-4 text-gray-500" />
-                <Select value={selectedProfileType} onValueChange={setSelectedProfileType}>
-                  <SelectTrigger className="w-32 h-8 text-xs">
-                    <SelectValue placeholder="Profile Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="freelance">Freelance</SelectItem>
-                    <SelectItem value="fulltime">Full-time</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select value={selectedProfileType} onValueChange={setSelectedProfileType}>
+                <SelectTrigger className="w-32 h-8 text-xs">
+                  <SelectValue placeholder="Profile Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="freelance">Freelance</SelectItem>
+                  <SelectItem value="fulltime">Full-time</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
 
