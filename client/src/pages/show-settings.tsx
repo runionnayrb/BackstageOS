@@ -253,6 +253,7 @@ export default function ShowSettings() {
   // Function to insert variable into email template fields
   const [localEmailSubject, setLocalEmailSubject] = useState('');
   const [localEmailBody, setLocalEmailBody] = useState('');
+  const [emailBodyEditor, setEmailBodyEditor] = useState(null);
 
   const insertVariable = (field: 'subject' | 'body' | 'changeSummary', variable: string) => {
     if (field === 'changeSummary') {
@@ -292,16 +293,21 @@ export default function ShowSettings() {
         input.setSelectionRange(newCursorPos, newCursorPos);
       }, 0);
     } else if (field === 'body') {
-      // For rich text editor, we need to handle it differently
-      const currentContent = localEmailBody || (() => {
-        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-          ? safeJsonParse((settings as any).scheduleSettings, {}) 
-          : ((settings as any)?.scheduleSettings || {});
-        return scheduleSettings?.emailTemplate?.body || "";
-      })();
-      
-      const newContent = currentContent + (currentContent ? ' ' : '') + displayText;
-      setLocalEmailBody(newContent);
+      // For rich text editor, insert at cursor position if editor is available
+      if (emailBodyEditor) {
+        emailBodyEditor.chain().focus().insertContent(' ' + displayText + ' ').run();
+      } else {
+        // Fallback: append to end
+        const currentContent = localEmailBody || (() => {
+          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+            : ((settings as any)?.scheduleSettings || {});
+          return scheduleSettings?.emailTemplate?.body || "";
+        })();
+        
+        const newContent = currentContent + (currentContent ? ' ' : '') + displayText;
+        setLocalEmailBody(newContent);
+      }
     }
   }
 
@@ -1931,6 +1937,7 @@ The Production Team`
                       return scheduleSettings?.emailTemplate?.body || "";
                     })()}
                     onChange={setLocalEmailBody}
+                    onEditorReady={setEmailBodyEditor}
                     placeholder={`Hi Contact Name,
 
 The schedule for Show Name has been updated with version Version Number.

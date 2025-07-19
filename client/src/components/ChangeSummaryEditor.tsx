@@ -9,9 +9,10 @@ interface ChangeSummaryEditorProps {
   content: string;
   onChange: (content: string) => void;
   placeholder?: string;
+  onEditorReady?: (editor: any) => void;
 }
 
-export function ChangeSummaryEditor({ content, onChange, placeholder = "Changes will be automatically detected and displayed here..." }: ChangeSummaryEditorProps) {
+export function ChangeSummaryEditor({ content, onChange, placeholder = "Changes will be automatically detected and displayed here...", onEditorReady }: ChangeSummaryEditorProps) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -62,6 +63,13 @@ export function ChangeSummaryEditor({ content, onChange, placeholder = "Changes 
       }
     }
   }, [content, editor]);
+
+  // Notify parent when editor is ready
+  useEffect(() => {
+    if (editor && onEditorReady) {
+      onEditorReady(editor);
+    }
+  }, [editor, onEditorReady]);
 
   if (!editor) {
     return null;
