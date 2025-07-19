@@ -23,6 +23,16 @@ import { PersonalScheduleShare } from "@/components/personal-schedule-share";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
+// Helper function to safely parse JSON with error handling
+const safeJsonParse = (jsonString: string, fallback: any = {}) => {
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.warn('Failed to parse JSON:', error);
+    return fallback;
+  }
+};
+
 interface ScheduleParams {
   id: string;
 }
@@ -60,12 +70,12 @@ export default function Schedule() {
   
   // Template variables for email templates
   const templateVariables = [
-    { key: '{{contactName}}', description: 'Contact\'s name' },
-    { key: '{{showName}}', description: 'Show/project name' },
-    { key: '{{version}}', description: 'Version number' },
-    { key: '{{personalScheduleLink}}', description: 'Personal schedule link' },
-    { key: '{{changesSummary}}', description: 'Summary of changes' },
-    { key: '{{publishDate}}', description: 'Publication date' }
+    { key: '{{contactName}}', displayName: 'Contact Name', description: 'Contact\'s name' },
+    { key: '{{showName}}', displayName: 'Show Name', description: 'Show/project name' },
+    { key: '{{version}}', displayName: 'Version', description: 'Version number' },
+    { key: '{{personalScheduleLink}}', displayName: 'Personal Schedule Link', description: 'Personal schedule link' },
+    { key: '{{changesSummary}}', displayName: 'Changes Summary', description: 'Summary of changes' },
+    { key: '{{publishDate}}', displayName: 'Publish Date', description: 'Publication date' }
   ];
   
   // Function to insert variable into email template fields
@@ -1375,7 +1385,7 @@ export default function Schedule() {
                         onClick={() => insertVariable('subject', variable.key)}
                         title={variable.description}
                       >
-                        {variable.key}
+                        {variable.displayName}
                       </button>
                     ))}
                   </div>
@@ -1436,7 +1446,7 @@ The Production Team`;
                         onClick={() => insertVariable('body', variable.key)}
                         title={variable.description}
                       >
-                        {variable.key}
+                        {variable.displayName}
                       </button>
                     ))}
                   </div>
