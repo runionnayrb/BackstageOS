@@ -1699,6 +1699,8 @@ The Production Team`}
                     Save Email Template as Default
                   </Button>
                 </div>
+                </div>
+                </div>
               </CardContent>
             </Card>
 
