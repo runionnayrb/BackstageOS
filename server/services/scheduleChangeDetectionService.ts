@@ -78,11 +78,10 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
       // Compare current events with last version
       const lastVersionEvents = lastVersion.scheduleData?.events || [];
       const changes = this.detectChanges(lastVersionEvents, currentEvents);
-      const grouped = this.groupChangesByType(changes);
       
-      const addedEvents = grouped.added.map(c => `ADD: ${c.eventTitle} - ${c.details}`).join('\n');
-      const changedEvents = grouped.modified.map(c => `CHANGE: ${c.eventTitle} - ${c.details}`).join('\n');
-      const removedEvents = grouped.removed.map(c => `REMOVE: ${c.eventTitle} - Cancelled`).join('\n');
+      const addedEvents = this.formatChangesByDay(changes.filter(c => c.type === 'added'));
+      const changedEvents = this.formatChangesByDay(changes.filter(c => c.type === 'modified'));
+      const removedEvents = this.formatChangesByDay(changes.filter(c => c.type === 'removed'));
       
       const fullSummary = changes.length === 0 ? "No changes to the schedule." : this.formatChangesSummary(changes);
       
@@ -117,6 +116,7 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
           type: 'added',
           eventTitle: newEvent.title,
           date: this.formatEventDate(newEvent),
+          eventDate: newEvent.date,
           details: this.formatEventTime(newEvent)
         });
       }
@@ -129,6 +129,7 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
           type: 'removed',
           eventTitle: oldEvent.title,
           date: this.formatEventDate(oldEvent),
+          eventDate: oldEvent.date,
           details: this.formatEventTime(oldEvent)
         });
       }
@@ -144,6 +145,7 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
             type: 'modified',
             eventTitle: newEvent.title,
             date: this.formatEventDate(newEvent),
+            eventDate: newEvent.date,
             details: modifications.join(', '),
             originalData: oldEvent,
             newData: newEvent
@@ -191,22 +193,67 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
   }
   
   private formatChangesSummary(changes: ScheduleChange[]): string {
-    const grouped = this.groupChangesByType(changes);
+    const dailyChanges = this.groupChangesByDay(changes);
     const summaryLines: string[] = [];
     
-    // Add events
-    for (const change of grouped.added) {
-      summaryLines.push(`ADD: ${change.eventTitle} - ${change.details}`);
+    // Get all dates from changes and create a date range
+    const allDates = new Set<string>();
+    changes.forEach(change => {
+      if (change.eventDate) {
+        allDates.add(change.eventDate);
+      }
+    });
+    
+    // If no changes, show current week
+    if (allDates.size === 0) {
+      const today = new Date();
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        allDates.add(dateStr);
+      }
     }
     
-    // Modified events
-    for (const change of grouped.modified) {
-      summaryLines.push(`CHANGE: ${change.eventTitle} - ${change.details}`);
-    }
+    // Sort dates
+    const sortedDates = Array.from(allDates).sort();
     
-    // Removed events
-    for (const change of grouped.removed) {
-      summaryLines.push(`REMOVE: ${change.eventTitle} - Cancelled`);
+    // Format each day
+    for (const dateStr of sortedDates) {
+      const date = new Date(dateStr);
+      const dayName = date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric',
+        month: 'long', 
+        day: 'numeric' 
+      });
+      
+      summaryLines.push(`${dayName}`);
+      
+      const dayChanges = dailyChanges[dateStr] || [];
+      if (dayChanges.length === 0) {
+        summaryLines.push('- No changes');
+      } else {
+        // Group by type for this day
+        const grouped = this.groupChangesByType(dayChanges);
+        
+        // Add events for this day
+        for (const change of grouped.added) {
+          summaryLines.push(`- ADD: ${change.eventTitle} - ${change.details}`);
+        }
+        
+        // Modified events for this day
+        for (const change of grouped.modified) {
+          summaryLines.push(`- CHANGE: ${change.eventTitle} - ${change.details}`);
+        }
+        
+        // Removed events for this day
+        for (const change of grouped.removed) {
+          summaryLines.push(`- REMOVE: ${change.eventTitle} - Cancelled`);
+        }
+      }
+      
+      summaryLines.push(''); // Empty line between days
     }
     
     return summaryLines.join('\n');
@@ -219,6 +266,60 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
       modified: changes.filter(c => c.type === 'modified'),
       moved: changes.filter(c => c.type === 'moved')
     };
+  }
+  
+  private groupChangesByDay(changes: ScheduleChange[]): { [date: string]: ScheduleChange[] } {
+    const dailyChanges: { [date: string]: ScheduleChange[] } = {};
+    
+    changes.forEach(change => {
+      const dateKey = change.eventDate || 'unknown';
+      if (!dailyChanges[dateKey]) {
+        dailyChanges[dateKey] = [];
+      }
+      dailyChanges[dateKey].push(change);
+    });
+    
+    return dailyChanges;
+  }
+
+  private formatChangesByDay(changes: ScheduleChange[]): string {
+    if (changes.length === 0) {
+      return '';
+    }
+
+    const dailyChanges = this.groupChangesByDay(changes);
+    const summaryLines: string[] = [];
+    
+    // Sort dates
+    const sortedDates = Object.keys(dailyChanges).sort();
+    
+    // Format each day
+    for (const dateStr of sortedDates) {
+      const date = new Date(dateStr);
+      const dayName = date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric',
+        month: 'long', 
+        day: 'numeric' 
+      });
+      
+      summaryLines.push(`${dayName}`);
+      
+      const dayChanges = dailyChanges[dateStr] || [];
+      for (const change of dayChanges) {
+        if (change.type === 'added') {
+          summaryLines.push(`- ADD: ${change.eventTitle} - ${change.details}`);
+        } else if (change.type === 'modified') {
+          summaryLines.push(`- CHANGE: ${change.eventTitle} - ${change.details}`);
+        } else if (change.type === 'removed') {
+          summaryLines.push(`- REMOVE: ${change.eventTitle} - Cancelled`);
+        }
+      }
+      
+      summaryLines.push(''); // Empty line between days
+    }
+    
+    return summaryLines.join('\n').trim();
   }
   
   private formatEventDate(event: any): string {
