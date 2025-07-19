@@ -276,12 +276,18 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                   {/* Events for this date */}
                   <div className="divide-y">
                     {dayEvents.map((event) => (
-                      <div key={event.id} className="p-6 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-start gap-3 mb-3">
-                          <div className="text-sm text-gray-600 min-w-[80px] pt-1">
+                      <div key={event.id} className="p-6">
+                        <div 
+                          className="flex items-start gap-3 mb-3 p-4 rounded-lg border-l-4" 
+                          style={{ 
+                            borderLeftColor: getEventTypeColor(event.type),
+                            backgroundColor: `${getEventTypeColor(event.type)}10`
+                          }}
+                        >
+                          <div className="text-sm text-gray-700 min-w-[80px] pt-1">
                             {event.isAllDay ? (
                               <div>
-                                <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                                <span className="inline-flex items-center px-2 py-1 bg-white bg-opacity-80 text-gray-800 rounded text-xs font-medium">
                                   All Day
                                 </span>
                               </div>
@@ -291,23 +297,17 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                                   {formatTime(event.startTime)}
                                 </div>
                                 {event.endTime && (
-                                  <div className="text-xs text-gray-500 mt-1">
+                                  <div className="text-xs text-gray-600 mt-1">
                                     {formatTime(event.endTime)}
                                   </div>
                                 )}
                               </div>
                             )}
                           </div>
-                          <div 
-                            className="flex-1 p-3 rounded-lg border-l-4" 
-                            style={{ 
-                              borderLeftColor: getEventTypeColor(event.type),
-                              backgroundColor: `${getEventTypeColor(event.type)}08`
-                            }}
-                          >
+                          <div className="flex-1">
                             <h4 className="font-semibold text-gray-900 mb-1">{event.title}</h4>
                             {event.location && (
-                              <div className="text-sm text-gray-600 mb-1">
+                              <div className="text-sm text-gray-700 mb-1">
                                 {event.location}
                               </div>
                             )}
