@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Gradient text hover effects */
+.gradient-text-hover {
+  background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4);
+  background-size: 200% 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.gradient-text-container:hover .gradient-text-hover {
+  opacity: 1;
+}
+
+.gradient-text-container:hover .gradient-text-normal {
+  opacity: 0;
+}
+
+.gradient-text-normal {
+  transition: opacity 0.3s ease-in-out;
+}
+
 /* Line clamp utilities */
 .line-clamp-2 {
   overflow: hidden;
