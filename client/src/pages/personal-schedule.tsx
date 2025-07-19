@@ -93,6 +93,31 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
     return dateA.getTime() - dateB.getTime();
   });
 
+  // Group events by date
+  const eventsByDate = sortedEvents.reduce((acc, event) => {
+    const dateKey = event.date;
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
+    }
+    acc[dateKey].push(event);
+    return acc;
+  }, {} as Record<string, typeof sortedEvents>);
+
+  // Sort events within each date by time
+  Object.values(eventsByDate).forEach(dayEvents => {
+    dayEvents.sort((a, b) => {
+      // All day events first
+      if (a.isAllDay && !b.isAllDay) return -1;
+      if (!a.isAllDay && b.isAllDay) return 1;
+      if (a.isAllDay && b.isAllDay) return 0;
+      
+      // Then by start time
+      const timeA = a.startTime || '00:00:00';
+      const timeB = b.startTime || '00:00:00';
+      return timeA.localeCompare(timeB);
+    });
+  });
+
   const formatDate = (dateString: string) => {
     try {
       const date = parseISO(dateString);
@@ -225,47 +250,71 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
               <p className="text-gray-600">You don't have any events assigned to you in this schedule version.</p>
             </div>
           ) : (
-            <div className="divide-y">
-              {sortedEvents.map((event) => (
-                <div key={event.id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-semibold text-gray-900">{event.title}</h3>
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium">
-                      {getEventTypeDisplay(event.type)}
-                    </span>
+            <div>
+              {Object.entries(eventsByDate).map(([date, dayEvents], dateIndex) => (
+                <div key={date} className={dateIndex > 0 ? 'border-t' : ''}>
+                  {/* Date Header */}
+                  <div className="px-6 py-4 bg-gray-50 border-b">
+                    <h3 className="text-lg font-semibold text-gray-900">{formatDate(date)}</h3>
+                    <p className="text-sm text-gray-600">
+                      {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}
+                    </p>
                   </div>
+                  
+                  {/* Events for this date */}
+                  <div className="divide-y">
+                    {dayEvents.map((event) => (
+                      <div key={event.id} className="p-6 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start gap-3">
+                            <div className="text-sm text-gray-600 min-w-[80px] pt-1">
+                              {event.isAllDay ? (
+                                <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                                  All Day
+                                </span>
+                              ) : (
+                                <span className="font-medium">
+                                  {formatTime(event.startTime)}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="font-semibold text-gray-900 mb-1">{event.title}</h4>
+                              <div className="flex items-center gap-4 text-sm text-gray-600">
+                                {!event.isAllDay && event.endTime && (
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    Until {formatTime(event.endTime)}
+                                  </span>
+                                )}
+                                {event.location && (
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="h-4 w-4" />
+                                    {event.location}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium flex-shrink-0">
+                            {getEventTypeDisplay(event.type)}
+                          </span>
+                        </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Calendar className="h-4 w-4 flex-shrink-0" />
-                      <span>{formatDate(event.date)}</span>
-                    </div>
+                        {event.description && (
+                          <div className="ml-[92px]">
+                            <p className="text-gray-700 text-sm">{event.description}</p>
+                          </div>
+                        )}
 
-                    <div className="flex items-center gap-2 text-gray-600">
-                      <Clock className="h-4 w-4 flex-shrink-0" />
-                      <span>
-                        {event.isAllDay 
-                          ? 'All Day' 
-                          : `${formatTime(event.startTime)} - ${formatTime(event.endTime)}`
-                        }
-                      </span>
-                    </div>
-
-                    {event.location && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <MapPin className="h-4 w-4 flex-shrink-0" />
-                        <span>{event.location}</span>
+                        {event.notes && (
+                          <div className="ml-[92px] mt-2">
+                            <p className="text-gray-600 text-sm italic">{event.notes}</p>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
-
-                  {event.description && (
-                    <p className="text-gray-700 mt-3">{event.description}</p>
-                  )}
-
-                  {event.notes && (
-                    <p className="text-gray-600 text-sm mt-2 italic">{event.notes}</p>
-                  )}
                 </div>
               ))}
             </div>
