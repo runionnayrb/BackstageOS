@@ -296,10 +296,8 @@ export default function Schedule() {
 
   // Settings update mutation
   const updateSettingsMutation = useMutation({
-    mutationFn: ({ field, value }: { field: string; value: any }) => {
-      return apiRequest('PATCH', `/api/projects/${projectId}/settings`, {
-        [field]: value
-      });
+    mutationFn: (settingsData: any) => {
+      return apiRequest('PATCH', `/api/projects/${projectId}/settings`, settingsData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
@@ -318,21 +316,34 @@ export default function Schedule() {
   });
 
   // Handle settings update
-  const handleSettingsUpdate = (field: string, value: any) => {
-    if (field === "scheduleSettings") {
-      const currentScheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-        ? safeJsonParse((settings as any).scheduleSettings, {})
-        : ((settings as any)?.scheduleSettings || {});
+  const handleSettingsUpdate = (section: string, updates: any) => {
+    const settingsData = settings as any || {};
+    
+    // Handle scheduleSettings specially since it's stored as JSON string
+    if (section === 'scheduleSettings') {
+      const currentScheduleSettings = typeof settingsData.scheduleSettings === 'string' 
+        ? safeJsonParse(settingsData.scheduleSettings, {}) 
+        : (settingsData.scheduleSettings || {});
       
-      const newSettings = {
+      const updatedScheduleSettings = {
         ...currentScheduleSettings,
-        ...value
+        ...updates,
       };
       
-      updateSettingsMutation.mutate({ 
-        field: "scheduleSettings", 
-        value: newSettings 
-      });
+      const updatedSettings = {
+        ...settingsData,
+        scheduleSettings: JSON.stringify(updatedScheduleSettings),
+      };
+      updateSettingsMutation.mutate(updatedSettings);
+    } else {
+      const updatedSettings = {
+        ...settingsData,
+        [section]: {
+          ...(settingsData[section] || {}),
+          ...updates,
+        },
+      };
+      updateSettingsMutation.mutate(updatedSettings);
     }
   };
 
@@ -1397,14 +1408,14 @@ export default function Schedule() {
                     ref={(el) => { emailBodyRef.current = el; }}
                     id="emailBody"
                     className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    placeholder={`Hi {{contactName}},
+                    placeholder={`Hi \{\{contactName\}\},
 
-The schedule for {{showName}} has been updated with version {{version}}.
+The schedule for \{\{showName\}\} has been updated with version \{\{version\}\}.
 
-You can view your personal schedule here: {{personalScheduleLink}}
+You can view your personal schedule here: \{\{personalScheduleLink\}\}
 
 Changes in this version:
-{{changesSummary}}
+\{\{changesSummary\}\}
 
 Best regards,
 The Production Team`}
@@ -1412,14 +1423,14 @@ The Production Team`}
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                         ? safeJsonParse((settings as any).scheduleSettings, {}) 
                         : ((settings as any)?.scheduleSettings || {});
-                      return scheduleSettings?.emailTemplate?.body || `Hi {{contactName}},
+                      return scheduleSettings?.emailTemplate?.body || `Hi \{\{contactName\}\},
 
-The schedule for {{showName}} has been updated with version {{version}}.
+The schedule for \{\{showName\}\} has been updated with version \{\{version\}\}.
 
-You can view your personal schedule here: {{personalScheduleLink}}
+You can view your personal schedule here: \{\{personalScheduleLink\}\}
 
 Changes in this version:
-{{changesSummary}}
+\{\{changesSummary\}\}
 
 Best regards,
 The Production Team`;
@@ -1473,26 +1484,19 @@ The Production Team`;
                     className="w-full min-h-[100px] p-3 border border-gray-200 rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="Describe the changes made to the schedule (e.g., 'Added rehearsal for Act 2, moved tech rehearsal to 7 PM, cancelled Monday meeting')"
                     value={(() => {
-                      const scheduleSettings = typeof settingsData?.scheduleSettings === 'string' 
-                        ? safeJsonParse(settingsData.scheduleSettings, {}) 
-                        : (settingsData?.scheduleSettings || {});
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                        : ((settings as any)?.scheduleSettings || {});
                       return scheduleSettings.changeSummary || '';
                     })()}
                     onChange={(e) => {
-                      const currentScheduleSettings = typeof settingsData?.scheduleSettings === 'string' 
-                        ? safeJsonParse(settingsData.scheduleSettings, {}) 
-                        : (settingsData?.scheduleSettings || {});
-                      
-                      const updatedScheduleSettings = {
-                        ...currentScheduleSettings,
-                        changeSummary: e.target.value,
-                      };
-                      
-                      const updatedSettings = {
-                        ...settingsData,
-                        scheduleSettings: JSON.stringify(updatedScheduleSettings),
-                      };
-                      updateSettingsMutation.mutate(updatedSettings);
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      handleSettingsUpdate("scheduleSettings", {
+                        ...scheduleSettings,
+                        changeSummary: e.target.value
+                      });
                     }}
                   />
                   <p className="text-xs text-gray-500">
