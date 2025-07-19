@@ -173,8 +173,13 @@ export default function Header() {
     user,
     isAdminResult: isAdmin(user),
     userId: user?.id,
-    userEmail: user?.email
+    userEmail: user?.email,
+    allUsers: allUsers.length,
+    selectedBetaAccess,
+    selectedProfileType
   });
+  
+  console.log("ADMIN DROPDOWNS SHOULD BE VISIBLE - forcing true condition");
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -213,7 +218,7 @@ export default function Header() {
             {true && (
               <>
                 {/* Beta Access Level Selector */}
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 bg-red-100 p-2 border border-red-500">
                   <Shield className="h-4 w-4 text-gray-500" />
                   <Select value={selectedBetaAccess} onValueChange={handleBetaAccessChange}>
                     <SelectTrigger className="w-32 h-8 text-xs">
@@ -228,7 +233,7 @@ export default function Header() {
                 </div>
 
                 {/* Profile Type Selector */}
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 bg-blue-100 p-2 border border-blue-500">
                   <UserCheck className="h-4 w-4 text-gray-500" />
                   <Select value={selectedProfileType} onValueChange={handleProfileTypeChange}>
                     <SelectTrigger className="w-32 h-8 text-xs">
