@@ -1507,16 +1507,36 @@ The Production Team`
                           return scheduleSettings?.emailSender?.replyToType || 'account';
                         })()}
                         onValueChange={(value) => {
+                          // Handle navigation to email page for new team account
+                          if (value === 'new_team_account') {
+                            setLocation('/email');
+                            return;
+                          }
+
                           const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                             ? safeJsonParse((settings as any).scheduleSettings, {}) 
                             : ((settings as any)?.scheduleSettings || {});
+                          
+                          let replyToEmail;
+                          if (value === 'backstage_email') {
+                            const backstageAccount = emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com'));
+                            replyToEmail = backstageAccount?.emailAddress;
+                          } else if (value === 'account') {
+                            replyToEmail = user?.email;
+                          } else if (value.startsWith('team_')) {
+                            const teamAccountId = value.replace('team_', '');
+                            const teamAccount = emailAccounts.find((account: any) => account.id === parseInt(teamAccountId));
+                            replyToEmail = teamAccount?.emailAddress || user?.email;
+                          } else if (value === 'external') {
+                            replyToEmail = scheduleSettings?.emailSender?.replyToEmail || '';
+                          }
+
                           handleSettingsUpdate("scheduleSettings", {
                             ...scheduleSettings,
                             emailSender: {
                               ...scheduleSettings?.emailSender,
                               replyToType: value,
-                              // Clear custom email when switching away from external
-                              ...(value !== 'external' && { replyToEmail: undefined })
+                              replyToEmail: replyToEmail
                             }
                           });
                         }}
@@ -1527,11 +1547,28 @@ The Production Team`
                         <SelectContent>
                           {emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com')) && (
                             <SelectItem value="backstage_email">
-                              {emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com'))?.emailAddress}
+                              {emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com'))?.emailAddress} (BackstageOS Email)
                             </SelectItem>
                           )}
-                          <SelectItem value="account">{user?.email}</SelectItem>
+                          <SelectItem value="account">{user?.email} (Account Email)</SelectItem>
+                          {emailAccounts
+                            .filter((account: any) => account.projectId === parseInt(projectId) && account.accountType === 'team')
+                            .map((teamAccount: any) => (
+                              <SelectItem key={teamAccount.id} value={`team_${teamAccount.id}`}>
+                                {teamAccount.emailAddress} (Team Email)
+                              </SelectItem>
+                            ))}
                           <SelectItem value="external">Custom Email Address</SelectItem>
+                          {!emailAccounts.find((account: any) => 
+                            account.projectId === parseInt(projectId) && 
+                            account.accountType === 'team') && (
+                            <SelectItem 
+                              value="new_team_account"
+                              className="text-blue-600 font-medium"
+                            >
+                              + New Team Account
+                            </SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-gray-500">All emails send from schedules@backstageos.com with your chosen reply-to address</p>

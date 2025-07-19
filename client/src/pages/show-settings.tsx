@@ -1995,16 +1995,27 @@ The Production Team`
                         return scheduleSettings?.emailSender?.replyToType || 'personal';
                       })()}
                       onValueChange={(value) => {
+                        // Handle navigation to email page for new team account
+                        if (value === 'new_team_account') {
+                          setLocation('/email');
+                          return;
+                        }
+
                         const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                           ? safeJsonParse((settings as any).scheduleSettings, {}) 
                           : ((settings as any)?.scheduleSettings || {});
                         
                         let replyToEmail;
-                        if (value === 'personal') {
+                        if (value === 'backstage_email') {
+                          const backstageAccount = emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com'));
+                          replyToEmail = backstageAccount?.emailAddress || user?.email;
+                        } else if (value === 'account') {
                           replyToEmail = user?.email;
-                        } else if (value === 'team') {
-                          replyToEmail = 'schedules@backstageos.com';
-                        } else {
+                        } else if (value.startsWith('team_')) {
+                          const teamAccountId = value.replace('team_', '');
+                          const teamAccount = emailAccounts.find((account: any) => account.id === parseInt(teamAccountId));
+                          replyToEmail = teamAccount?.emailAddress || user?.email;
+                        } else if (value === 'external') {
                           // For external, keep existing reply-to or clear it
                           replyToEmail = scheduleSettings?.emailSender?.replyToEmail || '';
                         }
@@ -2025,11 +2036,28 @@ The Production Team`
                       <SelectContent>
                         {emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com')) && (
                           <SelectItem value="backstage_email">
-                            {emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com'))?.emailAddress}
+                            {emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com'))?.emailAddress} (BackstageOS Email)
                           </SelectItem>
                         )}
-                        <SelectItem value="account">{user?.email}</SelectItem>
+                        <SelectItem value="account">{user?.email} (Account Email)</SelectItem>
+                        {emailAccounts
+                          .filter((account: any) => account.projectId === parseInt(params.id) && account.accountType === 'team')
+                          .map((teamAccount: any) => (
+                            <SelectItem key={teamAccount.id} value={`team_${teamAccount.id}`}>
+                              {teamAccount.emailAddress} (Team Email)
+                            </SelectItem>
+                          ))}
                         <SelectItem value="external">Custom Email Address</SelectItem>
+                        {!emailAccounts.find((account: any) => 
+                          account.projectId === parseInt(params.id) && 
+                          account.accountType === 'team') && (
+                          <SelectItem 
+                            value="new_team_account"
+                            className="text-blue-600 font-medium"
+                          >
+                            + New Team Account
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-gray-500">Where replies from team members will be sent</p>
