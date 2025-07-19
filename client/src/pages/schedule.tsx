@@ -104,9 +104,8 @@ export default function Schedule() {
       return;
     }
 
-    // Get display name for the variable instead of the key
-    const variableObj = templateVariables.find(v => v.key === variable);
-    const displayText = variableObj ? variableObj.displayName : variable;
+    // Use proper template variable syntax instead of display name
+    const displayText = `{{${variable}}}`;
     
     if (field === 'subject') {
       const input = emailSubjectRef.current;
@@ -1498,17 +1497,17 @@ The Production Team`
                       })()}
                       onChange={setLocalEmailBody}
                       onEditorReady={setEmailBodyEditor}
-                      placeholder={`Hi Contact Name,
+                      placeholder={`Hi {{contactName}},
 
-The schedule for Show Name has been updated with version Version Number.
+The schedule for {{showName}} has been updated with version {{version}}.
 
-Added Events
+{{addedEvents}}
 
-Changed Events
+{{changedEvents}}
 
-Removed Events
+{{removedEvents}}
 
-You can view your personal schedule here: Personal Schedule Link
+You can view your personal schedule here: {{personalScheduleLink}}
 
 Best regards,
 The Production Team`}
