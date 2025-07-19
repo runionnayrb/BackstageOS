@@ -1,14 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Calendar, Clock, MapPin, Users, FileText, AlertCircle, Shield, ChevronDown, ChevronRight } from "lucide-react";
+import { Calendar, AlertCircle, ChevronDown, ChevronRight } from "lucide-react";
 import { format, parseISO, isValid } from "date-fns";
 
 interface PersonalScheduleData {
   personalSchedule: {
     id: number;
     accessToken: string;
-    expiresAt: string;
-    isActive: boolean;
+    lastViewedAt?: string;
   };
   project: {
     id: number;
@@ -170,6 +169,22 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
     return typeMap[type] || type;
   };
 
+  const getEventTypeColor = (type: string) => {
+    // Default colors for common event types
+    const defaultColors: Record<string, string> = {
+      'rehearsal': '#3B82F6', // blue
+      'tech_rehearsal': '#F59E0B', // amber
+      'performance': '#10B981', // emerald
+      'meeting': '#8B5CF6', // violet
+      'costume_fitting': '#EC4899', // pink
+      'photo_shoot': '#6366F1', // indigo
+      'dress_rehearsal': '#F97316', // orange
+      'preview': '#84CC16', // lime
+      'dark': '#1F2937', // gray-800
+    };
+    return defaultColors[type] || '#6B7280'; // default gray
+  };
+
   // Check if token expires soon (within 7 days)
   const expiresAt = new Date(personalSchedule.expiresAt);
   const now = new Date();
@@ -192,7 +207,6 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
               </div>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Shield className="h-4 w-4" />
               <span>Secure Access</span>
             </div>
           </div>
@@ -202,29 +216,13 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Version Info */}
         <div className="bg-white rounded-lg shadow mb-6 p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-1">
-                {version.title}
-              </h2>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
-                <span className="flex items-center gap-1">
-                  <FileText className="h-4 w-4" />
-                  Version {version.version}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  Published {formatDate(version.publishedAt)}
-                </span>
-              </div>
+          <div className="mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">
+              Version {version.version}
+            </h2>
+            <div className="text-sm text-gray-600">
+              Published {formatDate(version.publishedAt)}
             </div>
-            <span className={`px-2 py-1 rounded text-xs font-medium ${
-              version.versionType === 'major' 
-                ? 'bg-red-100 text-red-800' 
-                : 'bg-blue-100 text-blue-800'
-            }`}>
-              {version.versionType === 'major' ? 'Major Update' : 'Minor Update'}
-            </span>
           </div>
           
           {version.description && (
@@ -279,44 +277,45 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                   <div className="divide-y">
                     {dayEvents.map((event) => (
                       <div key={event.id} className="p-6 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-start gap-3">
-                            <div className="text-sm text-gray-600 min-w-[80px] pt-1">
-                              {event.isAllDay ? (
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="text-sm text-gray-600 min-w-[80px] pt-1">
+                            {event.isAllDay ? (
+                              <div>
                                 <span className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
                                   All Day
                                 </span>
-                              ) : (
-                                <span className="font-medium">
+                              </div>
+                            ) : (
+                              <div>
+                                <div className="font-medium">
                                   {formatTime(event.startTime)}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900 mb-1">{event.title}</h4>
-                              <div className="flex items-center gap-4 text-sm text-gray-600">
-                                {!event.isAllDay && event.endTime && (
-                                  <span className="flex items-center gap-1">
-                                    <Clock className="h-4 w-4" />
-                                    Until {formatTime(event.endTime)}
-                                  </span>
-                                )}
-                                {event.location && (
-                                  <span className="flex items-center gap-1">
-                                    <MapPin className="h-4 w-4" />
-                                    {event.location}
-                                  </span>
+                                </div>
+                                {event.endTime && (
+                                  <div className="text-xs text-gray-500 mt-1">
+                                    {formatTime(event.endTime)}
+                                  </div>
                                 )}
                               </div>
-                            </div>
+                            )}
                           </div>
-                          <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs font-medium flex-shrink-0">
-                            {getEventTypeDisplay(event.type)}
-                          </span>
+                          <div 
+                            className="flex-1 p-3 rounded-lg border-l-4" 
+                            style={{ 
+                              borderLeftColor: getEventTypeColor(event.type),
+                              backgroundColor: `${getEventTypeColor(event.type)}08`
+                            }}
+                          >
+                            <h4 className="font-semibold text-gray-900 mb-1">{event.title}</h4>
+                            {event.location && (
+                              <div className="text-sm text-gray-600 mb-1">
+                                {event.location}
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {event.description && (
-                          <div className="ml-[92px]">
+                          <div className="mt-3">
                             {!expandedEventIds.has(event.id) ? (
                               <button
                                 onClick={() => toggleEventExpansion(event.id)}
@@ -343,7 +342,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                         )}
 
                         {event.notes && (
-                          <div className="ml-[92px] mt-2">
+                          <div className="mt-2">
                             <p className="text-gray-600 text-sm italic">{event.notes}</p>
                           </div>
                         )}
@@ -359,7 +358,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
         {/* Footer */}
         <div className="mt-8 text-center text-sm text-gray-500">
           <p>This is your personal schedule for {project.name}.</p>
-          <p>Powered by BackstageOS • Professional Stage Management</p>
+          <p>Powered by BackstageOS</p>
         </div>
       </div>
     </div>
