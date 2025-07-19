@@ -9989,14 +9989,14 @@ Respond with valid JSON only.`;
         return res.status(400).json({ message: "No email address available for test" });
       }
 
-      // Set up SendGrid API key
-      const sendGridApiKey = process.env.SENDGRID_API_KEY;
-      if (!sendGridApiKey) {
-        console.error('SENDGRID_API_KEY environment variable is not set');
+      // Get SendGrid API key from database (same as waitlist emails)
+      const apiSettings = await storage.getApiSettings();
+      if (!apiSettings?.sendgridApiKey) {
+        console.error('SendGrid API key not configured in database');
         return res.status(500).json({ message: "Email service not configured" });
       }
 
-      sgMail.setApiKey(sendGridApiKey);
+      sgMail.setApiKey(apiSettings.sendgridApiKey);
       
       // Create email with dynamic sender name format "[Show Name] SM"
       const senderName = `${project.name} SM`;
