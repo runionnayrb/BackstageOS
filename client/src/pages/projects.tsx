@@ -5,12 +5,17 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { Plus, FolderOpen, Settings } from "lucide-react";
+import { useAdminView } from "@/contexts/AdminViewContext";
+import { isAdmin } from "@/lib/admin";
 
 export default function Projects() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const { selectedProfileType } = useAdminView();
   
-  const isFullTime = (user as any)?.profileType === "fulltime";
+  // Check if user is full-time either by their actual profile type OR if admin has selected full-time view
+  const isFullTime = (user as any)?.profileType === "fulltime" || 
+    (isAdmin(user) && selectedProfileType === "fulltime");
   const projectLabel = "Shows";
   const projectSingle = "Show";
 
