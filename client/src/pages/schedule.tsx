@@ -1285,21 +1285,6 @@ export default function Schedule() {
               </CardContent>
             </Card>
 
-            {/* Google Calendar Integration */}
-            <Card className="border-0 shadow-none">
-              <CardHeader>
-                <CardTitle>Google Calendar Integration</CardTitle>
-                <CardDescription>
-                  Connect with Google Calendar for two-way synchronization.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SchedulePhase5Settings 
-                  projectId={parseInt(projectId)}
-                  projectName={project?.name || 'Project'}
-                />
-              </CardContent>
-            </Card>
           </div>
         </DialogContent>
       </Dialog>
