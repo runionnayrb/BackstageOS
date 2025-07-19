@@ -1986,27 +1986,7 @@ The Production Team`;
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <Label htmlFor="changeSummary">Summary of Changes</Label>
-                  <button
-                    type="button"
-                    className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                    onClick={() => {
-                      if (autoChangesSummary?.changesSummary) {
-                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                          : ((settings as any)?.scheduleSettings || {});
-                        handleSettingsUpdate("scheduleSettings", {
-                          ...scheduleSettings,
-                          changeSummary: autoChangesSummary.changesSummary
-                        });
-                      }
-                    }}
-                    disabled={!autoChangesSummary?.changesSummary}
-                  >
-                    Regenerate Summary
-                  </button>
-                </div>
+                <Label htmlFor="changeSummary">Summary of Changes</Label>
                 <textarea
                   id="changeSummary"
                   className="w-full min-h-[100px] p-3 border border-gray-200 rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
