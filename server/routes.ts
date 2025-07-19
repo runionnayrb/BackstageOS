@@ -19,6 +19,7 @@ import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
 import { scheduleNotificationService } from "./services/scheduleNotificationService.js";
+import { ScheduleChangeDetectionService } from "./services/scheduleChangeDetectionService.js";
 import { z } from "zod";
 import sgMail from "@sendgrid/mail";
 
@@ -488,6 +489,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Initialize conflict validation service
   const conflictValidationService = new ConflictValidationService(storage);
+  
+  // Initialize schedule change detection service
+  const scheduleChangeDetectionService = new ScheduleChangeDetectionService(storage);
 
   // Helper function for error descriptions
   function getErrorDescription(type: string, message: string, page: string) {
@@ -4935,6 +4939,52 @@ Respond with valid JSON only.`;
       }
       console.error("Error updating event participant:", error);
       res.status(500).json({ message: "Failed to update participant" });
+    }
+  });
+
+  // Schedule changes summary generation
+  app.get('/api/projects/:id/schedule-changes-summary', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const changesSummary = await scheduleChangeDetectionService.generateChangesSummary(projectId);
+      res.json({ changesSummary });
+    } catch (error) {
+      console.error("Error generating schedule changes summary:", error);
+      res.status(500).json({ message: "Failed to generate changes summary" });
+    }
+  });
+
+  // Structured schedule changes (for template variables)
+  app.get('/api/projects/:id/schedule-changes-structured', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const structuredChanges = await scheduleChangeDetectionService.generateStructuredChanges(projectId);
+      res.json(structuredChanges);
+    } catch (error) {
+      console.error("Error generating structured schedule changes:", error);
+      res.status(500).json({ message: "Failed to generate structured changes" });
     }
   });
 

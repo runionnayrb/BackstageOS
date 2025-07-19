@@ -182,12 +182,12 @@ BackstageOS • Professional Stage Management
   /**
    * Replace template variables with actual data
    */
-  private replaceTemplateVariables(
+  private async replaceTemplateVariables(
     template: string, 
     data: ScheduleNotificationData, 
     contact: ContactNotificationData,
     personalScheduleUrl: string
-  ): string {
+  ): Promise<string> {
     const contactName = contact.firstName ? `${contact.firstName} ${contact.lastName || ''}`.trim() : contact.email;
     const publishedBy = data.publishedBy.firstName 
       ? `${data.publishedBy.firstName} ${data.publishedBy.lastName || ''}`.trim()
@@ -202,6 +202,15 @@ BackstageOS • Professional Stage Management
       minute: '2-digit'
     });
 
+    // Get structured changes for individual template variables
+    let structuredChanges = { addedEvents: '', changedEvents: '', removedEvents: '', fullSummary: '' };
+    try {
+      const changeDetectionService = new (await import('./scheduleChangeDetectionService.js')).ScheduleChangeDetectionService(storage);
+      structuredChanges = await changeDetectionService.generateStructuredChanges(data.project.id);
+    } catch (error) {
+      console.error('Error fetching structured changes for email:', error);
+    }
+
     const variables = {
       showName: data.project.name,
       version: data.version.version,
@@ -210,7 +219,13 @@ BackstageOS • Professional Stage Management
       title: data.version.title,
       description: data.version.description || '',
       changelog: data.version.changelog,
-      personalScheduleUrl,
+      changesSummary: structuredChanges.fullSummary,
+      addedEvents: structuredChanges.addedEvents,
+      changedEvents: structuredChanges.changedEvents,
+      removedEvents: structuredChanges.removedEvents,
+      personalScheduleUrl: personalScheduleUrl,
+      personalScheduleLink: personalScheduleUrl,
+      publishDate: publishedDate,
       publishedDate
     };
 
@@ -240,9 +255,9 @@ BackstageOS • Professional Stage Management
     personalScheduleUrl: string
   ) {
     try {
-      const subject = this.replaceTemplateVariables(template.subject, data, contact, personalScheduleUrl);
-      const htmlContent = this.replaceTemplateVariables(template.htmlContent, data, contact, personalScheduleUrl);
-      const textContent = this.replaceTemplateVariables(template.textContent, data, contact, personalScheduleUrl);
+      const subject = await this.replaceTemplateVariables(template.subject, data, contact, personalScheduleUrl);
+      const htmlContent = await this.replaceTemplateVariables(template.htmlContent, data, contact, personalScheduleUrl);
+      const textContent = await this.replaceTemplateVariables(template.textContent, data, contact, personalScheduleUrl);
 
       await standaloneEmailService.sendEmail({
         to: contact.email,

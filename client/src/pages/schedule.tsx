@@ -74,7 +74,10 @@ export default function Schedule() {
     { key: '{{showName}}', displayName: 'Show Name', description: 'Show/project name' },
     { key: '{{version}}', displayName: 'Version', description: 'Version number' },
     { key: '{{personalScheduleLink}}', displayName: 'Personal Schedule Link', description: 'Personal schedule link' },
-    { key: '{{changesSummary}}', displayName: 'Changes Summary', description: 'Summary of changes' },
+    { key: '{{changesSummary}}', displayName: 'Full Changes Summary', description: 'Complete summary of all changes' },
+    { key: '{{addedEvents}}', displayName: 'Added Events', description: 'List of newly added events' },
+    { key: '{{changedEvents}}', displayName: 'Changed Events', description: 'List of modified events' },
+    { key: '{{removedEvents}}', displayName: 'Removed Events', description: 'List of cancelled events' },
     { key: '{{publishDate}}', displayName: 'Publish Date', description: 'Publication date' }
   ];
   
@@ -145,6 +148,18 @@ export default function Schedule() {
   // Fetch personal schedules with contact information
   const { data: personalSchedules = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/personal-schedules`],
+  });
+
+  // Fetch auto-generated changes summary
+  const { data: autoChangesSummary } = useQuery({
+    queryKey: [`/api/projects/${projectId}/schedule-changes-summary`],
+    enabled: showScheduleSettings, // Only fetch when modal is open
+  });
+
+  // Fetch structured changes for individual template variables
+  const { data: structuredChanges } = useQuery({
+    queryKey: [`/api/projects/${projectId}/schedule-changes-structured`],
+    enabled: showScheduleSettings, // Only fetch when modal is open
   });
 
   // Organize personal schedules by contact type
@@ -1412,10 +1427,13 @@ export default function Schedule() {
 
 The schedule for \{\{showName\}\} has been updated with version \{\{version\}\}.
 
-You can view your personal schedule here: \{\{personalScheduleLink\}\}
+\{\{addedEvents\}\}
 
-Changes in this version:
-\{\{changesSummary\}\}
+\{\{changedEvents\}\}
+
+\{\{removedEvents\}\}
+
+You can view your personal schedule here: \{\{personalScheduleLink\}\}
 
 Best regards,
 The Production Team`}
@@ -1427,10 +1445,13 @@ The Production Team`}
 
 The schedule for \{\{showName\}\} has been updated with version \{\{version\}\}.
 
-You can view your personal schedule here: \{\{personalScheduleLink\}\}
+\{\{addedEvents\}\}
 
-Changes in this version:
-\{\{changesSummary\}\}
+\{\{changedEvents\}\}
+
+\{\{removedEvents\}\}
+
+You can view your personal schedule here: \{\{personalScheduleLink\}\}
 
 Best regards,
 The Production Team`;
@@ -1473,21 +1494,43 @@ The Production Team`;
               <CardHeader>
                 <CardTitle>Change Summary</CardTitle>
                 <CardDescription>
-                  Describe what changes were made in this schedule version. This will be included in email notifications.
+                  This summary is automatically generated based on actual schedule changes. You can edit it before sending notifications.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  <Label htmlFor="changeSummary">Summary of Changes</Label>
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="changeSummary">Summary of Changes</Label>
+                    <button
+                      type="button"
+                      className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                      onClick={() => {
+                        if (autoChangesSummary?.changesSummary) {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          handleSettingsUpdate("scheduleSettings", {
+                            ...scheduleSettings,
+                            changeSummary: autoChangesSummary.changesSummary
+                          });
+                        }
+                      }}
+                      disabled={!autoChangesSummary?.changesSummary}
+                    >
+                      Regenerate Summary
+                    </button>
+                  </div>
                   <textarea
                     id="changeSummary"
                     className="w-full min-h-[100px] p-3 border border-gray-200 rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Describe the changes made to the schedule (e.g., 'Added rehearsal for Act 2, moved tech rehearsal to 7 PM, cancelled Monday meeting')"
+                    placeholder="Changes will be automatically detected and displayed here..."
                     value={(() => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                         ? safeJsonParse((settings as any).scheduleSettings, {}) 
                         : ((settings as any)?.scheduleSettings || {});
-                      return scheduleSettings.changeSummary || '';
+                      
+                      // Use saved summary if available, otherwise use auto-generated one
+                      return scheduleSettings.changeSummary || autoChangesSummary?.changesSummary || '';
                     })()}
                     onChange={(e) => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
@@ -1500,7 +1543,7 @@ The Production Team`;
                     }}
                   />
                   <p className="text-xs text-gray-500">
-                    This summary will be used in the {`{{changesSummary}}`} variable in your email templates.
+                    This summary is automatically generated from schedule changes and can be edited. It will be used in the {`{{changesSummary}}`} variable.
                   </p>
                 </div>
               </CardContent>

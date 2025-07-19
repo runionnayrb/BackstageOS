@@ -2834,6 +2834,18 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async getLastPublishedScheduleVersion(projectId: number): Promise<ScheduleVersion | undefined> {
+    const result = await db
+      .select()
+      .from(scheduleVersions)
+      .where(eq(scheduleVersions.projectId, projectId))
+      .orderBy(desc(scheduleVersions.publishedAt))
+      .limit(2);
+    
+    // Return the second most recent (previous version)
+    return result[1];
+  }
+
   async createScheduleVersion(version: InsertScheduleVersion): Promise<ScheduleVersion> {
     const result = await db.insert(scheduleVersions).values(version).returning();
     return result[0];
