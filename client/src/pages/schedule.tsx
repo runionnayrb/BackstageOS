@@ -402,7 +402,6 @@ export default function Schedule() {
                     size="sm"
                     className="gap-1 text-xs px-2 py-1 h-auto ml-2"
                   >
-                    <FileText className="h-3 w-3" />
                     Publish
                     <ChevronDown className="h-3 w-3" />
                   </Button>
@@ -434,7 +433,6 @@ export default function Schedule() {
                       size="sm"
                       className="gap-1 text-xs px-2 py-1 h-auto ml-2"
                     >
-                      <User className="h-3 w-3" />
                       Personal
                       <ChevronDown className="h-3 w-3" />
                     </Button>
