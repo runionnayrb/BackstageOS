@@ -84,29 +84,73 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
     }
   }
 
+  private getCurrentWeekRange(timeZone: string, weekStartDay: string = 'sunday'): { startDate: string; endDate: string } {
+    const today = new Date();
+    
+    // Get start of week based on week start preference
+    const startOfWeekOffset = weekStartDay === 'monday' ? 1 : 0;
+    const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const daysToSubtract = (dayOfWeek - startOfWeekOffset + 7) % 7;
+    
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - daysToSubtract);
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+    
+    // Format dates as YYYY-MM-DD strings for comparison
+    const formatDate = (date: Date) => date.toISOString().split('T')[0];
+    
+    return {
+      startDate: formatDate(startOfWeek),
+      endDate: formatDate(endOfWeek)
+    };
+  }
+
+  private isEventInCurrentWeek(eventDate: string, currentWeekRange: { startDate: string; endDate: string }): boolean {
+    return eventDate >= currentWeekRange.startDate && eventDate <= currentWeekRange.endDate;
+  }
+
   async generateChangesSummary(projectId: number): Promise<string> {
     try {
       // Get current schedule events and schedule settings
       const currentEvents = await this.storage.getScheduleEventsByProjectId(projectId);
       const scheduleSettings = await this.storage.getShowSettingsByProjectId(projectId);
       
+      // Parse schedule settings to get week preferences
+      const { timeFormat, timezone, weekStartDay } = this.parseScheduleSettings(scheduleSettings?.scheduleSettings);
+      
+      // Get current week range
+      const currentWeekRange = this.getCurrentWeekRange(timezone, weekStartDay);
+      
+      // Filter current events to only include current week
+      const currentWeekEvents = currentEvents.filter(event => 
+        this.isEventInCurrentWeek(event.date, currentWeekRange)
+      );
+      
       // Get the last published version
       const lastVersion = await this.storage.getLastPublishedScheduleVersion(projectId);
       
       if (!lastVersion) {
         // No previous version - this is the first publication
-        if (currentEvents.length === 0) {
-          return "Initial schedule created (no events scheduled).";
+        if (currentWeekEvents.length === 0) {
+          return "Initial schedule created (no events scheduled for this week).";
         }
-        return `Initial schedule created with ${currentEvents.length} event${currentEvents.length === 1 ? '' : 's'}.`;
+        return `Initial schedule created with ${currentWeekEvents.length} event${currentWeekEvents.length === 1 ? '' : 's'} for this week.`;
       }
 
-      // Compare current events with last version
-      const lastVersionEvents = lastVersion.scheduleData?.events || [];
-      const changes = this.detectChanges(lastVersionEvents, currentEvents, scheduleSettings);
+      // Filter last version events to only include current week
+      const lastVersionEvents = (lastVersion.scheduleData?.events || []).filter(event => 
+        this.isEventInCurrentWeek(event.date, currentWeekRange)
+      );
+      
+      // Compare current week events with last version week events
+      const changes = this.detectChanges(lastVersionEvents, currentWeekEvents, scheduleSettings);
       
       if (changes.length === 0) {
-        return "No changes to the schedule.";
+        return "No changes to the schedule for this week.";
       }
 
       return this.formatChangesSummary(changes, scheduleSettings);
@@ -122,13 +166,23 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
       const currentEvents = await this.storage.getScheduleEventsByProjectId(projectId);
       const scheduleSettings = await this.storage.getShowSettingsByProjectId(projectId);
       
+      // Parse schedule settings to get week preferences
+      const { timeFormat, timezone, weekStartDay } = this.parseScheduleSettings(scheduleSettings?.scheduleSettings);
+      
+      // Get current week range
+      const currentWeekRange = this.getCurrentWeekRange(timezone, weekStartDay);
+      
+      // Filter current events to only include current week
+      const currentWeekEvents = currentEvents.filter(event => 
+        this.isEventInCurrentWeek(event.date, currentWeekRange)
+      );
+      
       // Get the last published version
       const lastVersion = await this.storage.getLastPublishedScheduleVersion(projectId);
       
       if (!lastVersion) {
         // No previous version - this is the first publication  
-        const { timeFormat } = this.parseScheduleSettings(scheduleSettings?.scheduleSettings);
-        const addedEvents = currentEvents.map(event => 
+        const addedEvents = currentWeekEvents.map(event => 
           `ADD: ${event.title} - ${this.formatEventTime(event, timeFormat)}`
         ).join('\n');
         
@@ -136,19 +190,23 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
           addedEvents: addedEvents || '',
           changedEvents: '',
           removedEvents: '',
-          fullSummary: addedEvents ? `Initial schedule created with ${currentEvents.length} event${currentEvents.length === 1 ? '' : 's'}.` : "Initial schedule created (no events scheduled)."
+          fullSummary: addedEvents ? `Initial schedule created with ${currentWeekEvents.length} event${currentWeekEvents.length === 1 ? '' : 's'} for this week.` : "Initial schedule created (no events scheduled for this week)."
         };
       }
 
-      // Compare current events with last version
-      const lastVersionEvents = lastVersion.scheduleData?.events || [];
-      const changes = this.detectChanges(lastVersionEvents, currentEvents, scheduleSettings);
+      // Filter last version events to only include current week
+      const lastVersionEvents = (lastVersion.scheduleData?.events || []).filter(event => 
+        this.isEventInCurrentWeek(event.date, currentWeekRange)
+      );
+      
+      // Compare current week events with last version week events
+      const changes = this.detectChanges(lastVersionEvents, currentWeekEvents, scheduleSettings);
       
       const addedEvents = this.formatChangesByDay(changes.filter(c => c.type === 'added'), scheduleSettings);
       const changedEvents = this.formatChangesByDay(changes.filter(c => c.type === 'modified'), scheduleSettings);
       const removedEvents = this.formatChangesByDay(changes.filter(c => c.type === 'removed'), scheduleSettings);
       
-      const fullSummary = changes.length === 0 ? "No changes to the schedule." : this.formatChangesSummary(changes, scheduleSettings);
+      const fullSummary = changes.length === 0 ? "No changes to the schedule for this week." : this.formatChangesSummary(changes, scheduleSettings);
       
       return {
         addedEvents,
