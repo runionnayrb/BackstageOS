@@ -1770,6 +1770,15 @@ Respond with valid JSON only.`;
       });
 
       const project = await storage.createProject(projectData);
+      
+      // Create initial important date events
+      await syncImportantDatesWithSchedule(
+        project.id, 
+        {}, // No old project data
+        project, 
+        parseInt(userId)
+      );
+      
       res.json(project);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -1780,6 +1789,76 @@ Respond with valid JSON only.`;
       res.status(500).json({ message: "Failed to create project" });
     }
   });
+
+  // Helper function to sync important dates with schedule events
+  async function syncImportantDatesWithSchedule(
+    projectId: number, 
+    oldProject: any, 
+    newProject: any, 
+    userId: number
+  ) {
+    const importantDateFields = [
+      { field: 'prepStartDate', label: 'Prep Start' },
+      { field: 'firstRehearsalDate', label: 'First Rehearsal' },
+      { field: 'designerRunDate', label: 'Designer Run' },
+      { field: 'firstTechDate', label: 'First Tech' },
+      { field: 'firstPreviewDate', label: 'First Preview' },
+      { field: 'openingNight', label: 'Opening Night' },
+      { field: 'closingDate', label: 'Closing' }
+    ];
+
+    // Get existing important date events
+    const existingEvents = await storage.getScheduleEventsByProjectId(projectId);
+    const importantDateEvents = existingEvents.filter(event => 
+      event.type === 'important_date' && event.title && 
+      importantDateFields.some(field => event.title.includes(field.label))
+    );
+
+    for (const dateField of importantDateFields) {
+      const oldDate = oldProject[dateField.field];
+      const newDate = newProject[dateField.field];
+      
+      // Find existing event for this date field
+      const existingEvent = importantDateEvents.find(event => 
+        event.title.includes(dateField.label)
+      );
+
+      if (newDate && newDate !== oldDate) {
+        // Create or update event
+        const eventDate = new Date(newDate);
+        const dateStr = eventDate.toISOString().split('T')[0];
+        
+        if (existingEvent) {
+          // Update existing event
+          await storage.updateScheduleEvent(existingEvent.id, {
+            date: dateStr,
+            title: dateField.label,
+            description: `Important production milestone: ${dateField.label}`,
+            type: 'important_date',
+            isAllDay: true,
+            startTime: '00:00',
+            endTime: '23:59'
+          });
+        } else {
+          // Create new event
+          await storage.createScheduleEvent({
+            projectId,
+            title: dateField.label,
+            description: `Important production milestone: ${dateField.label}`,
+            date: dateStr,
+            startTime: '00:00',
+            endTime: '23:59',
+            type: 'important_date',
+            isAllDay: true,
+            createdBy: userId
+          });
+        }
+      } else if (!newDate && existingEvent) {
+        // Delete event if date was removed
+        await storage.deleteScheduleEvent(existingEvent.id);
+      }
+    }
+  }
 
   app.put('/api/projects/:id', isAuthenticated, async (req: any, res) => {
     try {
@@ -1796,6 +1875,15 @@ Respond with valid JSON only.`;
       }
 
       const updatedProject = await storage.updateProject(projectId, req.body);
+      
+      // Sync important dates with schedule events
+      await syncImportantDatesWithSchedule(
+        projectId, 
+        project, 
+        updatedProject, 
+        parseInt(req.user.id.toString())
+      );
+
       res.json(updatedProject);
     } catch (error) {
       console.error("Error updating project:", error);
@@ -4572,6 +4660,37 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Helper function to sync important date event changes back to project
+  async function syncImportantDateEventToProject(event: any, updatedData: any) {
+    if (event.type !== 'important_date') {
+      return; // Only handle important date events
+    }
+
+    const importantDateMapping: { [key: string]: string } = {
+      'Prep Start': 'prepStartDate',
+      'First Rehearsal': 'firstRehearsalDate', 
+      'Designer Run': 'designerRunDate',
+      'First Tech': 'firstTechDate',
+      'First Preview': 'firstPreviewDate',
+      'Opening Night': 'openingNight',
+      'Closing': 'closingDate'
+    };
+
+    const projectField = importantDateMapping[event.title];
+    if (!projectField) {
+      return; // Not a recognized important date
+    }
+
+    const newDate = updatedData.date;
+    if (newDate) {
+      // Update the project with the new date
+      const updateData: any = {};
+      updateData[projectField] = new Date(newDate);
+      
+      await storage.updateProject(event.projectId, updateData);
+    }
+  }
+
   app.patch('/api/schedule-events/:id', isAuthenticated, async (req: any, res) => {
     try {
       const eventId = parseInt(req.params.id);
@@ -4621,6 +4740,9 @@ Respond with valid JSON only.`;
       
       const updatedEvent = await storage.updateScheduleEvent(eventId, validatedData);
       
+      // Sync important date changes back to project
+      await syncImportantDateEventToProject(event, validatedData);
+      
       // Handle participants update if provided
       if (req.body.participants && Array.isArray(req.body.participants)) {
         // Remove existing participants
@@ -4662,6 +4784,26 @@ Respond with valid JSON only.`;
       const project = await storage.getProjectById(event.projectId);
       if (!project || project.ownerId != req.user.id.toString()) {
         return res.status(403).json({ message: "Access denied" });
+      }
+
+      // If this is an important date event, clear the corresponding project date
+      if (event.type === 'important_date') {
+        const importantDateMapping: { [key: string]: string } = {
+          'Prep Start': 'prepStartDate',
+          'First Rehearsal': 'firstRehearsalDate', 
+          'Designer Run': 'designerRunDate',
+          'First Tech': 'firstTechDate',
+          'First Preview': 'firstPreviewDate',
+          'Opening Night': 'openingNight',
+          'Closing': 'closingDate'
+        };
+
+        const projectField = importantDateMapping[event.title];
+        if (projectField) {
+          const updateData: any = {};
+          updateData[projectField] = null;
+          await storage.updateProject(event.projectId, updateData);
+        }
       }
 
       await storage.deleteScheduleEvent(eventId);

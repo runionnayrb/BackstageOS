@@ -228,13 +228,15 @@ export default function ShowSettings() {
 
   const saveProjectMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest("PATCH", `/api/projects/${params.id}`, projectUpdates);
+      return await apiRequest("PUT", `/api/projects/${params.id}`, projectUpdates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}/schedule-events`] });
+      setProjectUpdates({}); // Clear the pending updates
       toast({
         title: "Important Dates Updated",
-        description: "Your production dates have been saved successfully.",
+        description: "Your production dates have been saved successfully and will appear on the calendar as all-day events.",
       });
     },
     onError: () => {
