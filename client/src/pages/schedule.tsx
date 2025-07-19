@@ -674,7 +674,7 @@ The Production Team`
                 {getHeaderText()}
               </h1>
               {currentPublishedVersion && (
-                <div className="flex items-center justify-between mt-1">
+                <div className="flex items-center justify-between mt-1 w-full">
                   <p className="text-sm text-gray-600">
                     Version {currentPublishedVersion.version}, Published: {(() => {
                       try {
