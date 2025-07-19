@@ -1456,9 +1456,158 @@ The Production Team`
                   Customize the email template sent to team members when schedules are published.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="emailSubject">Email Subject</Label>
+              <CardContent className="space-y-6">
+                {/* Email Sender Configuration */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm text-gray-900">Email Sender Configuration</h4>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Sender Name */}
+                    <div className="space-y-2">
+                      <Label htmlFor="senderName">Sender Name</Label>
+                      <Input
+                        id="senderName"
+                        placeholder={`${project?.name || 'Show Name'} SM`}
+                        value={(() => {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          return scheduleSettings?.emailSender?.senderName || `${project?.name || 'Show Name'} SM`;
+                        })()}
+                        onChange={(e) => {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          handleSettingsUpdate("scheduleSettings", {
+                            ...scheduleSettings,
+                            emailSender: {
+                              ...scheduleSettings?.emailSender,
+                              senderName: e.target.value
+                            }
+                          });
+                        }}
+                      />
+                      <p className="text-xs text-gray-500">This name will appear as the sender in recipients' inboxes</p>
+                    </div>
+
+                    {/* Account Type Selection */}
+                    <div className="space-y-2">
+                      <Label htmlFor="accountType">Send From</Label>
+                      <Select
+                        value={(() => {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          return scheduleSettings?.emailSender?.accountType || 'show_team';
+                        })()}
+                        onValueChange={(value) => {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          handleSettingsUpdate("scheduleSettings", {
+                            ...scheduleSettings,
+                            emailSender: {
+                              ...scheduleSettings?.emailSender,
+                              accountType: value,
+                              // Clear external email when switching away from external
+                              ...(value !== 'external' && { externalEmail: undefined })
+                            }
+                          });
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select account type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="show_team">Show Team Account (schedules@backstageos.com)</SelectItem>
+                          <SelectItem value="personal">Personal BackstageOS Account ({user?.email})</SelectItem>
+                          <SelectItem value="external">External Email Account</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-gray-500">Choose which email address to send from</p>
+                    </div>
+                  </div>
+
+                  {/* External Email Configuration - Show when external is selected */}
+                  {(() => {
+                    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                      : ((settings as any)?.scheduleSettings || {});
+                    return scheduleSettings?.emailSender?.accountType === 'external';
+                  })() && (
+                    <div className="space-y-2">
+                      <Label htmlFor="externalEmail">External Email Address</Label>
+                      <Input
+                        id="externalEmail"
+                        type="email"
+                        placeholder="your-email@example.com"
+                        value={(() => {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          return scheduleSettings?.emailSender?.externalEmail || '';
+                        })()}
+                        onChange={(e) => {
+                          const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                            ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                            : ((settings as any)?.scheduleSettings || {});
+                          handleSettingsUpdate("scheduleSettings", {
+                            ...scheduleSettings,
+                            emailSender: {
+                              ...scheduleSettings?.emailSender,
+                              externalEmail: e.target.value
+                            }
+                          });
+                        }}
+                      />
+                      <p className="text-xs text-gray-500">Enter the email address you want to send from</p>
+                    </div>
+                  )}
+
+                  {/* Reply-To Configuration */}
+                  <div className="space-y-2">
+                    <Label htmlFor="replyToEmail">Reply-To Email</Label>
+                    <Input
+                      id="replyToEmail"
+                      type="email"
+                      placeholder={user?.email || "stage.manager@example.com"}
+                      value={(() => {
+                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                          : ((settings as any)?.scheduleSettings || {});
+                        return scheduleSettings?.emailSender?.replyToEmail || user?.email || '';
+                      })()}
+                      onChange={(e) => {
+                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                          : ((settings as any)?.scheduleSettings || {});
+                        handleSettingsUpdate("scheduleSettings", {
+                          ...scheduleSettings,
+                          emailSender: {
+                            ...scheduleSettings?.emailSender,
+                            replyToEmail: e.target.value
+                          }
+                        });
+                      }}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Replies from team members will be sent to this email address. This ensures all responses reach the stage management team.
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-amber-50/50 rounded-lg">
+                    <p className="text-sm text-amber-700">
+                      <strong>Important:</strong> Configure the Reply-To email to ensure all responses from team members about schedule changes reach the stage management team. This prevents lost communication.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Email Template Section */}
+                <div className="border-t pt-6">
+                  <h4 className="font-medium text-sm text-gray-900 mb-4">Email Template</h4>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="emailSubject">Email Subject</Label>
                   <Input
                     ref={(el) => { emailSubjectRef.current = el; }}
                     id="emailSubject"

@@ -331,8 +331,25 @@ BackstageOS • Professional Stage Management
       const htmlContent = await this.replaceTemplateVariables(template.htmlContent, data, contact, personalScheduleUrl);
       const textContent = await this.replaceTemplateVariables(template.textContent, data, contact, personalScheduleUrl);
 
-      // Dynamic sender name based on show name
-      const senderName = `${data.project.name} SM`;
+      // Get sender configuration from schedule settings
+      const scheduleSettings = await storage.getShowSettings(data.project.id);
+      const emailSenderConfig = scheduleSettings?.scheduleSettings?.emailSender || {};
+      
+      // Dynamic sender name with fallback to show name SM format
+      const senderName = emailSenderConfig.senderName || `${data.project.name} SM`;
+      
+      // Determine sender email based on account type
+      let fromEmail = 'schedules@backstageos.com'; // Default show team account
+      if (emailSenderConfig.accountType === 'personal') {
+        // Use user's personal BackstageOS email if available
+        const user = await storage.getUser(data.publishedBy.id);
+        fromEmail = user?.email || 'schedules@backstageos.com';
+      } else if (emailSenderConfig.accountType === 'external' && emailSenderConfig.externalEmail) {
+        fromEmail = emailSenderConfig.externalEmail;
+      }
+      
+      // Set reply-to email to ensure responses reach the stage management team
+      const replyToEmail = emailSenderConfig.replyToEmail || data.publishedBy.email;
 
       await standaloneEmailService.sendEmail({
         to: contact.email,
@@ -341,8 +358,9 @@ BackstageOS • Professional Stage Management
         text: textContent,
         from: {
           name: senderName,
-          email: 'schedules@backstageos.com'
-        }
+          email: fromEmail
+        },
+        replyTo: replyToEmail
       });
 
       // Log notification sent

@@ -10190,9 +10190,24 @@ The Production Team`;
 
       sgMail.setApiKey(apiSettings.sendgridApiKey);
       
-      // Create email with dynamic sender name format "[Show Name] SM"
-      const senderName = `${project.name} SM`;
-      const fromEmail = 'schedules@backstageos.com';
+      // Get sender configuration from schedule settings
+      const showSettings = await storage.getShowSettings(projectId);
+      const emailSenderConfig = showSettings?.scheduleSettings?.emailSender || {};
+      
+      // Dynamic sender name with fallback to show name SM format
+      const senderName = emailSenderConfig.senderName || `${project.name} SM`;
+      
+      // Determine sender email based on account type
+      let fromEmail = 'schedules@backstageos.com'; // Default show team account
+      if (emailSenderConfig.accountType === 'personal') {
+        // Use user's personal BackstageOS email if available
+        fromEmail = req.user?.email || 'schedules@backstageos.com';
+      } else if (emailSenderConfig.accountType === 'external' && emailSenderConfig.externalEmail) {
+        fromEmail = emailSenderConfig.externalEmail;
+      }
+      
+      // Set reply-to email to ensure responses reach the stage management team
+      const replyToEmail = emailSenderConfig.replyToEmail || req.user?.email;
 
       const msg = {
         to: recipientEmail,
@@ -10202,7 +10217,8 @@ The Production Team`;
         },
         subject: testSubject,
         html: testBody.replace(/\n/g, '<br>'),
-        text: testBody
+        text: testBody,
+        ...(replyToEmail && { replyTo: replyToEmail })
       };
 
       await sgMail.send(msg);
