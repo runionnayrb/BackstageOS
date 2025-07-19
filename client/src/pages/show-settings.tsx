@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -72,6 +72,19 @@ const safeJsonParse = (jsonString: string, fallback: any = {}) => {
     return fallback;
   }
 };
+
+// Template variables for email templates
+const templateVariables = [
+  { key: '{{contactName}}', displayName: 'Contact Name', description: 'Contact\'s name' },
+  { key: '{{showName}}', displayName: 'Show Name', description: 'Show/project name' },
+  { key: '{{version}}', displayName: 'Version', description: 'Version number' },
+  { key: '{{personalScheduleLink}}', displayName: 'Personal Schedule Link', description: 'Personal schedule link' },
+  { key: '{{changesSummary}}', displayName: 'Full Changes Summary', description: 'Complete summary of all changes' },
+  { key: '{{addedEvents}}', displayName: 'Added Events', description: 'List of newly added events' },
+  { key: '{{changedEvents}}', displayName: 'Changed Events', description: 'List of modified events' },
+  { key: '{{removedEvents}}', displayName: 'Removed Events', description: 'List of cancelled events' },
+  { key: '{{publishDate}}', displayName: 'Publish Date', description: 'Publication date' }
+];
 
 interface ShowSettingsParams {
   id: string;
@@ -147,6 +160,10 @@ export default function ShowSettings() {
   const [showGoogleAuth, setShowGoogleAuth] = useState(false);
   const [newTemplateCategory, setNewTemplateCategory] = useState({ name: '', description: '' });
   const [showNewCategoryDialog, setShowNewCategoryDialog] = useState(false);
+  
+  // Email template refs
+  const emailSubjectRef = useRef<HTMLInputElement>(null);
+  const emailBodyRef = useRef<HTMLTextAreaElement>(null);
 
   const isFullTime = user?.profileType === "fulltime";
   const showLabel = isFullTime ? "Show" : "Project";
@@ -158,6 +175,12 @@ export default function ShowSettings() {
 
   const { data: settings, isLoading } = useQuery({
     queryKey: [`/api/projects/${params.id}/settings`],
+    enabled: !!params.id,
+  });
+
+  // Query for auto-generated change summary (for the change summary section)
+  const { data: autoChangesSummary } = useQuery({
+    queryKey: [`/api/projects/${params.id}/schedule-changes-summary`],
     enabled: !!params.id,
   });
 
@@ -224,6 +247,64 @@ export default function ShowSettings() {
 
   const handleProjectUpdate = (updates: any) => {
     setProjectUpdates((prev: any) => ({ ...prev, ...updates }));
+  };
+
+  // Function to insert variable into email template fields
+  const insertVariable = (field: 'subject' | 'body' | 'changeSummary', variable: string) => {
+    let ref;
+    if (field === 'subject') {
+      ref = emailSubjectRef;
+    } else if (field === 'body') {
+      ref = emailBodyRef;
+    } else if (field === 'changeSummary') {
+      ref = document.getElementById('changeSummary') as HTMLTextAreaElement;
+      if (!ref) return;
+    } else {
+      return;
+    }
+    
+    const input = ref instanceof HTMLElement ? ref : ref.current;
+    if (!input) return;
+    
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const currentValue = input.value;
+    const newValue = currentValue.substring(0, start) + variable + currentValue.substring(end);
+    
+    // Update the value through the change handler
+    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+      : ((settings as any)?.scheduleSettings || {});
+    
+    if (field === 'subject') {
+      handleSettingsUpdate("scheduleSettings", {
+        ...scheduleSettings,
+        emailTemplate: {
+          ...scheduleSettings?.emailTemplate,
+          subject: newValue
+        }
+      });
+    } else if (field === 'body') {
+      handleSettingsUpdate("scheduleSettings", {
+        ...scheduleSettings,
+        emailTemplate: {
+          ...scheduleSettings?.emailTemplate,
+          body: newValue
+        }
+      });
+    } else if (field === 'changeSummary') {
+      handleSettingsUpdate("scheduleSettings", {
+        ...scheduleSettings,
+        changeSummary: newValue
+      });
+    }
+    
+    // Set cursor position after the inserted variable
+    setTimeout(() => {
+      const newPosition = start + variable.length;
+      input.setSelectionRange(newPosition, newPosition);
+      input.focus();
+    }, 0);
   };
 
   const saveProjectMutation = useMutation({
@@ -1770,6 +1851,216 @@ export default function ShowSettings() {
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Email Template */}
+          <Card className="mt-6 border-0 shadow-none">
+            <CardHeader>
+              <CardTitle>Schedule Publication Email</CardTitle>
+              <CardDescription>
+                Customize the email template sent to team members when schedules are published.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="emailSubject">Email Subject</Label>
+                <Input
+                  ref={emailSubjectRef}
+                  id="emailSubject"
+                  placeholder="Schedule Update - {{showName}} ({{version}})"
+                  value={(() => {
+                    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                      : ((settings as any)?.scheduleSettings || {});
+                    return scheduleSettings?.emailTemplate?.subject || "Schedule Update - {{showName}} ({{version}})";
+                  })()}
+                  onChange={(e) => {
+                    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                      : ((settings as any)?.scheduleSettings || {});
+                    handleSettingsUpdate("scheduleSettings", {
+                      ...scheduleSettings,
+                      emailTemplate: {
+                        ...scheduleSettings?.emailTemplate,
+                        subject: e.target.value
+                      }
+                    });
+                  }}
+                />
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {templateVariables.map((variable) => (
+                    <button
+                      key={variable.key}
+                      type="button"
+                      className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                      onClick={() => insertVariable('subject', variable.key)}
+                      title={variable.description}
+                    >
+                      {variable.displayName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="emailBody">Email Body</Label>
+                <textarea
+                  ref={emailBodyRef}
+                  id="emailBody"
+                  className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  placeholder="Hi {{contactName}},
+
+The schedule for {{showName}} has been updated with version {{version}}.
+
+{{addedEvents}}
+
+{{changedEvents}}
+
+{{removedEvents}}
+
+You can view your personal schedule here: {{personalScheduleLink}}
+
+Best regards,
+The Production Team"
+                  value={(() => {
+                    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                      : ((settings as any)?.scheduleSettings || {});
+                    return scheduleSettings?.emailTemplate?.body || `Hi {{contactName}},
+
+The schedule for {{showName}} has been updated with version {{version}}.
+
+{{addedEvents}}
+
+{{changedEvents}}
+
+{{removedEvents}}
+
+You can view your personal schedule here: {{personalScheduleLink}}
+
+Best regards,
+The Production Team`;
+                  })()}
+                  onChange={(e) => {
+                    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                      : ((settings as any)?.scheduleSettings || {});
+                    handleSettingsUpdate("scheduleSettings", {
+                      ...scheduleSettings,
+                      emailTemplate: {
+                        ...scheduleSettings?.emailTemplate,
+                        body: e.target.value
+                      }
+                    });
+                  }}
+                />
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {templateVariables.map((variable) => (
+                    <button
+                      key={variable.key}
+                      type="button"
+                      className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                      onClick={() => insertVariable('body', variable.key)}
+                      title={variable.description}
+                    >
+                      {variable.displayName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-3 bg-blue-50/50 rounded-lg">
+                <p className="text-sm text-blue-700 font-medium">Click the variable buttons above to insert them at your cursor position, or type them manually in the template fields.</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Change Summary Template Customization */}
+          <Card className="mt-6 border-0 shadow-none">
+            <CardHeader>
+              <CardTitle>Change Summary</CardTitle>
+              <CardDescription>
+                This summary is automatically generated based on actual schedule changes. You can edit it before sending notifications and customize the format with template variables.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="changeSummary">Summary of Changes</Label>
+                  <button
+                    type="button"
+                    className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                    onClick={() => {
+                      if (autoChangesSummary?.changesSummary) {
+                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                          : ((settings as any)?.scheduleSettings || {});
+                        handleSettingsUpdate("scheduleSettings", {
+                          ...scheduleSettings,
+                          changeSummary: autoChangesSummary.changesSummary
+                        });
+                      }
+                    }}
+                    disabled={!autoChangesSummary?.changesSummary}
+                  >
+                    Regenerate Summary
+                  </button>
+                </div>
+                <textarea
+                  id="changeSummary"
+                  className="w-full min-h-[100px] p-3 border border-gray-200 rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Changes will be automatically detected and displayed here..."
+                  value={(() => {
+                    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                      : ((settings as any)?.scheduleSettings || {});
+                    
+                    // Use saved summary if available, otherwise use auto-generated one
+                    return scheduleSettings.changeSummary || autoChangesSummary?.changesSummary || '';
+                  })()}
+                  onChange={(e) => {
+                    const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                      ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                      : ((settings as any)?.scheduleSettings || {});
+                    handleSettingsUpdate("scheduleSettings", {
+                      ...scheduleSettings,
+                      changeSummary: e.target.value
+                    });
+                  }}
+                />
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {[
+                    { key: '{{addedEvents}}', displayName: 'Added Events', description: 'List of newly added events' },
+                    { key: '{{changedEvents}}', displayName: 'Changed Events', description: 'List of modified events' },
+                    { key: '{{removedEvents}}', displayName: 'Removed Events', description: 'List of cancelled events' },
+                    { key: '{{changesSummary}}', displayName: 'Full Summary', description: 'Complete summary of all changes' }
+                  ].map((variable) => (
+                    <button
+                      key={variable.key}
+                      type="button"
+                      className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                      onClick={() => insertVariable('changeSummary', variable.key)}
+                      title={variable.description}
+                    >
+                      {variable.displayName}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  This summary is automatically generated from schedule changes and can be edited. Use template variables to customize the format with sample data showing exactly how changes will appear.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Schedule Sharing */}
+          <Card className="mt-6 border-0 shadow-none">
+            <CardHeader>
+              <CardTitle>Schedule Sharing</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PersonalScheduleShare projectId={parseInt(params.id)} />
             </CardContent>
           </Card>
 
