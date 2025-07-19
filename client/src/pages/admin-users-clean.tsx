@@ -198,7 +198,7 @@ function AdminUsersContent() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">
-                      {user.betaAccess.charAt(0).toUpperCase() + user.betaAccess.slice(1)}
+                      {user.betaAccess ? 'Beta Access' : 'No Beta Access'}
                     </span>
                     {editingUser === user.id ? (
                       <div className="flex gap-2">

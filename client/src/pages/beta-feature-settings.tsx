@@ -15,8 +15,8 @@ interface FeatureConfig {
   name: string;
   description: string;
   category: string;
-  limitedAccess: boolean;
-  fullAccess: boolean;
+  status: 'implemented' | 'in-progress' | 'planned';
+  enabled: boolean;
 }
 
 interface BetaSettings {
@@ -57,15 +57,12 @@ export default function BetaFeatureSettings() {
     }
   }, [betaSettings]);
 
-  const handleFeatureToggle = (featureId: string, accessLevel: 'limited' | 'full', enabled: boolean) => {
+  const handleFeatureToggle = (featureId: string, enabled: boolean) => {
     setSettings(prev => ({
       ...prev,
       features: prev.features.map(feature =>
         feature.id === featureId
-          ? {
-              ...feature,
-              [accessLevel === 'limited' ? 'limitedAccess' : 'fullAccess']: enabled
-            }
+          ? { ...feature, enabled }
           : feature
       )
     }));
@@ -101,7 +98,7 @@ export default function BetaFeatureSettings() {
           <div>
             <h1 className="text-2xl font-bold">Beta Feature Settings</h1>
             <p className="text-muted-foreground">
-              Configure which features are available to Limited and Full beta access users
+              Configure which features are available to beta users. Disabled features will be hidden from production users.
             </p>
           </div>
         </div>
@@ -112,7 +109,7 @@ export default function BetaFeatureSettings() {
               <CardHeader>
                 <CardTitle className="text-lg">{category}</CardTitle>
                 <CardDescription>
-                  Configure access levels for {category.toLowerCase()} features
+                  Configure which {category.toLowerCase()} features are available to beta users
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -121,39 +118,41 @@ export default function BetaFeatureSettings() {
                   .map(feature => (
                     <div key={feature.id} className="border rounded-lg p-4">
                       <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h4 className="font-medium">{feature.name}</h4>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium">{feature.name}</h4>
+                            <span className={`px-2 py-1 text-xs font-medium rounded ${
+                              feature.status === 'implemented' ? 'bg-green-100 text-green-800' :
+                              feature.status === 'in-progress' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {feature.status === 'implemented' ? 'Live' :
+                               feature.status === 'in-progress' ? 'In Progress' :
+                               'Planned'}
+                            </span>
+                          </div>
                           <p className="text-sm text-muted-foreground">{feature.description}</p>
+                        </div>
+                        <div className="flex items-center space-x-2 ml-4">
+                          <Switch
+                            id={feature.id}
+                            checked={feature.enabled}
+                            onCheckedChange={(checked) => 
+                              handleFeatureToggle(feature.id, checked)
+                            }
+                            disabled={feature.status === 'planned'}
+                          />
+                          <Label htmlFor={feature.id} className="text-sm">
+                            {feature.enabled ? 'Enabled' : 'Disabled'}
+                          </Label>
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id={`${feature.id}-limited`}
-                            checked={feature.limitedAccess}
-                            onCheckedChange={(checked) => 
-                              handleFeatureToggle(feature.id, 'limited', checked)
-                            }
-                          />
-                          <Label htmlFor={`${feature.id}-limited`} className="text-sm">
-                            Limited Beta Access
-                          </Label>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            id={`${feature.id}-full`}
-                            checked={feature.fullAccess}
-                            onCheckedChange={(checked) => 
-                              handleFeatureToggle(feature.id, 'full', checked)
-                            }
-                          />
-                          <Label htmlFor={`${feature.id}-full`} className="text-sm">
-                            Full Beta Access
-                          </Label>
-                        </div>
-                      </div>
+                      {feature.status === 'planned' && (
+                        <p className="text-xs text-muted-foreground mt-2 italic">
+                          This feature is in planning phase and cannot be enabled yet.
+                        </p>
+                      )}
                     </div>
                   ))}
               </CardContent>

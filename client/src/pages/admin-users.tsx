@@ -18,7 +18,7 @@ interface User {
   firstName?: string;
   lastName?: string;
   profileType?: string;
-  betaAccess: string;
+  betaAccess: boolean;
   betaFeatures?: string;
   createdAt: string;
   updatedAt: string;
@@ -39,9 +39,9 @@ function AdminUsersContent() {
   const [editingUser, setEditingUser] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<{
     profileType: string;
-    betaAccess: string;
+    betaAccess: boolean;
     betaFeatures: string[];
-  }>({ profileType: '', betaAccess: '', betaFeatures: [] });
+  }>({ profileType: '', betaAccess: false, betaFeatures: [] });
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -92,7 +92,7 @@ function AdminUsersContent() {
     setEditingUser(user.id);
     setEditForm({
       profileType: user.profileType || 'freelance',
-      betaAccess: user.betaAccess || 'none',
+      betaAccess: user.betaAccess || false,
       betaFeatures: user.betaFeatures ? JSON.parse(user.betaFeatures) : []
     });
   };
@@ -108,7 +108,7 @@ function AdminUsersContent() {
 
   const cancelEdit = () => {
     setEditingUser(null);
-    setEditForm({ profileType: '', betaAccess: '', betaFeatures: [] });
+    setEditForm({ profileType: '', betaAccess: false, betaFeatures: [] });
   };
 
   const handleFeatureToggle = (featureId: string, checked: boolean) => {
@@ -120,12 +120,10 @@ function AdminUsersContent() {
     }));
   };
 
-  const getBetaAccessBadge = (access: string) => {
-    switch (access) {
-      case 'full': return <Badge className="bg-green-100 text-green-800">Full Access</Badge>;
-      case 'limited': return <Badge className="bg-yellow-100 text-yellow-800">Limited Beta</Badge>;
-      default: return <Badge variant="secondary">No Access</Badge>;
-    }
+  const getBetaAccessBadge = (betaAccess: boolean) => {
+    return betaAccess 
+      ? <Badge className="bg-green-100 text-green-800">Beta Access</Badge>
+      : <Badge variant="secondary">No Beta Access</Badge>;
   };
 
   if (isLoading) {
@@ -203,22 +201,21 @@ function AdminUsersContent() {
                     <div className="space-y-2">
                       <Label>Beta Access</Label>
                       <Select
-                        value={editForm.betaAccess}
-                        onValueChange={(value) => setEditForm(prev => ({ ...prev, betaAccess: value }))}
+                        value={editForm.betaAccess.toString()}
+                        onValueChange={(value) => setEditForm(prev => ({ ...prev, betaAccess: value === 'true' }))}
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">No Access</SelectItem>
-                          <SelectItem value="limited">Limited Beta</SelectItem>
-                          <SelectItem value="full">Full Access</SelectItem>
+                          <SelectItem value="false">No Beta Access</SelectItem>
+                          <SelectItem value="true">Beta Access</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
 
-                  {editForm.betaAccess === 'limited' && (
+                  {editForm.betaAccess && (
                     <div className="space-y-2">
                       <Label>Beta Features</Label>
                       <div className="grid grid-cols-2 gap-2">

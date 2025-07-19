@@ -224,7 +224,7 @@ export function setupAuth(app: Express) {
             firstName: adminUser.firstName || undefined,
             lastName: adminUser.lastName || undefined,
             profileType: adminUser.profileType || undefined,
-            betaAccess: adminUser.betaAccess || "none",
+            betaAccess: adminUser.betaAccess || false,
             isAdmin: adminUser.isAdmin || false,
           };
           return res.json(transformedUser);

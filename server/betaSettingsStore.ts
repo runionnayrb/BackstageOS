@@ -4,8 +4,8 @@ interface FeatureConfig {
   name: string;
   description: string;
   category: string;
-  limitedAccess: boolean;
-  fullAccess: boolean;
+  status: 'implemented' | 'in-progress' | 'planned';
+  enabled: boolean;
 }
 
 interface BetaSettingsData {
@@ -14,72 +14,181 @@ interface BetaSettingsData {
   updatedAt?: Date;
 }
 
-// Default feature configuration
+// Default feature configuration organized by current implementation status
 const DEFAULT_FEATURES: FeatureConfig[] = [
+  // Core Production Tools - Implemented
   {
     id: 'script-editor',
     name: 'Script Editor',
     description: 'Advanced script editing with cue building and visual overlays',
     category: 'Production Tools',
-    limitedAccess: false,
-    fullAccess: true,
+    status: 'implemented',
+    enabled: true,
   },
   {
     id: 'props-tracker',
     name: 'Props Tracker',
     description: 'Scene/character organization and status tracking for props',
     category: 'Production Tools',
-    limitedAccess: false,
-    fullAccess: true,
+    status: 'implemented',
+    enabled: true,
   },
   {
     id: 'costume-tracker',
     name: 'Costume Tracker',
     description: 'Quick-change timing and repair tracking for costumes',
     category: 'Production Tools',
-    limitedAccess: false,
-    fullAccess: true,
+    status: 'implemented',
+    enabled: true,
   },
+  
+  // Planning & Scheduling - Implemented
+  {
+    id: 'calendar-management',
+    name: 'Calendar Management',
+    description: 'Advanced scheduling and calendar features with Google Calendar integration',
+    category: 'Planning & Scheduling',
+    status: 'implemented',
+    enabled: true,
+  },
+  {
+    id: 'contact-management',
+    name: 'Contact Management',
+    description: 'Complete contact system with availability tracking and cast organization',
+    category: 'Team Management',
+    status: 'implemented',
+    enabled: true,
+  },
+  {
+    id: 'availability-management',
+    name: 'Availability Management',
+    description: 'Visual drag-and-drop scheduling system for contact availability',
+    category: 'Planning & Scheduling',
+    status: 'implemented',
+    enabled: true,
+  },
+  
+  // Reports & Templates - Implemented
   {
     id: 'advanced-templates',
     name: 'Advanced Templates',
     description: 'Custom field types and dynamic template configuration',
     category: 'Reports & Templates',
-    limitedAccess: true,
-    fullAccess: true,
+    status: 'implemented',
+    enabled: true,
   },
   {
-    id: 'team-collaboration',
-    name: 'Team Collaboration',
-    description: 'Enhanced team member permissions and collaboration tools',
+    id: 'report-builder',
+    name: 'Report Builder',
+    description: 'Flexible report creation with custom layouts and formatting',
+    category: 'Reports & Templates',
+    status: 'implemented',
+    enabled: true,
+  },
+  
+  // Team Management - Implemented
+  {
+    id: 'team-management',
+    name: 'Team Management',
+    description: 'Team member permissions and project collaboration tools',
     category: 'Team Management',
-    limitedAccess: false,
-    fullAccess: true,
+    status: 'implemented',
+    enabled: true,
   },
   {
-    id: 'calendar-management',
-    name: 'Calendar Management',
-    description: 'Advanced scheduling and calendar features',
-    category: 'Planning',
-    limitedAccess: true,
-    fullAccess: true,
+    id: 'email-integration',
+    name: 'Email Integration',
+    description: 'Professional email routing and communication features',
+    category: 'Communication',
+    status: 'implemented',
+    enabled: true,
+  },
+  
+  // Admin & Analytics - Implemented
+  {
+    id: 'admin-dashboard',
+    name: 'Admin Dashboard',
+    description: 'Complete user management and system administration',
+    category: 'Administration',
+    status: 'implemented',
+    enabled: true,
   },
   {
-    id: 'cast-management',
-    name: 'Cast Management',
-    description: 'Character breakdowns and cast tracking tools',
-    category: 'Production Tools',
-    limitedAccess: false,
-    fullAccess: true,
+    id: 'error-logging',
+    name: 'Error Logging & Analytics',
+    description: 'Production error tracking with AI-powered analysis and resolution',
+    category: 'Administration',
+    status: 'implemented',
+    enabled: true,
   },
+  {
+    id: 'feedback-system',
+    name: 'Feedback System',
+    description: 'Built-in user feedback with categorization and admin management',
+    category: 'Administration',
+    status: 'implemented',
+    enabled: true,
+  },
+  
+  // In Progress Features
   {
     id: 'task-boards',
     name: 'Task Boards',
     description: 'Kanban-style task management and workflow tracking',
-    category: 'Planning',
-    limitedAccess: true,
-    fullAccess: true,
-  }
+    category: 'Planning & Scheduling',
+    status: 'in-progress',
+    enabled: false,
+  },
+  {
+    id: 'advanced-notes',
+    name: 'Advanced Notes System',
+    description: 'Rich text notes with attachments and collaboration features',
+    category: 'Production Tools',
+    status: 'in-progress',
+    enabled: false,
+  },
+  {
+    id: 'performance-tracker',
+    name: 'Performance Tracker',
+    description: 'Track show performance metrics and audience feedback',
+    category: 'Production Tools',
+    status: 'in-progress',
+    enabled: false,
+  },
+  
+  // Planned Features
+  {
+    id: 'cast-management',
+    name: 'Cast Management',
+    description: 'Character breakdowns and cast tracking tools with understudy management',
+    category: 'Production Tools',
+    status: 'planned',
+    enabled: false,
+  },
+  {
+    id: 'advanced-analytics',
+    name: 'Advanced Analytics',
+    description: 'Comprehensive production analytics and insights dashboard',
+    category: 'Analytics',
+    status: 'planned',
+    enabled: false,
+  },
+  {
+    id: 'mobile-app',
+    name: 'Mobile App Integration',
+    description: 'Native mobile app with offline capabilities',
+    category: 'Integration',
+    status: 'planned',
+    enabled: false,
+  },
+  {
+    id: 'workflow-automation',
+    name: 'Workflow Automation',
+    description: 'Automated workflows and smart notifications',
+    category: 'Automation',
+    status: 'planned',
+    enabled: false,
+  },
 ];
 
 class BetaSettingsStore {

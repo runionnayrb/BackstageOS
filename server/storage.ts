@@ -568,7 +568,7 @@ export class DatabaseStorage implements IStorage {
 
   async updateUserAdmin(userId: string, updates: { 
     profileType?: string; 
-    betaAccess?: string; 
+    betaAccess?: boolean; 
     betaFeatures?: string[]; 
     isAdmin?: boolean;
     firstName?: string;

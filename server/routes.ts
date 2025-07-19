@@ -1579,8 +1579,8 @@ Respond with valid JSON only.`;
         return res.status(400).json({ message: "Invalid profile type" });
       }
       
-      if (betaAccess && !['none', 'limited', 'full'].includes(betaAccess)) {
-        return res.status(400).json({ message: "Invalid beta access level" });
+      if (betaAccess !== undefined && typeof betaAccess !== 'boolean') {
+        return res.status(400).json({ message: "Invalid beta access value" });
       }
       
       const updatedUser = await storage.updateUserAdmin(targetUserId, {

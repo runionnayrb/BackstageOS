@@ -32,25 +32,20 @@ export const requiresBetaAccess = (requiredFeature?: string): RequestHandler => 
         return next();
       }
 
-      // Check beta access level
-      if (user.betaAccess === 'none') {
+      // Check if user has beta access
+      if (!user.betaAccess) {
         return res.status(403).json({ 
           message: "Beta access required for this feature",
           betaRequired: true 
         });
       }
 
-      // If full access, allow everything
-      if (user.betaAccess === 'full') {
-        return next();
-      }
-
-      // Check specific feature access for limited beta users
-      if (requiredFeature && user.betaAccess === 'limited') {
+      // Check specific feature access if feature is specified
+      if (requiredFeature) {
         const betaFeatures = user.betaFeatures ? JSON.parse(user.betaFeatures as string) : [];
         if (!betaFeatures.includes(requiredFeature)) {
           return res.status(403).json({ 
-            message: `Beta access required for ${requiredFeature}`,
+            message: `Access to ${requiredFeature} feature is not enabled`,
             betaRequired: true,
             feature: requiredFeature
           });
@@ -74,18 +69,13 @@ export const checkFeatureAccess = async (userId: string, feature: string): Promi
     }
 
     const user = await storage.getUser(userId);
-    if (!user || user.betaAccess === 'none') {
+    if (!user || !user.betaAccess) {
       return false;
     }
 
-    if (user.betaAccess === 'full') {
-      return true;
-    }
-
-    if (user.betaAccess === 'limited') {
-      const betaFeatures = user.betaFeatures ? JSON.parse(user.betaFeatures as string) : [];
-      return betaFeatures.includes(feature);
-    }
+    // Check if the specific feature is enabled for this user
+    const betaFeatures = user.betaFeatures ? JSON.parse(user.betaFeatures as string) : [];
+    return betaFeatures.includes(feature);
 
     return false;
   } catch (error) {

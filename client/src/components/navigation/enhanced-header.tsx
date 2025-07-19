@@ -25,7 +25,7 @@ interface User {
   firstName?: string;
   lastName?: string;
   profileType?: string;
-  betaAccess: string;
+  betaAccess: boolean;
   isAdmin?: boolean;
 }
 
@@ -380,7 +380,7 @@ export default function EnhancedHeader() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64">
                   <div className="px-3 py-2 text-sm text-gray-500">
-                    {user.profileType ? user.profileType.charAt(0).toUpperCase() + user.profileType.slice(1) : 'Unknown'} • {user.betaAccess ? user.betaAccess.charAt(0).toUpperCase() + user.betaAccess.slice(1) : 'None'} Access
+                    {user.profileType ? user.profileType.charAt(0).toUpperCase() + user.profileType.slice(1) : 'Unknown'} • {user.betaAccess ? 'Beta' : 'No Beta'} Access
                   </div>
                   
                   <DropdownMenuSeparator />

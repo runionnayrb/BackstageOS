@@ -37,7 +37,7 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   profileType: varchar("profile_type"), // 'freelance' or 'fulltime'
-  betaAccess: varchar("beta_access").default("limited"), // 'none', 'limited', 'full'
+  betaAccess: boolean("beta_access").default(false), // true/false for beta access
   betaFeatures: jsonb("beta_features"), // Array of enabled features for beta users
   isAdmin: boolean("is_admin").default(false), // Admin status for user management access
   // Email settings for show-specific communications via sm@backstageos.com
