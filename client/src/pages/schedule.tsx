@@ -2184,12 +2184,6 @@ The Production Team`}
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
-      </div>
     </div>
   );
 }
