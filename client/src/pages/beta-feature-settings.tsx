@@ -98,7 +98,7 @@ export default function BetaFeatureSettings() {
           <div>
             <h1 className="text-2xl font-bold">Beta Feature Settings</h1>
             <p className="text-muted-foreground">
-              Configure which features are available to beta users. Disabled features will be hidden from production users.
+              Configure beta access for each feature. Features without beta access will be hidden from production users when deployed.
             </p>
           </div>
         </div>
@@ -109,7 +109,7 @@ export default function BetaFeatureSettings() {
               <CardHeader>
                 <CardTitle className="text-lg">{category}</CardTitle>
                 <CardDescription>
-                  Configure which {category.toLowerCase()} features are available to beta users
+                  Configure beta access for {category.toLowerCase()} features
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -143,7 +143,7 @@ export default function BetaFeatureSettings() {
                             disabled={feature.status === 'planned'}
                           />
                           <Label htmlFor={feature.id} className="text-sm">
-                            {feature.enabled ? 'Enabled' : 'Disabled'}
+                            {feature.enabled ? 'Beta Access' : 'No Beta Access'}
                           </Label>
                         </div>
                       </div>
