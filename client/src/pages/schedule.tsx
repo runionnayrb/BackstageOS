@@ -877,7 +877,7 @@ The Production Team`
 
               if (!mostRecentEvent || !users) return null;
 
-              const updatedBy = users.find(user => user.id === mostRecentEvent.createdBy);
+              const updatedBy = users.find(user => user.id === (mostRecentEvent.updatedBy || mostRecentEvent.createdBy));
               if (!updatedBy) return null;
 
               const date = new Date(mostRecentEvent.updatedAt);

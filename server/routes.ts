@@ -4868,7 +4868,7 @@ Best regards,
         }
       }
       
-      const updatedEvent = await storage.updateScheduleEvent(eventId, validatedData);
+      const updatedEvent = await storage.updateScheduleEvent(eventId, validatedData, req.user.id);
       
       // Sync important date changes back to project
       await syncImportantDateEventToProject(event, validatedData);

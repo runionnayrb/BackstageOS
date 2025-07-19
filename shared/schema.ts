@@ -470,6 +470,7 @@ export const scheduleEvents = pgTable("schedule_events", {
   notes: text("notes"),
   isAllDay: boolean("is_all_day").default(false),
   createdBy: integer("created_by").notNull().references(() => users.id),
+  updatedBy: integer("updated_by").references(() => users.id), // Track who last updated the event
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
