@@ -319,9 +319,9 @@ The Production Team`
   const currentPublishedVersion = useMemo(() => {
     if (!scheduleVersions || scheduleVersions.length === 0) return null;
     
-    // Sort versions by creation date, latest first
+    // Sort versions by published date, latest first
     const sortedVersions = [...scheduleVersions].sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
     );
     
     // Return the most recent version
@@ -665,25 +665,34 @@ The Production Team`
               {currentPublishedVersion && (
                 <p className="text-sm text-gray-600 mt-1">
                   Version {currentPublishedVersion.version}, Updated: {(() => {
-                    const date = new Date(currentPublishedVersion.createdAt);
-                    const timeFormat = settings?.scheduleSettings?.timeFormat || '12';
-                    const dateStr = date.toLocaleDateString('en-US', { 
-                      month: 'long', 
-                      day: 'numeric', 
-                      year: 'numeric' 
-                    });
-                    const timeStr = timeFormat === '24' 
-                      ? date.toLocaleTimeString('en-US', { 
-                          hour12: false, 
-                          hour: '2-digit', 
-                          minute: '2-digit'
-                        })
-                      : date.toLocaleTimeString('en-US', { 
-                          hour12: true, 
-                          hour: 'numeric', 
-                          minute: '2-digit'
-                        });
-                    return `${dateStr} at ${timeStr}`;
+                    try {
+                      const date = new Date(currentPublishedVersion.publishedAt);
+                      if (isNaN(date.getTime())) {
+                        console.error('Invalid publishedAt date:', currentPublishedVersion.publishedAt);
+                        return 'Invalid Date';
+                      }
+                      const timeFormat = settings?.scheduleSettings?.timeFormat || '12';
+                      const dateStr = date.toLocaleDateString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      });
+                      const timeStr = timeFormat === '24' 
+                        ? date.toLocaleTimeString('en-US', { 
+                            hour12: false, 
+                            hour: '2-digit', 
+                            minute: '2-digit'
+                          })
+                        : date.toLocaleTimeString('en-US', { 
+                            hour12: true, 
+                            hour: 'numeric', 
+                            minute: '2-digit'
+                          });
+                      return `${dateStr} at ${timeStr}`;
+                    } catch (error) {
+                      console.error('Date formatting error:', error, currentPublishedVersion);
+                      return 'Date formatting error';
+                    }
                   })()}
                 </p>
               )}
