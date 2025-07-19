@@ -156,25 +156,19 @@ export default function Header() {
             >
               <span 
                 style={{
-                  background: 'linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4)',
-                  backgroundSize: '0% 100%',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'left',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
                   color: '#111827',
                   transition: 'all 0.3s ease',
                   cursor: 'pointer'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundSize = '100% 100%';
-                  e.currentTarget.style.WebkitTextFillColor = 'transparent';
-                  e.currentTarget.style.color = 'transparent';
+                  e.currentTarget.style.color = '#3b82f6';
+                  e.currentTarget.style.textShadow = '0 0 8px #8b5cf6, 0 0 12px #06b6d4';
+                  e.currentTarget.style.transform = 'scale(1.05)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundSize = '0% 100%';
-                  e.currentTarget.style.WebkitTextFillColor = 'initial';
                   e.currentTarget.style.color = '#111827';
+                  e.currentTarget.style.textShadow = 'none';
+                  e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
                 BackstageOS
