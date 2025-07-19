@@ -19,6 +19,7 @@ import ScheduleFilter from "@/components/schedule-filter";
 import EventForm from "@/components/event-form";
 import { ScheduleVersionHistory } from "@/components/schedule-version-control/schedule-version-history";
 import { SchedulePhase5Settings } from "@/components/schedule-phase5/SchedulePhase5Settings";
+import { PersonalScheduleShare } from "@/components/personal-schedule-share";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -1050,13 +1051,7 @@ export default function Schedule() {
           <div className="space-y-6">
             {/* Schedule Settings Card */}
             <Card className="border-0 shadow-none">
-              <CardHeader>
-                <CardTitle>Schedule Settings</CardTitle>
-                <CardDescription>
-                  Configure timezone and scheduling preferences.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="pt-6 space-y-6">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="timeZone">Time Zone</Label>
@@ -1274,6 +1269,35 @@ export default function Schedule() {
                     </p>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Personal Schedule Sharing */}
+            <Card className="border-0 shadow-none">
+              <CardHeader>
+                <CardTitle>Personal Schedule Sharing</CardTitle>
+                <CardDescription>
+                  Share personalized schedules with individual team members.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PersonalScheduleShare projectId={parseInt(projectId)} />
+              </CardContent>
+            </Card>
+
+            {/* Google Calendar Integration */}
+            <Card className="border-0 shadow-none">
+              <CardHeader>
+                <CardTitle>Google Calendar Integration</CardTitle>
+                <CardDescription>
+                  Connect with Google Calendar for two-way synchronization.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SchedulePhase5Settings 
+                  projectId={parseInt(projectId)}
+                  projectName={project?.name || 'Project'}
+                />
               </CardContent>
             </Card>
           </div>
