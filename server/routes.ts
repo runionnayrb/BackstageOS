@@ -1913,6 +1913,36 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Manual sync route for important dates (for existing projects)
+  app.post('/api/projects/:id/sync-important-dates', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Force sync the important dates with schedule events
+      await syncImportantDatesWithSchedule(
+        projectId,
+        {}, // Treat as if no old dates exist to force creation
+        project,
+        parseInt(req.user.id.toString())
+      );
+
+      res.json({ message: "Important dates synced successfully" });
+    } catch (error) {
+      console.error("Error syncing important dates:", error);
+      res.status(500).json({ message: "Failed to sync important dates" });
+    }
+  });
+
   // ========== SEASONS ROUTES ==========
   
   app.get('/api/seasons', isAuthenticated, async (req: any, res) => {
