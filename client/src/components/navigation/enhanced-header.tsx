@@ -382,22 +382,7 @@ export default function EnhancedHeader() {
               </Button>
             )}
 
-            {/* Admin View As Controls */}
-            {isAdmin(user) && switchStatus?.isViewingAs && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-800 rounded-md text-sm">
-                <UserCheck className="h-4 w-4" />
-                <span>Viewing as {switchStatus.viewingUser?.firstName || 'User'}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => switchBackMutation.mutate()}
-                  disabled={switchBackMutation.isPending}
-                  className="h-6 px-2 ml-2 text-orange-700 hover:text-orange-900"
-                >
-                  Switch Back
-                </Button>
-              </div>
-            )}
+            {/* Admin View As Controls - Hidden per user request */}
 
             {/* User Dropdown */}
             {user && (
