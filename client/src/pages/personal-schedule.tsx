@@ -228,7 +228,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
         {/* Events List */}
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b">
-            <h2 className="text-lg font-semibold text-gray-900">Your Schedule</h2>
+            <h2 className="text-lg font-semibold text-gray-900">My Schedule</h2>
             <p className="text-gray-600 text-sm">
               {events.length} event{events.length !== 1 ? 's' : ''} assigned to you
             </p>
