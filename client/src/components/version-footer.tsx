@@ -121,12 +121,27 @@ export default function VersionFooter() {
                         </div>
                         
                         <ul className="space-y-2">
-                          {release.features.map((feature, featureIndex) => (
-                            <li key={featureIndex} className="flex items-start gap-2 text-sm">
-                              <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                              <span>{feature}</span>
-                            </li>
-                          ))}
+                          {release.features.map((feature, featureIndex) => {
+                            // Check if this is a header (contains <strong><u>)
+                            const isHeader = feature.includes('<strong><u>') && feature.includes('</u></strong>');
+                            
+                            if (isHeader) {
+                              // Extract the header text
+                              const headerText = feature.replace('<strong><u>', '').replace('</u></strong>', '');
+                              return (
+                                <li key={featureIndex} className="mt-4 first:mt-0">
+                                  <h4 className="font-bold underline text-sm text-gray-900">{headerText}</h4>
+                                </li>
+                              );
+                            } else {
+                              return (
+                                <li key={featureIndex} className="flex items-start gap-2 text-sm">
+                                  <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                  <span>{feature}</span>
+                                </li>
+                              );
+                            }
+                          })}
                         </ul>
                       </div>
                     ))}
