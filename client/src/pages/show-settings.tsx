@@ -257,9 +257,22 @@ export default function ShowSettings() {
         : ((settings as any)?.scheduleSettings || {});
       
       const emailData = {
-        subject: localEmailSubject || scheduleSettings?.emailTemplate?.subject || "Schedule Update - Test Show (Test Version)",
-        body: localEmailBody || scheduleSettings?.emailTemplate?.body || "This is a test of your schedule email template with the dynamic sender name.",
-        testEmail: testEmailAddress || user?.email || ""
+        emailSubject: localEmailSubject || scheduleSettings?.emailTemplate?.subject || "Schedule Update - {{showName}} ({{version}})",
+        emailBody: localEmailBody || scheduleSettings?.emailTemplate?.body || `Hi {{contactName}},
+
+The schedule for {{showName}} has been updated with version {{version}}.
+
+{{addedEvents}}
+
+{{changedEvents}}
+
+{{removedEvents}}
+
+You can view your personal schedule here: {{personalScheduleLink}}
+
+Best regards,
+The Production Team`,
+        testEmailAddress: testEmailAddress || user?.email || ""
       };
       
       return await apiRequest("POST", `/api/projects/${params.id}/send-test-email`, emailData);

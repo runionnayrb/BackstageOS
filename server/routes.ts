@@ -9967,11 +9967,11 @@ Respond with valid JSON only.`;
     }
   });
 
-  // Send test email with email template
+  // Send test email with actual email template processing
   app.post('/api/projects/:id/send-test-email', isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
-      const { subject, body, testEmail } = req.body;
+      const { testEmailAddress, emailSubject, emailBody } = req.body;
       
       // Verify project access
       const project = await storage.getProjectById(projectId);
@@ -9984,10 +9984,96 @@ Respond with valid JSON only.`;
       }
 
       // Get test email address - default to user's email if not provided
-      const recipientEmail = testEmail || req.user.email;
+      const recipientEmail = testEmailAddress?.trim() || req.user.email;
       if (!recipientEmail) {
         return res.status(400).json({ message: "No email address available for test" });
       }
+
+      // Get project settings for email template
+      const settings = await storage.getProjectSettings(projectId);
+      let scheduleSettings = {};
+      if (settings?.scheduleSettings) {
+        try {
+          scheduleSettings = typeof settings.scheduleSettings === 'string' 
+            ? JSON.parse(settings.scheduleSettings) 
+            : settings.scheduleSettings;
+        } catch (e) {
+          console.warn('Failed to parse schedule settings:', e);
+        }
+      }
+
+      // Use provided template content or fall back to saved settings
+      let testSubject = emailSubject || scheduleSettings.emailTemplate?.subject || "Schedule Update - {{showName}} ({{version}})";
+      let testBody = emailBody || scheduleSettings.emailTemplate?.body || `Hi {{contactName}},
+
+The schedule for {{showName}} has been updated with version {{version}}.
+
+{{addedEvents}}
+
+{{changedEvents}}
+
+{{removedEvents}}
+
+You can view your personal schedule here: {{personalScheduleLink}}
+
+Best regards,
+The Production Team`;
+
+      // Create test data for variable substitution
+      const testContactName = req.user.firstName ? `${req.user.firstName} ${req.user.lastName || ''}`.trim() : req.user.email;
+      const testVersion = "Test v1.0";
+      const testPublishDate = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric', 
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+
+      // Get actual schedule changes for realistic test data
+      let structuredChanges = { addedEvents: '', changedEvents: '', removedEvents: '', fullSummary: '' };
+      try {
+        const changeDetectionService = new (await import('./services/scheduleChangeDetectionService.js')).ScheduleChangeDetectionService(storage);
+        structuredChanges = await changeDetectionService.generateStructuredChanges(projectId);
+      } catch (error) {
+        console.error('Error fetching structured changes for test email:', error);
+        // Use fallback test data
+        structuredChanges = {
+          addedEvents: 'Added Events:\n• New rehearsal on Monday 2:00 PM - 5:00 PM\n• Costume fitting on Tuesday 10:00 AM - 11:00 AM',
+          changedEvents: 'Changed Events:\n• Tech rehearsal moved from Wednesday 7:00 PM to Thursday 7:00 PM\n• Opening night time updated to 8:00 PM',
+          removedEvents: 'Removed Events:\n• Cancelled: Extra rehearsal on Friday afternoon',
+          fullSummary: 'This is a test schedule update showing how your template will appear to recipients.'
+        };
+      }
+
+      // Define template variables for substitution
+      const variables = {
+        showName: project.name,
+        version: testVersion,
+        contactName: testContactName,
+        publishedBy: testContactName,
+        changesSummary: structuredChanges.fullSummary,
+        addedEvents: structuredChanges.addedEvents,
+        changedEvents: structuredChanges.changedEvents,
+        removedEvents: structuredChanges.removedEvents,
+        personalScheduleLink: `${process.env.REPLIT_HOST || 'https://backstageos.com'}/personal-schedule/test-token-preview`,
+        personalScheduleUrl: `${process.env.REPLIT_HOST || 'https://backstageos.com'}/personal-schedule/test-token-preview`,
+        publishDate: testPublishDate,
+        publishedDate: testPublishDate
+      };
+
+      // Replace template variables in subject and body
+      Object.entries(variables).forEach(([key, value]) => {
+        const regex = new RegExp(`{{${key}}}`, 'g');
+        testSubject = testSubject.replace(regex, value);
+        testBody = testBody.replace(regex, value);
+      });
+
+      // Handle conditional blocks (simple {{#if description}} logic)
+      testBody = testBody.replace(/{{#if description}}(.*?){{\/if}}/gs, (match, content) => {
+        return ''; // For test, assume no description
+      });
 
       // Get SendGrid API key from database (same as waitlist emails)
       const apiSettings = await storage.getApiSettings();
@@ -10001,16 +10087,6 @@ Respond with valid JSON only.`;
       // Create email with dynamic sender name format "[Show Name] SM"
       const senderName = `${project.name} SM`;
       const fromEmail = 'schedules@backstageos.com';
-
-      const testSubject = subject || `Test Email: ${project.name} Schedule Update`;
-      const testBody = body || `This is a test email for ${project.name} schedule notifications.
-
-This email is sent from: ${senderName}
-
-You can customize this template in Show Settings → Schedule tab.
-
-Best regards,
-The BackstageOS Team`;
 
       const msg = {
         to: recipientEmail,
