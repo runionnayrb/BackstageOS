@@ -3045,6 +3045,15 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
+  async getScheduleVersionsByProject(projectId: number): Promise<ScheduleVersion[]> {
+    const result = await db
+      .select()
+      .from(scheduleVersions)
+      .where(eq(scheduleVersions.projectId, projectId))
+      .orderBy(scheduleVersions.createdAt);
+    return result;
+  }
+
   // Google Calendar Integration (Phase 5)
   async getGoogleCalendarIntegrationsByProjectId(projectId: number): Promise<GoogleCalendarIntegration[]> {
     const result = await db

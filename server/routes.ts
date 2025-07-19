@@ -10089,14 +10089,8 @@ Respond with valid JSON only.`;
         return res.status(404).json({ message: "Personal schedule not found or access token expired" });
       }
 
-      // Check if token is expired
-      if (personalSchedule.expiresAt && new Date() > new Date(personalSchedule.expiresAt)) {
-        return res.status(410).json({ message: "Access token has expired" });
-      }
-
-      if (!personalSchedule.isActive) {
-        return res.status(403).json({ message: "Personal schedule access has been deactivated" });
-      }
+      // Personal schedules don't expire by default and are always active when they exist
+      // If expiration or activation features are needed later, add these fields to the schema
 
       // Get project details
       const project = await storage.getProjectById(personalSchedule.projectId);
@@ -10111,7 +10105,7 @@ Respond with valid JSON only.`;
       }
 
       // Get schedule version
-      const version = await storage.getScheduleVersionById(personalSchedule.versionId);
+      const version = await storage.getScheduleVersionById(personalSchedule.currentVersionId);
       if (!version) {
         return res.status(404).json({ message: "Schedule version not found" });
       }
@@ -10126,8 +10120,7 @@ Respond with valid JSON only.`;
         personalSchedule: {
           id: personalSchedule.id,
           accessToken: personalSchedule.accessToken,
-          expiresAt: personalSchedule.expiresAt,
-          isActive: personalSchedule.isActive
+          lastViewedAt: personalSchedule.lastViewedAt
         },
         project: {
           id: project.id,
