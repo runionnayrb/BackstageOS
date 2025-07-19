@@ -1272,6 +1272,102 @@ export default function Schedule() {
               </CardContent>
             </Card>
 
+            {/* Email Template */}
+            <Card className="border-0 shadow-none">
+              <CardHeader>
+                <CardTitle>Schedule Publication Email</CardTitle>
+                <CardDescription>
+                  Customize the email template sent to team members when schedules are published.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="emailSubject">Email Subject</Label>
+                  <Input
+                    id="emailSubject"
+                    placeholder="Schedule Update - {{showName}} ({{version}})"
+                    value={(() => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      return scheduleSettings?.emailTemplate?.subject || "Schedule Update - {{showName}} ({{version}})";
+                    })()}
+                    onChange={(e) => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      handleSettingsUpdate("scheduleSettings", {
+                        ...scheduleSettings,
+                        emailTemplate: {
+                          ...scheduleSettings?.emailTemplate,
+                          subject: e.target.value
+                        }
+                      });
+                    }}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="emailBody">Email Body</Label>
+                  <textarea
+                    id="emailBody"
+                    className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    placeholder={`Hi {{contactName}},
+
+The schedule for {{showName}} has been updated with version {{version}}.
+
+You can view your personal schedule here: {{personalScheduleLink}}
+
+Changes in this version:
+{{changesSummary}}
+
+Best regards,
+The Production Team`}
+                    value={(() => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      return scheduleSettings?.emailTemplate?.body || `Hi {{contactName}},
+
+The schedule for {{showName}} has been updated with version {{version}}.
+
+You can view your personal schedule here: {{personalScheduleLink}}
+
+Changes in this version:
+{{changesSummary}}
+
+Best regards,
+The Production Team`;
+                    })()}
+                    onChange={(e) => {
+                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                        : ((settings as any)?.scheduleSettings || {});
+                      handleSettingsUpdate("scheduleSettings", {
+                        ...scheduleSettings,
+                        emailTemplate: {
+                          ...scheduleSettings?.emailTemplate,
+                          body: e.target.value
+                        }
+                      });
+                    }}
+                  />
+                </div>
+
+                <div className="p-3 bg-blue-50/50 rounded-lg">
+                  <p className="text-sm text-blue-700 font-medium mb-2">Available Variables:</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs text-blue-600">
+                    <div><code>{"{{contactName}}"}</code> - Contact's name</div>
+                    <div><code>{"{{showName}}"}</code> - Show/project name</div>
+                    <div><code>{"{{version}}"}</code> - Version number</div>
+                    <div><code>{"{{personalScheduleLink}}"}</code> - Personal schedule link</div>
+                    <div><code>{"{{changesSummary}}"}</code> - Summary of changes</div>
+                    <div><code>{"{{publishDate}}"}</code> - Publication date</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Schedule Sharing */}
             <Card className="border-0 shadow-none">
               <CardHeader>
