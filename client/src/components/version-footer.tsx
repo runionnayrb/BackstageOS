@@ -5,15 +5,37 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle } from "lucide-react";
 
-const CURRENT_VERSION = "26.5.0";
+const CURRENT_VERSION = "26.1.0";
 
 const RELEASE_NOTES = [
   {
-    version: "26.5.0",
+    version: "26.1.0",
+    date: "July 19, 2025",
+    type: "Major",
+    features: [
+      "Schedule publishing with version control - track exactly when schedules were last published and updated",
+      "Professional email notifications for schedule updates with customizable templates and sender options",
+      "Complete schedule change tracking showing what specifically changed between versions",
+      "Personal schedule pages for team members with secure token-based access",
+      "Comprehensive email template system with variables for contact names, show details, and week dates",
+      "Advanced schedule settings with timezone control, time format preferences, and event filtering",
+      "Royal-themed version publishing options with Queen (Major) and King (Minor) version types",
+      "Schedule resending capabilities with organized contact lists and notification preferences",
+      "Enhanced calendar views with consistent formatting across monthly, weekly, and daily displays",
+      "Professional contact photo management with automatic image optimization",
+      "Task management system with Notion-style interface, custom properties, and project-based collaboration",
+      "Notes system with Apple Notes and Notion-style features including folders, search, and real-time collaboration",
+      "Mobile calendar interface with native feel, pull-to-refresh, and swipe gestures",
+      "Performance tracking system for equity contracts with rehearsal and show statistics",
+      "Advanced availability management with drag-and-drop scheduling and conflict detection",
+      "Email sidebar with collapsible functionality and multi-account support"
+    ]
+  },
+  {
+    version: "26.0.0",
     date: "July 3, 2025",
     type: "Major",
     features: [
-      "Updated version numbering to 26.5.0 for fall release cycle",
       "Comprehensive scheduling system with weekly calendar drag-and-drop functionality",
       "Advanced team availability management with visual timeline interface",
       "Complete contact sheet system with professional formatting and version control",
