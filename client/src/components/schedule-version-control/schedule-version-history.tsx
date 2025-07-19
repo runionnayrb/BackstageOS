@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { 
@@ -19,7 +20,8 @@ import {
   FileText,
   CheckCircle,
   AlertCircle,
-  Eye
+  Eye,
+  ChevronDown
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -128,13 +130,33 @@ export function ScheduleVersionHistory({ projectId, onClose }: ScheduleVersionHi
             <Users className="h-4 w-4" />
             {showPersonalSchedules ? 'Hide' : 'Show'} Personal Schedules
           </Button>
-          <Button
-            onClick={() => setShowPublishDialog(true)}
-            className="gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Publish New Version
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="gap-2">
+                <FileText className="h-4 w-4" />
+                Publish
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedVersionType('major');
+                  setShowPublishDialog(true);
+                }}
+              >
+                Major Version
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedVersionType('minor');
+                  setShowPublishDialog(true);
+                }}
+              >
+                Minor Version
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
