@@ -223,8 +223,8 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
       <div className="max-w-4xl mx-auto px-4 py-6">
 
         {/* Events List */}
-        <div className="bg-gray-50 rounded-lg shadow">
-          <div className="px-6 py-4 border-b">
+        <div className="bg-gray-50 rounded-lg">
+          <div className="px-6 py-4">
             <h2 className="text-lg font-semibold text-gray-900">My Schedule</h2>
             <p className="text-gray-600 text-sm">
               You are scheduled for {events.length} event{events.length !== 1 ? 's' : ''} this week
@@ -240,9 +240,9 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
           ) : (
             <div>
               {Object.entries(eventsByDate).map(([date, dayEvents], dateIndex) => (
-                <div key={date} className={dateIndex > 0 ? 'border-t' : ''}>
+                <div key={date}>
                   {/* Date Header */}
-                  <div className="px-6 py-4 bg-white border-b">
+                  <div className="px-6 py-4 bg-white">
                     <h3 className="text-lg font-semibold text-gray-900">{formatDate(date)}</h3>
                     <p className="text-sm text-gray-600">
                       {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}
@@ -250,7 +250,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                   </div>
                   
                   {/* Events for this date */}
-                  <div className="divide-y">
+                  <div>
                     {dayEvents.map((event) => (
                       <div 
                         key={event.id} 
