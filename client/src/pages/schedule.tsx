@@ -1934,16 +1934,17 @@ The Production Team`}
 
       {/* Resend Schedule Dialog */}
       <Dialog open={showResendScheduleDialog} onOpenChange={setShowResendScheduleDialog}>
-        <DialogContent className="sm:max-w-lg h-[600px] flex flex-col p-6">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Resend Schedule</DialogTitle>
             <DialogDescription>
               Select contacts to resend the most recent published schedule version.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col flex-1 space-y-4">
+          
+          <div className="flex flex-col space-y-4 min-h-0 flex-1">
             {/* Full Company Toggle */}
-            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border-2">
+            <div className="flex-shrink-0 flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border-2">
               <Checkbox
                 id="fullCompany"
                 checked={resendSelectedContacts.length === allContactIds.length && allContactIds.length > 0}
@@ -1958,8 +1959,8 @@ The Production Team`}
               </Label>
             </div>
 
-            {/* Contact List organized by type */}
-            <div className="flex-1 space-y-4 overflow-y-auto min-h-0 pr-2">
+            {/* Contact List organized by type - Scrollable */}
+            <div className="flex-1 overflow-y-auto border border-gray-200 rounded-lg p-4 space-y-4 min-h-0">
               {Object.keys(organizedContacts).length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -1995,11 +1996,11 @@ The Production Team`}
             </div>
 
             {/* Selected contacts indicator - always present to prevent layout shifts */}
-            <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+            <div className="flex-shrink-0 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
               Selected: {resendSelectedContacts.length} contact{resendSelectedContacts.length !== 1 ? 's' : ''}
             </div>
           </div>
-          <DialogFooter className="flex gap-2">
+          <DialogFooter className="flex-shrink-0 flex gap-2">
             <Button 
               variant="outline" 
               onClick={() => setShowResendScheduleDialog(false)}
