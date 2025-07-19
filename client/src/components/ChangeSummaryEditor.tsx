@@ -1,4 +1,5 @@
 import { useEditor, EditorContent } from '@tiptap/react';
+import { useEffect } from 'react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import { Bold, Italic, Underline as UnderlineIcon, List, ListOrdered } from "lucide-react";
@@ -36,6 +37,31 @@ export function ChangeSummaryEditor({ content, onChange, placeholder = "Changes 
       },
     },
   });
+
+  // Handle content conversion from plain text to HTML
+  useEffect(() => {
+    if (editor && content) {
+      const currentContent = editor.getHTML();
+      // If content doesn't contain HTML tags, treat it as plain text and convert line breaks
+      const isPlainText = !content.includes('<') && !content.includes('&');
+      
+      if (isPlainText && content !== editor.getText()) {
+        // Convert plain text with line breaks to HTML paragraphs
+        const lines = content.split('\n\n');
+        const htmlContent = lines
+          .map(line => line.trim())
+          .filter(line => line.length > 0)
+          .map(line => `<p>${line.replace(/\n/g, '<br>')}</p>`)
+          .join('');
+        
+        if (htmlContent && htmlContent !== currentContent) {
+          editor.commands.setContent(htmlContent);
+        }
+      } else if (!isPlainText && content !== currentContent) {
+        editor.commands.setContent(content);
+      }
+    }
+  }, [content, editor]);
 
   if (!editor) {
     return null;
