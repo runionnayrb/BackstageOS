@@ -167,6 +167,7 @@ export default function ShowSettings() {
   const emailBodyRef = useRef<HTMLTextAreaElement>(null);
   const [localChangeSummary, setLocalChangeSummary] = useState('');
   const [testEmailAddress, setTestEmailAddress] = useState('');
+  const [showTestEmailDialog, setShowTestEmailDialog] = useState(false);
 
   const isFullTime = user?.profileType === "fulltime";
   const showLabel = isFullTime ? "Show" : "Project";
@@ -284,6 +285,7 @@ export default function ShowSettings() {
   
   const sendTestEmail = () => {
     sendTestEmailMutation.mutate();
+    setShowTestEmailDialog(false);
   };
 
   // Function to insert variable into email template fields
@@ -2006,25 +2008,13 @@ The Production Team`}
                 <p className="text-sm text-blue-700 font-medium">Click the variable buttons above to insert them at your cursor position, or type them manually in the template fields.</p>
               </div>
               
-              <div className="space-y-3 pt-4">
-                <div>
-                  <Label htmlFor="testEmailAddress">Test Email Address (Optional)</Label>
-                  <Input
-                    id="testEmailAddress"
-                    type="email"
-                    placeholder={`Leave blank to send to ${user?.email || 'your email'}`}
-                    value={testEmailAddress}
-                    onChange={(e) => setTestEmailAddress(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="flex justify-end gap-3">
+              <div className="flex justify-end gap-3 pt-4">
                 <Button
-                  onClick={sendTestEmail}
+                  onClick={() => setShowTestEmailDialog(true)}
                   variant="outline"
                   disabled={sendTestEmailMutation.isPending}
                 >
-                  {sendTestEmailMutation.isPending ? 'Sending Test Email...' : 'Send Test Email'}
+                  Send Test Email
                 </Button>
                 <Button
                   onClick={saveEmailTemplate}
@@ -2032,7 +2022,6 @@ The Production Team`}
                 >
                   Save Email Template as Default
                 </Button>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -2679,6 +2668,49 @@ The Production Team`}
               disabled={!locationForm.name.trim() || createLocationMutation.isPending || updateLocationMutation.isPending}
             >
               {createLocationMutation.isPending || updateLocationMutation.isPending ? 'Saving...' : 'Save Location'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Test Email Dialog */}
+      <Dialog open={showTestEmailDialog} onOpenChange={setShowTestEmailDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Test Email</DialogTitle>
+            <DialogDescription>
+              Enter an email address to test how your schedule notifications will appear to recipients with the "{project?.name} SM" sender format.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="testEmail">Email Address</Label>
+              <Input
+                id="testEmail"
+                type="email"
+                placeholder={user?.email || "Enter email address"}
+                value={testEmailAddress}
+                onChange={(e) => setTestEmailAddress(e.target.value)}
+                className="mt-1"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Leave blank to send to your account email ({user?.email})
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowTestEmailDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={sendTestEmail}
+              disabled={sendTestEmailMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {sendTestEmailMutation.isPending ? 'Sending...' : 'Send Test Email'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -61,6 +61,8 @@ export default function Schedule() {
   const [editingEvent, setEditingEvent] = useState<any>(null);
   const [selectedVersionType, setSelectedVersionType] = useState<'major' | 'minor'>('major');
   const [showPublishVersionConfirm, setShowPublishVersionConfirm] = useState(false);
+  const [testEmailAddress, setTestEmailAddress] = useState('');
+  const [showTestEmailDialog, setShowTestEmailDialog] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -173,6 +175,10 @@ The Production Team`
     queryKey: [`/api/projects/${projectId}`],
   });
 
+  const { data: user } = useQuery({
+    queryKey: [`/api/user`],
+  });
+
   const { data: settings } = useQuery({
     queryKey: [`/api/projects/${projectId}/settings`],
   });
@@ -203,6 +209,36 @@ The Production Team`
     queryKey: [`/api/projects/${projectId}/schedule-changes-structured`],
     enabled: showScheduleSettings, // Only fetch when modal is open
   });
+
+  // Test email mutation
+  const sendTestEmailMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', `/api/projects/${projectId}/send-test-email`, {
+        testEmailAddress: testEmailAddress.trim() || undefined,
+        emailSubject: localEmailSubject,
+        emailBody: localEmailBody
+      });
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Test Email Sent",
+        description: `A test email has been sent to ${testEmailAddress.trim() || 'your account email'}.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Sending Test Email",
+        description: error.message || "There was an error sending the test email.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const sendTestEmail = () => {
+    sendTestEmailMutation.mutate();
+    setShowTestEmailDialog(false);
+  };
 
   // Organize personal schedules by contact type
   const organizedSchedules = personalSchedules.reduce((acc: any, schedule: any) => {
@@ -1497,7 +1533,14 @@ The Production Team`}
                   <p className="text-sm text-blue-700 font-medium">Click the variable buttons above to insert them at your cursor position, or type them manually in the template fields.</p>
                 </div>
                 
-                <div className="flex justify-end pt-4">
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button
+                    onClick={() => setShowTestEmailDialog(true)}
+                    variant="outline"
+                    disabled={sendTestEmailMutation.isPending}
+                  >
+                    Send Test Email
+                  </Button>
                   <Button
                     onClick={saveEmailTemplate}
                     className="bg-blue-600 hover:bg-blue-700"
@@ -1627,6 +1670,49 @@ The Production Team`}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Test Email Dialog */}
+      <Dialog open={showTestEmailDialog} onOpenChange={setShowTestEmailDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Test Email</DialogTitle>
+            <DialogDescription>
+              Enter an email address to test how your schedule notifications will appear to recipients with the "{project?.name} SM" sender format.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="testEmail">Email Address</Label>
+              <Input
+                id="testEmail"
+                type="email"
+                placeholder={user?.email || "Enter email address"}
+                value={testEmailAddress}
+                onChange={(e) => setTestEmailAddress(e.target.value)}
+                className="mt-1"
+              />
+              <p className="text-sm text-gray-500 mt-1">
+                Leave blank to send to your account email ({user?.email})
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowTestEmailDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={sendTestEmail}
+              disabled={sendTestEmailMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {sendTestEmailMutation.isPending ? 'Sending...' : 'Send Test Email'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
