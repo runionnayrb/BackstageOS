@@ -3038,9 +3038,9 @@ export class DatabaseStorage implements IStorage {
   // Schedule Version update method
   async updateScheduleVersion(id: number, version: Partial<InsertScheduleVersion>): Promise<ScheduleVersion> {
     const result = await db
-      .update(schedule_versions)
+      .update(scheduleVersions)
       .set({ ...version, updatedAt: new Date() })
-      .where(eq(schedule_versions.id, id))
+      .where(eq(scheduleVersions.id, id))
       .returning();
     return result[0];
   }
