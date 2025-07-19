@@ -843,11 +843,19 @@ export default function ShowSettings() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation(`/shows/${params.id}`)}
+            onClick={() => {
+              // Use browser history to go back to the previous page
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                // Fallback to show details if no history
+                setLocation(`/shows/${params.id}`);
+              }
+            }}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            {(project as any)?.name ? `Back to ${(project as any).name}` : 'Back to Show'}
+            Back
           </Button>
         </div>
 
