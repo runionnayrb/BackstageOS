@@ -1992,11 +1992,23 @@ The Production Team`
                         const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                           ? safeJsonParse((settings as any).scheduleSettings, {}) 
                           : ((settings as any)?.scheduleSettings || {});
+                        
+                        let replyToEmail;
+                        if (value === 'personal') {
+                          replyToEmail = user?.email;
+                        } else if (value === 'show_team') {
+                          replyToEmail = 'schedules@backstageos.com';
+                        } else {
+                          // For external, keep existing reply-to or clear it
+                          replyToEmail = scheduleSettings?.emailSender?.replyToEmail || '';
+                        }
+                        
                         handleSettingsUpdate("scheduleSettings", {
                           ...scheduleSettings,
                           emailSender: {
                             ...scheduleSettings?.emailSender,
                             accountType: value,
+                            replyToEmail: replyToEmail,
                             // Clear external email when switching away from external
                             ...(value !== 'external' && { externalEmail: undefined })
                           }
@@ -2052,36 +2064,43 @@ The Production Team`
                   </div>
                 )}
 
-                {/* Reply-To Configuration */}
-                <div className="space-y-2">
-                  <Label htmlFor="replyToEmail">Reply-To Email</Label>
-                  <Input
-                    id="replyToEmail"
-                    type="email"
-                    placeholder={user?.email || "stage.manager@example.com"}
-                    value={(() => {
-                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                        : ((settings as any)?.scheduleSettings || {});
-                      return scheduleSettings?.emailSender?.replyToEmail || user?.email || '';
-                    })()}
-                    onChange={(e) => {
-                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                        : ((settings as any)?.scheduleSettings || {});
-                      handleSettingsUpdate("scheduleSettings", {
-                        ...scheduleSettings,
-                        emailSender: {
-                          ...scheduleSettings?.emailSender,
-                          replyToEmail: e.target.value
-                        }
-                      });
-                    }}
-                  />
-                  <p className="text-xs text-gray-500">
-                    Replies from team members will be sent to this email address. This ensures all responses reach the stage management team.
-                  </p>
-                </div>
+                {/* Reply-To Configuration - Only show for external email */}
+                {(() => {
+                  const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                    ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                    : ((settings as any)?.scheduleSettings || {});
+                  return scheduleSettings?.emailSender?.accountType === 'external';
+                })() && (
+                  <div className="space-y-2">
+                    <Label htmlFor="replyToEmail">Reply-To Email</Label>
+                    <Input
+                      id="replyToEmail"
+                      type="email"
+                      placeholder="stage.manager@example.com"
+                      value={(() => {
+                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                          : ((settings as any)?.scheduleSettings || {});
+                        return scheduleSettings?.emailSender?.replyToEmail || '';
+                      })()}
+                      onChange={(e) => {
+                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                          : ((settings as any)?.scheduleSettings || {});
+                        handleSettingsUpdate("scheduleSettings", {
+                          ...scheduleSettings,
+                          emailSender: {
+                            ...scheduleSettings?.emailSender,
+                            replyToEmail: e.target.value
+                          }
+                        });
+                      }}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Replies from team members will be sent to this email address. This ensures all responses reach the stage management team.
+                    </p>
+                  </div>
+                )}
 
                 <div className="p-3 bg-amber-50/50 rounded-lg">
                   <p className="text-sm text-amber-700">
