@@ -344,8 +344,10 @@ BackstageOS • Professional Stage Management
       // Determine reply-to email based on reply-to type
       let replyToEmail = data.publishedBy.email; // Default fallback
       if (emailSenderConfig.replyToType === 'backstage_email') {
-        const user = await storage.getUser(data.publishedBy.id);
-        replyToEmail = user?.email || data.publishedBy.email;
+        // Get BackstageOS email from email accounts
+        const emailAccounts = await storage.getEmailAccountsByUserId(data.publishedBy.id);
+        const backstageAccount = emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com'));
+        replyToEmail = backstageAccount?.emailAddress || data.publishedBy.email;
       } else if (emailSenderConfig.replyToType === 'account') {
         const user = await storage.getUser(data.publishedBy.id);
         replyToEmail = user?.email || data.publishedBy.email;

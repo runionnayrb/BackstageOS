@@ -10203,7 +10203,10 @@ The Production Team`;
       // Determine reply-to email based on reply-to type
       let replyToEmail = req.user?.email; // Default fallback
       if (emailSenderConfig.replyToType === 'backstage_email') {
-        replyToEmail = req.user?.email;
+        // Get BackstageOS email from email accounts
+        const emailAccounts = await storage.getEmailAccountsByUserId(req.user.id);
+        const backstageAccount = emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com'));
+        replyToEmail = backstageAccount?.emailAddress || req.user?.email;
       } else if (emailSenderConfig.replyToType === 'account') {
         replyToEmail = req.user?.email;
       } else if (emailSenderConfig.replyToType === 'external' && emailSenderConfig.replyToEmail) {

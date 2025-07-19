@@ -232,6 +232,12 @@ export default function ShowSettings() {
     enabled: !!params.id,
   });
 
+  // Query for email accounts
+  const { data: emailAccounts = [] } = useQuery({
+    queryKey: [`/api/email/accounts`],
+    enabled: !!user,
+  });
+
   const updateSettingsMutation = useMutation({
     mutationFn: async (data: Partial<ShowSettings>) => {
       return await apiRequest("PATCH", `/api/projects/${params.id}/settings`, data);
@@ -2017,8 +2023,10 @@ The Production Team`
                         <SelectValue placeholder="Select reply-to address" />
                       </SelectTrigger>
                       <SelectContent>
-                        {user?.email?.includes('@backstageos.com') && (
-                          <SelectItem value="backstage_email">{user.email}</SelectItem>
+                        {emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com')) && (
+                          <SelectItem value="backstage_email">
+                            {emailAccounts.find((account: any) => account.emailAddress?.includes('@backstageos.com'))?.emailAddress}
+                          </SelectItem>
                         )}
                         <SelectItem value="account">{user?.email}</SelectItem>
                         <SelectItem value="external">Custom Email Address</SelectItem>
