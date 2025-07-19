@@ -1458,6 +1458,50 @@ The Production Team`;
               </CardContent>
             </Card>
 
+            <Card>
+              <CardHeader>
+                <CardTitle>Change Summary</CardTitle>
+                <CardDescription>
+                  Describe what changes were made in this schedule version. This will be included in email notifications.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Label htmlFor="changeSummary">Summary of Changes</Label>
+                  <textarea
+                    id="changeSummary"
+                    className="w-full min-h-[100px] p-3 border border-gray-200 rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Describe the changes made to the schedule (e.g., 'Added rehearsal for Act 2, moved tech rehearsal to 7 PM, cancelled Monday meeting')"
+                    value={(() => {
+                      const scheduleSettings = typeof settingsData?.scheduleSettings === 'string' 
+                        ? safeJsonParse(settingsData.scheduleSettings, {}) 
+                        : (settingsData?.scheduleSettings || {});
+                      return scheduleSettings.changeSummary || '';
+                    })()}
+                    onChange={(e) => {
+                      const currentScheduleSettings = typeof settingsData?.scheduleSettings === 'string' 
+                        ? safeJsonParse(settingsData.scheduleSettings, {}) 
+                        : (settingsData?.scheduleSettings || {});
+                      
+                      const updatedScheduleSettings = {
+                        ...currentScheduleSettings,
+                        changeSummary: e.target.value,
+                      };
+                      
+                      const updatedSettings = {
+                        ...settingsData,
+                        scheduleSettings: JSON.stringify(updatedScheduleSettings),
+                      };
+                      updateSettingsMutation.mutate(updatedSettings);
+                    }}
+                  />
+                  <p className="text-xs text-gray-500">
+                    This summary will be used in the {{changesSummary}} variable in your email templates.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Schedule Sharing */}
             <Card className="border-0 shadow-none">
               <CardHeader>
