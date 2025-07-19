@@ -338,18 +338,19 @@ BackstageOS • Professional Stage Management
       // Dynamic sender name with fallback to show name SM format
       const senderName = emailSenderConfig.senderName || `${data.project.name} SM`;
       
-      // Determine sender email based on account type
-      let fromEmail = 'schedules@backstageos.com'; // Default show team account
-      if (emailSenderConfig.accountType === 'personal') {
-        // Use user's personal BackstageOS email if available
-        const user = await storage.getUser(data.publishedBy.id);
-        fromEmail = user?.email || 'schedules@backstageos.com';
-      } else if (emailSenderConfig.accountType === 'external' && emailSenderConfig.externalEmail) {
-        fromEmail = emailSenderConfig.externalEmail;
-      }
+      // All emails send from schedules@backstageos.com
+      const fromEmail = 'schedules@backstageos.com';
       
-      // Set reply-to email to ensure responses reach the stage management team
-      const replyToEmail = emailSenderConfig.replyToEmail || data.publishedBy.email;
+      // Determine reply-to email based on reply-to type
+      let replyToEmail = data.publishedBy.email; // Default fallback
+      if (emailSenderConfig.replyToType === 'personal') {
+        const user = await storage.getUser(data.publishedBy.id);
+        replyToEmail = user?.email || data.publishedBy.email;
+      } else if (emailSenderConfig.replyToType === 'team') {
+        replyToEmail = 'schedules@backstageos.com';
+      } else if (emailSenderConfig.replyToType === 'external' && emailSenderConfig.replyToEmail) {
+        replyToEmail = emailSenderConfig.replyToEmail;
+      }
 
       await standaloneEmailService.sendEmail({
         to: contact.email,
