@@ -1500,7 +1500,7 @@ The Production Team`;
                     }}
                   />
                   <p className="text-xs text-gray-500">
-                    This summary will be used in the {{changesSummary}} variable in your email templates.
+                    This summary will be used in the {`{{changesSummary}}`} variable in your email templates.
                   </p>
                 </div>
               </CardContent>
