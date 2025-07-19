@@ -214,6 +214,11 @@ export default function Header() {
           </div>
           
           <div className="flex items-center space-x-4">
+            {/* SIMPLE TEST - Should always show */}
+            <div style={{backgroundColor: 'red', padding: '10px', color: 'white'}}>
+              TEST DROPDOWN HERE
+            </div>
+            
             {/* Admin Only: Account Type Selection */}
             {true && (
               <>
