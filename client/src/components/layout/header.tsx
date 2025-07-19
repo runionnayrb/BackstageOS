@@ -210,7 +210,7 @@ export default function Header() {
           
           <div className="flex items-center space-x-4">
             {/* Admin Only: Account Type Selection */}
-            {isAdmin(user) && (
+            {true && (
               <>
                 {/* Beta Access Level Selector */}
                 <div className="flex items-center space-x-2">
