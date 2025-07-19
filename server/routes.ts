@@ -1555,7 +1555,21 @@ Respond with valid JSON only.`;
         return res.status(403).json({ message: "Admin access required" });
       }
       
-      const users = await storage.getAllUsers();
+      const { profileType, betaAccess } = req.query;
+      
+      let users = await storage.getAllUsers();
+      
+      // Filter by profile type if specified
+      if (profileType && profileType !== 'all') {
+        users = users.filter(user => user.profileType === profileType);
+      }
+      
+      // Filter by beta access if specified (convert to boolean for comparison)
+      if (betaAccess !== undefined && betaAccess !== 'all') {
+        const betaAccessFilter = betaAccess === 'true' || betaAccess === true;
+        users = users.filter(user => !!user.betaAccess === betaAccessFilter);
+      }
+      
       res.json(users);
     } catch (error) {
       console.error("Error fetching all users:", error);

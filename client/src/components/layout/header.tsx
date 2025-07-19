@@ -9,6 +9,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
+import { useAdminView } from "@/contexts/AdminViewContext";
 
 interface SwitchStatus {
   isViewingAs: boolean;
@@ -31,14 +32,31 @@ export default function Header() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedBetaAccess, setSelectedBetaAccess] = useState<string>("admin");
-  const [selectedProfileType, setSelectedProfileType] = useState<string>("freelance");
+  const { selectedBetaAccess, selectedProfileType, setSelectedBetaAccess, setSelectedProfileType } = useAdminView();
   const [defaultUserId, setDefaultUserId] = useState<string>("");
 
   // Fetch all users for account switching (admin only)
   const { data: allUsers = [] } = useQuery({
-    queryKey: ['/api/admin/users'],
+    queryKey: ['/api/admin/users', selectedProfileType, selectedBetaAccess],
     enabled: isAdmin(user),
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedProfileType !== 'all') {
+        params.append('profileType', selectedProfileType);
+      }
+      if (selectedBetaAccess !== 'all') {
+        params.append('betaAccess', selectedBetaAccess === 'admin' ? 'true' : 'false');
+      }
+      
+      const url = `/api/admin/users${params.toString() ? `?${params.toString()}` : ''}`;
+      const response = await fetch(url, { credentials: 'include' });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      
+      return response.json();
+    },
     select: (data: any[]) => data || [],
   });
 
@@ -126,6 +144,9 @@ export default function Header() {
       title: "Access View Changed",
       description: `Now viewing ${displayValue}`,
     });
+    // Invalidate queries to refetch data with new access level
+    queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
   };
 
   const handleProfileTypeChange = (profileType: string) => {
@@ -135,6 +156,9 @@ export default function Header() {
       title: "Profile Type View Changed", 
       description: `Now viewing ${displayValue}`,
     });
+    // Invalidate user-related queries to show filtered results
+    queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
   };
 
   const getInitials = (firstName?: string, lastName?: string) => {
