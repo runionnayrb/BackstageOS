@@ -333,7 +333,7 @@ export default function EnhancedHeader() {
             <div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:text-blue-600 hover:bg-transparent">
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:text-blue-600 hover:bg-transparent focus:outline-none focus:ring-0 focus-visible:ring-0">
                     <Menu className="h-5 w-5" />
                     <span className="sr-only">Navigation menu</span>
                   </Button>
