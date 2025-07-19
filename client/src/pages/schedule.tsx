@@ -1934,14 +1934,14 @@ The Production Team`}
 
       {/* Resend Schedule Dialog */}
       <Dialog open={showResendScheduleDialog} onOpenChange={setShowResendScheduleDialog}>
-        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-lg h-[600px] flex flex-col">
           <DialogHeader>
             <DialogTitle>Resend Schedule</DialogTitle>
             <DialogDescription>
               Select contacts to resend the most recent published schedule version.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="flex flex-col flex-1 space-y-4">
             {/* Full Company Toggle */}
             <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border-2">
               <Checkbox
@@ -1959,7 +1959,7 @@ The Production Team`}
             </div>
 
             {/* Contact List organized by type */}
-            <div className="space-y-4 max-h-96 overflow-y-auto">
+            <div className="flex-1 space-y-4 overflow-y-auto">
               {Object.keys(organizedContacts).length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -1994,11 +1994,10 @@ The Production Team`}
               )}
             </div>
 
-            {resendSelectedContacts.length > 0 && (
-              <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                Selected: {resendSelectedContacts.length} contact{resendSelectedContacts.length !== 1 ? 's' : ''}
-              </div>
-            )}
+            {/* Selected contacts indicator - always present to prevent layout shifts */}
+            <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+              Selected: {resendSelectedContacts.length} contact{resendSelectedContacts.length !== 1 ? 's' : ''}
+            </div>
           </div>
           <DialogFooter className="flex gap-2">
             <Button 
