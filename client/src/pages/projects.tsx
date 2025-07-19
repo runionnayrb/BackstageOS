@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
-import { Plus, FolderOpen } from "lucide-react";
+import { Plus, FolderOpen, Settings } from "lucide-react";
 
 export default function Projects() {
   const { user } = useAuth();
@@ -105,10 +105,21 @@ export default function Projects() {
             <div>
               <h1 className="text-3xl font-bold">{projectLabel}</h1>
             </div>
-            <Button onClick={() => setLocation("/create-project")}>
-              <Plus className="w-5 h-5 mr-2" />
-              New {projectSingle}
-            </Button>
+            <div className="flex gap-2">
+              {isFullTime && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setLocation("/settings")}
+                >
+                  <Settings className="w-5 h-5 mr-2" />
+                  Settings
+                </Button>
+              )}
+              <Button onClick={() => setLocation("/create-project")}>
+                <Plus className="w-5 h-5 mr-2" />
+                New {projectSingle}
+              </Button>
+            </div>
           </div>
         </div>
 

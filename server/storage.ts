@@ -1,5 +1,7 @@
 import {
   users,
+  seasons,
+  venues,
   projects,
   teamMembers,
   reports,
@@ -60,6 +62,10 @@ import {
 
   type User,
   type UpsertUser,
+  type Season,
+  type InsertSeason,
+  type Venue,
+  type InsertVenue,
   type Project,
   type InsertProject,
   type TeamMember,
@@ -208,6 +214,20 @@ export interface IStorage {
   getApiSettings(): Promise<ApiSettings | undefined>;
   createApiSettings(settings: InsertApiSettings): Promise<ApiSettings>;
   updateApiSettings(id: number, settings: Partial<InsertApiSettings>): Promise<ApiSettings | undefined>;
+
+  // Season operations
+  getSeasonsByUserId(userId: string): Promise<Season[]>;
+  getSeasonById(id: number): Promise<Season | undefined>;
+  createSeason(season: InsertSeason): Promise<Season>;
+  updateSeason(id: number, season: Partial<InsertSeason>): Promise<Season>;
+  deleteSeason(id: number): Promise<void>;
+
+  // Venue operations
+  getVenuesByUserId(userId: string): Promise<Venue[]>;
+  getVenueById(id: number): Promise<Venue | undefined>;
+  createVenue(venue: InsertVenue): Promise<Venue>;
+  updateVenue(id: number, venue: Partial<InsertVenue>): Promise<Venue>;
+  deleteVenue(id: number): Promise<void>;
 
   // Project operations
   getProjectsByUserId(userId: string): Promise<Project[]>;
@@ -611,6 +631,58 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProject(id: number): Promise<void> {
     await db.delete(projects).where(eq(projects.id, id));
+  }
+
+  // ========== SEASONS IMPLEMENTATION ==========
+
+  async getSeasonsByUserId(userId: string): Promise<Season[]> {
+    const result = await db.select().from(seasons).where(eq(seasons.userId, parseInt(userId)));
+    return result;
+  }
+
+  async getSeasonById(id: number): Promise<Season | undefined> {
+    const result = await db.select().from(seasons).where(eq(seasons.id, id));
+    return result[0];
+  }
+
+  async createSeason(season: InsertSeason): Promise<Season> {
+    const result = await db.insert(seasons).values(season).returning();
+    return result[0];
+  }
+
+  async updateSeason(id: number, season: Partial<InsertSeason>): Promise<Season> {
+    const result = await db.update(seasons).set(season).where(eq(seasons.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteSeason(id: number): Promise<void> {
+    await db.delete(seasons).where(eq(seasons.id, id));
+  }
+
+  // ========== VENUES IMPLEMENTATION ==========
+
+  async getVenuesByUserId(userId: string): Promise<Venue[]> {
+    const result = await db.select().from(venues).where(eq(venues.userId, parseInt(userId)));
+    return result;
+  }
+
+  async getVenueById(id: number): Promise<Venue | undefined> {
+    const result = await db.select().from(venues).where(eq(venues.id, id));
+    return result[0];
+  }
+
+  async createVenue(venue: InsertVenue): Promise<Venue> {
+    const result = await db.insert(venues).values(venue).returning();
+    return result[0];
+  }
+
+  async updateVenue(id: number, venue: Partial<InsertVenue>): Promise<Venue> {
+    const result = await db.update(venues).set(venue).where(eq(venues.id, id)).returning();
+    return result[0];
+  }
+
+  async deleteVenue(id: number): Promise<void> {
+    await db.delete(venues).where(eq(venues.id, id));
   }
 
   async getTeamMembersByProjectId(projectId: number): Promise<TeamMember[]> {

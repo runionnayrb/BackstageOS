@@ -14,7 +14,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema } from "@shared/schema";
+import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -1822,6 +1822,160 @@ Respond with valid JSON only.`;
     } catch (error) {
       console.error("Error deleting project:", error);
       res.status(500).json({ message: "Failed to delete project" });
+    }
+  });
+
+  // ========== SEASONS ROUTES ==========
+  
+  app.get('/api/seasons', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const seasons = await storage.getSeasonsByUserId(userId);
+      res.json(seasons);
+    } catch (error) {
+      console.error("Error fetching seasons:", error);
+      res.status(500).json({ message: "Failed to fetch seasons" });
+    }
+  });
+
+  app.post('/api/seasons', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const seasonData = insertSeasonSchema.parse({
+        ...req.body,
+        userId: parseInt(userId),
+      });
+
+      const season = await storage.createSeason(seasonData);
+      res.json(season);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error("Season validation errors:", error.errors);
+        return res.status(400).json({ message: "Invalid season data", errors: error.errors });
+      }
+      console.error("Error creating season:", error);
+      res.status(500).json({ message: "Failed to create season" });
+    }
+  });
+
+  app.put('/api/seasons/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const seasonId = parseInt(req.params.id);
+      const season = await storage.getSeasonById(seasonId);
+      
+      if (!season) {
+        return res.status(404).json({ message: "Season not found" });
+      }
+
+      // Check ownership
+      if (season.userId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updatedSeason = await storage.updateSeason(seasonId, req.body);
+      res.json(updatedSeason);
+    } catch (error) {
+      console.error("Error updating season:", error);
+      res.status(500).json({ message: "Failed to update season" });
+    }
+  });
+
+  app.delete('/api/seasons/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const seasonId = parseInt(req.params.id);
+      const season = await storage.getSeasonById(seasonId);
+      
+      if (!season) {
+        return res.status(404).json({ message: "Season not found" });
+      }
+
+      // Check ownership
+      if (season.userId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteSeason(seasonId);
+      res.json({ message: "Season deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting season:", error);
+      res.status(500).json({ message: "Failed to delete season" });
+    }
+  });
+
+  // ========== VENUES ROUTES ==========
+  
+  app.get('/api/venues', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const venues = await storage.getVenuesByUserId(userId);
+      res.json(venues);
+    } catch (error) {
+      console.error("Error fetching venues:", error);
+      res.status(500).json({ message: "Failed to fetch venues" });
+    }
+  });
+
+  app.post('/api/venues', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const venueData = insertVenueSchema.parse({
+        ...req.body,
+        userId: parseInt(userId),
+      });
+
+      const venue = await storage.createVenue(venueData);
+      res.json(venue);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error("Venue validation errors:", error.errors);
+        return res.status(400).json({ message: "Invalid venue data", errors: error.errors });
+      }
+      console.error("Error creating venue:", error);
+      res.status(500).json({ message: "Failed to create venue" });
+    }
+  });
+
+  app.put('/api/venues/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const venueId = parseInt(req.params.id);
+      const venue = await storage.getVenueById(venueId);
+      
+      if (!venue) {
+        return res.status(404).json({ message: "Venue not found" });
+      }
+
+      // Check ownership
+      if (venue.userId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updatedVenue = await storage.updateVenue(venueId, req.body);
+      res.json(updatedVenue);
+    } catch (error) {
+      console.error("Error updating venue:", error);
+      res.status(500).json({ message: "Failed to update venue" });
+    }
+  });
+
+  app.delete('/api/venues/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const venueId = parseInt(req.params.id);
+      const venue = await storage.getVenueById(venueId);
+      
+      if (!venue) {
+        return res.status(404).json({ message: "Venue not found" });
+      }
+
+      // Check ownership
+      if (venue.userId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteVenue(venueId);
+      res.json({ message: "Venue deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting venue:", error);
+      res.status(500).json({ message: "Failed to delete venue" });
     }
   });
 

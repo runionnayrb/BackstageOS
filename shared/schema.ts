@@ -47,11 +47,37 @@ export const users = pgTable("users", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Seasons table for full-time users
+export const seasons = pgTable("seasons", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(), // e.g., "2025-2026 Season"
+  userId: integer("user_id").notNull().references(() => users.id),
+  startDate: date("start_date"),
+  endDate: date("end_date"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Venues table for full-time users
+export const venues = pgTable("venues", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  address: text("address"),
+  capacity: integer("capacity"),
+  notes: text("notes"),
+  userId: integer("user_id").notNull().references(() => users.id),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(),
   description: text("description"),
-  venue: varchar("venue"),
+  venue: varchar("venue"), // For freelance users (free text) or venue name reference
+  venueId: integer("venue_id").references(() => venues.id), // For full-time users
   prepStartDate: timestamp("prep_start_date"),
   firstRehearsalDate: timestamp("first_rehearsal_date"),
   designerRunDate: timestamp("designer_run_date"),
@@ -59,7 +85,8 @@ export const projects = pgTable("projects", {
   firstPreviewDate: timestamp("first_preview_date"),
   openingNight: timestamp("opening_night"),
   closingDate: timestamp("closing_date"),
-  season: varchar("season"), // for full-time users
+  season: varchar("season"), // For freelance users (free text) or season name reference
+  seasonId: integer("season_id").references(() => seasons.id), // For full-time users
   ownerId: integer("owner_id").notNull().references(() => users.id),
   // Optional show-specific email overrides for sm@backstageos.com emails
   customReplyToEmail: varchar("custom_reply_to_email"),
@@ -1840,6 +1867,18 @@ export const emailArchiveRulesRelations = relations(emailArchiveRules, ({ one })
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users); // TODO: Fix omit type issue later
+
+export const insertSeasonSchema = createInsertSchema(seasons).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertVenueSchema = createInsertSchema(venues).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
 
 export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,

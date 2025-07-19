@@ -66,6 +66,7 @@ import Chat from "@/pages/chat";
 import PerformanceTracker from "@/pages/PerformanceTracker";
 import TaskManagement from "@/pages/TaskManagement";
 import Notes from "@/pages/Notes";
+import Settings from "@/pages/settings";
 import PersonalScheduleViewer from "@/pages/personal-schedule";
 import PublicCalendar from "@/pages/public-calendar";
 import PublicEventTypeCalendar from "@/pages/public-event-type-calendar";
@@ -212,6 +213,7 @@ function Router() {
         <Route path="/shows/:id/templates" component={TemplateSettings} />
         <Route path="/shows/:id/global-template-settings" component={GlobalTemplateSettings} />
         <Route path="/shows/:id/settings" component={ShowSettings} />
+        <Route path="/settings" component={Settings} />
         <Route path="/profile" component={ProfileSettings} />
         <Route path="/feedback" component={FeedbackPage} />
         <Route path="/auth" component={AuthPage} />

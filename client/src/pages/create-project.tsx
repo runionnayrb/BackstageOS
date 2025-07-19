@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -13,11 +13,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { Season, Venue } from "@shared/schema";
 
 const projectSchema = z.object({
   name: z.string().min(1, "Project name is required"),
   description: z.string().optional(),
   venue: z.string().optional(),
+  venueId: z.string().optional(),
   prepStartDate: z.string().optional(),
   firstRehearsalDate: z.string().optional(),
   designerRunDate: z.string().optional(),
@@ -26,6 +28,7 @@ const projectSchema = z.object({
   openingNight: z.string().optional(),
   closingDate: z.string().optional(),
   season: z.string().optional(),
+  seasonId: z.string().optional(),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
@@ -39,12 +42,24 @@ export default function CreateProject() {
   const isFullTime = (user as any)?.profileType === "fulltime";
   const projectSingle = "Show";
 
+  // Fetch seasons and venues for full-time users
+  const { data: seasons = [] } = useQuery<Season[]>({
+    queryKey: ["/api/seasons"],
+    enabled: isFullTime,
+  });
+
+  const { data: venues = [] } = useQuery<Venue[]>({
+    queryKey: ["/api/venues"],
+    enabled: isFullTime,
+  });
+
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
       name: "",
       description: "",
       venue: "",
+      venueId: "",
       prepStartDate: "",
       firstRehearsalDate: "",
       designerRunDate: "",
@@ -53,6 +68,7 @@ export default function CreateProject() {
       openingNight: "",
       closingDate: "",
       season: "",
+      seasonId: "",
     },
   });
 
@@ -118,11 +134,30 @@ export default function CreateProject() {
                 </div>
                 <div>
                   <Label htmlFor="venue">Venue/Company</Label>
-                  <Input
-                    id="venue"
-                    placeholder="e.g., Lincoln Center Theater"
-                    {...form.register("venue")}
-                  />
+                  {isFullTime ? (
+                    <Select onValueChange={(value) => {
+                      const selectedVenue = venues.find(v => v.id.toString() === value);
+                      form.setValue("venueId", value);
+                      form.setValue("venue", selectedVenue?.name || "");
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select venue" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {venues.map((venue) => (
+                          <SelectItem key={venue.id} value={venue.id.toString()}>
+                            {venue.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="venue"
+                      placeholder="e.g., Lincoln Center Theater"
+                      {...form.register("venue")}
+                    />
+                  )}
                 </div>
               </div>
 
@@ -213,15 +248,20 @@ export default function CreateProject() {
               {isFullTime && (
                 <div>
                   <Label htmlFor="season">Season</Label>
-                  <Select onValueChange={(value) => form.setValue("season", value)}>
+                  <Select onValueChange={(value) => {
+                    const selectedSeason = seasons.find(s => s.id.toString() === value);
+                    form.setValue("seasonId", value);
+                    form.setValue("season", selectedSeason?.name || "");
+                  }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select season" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="2024-spring">2024 Spring Season</SelectItem>
-                      <SelectItem value="2024-summer">2024 Summer Season</SelectItem>
-                      <SelectItem value="2024-fall">2024 Fall Season</SelectItem>
-                      <SelectItem value="2025-winter">2025 Winter Season</SelectItem>
+                      {seasons.map((season) => (
+                        <SelectItem key={season.id} value={season.id.toString()}>
+                          {season.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
