@@ -160,7 +160,7 @@ export default function BetaFeatureComponent() {
               {settings.features
                 .filter(feature => feature.category === category)
                 .map(feature => (
-                  <div key={feature.id} className="border rounded-lg p-4">
+                  <div key={feature.id} className="p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
