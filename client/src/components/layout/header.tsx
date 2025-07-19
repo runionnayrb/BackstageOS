@@ -161,14 +161,14 @@ export default function Header() {
                   cursor: 'pointer'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#3b82f6';
-                  e.currentTarget.style.textShadow = '0 0 8px #8b5cf6, 0 0 12px #06b6d4';
-                  e.currentTarget.style.transform = 'scale(1.05)';
+                  console.log('Mouse entered BackstageOS');
+                  e.currentTarget.style.color = '#ff0000';
+                  e.currentTarget.style.fontSize = '24px';
                 }}
                 onMouseLeave={(e) => {
+                  console.log('Mouse left BackstageOS');
                   e.currentTarget.style.color = '#111827';
-                  e.currentTarget.style.textShadow = 'none';
-                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.fontSize = '20px';
                 }}
               >
                 BackstageOS
