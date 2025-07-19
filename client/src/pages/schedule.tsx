@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText, User } from "lucide-react";
+import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import MobileWeeklyScheduleView from "@/components/mobile-weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
@@ -83,14 +84,27 @@ export default function Schedule() {
   
   // Function to insert variable into email template fields
   const insertVariable = (field: 'subject' | 'body' | 'changeSummary', variable: string) => {
+    if (field === 'changeSummary') {
+      // For rich text editor, append the variable to the current content
+      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+        ? safeJsonParse((settings as any).scheduleSettings, {}) 
+        : ((settings as any)?.scheduleSettings || {});
+      
+      const currentContent = scheduleSettings.changeSummary || autoChangesSummary?.changesSummary || '';
+      const newContent = currentContent + (currentContent ? ' ' : '') + variable;
+      
+      handleSettingsUpdate("scheduleSettings", {
+        ...scheduleSettings,
+        changeSummary: newContent
+      });
+      return;
+    }
+
     let ref;
     if (field === 'subject') {
       ref = emailSubjectRef;
     } else if (field === 'body') {
       ref = emailBodyRef;
-    } else if (field === 'changeSummary') {
-      ref = document.getElementById('changeSummary') as HTMLTextAreaElement;
-      if (!ref) return;
     } else {
       return;
     }
@@ -123,11 +137,6 @@ export default function Schedule() {
           ...scheduleSettings?.emailTemplate,
           body: newValue
         }
-      });
-    } else if (field === 'changeSummary') {
-      handleSettingsUpdate("scheduleSettings", {
-        ...scheduleSettings,
-        changeSummary: newValue
       });
     }
     
@@ -1512,11 +1521,8 @@ The Production Team`;
               <CardContent>
                 <div className="space-y-2">
                   <Label htmlFor="changeSummary">Summary of Changes</Label>
-                  <textarea
-                    id="changeSummary"
-                    className="w-full min-h-[100px] p-3 border border-gray-200 rounded-md resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Changes will be automatically detected and displayed here..."
-                    value={(() => {
+                  <ChangeSummaryEditor
+                    content={(() => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                         ? safeJsonParse((settings as any).scheduleSettings, {}) 
                         : ((settings as any)?.scheduleSettings || {});
@@ -1524,15 +1530,16 @@ The Production Team`;
                       // Use saved summary if available, otherwise use auto-generated one
                       return scheduleSettings.changeSummary || autoChangesSummary?.changesSummary || '';
                     })()}
-                    onChange={(e) => {
+                    onChange={(content) => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                         ? safeJsonParse((settings as any).scheduleSettings, {}) 
                         : ((settings as any)?.scheduleSettings || {});
                       handleSettingsUpdate("scheduleSettings", {
                         ...scheduleSettings,
-                        changeSummary: e.target.value
+                        changeSummary: content
                       });
                     }}
+                    placeholder="Changes will be automatically detected and displayed here..."
                   />
                   <div className="flex flex-wrap gap-1 mt-2">
                     {[
