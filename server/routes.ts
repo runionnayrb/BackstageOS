@@ -1798,13 +1798,13 @@ Respond with valid JSON only.`;
     userId: number
   ) {
     const importantDateFields = [
-      { field: 'prepStartDate', label: 'Prep Start' },
-      { field: 'firstRehearsalDate', label: 'First Rehearsal' },
-      { field: 'designerRunDate', label: 'Designer Run' },
-      { field: 'firstTechDate', label: 'First Tech' },
-      { field: 'firstPreviewDate', label: 'First Preview' },
-      { field: 'openingNight', label: 'Opening Night' },
-      { field: 'closingDate', label: 'Closing' }
+      { field: 'prep_start_date', label: 'Prep Start' },
+      { field: 'first_rehearsal_date', label: 'First Rehearsal' },
+      { field: 'designer_run_date', label: 'Designer Run' },
+      { field: 'first_tech_date', label: 'First Tech' },
+      { field: 'first_preview_date', label: 'First Preview' },
+      { field: 'opening_night', label: 'Opening Night' },
+      { field: 'closing_date', label: 'Closing' }
     ];
 
     // Get existing important date events
