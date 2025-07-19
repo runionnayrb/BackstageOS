@@ -1272,13 +1272,10 @@ export default function Schedule() {
               </CardContent>
             </Card>
 
-            {/* Personal Schedule Sharing */}
+            {/* Schedule Sharing */}
             <Card className="border-0 shadow-none">
               <CardHeader>
-                <CardTitle>Personal Schedule Sharing</CardTitle>
-                <CardDescription>
-                  Share personalized schedules with individual team members.
-                </CardDescription>
+                <CardTitle>Schedule Sharing</CardTitle>
               </CardHeader>
               <CardContent>
                 <PersonalScheduleShare projectId={parseInt(projectId)} />

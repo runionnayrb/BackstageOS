@@ -465,8 +465,8 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold">Personal Schedule Sharing</h3>
-            <p className="text-sm text-muted-foreground">Share individual personal schedules with external calendar applications that automatically update when published</p>
+            <h3 className="text-lg font-semibold">Show Wide Schedules</h3>
+            <p className="text-sm text-muted-foreground">Share the show schedule and individual event types with external calendar applications that automatically update when published</p>
           </div>
           <Dialog open={isCreateEventTypeDialogOpen} onOpenChange={setIsCreateEventTypeDialogOpen}>
             <DialogTrigger asChild>
