@@ -298,7 +298,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                             {!expandedEventIds.has(event.id) ? (
                               <button
                                 onClick={() => toggleEventExpansion(event.id)}
-                                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+                                className="flex items-center gap-2 text-white hover:bg-black/20 rounded px-2 py-1 text-sm font-medium transition-colors"
                               >
                                 <ChevronRight className="h-4 w-4" />
                                 View details
@@ -307,7 +307,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
                               <div>
                                 <button
                                   onClick={() => toggleEventExpansion(event.id)}
-                                  className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium mb-2 transition-colors"
+                                  className="flex items-center gap-2 text-white hover:bg-black/20 rounded px-2 py-1 text-sm font-medium mb-2 transition-colors"
                                 >
                                   <ChevronDown className="h-4 w-4" />
                                   Hide details
