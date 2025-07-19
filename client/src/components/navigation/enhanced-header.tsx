@@ -161,7 +161,6 @@ export default function EnhancedHeader() {
   useEffect(() => {
     const currentShowId = navContext.showId;
     const hadPreviousShow = !!previousShowId.current;
-    const hasCurrentShow = !!currentShowId;
 
     // Entering a show for the first time or switching shows
     if (currentShowId && currentShowId !== previousShowId.current) {
@@ -171,13 +170,17 @@ export default function EnhancedHeader() {
         setTimeout(() => {
           setShowNameVisible(true);
           setShowNameAnimation('enter');
-          setTimeout(() => setShowNameAnimation('none'), 300);
-        }, 300);
+          setTimeout(() => {
+            setShowNameAnimation('none');
+          }, 500);
+        }, 500);
       } else {
         // Entering first show
         setShowNameVisible(true);
         setShowNameAnimation('enter');
-        setTimeout(() => setShowNameAnimation('none'), 300);
+        setTimeout(() => {
+          setShowNameAnimation('none');
+        }, 500);
       }
     }
     // Exiting a show
@@ -186,11 +189,11 @@ export default function EnhancedHeader() {
       setTimeout(() => {
         setShowNameVisible(false);
         setShowNameAnimation('none');
-      }, 300);
+      }, 500);
     }
 
     previousShowId.current = currentShowId;
-  }, [navContext.showId]);
+  }, [navContext.showId, showNameVisible, showNameAnimation]);
 
   // Pull-to-reveal breadcrumb functionality
   useEffect(() => {
@@ -440,20 +443,21 @@ export default function EnhancedHeader() {
             {/* Animated Show Name Indicator */}
             {showNameVisible && showData?.name && (
               <div 
-                className="flex items-center text-xl font-bold text-gray-900 transition-all duration-300 ease-out ml-4"
+                className="flex items-center text-xl font-bold text-gray-900 ml-4"
                 style={{
                   transform: showNameAnimation === 'enter' 
-                    ? 'translateX(0)' 
+                    ? 'translateX(0px)' 
                     : showNameAnimation === 'exit'
-                    ? 'translateX(-16px)'
+                    ? 'translateX(-80px)'
                     : showNameAnimation === 'none'
-                    ? 'translateX(0)'
-                    : 'translateX(16px)', // Initial state - comes from right
+                    ? 'translateX(0px)'
+                    : 'translateX(80px)', // Initial state - comes from right
                   opacity: showNameAnimation === 'exit' 
                     ? 0 
                     : showNameAnimation === 'enter' || showNameAnimation === 'none'
                     ? 1 
                     : 0, // Initially hidden
+                  transition: 'all 0.5s ease-out',
                 }}
               >
                 <span className="truncate max-w-[300px]">{showData.name}</span>
