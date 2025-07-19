@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Calendar, Clock, MapPin, Users, FileText, AlertCircle, Shield } from "lucide-react";
+import { useState } from "react";
+import { Calendar, Clock, MapPin, Users, FileText, AlertCircle, Shield, ChevronDown, ChevronRight } from "lucide-react";
 import { format, parseISO, isValid } from "date-fns";
 
 interface PersonalScheduleData {
@@ -48,11 +49,24 @@ interface PersonalScheduleViewerProps {
 }
 
 function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
+  const [expandedEventIds, setExpandedEventIds] = useState<Set<number>>(new Set());
 
   const { data: scheduleData, isLoading, error } = useQuery<PersonalScheduleData>({
     queryKey: [`/api/schedule/${token}`],
     enabled: !!token,
   });
+
+  const toggleEventExpansion = (eventId: number) => {
+    setExpandedEventIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(eventId)) {
+        newSet.delete(eventId);
+      } else {
+        newSet.add(eventId);
+      }
+      return newSet;
+    });
+  };
 
   if (isLoading) {
     return (
@@ -303,7 +317,28 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
 
                         {event.description && (
                           <div className="ml-[92px]">
-                            <p className="text-gray-700 text-sm">{event.description}</p>
+                            {!expandedEventIds.has(event.id) ? (
+                              <button
+                                onClick={() => toggleEventExpansion(event.id)}
+                                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium transition-colors"
+                              >
+                                <ChevronRight className="h-4 w-4" />
+                                View details
+                              </button>
+                            ) : (
+                              <div>
+                                <button
+                                  onClick={() => toggleEventExpansion(event.id)}
+                                  className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium mb-2 transition-colors"
+                                >
+                                  <ChevronDown className="h-4 w-4" />
+                                  Hide details
+                                </button>
+                                <div className="bg-gray-50 rounded-lg p-3 border">
+                                  <p className="text-gray-700 text-sm whitespace-pre-wrap">{event.description}</p>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
 
