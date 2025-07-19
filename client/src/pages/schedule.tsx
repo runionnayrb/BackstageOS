@@ -664,7 +664,7 @@ The Production Team`
               </h1>
               {currentPublishedVersion && (
                 <p className="text-sm text-gray-600 mt-1">
-                  Version {currentPublishedVersion.version}, Updated: {(() => {
+                  Version {currentPublishedVersion.version}, Published: {(() => {
                     try {
                       const date = new Date(currentPublishedVersion.publishedAt);
                       if (isNaN(date.getTime())) {
