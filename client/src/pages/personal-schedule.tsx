@@ -242,7 +242,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
               {Object.entries(eventsByDate).map(([date, dayEvents], dateIndex) => (
                 <div key={date}>
                   {/* Date Header */}
-                  <div className="px-6 py-4 bg-white">
+                  <div className="px-6 pt-4 pb-2 bg-white">
                     <h3 className="text-lg font-semibold text-gray-900">{formatDate(date)}</h3>
                     <p className="text-sm text-gray-600">
                       {dayEvents.length} event{dayEvents.length !== 1 ? 's' : ''}
