@@ -35,6 +35,8 @@ BackstageOS is a comprehensive theater management platform specifically designed
 
 ### Admin & Beta Features
 - **Admin Dashboard**: Complete user management accessible via header dropdown
+- **Admin View Controls**: Header dropdowns for user perspective switching and profile type selection
+- **User Perspective Switching**: Admins can view app from any user's perspective with proper privilege isolation
 - **Beta Access Control**: Three-tier system (none, limited, full) with granular feature permissions
 - **Feature Rollout**: Controlled deployment of new functionality to beta testers
 
