@@ -140,6 +140,19 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
     }
   };
 
+  const formatPublishedDate = (dateString: string) => {
+    try {
+      const date = parseISO(dateString);
+      if (!isValid(date)) return dateString;
+      
+      // Format as: Saturday, July 19, 2025 at 13:05
+      // Using 24-hour format as default (can be enhanced with show settings later)
+      return format(date, 'EEEE, MMMM d, yyyy \'at\' HH:mm');
+    } catch {
+      return dateString;
+    }
+  };
+
   const formatTime = (timeString?: string) => {
     if (!timeString) return '';
     try {
@@ -185,11 +198,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
     return defaultColors[type] || '#6B7280'; // default gray
   };
 
-  // Check if token expires soon (within 7 days)
-  const expiresAt = new Date(personalSchedule.expiresAt);
-  const now = new Date();
-  const daysUntilExpiry = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  const expiresSoon = daysUntilExpiry <= 7;
+  // Note: Expiry checking removed as it's handled server-side
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -200,6 +209,9 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
             <div>
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Personal Schedule</h1>
               <div className="space-y-1">
+                <p className="text-gray-600 mb-2">
+                  Version {version.version}, Published: {formatPublishedDate(version.publishedAt)}
+                </p>
                 <p className="text-gray-700">
                   <span className="font-medium">{contactName}</span> • {getContactTypeDisplay(contact.contactType)}
                 </p>
@@ -214,37 +226,6 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-6">
-        {/* Version Info */}
-        <div className="bg-white rounded-lg shadow mb-6 p-6">
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">
-              Version {version.version}
-            </h2>
-            <div className="text-sm text-gray-600">
-              Published {formatDate(version.publishedAt)}
-            </div>
-          </div>
-          
-          {version.description && (
-            <p className="text-gray-700">{version.description}</p>
-          )}
-        </div>
-
-        {/* Expiry Warning */}
-        {expiresSoon && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
-              <div>
-                <h3 className="font-medium text-yellow-800">Access Expiring Soon</h3>
-                <p className="text-yellow-700 text-sm">
-                  This link will expire in {daysUntilExpiry} day{daysUntilExpiry !== 1 ? 's' : ''}. 
-                  Contact your stage manager if you need continued access.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Events List */}
         <div className="bg-white rounded-lg shadow">
