@@ -338,26 +338,22 @@ export default function PublicCalendar() {
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex items-start gap-3">
                               <div className="text-sm text-gray-600 min-w-[80px] pt-1">
-                                <span className="font-medium">
+                                <div className="font-medium">
                                   {formatTime(event.startTime)}
-                                </span>
+                                </div>
+                                {event.endTime && (
+                                  <div className="text-xs mt-1">
+                                    {formatTime(event.endTime)}
+                                  </div>
+                                )}
                               </div>
                               <div className="flex-1">
                                 <h4 className="font-semibold text-gray-900 mb-1">{event.title}</h4>
-                                <div className="flex items-center gap-4 text-sm text-gray-600">
-                                  {event.endTime && (
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="h-4 w-4" />
-                                      Until {formatTime(event.endTime)}
-                                    </span>
-                                  )}
-                                  {event.location && (
-                                    <span className="flex items-center gap-1">
-                                      <MapPin className="h-4 w-4" />
-                                      {event.location}
-                                    </span>
-                                  )}
-                                </div>
+                                {event.location && (
+                                  <div className="text-sm text-gray-600">
+                                    {event.location}
+                                  </div>
+                                )}
                               </div>
                             </div>
                             <Badge variant="outline" className="flex-shrink-0">
