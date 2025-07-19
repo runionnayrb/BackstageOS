@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft,
-  Settings,
   GripVertical
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -267,25 +266,15 @@ export default function ShowDetail() {
             Back to Shows
           </Button>
           
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsReordering(!isReordering)}
-              className="flex items-center gap-2"
-            >
-              <GripVertical className="h-4 w-4" />
-              {isReordering ? "Done Reordering" : "Reorder"}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm" 
-              onClick={() => setLocation(`/shows/${projectId}/settings`)}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Show Settings
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsReordering(!isReordering)}
+            className="flex items-center gap-2"
+          >
+            <GripVertical className="h-4 w-4" />
+            {isReordering ? "Done Reordering" : "Reorder"}
+          </Button>
         </div>
         
         <div className="mb-2">
@@ -314,25 +303,15 @@ export default function ShowDetail() {
             Back to Shows
           </Button>
           
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsReordering(!isReordering)}
-              className="flex items-center gap-2"
-            >
-              <GripVertical className="h-4 w-4" />
-              {isReordering ? "Done Reordering" : "Reorder"}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm" 
-              onClick={() => setLocation(`/shows/${projectId}/settings`)}
-            >
-              <Settings className="mr-2 h-4 w-4" />
-              Show Settings
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsReordering(!isReordering)}
+            className="flex items-center gap-2"
+          >
+            <GripVertical className="h-4 w-4" />
+            {isReordering ? "Done Reordering" : "Reorder"}
+          </Button>
         </div>
         
         <div className="mb-2">
