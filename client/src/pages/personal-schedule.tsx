@@ -198,6 +198,13 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
     return defaultColors[type] || '#6B7280'; // default gray
   };
 
+  const getVersionDisplay = (version: { version: string; versionType: 'major' | 'minor' }) => {
+    if (version.versionType === 'minor') {
+      return `${version.version}.1`;
+    }
+    return version.version;
+  };
+
   // Note: Expiry checking removed as it's handled server-side
 
   return (
@@ -210,7 +217,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
               <h1 className="text-2xl font-bold text-gray-900 mb-2">Personal Schedule</h1>
               <div className="space-y-1">
                 <p className="text-gray-600 mb-2">
-                  Version {version.version}, Published: {formatPublishedDate(version.publishedAt)}
+                  Version {getVersionDisplay(version)}, Published: {formatPublishedDate(version.publishedAt)}
                 </p>
                 <p className="text-gray-700">
                   <span className="font-medium">{contactName}</span> • {getContactTypeDisplay(contact.contactType)}
