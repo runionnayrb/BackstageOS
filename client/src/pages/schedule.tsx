@@ -658,9 +658,36 @@ The Production Team`
         <div className="flex items-center justify-between mb-4">
           {/* Left side - Dynamic Date/Range display */}
           <div className="flex items-center">
-            <h1 className="text-3xl font-bold text-gray-900">
-              {getHeaderText()}
-            </h1>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {getHeaderText()}
+              </h1>
+              {currentPublishedVersion && (
+                <p className="text-sm text-gray-600 mt-1">
+                  Version {currentPublishedVersion.version}, Updated: {(() => {
+                    const date = new Date(currentPublishedVersion.createdAt);
+                    const timeFormat = settings?.scheduleSettings?.timeFormat || '12';
+                    const dateStr = date.toLocaleDateString('en-US', { 
+                      month: 'long', 
+                      day: 'numeric', 
+                      year: 'numeric' 
+                    });
+                    const timeStr = timeFormat === '24' 
+                      ? date.toLocaleTimeString('en-US', { 
+                          hour12: false, 
+                          hour: '2-digit', 
+                          minute: '2-digit'
+                        })
+                      : date.toLocaleTimeString('en-US', { 
+                          hour12: true, 
+                          hour: 'numeric', 
+                          minute: '2-digit'
+                        });
+                    return `${dateStr} at ${timeStr}`;
+                  })()}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Right side - Controls matching weekly view order */}
