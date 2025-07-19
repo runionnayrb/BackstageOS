@@ -1831,6 +1831,46 @@ Respond with valid JSON only.`;
 
       const project = await storage.createProject(projectData);
       
+      // Create default show settings with email template
+      const defaultEmailSubject = '{{showName}} Schedule v{{version}}';
+      const defaultEmailBody = `Hi {{contactName}},
+
+Version {{version}} of the schedule for {{showName}} has been published.
+
+<em>You can view your personal schedule here: {{personalScheduleLink}}</em>
+
+<strong>Updates to the schedule:</strong>
+
+{{changesSummary}}
+
+Best regards,
+-Stage Management`;
+
+      const defaultScheduleSettings = {
+        timezone: 'America/New_York',
+        timeFormat: '12h',
+        weekStartDay: 'Sunday',
+        emailTemplate: {
+          subject: defaultEmailSubject,
+          body: defaultEmailBody
+        },
+        enabledEventTypes: {
+          rehearsal: true,
+          tech_rehearsal: true,
+          performance: true,
+          preview: true,
+          meeting: true,
+          dark: true
+        }
+      };
+
+      await storage.upsertShowSettings({
+        projectId: project.id,
+        scheduleSettings: defaultScheduleSettings,
+        sharingEnabled: false,
+        createdBy: parseInt(userId)
+      });
+      
       // Create initial important date events
       await syncImportantDatesWithSchedule(
         project.id, 
