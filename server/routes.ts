@@ -9933,7 +9933,19 @@ Respond with valid JSON only.`;
       }
       
       const personalSchedules = await storage.getPersonalSchedulesByProjectId(projectId);
-      res.json(personalSchedules);
+      
+      // Get contact details for each personal schedule
+      const schedulesWithContacts = await Promise.all(
+        personalSchedules.map(async (schedule) => {
+          const contact = await storage.getContactById(schedule.contactId);
+          return {
+            ...schedule,
+            contact
+          };
+        })
+      );
+      
+      res.json(schedulesWithContacts);
     } catch (error) {
       console.error("Error fetching personal schedules:", error);
       res.status(500).json({ message: "Failed to fetch personal schedules" });

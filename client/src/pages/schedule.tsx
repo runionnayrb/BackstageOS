@@ -6,7 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText, User } from "lucide-react";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import MobileWeeklyScheduleView from "@/components/mobile-weekly-schedule-view";
 import DailyScheduleView from "@/components/daily-schedule-view";
@@ -65,6 +65,32 @@ export default function Schedule() {
   const { data: eventTypes = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/event-types`],
   });
+
+  // Fetch personal schedules with contact information
+  const { data: personalSchedules = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/personal-schedules`],
+  });
+
+  // Organize personal schedules by contact type
+  const organizedSchedules = personalSchedules.reduce((acc: any, schedule: any) => {
+    if (schedule.contact) {
+      const contactType = schedule.contact.contactType;
+      if (!acc[contactType]) {
+        acc[contactType] = [];
+      }
+      acc[contactType].push({
+        name: `${schedule.contact.firstName} ${schedule.contact.lastName}`.trim() || schedule.contact.email,
+        token: schedule.accessToken,
+        contactId: schedule.contact.id
+      });
+    }
+    return acc;
+  }, {});
+
+  // Function to navigate to personal schedule
+  const navigateToPersonalSchedule = (token: string) => {
+    window.open(`/personal-schedule/${token}`, '_blank');
+  };
 
   // Create event mutation
   const createEventMutation = useMutation({
@@ -398,6 +424,39 @@ export default function Schedule() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              {Object.keys(organizedSchedules).length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1 text-xs px-2 py-1 h-auto ml-2"
+                    >
+                      <User className="h-3 w-3" />
+                      Personal
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="max-h-80 overflow-y-auto">
+                    {Object.entries(organizedSchedules).map(([contactType, contacts]: [string, any[]]) => (
+                      <div key={contactType}>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase border-b">
+                          {contactType.replace(/_/g, ' ')}
+                        </div>
+                        {contacts.map((contact) => (
+                          <DropdownMenuItem
+                            key={contact.contactId}
+                            onClick={() => navigateToPersonalSchedule(contact.token)}
+                            className="text-sm"
+                          >
+                            {contact.name}
+                          </DropdownMenuItem>
+                        ))}
+                      </div>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               <button 
                 onClick={() => setCreateEventDialog(true)} 
                 className="p-1 hover:bg-gray-100 rounded ml-2 transition-colors"
@@ -460,6 +519,33 @@ export default function Schedule() {
               >
                 <ChevronRight className="h-5 w-5" />
               </Button>
+              {Object.keys(organizedSchedules).length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="p-2">
+                      <User className="h-5 w-5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="max-h-80 overflow-y-auto">
+                    {Object.entries(organizedSchedules).map(([contactType, contacts]: [string, any[]]) => (
+                      <div key={contactType}>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 uppercase border-b">
+                          {contactType.replace(/_/g, ' ')}
+                        </div>
+                        {contacts.map((contact) => (
+                          <DropdownMenuItem
+                            key={contact.contactId}
+                            onClick={() => navigateToPersonalSchedule(contact.token)}
+                            className="text-sm"
+                          >
+                            {contact.name}
+                          </DropdownMenuItem>
+                        ))}
+                      </div>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               <Button
                 variant="ghost"
                 size="sm"
