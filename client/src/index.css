@@ -2,34 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* BackstageOS gradient hover effect */
+/* BackstageOS simple color hover effect */
 .backstage-logo {
-  position: relative;
-  display: inline-block;
   color: #111827;
   transition: color 0.3s ease;
 }
 
-.backstage-logo::after {
-  content: "BackstageOS";
-  position: absolute;
-  top: 0;
-  left: 0;
-  background: linear-gradient(45deg, #3b82f6, #8b5cf6, #06b6d4);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.backstage-logo:hover::after {
-  opacity: 1;
-}
-
 .backstage-logo:hover {
-  color: transparent;
+  color: #3b82f6;
 }
 
 /* Line clamp utilities */
