@@ -223,7 +223,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
       <div className="max-w-4xl mx-auto px-4 py-6">
 
         {/* Events List */}
-        <div className="bg-gray-50 rounded-lg">
+        <div className="bg-white rounded-lg">
           <div className="px-6 py-4">
             <h2 className="text-lg font-semibold text-gray-900">My Schedule</h2>
             <p className="text-gray-600 text-sm">
