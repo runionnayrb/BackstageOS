@@ -22,10 +22,73 @@ export interface ScheduleChange {
 export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
   constructor(private storage: any) {}
 
+  private parseScheduleSettings(settings: any) {
+    if (!settings) return {};
+    
+    // Handle both string and object formats
+    const scheduleSettings = typeof settings === 'string' 
+      ? JSON.parse(settings) 
+      : settings;
+      
+    return {
+      timeFormat: scheduleSettings.timeFormat || '12',
+      timezone: scheduleSettings.timeZone || scheduleSettings.timezone || 'America/New_York',
+      weekStartDay: scheduleSettings.weekStartDay || 'sunday',
+      workStartTime: scheduleSettings.workStartTime || '09:00',
+      workEndTime: scheduleSettings.workEndTime || '18:00',
+      allowConflicts: scheduleSettings.allowConflicts || false,
+    };
+  }
+
+  private formatTimeDisplay(timeString: string, timeFormat: '12' | '24' = '12'): string {
+    if (!timeString || typeof timeString !== 'string') return '';
+    
+    const timeParts = timeString.split(':');
+    if (timeParts.length < 2) return timeString; // Return original if not in expected format
+    
+    const [hours, minutes] = timeParts.map(Number);
+    
+    if (timeFormat === '24') {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    }
+    
+    // 12-hour format
+    if (hours === 0) {
+      return `12:${minutes.toString().padStart(2, '0')} AM`;
+    } else if (hours < 12) {
+      return `${hours}:${minutes.toString().padStart(2, '0')} AM`;
+    } else if (hours === 12) {
+      return `12:${minutes.toString().padStart(2, '0')} PM`;
+    } else {
+      return `${hours - 12}:${minutes.toString().padStart(2, '0')} PM`;
+    }
+  }
+
+  private formatDateInTimezone(date: Date, timeZone: string, weekStartDay: string = 'sunday'): string {
+    try {
+      return date.toLocaleDateString('en-US', { 
+        timeZone: timeZone,
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long', 
+        day: 'numeric' 
+      });
+    } catch (error) {
+      console.warn('Failed to format date in timezone:', timeZone, error);
+      return date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long', 
+        day: 'numeric' 
+      });
+    }
+  }
+
   async generateChangesSummary(projectId: number): Promise<string> {
     try {
-      // Get current schedule events
-      const currentEvents = await this.storage.getScheduleEvents(projectId);
+      // Get current schedule events and schedule settings
+      const currentEvents = await this.storage.getScheduleEventsByProjectId(projectId);
+      const scheduleSettings = await this.storage.getShowSettingsByProjectId(projectId);
       
       // Get the last published version
       const lastVersion = await this.storage.getLastPublishedScheduleVersion(projectId);
@@ -40,13 +103,13 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
 
       // Compare current events with last version
       const lastVersionEvents = lastVersion.scheduleData?.events || [];
-      const changes = this.detectChanges(lastVersionEvents, currentEvents);
+      const changes = this.detectChanges(lastVersionEvents, currentEvents, scheduleSettings);
       
       if (changes.length === 0) {
         return "No changes to the schedule.";
       }
 
-      return this.formatChangesSummary(changes);
+      return this.formatChangesSummary(changes, scheduleSettings);
     } catch (error) {
       console.error('Error generating changes summary:', error);
       return "Changes detected (unable to generate detailed summary).";
@@ -55,16 +118,18 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
 
   async generateStructuredChanges(projectId: number): Promise<StructuredChanges> {
     try {
-      // Get current schedule events
-      const currentEvents = await this.storage.getScheduleEvents(projectId);
+      // Get current schedule events and schedule settings
+      const currentEvents = await this.storage.getScheduleEventsByProjectId(projectId);
+      const scheduleSettings = await this.storage.getShowSettingsByProjectId(projectId);
       
       // Get the last published version
       const lastVersion = await this.storage.getLastPublishedScheduleVersion(projectId);
       
       if (!lastVersion) {
-        // No previous version - this is the first publication
+        // No previous version - this is the first publication  
+        const { timeFormat } = this.parseScheduleSettings(scheduleSettings?.scheduleSettings);
         const addedEvents = currentEvents.map(event => 
-          `ADD: ${event.title} - ${this.formatEventTime(event)}`
+          `ADD: ${event.title} - ${this.formatEventTime(event, timeFormat)}`
         ).join('\n');
         
         return {
@@ -77,13 +142,13 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
 
       // Compare current events with last version
       const lastVersionEvents = lastVersion.scheduleData?.events || [];
-      const changes = this.detectChanges(lastVersionEvents, currentEvents);
+      const changes = this.detectChanges(lastVersionEvents, currentEvents, scheduleSettings);
       
-      const addedEvents = this.formatChangesByDay(changes.filter(c => c.type === 'added'));
-      const changedEvents = this.formatChangesByDay(changes.filter(c => c.type === 'modified'));
-      const removedEvents = this.formatChangesByDay(changes.filter(c => c.type === 'removed'));
+      const addedEvents = this.formatChangesByDay(changes.filter(c => c.type === 'added'), scheduleSettings);
+      const changedEvents = this.formatChangesByDay(changes.filter(c => c.type === 'modified'), scheduleSettings);
+      const removedEvents = this.formatChangesByDay(changes.filter(c => c.type === 'removed'), scheduleSettings);
       
-      const fullSummary = changes.length === 0 ? "No changes to the schedule." : this.formatChangesSummary(changes);
+      const fullSummary = changes.length === 0 ? "No changes to the schedule." : this.formatChangesSummary(changes, scheduleSettings);
       
       return {
         addedEvents,
@@ -102,7 +167,8 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
     }
   }
 
-  private detectChanges(oldEvents: any[], newEvents: any[]): ScheduleChange[] {
+  private detectChanges(oldEvents: any[], newEvents: any[], scheduleSettings: any): ScheduleChange[] {
+    const { timeFormat } = this.parseScheduleSettings(scheduleSettings?.scheduleSettings);
     const changes: ScheduleChange[] = [];
     
     // Create maps for easier comparison
@@ -117,7 +183,7 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
           eventTitle: newEvent.title,
           date: this.formatEventDate(newEvent),
           eventDate: newEvent.date,
-          details: this.formatEventTime(newEvent)
+          details: this.formatEventTime(newEvent, timeFormat)
         });
       }
     }
@@ -130,7 +196,7 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
           eventTitle: oldEvent.title,
           date: this.formatEventDate(oldEvent),
           eventDate: oldEvent.date,
-          details: this.formatEventTime(oldEvent)
+          details: this.formatEventTime(oldEvent, timeFormat)
         });
       }
     }
@@ -139,7 +205,7 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
     for (const newEvent of newEvents) {
       const oldEvent = oldEventMap.get(newEvent.id);
       if (oldEvent) {
-        const modifications = this.detectEventModifications(oldEvent, newEvent);
+        const modifications = this.detectEventModifications(oldEvent, newEvent, timeFormat);
         if (modifications.length > 0) {
           changes.push({
             type: 'modified',
@@ -157,11 +223,11 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
     return changes;
   }
   
-  private detectEventModifications(oldEvent: any, newEvent: any): string[] {
+  private detectEventModifications(oldEvent: any, newEvent: any, timeFormat: string): string[] {
     const modifications: string[] = [];
     
     // For changes, we want to show the new time and indicate what changed
-    let changeDescription = this.formatEventTime(newEvent);
+    let changeDescription = this.formatEventTime(newEvent, timeFormat);
     
     // Check if time changed (most common change)
     if (oldEvent.startTime !== newEvent.startTime || oldEvent.endTime !== newEvent.endTime) {
@@ -192,7 +258,8 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
     return modifications;
   }
   
-  private formatChangesSummary(changes: ScheduleChange[]): string {
+  private formatChangesSummary(changes: ScheduleChange[], scheduleSettings: any): string {
+    const { timeFormat, timezone, weekStartDay } = this.parseScheduleSettings(scheduleSettings?.scheduleSettings);
     const dailyChanges = this.groupChangesByDay(changes);
     const summaryLines: string[] = [];
     
@@ -221,12 +288,7 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
     // Format each day
     for (const dateStr of sortedDates) {
       const date = new Date(dateStr);
-      const dayName = date.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        year: 'numeric',
-        month: 'long', 
-        day: 'numeric' 
-      });
+      const dayName = this.formatDateInTimezone(date, timezone, weekStartDay);
       
       summaryLines.push(`${dayName}`);
       
@@ -282,11 +344,12 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
     return dailyChanges;
   }
 
-  private formatChangesByDay(changes: ScheduleChange[]): string {
+  private formatChangesByDay(changes: ScheduleChange[], scheduleSettings: any): string {
     if (changes.length === 0) {
       return '';
     }
 
+    const { timeFormat, timezone, weekStartDay } = this.parseScheduleSettings(scheduleSettings?.scheduleSettings);
     const dailyChanges = this.groupChangesByDay(changes);
     const summaryLines: string[] = [];
     
@@ -296,12 +359,7 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
     // Format each day
     for (const dateStr of sortedDates) {
       const date = new Date(dateStr);
-      const dayName = date.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        year: 'numeric',
-        month: 'long', 
-        day: 'numeric' 
-      });
+      const dayName = this.formatDateInTimezone(date, timezone, weekStartDay);
       
       summaryLines.push(`${dayName}`);
       
@@ -340,21 +398,30 @@ export class ScheduleChangeDetectionService implements ScheduleChangeDetection {
     });
   }
   
-  private formatEventTime(event: any): string {
+  private formatEventTime(event: any, timeFormat: string = '12'): string {
     if (event.isAllDay) {
       return 'All Day';
     }
     
-    const startTime = this.formatTime(event.startTime);
-    const endTime = this.formatTime(event.endTime);
+    const startTime = this.formatTime(event.startTime, timeFormat);
+    const endTime = this.formatTime(event.endTime, timeFormat);
     return `${startTime} - ${endTime}`;
   }
   
-  private formatTime(timeStr: string): string {
+  private formatTime(timeStr: string, timeFormat: string = '12'): string {
     if (!timeStr) return '';
     
-    // Return 24-hour format with just HH:MM
     const [hours, minutes] = timeStr.split(':');
-    return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+    const hour24 = parseInt(hours, 10);
+    const min = minutes.padStart(2, '0');
+    
+    if (timeFormat === '24') {
+      return `${hours.padStart(2, '0')}:${min}`;
+    } else {
+      // 12-hour format
+      const period = hour24 >= 12 ? 'PM' : 'AM';
+      const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+      return `${hour12}:${min} ${period}`;
+    }
   }
 }
