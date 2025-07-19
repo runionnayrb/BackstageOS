@@ -683,6 +683,7 @@ The Production Team`
   };
 
   return (
+    <>
     <div className="w-full">
       {/* Desktop Header - Unified Weekly View Style */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
@@ -2184,14 +2185,13 @@ The Production Team`}
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <>
         </div>
         </div>
         </div>
         </div>
         </div>
         </div>
-      </>
-    </div>
+      </div>
+    </>
   );
 }
