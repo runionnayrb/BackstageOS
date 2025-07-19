@@ -337,15 +337,20 @@ export default function EnhancedHeader() {
           {/* Admin Dropdowns - Only visible to admins */}
           {isAdmin(user) && (
             <div className="flex items-center space-x-3">
-              {/* Beta Access Level Selector */}
-              <Select value={selectedBetaAccess} onValueChange={setSelectedBetaAccess}>
-                <SelectTrigger className="w-32 h-8 text-xs">
-                  <SelectValue placeholder="Access View" />
+              {/* User Selector */}
+              <Select value={defaultUserId} onValueChange={(userId) => {
+                setDefaultUserId(userId);
+                switchAccountMutation.mutate(userId);
+              }}>
+                <SelectTrigger className="w-40 h-8 text-xs">
+                  <SelectValue placeholder="Select User" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin View</SelectItem>
-                  <SelectItem value="beta">Beta View</SelectItem>
-                  <SelectItem value="standard">Standard View</SelectItem>
+                  {allUsers.map((user: User) => (
+                    <SelectItem key={user.id} value={user.id.toString()}>
+                      {user.firstName} {user.lastName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
 
