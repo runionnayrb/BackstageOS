@@ -49,7 +49,6 @@ interface PersonalScheduleViewerProps {
 
 function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
-  const [expandedEventIds, setExpandedEventIds] = useState<Set<number>>(new Set());
 
   const { data: scheduleData, isLoading, error } = useQuery<PersonalScheduleData>({
     queryKey: token === "test" ? [`/api/schedule/test-personal`] : [`/api/schedule/${token}`],
