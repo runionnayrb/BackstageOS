@@ -2030,6 +2030,12 @@ The Production Team`}
                 <PersonalScheduleShare projectId={parseInt(projectId)} />
               </CardContent>
             </Card>
+            </div>
+            </div>
+            </div>
+            </div>
+            </div>
+            </div>
 
           </div>
         </DialogContent>
@@ -2185,13 +2191,7 @@ The Production Team`}
           </DialogFooter>
         </DialogContent>
       </Dialog>
-        </div>
-        </div>
-        </div>
-        </div>
-        </div>
-        </div>
-      </div>
+    </div>
     </>
   );
 }
