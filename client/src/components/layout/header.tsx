@@ -154,10 +154,7 @@ export default function Header() {
               onClick={() => setLocation("/")}
               className="text-xl font-semibold p-0 hover:bg-transparent"
             >
-              <span className="gradient-text-container">
-                <span className="normal-text text-gray-900">BackstageOS</span>
-                <span className="gradient-hover-text">BackstageOS</span>
-              </span>
+              <span className="logo-gradient-hover text-gray-900">BackstageOS</span>
             </Button>
           </div>
           
