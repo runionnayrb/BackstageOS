@@ -25,6 +25,7 @@ interface MonthlyScheduleViewProps {
   createEventDialog: boolean;
   setCreateEventDialog: (open: boolean) => void;
   onEventClick?: (event: ScheduleEvent) => void;
+  onEventEdit?: (event: ScheduleEvent) => void;
 }
 
 interface ScheduleEvent {
@@ -69,7 +70,8 @@ export default function MonthlyScheduleView({
   setShowAllDayEvents,
   createEventDialog,
   setCreateEventDialog,
-  onEventClick
+  onEventClick,
+  onEventEdit
 }: MonthlyScheduleViewProps) {
   const [editEventDialog, setEditEventDialog] = useState<{ isOpen: boolean; event?: ScheduleEvent }>({ isOpen: false });
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEvent | null>(null);
@@ -417,7 +419,11 @@ export default function MonthlyScheduleView({
                                 className="h-6 w-6 p-0"
                                 onClick={() => {
                                   setOpenPopoverId(null);
-                                  setEditEventDialog({ isOpen: true, event });
+                                  if (onEventEdit) {
+                                    onEventEdit(event);
+                                  } else {
+                                    setEditEventDialog({ isOpen: true, event });
+                                  }
                                 }}
                               >
                                 <Edit className="h-3 w-3" />

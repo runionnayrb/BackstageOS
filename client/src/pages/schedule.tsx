@@ -40,6 +40,7 @@ export default function Schedule() {
   }>({});
   const [showVersionControl, setShowVersionControl] = useState(false);
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -99,6 +100,47 @@ export default function Schedule() {
         toast({
           title: "Error creating event",
           description: error.message || "Failed to create event. Please try again.",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+
+  // Update event mutation
+  const updateEventMutation = useMutation({
+    mutationFn: ({ eventId, eventData }: { eventId: number; eventData: any }) => 
+      apiRequest('PATCH', `/api/projects/${projectId}/schedule-events/${eventId}`, eventData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      setEditingEvent(null);
+      toast({
+        title: "Event updated successfully",
+        description: "The event has been updated.",
+      });
+    },
+    onError: (error: any) => {
+      // Handle conflict validation (409 status) with user-friendly messages
+      if (error.status === 409 && error.conflicts) {
+        const conflictMessages = error.conflicts.map((conflict: any) => {
+          if (conflict.conflictType === 'unavailable') {
+            return `${conflict.contactName} is unavailable during ${conflict.conflictTime}`;
+          } else if (conflict.conflictType === 'schedule_overlap') {
+            return `${conflict.contactName} is already scheduled during ${conflict.conflictTime}`;
+          } else if (conflict.conflictType === 'location_unavailable') {
+            return `${conflict.locationName} is unavailable during ${conflict.conflictTime}`;
+          }
+          return conflict.conflictDetails;
+        });
+        
+        toast({
+          title: "Scheduling Conflict",
+          description: conflictMessages.join('\n'),
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error updating event",
+          description: error.message || "Failed to update event. Please try again.",
           variant: "destructive",
         });
       }
@@ -487,6 +529,9 @@ export default function Schedule() {
             setCreateEventDialog={setCreateEventDialog}
             viewMode={viewMode}
             setViewMode={setViewMode}
+            onEventEdit={(event) => {
+              setEditingEvent(event);
+            }}
             onEventClick={(event) => {
               // Set the date to the event's date and switch to daily view
               setCurrentDate(new Date(event.date));
@@ -542,9 +587,7 @@ export default function Schedule() {
                 viewMode={viewMode}
                 setViewMode={setViewMode}
                 onEventEdit={(event) => {
-                  // Navigate to daily view and let that handle editing
-                  setCurrentDate(new Date(event.date));
-                  setViewMode('daily');
+                  setEditingEvent(event);
                 }}
               />
             </div>
@@ -652,6 +695,97 @@ export default function Schedule() {
                   disabled={createEventMutation.isPending}
                 >
                   {createEventMutation.isPending ? "Creating..." : "Create Event"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Edit Event Dialog */}
+      {editingEvent && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-40"
+            onClick={() => setEditingEvent(null)}
+            style={{ touchAction: 'none' }}
+          />
+          
+          {/* Full Screen Sheet */}
+          <div 
+            className="fixed left-0 right-0 z-50 bg-white flex flex-col"
+            style={{ 
+              top: '60px', // Just below the BackstageOS header
+              bottom: '80px', // Above mobile navigation (typically 64-80px)
+              height: 'auto',
+              maxHeight: 'calc(100vh - 140px)' // Header + mobile nav space
+            }}
+            onTouchMove={(e) => {
+              // Prevent background scrolling when touching the sheet
+              e.stopPropagation();
+            }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 flex-shrink-0">
+              <Button 
+                variant="ghost" 
+                onClick={() => setEditingEvent(null)}
+                className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+              <h1 className="text-lg font-semibold text-black">
+                Edit Event
+              </h1>
+              <div className="w-9" /> {/* Spacer for center alignment */}
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
+              <EventForm
+                projectId={parseInt(projectId)}
+                contacts={contacts}
+                eventTypes={eventTypes}
+                initialDate={editingEvent.date}
+                onSubmit={(data) => updateEventMutation.mutate({ eventId: editingEvent.id, eventData: data })}
+                onCancel={() => setEditingEvent(null)}
+                timeFormat={settings?.scheduleSettings?.timeFormat || '12'}
+                showButtons={false}
+                initialValues={{
+                  title: editingEvent.title,
+                  description: editingEvent.description || '',
+                  type: editingEvent.type,
+                  startDate: editingEvent.date,
+                  endDate: editingEvent.date,
+                  startTime: editingEvent.startTime,
+                  endTime: editingEvent.endTime,
+                  location: editingEvent.location || '',
+                  notes: editingEvent.notes || '',
+                  isAllDay: editingEvent.isAllDay,
+                  participantIds: editingEvent.participants.map((p: any) => p.contactId),
+                }}
+              />
+            </div>
+            
+            {/* Sticky Footer with Buttons */}
+            <div className="border-t border-gray-200 p-4 bg-white flex-shrink-0 mt-auto">
+              <div className="flex justify-end space-x-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setEditingEvent(null)}
+                  className="px-4 py-2"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  form="event-form"
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
+                  disabled={updateEventMutation.isPending}
+                >
+                  {updateEventMutation.isPending ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
             </div>
