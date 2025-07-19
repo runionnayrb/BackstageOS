@@ -83,6 +83,9 @@ export default function Schedule() {
   ];
   
   // Function to insert variable into email template fields
+  const [localEmailSubject, setLocalEmailSubject] = useState('');
+  const [localEmailBody, setLocalEmailBody] = useState('');
+
   const insertVariable = (field: 'subject' | 'body' | 'changeSummary', variable: string) => {
     if (field === 'changeSummary') {
       // For rich text editor, append the variable to the current content
@@ -100,52 +103,71 @@ export default function Schedule() {
       return;
     }
 
-    let ref;
+    // Get display name for the variable instead of the key
+    const variableObj = templateVariables.find(v => v.key === variable);
+    const displayText = variableObj ? variableObj.displayName : variable;
+    
     if (field === 'subject') {
-      ref = emailSubjectRef;
+      const input = emailSubjectRef.current;
+      if (!input) return;
+      
+      const start = input.selectionStart || 0;
+      const end = input.selectionEnd || 0;
+      const currentValue = input.value;
+      const newValue = currentValue.substring(0, start) + displayText + currentValue.substring(end);
+      
+      setLocalEmailSubject(newValue);
+      
+      setTimeout(() => {
+        input.focus();
+        const newCursorPos = start + displayText.length;
+        input.setSelectionRange(newCursorPos, newCursorPos);
+      }, 0);
     } else if (field === 'body') {
-      ref = emailBodyRef;
-    } else {
-      return;
+      const input = emailBodyRef.current;
+      if (!input) return;
+      
+      const start = input.selectionStart || 0;
+      const end = input.selectionEnd || 0;
+      const currentValue = input.value;
+      const newValue = currentValue.substring(0, start) + displayText + currentValue.substring(end);
+      
+      setLocalEmailBody(newValue);
+      
+      setTimeout(() => {
+        input.focus();
+        const newCursorPos = start + displayText.length;
+        input.setSelectionRange(newCursorPos, newCursorPos);
+      }, 0);
     }
-    
-    const input = ref instanceof HTMLElement ? ref : ref.current;
-    if (!input) return;
-    
-    const start = input.selectionStart || 0;
-    const end = input.selectionEnd || 0;
-    const currentValue = input.value;
-    const newValue = currentValue.substring(0, start) + variable + currentValue.substring(end);
-    
-    // Update the value through the change handler
+  }
+
+  const saveEmailTemplate = () => {
     const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
       ? safeJsonParse((settings as any).scheduleSettings, {}) 
       : ((settings as any)?.scheduleSettings || {});
     
-    if (field === 'subject') {
-      handleSettingsUpdate("scheduleSettings", {
-        ...scheduleSettings,
-        emailTemplate: {
-          ...scheduleSettings?.emailTemplate,
-          subject: newValue
-        }
-      });
-    } else if (field === 'body') {
-      handleSettingsUpdate("scheduleSettings", {
-        ...scheduleSettings,
-        emailTemplate: {
-          ...scheduleSettings?.emailTemplate,
-          body: newValue
-        }
-      });
-    }
-    
-    // Focus back to the input and set cursor position
-    setTimeout(() => {
-      input.focus();
-      const newCursorPos = start + variable.length;
-      input.setSelectionRange(newCursorPos, newCursorPos);
-    }, 0);
+    handleSettingsUpdate("scheduleSettings", {
+      ...scheduleSettings,
+      emailTemplate: {
+        ...scheduleSettings?.emailTemplate,
+        subject: localEmailSubject || scheduleSettings?.emailTemplate?.subject || "Schedule Update - Show Name (Version Number)",
+        body: localEmailBody || scheduleSettings?.emailTemplate?.body || `Hi Contact Name,
+
+The schedule for Show Name has been updated with version Version Number.
+
+Added Events
+
+Changed Events
+
+Removed Events
+
+You can view your personal schedule here: Personal Schedule Link
+
+Best regards,
+The Production Team`
+      }
+    });
   };
 
   const { data: project } = useQuery({
@@ -1404,23 +1426,14 @@ export default function Schedule() {
                     ref={(el) => { emailSubjectRef.current = el; }}
                     id="emailSubject"
                     placeholder="Schedule Update - Show Name (Version Number)"
-                    value={(() => {
+                    value={localEmailSubject || (() => {
                       const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
                         ? safeJsonParse((settings as any).scheduleSettings, {}) 
                         : ((settings as any)?.scheduleSettings || {});
-                      return scheduleSettings?.emailTemplate?.subject || "Schedule Update - Show Name (Version Number)";
+                      return scheduleSettings?.emailTemplate?.subject || "";
                     })()}
                     onChange={(e) => {
-                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                        : ((settings as any)?.scheduleSettings || {});
-                      handleSettingsUpdate("scheduleSettings", {
-                        ...scheduleSettings,
-                        emailTemplate: {
-                          ...scheduleSettings?.emailTemplate,
-                          subject: e.target.value
-                        }
-                      });
+                      setLocalEmailSubject(e.target.value);
                     }}
                   />
                   <div className="flex flex-wrap gap-1 mt-2">
@@ -1440,11 +1453,16 @@ export default function Schedule() {
                 
                 <div className="space-y-2">
                   <Label htmlFor="emailBody">Email Body</Label>
-                  <textarea
-                    ref={(el) => { emailBodyRef.current = el; }}
-                    id="emailBody"
-                    className="min-h-32 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    placeholder={`Hi Contact Name,
+                  <div ref={(el) => { emailBodyRef.current = el; }} className="min-h-32 w-full rounded-md border border-input bg-background">
+                    <ChangeSummaryEditor
+                      content={localEmailBody || (() => {
+                        const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
+                          ? safeJsonParse((settings as any).scheduleSettings, {}) 
+                          : ((settings as any)?.scheduleSettings || {});
+                        return scheduleSettings?.emailTemplate?.body || "";
+                      })()}
+                      onChange={setLocalEmailBody}
+                      placeholder={`Hi Contact Name,
 
 The schedule for Show Name has been updated with version Version Number.
 
@@ -1458,38 +1476,8 @@ You can view your personal schedule here: Personal Schedule Link
 
 Best regards,
 The Production Team`}
-                    value={(() => {
-                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                        : ((settings as any)?.scheduleSettings || {});
-                      return scheduleSettings?.emailTemplate?.body || `Hi Contact Name,
-
-The schedule for Show Name has been updated with version Version Number.
-
-Added Events
-
-Changed Events
-
-Removed Events
-
-You can view your personal schedule here: Personal Schedule Link
-
-Best regards,
-The Production Team`;
-                    })()}
-                    onChange={(e) => {
-                      const scheduleSettings = typeof (settings as any)?.scheduleSettings === 'string' 
-                        ? safeJsonParse((settings as any).scheduleSettings, {}) 
-                        : ((settings as any)?.scheduleSettings || {});
-                      handleSettingsUpdate("scheduleSettings", {
-                        ...scheduleSettings,
-                        emailTemplate: {
-                          ...scheduleSettings?.emailTemplate,
-                          body: e.target.value
-                        }
-                      });
-                    }}
-                  />
+                    />
+                  </div>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {templateVariables.map((variable) => (
                       <button
@@ -1507,6 +1495,15 @@ The Production Team`;
 
                 <div className="p-3 bg-blue-50/50 rounded-lg">
                   <p className="text-sm text-blue-700 font-medium">Click the variable buttons above to insert them at your cursor position, or type them manually in the template fields.</p>
+                </div>
+                
+                <div className="flex justify-end pt-4">
+                  <Button
+                    onClick={saveEmailTemplate}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    Save Email Template as Default
+                  </Button>
                 </div>
               </CardContent>
             </Card>
