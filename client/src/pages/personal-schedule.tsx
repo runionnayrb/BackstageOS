@@ -52,7 +52,7 @@ function PersonalScheduleViewer({ token }: PersonalScheduleViewerProps) {
   const [expandedEventIds, setExpandedEventIds] = useState<Set<number>>(new Set());
 
   const { data: scheduleData, isLoading, error } = useQuery<PersonalScheduleData>({
-    queryKey: [`/api/schedule/${token}`],
+    queryKey: token === "test" ? [`/api/schedule/test-personal`] : [`/api/schedule/${token}`],
     enabled: !!token,
   });
 

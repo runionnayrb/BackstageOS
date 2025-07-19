@@ -10968,6 +10968,84 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Test route for personal schedule page without publishing
+  app.get("/api/schedule/test-personal", async (req: any, res) => {
+    try {
+      // Create mock personal schedule data for testing
+      const mockData = {
+        personalSchedule: {
+          id: 999,
+          accessToken: "test-token",
+          expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+          isActive: true
+        },
+        project: {
+          id: 3,
+          name: "Macbeth",
+          description: "Shakespeare's tragedy of ambition and power"
+        },
+        contact: {
+          id: 5,
+          firstName: "John",
+          lastName: "Do", 
+          email: "john.do@email.com",
+          contactType: "cast"
+        },
+        version: {
+          id: 1,
+          version: "1.0",
+          versionType: "major" as const,
+          title: "Test Schedule Version",
+          description: "This is a test schedule version to demo the personal schedule page functionality.",
+          publishedAt: new Date().toISOString()
+        },
+        events: [
+          {
+            id: 25,
+            title: "Another test event",
+            description: "This is a test event with a description to test the expandable 'View details' functionality. You should see a blue 'View details' button that expands to show this full description in a gray container.",
+            date: "2025-07-02",
+            startTime: "09:00:00",
+            endTime: "12:30:00",
+            location: "Rehearsal Hall",
+            type: "rehearsal",
+            isAllDay: false,
+            notes: "This is a test note for the event"
+          },
+          {
+            id: 26,
+            title: "All Day Event Test",
+            description: "This all-day event also has a description that should be expandable.",
+            date: "2025-07-03",
+            startTime: null,
+            endTime: null,
+            location: "MainStage Theatre",
+            type: "performance",
+            isAllDay: true,
+            notes: null
+          },
+          {
+            id: 27,
+            title: "Event without description",
+            description: null,
+            date: "2025-07-04",
+            startTime: "14:00:00",
+            endTime: "17:00:00",
+            location: "Dance Studio 1",
+            type: "rehearsal",
+            isAllDay: false,
+            notes: null
+          }
+        ]
+      };
+      
+      res.json(mockData);
+    } catch (error) {
+      console.error("Error creating test personal schedule data:", error);
+      res.status(500).json({ message: "Failed to create test data" });
+    }
+  });
+
   const server = createServer(app);
   
   // Start email cleanup scheduler for automatic 30-day trash cleanup
