@@ -674,95 +674,97 @@ The Production Team`
                 {getHeaderText()}
               </h1>
               {currentPublishedVersion && (
-                <p className="text-sm text-gray-600 mt-1">
-                  Version {currentPublishedVersion.version}, Published: {(() => {
-                    try {
-                      const date = new Date(currentPublishedVersion.publishedAt);
-                      if (isNaN(date.getTime())) {
-                        console.error('Invalid publishedAt date:', currentPublishedVersion.publishedAt);
-                        return 'Invalid Date';
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-sm text-gray-600">
+                    Version {currentPublishedVersion.version}, Published: {(() => {
+                      try {
+                        const date = new Date(currentPublishedVersion.publishedAt);
+                        if (isNaN(date.getTime())) {
+                          console.error('Invalid publishedAt date:', currentPublishedVersion.publishedAt);
+                          return 'Invalid Date';
+                        }
+                        const { timeFormat, timezone } = parseScheduleSettings(settings?.scheduleSettings);
+                        const dateStr = date.toLocaleDateString('en-US', { 
+                          month: 'long', 
+                          day: 'numeric', 
+                          year: 'numeric',
+                          timeZone: timezone
+                        });
+                        const timeStr = timeFormat === '24' 
+                          ? date.toLocaleTimeString('en-US', { 
+                              hour12: false, 
+                              hour: '2-digit', 
+                              minute: '2-digit',
+                              timeZone: timezone
+                            })
+                          : date.toLocaleTimeString('en-US', { 
+                              hour12: true, 
+                              hour: 'numeric', 
+                              minute: '2-digit',
+                              timeZone: timezone
+                            });
+                        return `${dateStr} at ${timeStr}`;
+                      } catch (error) {
+                        console.error('Date formatting error:', error, currentPublishedVersion);
+                        return 'Date formatting error';
                       }
-                      const { timeFormat, timezone } = parseScheduleSettings(settings?.scheduleSettings);
-                      const dateStr = date.toLocaleDateString('en-US', { 
-                        month: 'long', 
-                        day: 'numeric', 
-                        year: 'numeric',
-                        timeZone: timezone
-                      });
-                      const timeStr = timeFormat === '24' 
-                        ? date.toLocaleTimeString('en-US', { 
-                            hour12: false, 
-                            hour: '2-digit', 
-                            minute: '2-digit',
-                            timeZone: timezone
-                          })
-                        : date.toLocaleTimeString('en-US', { 
-                            hour12: true, 
-                            hour: 'numeric', 
-                            minute: '2-digit',
-                            timeZone: timezone
-                          });
-                      return `${dateStr} at ${timeStr}`;
-                    } catch (error) {
-                      console.error('Date formatting error:', error, currentPublishedVersion);
-                      return 'Date formatting error';
-                    }
+                    })()}
+                  </p>
+                  
+                  {/* Updated timestamp on same line, right aligned */}
+                  {(() => {
+                    // Find the most recently updated event
+                    const mostRecentEvent = events?.reduce((latest, event) => {
+                      const eventDate = new Date(event.updatedAt);
+                      const latestDate = latest ? new Date(latest.updatedAt) : new Date(0);
+                      return eventDate > latestDate ? event : latest;
+                    }, null);
+
+                    if (!mostRecentEvent || !users) return null;
+
+                    const updatedBy = users.find(user => user.id === mostRecentEvent.createdBy);
+                    if (!updatedBy) return null;
+
+                    const date = new Date(mostRecentEvent.updatedAt);
+                    if (isNaN(date.getTime())) return null;
+
+                    const { timeFormat, timezone } = parseScheduleSettings(settings?.scheduleSettings);
+                    const dateStr = date.toLocaleDateString('en-US', { 
+                      month: 'long', 
+                      day: 'numeric', 
+                      year: 'numeric',
+                      timeZone: timezone
+                    });
+                    const timeStr = timeFormat === '24' 
+                      ? date.toLocaleTimeString('en-US', { 
+                          hour12: false, 
+                          hour: '2-digit', 
+                          minute: '2-digit',
+                          timeZone: timezone
+                        })
+                      : date.toLocaleTimeString('en-US', { 
+                          hour12: true, 
+                          hour: 'numeric', 
+                          minute: '2-digit',
+                          timeZone: timezone
+                        });
+
+                    const userName = updatedBy.firstName && updatedBy.lastName 
+                      ? `${updatedBy.firstName} ${updatedBy.lastName}` 
+                      : updatedBy.email?.split('@')[0] || 'Unknown User';
+
+                    return (
+                      <p className="text-sm text-gray-600">
+                        Updated: {dateStr} at {timeStr} by {userName}
+                      </p>
+                    );
                   })()}
-                </p>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Right side - Last updated info */}
-          <div className="flex items-end flex-col">
-            {(() => {
-              // Find the most recently updated event
-              const mostRecentEvent = events?.reduce((latest, event) => {
-                const eventDate = new Date(event.updatedAt);
-                const latestDate = latest ? new Date(latest.updatedAt) : new Date(0);
-                return eventDate > latestDate ? event : latest;
-              }, null);
 
-              if (!mostRecentEvent || !users) return null;
-
-              const updatedBy = users.find(user => user.id === mostRecentEvent.createdBy);
-              if (!updatedBy) return null;
-
-              const date = new Date(mostRecentEvent.updatedAt);
-              if (isNaN(date.getTime())) return null;
-
-              const { timeFormat, timezone } = parseScheduleSettings(settings?.scheduleSettings);
-              const dateStr = date.toLocaleDateString('en-US', { 
-                month: 'long', 
-                day: 'numeric', 
-                year: 'numeric',
-                timeZone: timezone
-              });
-              const timeStr = timeFormat === '24' 
-                ? date.toLocaleTimeString('en-US', { 
-                    hour12: false, 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    timeZone: timezone
-                  })
-                : date.toLocaleTimeString('en-US', { 
-                    hour12: true, 
-                    hour: 'numeric', 
-                    minute: '2-digit',
-                    timeZone: timezone
-                  });
-
-              const userName = updatedBy.firstName && updatedBy.lastName 
-                ? `${updatedBy.firstName} ${updatedBy.lastName}` 
-                : updatedBy.email?.split('@')[0] || 'Unknown User';
-
-              return (
-                <p className="text-sm text-gray-600 mt-1">
-                  Updated: {dateStr} at {timeStr} by {userName}
-                </p>
-              );
-            })()}
-          </div>
 
           {/* Right side - Controls matching weekly view order */}
           <div className="flex items-center space-x-2">
