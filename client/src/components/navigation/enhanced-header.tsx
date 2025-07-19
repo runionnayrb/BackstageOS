@@ -471,10 +471,10 @@ export default function EnhancedHeader() {
             {/* Show Settings Button - appears when in a show */}
             {navContext.showId && showData?.name && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setLocation(`/shows/${navContext.showId}/settings`)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 hover:text-blue-600 hover:bg-blue-50"
               >
                 <Settings className="h-4 w-4" />
                 <span className="hidden sm:inline">Show Settings</span>
