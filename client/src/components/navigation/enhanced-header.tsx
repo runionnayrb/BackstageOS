@@ -334,6 +334,40 @@ export default function EnhancedHeader() {
 
           </div>
 
+          {/* Admin Dropdowns - Only visible to admins */}
+          {isAdmin(user) && (
+            <div className="flex items-center space-x-4">
+              {/* Beta Access Level Selector */}
+              <div className="flex items-center space-x-2 bg-red-100 p-2 border border-red-500">
+                <Shield className="h-4 w-4 text-gray-500" />
+                <Select value={selectedBetaAccess} onValueChange={setSelectedBetaAccess}>
+                  <SelectTrigger className="w-32 h-8 text-xs">
+                    <SelectValue placeholder="Access View" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Admin View</SelectItem>
+                    <SelectItem value="beta">Beta View</SelectItem>
+                    <SelectItem value="standard">Standard View</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Profile Type Selector */}
+              <div className="flex items-center space-x-2 bg-blue-100 p-2 border border-blue-500">
+                <UserCheck className="h-4 w-4 text-gray-500" />
+                <Select value={selectedProfileType} onValueChange={setSelectedProfileType}>
+                  <SelectTrigger className="w-32 h-8 text-xs">
+                    <SelectValue placeholder="Profile Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="freelance">Freelance</SelectItem>
+                    <SelectItem value="fulltime">Full-time</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
           {/* Right side - User menu and admin controls */}
           <div className="flex items-center gap-4">
             {/* Show Settings Button - appears when in a show */}
