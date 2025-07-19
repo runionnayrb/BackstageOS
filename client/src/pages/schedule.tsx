@@ -10,7 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText, User } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText, User, Send } from "lucide-react";
 import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import MobileWeeklyScheduleView from "@/components/mobile-weekly-schedule-view";
@@ -63,6 +64,8 @@ export default function Schedule() {
   const [showPublishVersionConfirm, setShowPublishVersionConfirm] = useState(false);
   const [testEmailAddress, setTestEmailAddress] = useState('');
   const [showTestEmailDialog, setShowTestEmailDialog] = useState(false);
+  const [showResendScheduleDialog, setShowResendScheduleDialog] = useState(false);
+  const [resendSelectedContacts, setResendSelectedContacts] = useState<number[]>([]);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -246,6 +249,82 @@ The Production Team`
   const sendTestEmail = () => {
     sendTestEmailMutation.mutate();
     setShowTestEmailDialog(false);
+  };
+
+  // Resend schedule mutation
+  const resendScheduleMutation = useMutation({
+    mutationFn: async (contactIds: number[]) => {
+      const response = await apiRequest('POST', `/api/projects/${projectId}/resend-schedule`, {
+        contactIds
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Schedule Resent",
+        description: `Schedule successfully resent to ${data.sentCount || resendSelectedContacts.length} contacts.`,
+      });
+      setShowResendScheduleDialog(false);
+      setResendSelectedContacts([]);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to resend schedule. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleResendSchedule = () => {
+    if (resendSelectedContacts.length === 0) {
+      toast({
+        title: "No Recipients Selected",
+        description: "Please select at least one contact to resend the schedule to.",
+        variant: "destructive",
+      });
+      return;
+    }
+    resendScheduleMutation.mutate(resendSelectedContacts);
+  };
+
+  // Organize contacts by type for resend dialog
+  const organizedContacts = contacts.reduce((acc: any, contact: any) => {
+    const contactType = contact.category || 'Other';
+    const typeName = contactType.toUpperCase().replace(/_/g, ' ');
+    
+    if (!acc[typeName]) {
+      acc[typeName] = [];
+    }
+    acc[typeName].push({
+      id: contact.id,
+      name: `${contact.firstName || ''} ${contact.lastName || ''}`.trim() || contact.email || 'Unknown Contact',
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      email: contact.email
+    });
+    return acc;
+  }, {});
+
+  // Get all contact IDs for "Full Company" toggle
+  const allContactIds = contacts.map((contact: any) => contact.id);
+
+  // Handle Full Company toggle
+  const handleFullCompanyToggle = (checked: boolean) => {
+    if (checked) {
+      setResendSelectedContacts(allContactIds);
+    } else {
+      setResendSelectedContacts([]);
+    }
+  };
+
+  // Handle individual contact toggle
+  const handleContactToggle = (contactId: number, checked: boolean) => {
+    if (checked) {
+      setResendSelectedContacts(prev => [...prev, contactId]);
+    } else {
+      setResendSelectedContacts(prev => prev.filter(id => id !== contactId));
+    }
   };
 
   // Organize personal schedules by contact type
@@ -662,6 +741,15 @@ The Production Team`
                     }}
                   >
                     Minor Version
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setShowResendScheduleDialog(true);
+                      setResendSelectedContacts([]);
+                    }}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Resend Schedule
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -1839,6 +1927,92 @@ The Production Team`}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Resend Schedule Dialog */}
+      <Dialog open={showResendScheduleDialog} onOpenChange={setShowResendScheduleDialog}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Resend Schedule</DialogTitle>
+            <DialogDescription>
+              Select contacts to resend the most recent published schedule version.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Full Company Toggle */}
+            <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border-2">
+              <Checkbox
+                id="fullCompany"
+                checked={resendSelectedContacts.length === allContactIds.length && allContactIds.length > 0}
+                onCheckedChange={handleFullCompanyToggle}
+                className="h-5 w-5"
+              />
+              <Label 
+                htmlFor="fullCompany" 
+                className="text-sm font-bold text-gray-900 cursor-pointer"
+              >
+                FULL COMPANY ({allContactIds.length} contacts)
+              </Label>
+            </div>
+
+            {/* Contact List organized by type */}
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {Object.keys(organizedContacts).length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <User className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>No contacts found for this show.</p>
+                </div>
+              ) : (
+                Object.entries(organizedContacts).map(([contactType, contacts]: [string, any[]]) => (
+                  <div key={contactType} className="space-y-2">
+                    <div className="text-xs font-bold text-gray-700 uppercase tracking-wide px-2 py-1 bg-gray-100 rounded">
+                      {contactType}
+                    </div>
+                    <div className="space-y-2">
+                      {contacts.map((contact) => (
+                        <div key={contact.id} className="flex items-center space-x-3 px-2">
+                          <Checkbox
+                            id={`contact-${contact.id}`}
+                            checked={resendSelectedContacts.includes(contact.id)}
+                            onCheckedChange={(checked) => handleContactToggle(contact.id, checked)}
+                            className="h-4 w-4"
+                          />
+                          <Label 
+                            htmlFor={`contact-${contact.id}`} 
+                            className="text-sm text-gray-900 cursor-pointer flex-1"
+                          >
+                            {contact.name}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {resendSelectedContacts.length > 0 && (
+              <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                Selected: {resendSelectedContacts.length} contact{resendSelectedContacts.length !== 1 ? 's' : ''}
+              </div>
+            )}
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowResendScheduleDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleResendSchedule}
+              disabled={resendScheduleMutation.isPending || resendSelectedContacts.length === 0}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {resendScheduleMutation.isPending ? 'Sending...' : `Resend to ${resendSelectedContacts.length} Contact${resendSelectedContacts.length !== 1 ? 's' : ''}`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Test Email Dialog */}
       <Dialog open={showTestEmailDialog} onOpenChange={setShowTestEmailDialog}>

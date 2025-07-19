@@ -394,12 +394,13 @@ BackstageOS • Professional Stage Management
   }
 
   /**
-   * Send schedule update notifications to all project contacts
+   * Send schedule update notifications to all project contacts or specific contacts
    */
   public async sendScheduleUpdateNotifications(
     versionId: number,
     projectId: number,
-    publishedByUserId: number
+    publishedByUserId: number,
+    contactIds?: number[]
   ) {
     try {
       console.log(`📧 Starting schedule notification process for version ${versionId}`);
@@ -424,7 +425,14 @@ BackstageOS • Professional Stage Management
       }
 
       // Get project contacts
-      const contacts = await storage.getContactsByProject(projectId);
+      let contacts = await storage.getContactsByProject(projectId);
+      
+      // Filter contacts if specific contactIds provided
+      if (contactIds && contactIds.length > 0) {
+        contacts = contacts.filter((contact: any) => contactIds.includes(contact.id));
+        console.log(`📧 Filtering to ${contactIds.length} specific contacts from ${contacts.length} total`);
+      }
+      
       if (contacts.length === 0) {
         console.log(`ℹ️ No contacts found for project ${projectId}, skipping notifications`);
         return;

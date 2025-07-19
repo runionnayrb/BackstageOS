@@ -10243,6 +10243,75 @@ The Production Team`;
     }
   });
 
+  // Resend schedule to selected contacts
+  app.post('/api/projects/:projectId/resend-schedule', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const { contactIds } = req.body;
+      
+      // Validate request
+      if (!contactIds || !Array.isArray(contactIds) || contactIds.length === 0) {
+        return res.status(400).json({ message: "Contact IDs are required" });
+      }
+      
+      // Verify project access
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Check access (owner or team member)
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      // Get the most recent published schedule version
+      const allVersions = await storage.getScheduleVersionsByProjectId(projectId);
+      const currentVersion = allVersions.find(v => v.isCurrent);
+      
+      if (!currentVersion) {
+        return res.status(404).json({ message: "No published schedule version found" });
+      }
+      
+      // Verify that all contact IDs belong to this project
+      const projectContacts = await storage.getContactsByProjectId(projectId);
+      const validContactIds = projectContacts.map((c: any) => c.id);
+      const invalidContacts = contactIds.filter((id: number) => !validContactIds.includes(id));
+      
+      if (invalidContacts.length > 0) {
+        return res.status(400).json({ 
+          message: `Invalid contact IDs: ${invalidContacts.join(', ')}` 
+        });
+      }
+      
+      // Send email notifications to selected contacts asynchronously
+      setImmediate(async () => {
+        try {
+          await scheduleNotificationService.sendScheduleUpdateNotifications(
+            currentVersion.id,
+            projectId,
+            parseInt(req.user.id),
+            contactIds // Pass specific contact IDs to limit recipients
+          );
+        } catch (emailError) {
+          console.error('Resend schedule email error (non-blocking):', emailError);
+        }
+      });
+      
+      console.log(`✅ Schedule resent to ${contactIds.length} contacts for project ${projectId}.`);
+      res.json({ 
+        success: true, 
+        message: `Schedule resent successfully`,
+        sentCount: contactIds.length,
+        versionId: currentVersion.id,
+        version: currentVersion.version
+      });
+    } catch (error) {
+      console.error("Error resending schedule:", error);
+      res.status(500).json({ message: "Failed to resend schedule" });
+    }
+  });
+
   // Get personal schedules for a project
   app.get('/api/projects/:projectId/personal-schedules', isAuthenticated, async (req: any, res) => {
     try {
