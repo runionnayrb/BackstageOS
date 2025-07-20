@@ -392,7 +392,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setLocation(`/projects/${actualProjectId}`)}
+              onClick={() => setLocation(`/shows/${actualProjectId}`)}
               className="text-gray-600 hover:text-gray-900"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
