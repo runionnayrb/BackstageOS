@@ -5,9 +5,44 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, CheckCircle } from "lucide-react";
 
-const CURRENT_VERSION = "26.1.0";
+const CURRENT_VERSION = "26.2.0";
 
 const RELEASE_NOTES = [
+  {
+    version: "26.2.0",
+    date: "July 20, 2025",
+    type: "Major",
+    features: [
+      "<strong><u>NAVIGATION & USER EXPERIENCE:</u></strong>",
+      "Complete navigation streamlining with intuitive project-based workflows and simplified menu structure",
+      "Enhanced mobile responsiveness across all admin interfaces with touch-optimized controls",
+      "Improved page loading performance and seamless navigation between project sections",
+      "<strong><u>SCHEDULE MANAGEMENT ENHANCEMENTS:</u></strong>",
+      "Real-time timestamp tracking with user attribution showing who made schedule modifications",
+      "Enhanced schedule header with properly positioned update timestamps using production timezone settings",
+      "Show-specific team email integration with dynamic filtering and cross-show isolation",
+      "Comprehensive Reply-To configuration supporting multiple email account types per production",
+      "<strong><u>EMAIL SYSTEM IMPROVEMENTS:</u></strong>",
+      "Complete catch-all email routing system providing unlimited @backstageos.com addresses",
+      "Automatic email trash cleanup with 30-day retention and permanent deletion scheduling",
+      "Dynamic folder names in email interface headers with clear navigation indicators",
+      "Enhanced email template system with show-specific variables and professional formatting",
+      "<strong><u>CONTACT & TEAM MANAGEMENT:</u></strong>",
+      "Fixed contact equity status validation for different team member types",
+      "Streamlined contact creation workflow with conditional validation based on role type",
+      "Enhanced team member management with proper role-based permissions and settings",
+      "<strong><u>EVENT & SCHEDULING FEATURES:</u></strong>",
+      "Comprehensive event types dropdown integration across all schedule views",
+      "Mobile long-press editing functionality for events with haptic feedback and intuitive controls",
+      "Enhanced daily call sheet management with automatic sync to production schedules",
+      "Event type management with color coding and real-time updates across all calendar views",
+      "<strong><u>ADMIN & PLATFORM:</u></strong>",
+      "Full mobile optimization for 5 admin dashboard pages with responsive layouts",
+      "Enhanced admin error logging system with desktop-optimized interface",
+      "Improved SEO management tools with mobile-responsive controls",
+      "Advanced analytics dashboard with intelligent mobile adaptations"
+    ]
+  },
   {
     version: "26.1.0",
     date: "July 19, 2025",
