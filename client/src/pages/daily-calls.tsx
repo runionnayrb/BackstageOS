@@ -338,7 +338,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                     </div>
                     
                     <div className="space-y-2">
-                      {location.events.map((event, eventIdx) => (
+                      {(location.events || []).map((event, eventIdx) => (
                         <div key={event.id} className={`flex items-start gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1' : 'py-2'}`}>
                           <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
                             {event.title === 'END-OF-DAY' ? '' : (
@@ -432,7 +432,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                       </div>
                       
                       <div className="space-y-2">
-                        {location.events.filter(event => event.title !== 'END-OF-DAY').map((event, eventIdx) => (
+                        {(location.events || []).filter(event => event.title !== 'END-OF-DAY').map((event, eventIdx) => (
                           <div key={event.id} className="flex items-start gap-4 py-2">
                             <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
                               {isEditing ? (
@@ -498,11 +498,11 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
 
                 {/* Full-width END-OF-DAY events */}
                 {(callData.locations || []).some(location => 
-                  location.events.some(event => event.title === 'END-OF-DAY')
+                  (location.events || []).some(event => event.title === 'END-OF-DAY')
                 ) && (
                   <div className="space-y-1">
                     {(callData.locations || []).flatMap(location => 
-                      location.events.filter(event => event.title === 'END-OF-DAY')
+                      (location.events || []).filter(event => event.title === 'END-OF-DAY')
                     ).map((event, index) => (
                       <div key={`end-of-day-${index}`} className="bg-gray-100 py-1">
                         <div className="flex items-center">
