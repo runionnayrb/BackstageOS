@@ -400,7 +400,6 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Daily Calls</h1>
-            <p className="text-gray-600">Create and manage daily call sheets for your production</p>
           </div>
           <div className="flex items-center space-x-3">
             {!isEditing && (
