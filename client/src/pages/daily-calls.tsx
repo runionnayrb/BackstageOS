@@ -403,6 +403,12 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
             </div>
           </div>
           <div className="flex items-center space-x-3">
+            {!isEditing && (
+              <Button onClick={() => setIsEditing(true)} variant="outline">
+                <FileText className="h-4 w-4 mr-2" />
+                Edit Call Sheet
+              </Button>
+            )}
             <div className="flex items-center space-x-2">
               <Calendar className="h-4 w-4 text-gray-500" />
               <Input
@@ -655,15 +661,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
             )}
           </div>
 
-          {/* Edit Button */}
-          {!isEditing && (
-            <div className="mt-8 text-center">
-              <Button onClick={() => setIsEditing(true)} variant="outline" size="lg">
-                <FileText className="h-4 w-4 mr-2" />
-                Edit Call Sheet
-              </Button>
-            </div>
-          )}
+
 
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-gray-200 text-center">
