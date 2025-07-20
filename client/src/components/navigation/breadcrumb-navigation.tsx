@@ -14,22 +14,30 @@ interface BreadcrumbNavigationProps {
 }
 
 export default function BreadcrumbNavigation({ items, className = "" }: BreadcrumbNavigationProps) {
-  // On mobile, show only the current page (last item)
-  const mobileItems = items.slice(-1);
+  // On mobile, show only the previous page (second to last item, or first if only one item)
+  const mobileItems = items.length > 1 ? items.slice(-2, -1) : items.slice(0, 1);
   
   return (
     <>
-      {/* Mobile: Show only current page */}
+      {/* Mobile: Show only previous page */}
       <nav className={`sm:hidden flex items-center text-sm text-gray-600 ${className}`} aria-label="Breadcrumb">
         {mobileItems.map((item, index) => (
           <div key={index} className="flex items-center">
-            <span className={`px-1 text-sm ${
-              item.isCurrentPage 
-                ? 'text-gray-900 font-medium' 
-                : 'text-gray-600'
-            }`}>
-              {item.label}
-            </span>
+            {item.href && !item.isCurrentPage ? (
+              <Link href={item.href}>
+                <span className="text-gray-600 hover:text-blue-600 cursor-pointer transition-colors duration-200 px-1">
+                  {item.label}
+                </span>
+              </Link>
+            ) : (
+              <span className={`px-1 text-sm ${
+                item.isCurrentPage 
+                  ? 'text-gray-900 font-medium' 
+                  : 'text-gray-600'
+              }`}>
+                {item.label}
+              </span>
+            )}
           </div>
         ))}
       </nav>
