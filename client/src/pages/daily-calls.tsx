@@ -300,11 +300,11 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-8">
                 {callData.locations.map((location, locationIndex) => (
-                  <Card key={locationIndex} className="border-2 border-gray-200">
-                    <CardHeader className="bg-gray-50">
-                      <CardTitle className="text-lg flex items-center">
+                  <div key={locationIndex} className="space-y-3">
+                    <div className="border-b-2 border-gray-300 pb-2">
+                      <h4 className="text-lg font-semibold text-gray-900">
                         {isEditing ? (
                           <Input
                             value={location.name}
@@ -318,64 +318,63 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                                 )
                               }));
                             }}
-                            className="font-semibold"
+                            className="font-semibold text-lg"
                           />
                         ) : (
                           location.name
                         )}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <div className="space-y-1">
-                        {location.events.map((event, eventIdx) => (
-                          <div key={event.id} className="flex items-start gap-4 py-1">
-                            <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
-                              {event.title === 'END-OF-DAY' ? '' : event.startTime}
-                            </div>
-                            <div className="flex-1">
-                              {isEditing && event.title !== 'END-OF-DAY' ? (
-                                <Input
-                                  value={event.title}
-                                  onChange={(e) => {
-                                    const newLocations = [...callData.locations];
-                                    newLocations[locationIndex].events[eventIdx].title = e.target.value;
-                                    setCallData(prev => ({ ...prev, locations: newLocations }));
-                                  }}
-                                  className="font-medium text-sm"
-                                />
-                              ) : (
-                                <div>
-                                  <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900' : 'font-medium text-gray-800'}`}>
-                                    {event.title}
-                                  </div>
-                                  {event.cast.length > 0 && (
-                                    <div className="text-xs text-gray-600 mt-0.5 ml-4">
-                                      {event.cast.join(', ')}
-                                    </div>
-                                  )}
-                                  {event.notes && (
-                                    <div className="text-xs text-gray-500 italic mt-0.5 ml-4">{event.notes}</div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
+                      </h4>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {location.events.map((event, eventIdx) => (
+                        <div key={event.id} className="flex items-start gap-6 py-2 border-b border-gray-100 last:border-b-0">
+                          <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
+                            {event.title === 'END-OF-DAY' ? '' : event.startTime}
                           </div>
-                        ))}
-                        
-                        {isEditing && (
-                          <Button 
-                            onClick={() => addEvent(locationIndex)} 
-                            variant="ghost" 
-                            size="sm"
-                            className="w-full mt-2"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Event
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                          <div className="flex-1">
+                            {isEditing && event.title !== 'END-OF-DAY' ? (
+                              <Input
+                                value={event.title}
+                                onChange={(e) => {
+                                  const newLocations = [...callData.locations];
+                                  newLocations[locationIndex].events[eventIdx].title = e.target.value;
+                                  setCallData(prev => ({ ...prev, locations: newLocations }));
+                                }}
+                                className="font-medium text-sm"
+                              />
+                            ) : (
+                              <div>
+                                <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900' : 'font-medium text-gray-800'}`}>
+                                  {event.title}
+                                </div>
+                                {event.cast.length > 0 && (
+                                  <div className="text-xs text-gray-600 mt-1 ml-6">
+                                    {event.cast.join(', ')}
+                                  </div>
+                                )}
+                                {event.notes && (
+                                  <div className="text-xs text-gray-500 italic mt-1 ml-6">{event.notes}</div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {isEditing && (
+                        <Button 
+                          onClick={() => addEvent(locationIndex)} 
+                          variant="ghost" 
+                          size="sm"
+                          className="w-full mt-4"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Event
+                        </Button>
+                      )}
+                    </div>
+                  </div>
                 ))}
               </div>
             )}
