@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useParams } from "wouter";
 import { format, parseISO } from "date-fns";
-import { Calendar, Plus, Save, FileText, ChevronLeft, Users } from "lucide-react";
+import { Calendar, Plus, Save, FileText, ChevronLeft, Users, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -442,9 +442,8 @@ export default function DailyCallSheet() {
           </div>
           <div className="flex items-center space-x-3">
             {!isEditing && (
-              <Button onClick={() => setIsEditing(true)} variant="outline">
-                <FileText className="h-4 w-4 mr-2" />
-                Edit Call
+              <Button onClick={() => setIsEditing(true)} variant="outline" size="icon">
+                <Edit className="h-4 w-4" />
               </Button>
             )}
             {isEditing && (
