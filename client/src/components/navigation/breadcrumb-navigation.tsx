@@ -1,4 +1,4 @@
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ChevronsLeft } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 
@@ -25,7 +25,8 @@ export default function BreadcrumbNavigation({ items, className = "" }: Breadcru
           <div key={index} className="flex items-center">
             {item.href && !item.isCurrentPage ? (
               <Link href={item.href}>
-                <span className="text-gray-600 hover:text-blue-600 cursor-pointer transition-colors duration-200 px-1">
+                <span className="text-gray-600 hover:text-blue-600 cursor-pointer transition-colors duration-200 px-1 flex items-center gap-1">
+                  <ChevronsLeft className="h-3 w-3" />
                   {item.label}
                 </span>
               </Link>
@@ -49,7 +50,8 @@ export default function BreadcrumbNavigation({ items, className = "" }: Breadcru
             {index > 0 && <ChevronRight className="h-3 w-3 text-gray-400 mx-1 flex-shrink-0" />}
             {item.href && !item.isCurrentPage ? (
               <Link href={item.href}>
-                <span className="text-gray-600 hover:text-blue-600 cursor-pointer transition-colors duration-200 px-1">
+                <span className="text-gray-600 hover:text-blue-600 cursor-pointer transition-colors duration-200 px-1 flex items-center gap-1">
+                  <ChevronsLeft className="h-3 w-3" />
                   {item.label}
                 </span>
               </Link>
