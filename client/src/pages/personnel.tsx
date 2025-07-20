@@ -245,7 +245,64 @@ export default function Personnel() {
 
   return (
     <div className="w-full">
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
+      {/* Mobile Header */}
+      <div className="md:hidden px-4 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation(`/shows/${projectId}`)}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+          
+          <div className="flex items-center gap-2">
+            {allContacts.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <FileText className="h-4 w-4" />
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/contact-sheet`)}>
+                    Contact Sheet
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLocation(`/shows/${projectId}/company-list`)}>
+                    Company List
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            <Button
+              variant={isReordering ? "default" : "ghost"}
+              onClick={() => setIsReordering(!isReordering)}
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <GripVertical className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
+          <Button
+            onClick={handleNewContactClick}
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add
+          </Button>
+        </div>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
           <Button
             variant="ghost"
@@ -300,7 +357,105 @@ export default function Personnel() {
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8">
+      {/* Mobile Contact List */}
+      <div className="md:hidden px-4">
+        <div className="space-y-6">
+          {categories.map((category, categoryIndex) => {
+            const categoryContacts = contactsByCategory[category.id] || [];
+            
+            return (
+              <div
+                key={category.id}
+                draggable={isReordering}
+                onDragStart={isReordering ? (e) => handleDragStart(e, categoryIndex) : undefined}
+                onDragOver={isReordering ? handleDragOver : undefined}
+                onDrop={isReordering ? (e) => handleDrop(e, categoryIndex) : undefined}
+                onDragEnd={isReordering ? handleDragEnd : undefined}
+                className={`${
+                  isReordering && draggedIndex === categoryIndex 
+                    ? 'opacity-50 bg-blue-50 border-blue-200 border-2 rounded-lg p-3' 
+                    : ''
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  {isReordering && (
+                    <div className="drag-handle cursor-grab active:cursor-grabbing">
+                      <GripVertical className="h-5 w-5 text-gray-400" />
+                    </div>
+                  )}
+                  <h2 className="text-lg font-semibold text-gray-900">{category.title}</h2>
+                  <span className="text-gray-500 text-sm">({categoryContacts.length})</span>
+                </div>
+                
+                {categoryContacts.length === 0 ? (
+                  <div className="text-gray-500 italic py-3 px-2 text-sm">
+                    No contacts in this category yet.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {categoryContacts.map((contact) => (
+                      <div
+                        key={contact.id}
+                        className="p-3 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                        onClick={() => handleContactClick(contact)}
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <h3 className="font-medium text-gray-900">
+                              {contact.firstName} {contact.lastName}
+                            </h3>
+                            {contact.role && (
+                              <p className="text-sm text-gray-600 mt-0.5">{contact.role}</p>
+                            )}
+                          </div>
+                          <div className="flex gap-1 ml-2">
+                            <Calendar 
+                              className="h-4 w-4 text-gray-500 hover:text-gray-700 cursor-pointer" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAvailabilityClick(contact);
+                              }}
+                            />
+                            {contact.email && (
+                              <Mail 
+                                className="h-4 w-4 text-gray-500 hover:text-gray-700 cursor-pointer" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEmailContact(contact.email!);
+                                }}
+                              />
+                            )}
+                            {contact.phone && (
+                              <Phone 
+                                className="h-4 w-4 text-gray-500 hover:text-gray-700 cursor-pointer" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  window.location.href = `tel:${contact.phone}`;
+                                }}
+                              />
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          {contact.email && (
+                            <p className="text-sm text-gray-600 truncate">{contact.email}</p>
+                          )}
+                          {contact.phone && (
+                            <p className="text-sm text-gray-600">{formatPhoneNumber(contact.phone)}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Desktop Contact List */}
+      <div className="hidden md:block px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
           {categories.map((category, categoryIndex) => {
             const categoryContacts = contactsByCategory[category.id] || [];
@@ -362,7 +517,6 @@ export default function Personnel() {
                                 e.stopPropagation();
                                 handleAvailabilityClick(contact);
                               }}
-                              title="Manage Weekly Availability"
                             />
                             {contact.email && (
                               <Mail 
