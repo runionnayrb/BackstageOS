@@ -206,16 +206,16 @@ export default function EnhancedHeader() {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Logo and Navigation */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-1 min-w-0">
             <div 
-              className="text-xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors"
+              className="text-xl font-bold text-gray-900 cursor-pointer hover:text-gray-700 transition-colors flex-shrink-0"
               onClick={() => setLocation('/')}
             >
               BackstageOS
             </div>
 
             {/* Navigation Menu - Moved after BackstageOS */}
-            <div>
+            <div className="flex-shrink-0">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:text-blue-600 hover:bg-transparent focus:outline-none focus:ring-0 focus-visible:ring-0">
@@ -327,7 +327,7 @@ export default function EnhancedHeader() {
 
             {/* Breadcrumb Navigation */}
             {breadcrumbs.length > 0 && (
-              <div className="flex items-center ml-2 sm:ml-4 flex-1 min-w-0">
+              <div className="flex items-center ml-2 sm:ml-4 flex-1 min-w-0 overflow-hidden">
                 <BreadcrumbNavigation items={breadcrumbs} className="text-sm" />
               </div>
             )}
@@ -368,7 +368,7 @@ export default function EnhancedHeader() {
           )}
 
           {/* Right side - User menu and admin controls */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 flex-shrink-0">
             {/* Show Settings Button - appears when in a show */}
             {navContext.showId && showData?.name && (
               <Button
@@ -388,12 +388,17 @@ export default function EnhancedHeader() {
             {user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <span className="font-medium">
-                      {switchStatus?.isViewingAs ? switchStatus.viewingUser?.firstName + ' ' + (switchStatus.viewingUser?.lastName || '') : user.firstName + ' ' + (user.lastName || '')}
-                      {isEffectiveAdmin(user, switchStatus) && " - Admin"}
+                  <Button variant="ghost" className="flex items-center gap-2 max-w-[150px] sm:max-w-none">
+                    <span className="font-medium truncate">
+                      <span className="hidden sm:inline">
+                        {switchStatus?.isViewingAs ? switchStatus.viewingUser?.firstName + ' ' + (switchStatus.viewingUser?.lastName || '') : user.firstName + ' ' + (user.lastName || '')}
+                        {isEffectiveAdmin(user, switchStatus) && " - Admin"}
+                      </span>
+                      <span className="sm:hidden">
+                        {switchStatus?.isViewingAs ? switchStatus.viewingUser?.firstName : user.firstName}
+                      </span>
                     </span>
-                    <ChevronDown className="h-4 w-4" />
+                    <ChevronDown className="h-4 w-4 flex-shrink-0" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64">
