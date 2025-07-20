@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 import { format, parseISO } from "date-fns";
 import { Calendar, Plus, Save, FileText, ChevronLeft, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,10 @@ interface CallLocation {
 
 export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
   const [, setLocation] = useLocation();
+  const params = useParams();
+  
+  // Use params.id if projectId prop is not available
+  const actualProjectId = projectId || params.id;
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -41,41 +45,42 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
   const [callData, setCallData] = useState<{
     locations: CallLocation[];
     announcements: string;
-    endOfDayNotes: string;
   }>({
     locations: [],
-    announcements: '',
-    endOfDayNotes: ''
+    announcements: ''
   });
 
   // Fetch project data
   const { data: project } = useQuery<Project>({
-    queryKey: ['/api/projects', projectId],
+    queryKey: ['/api/projects', actualProjectId],
+    enabled: !!actualProjectId,
   });
 
   // Fetch contacts (cast members)
   const { data: contacts = [] } = useQuery<Contact[]>({
-    queryKey: ['/api/projects', projectId, 'contacts'],
+    queryKey: ['/api/projects', actualProjectId, 'contacts'],
+    enabled: !!actualProjectId,
   });
 
   // Fetch schedule events for the selected date
   const { data: scheduleEvents = [] } = useQuery<ScheduleEvent[]>({
-    queryKey: ['/api/projects', projectId, 'schedule-events'],
+    queryKey: ['/api/projects', actualProjectId, 'schedule-events'],
+    enabled: !!actualProjectId,
   });
 
   // Fetch existing daily call for the selected date
   const { data: existingDailyCall, isLoading } = useQuery<DailyCall>({
-    queryKey: ['/api/projects', projectId, 'daily-calls', selectedDate],
-    enabled: !!selectedDate,
+    queryKey: ['/api/projects', actualProjectId, 'daily-calls', selectedDate],
+    enabled: !!actualProjectId && !!selectedDate,
   });
 
   // Mutation for saving daily call
   const saveCallMutation = useMutation({
     mutationFn: async (data: any) => {
       if (existingDailyCall?.id) {
-        return apiRequest('PATCH', `/api/projects/${projectId}/daily-calls/${existingDailyCall.id}`, data);
+        return apiRequest('PATCH', `/api/projects/${actualProjectId}/daily-calls/${existingDailyCall.id}`, data);
       } else {
-        return apiRequest('POST', `/api/projects/${projectId}/daily-calls`, { ...data, date: selectedDate });
+        return apiRequest('POST', `/api/projects/${actualProjectId}/daily-calls`, { ...data, date: selectedDate });
       }
     },
     onSuccess: () => {
@@ -84,7 +89,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
         description: "Daily call sheet has been saved successfully.",
       });
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'daily-calls'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', actualProjectId, 'daily-calls'] });
     },
     onError: () => {
       toast({
@@ -100,17 +105,16 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
     if (existingDailyCall) {
       setCallData({
         locations: existingDailyCall.locations || [],
-        announcements: existingDailyCall.announcements || '',
-        endOfDayNotes: existingDailyCall.endOfDayNotes || ''
+        announcements: existingDailyCall.announcements || ''
       });
-    } else {
+    } else if (actualProjectId && scheduleEvents.length > 0) {
       // Auto-generate from schedule events for the selected date
       generateCallFromSchedule();
     }
-  }, [existingDailyCall, selectedDate]);
+  }, [existingDailyCall, selectedDate, actualProjectId, scheduleEvents]);
 
   const generateCallFromSchedule = () => {
-    if (!scheduleEvents.length) return;
+    if (!scheduleEvents.length || !actualProjectId) return;
 
     // Filter events for the selected date
     const dayEvents = scheduleEvents.filter(event => event.date === selectedDate);
@@ -140,11 +144,25 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
       });
     });
 
-    // Convert to locations array
-    const locations: CallLocation[] = Object.entries(locationGroups).map(([name, events]) => ({
-      name,
-      events: events.sort((a, b) => a.startTime.localeCompare(b.startTime))
-    }));
+    // Convert to locations array and add END-OF-DAY to each location
+    const locations: CallLocation[] = Object.entries(locationGroups).map(([name, events]) => {
+      const sortedEvents = events.sort((a, b) => a.startTime.localeCompare(b.startTime));
+      
+      // Add END-OF-DAY event at the end
+      sortedEvents.push({
+        id: -1, // Special ID for END-OF-DAY
+        title: 'END-OF-DAY',
+        startTime: '23:59',
+        endTime: '23:59',
+        cast: [],
+        notes: undefined
+      });
+      
+      return {
+        name,
+        events: sortedEvents
+      };
+    });
 
     setCallData(prev => ({
       ...prev,
@@ -156,7 +174,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
     saveCallMutation.mutate({
       locations: callData.locations,
       announcements: callData.announcements,
-      endOfDayNotes: callData.endOfDayNotes,
+
       events: scheduleEvents.filter(event => event.date === selectedDate)
     });
   };
@@ -258,27 +276,6 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
             </p>
           </div>
 
-          {/* Announcements Section */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-lg">ANNOUNCEMENTS</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isEditing ? (
-                <Textarea
-                  value={callData.announcements}
-                  onChange={(e) => setCallData(prev => ({ ...prev, announcements: e.target.value }))}
-                  placeholder="Enter general announcements, notes, or reminders for the company..."
-                  className="min-h-20"
-                />
-              ) : (
-                <div className="min-h-20 text-gray-700 whitespace-pre-wrap">
-                  {callData.announcements || 'No announcements for today.'}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Call Schedule by Location */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -332,25 +329,39 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-4">
-                      <div className="space-y-4">
-                        {location.events.map((event, eventIndex) => (
-                          <div key={eventIndex} className="border-l-4 border-blue-500 pl-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center space-x-2">
-                                <Badge variant="outline" className="text-xs">
-                                  {event.startTime} - {event.endTime}
-                                </Badge>
-                                <span className="font-semibold text-gray-900">{event.title}</span>
-                              </div>
+                      <div className="space-y-1">
+                        {location.events.map((event, eventIdx) => (
+                          <div key={event.id} className="flex items-start gap-4 py-1">
+                            <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
+                              {event.title === 'END-OF-DAY' ? '' : event.startTime}
                             </div>
-                            <div className="text-sm text-gray-700 mb-1">
-                              <strong>Called:</strong> {formatCastList(event.cast)}
+                            <div className="flex-1">
+                              {isEditing && event.title !== 'END-OF-DAY' ? (
+                                <Input
+                                  value={event.title}
+                                  onChange={(e) => {
+                                    const newLocations = [...callData.locations];
+                                    newLocations[locationIndex].events[eventIdx].title = e.target.value;
+                                    setCallData(prev => ({ ...prev, locations: newLocations }));
+                                  }}
+                                  className="font-medium text-sm"
+                                />
+                              ) : (
+                                <div>
+                                  <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900' : 'font-medium text-gray-800'}`}>
+                                    {event.title}
+                                  </div>
+                                  {event.cast.length > 0 && (
+                                    <div className="text-xs text-gray-600 mt-0.5 ml-4">
+                                      {event.cast.join(', ')}
+                                    </div>
+                                  )}
+                                  {event.notes && (
+                                    <div className="text-xs text-gray-500 italic mt-0.5 ml-4">{event.notes}</div>
+                                  )}
+                                </div>
+                              )}
                             </div>
-                            {event.notes && (
-                              <div className="text-sm text-gray-600 italic">
-                                {event.notes}
-                              </div>
-                            )}
                           </div>
                         ))}
                         
@@ -373,22 +384,24 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
             )}
           </div>
 
-          {/* End of Day Section */}
-          <Card className="mt-8">
+
+
+          {/* Announcements Section */}
+          <Card className="mt-6">
             <CardHeader>
-              <CardTitle className="text-lg">END-OF-DAY</CardTitle>
+              <CardTitle className="text-lg">ANNOUNCEMENTS</CardTitle>
             </CardHeader>
             <CardContent>
               {isEditing ? (
                 <Textarea
-                  value={callData.endOfDayNotes}
-                  onChange={(e) => setCallData(prev => ({ ...prev, endOfDayNotes: e.target.value }))}
-                  placeholder="Enter end of day notes, next day preparation, or closing announcements..."
+                  value={callData.announcements}
+                  onChange={(e) => setCallData(prev => ({ ...prev, announcements: e.target.value }))}
+                  placeholder="Enter general announcements, notes, or reminders for the company..."
                   className="min-h-20"
                 />
               ) : (
                 <div className="min-h-20 text-gray-700 whitespace-pre-wrap">
-                  {callData.endOfDayNotes || 'No end-of-day notes.'}
+                  {callData.announcements || 'No announcements for today.'}
                 </div>
               )}
             </CardContent>
