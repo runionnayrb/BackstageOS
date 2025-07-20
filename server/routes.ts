@@ -5030,6 +5030,98 @@ Best regards,
 
   // ========== DAILY CALLS API ROUTES ==========
 
+  // Get daily calls list with summary info
+  app.get('/api/projects/:id/daily-calls-list', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Get all schedule events for this project to find dates with events
+      const scheduleEvents = await storage.getScheduleEventsByProjectId(projectId);
+      
+      // Group events by date and filter by show schedule event types
+      const projectSettings = await storage.getProjectSettings(projectId);
+      const enabledEventTypes = projectSettings?.scheduleSettings?.enabledEventTypes || [];
+      
+      const dateGroups = new Map();
+      
+      scheduleEvents.forEach(event => {
+        // Only include events that are enabled in show schedule
+        if (enabledEventTypes.includes(event.eventType)) {
+          const eventDate = event.date;
+          if (!dateGroups.has(eventDate)) {
+            dateGroups.set(eventDate, {
+              date: eventDate,
+              eventCount: 0,
+              locations: new Set()
+            });
+          }
+          const dateGroup = dateGroups.get(eventDate);
+          dateGroup.eventCount++;
+          if (event.location) {
+            dateGroup.locations.add(event.location);
+          }
+        }
+      });
+
+      // Get existing daily calls
+      const existingDailyCalls = await storage.getDailyCalls(projectId);
+      const existingCallDates = new Set(existingDailyCalls.map(call => call.date));
+
+      // Convert to array and add existing call info
+      const dailyCallsList = Array.from(dateGroups.entries()).map(([date, info]) => ({
+        id: null, // No ID for auto-generated entries
+        date: date,
+        eventCount: info.eventCount,
+        locations: Array.from(info.locations),
+        hasExistingCall: existingCallDates.has(date),
+        updatedAt: null
+      }));
+
+      // Add existing daily calls that don't have schedule events
+      existingDailyCalls.forEach(call => {
+        if (!dateGroups.has(call.date)) {
+          dailyCallsList.push({
+            id: call.id,
+            date: call.date,
+            eventCount: 0,
+            locations: [],
+            hasExistingCall: true,
+            updatedAt: call.updatedAt
+          });
+        } else {
+          // Update existing call info
+          const existingEntry = dailyCallsList.find(entry => entry.date === call.date);
+          if (existingEntry) {
+            existingEntry.id = call.id;
+            existingEntry.updatedAt = call.updatedAt;
+          }
+        }
+      });
+
+      // Sort by date (most recent first)
+      dailyCallsList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+      res.json(dailyCallsList);
+    } catch (error) {
+      console.error("Error fetching daily calls list:", error);
+      res.status(500).json({ message: "Failed to fetch daily calls list" });
+    }
+  });
+
   // Get all daily calls for a project
   app.get('/api/projects/:id/daily-calls', isAuthenticated, async (req: any, res) => {
     try {

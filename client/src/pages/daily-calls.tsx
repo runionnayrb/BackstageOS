@@ -16,8 +16,9 @@ import { useToast } from "@/hooks/use-toast";
 import { parseScheduleSettings, formatTimeDisplay } from "@/lib/timeUtils";
 import type { DailyCall, Project, Contact, ScheduleEvent } from "@shared/schema";
 
-interface DailyCallsPageProps {
+interface DailyCallSheetParams {
   id: string;
+  date: string;
 }
 
 interface CallLocation {
@@ -32,17 +33,18 @@ interface CallLocation {
   }>;
 }
 
-export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
+export default function DailyCallSheet() {
   const [, setLocation] = useLocation();
-  const params = useParams();
-  
-  // Use params.id if projectId prop is not available
-  const actualProjectId = projectId || params.id;
+  const params = useParams<DailyCallSheetParams>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
-  const [isEditing, setIsEditing] = useState(false);
+  const actualProjectId = params.id;
+  const selectedDate = params.date;
+  
+  // Check if we're in edit mode from URL query parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const [isEditing, setIsEditing] = useState(urlParams.get('edit') === 'true');
   const [callData, setCallData] = useState<{
     locations: CallLocation[];
     announcements: string;
@@ -390,11 +392,11 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation(`/shows/${actualProjectId}`)}
+            onClick={() => setLocation(`/shows/${actualProjectId}/calls`)}
             className="text-gray-600 hover:text-gray-900"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to {project?.name}
+            Back to Daily Calls
           </Button>
         </div>
         <div className="flex items-center justify-between">
@@ -410,12 +412,9 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
             )}
             <div className="flex items-center space-x-2">
               <Calendar className="h-4 w-4 text-gray-500" />
-              <Input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="w-auto"
-              />
+              <span className="text-sm text-gray-600">
+                {format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}
+              </span>
             </div>
             {isEditing && (
               <Button onClick={handleSave} disabled={saveCallMutation.isPending}>

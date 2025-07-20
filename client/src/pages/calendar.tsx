@@ -31,7 +31,7 @@ export default function Calendar() {
     {
       title: "Daily Calls", 
       description: "Daily call sheets and scheduling information",
-      href: `/shows/${projectId}/calendar/calls`,
+      href: `/shows/${projectId}/calls`,
     },
   ];
 
