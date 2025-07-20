@@ -328,7 +328,7 @@ export default function EnhancedHeader() {
             {/* Breadcrumb Navigation */}
             {breadcrumbs.length > 0 && (
               <div className="flex items-center ml-2 sm:ml-4 flex-1 min-w-0">
-                <BreadcrumbNavigation items={breadcrumbs} className="text-xs sm:text-sm" />
+                <BreadcrumbNavigation items={breadcrumbs} className="text-sm" />
               </div>
             )}
 
