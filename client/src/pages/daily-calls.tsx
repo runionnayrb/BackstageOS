@@ -442,8 +442,8 @@ export default function DailyCallSheet() {
           </div>
           <div className="flex items-center space-x-3">
             {!isEditing && (
-              <Button onClick={() => setIsEditing(true)} variant="outline" size="icon">
-                <Edit className="h-4 w-4" />
+              <Button onClick={() => setIsEditing(true)} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
+                <Edit className="h-4 w-4 hover:text-blue-600 transition-colors" />
               </Button>
             )}
             {isEditing && (
