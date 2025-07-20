@@ -120,9 +120,13 @@ export default function Projects() {
                   Settings
                 </Button>
               )}
-              <Button onClick={() => setLocation("/create-project")}>
-                <Plus className="w-5 h-5 mr-2" />
-                New {projectSingle}
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setLocation("/create-project")}
+                className="hover:text-blue-600 transition-colors"
+              >
+                <Plus className="w-5 h-5" />
               </Button>
             </div>
           </div>
