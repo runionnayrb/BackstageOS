@@ -649,7 +649,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                 className="min-h-20"
               />
             ) : (
-              <div className="min-h-20 text-gray-700 whitespace-pre-wrap">
+              <div className="min-h-20 text-sm text-gray-700 whitespace-pre-wrap">
                 {callData.announcements || 'No announcements for today.'}
               </div>
             )}
