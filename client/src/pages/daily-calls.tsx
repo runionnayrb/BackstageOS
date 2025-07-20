@@ -641,7 +641,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
 
           {/* Announcements Section */}
           <div className="mt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">ANNOUNCEMENTS</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Announcements</h3>
             {isEditing ? (
               <Textarea
                 value={callData.announcements}
