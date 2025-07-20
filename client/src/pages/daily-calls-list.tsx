@@ -162,14 +162,19 @@ export default function DailyCallsList() {
                     <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white rounded-lg">
                       <div className="text-left">
                         <h3 className="text-lg font-semibold text-gray-900">
-                          {format(weekStart, 'MMMM d')} - {format(weekEnd, 'MMMM d, yyyy')} • {calls.length} call{calls.length !== 1 ? 's' : ''}
+                          {format(weekStart, 'MMMM d')} - {format(weekEnd, 'MMMM d, yyyy')}
                         </h3>
                       </div>
-                      {isExpanded ? (
-                        <ChevronDown className="h-5 w-5 text-gray-500" />
-                      ) : (
-                        <ChevronRight className="h-5 w-5 text-gray-500" />
-                      )}
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-500">
+                          {calls.length} call{calls.length !== 1 ? 's' : ''}
+                        </span>
+                        {isExpanded ? (
+                          <ChevronDown className="h-5 w-5 text-gray-500" />
+                        ) : (
+                          <ChevronRight className="h-5 w-5 text-gray-500" />
+                        )}
+                      </div>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="pt-1">
                       <div className="space-y-1 pl-4">
