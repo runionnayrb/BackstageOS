@@ -174,8 +174,8 @@ export default function DailyCallsList() {
                         <ChevronRight className="h-5 w-5 text-gray-500" />
                       )}
                     </CollapsibleTrigger>
-                    <CollapsibleContent className="pt-2">
-                      <div className="space-y-3 pl-4">
+                    <CollapsibleContent className="pt-1">
+                      <div className="space-y-1 pl-4">
                         {calls
                           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) // Sort daily calls by most recent first
                           .map((call: any) => (
