@@ -30,17 +30,6 @@ export default function DailyCallsList() {
     queryKey: ['/api/projects', projectId, 'daily-calls-list'],
   });
 
-  if (isLoading || !project) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading daily calls...</p>
-        </div>
-      </div>
-    );
-  }
-
   const handleNewCall = () => {
     const today = new Date().toISOString().split('T')[0];
     setLocation(`/shows/${projectId}/calls/${today}?edit=true`);
@@ -111,6 +100,17 @@ export default function DailyCallsList() {
       return newSet;
     });
   };
+
+  if (isLoading || !project) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading daily calls...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
