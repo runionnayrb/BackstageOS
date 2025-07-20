@@ -390,21 +390,20 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                       </h4>
                     </div>
                     
-                    <div className="space-y-2 relative">
-                      {/* Add Event Button in Left Margin */}
-                      {isEditing && (
-                        <Button
-                          onClick={() => addEvent(locationIndex)}
-                          variant="ghost"
-                          size="sm"
-                          className="absolute -left-8 top-2 w-6 h-6 p-0 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-transparent hover:bg-transparent text-black"
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      )}
-                      
+                    <div className="space-y-2">
                       {(location.events || []).map((event, eventIdx) => (
-                        <div key={event.id} className={`flex items-start gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1' : 'py-2'}`}>
+                        <div key={event.id} className={`flex items-start gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative' : 'py-2'}`}>
+                          {/* Add Event Button in Left Margin - only show on END-OF-DAY row */}
+                          {isEditing && event.title === 'END-OF-DAY' && (
+                            <Button
+                              onClick={() => addEvent(locationIndex)}
+                              variant="ghost"
+                              size="sm"
+                              className="absolute -left-8 top-1/2 -translate-y-1/2 w-6 h-6 p-0 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-transparent hover:bg-transparent text-black"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          )}
                           <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
                             {event.title === 'END-OF-DAY' ? '' : (
                               isEditing ? (
@@ -486,19 +485,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                         </h4>
                       </div>
                       
-                      <div className="space-y-2 relative">
-                        {/* Add Event Button in Left Margin */}
-                        {isEditing && (
-                          <Button
-                            onClick={() => addEvent(locationIndex)}
-                            variant="ghost"
-                            size="sm"
-                            className="absolute -left-8 top-2 w-6 h-6 p-0 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-transparent hover:bg-transparent text-black"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        )}
-                        
+                      <div className="space-y-2">
                         {(location.events || []).filter(event => event.title !== 'END-OF-DAY').map((event, eventIdx) => (
                           <div key={event.id} className="flex items-start gap-4 py-2">
                             <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
@@ -558,10 +545,23 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                   (location.events || []).some(event => event.title === 'END-OF-DAY')
                 ) && (
                   <div className="space-y-1">
-                    {(callData.locations || []).flatMap(location => 
-                      (location.events || []).filter(event => event.title === 'END-OF-DAY')
-                    ).map((event, index) => (
-                      <div key={`end-of-day-${index}`} className="bg-gray-100 py-1">
+                    {(callData.locations || []).flatMap((location, locationIndex) => 
+                      (location.events || [])
+                        .filter(event => event.title === 'END-OF-DAY')
+                        .map(event => ({ event, locationIndex }))
+                    ).map(({ event, locationIndex }, index) => (
+                      <div key={`end-of-day-${index}`} className="bg-gray-100 py-1 relative">
+                        {/* Add Event Button in Left Margin - only show on first END-OF-DAY row */}
+                        {isEditing && index === 0 && (
+                          <Button
+                            onClick={() => addEvent(locationIndex)}
+                            variant="ghost"
+                            size="sm"
+                            className="absolute -left-8 top-1/2 -translate-y-1/2 w-6 h-6 p-0 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-transparent hover:bg-transparent text-black"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        )}
                         <div className="flex items-center">
                           <div className="w-20 text-sm font-medium text-gray-700"></div>
                           <div className="flex-1">
