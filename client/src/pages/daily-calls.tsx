@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { parseScheduleSettings, formatTimeDisplay } from "@/lib/timeUtils";
 import type { DailyCall, Project, Contact, ScheduleEvent } from "@shared/schema";
 
 interface DailyCallsPageProps {
@@ -68,11 +69,21 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
     enabled: !!actualProjectId,
   });
 
+  // Fetch show settings for timezone and time format preferences
+  const { data: showSettings } = useQuery({
+    queryKey: [`/api/projects/${actualProjectId}/settings`],
+    enabled: !!actualProjectId,
+  });
+
   // Fetch existing daily call for the selected date
   const { data: existingDailyCall, isLoading } = useQuery<DailyCall>({
     queryKey: ['/api/projects', actualProjectId, 'daily-calls', selectedDate],
     enabled: !!actualProjectId && !!selectedDate,
   });
+
+  // Parse schedule settings for timezone and time format preferences
+  const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
+  const { timeFormat = '12', timezone } = scheduleSettings;
 
   // Mutation for saving daily call
   const saveCallMutation = useMutation({
@@ -111,7 +122,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
       // Auto-generate from schedule events for the selected date
       generateCallFromSchedule();
     }
-  }, [existingDailyCall, selectedDate, actualProjectId, scheduleEvents]);
+  }, [existingDailyCall, selectedDate, actualProjectId, scheduleEvents, timeFormat]);
 
   const generateCallFromSchedule = () => {
     if (!scheduleEvents.length || !actualProjectId) return;
@@ -137,8 +148,8 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
       locationGroups[location].push({
         id: event.id,
         title: event.title,
-        startTime: event.startTime,
-        endTime: event.endTime,
+        startTime: formatTimeDisplay(event.startTime, timeFormat as '12' | '24'),
+        endTime: formatTimeDisplay(event.endTime, timeFormat as '12' | '24'),
         cast: eventCast,
         notes: event.notes || event.description
       });
@@ -191,8 +202,8 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
     const newEvent = {
       id: Date.now(),
       title: 'New Event',
-      startTime: '10:00',
-      endTime: '11:00',
+      startTime: formatTimeDisplay('10:00', timeFormat as '12' | '24'),
+      endTime: formatTimeDisplay('11:00', timeFormat as '12' | '24'),
       cast: [],
       notes: ''
     };
