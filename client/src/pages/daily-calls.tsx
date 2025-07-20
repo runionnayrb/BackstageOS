@@ -508,7 +508,7 @@ export default function DailyCallSheet() {
                           )}
                           <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
                             {event.title === 'END-OF-DAY' ? (
-                              <span>{event.startTime}</span>
+                              <span className="font-bold">{event.startTime}</span>
                             ) : (
                               isEditing ? (
                                 <Input
@@ -645,7 +645,7 @@ export default function DailyCallSheet() {
                         )}
                         <div className="flex items-center">
                           <div className="w-20 text-sm font-medium text-gray-700">
-                            <span>{event.startTime}</span>
+                            <span className="font-bold">{event.startTime}</span>
                           </div>
                           <div className="flex-1">
                             <div className="text-sm font-bold text-gray-900">
