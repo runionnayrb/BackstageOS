@@ -399,7 +399,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
         </div>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Daily Calls</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Daily Calls</h1>
           </div>
           <div className="flex items-center space-x-3">
             {!isEditing && (
@@ -651,10 +651,10 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                 value={callData.announcements}
                 onChange={(e) => setCallData(prev => ({ ...prev, announcements: e.target.value }))}
                 placeholder="Enter general announcements, notes, or reminders for the company..."
-                className="min-h-20"
+                className="min-h-20 border-2 border-black"
               />
             ) : (
-              <div className="min-h-20 text-sm text-gray-700 whitespace-pre-wrap">
+              <div className="min-h-20 text-sm text-gray-700 whitespace-pre-wrap border-2 border-black p-3">
                 {callData.announcements || 'No announcements for today.'}
               </div>
             )}
