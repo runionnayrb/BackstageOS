@@ -336,7 +336,7 @@ export default function EnhancedHeader() {
 
           {/* Admin Dropdowns - Only visible to original admins */}
           {isOriginalAdmin(user) && (
-            <div className="flex items-center space-x-3">
+            <div className="hidden lg:flex items-center space-x-3">
               {/* User Selector */}
               <Select value={defaultUserId} onValueChange={(userId) => {
                 setDefaultUserId(userId);
