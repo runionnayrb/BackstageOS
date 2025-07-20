@@ -542,10 +542,48 @@ export default function DailyCallSheet() {
                                 <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900' : 'font-bold text-gray-800'}`}>
                                   {event.title}
                                 </div>
-                                {event.cast.length > 0 && (
-                                  <div className="text-xs text-black mt-1">
-                                    {event.cast.join(', ')}
+                                {isEditing && event.title !== 'END-OF-DAY' ? (
+                                  <div className="mt-2">
+                                    <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
+                                    <div className="mt-1 space-y-1 max-h-24 overflow-y-auto">
+                                      {contacts.filter(contact => contact.category === 'cast').map(contact => {
+                                        const contactDisplayName = `${contact.firstName.charAt(0)}. ${contact.lastName}`;
+                                        const isSelected = event.cast.includes(contactDisplayName);
+                                        return (
+                                          <label key={contact.id} className="flex items-center space-x-2 cursor-pointer">
+                                            <input
+                                              type="checkbox"
+                                              checked={isSelected}
+                                              onChange={(e) => {
+                                                const newLocations = [...callData.locations];
+                                                const currentCast = [...event.cast];
+                                                if (e.target.checked) {
+                                                  if (!currentCast.includes(contactDisplayName)) {
+                                                    currentCast.push(contactDisplayName);
+                                                  }
+                                                } else {
+                                                  const index = currentCast.indexOf(contactDisplayName);
+                                                  if (index > -1) {
+                                                    currentCast.splice(index, 1);
+                                                  }
+                                                }
+                                                newLocations[locationIndex].events[eventIdx].cast = currentCast;
+                                                setCallData(prev => ({ ...prev, locations: newLocations }));
+                                              }}
+                                              className="h-3 w-3 text-blue-600 rounded border-gray-300"
+                                            />
+                                            <span className="text-xs text-gray-700">{contactDisplayName}</span>
+                                          </label>
+                                        );
+                                      })}
+                                    </div>
                                   </div>
+                                ) : (
+                                  event.cast.length > 0 && (
+                                    <div className="text-xs text-black mt-1">
+                                      {event.cast.join(', ')}
+                                    </div>
+                                  )
                                 )}
                               </div>
                             )}
@@ -606,10 +644,49 @@ export default function DailyCallSheet() {
                                   <div className="text-sm font-bold text-gray-800">
                                     {event.title}
                                   </div>
-                                  {event.cast.length > 0 && (
-                                    <div className="text-xs text-black mt-1">
-                                      {event.cast.join(', ')}
+                                  {isEditing ? (
+                                    <div className="mt-2">
+                                      <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
+                                      <div className="mt-1 space-y-1 max-h-24 overflow-y-auto">
+                                        {contacts.filter(contact => contact.category === 'cast').map(contact => {
+                                          const contactDisplayName = `${contact.firstName.charAt(0)}. ${contact.lastName}`;
+                                          const isSelected = event.cast.includes(contactDisplayName);
+                                          return (
+                                            <label key={contact.id} className="flex items-center space-x-2 cursor-pointer">
+                                              <input
+                                                type="checkbox"
+                                                checked={isSelected}
+                                                onChange={(e) => {
+                                                  const newLocations = [...callData.locations];
+                                                  const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
+                                                  const currentCast = [...newLocations[locationIndex].events[originalEventIdx].cast];
+                                                  if (e.target.checked) {
+                                                    if (!currentCast.includes(contactDisplayName)) {
+                                                      currentCast.push(contactDisplayName);
+                                                    }
+                                                  } else {
+                                                    const index = currentCast.indexOf(contactDisplayName);
+                                                    if (index > -1) {
+                                                      currentCast.splice(index, 1);
+                                                    }
+                                                  }
+                                                  newLocations[locationIndex].events[originalEventIdx].cast = currentCast;
+                                                  setCallData(prev => ({ ...prev, locations: newLocations }));
+                                                }}
+                                                className="h-3 w-3 text-blue-600 rounded border-gray-300"
+                                              />
+                                              <span className="text-xs text-gray-700">{contactDisplayName}</span>
+                                            </label>
+                                          );
+                                        })}
+                                      </div>
                                     </div>
+                                  ) : (
+                                    event.cast.length > 0 && (
+                                      <div className="text-xs text-black mt-1">
+                                        {event.cast.join(', ')}
+                                      </div>
+                                    )
                                   )}
                                 </div>
                               )}
