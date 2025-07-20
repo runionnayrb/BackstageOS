@@ -178,11 +178,10 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
         locationGroups[location] = [];
       }
       
-      // Get cast members for this event (this would come from participants in real implementation)
-      const eventCast = contacts
-        .filter(contact => contact.category === 'cast')
-        .slice(0, Math.floor(Math.random() * 5) + 2) // Random subset for demo
-        .map(contact => `${contact.firstName.charAt(0)}. ${contact.lastName}`);
+      // Get actual participants called to this event
+      const eventCast = (event.participants || [])
+        .filter(participant => participant.isRequired) // Only show required participants
+        .map(participant => `${participant.contactFirstName.charAt(0)}. ${participant.contactLastName}`);
       
       locationGroups[location].push({
         id: event.id,
