@@ -10,22 +10,22 @@ interface PropsAndCostumesParams {
 export default function PropsAndCostumes() {
   const [, setLocation] = useLocation();
   const params = useParams<PropsAndCostumesParams>();
-  const projectId = params.id;
+  const projectSlug = params.id;
 
   const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectId}`],
+    queryKey: [`/api/projects/${projectSlug}`],
   });
 
   const sections = [
     {
       title: "Props Tracker",
       description: "Scene/character organization with status tracking and sourcing notes",
-      href: `/shows/${projectId}/props`,
+      href: `/shows/${projectSlug}/props`,
     },
     {
       title: "Costume Tracker", 
       description: "Quick-change timing, repair tracking, character-based organization",
-      href: `/shows/${projectId}/costumes`,
+      href: `/shows/${projectSlug}/costumes`,
     },
   ];
 

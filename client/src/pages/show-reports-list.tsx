@@ -11,10 +11,10 @@ interface ShowReportsListParams {
 export default function ShowReportsList() {
   const [, setLocation] = useLocation();
   const params = useParams<ShowReportsListParams>();
-  const projectId = params.id;
+  const projectSlug = params.id;
 
   const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectId}`],
+    queryKey: [`/api/projects/${projectSlug}`],
   });
 
   const reportTypes = [
