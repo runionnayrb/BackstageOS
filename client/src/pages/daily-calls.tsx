@@ -483,7 +483,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                           )}
                           <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
                             {event.title === 'END-OF-DAY' ? (
-                              <span className="font-bold">{event.startTime}</span>
+                              <span>{event.startTime}</span>
                             ) : (
                               isEditing ? (
                                 <Input
@@ -620,7 +620,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                         )}
                         <div className="flex items-center">
                           <div className="w-20 text-sm font-medium text-gray-700">
-                            <span className="font-bold">{event.startTime}</span>
+                            <span>{event.startTime}</span>
                           </div>
                           <div className="flex-1">
                             <div className="text-sm font-bold text-gray-900">
