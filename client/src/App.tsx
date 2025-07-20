@@ -186,35 +186,35 @@ function Router() {
         <Switch>
         <Route path="/" component={Projects} />
         <Route path="/create-project" component={CreateProject} />
-        <Route path="/shows/:id" component={ShowDetail} />
-        <Route path="/shows/:id/reports" component={ShowReportsList} />
-        <Route path="/shows/:id/reports/:type/new" component={NewReport} />
-        <Route path="/shows/:id/reports/:type/:reportId/edit" component={ReportBuilder} />
-        <Route path="/shows/:id/reports/:type/:reportId" component={ReportViewer} />
-        <Route path="/shows/:id/reports/:type" component={ShowReports} />
-        <Route path="/shows/:id/calendar" component={Calendar} />
-        <Route path="/shows/:id/calendar/schedule" component={Schedule} />
-        <Route path="/shows/:id/calendar/calls" component={DailyCalls} />
-        <Route path="/shows/:id/script" component={ScriptEditor} />
-        <Route path="/shows/:id/props-costumes" component={PropsAndCostumes} />
-        <Route path="/shows/:id/props" component={PropsTracker} />
-        <Route path="/shows/:id/props/:propId" component={PropDetail} />
-        <Route path="/shows/:id/costumes" component={CostumeTracker} />
-        <Route path="/shows/:id/contacts" component={Personnel} />
-        <Route path="/shows/:id/contact-sheet" component={ContactSheet} />
-        <Route path="/shows/:id/company-list" component={CompanyList} />
-        <Route path="/shows/:id/contacts/:category" component={PersonnelCategory} />
-        <Route path="/shows/:id/contacts/:contactId/availability" component={ContactAvailability} />
-        <Route path="/shows/:id/performance-tracker" component={PerformanceTracker} />
-        <Route path="/shows/:id/tasks" component={TaskManagement} />
+        <Route path="/shows/:slug" component={ShowDetail} />
+        <Route path="/shows/:slug/reports" component={ShowReportsList} />
+        <Route path="/shows/:slug/reports/:type/new" component={NewReport} />
+        <Route path="/shows/:slug/reports/:type/:reportId/edit" component={ReportBuilder} />
+        <Route path="/shows/:slug/reports/:type/:reportId" component={ReportViewer} />
+        <Route path="/shows/:slug/reports/:type" component={ShowReports} />
+        <Route path="/shows/:slug/calendar" component={Calendar} />
+        <Route path="/shows/:slug/calendar/schedule" component={Schedule} />
+        <Route path="/shows/:slug/calendar/calls" component={DailyCalls} />
+        <Route path="/shows/:slug/script" component={ScriptEditor} />
+        <Route path="/shows/:slug/props-costumes" component={PropsAndCostumes} />
+        <Route path="/shows/:slug/props" component={PropsTracker} />
+        <Route path="/shows/:slug/props/:propId" component={PropDetail} />
+        <Route path="/shows/:slug/costumes" component={CostumeTracker} />
+        <Route path="/shows/:slug/contacts" component={Personnel} />
+        <Route path="/shows/:slug/contact-sheet" component={ContactSheet} />
+        <Route path="/shows/:slug/company-list" component={CompanyList} />
+        <Route path="/shows/:slug/contacts/:category" component={PersonnelCategory} />
+        <Route path="/shows/:slug/contacts/:contactId/availability" component={ContactAvailability} />
+        <Route path="/shows/:slug/performance-tracker" component={PerformanceTracker} />
+        <Route path="/shows/:slug/tasks" component={TaskManagement} />
         <Route path="/tasks" component={TaskManagement} />
-        <Route path="/shows/:id/notes" component={Notes} />
+        <Route path="/shows/:slug/notes" component={Notes} />
         <Route path="/notes" component={Notes} />
-        <Route path="/shows/:id/templates/new" component={TemplateBuilder} />
-        <Route path="/shows/:id/templates/:templateId/edit" component={TemplateBuilder} />
-        <Route path="/shows/:id/templates" component={TemplateSettings} />
-        <Route path="/shows/:id/global-template-settings" component={GlobalTemplateSettings} />
-        <Route path="/shows/:id/settings" component={ShowSettings} />
+        <Route path="/shows/:slug/templates/new" component={TemplateBuilder} />
+        <Route path="/shows/:slug/templates/:templateId/edit" component={TemplateBuilder} />
+        <Route path="/shows/:slug/templates" component={TemplateSettings} />
+        <Route path="/shows/:slug/global-template-settings" component={GlobalTemplateSettings} />
+        <Route path="/shows/:slug/settings" component={ShowSettings} />
         <Route path="/settings" component={Settings} />
         <Route path="/profile" component={ProfileSettings} />
         <Route path="/feedback" component={FeedbackPage} />

@@ -14,7 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useFeatureSettings } from "@/hooks/useFeatureSettings";
 
 interface ShowDetailParams {
-  id: string;
+  slug: string;
 }
 
 export default function ShowDetail() {
@@ -22,7 +22,7 @@ export default function ShowDetail() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<ShowDetailParams>();
-  const projectId = params.id;
+  const projectSlug = params.slug;
   const queryClient = useQueryClient();
 
   // State for drag and drop reordering
@@ -30,34 +30,34 @@ export default function ShowDetail() {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   // Import feature settings hook
-  const { isFeatureEnabled } = useFeatureSettings(projectId);
+  const { isFeatureEnabled } = useFeatureSettings(projectSlug);
   
   // Default sections array - filtered by feature settings
   const defaultSections = [
     ...(isFeatureEnabled('reports') ? [{
       id: "reports",
       title: "Reports",
-      href: `/shows/${projectId}/reports`,
+      href: `/shows/${projectSlug}/reports`,
     }] : []),
     ...(isFeatureEnabled('calendar') ? [{
       id: "calendar",
       title: "Calendar",
-      href: `/shows/${projectId}/calendar`,
+      href: `/shows/${projectSlug}/calendar`,
     }] : []),
     ...(isFeatureEnabled('script') ? [{
       id: "script",
       title: "Script",
-      href: `/shows/${projectId}/script`,
+      href: `/shows/${projectSlug}/script`,
     }] : []),
     ...(isFeatureEnabled('props') ? [{
       id: "props-costumes",
       title: "Props",
-      href: `/shows/${projectId}/props`,
+      href: `/shows/${projectSlug}/props`,
     }] : []),
     ...(isFeatureEnabled('contacts') ? [{
       id: "contacts",
       title: "Contacts",
-      href: `/shows/${projectId}/contacts`,
+      href: `/shows/${projectSlug}/contacts`,
     }] : []),
   ];
 
@@ -71,19 +71,19 @@ export default function ShowDetail() {
   });
 
   const { data: projectSettings } = useQuery({
-    queryKey: [`/api/projects/${projectId}/settings`],
-    enabled: isAuthenticated && !!projectId,
+    queryKey: [`/api/projects/${projectSlug}/settings`],
+    enabled: isAuthenticated && !!projectSlug,
   });
 
   // Mutations - always defined in same order
   const saveSectionOrderMutation = useMutation({
     mutationFn: async (sectionOrder: string[]) => {
-      return apiRequest("PUT", `/api/projects/${projectId}/settings`, {
+      return apiRequest("PUT", `/api/projects/${projectSlug}/settings`, {
         sectionsOrder: sectionOrder,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectSlug}/settings`] });
       toast({
         title: "Section order saved",
         description: "Your custom section order has been saved.",

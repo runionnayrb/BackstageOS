@@ -75,6 +75,7 @@ export const venues = pgTable("venues", {
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(),
+  slug: varchar("slug").unique().notNull(),
   description: text("description"),
   venue: varchar("venue"), // For freelance users (free text) or venue name reference
   venueId: integer("venue_id").references(() => venues.id), // For full-time users
@@ -1910,6 +1911,7 @@ export const insertVenueSchema = createInsertSchema(venues).omit({
 
 export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,
+  slug: true, // will be auto-generated from name
   createdAt: true,
   updatedAt: true,
 });

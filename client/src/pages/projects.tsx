@@ -145,7 +145,7 @@ export default function Projects() {
                 <div 
                   key={project.id} 
                   className="p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                  onClick={() => setLocation(`/shows/${project.id}`)}
+                  onClick={() => setLocation(`/shows/${project.slug}`)}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
