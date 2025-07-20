@@ -168,14 +168,7 @@ export default function PropDetail() {
       {/* Mobile Header */}
       <div className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
         <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}/props`)}
-            className="text-gray-600 hover:text-gray-900 p-1"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+          <div></div>
           
           <h1 className="text-xl font-semibold text-gray-900 truncate mx-3">
             {prop.name}

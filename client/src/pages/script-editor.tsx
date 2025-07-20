@@ -469,14 +469,7 @@ export default function ScriptEditor() {
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                onClick={() => setLocation(`/shows/${projectId}`)}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to {project?.name}
-              </Button>
+              <div></div>
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-muted-foreground" />
                 <span className="font-medium">Script Editor</span>

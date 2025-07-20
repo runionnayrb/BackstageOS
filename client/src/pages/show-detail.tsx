@@ -272,15 +272,7 @@ export default function ShowDetail() {
       {/* Mobile Header */}
       <div className="md:hidden px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation("/")}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Shows
-          </Button>
+          <div></div>
           
           <Button
             variant="ghost"
@@ -309,15 +301,7 @@ export default function ShowDetail() {
       {/* Desktop Header */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation("/")}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Shows
-          </Button>
+          <div></div>
           
           <Button
             variant="ghost"
