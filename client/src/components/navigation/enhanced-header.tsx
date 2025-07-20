@@ -369,16 +369,16 @@ export default function EnhancedHeader() {
 
           {/* Right side - User menu and admin controls */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Show Settings Button - appears when in a show */}
+            {/* Show Settings Button - appears when in a show, hidden on mobile */}
             {navContext.showId && showData?.name && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setLocation(`/shows/${navContext.showId}/settings`)}
-                className="flex items-center gap-2 hover:text-blue-600 hover:bg-transparent"
+                className="hidden sm:flex items-center gap-2 hover:text-blue-600 hover:bg-transparent"
               >
                 <Settings className="h-4 w-4" />
-                <span className="hidden sm:inline">Show Settings</span>
+                <span>Show Settings</span>
               </Button>
             )}
 
