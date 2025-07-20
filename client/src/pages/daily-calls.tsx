@@ -517,7 +517,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                                   {event.title}
                                 </div>
                                 {event.cast.length > 0 && (
-                                  <div className="text-xs text-gray-600 mt-1 ml-6">
+                                  <div className="text-xs text-gray-600 mt-1">
                                     {event.cast.join(', ')}
                                   </div>
                                 )}
@@ -581,7 +581,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                                     {event.title}
                                   </div>
                                   {event.cast.length > 0 && (
-                                    <div className="text-xs text-gray-600 mt-1 ml-4">
+                                    <div className="text-xs text-gray-600 mt-1">
                                       {event.cast.join(', ')}
                                     </div>
                                   )}
