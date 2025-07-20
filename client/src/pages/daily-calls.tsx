@@ -321,10 +321,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                             className="font-semibold"
                           />
                         ) : (
-                          <>
-                            <Users className="h-5 w-5 mr-2" />
-                            {location.name}
-                          </>
+                          location.name
                         )}
                       </CardTitle>
                     </CardHeader>
