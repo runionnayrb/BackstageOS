@@ -365,12 +365,6 @@ export default function Settings() {
       <div className="border-b bg-white dark:bg-gray-800">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-4 h-16">
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm" className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back to Dashboard
-              </Button>
-            </Link>
             <div className="flex-1">
               <h1 className="text-xl font-semibold">Settings</h1>
             </div>

@@ -587,12 +587,7 @@ ${JSON.stringify(settings.structuredData, null, 2)}
       <div className="border-b bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex flex-col space-y-4 py-4 lg:py-6">
-            <Link href="/admin">
-              <Button variant="ghost" size="default" className="w-full sm:w-auto">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Admin
-              </Button>
-            </Link>
+            <div className="mb-4"></div>
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">SEO & AI Optimization</h1>
               <p className="text-sm lg:text-base text-gray-500 dark:text-gray-400">Manage search engine and AI optimization settings for all domains</p>

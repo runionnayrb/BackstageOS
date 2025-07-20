@@ -45,8 +45,7 @@ export default function Personnel() {
           <h1 className="text-2xl font-semibold text-foreground mb-2">Personnel Not Found</h1>
           <p className="text-muted-foreground mb-4">The project you're looking for doesn't exist or the URL is invalid.</p>
           <Button onClick={() => setLocation('/shows')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Shows
+            Go to Shows
           </Button>
         </div>
       </div>
@@ -248,15 +247,7 @@ export default function Personnel() {
       {/* Mobile Header */}
       <div className="md:hidden px-4 py-4">
         <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}`)}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back
-          </Button>
+          <div></div>
           
           <div className="flex items-center gap-2">
             {allContacts.length > 0 && (
@@ -304,15 +295,7 @@ export default function Personnel() {
       {/* Desktop Header */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}`)}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to {(project as any)?.name}
-          </Button>
+          <div></div>
           
           <div className="flex items-center gap-3">
             {allContacts.length > 0 && (

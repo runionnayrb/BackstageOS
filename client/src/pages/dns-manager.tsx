@@ -247,12 +247,7 @@ function DNSManagerContent() {
   return (
     <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-6xl overflow-x-hidden">
       <div className="flex flex-col space-y-4">
-        <Link href="/admin">
-          <Button variant="ghost" size="default" className="w-full sm:w-auto">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Admin
-          </Button>
-        </Link>
+        <div className="mb-4"></div>
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold">DNS Manager</h1>
           <p className="text-sm lg:text-base text-gray-600">Manage DNS records and domain configuration</p>

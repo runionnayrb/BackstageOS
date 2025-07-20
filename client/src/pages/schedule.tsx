@@ -658,17 +658,7 @@ The Production Team`
     <div className="w-full">
       {/* Desktop Header - Unified Weekly View Style */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between mb-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}/calendar`)}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Calendar
-          </Button>
-          
+        <div className="flex items-center justify-end mb-4">
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

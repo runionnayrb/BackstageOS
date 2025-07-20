@@ -145,17 +145,7 @@ function AdminUsersContent() {
     return (
       <div className="min-h-screen p-6">
         <div className="max-w-6xl mx-auto">
-          <div className="mb-6 flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLocation('/')}
-              className="flex items-center gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Shows
-            </Button>
-          </div>
+          <div className="mb-6"></div>
           
           <Card>
             <CardHeader>
@@ -173,16 +163,7 @@ function AdminUsersContent() {
   return (
     <div className="min-h-screen p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-6 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation('/')}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Shows
-          </Button>
+        <div className="mb-6">
           <h1 className="text-2xl font-semibold">User Management</h1>
         </div>
 

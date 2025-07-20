@@ -178,17 +178,7 @@ export default function ScriptEditor() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}`)}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to {project.name}
-          </Button>
-        </div>
+        <div className="mb-6"></div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Script Editor */}

@@ -1010,25 +1010,7 @@ The Production Team`
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              // Use browser history to go back to the previous page
-              if (window.history.length > 1) {
-                window.history.back();
-              } else {
-                // Fallback to show details if no history
-                setLocation(`/shows/${params.id}`);
-              }
-            }}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
-        </div>
+        <div className="mb-6"></div>
 
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">

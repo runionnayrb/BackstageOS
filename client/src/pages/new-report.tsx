@@ -245,17 +245,7 @@ export default function NewReport() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}`)}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to {reportTypeName}s
-          </Button>
-        </div>
+        <div className="mb-6"></div>
 
         <div className="flex justify-between items-center mb-6">
           <div>

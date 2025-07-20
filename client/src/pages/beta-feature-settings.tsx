@@ -89,12 +89,7 @@ export default function BetaFeatureSettings() {
     <AdminGuard>
       <div className="container mx-auto p-6 max-w-4xl">
         <div className="flex items-center gap-4 mb-6">
-          <Link href="/admin/users">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to User Management
-            </Button>
-          </Link>
+          <div className="mb-4"></div>
           <div>
             <h1 className="text-2xl font-bold">Beta Feature Settings</h1>
             <p className="text-muted-foreground">

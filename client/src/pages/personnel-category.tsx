@@ -54,8 +54,7 @@ export default function PersonnelCategory() {
           <h1 className="text-2xl font-semibold text-foreground mb-2">Personnel Category Not Found</h1>
           <p className="text-muted-foreground mb-4">The personnel category you're looking for doesn't exist or the URL is invalid.</p>
           <Button onClick={() => setLocation('/shows')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Shows
+            Go to Shows
           </Button>
         </div>
       </div>
@@ -200,17 +199,7 @@ export default function PersonnelCategory() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLocation(`/shows/${projectId}/contacts`)}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Contacts
-          </Button>
-        </div>
+        <div className="mb-6"></div>
 
         <div className="mb-8 flex justify-between items-start">
           <div>

@@ -153,12 +153,6 @@ export default function FeedbackPage() {
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       <div className="mb-6">
-        <Link href="/">
-          <Button variant="ghost" size="sm" className="mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Shows
-          </Button>
-        </Link>
         <div>
           <h1 className="text-3xl font-bold">Feedback Center</h1>
           <p className="text-gray-600">Help us improve BackstageOS</p>

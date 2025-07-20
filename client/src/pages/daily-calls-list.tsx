@@ -117,15 +117,6 @@ export default function DailyCallsList() {
       <div className="container mx-auto p-6">
         <div className="mb-8 flex justify-between items-start">
           <div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLocation(`/shows/${projectId}`)}
-              className="text-gray-600 hover:text-gray-900 mb-4"
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to {project?.name}
-            </Button>
             <h1 className="text-3xl font-bold">Daily Calls</h1>
           </div>
           <Button onClick={handleNewCall} variant="ghost" size="icon" className="border-0 hover:bg-transparent">

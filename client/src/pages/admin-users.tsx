@@ -138,17 +138,7 @@ function AdminUsersContent() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setLocation('/')}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Shows
-        </Button>
-      </div>
+      <div className="mb-6"></div>
       
       <div className="mb-6">
         <h1 className="text-3xl font-bold">User Management</h1>

@@ -595,15 +595,7 @@ export default function TemplateSettings() {
       <div className="container mx-auto p-6">
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLocation(`/shows/${projectId}/reports`)}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Reports
-            </Button>
+            <div></div>
             <div className="flex gap-2">
             <Button
               variant="outline"
