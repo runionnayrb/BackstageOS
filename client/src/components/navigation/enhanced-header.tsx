@@ -219,7 +219,7 @@ export default function EnhancedHeader() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="flex items-center gap-2 hover:text-blue-600 hover:bg-transparent focus:outline-none focus:ring-0 focus-visible:ring-0">
-                    <Menu className="h-5 w-5" />
+                    <Menu className="h-5 w-5" strokeWidth={1.5} />
                     <span className="sr-only">Navigation menu</span>
                   </Button>
                 </DropdownMenuTrigger>
@@ -231,7 +231,7 @@ export default function EnhancedHeader() {
                   
                   {(!navContext.showId || isEmailEnabled()) && (
                     <DropdownMenuItem onClick={() => setLocation('/email')}>
-                      <Mail className="h-4 w-4 mr-2" />
+                      <Mail className="h-4 w-4 mr-2" strokeWidth={1.5} />
                       Email
                       {unreadEmailData?.totalUnread > 0 && (
                         <span className="ml-auto bg-blue-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
@@ -242,24 +242,24 @@ export default function EnhancedHeader() {
                   )}
                   
                   <DropdownMenuItem onClick={() => setLocation('/tasks')}>
-                    <CheckSquare className="h-4 w-4 mr-2" />
+                    <CheckSquare className="h-4 w-4 mr-2" strokeWidth={1.5} />
                     Tasks
                   </DropdownMenuItem>
                   
                   <DropdownMenuItem onClick={() => setLocation('/notes')}>
-                    <FileText className="h-4 w-4 mr-2" />
+                    <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                     Notes
                   </DropdownMenuItem>
                   
                   <DropdownMenuSeparator />
                   
                   <DropdownMenuItem onClick={() => setLocation('/')}>
-                    <FolderOpen className="h-4 w-4 mr-2" />
+                    <FolderOpen className="h-4 w-4 mr-2" strokeWidth={1.5} />
                     All Shows
                   </DropdownMenuItem>
                   
                   <DropdownMenuItem onClick={() => setLocation('/create-project')}>
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4 mr-2" strokeWidth={1.5} />
                     New Show
                   </DropdownMenuItem>
                   
@@ -272,44 +272,44 @@ export default function EnhancedHeader() {
                       </div>
                       {isFeatureEnabled('reports') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/reports`)}>
-                          <FileText className="h-4 w-4 mr-2" />
+                          <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Reports
                         </DropdownMenuItem>
                       )}
                       {isFeatureEnabled('calendar') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/calendar`)}>
-                          <Calendar className="h-4 w-4 mr-2" />
+                          <Calendar className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Calendar
                         </DropdownMenuItem>
                       )}
                       {isFeatureEnabled('script') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/script`)}>
-                          <FileText className="h-4 w-4 mr-2" />
+                          <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Script
                         </DropdownMenuItem>
                       )}
                       {isFeatureEnabled('props') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/props`)}>
-                          <FolderOpen className="h-4 w-4 mr-2" />
+                          <FolderOpen className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Props
                         </DropdownMenuItem>
                       )}
                       {isFeatureEnabled('contacts') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/contacts`)}>
-                          <Users className="h-4 w-4 mr-2" />
+                          <Users className="h-4 w-4 mr-2" strokeWidth={1.5} />
                           Contacts
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/performance-tracker`)}>
-                        <TrendingUp className="h-4 w-4 mr-2" />
+                        <TrendingUp className="h-4 w-4 mr-2" strokeWidth={1.5} />
                         Performance Tracker
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/tasks`)}>
-                        <CheckSquare className="h-4 w-4 mr-2" />
+                        <CheckSquare className="h-4 w-4 mr-2" strokeWidth={1.5} />
                         Show Tasks
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/notes`)}>
-                        <FileText className="h-4 w-4 mr-2" />
+                        <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                         Show Notes
                       </DropdownMenuItem>
                     </>
@@ -318,7 +318,7 @@ export default function EnhancedHeader() {
                   <DropdownMenuSeparator />
                   
                   <DropdownMenuItem onClick={() => setLocation('/feedback')}>
-                    <MessageSquare className="h-4 w-4 mr-2" />
+                    <MessageSquare className="h-4 w-4 mr-2" strokeWidth={1.5} />
                     Send Feedback
                   </DropdownMenuItem>
                 </DropdownMenuContent>

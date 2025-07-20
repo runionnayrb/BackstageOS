@@ -150,7 +150,7 @@ export default function MobileBottomNav() {
                   )}
                 >
                   <div className="relative">
-                    <Icon className="h-6 w-6" />
+                    <Icon className="h-6 w-6" strokeWidth={1.5} />
                     {item.badge && (
                       <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center min-w-[20px]">
                         {item.badge > 99 ? '99+' : item.badge}
@@ -168,7 +168,7 @@ export default function MobileBottomNav() {
               onClick={() => setShowEmailComposer(true)}
               className="flex flex-col items-center justify-center py-2 px-4 min-w-[60px] transition-colors text-gray-500 hover:text-gray-700"
             >
-              <Edit className="h-6 w-6" />
+              <Edit className="h-6 w-6" strokeWidth={1.5} />
             </button>
           ) : (
             <DropdownMenu>
@@ -176,7 +176,7 @@ export default function MobileBottomNav() {
                 <button
                   className="flex flex-col items-center justify-center py-2 px-4 min-w-[60px] transition-colors text-gray-500 hover:text-gray-700"
                 >
-                  <MoreHorizontal className="h-6 w-6" />
+                  <MoreHorizontal className="h-6 w-6" strokeWidth={1.5} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 mb-2">
@@ -185,7 +185,7 @@ export default function MobileBottomNav() {
                   return (
                     <Link key={index} href={item.href}>
                       <DropdownMenuItem className="flex items-center space-x-2">
-                        <Icon className="h-4 w-4" />
+                        <Icon className="h-4 w-4" strokeWidth={1.5} />
                         <span>{item.label}</span>
                       </DropdownMenuItem>
                     </Link>
