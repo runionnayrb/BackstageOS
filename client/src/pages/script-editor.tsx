@@ -468,12 +468,9 @@ export default function ScriptEditor() {
       <div className="bg-white dark:bg-gray-800 border-b">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div></div>
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-muted-foreground" />
-                <span className="font-medium">Script Editor</span>
-              </div>
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-muted-foreground" />
+              <span className="font-medium">Script Editor</span>
             </div>
 
             <div className="flex items-center gap-2">

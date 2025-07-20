@@ -76,7 +76,7 @@ export default function Calendar() {
     <div className="w-full">
       <div className="px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
-          <div></div>
+          <h1 className="text-3xl font-bold text-gray-900">Calendar</h1>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -94,10 +94,6 @@ export default function Calendar() {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-        
-        <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">Calendar</h1>
         </div>
       </div>
 

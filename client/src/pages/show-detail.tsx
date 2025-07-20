@@ -272,7 +272,12 @@ export default function ShowDetail() {
       {/* Mobile Header */}
       <div className="md:hidden px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
-          <div></div>
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
+            {project.venue && (
+              <p className="text-gray-600 mt-1">{project.venue}</p>
+            )}
+          </div>
           
           <Button
             variant="ghost"
@@ -285,23 +290,22 @@ export default function ShowDetail() {
           </Button>
         </div>
         
-        <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-          {project.venue && (
-            <p className="text-gray-600 mt-1">{project.venue}</p>
-          )}
-          {isReordering && (
-            <div className="mt-2 px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full inline-block">
-              Drag sections to reorder
-            </div>
-          )}
-        </div>
+        {isReordering && (
+          <div className="mb-2 px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full inline-block">
+            Drag sections to reorder
+          </div>
+        )}
       </div>
 
       {/* Desktop Header */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
-          <div></div>
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
+            {project.venue && (
+              <p className="text-gray-600 mt-1">{project.venue}</p>
+            )}
+          </div>
           
           <Button
             variant="ghost"
@@ -312,13 +316,6 @@ export default function ShowDetail() {
             <GripVertical className="h-4 w-4" />
             {isReordering ? "Done Reordering" : "Reorder"}
           </Button>
-        </div>
-        
-        <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-          {project.venue && (
-            <p className="text-gray-600 mt-1">{project.venue}</p>
-          )}
         </div>
       </div>
 
