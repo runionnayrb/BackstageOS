@@ -390,7 +390,19 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                       </h4>
                     </div>
                     
-                    <div className="space-y-2">
+                    <div className="space-y-2 relative">
+                      {/* Add Event Button in Left Margin */}
+                      {isEditing && (
+                        <Button
+                          onClick={() => addEvent(locationIndex)}
+                          variant="ghost"
+                          size="sm"
+                          className="absolute -left-8 top-2 w-6 h-6 p-0 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </Button>
+                      )}
+                      
                       {(location.events || []).map((event, eventIdx) => (
                         <div key={event.id} className={`flex items-start gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1' : 'py-2'}`}>
                           <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
@@ -439,17 +451,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                         </div>
                       ))}
                       
-                      {isEditing && (
-                        <Button 
-                          onClick={() => addEvent(locationIndex)} 
-                          variant="ghost" 
-                          size="sm"
-                          className="w-full mt-4"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Event
-                        </Button>
-                      )}
+
                     </div>
                   </div>
                 ))}
@@ -484,7 +486,19 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                         </h4>
                       </div>
                       
-                      <div className="space-y-2">
+                      <div className="space-y-2 relative">
+                        {/* Add Event Button in Left Margin */}
+                        {isEditing && (
+                          <Button
+                            onClick={() => addEvent(locationIndex)}
+                            variant="ghost"
+                            size="sm"
+                            className="absolute -left-8 top-2 w-6 h-6 p-0 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        )}
+                        
                         {(location.events || []).filter(event => event.title !== 'END-OF-DAY').map((event, eventIdx) => (
                           <div key={event.id} className="flex items-start gap-4 py-2">
                             <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
@@ -533,17 +547,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                           </div>
                         ))}
                         
-                        {isEditing && (
-                          <Button 
-                            onClick={() => addEvent(locationIndex)} 
-                            variant="ghost" 
-                            size="sm"
-                            className="w-full mt-4"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Event
-                          </Button>
-                        )}
+
                       </div>
                     </div>
                   ))}
