@@ -674,8 +674,8 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
 
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-            <div className="font-bold text-black text-lg mb-2">SUBJECT TO CHANGE</div>
-            <div className="text-sm text-gray-600">Page 1 of 1</div>
+            <div className="font-bold text-black text-xs mb-2" style={{ fontSize: '12px' }}>SUBJECT TO CHANGE</div>
+            <div className="text-xs text-gray-600" style={{ fontSize: '12px' }}>Page 1 of 1</div>
           </div>
         </div>
       </div>
