@@ -298,7 +298,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
               </div>
             )}
 
-            {callData.locations.length === 0 ? (
+            {(callData.locations || []).length === 0 ? (
               <Card>
                 <CardContent className="py-8 text-center">
                   <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -309,10 +309,10 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                   </Button>
                 </CardContent>
               </Card>
-            ) : callData.locations.length === 1 ? (
+            ) : (callData.locations || []).length === 1 ? (
               // Single location - full width
               <div className="space-y-8">
-                {callData.locations.map((location, locationIndex) => (
+                {(callData.locations || []).map((location, locationIndex) => (
                   <div key={locationIndex} className="space-y-3">
                     <div className="border-b-2 border-gray-300 pb-2">
                       <h4 className="text-lg font-semibold text-gray-900">
@@ -341,7 +341,20 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                       {location.events.map((event, eventIdx) => (
                         <div key={event.id} className={`flex items-start gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1' : 'py-2'}`}>
                           <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
-                            {event.title === 'END-OF-DAY' ? '' : event.startTime}
+                            {event.title === 'END-OF-DAY' ? '' : (
+                              isEditing ? (
+                                <Input
+                                  value={event.startTime}
+                                  onChange={(e) => {
+                                    const newLocations = [...callData.locations];
+                                    newLocations[locationIndex].events[eventIdx].startTime = e.target.value;
+                                    setCallData(prev => ({ ...prev, locations: newLocations }));
+                                  }}
+                                  className="text-xs w-16"
+                                  placeholder="9:00 AM"
+                                />
+                              ) : event.startTime
+                            )}
                           </div>
                           <div className="flex-1">
                             {isEditing && event.title !== 'END-OF-DAY' ? (
@@ -389,29 +402,109 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                 ))}
               </div>
             ) : (
-              // Multiple locations - separate non-END-OF-DAY events by location, full-width END-OF-DAY events
+              // Multiple locations - 2/3 and 1/3 layout with full-width END-OF-DAY
               <div className="space-y-4">
-                {/* Render all events chronologically with full-width END-OF-DAY */}
-                {callData.locations.reduce((allEvents, location, locationIndex) => {
-                  const locationEvents = location.events.map(event => ({
-                    ...event,
-                    locationIndex,
-                    locationName: location.name
-                  }));
-                  return [...allEvents, ...locationEvents];
-                }, [])
-                .sort((a, b) => {
-                  // Sort by start time if both have times, otherwise END-OF-DAY goes last
-                  if (a.title === 'END-OF-DAY' && b.title !== 'END-OF-DAY') return 1;
-                  if (b.title === 'END-OF-DAY' && a.title !== 'END-OF-DAY') return -1;
-                  if (a.title === 'END-OF-DAY' && b.title === 'END-OF-DAY') return 0;
-                  return (a.startTime || '').localeCompare(b.startTime || '');
-                })
-                .reduce((acc, event, index, array) => {
-                  if (event.title === 'END-OF-DAY') {
-                    // Render END-OF-DAY as full-width row
-                    acc.push(
-                      <div key={`${event.locationIndex}-${event.id}`} className="bg-gray-100 py-1">
+                {/* Regular events in grid layout */}
+                <div className="grid grid-cols-3 gap-8">
+                  {(callData.locations || []).map((location, locationIndex) => (
+                    <div key={locationIndex} className={`space-y-3 ${locationIndex === 0 ? 'col-span-2' : 'col-span-1'}`}>
+                      <div className="border-b-2 border-gray-300 pb-2">
+                        <h4 className="text-lg font-semibold text-gray-900">
+                          {isEditing ? (
+                            <Input
+                              value={location.name}
+                              onChange={(e) => {
+                                setCallData(prev => ({
+                                  ...prev,
+                                  locations: prev.locations.map((loc, idx) => 
+                                    idx === locationIndex 
+                                      ? { ...loc, name: e.target.value }
+                                      : loc
+                                  )
+                                }));
+                              }}
+                              className="font-semibold text-lg"
+                            />
+                          ) : (
+                            location.name
+                          )}
+                        </h4>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        {location.events.filter(event => event.title !== 'END-OF-DAY').map((event, eventIdx) => (
+                          <div key={event.id} className="flex items-start gap-4 py-2">
+                            <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
+                              {isEditing ? (
+                                <Input
+                                  value={event.startTime}
+                                  onChange={(e) => {
+                                    const newLocations = [...callData.locations];
+                                    const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
+                                    newLocations[locationIndex].events[originalEventIdx].startTime = e.target.value;
+                                    setCallData(prev => ({ ...prev, locations: newLocations }));
+                                  }}
+                                  className="text-xs w-14"
+                                  placeholder="9:00 AM"
+                                />
+                              ) : event.startTime}
+                            </div>
+                            <div className="flex-1">
+                              {isEditing ? (
+                                <Input
+                                  value={event.title}
+                                  onChange={(e) => {
+                                    const newLocations = [...callData.locations];
+                                    const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
+                                    newLocations[locationIndex].events[originalEventIdx].title = e.target.value;
+                                    setCallData(prev => ({ ...prev, locations: newLocations }));
+                                  }}
+                                  className="font-medium text-sm"
+                                />
+                              ) : (
+                                <div>
+                                  <div className="text-sm font-bold text-gray-800">
+                                    {event.title}
+                                  </div>
+                                  {event.cast.length > 0 && (
+                                    <div className="text-xs text-gray-600 mt-1 ml-4">
+                                      {event.cast.join(', ')}
+                                    </div>
+                                  )}
+                                  {event.notes && (
+                                    <div className="text-xs text-gray-500 italic mt-1 ml-4">{event.notes}</div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        
+                        {isEditing && (
+                          <Button 
+                            onClick={() => addEvent(locationIndex)} 
+                            variant="ghost" 
+                            size="sm"
+                            className="w-full mt-4"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Event
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Full-width END-OF-DAY events */}
+                {(callData.locations || []).some(location => 
+                  location.events.some(event => event.title === 'END-OF-DAY')
+                ) && (
+                  <div className="space-y-1">
+                    {(callData.locations || []).flatMap(location => 
+                      location.events.filter(event => event.title === 'END-OF-DAY')
+                    ).map((event, index) => (
+                      <div key={`end-of-day-${index}`} className="bg-gray-100 py-1">
                         <div className="flex items-center">
                           <div className="w-20 text-sm font-medium text-gray-700"></div>
                           <div className="flex-1">
@@ -421,103 +514,9 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                           </div>
                         </div>
                       </div>
-                    );
-                  } else {
-                    // Check if this is the start of a new time block for location-based grouping
-                    const prevEvent = array[index - 1];
-                    const nextEvent = array[index + 1];
-                    const shouldStartLocationGroup = !prevEvent || prevEvent.title === 'END-OF-DAY' || prevEvent.startTime !== event.startTime;
-                    const shouldEndLocationGroup = !nextEvent || nextEvent.title === 'END-OF-DAY' || nextEvent.startTime !== event.startTime;
-                    
-                    if (shouldStartLocationGroup) {
-                      // Start a new grid layout for this time block
-                      const sameTimeEvents = array.slice(index).filter(e => e.startTime === event.startTime && e.title !== 'END-OF-DAY');
-                      const endIndex = index + sameTimeEvents.length;
-                      
-                      acc.push(
-                        <div key={`time-block-${event.startTime}-${index}`} className="grid grid-cols-3 gap-8">
-                          {sameTimeEvents.map((timeEvent, timeIndex) => (
-                            <div key={`${timeEvent.locationIndex}-${timeEvent.id}`} className={`space-y-3 ${timeEvent.locationIndex === 0 ? 'col-span-2' : 'col-span-1'}`}>
-                              {timeIndex === 0 && (
-                                <div className="border-b-2 border-gray-300 pb-2">
-                                  <h4 className="text-lg font-semibold text-gray-900">
-                                    {isEditing ? (
-                                      <Input
-                                        value={timeEvent.locationName}
-                                        onChange={(e) => {
-                                          setCallData(prev => ({
-                                            ...prev,
-                                            locations: prev.locations.map((loc, idx) => 
-                                              idx === timeEvent.locationIndex 
-                                                ? { ...loc, name: e.target.value }
-                                                : loc
-                                            )
-                                          }));
-                                        }}
-                                        className="font-semibold text-lg"
-                                      />
-                                    ) : (
-                                      timeEvent.locationName
-                                    )}
-                                  </h4>
-                                </div>
-                              )}
-                              
-                              <div className="space-y-2">
-                                <div className="flex items-start gap-4 py-2">
-                                  <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
-                                    {timeEvent.startTime}
-                                  </div>
-                                  <div className="flex-1">
-                                    {isEditing ? (
-                                      <Input
-                                        value={timeEvent.title}
-                                        onChange={(e) => {
-                                          const newLocations = [...callData.locations];
-                                          const eventIdx = newLocations[timeEvent.locationIndex].events.findIndex(ev => ev.id === timeEvent.id);
-                                          newLocations[timeEvent.locationIndex].events[eventIdx].title = e.target.value;
-                                          setCallData(prev => ({ ...prev, locations: newLocations }));
-                                        }}
-                                        className="font-medium text-sm"
-                                      />
-                                    ) : (
-                                      <div>
-                                        <div className="text-sm font-bold text-gray-800">
-                                          {timeEvent.title}
-                                        </div>
-                                        {timeEvent.cast.length > 0 && (
-                                          <div className="text-xs text-gray-600 mt-1 ml-4">
-                                            {timeEvent.cast.join(', ')}
-                                          </div>
-                                        )}
-                                        {timeEvent.notes && (
-                                          <div className="text-xs text-gray-500 italic mt-1 ml-4">{timeEvent.notes}</div>
-                                        )}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                                
-                                {isEditing && timeIndex === 0 && (
-                                  <Button 
-                                    onClick={() => addEvent(timeEvent.locationIndex)} 
-                                    variant="ghost" 
-                                    size="sm"
-                                    className="w-full mt-4"
-                                  >
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Add Event
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    }
-                  }
-                  return acc;
-                }, [])}
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
