@@ -44,6 +44,22 @@ export default function Schedule() {
   const [, setLocation] = useLocation();
   const params = useParams<ScheduleParams>();
   const projectId = params.id;
+
+  // Guard against missing projectId
+  if (!projectId) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-foreground mb-2">Schedule Not Found</h1>
+          <p className="text-muted-foreground mb-4">The schedule you're looking for doesn't exist or the URL is invalid.</p>
+          <Button onClick={() => setLocation('/shows')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Shows
+          </Button>
+        </div>
+      </div>
+    );
+  }
   const [viewMode, setViewMode] = useState<'monthly' | 'weekly' | 'daily'>('weekly');
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedContactIds, setSelectedContactIds] = useState<number[]>([]);
