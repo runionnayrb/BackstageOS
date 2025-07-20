@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useFeatureSettings } from "@/hooks/useFeatureSettings";
+import { getShowDisplayName } from "@shared/utils/slug";
 
 interface ShowDetailParams {
   slug: string;
@@ -278,7 +279,7 @@ export default function ShowDetail() {
         </div>
         
         <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{getShowDisplayName(project.slug) || project.name}</h1>
           {project.venue && (
             <p className="text-gray-600 mt-1">{project.venue}</p>
           )}
@@ -315,7 +316,7 @@ export default function ShowDetail() {
         </div>
         
         <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{getShowDisplayName(project.slug) || project.name}</h1>
           {project.venue && (
             <p className="text-gray-600 mt-1">{project.venue}</p>
           )}

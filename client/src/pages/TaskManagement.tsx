@@ -9,6 +9,7 @@ import { TaskBoard } from "@/components/task-management/TaskBoard";
 import { TaskViewSettings } from "@/components/task-management/TaskViewSettings";
 import { apiRequest } from "@/lib/queryClient";
 import type { TaskDatabase, TaskView } from "@shared/schema";
+import { getShowDisplayName } from "@shared/utils/slug";
 
 interface PropertyVisibility {
   id: number;
@@ -189,7 +190,7 @@ export function TaskManagement() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                {showId && showData ? `Tasks - ${showData.name}` : 'Tasks'}
+                {showId && showData ? `Tasks - ${getShowDisplayName(showData.slug) || showData.name}` : 'Tasks'}
               </h2>
             </div>
             

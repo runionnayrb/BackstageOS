@@ -7,6 +7,7 @@ import { useLocation } from "wouter";
 import { Plus, FolderOpen, Settings } from "lucide-react";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import { isAdmin } from "@/lib/admin";
+import { getShowDisplayName } from "@shared/utils/slug";
 
 export default function Projects() {
   const { user } = useAuth();
@@ -149,7 +150,7 @@ export default function Projects() {
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold mb-0.5">{project.name}</h3>
+                      <h3 className="text-lg font-semibold mb-0.5">{getShowDisplayName(project.slug) || project.name}</h3>
                       <div className="text-sm text-muted-foreground mb-1 ml-0.5">
                         {project.venue || "No venue set"}
                       </div>

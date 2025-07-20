@@ -7,6 +7,12 @@ export const SHOW_SLUGS = {
   'macbeth': 'Macbeth', 
   'spring-awakening': 'Spring Awakening',
   'test-show': 'Test Show',
+  'romeo-and-juliet': 'Romeo and Juliet',
+  'the-tempest': 'The Tempest',
+  'a-midsummer-nights-dream': 'A Midsummer Night\'s Dream',
+  'othello': 'Othello',
+  'king-lear': 'King Lear',
+  'much-ado-about-nothing': 'Much Ado About Nothing',
   
   // Add new shows here as needed
   // 'my-new-show': 'My New Show Title',

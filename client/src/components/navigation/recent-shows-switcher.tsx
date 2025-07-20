@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { getShowDisplayName } from "@shared/utils/slug";
 
 interface Show {
   id: number;
@@ -101,7 +102,7 @@ export default function RecentShowsSwitcher({ currentShowId, className = "" }: R
               >
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{show.name}</span>
+                    <span className="font-medium">{getShowDisplayName(show.slug) || show.name}</span>
                     <Badge variant="secondary" className={`text-xs ${getStatusColor(show.status)}`}>
                       {show.status}
                     </Badge>
@@ -140,7 +141,7 @@ export default function RecentShowsSwitcher({ currentShowId, className = "" }: R
               >
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium">{show.name}</span>
+                    <span className="font-medium">{getShowDisplayName(show.slug) || show.name}</span>
                     <Badge variant="secondary" className={`text-xs ${getStatusColor(show.status)}`}>
                       {show.status}
                     </Badge>

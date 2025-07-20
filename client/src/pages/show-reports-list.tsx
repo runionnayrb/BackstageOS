@@ -2,6 +2,7 @@ import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings } from "lucide-react";
+import { getShowDisplayName } from "@shared/utils/slug";
 
 interface ShowReportsListParams {
   id: string;
@@ -67,7 +68,7 @@ export default function ShowReportsList() {
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to {(project as any)?.name}
+            Back to {getShowDisplayName(project?.slug) || project?.name}
           </Button>
           
           <Button

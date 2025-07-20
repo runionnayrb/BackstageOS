@@ -7,6 +7,7 @@ import {
   FolderOpen,
   FileText,
 } from "lucide-react";
+import { getShowDisplayName } from "@shared/utils/slug";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -89,7 +90,7 @@ export default function Dashboard() {
                   <div 
                     key={project.id} 
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-                    onClick={() => setLocation(`/shows/${project.id}`)}
+                    onClick={() => setLocation(`/shows/${project.slug}`)}
                   >
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
@@ -98,7 +99,7 @@ export default function Dashboard() {
                         </span>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{project.name}</p>
+                        <p className="font-medium text-gray-900">{getShowDisplayName(project.slug) || project.name}</p>
                         <div className="flex items-center space-x-2">
                           <span className={`inline-block w-2 h-2 rounded-full ${getStatusColor(project.status)}`}></span>
                           <p className="text-sm text-gray-500 capitalize">{project.status}</p>

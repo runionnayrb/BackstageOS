@@ -12,6 +12,7 @@ import { useLocation, useParams } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save } from "lucide-react";
+import { getShowDisplayName } from "@shared/utils/slug";
 
 const reportSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -260,7 +261,7 @@ export default function NewReport() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold">New {reportTypeName}</h1>
-            <p className="text-muted-foreground">{(project as any)?.name}</p>
+            <p className="text-muted-foreground">{getShowDisplayName(project?.slug) || project?.name}</p>
           </div>
         </div>
 
