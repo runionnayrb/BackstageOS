@@ -247,9 +247,17 @@ export default function Personnel() {
       {/* Mobile Header */}
       <div className="md:hidden px-4 py-4">
         <div className="flex items-center justify-between mb-4">
-          <div></div>
+          <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
           
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNewContactClick}
+              className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
+            >
+              <Plus className="w-5 h-5" />
+            </Button>
             {allContacts.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -278,26 +286,22 @@ export default function Personnel() {
             </Button>
           </div>
         </div>
-        
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleNewContactClick}
-            className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
-          >
-            <Plus className="w-5 h-5" />
-          </Button>
-        </div>
       </div>
 
       {/* Desktop Header */}
       <div className="hidden md:block px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
-          <div></div>
+          <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
           
           <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNewContactClick}
+              className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
+            >
+              <Plus className="w-5 h-5" />
+            </Button>
             {allContacts.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -326,18 +330,6 @@ export default function Personnel() {
               {isReordering ? "Done Reordering" : "Reorder"}
             </Button>
           </div>
-        </div>
-        
-        <div className="mb-2 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleNewContactClick}
-            className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
-          >
-            <Plus className="w-5 h-5" />
-          </Button>
         </div>
       </div>
 
