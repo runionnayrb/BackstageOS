@@ -56,8 +56,12 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - ✅ **Updated Core Components**: Systematically replaced `project.name` with `getShowDisplayName(project.slug) || project.name` across all major components
 - ✅ **Components Updated**: Dashboard, Projects, TaskManagement, ShowDetail, Reports, ScriptEditor, RecentShowsSwitcher, ShowReports, NewReport, ShowReportsList, and navigation components
 - ✅ **Utility Function**: Created `getShowDisplayName()` function with fallback support for unified show name display
+- ✅ **Server Route Integration**: Fixed server routes to handle both slug and numeric ID parameters with proper slug detection (isNaN check)
+- ✅ **Critical Bug Fix**: Resolved "Can't find variable: projectId" error in ShowDetail component by updating to use slug-based project lookup
+- ✅ **Settings Routes Updated**: Fixed /api/projects/:id/settings routes to properly handle slug parameters instead of trying to parse them as integers
 - 🎯 **Single Source of Truth**: All show name changes can now be made by updating just one file (`shared/show-slugs.ts`)
 - 📝 **Easy Management**: Theater professionals can rebrand shows instantly by changing centralized variables instead of hunting through codebase
+- ⚠️ **Remaining Work**: Multiple components still use numeric projectId instead of slug-based approach (weekly-availability-editor, schedule.tsx, show-settings.tsx, email-manager, etc.)
 
 ## Planned Features
 - **Calendar System**: Drag-drop scheduling with daily call sheet generation

@@ -172,7 +172,7 @@ export default function ShowDetail() {
     return null;
   }
 
-  const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId)) : null;
+  const project = Array.isArray(projects) ? projects.find((p: any) => p.slug === projectSlug) : null;
   
   if (!project) {
     return (
