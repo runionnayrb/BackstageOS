@@ -521,9 +521,6 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                                     {event.cast.join(', ')}
                                   </div>
                                 )}
-                                {event.notes && (
-                                  <div className="text-xs text-gray-500 italic mt-1 ml-6">{event.notes}</div>
-                                )}
                               </div>
                             )}
                           </div>
@@ -587,9 +584,6 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                                     <div className="text-xs text-gray-600 mt-1 ml-4">
                                       {event.cast.join(', ')}
                                     </div>
-                                  )}
-                                  {event.notes && (
-                                    <div className="text-xs text-gray-500 italic mt-1 ml-4">{event.notes}</div>
                                   )}
                                 </div>
                               )}
