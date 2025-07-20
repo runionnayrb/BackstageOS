@@ -26,20 +26,11 @@ export default function ArchivedShows() {
 
   const { data: archivedProjects, isLoading } = useQuery({
     queryKey: ["/api/projects/archived"],
-    queryFn: async (): Promise<ArchivedProject[]> => {
-      const response = await fetch("/api/projects/archived");
-      if (!response.ok) {
-        throw new Error("Failed to fetch archived projects");
-      }
-      return response.json();
-    },
   });
 
   const unarchiveMutation = useMutation({
     mutationFn: async (projectId: number) => {
-      return apiRequest(`/api/projects/${projectId}/unarchive`, {
-        method: "POST",
-      });
+      return apiRequest("POST", `/api/projects/${projectId}/unarchive`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects/archived"] });
