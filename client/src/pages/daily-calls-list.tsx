@@ -128,9 +128,8 @@ export default function DailyCallsList() {
             </Button>
             <h1 className="text-3xl font-bold">Daily Calls</h1>
           </div>
-          <Button onClick={handleNewCall} className="bg-blue-600 hover:bg-blue-700 text-white">
-            <Plus className="h-4 w-4 mr-2" />
-            New Call
+          <Button onClick={handleNewCall} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
+            <Plus className="h-4 w-4 hover:text-blue-600 transition-colors" />
           </Button>
         </div>
 
@@ -139,9 +138,8 @@ export default function DailyCallsList() {
             <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No daily calls yet</h3>
             <p className="text-gray-500 mb-6">Create your first daily call sheet for {project?.name}</p>
-            <Button onClick={handleNewCall} className="bg-blue-600 hover:bg-blue-700 text-white">
-              <Plus className="h-4 w-4 mr-2" />
-              Create First Call
+            <Button onClick={handleNewCall} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
+              <Plus className="h-4 w-4 hover:text-blue-600 transition-colors" />
             </Button>
           </div>
         ) : (
