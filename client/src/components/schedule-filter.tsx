@@ -25,7 +25,7 @@ interface EventType {
 }
 
 interface ScheduleFilterProps {
-  projectId: number;
+  projectId: string | number;
   selectedContactIds: number[];
   onFilterChange: (contactIds: number[]) => void;
   selectedEventTypes: string[];

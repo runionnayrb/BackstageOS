@@ -717,7 +717,7 @@ The Production Team`
           <div className="flex flex-col items-end">
             <div className="flex items-center space-x-2">
             <ScheduleFilter
-              projectId={parseInt(projectId)}
+              projectId={projectId}
               selectedContactIds={selectedContactIds}
               onFilterChange={setSelectedContactIds}
               selectedEventTypes={selectedEventTypes}
@@ -945,7 +945,7 @@ The Production Team`
             {/* Navigation Controls */}
             <div className="flex items-center gap-2">
               <ScheduleFilter
-                projectId={parseInt(projectId)}
+                projectId={projectId}
                 selectedContactIds={selectedContactIds}
                 onFilterChange={setSelectedContactIds}
                 selectedEventTypes={selectedEventTypes}
@@ -1129,7 +1129,7 @@ The Production Team`
       <div className="px-0 md:px-4 lg:px-8">
         {viewMode === 'monthly' ? (
           <MonthlyScheduleView 
-            projectId={parseInt(projectId)} 
+            projectId={projectId} 
             onDateClick={handleDateClick}
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
@@ -1161,7 +1161,7 @@ The Production Team`
             {/* Desktop Weekly View */}
             <div className="hidden md:block">
               <WeeklyScheduleView 
-                projectId={parseInt(projectId)} 
+                projectId={projectId} 
                 onDateClick={handleDateClick}
                 currentDate={currentDate}
                 setCurrentDate={setCurrentDate}
@@ -1185,7 +1185,7 @@ The Production Team`
             {/* Mobile Weekly View - 2 days with continuous scroll */}
             <div className="md:hidden">
               <MobileWeeklyScheduleView 
-                projectId={parseInt(projectId)} 
+                projectId={projectId} 
                 onDateClick={handleDateClick}
                 currentDate={currentDate}
                 setCurrentDate={setCurrentDate}
@@ -1212,7 +1212,7 @@ The Production Team`
           </>
         ) : (
           <DailyScheduleView 
-            projectId={parseInt(projectId)} 
+            projectId={projectId} 
             selectedDate={currentDate}
             onDateClick={handleDateClick}
             currentDate={currentDate}
@@ -1279,7 +1279,7 @@ The Production Team`
             {/* Content */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
               <EventForm
-                projectId={parseInt(projectId)}
+                projectId={projectId}
                 contacts={contacts}
                 eventTypes={eventTypes}
                 initialDate={createEventData.date}
@@ -1364,7 +1364,7 @@ The Production Team`
             {/* Content */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
               <EventForm
-                projectId={parseInt(projectId)}
+                projectId={projectId}
                 contacts={contacts}
                 eventTypes={eventTypes}
                 initialDate={editingEvent.date}
@@ -1428,7 +1428,7 @@ The Production Team`
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
           <div className="p-6">
             <SchedulePhase5Settings 
-              projectId={parseInt(projectId)}
+              projectId={projectId}
               projectName={project?.name || 'Project'}
             />
           </div>
@@ -2022,7 +2022,7 @@ The Production Team`}
                 <CardTitle>Schedule Sharing</CardTitle>
               </CardHeader>
               <CardContent>
-                <PersonalScheduleShare projectId={parseInt(projectId)} />
+                <PersonalScheduleShare projectId={projectId} />
               </CardContent>
             </Card>
 
