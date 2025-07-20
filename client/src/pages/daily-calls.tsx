@@ -270,7 +270,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
           {/* Call Sheet Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900">{project?.name}</h2>
-            <h3 className="text-xl text-gray-700 mt-2">DAILY CALL SHEET</h3>
+            <h3 className="text-xl text-gray-700 mt-2">DAILY SCHEDULE</h3>
             <p className="text-lg text-gray-600 mt-1">
               {format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}
             </p>
@@ -278,15 +278,14 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
 
           {/* Call Schedule by Location */}
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-gray-900">CALL SCHEDULE</h3>
-              {isEditing && (
+            {isEditing && (
+              <div className="flex justify-end">
                 <Button onClick={addLocation} variant="outline" size="sm">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Location
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
 
             {callData.locations.length === 0 ? (
               <Card>
@@ -299,7 +298,8 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                   </Button>
                 </CardContent>
               </Card>
-            ) : (
+            ) : callData.locations.length === 1 ? (
+              // Single location - full width
               <div className="space-y-8">
                 {callData.locations.map((location, locationIndex) => (
                   <div key={locationIndex} className="space-y-3">
@@ -355,6 +355,85 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                                 )}
                                 {event.notes && (
                                   <div className="text-xs text-gray-500 italic mt-1 ml-6">{event.notes}</div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {isEditing && (
+                        <Button 
+                          onClick={() => addEvent(locationIndex)} 
+                          variant="ghost" 
+                          size="sm"
+                          className="w-full mt-4"
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Event
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              // Multiple locations - 2/3 and 1/3 layout
+              <div className="grid grid-cols-3 gap-8">
+                {callData.locations.map((location, locationIndex) => (
+                  <div key={locationIndex} className={`space-y-3 ${locationIndex === 0 ? 'col-span-2' : 'col-span-1'}`}>
+                    <div className="border-b-2 border-gray-300 pb-2">
+                      <h4 className="text-lg font-semibold text-gray-900">
+                        {isEditing ? (
+                          <Input
+                            value={location.name}
+                            onChange={(e) => {
+                              setCallData(prev => ({
+                                ...prev,
+                                locations: prev.locations.map((loc, idx) => 
+                                  idx === locationIndex 
+                                    ? { ...loc, name: e.target.value }
+                                    : loc
+                                )
+                              }));
+                            }}
+                            className="font-semibold text-lg"
+                          />
+                        ) : (
+                          location.name
+                        )}
+                      </h4>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {location.events.map((event, eventIdx) => (
+                        <div key={event.id} className="flex items-start gap-4 py-2 border-b border-gray-100 last:border-b-0">
+                          <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
+                            {event.title === 'END-OF-DAY' ? '' : event.startTime}
+                          </div>
+                          <div className="flex-1">
+                            {isEditing && event.title !== 'END-OF-DAY' ? (
+                              <Input
+                                value={event.title}
+                                onChange={(e) => {
+                                  const newLocations = [...callData.locations];
+                                  newLocations[locationIndex].events[eventIdx].title = e.target.value;
+                                  setCallData(prev => ({ ...prev, locations: newLocations }));
+                                }}
+                                className="font-medium text-sm"
+                              />
+                            ) : (
+                              <div>
+                                <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900' : 'font-medium text-gray-800'}`}>
+                                  {event.title}
+                                </div>
+                                {event.cast.length > 0 && (
+                                  <div className="text-xs text-gray-600 mt-1 ml-4">
+                                    {event.cast.join(', ')}
+                                  </div>
+                                )}
+                                {event.notes && (
+                                  <div className="text-xs text-gray-500 italic mt-1 ml-4">{event.notes}</div>
                                 )}
                               </div>
                             )}
