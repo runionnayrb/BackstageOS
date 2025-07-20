@@ -12,7 +12,6 @@ import { useLocation, useParams } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Save } from "lucide-react";
-import { getShowDisplayName } from "@shared/utils/slug";
 
 const reportSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -32,11 +31,11 @@ export default function NewReport() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const projectSlug = params.id!;
+  const projectId = parseInt(params.id!);
   const reportType = params.type!;
 
   const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}`],
+    queryKey: [`/api/projects/${projectId}`],
   });
 
   const form = useForm<ReportFormData>({
@@ -65,20 +64,20 @@ export default function NewReport() {
 
   const mutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
-      await apiRequest("POST", `/api/projects/${projectSlug}/reports`, {
+      await apiRequest("POST", `/api/projects/${projectId}/reports`, {
         ...data,
-        projectId: project?.id,
+        projectId: projectId,
         type: reportType,
         date: new Date().toISOString(),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectSlug}/reports`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/reports`] });
       toast({
         title: "Report Created",
         description: "Your report has been created successfully!",
       });
-      setLocation(`/shows/${projectSlug}/reports/${reportType}`);
+      setLocation(`/shows/${projectId}/reports/${reportType}`);
     },
     onError: (error) => {
       toast({
@@ -261,7 +260,7 @@ export default function NewReport() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h1 className="text-3xl font-bold">New {reportTypeName}</h1>
-            <p className="text-muted-foreground">{getShowDisplayName(project?.slug) || project?.name}</p>
+            <p className="text-muted-foreground">{(project as any)?.name}</p>
           </div>
         </div>
 

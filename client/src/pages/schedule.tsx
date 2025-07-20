@@ -43,7 +43,7 @@ interface ScheduleParams {
 export default function Schedule() {
   const [, setLocation] = useLocation();
   const params = useParams<ScheduleParams>();
-  const projectSlug = params.id;
+  const projectId = params.id;
   const [viewMode, setViewMode] = useState<'monthly' | 'weekly' | 'daily'>('weekly');
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [selectedContactIds, setSelectedContactIds] = useState<number[]>([]);
@@ -178,7 +178,7 @@ The Production Team`
   };
 
   const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}`],
+    queryKey: [`/api/projects/${projectId}`],
   });
 
   const { data: user } = useQuery({
@@ -186,28 +186,28 @@ The Production Team`
   });
 
   const { data: settings } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}/settings`],
+    queryKey: [`/api/projects/${projectId}/settings`],
   });
 
   // Get schedule versions to find current published version
   const { data: scheduleVersions = [] } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}/schedule-versions`],
-    enabled: !!projectSlug
+    queryKey: [`/api/projects/${projectId}/schedule-versions`],
+    enabled: !!projectId
   });
 
   // Fetch contacts for event creation
   const { data: contacts = [] } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}/contacts`],
+    queryKey: [`/api/projects/${projectId}/contacts`],
   });
 
   // Fetch event types for event creation
   const { data: eventTypes = [] } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}/event-types`],
+    queryKey: [`/api/projects/${projectId}/event-types`],
   });
 
   // Fetch schedule events for updated timestamp
   const { data: events = [] } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}/schedule-events`],
+    queryKey: [`/api/projects/${projectId}/schedule-events`],
   });
 
   // Fetch all users for "updated by" information
@@ -217,7 +217,7 @@ The Production Team`
 
   // Fetch personal schedules with contact information
   const { data: personalSchedules = [] } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}/personal-schedules`],
+    queryKey: [`/api/projects/${projectId}/personal-schedules`],
   });
 
   // Fetch email accounts for reply-to configuration
@@ -228,20 +228,20 @@ The Production Team`
 
   // Fetch auto-generated changes summary
   const { data: autoChangesSummary } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}/schedule-changes-summary`],
+    queryKey: [`/api/projects/${projectId}/schedule-changes-summary`],
     enabled: showScheduleSettings, // Only fetch when modal is open
   });
 
   // Fetch structured changes for individual template variables
   const { data: structuredChanges } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}/schedule-changes-structured`],
+    queryKey: [`/api/projects/${projectId}/schedule-changes-structured`],
     enabled: showScheduleSettings, // Only fetch when modal is open
   });
 
   // Test email mutation
   const sendTestEmailMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('POST', `/api/projects/${projectSlug}/send-test-email`, {
+      const response = await apiRequest('POST', `/api/projects/${projectId}/send-test-email`, {
         testEmailAddress: testEmailAddress.trim() || undefined,
         emailSubject: localEmailSubject,
         emailBody: localEmailBody
@@ -271,7 +271,7 @@ The Production Team`
   // Resend schedule mutation
   const resendScheduleMutation = useMutation({
     mutationFn: async (contactIds: number[]) => {
-      const response = await apiRequest('POST', `/api/projects/${projectSlug}/resend-schedule`, {
+      const response = await apiRequest('POST', `/api/projects/${projectId}/resend-schedule`, {
         contactIds
       });
       return response;
@@ -717,7 +717,7 @@ The Production Team`
           <div className="flex flex-col items-end">
             <div className="flex items-center space-x-2">
             <ScheduleFilter
-              projectId={projectId}
+              projectId={parseInt(projectId)}
               selectedContactIds={selectedContactIds}
               onFilterChange={setSelectedContactIds}
               selectedEventTypes={selectedEventTypes}
@@ -945,7 +945,7 @@ The Production Team`
             {/* Navigation Controls */}
             <div className="flex items-center gap-2">
               <ScheduleFilter
-                projectId={projectId}
+                projectId={parseInt(projectId)}
                 selectedContactIds={selectedContactIds}
                 onFilterChange={setSelectedContactIds}
                 selectedEventTypes={selectedEventTypes}
@@ -1129,7 +1129,7 @@ The Production Team`
       <div className="px-0 md:px-4 lg:px-8">
         {viewMode === 'monthly' ? (
           <MonthlyScheduleView 
-            projectId={projectId} 
+            projectId={parseInt(projectId)} 
             onDateClick={handleDateClick}
             currentDate={currentDate}
             setCurrentDate={setCurrentDate}
@@ -1161,7 +1161,7 @@ The Production Team`
             {/* Desktop Weekly View */}
             <div className="hidden md:block">
               <WeeklyScheduleView 
-                projectId={projectId} 
+                projectId={parseInt(projectId)} 
                 onDateClick={handleDateClick}
                 currentDate={currentDate}
                 setCurrentDate={setCurrentDate}
@@ -1185,7 +1185,7 @@ The Production Team`
             {/* Mobile Weekly View - 2 days with continuous scroll */}
             <div className="md:hidden">
               <MobileWeeklyScheduleView 
-                projectId={projectId} 
+                projectId={parseInt(projectId)} 
                 onDateClick={handleDateClick}
                 currentDate={currentDate}
                 setCurrentDate={setCurrentDate}
@@ -1212,7 +1212,7 @@ The Production Team`
           </>
         ) : (
           <DailyScheduleView 
-            projectId={projectId} 
+            projectId={parseInt(projectId)} 
             selectedDate={currentDate}
             onDateClick={handleDateClick}
             currentDate={currentDate}
@@ -1279,7 +1279,7 @@ The Production Team`
             {/* Content */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
               <EventForm
-                projectId={projectId}
+                projectId={parseInt(projectId)}
                 contacts={contacts}
                 eventTypes={eventTypes}
                 initialDate={createEventData.date}
@@ -1364,7 +1364,7 @@ The Production Team`
             {/* Content */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
               <EventForm
-                projectId={projectId}
+                projectId={parseInt(projectId)}
                 contacts={contacts}
                 eventTypes={eventTypes}
                 initialDate={editingEvent.date}
@@ -1428,7 +1428,7 @@ The Production Team`
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
           <div className="p-6">
             <SchedulePhase5Settings 
-              projectId={projectId}
+              projectId={parseInt(projectId)}
               projectName={project?.name || 'Project'}
             />
           </div>
@@ -2022,7 +2022,7 @@ The Production Team`}
                 <CardTitle>Schedule Sharing</CardTitle>
               </CardHeader>
               <CardContent>
-                <PersonalScheduleShare projectId={projectId} />
+                <PersonalScheduleShare projectId={parseInt(projectId)} />
               </CardContent>
             </Card>
 

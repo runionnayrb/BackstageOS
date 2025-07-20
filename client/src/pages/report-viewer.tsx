@@ -26,7 +26,7 @@ interface ReportViewerParams {
 export default function ReportViewer() {
   const [, setLocation] = useLocation();
   const params = useParams<ReportViewerParams>();
-  const projectSlug = params.id!;
+  const projectId = parseInt(params.id!);
   const reportType = params.type!;
   const reportId = parseInt(params.reportId!);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -34,24 +34,24 @@ export default function ReportViewer() {
   const queryClient = useQueryClient();
 
   const { data: project } = useQuery<any>({
-    queryKey: [`/api/projects/${projectSlug}`],
+    queryKey: [`/api/projects/${projectId}`],
   });
 
   const { data: report } = useQuery<any>({
-    queryKey: [`/api/projects/${projectSlug}/reports/${reportId}`],
+    queryKey: [`/api/projects/${projectId}/reports/${reportId}`],
   });
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("DELETE", `/api/projects/${projectSlug}/reports/${reportId}`);
+      await apiRequest("DELETE", `/api/projects/${projectId}/reports/${reportId}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectSlug}/reports`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/reports`] });
       toast({
         title: "Report Deleted",
         description: "The report has been deleted successfully.",
       });
-      setLocation(`/shows/${projectSlug}/reports/${reportType}`);
+      setLocation(`/shows/${projectId}/reports/${reportType}`);
     },
     onError: (error) => {
       toast({
@@ -93,7 +93,7 @@ export default function ReportViewer() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setLocation(`/shows/${projectSlug}/reports/${reportType}`)}
+              onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}`)}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -117,7 +117,7 @@ export default function ReportViewer() {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => setLocation(`/shows/${projectSlug}/reports/${reportType}/${reportId}/edit`)}
+              onClick={() => setLocation(`/shows/${projectId}/reports/${reportType}/${reportId}/edit`)}
             >
               <Edit className="h-4 w-4 mr-2" />
               Edit

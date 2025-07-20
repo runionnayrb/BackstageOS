@@ -1762,7 +1762,8 @@ Respond with valid JSON only.`;
 
   app.get('/api/projects/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const project = await storage.getProjectBySlugOrId(req.params.id);
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
       
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -1961,7 +1962,8 @@ Best regards,
 
   app.put('/api/projects/:id', isAuthenticated, async (req: any, res) => {
     try {
-      const project = await storage.getProjectBySlugOrId(req.params.id);
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
       
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -1972,11 +1974,11 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const updatedProject = await storage.updateProject(project.id, req.body);
+      const updatedProject = await storage.updateProject(projectId, req.body);
       
       // Sync important dates with schedule events
       await syncImportantDatesWithSchedule(
-        project.id, 
+        projectId, 
         project, 
         updatedProject, 
         parseInt(req.user.id.toString())
@@ -2014,7 +2016,8 @@ Best regards,
   // Manual sync route for important dates (for existing projects)
   app.post('/api/projects/:id/sync-important-dates', isAuthenticated, async (req: any, res) => {
     try {
-      const project = await storage.getProjectBySlugOrId(req.params.id);
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
       
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -2027,7 +2030,7 @@ Best regards,
 
       // Force sync the important dates with schedule events
       await syncImportantDatesWithSchedule(
-        project.id,
+        projectId,
         {}, // Treat as if no old dates exist to force creation
         project,
         parseInt(req.user.id.toString())
@@ -2704,16 +2707,10 @@ Best regards,
   // Show settings routes
   app.get("/api/projects/:id/settings", isAuthenticated, async (req: any, res) => {
     try {
-      const projectIdOrSlug = req.params.id;
-      console.log(`🎨 GET /api/projects/${projectIdOrSlug}/settings - Backend endpoint hit`);
+      const projectId = parseInt(req.params.id);
+      console.log(`🎨 GET /api/projects/${projectId}/settings - Backend endpoint hit`);
       
-      // Try to get project by slug first, then by ID if it's numeric
-      let project;
-      if (isNaN(parseInt(projectIdOrSlug))) {
-        project = await storage.getProjectBySlug(projectIdOrSlug);
-      } else {
-        project = await storage.getProjectById(parseInt(projectIdOrSlug));
-      }
+      const project = await storage.getProjectById(projectId);
       
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -2724,14 +2721,14 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
-      let settings = await storage.getShowSettingsByProjectId(project.id);
+      let settings = await storage.getShowSettingsByProjectId(projectId);
       console.log(`🎨 Retrieved settings from database:`, settings);
       
       if (!settings) {
         // Create default settings if none exist
-        console.log(`🎨 Creating default settings for project ${project.id}`);
+        console.log(`🎨 Creating default settings for project ${projectId}`);
         settings = await storage.upsertShowSettings({
-          projectId: project.id,
+          projectId,
           createdBy: req.user.id.toString(),
         });
       }
@@ -2746,15 +2743,8 @@ Best regards,
 
   app.patch("/api/projects/:id/settings", isAuthenticated, async (req: any, res) => {
     try {
-      const projectIdOrSlug = req.params.id;
-      
-      // Try to get project by slug first, then by ID if it's numeric
-      let project;
-      if (isNaN(parseInt(projectIdOrSlug))) {
-        project = await storage.getProjectBySlug(projectIdOrSlug);
-      } else {
-        project = await storage.getProjectById(parseInt(projectIdOrSlug));
-      }
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
       
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -2766,7 +2756,7 @@ Best regards,
       }
       
       const settingsData = req.body;
-      const settings = await storage.updateShowSettings(project.id, settingsData);
+      const settings = await storage.updateShowSettings(projectId, settingsData);
       res.json(settings);
     } catch (error) {
       console.error("Error updating show settings:", error);
@@ -2776,15 +2766,8 @@ Best regards,
 
   app.put("/api/projects/:id/settings", isAuthenticated, async (req: any, res) => {
     try {
-      const projectIdOrSlug = req.params.id;
-      
-      // Try to get project by slug first, then by ID if it's numeric
-      let project;
-      if (isNaN(parseInt(projectIdOrSlug))) {
-        project = await storage.getProjectBySlug(projectIdOrSlug);
-      } else {
-        project = await storage.getProjectById(parseInt(projectIdOrSlug));
-      }
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
       
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -2796,7 +2779,7 @@ Best regards,
       }
       
       const settingsData = req.body;
-      const settings = await storage.updateShowSettings(project.id, settingsData);
+      const settings = await storage.updateShowSettings(projectId, settingsData);
       res.json(settings);
     } catch (error) {
       console.error("Error updating show settings:", error);
@@ -4691,7 +4674,8 @@ Best regards,
   // Schedule Events Routes
   app.get('/api/projects/:id/schedule-events', isAuthenticated, async (req: any, res) => {
     try {
-      const project = await storage.getProjectBySlugOrId(req.params.id);
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
       
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -4699,14 +4683,14 @@ Best regards,
 
       // Check ownership or team membership
       if (project.ownerId != req.user.id.toString()) {
-        const teamMembers = await storage.getTeamMembersByProjectId(project.id);
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
         const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
         if (!teamMember) {
           return res.status(403).json({ message: "Access denied" });
         }
       }
 
-      const events = await storage.getScheduleEventsByProjectId(project.id);
+      const events = await storage.getScheduleEventsByProjectId(projectId);
       res.json(events);
     } catch (error) {
       console.error("Error fetching schedule events:", error);
@@ -4716,7 +4700,8 @@ Best regards,
 
   app.post('/api/projects/:id/schedule-events', isAuthenticated, async (req: any, res) => {
     try {
-      const project = await storage.getProjectBySlugOrId(req.params.id);
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
       
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -4730,14 +4715,14 @@ Best regards,
       console.log("Event creation request body:", req.body);
       const eventData = insertScheduleEventSchema.parse({
         ...req.body,
-        projectId: project.id,
+        projectId,
         createdBy: parseInt(req.user.id.toString()),
       });
 
       // Validate for conflicts if participants are provided or location is specified
       if ((req.body.participants && Array.isArray(req.body.participants) && req.body.participants.length > 0) || eventData.location) {
         const conflictResult = await conflictValidationService.validateEventConflicts(
-          project.id,
+          projectId,
           eventData.date,
           eventData.startTime,
           eventData.endTime,

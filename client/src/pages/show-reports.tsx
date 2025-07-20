@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Plus, FileText } from "lucide-react";
 import ContextAwareBackButton from "@/components/navigation/context-aware-back-button";
-import { getShowDisplayName } from "@shared/utils/slug";
 
 interface ShowReportsParams {
   id: string;
@@ -20,7 +19,7 @@ export default function ShowReports() {
   const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<ShowReportsParams>();
-  const projectSlug = params.id;
+  const projectId = params.id;
   const reportType = params.type;
 
   // Redirect to home if not authenticated
@@ -82,7 +81,7 @@ export default function ShowReports() {
         
         <div className="mb-2">
           <h1 className="text-3xl font-bold text-gray-900">{reportTypeName}</h1>
-          <p className="text-gray-600 mt-1">{getShowDisplayName(project.slug) || project.name}</p>
+          <p className="text-gray-600 mt-1">{project.name}</p>
         </div>
       </div>
 

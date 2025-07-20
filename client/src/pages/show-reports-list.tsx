@@ -2,7 +2,6 @@ import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings } from "lucide-react";
-import { getShowDisplayName } from "@shared/utils/slug";
 
 interface ShowReportsListParams {
   id: string;
@@ -11,10 +10,10 @@ interface ShowReportsListParams {
 export default function ShowReportsList() {
   const [, setLocation] = useLocation();
   const params = useParams<ShowReportsListParams>();
-  const projectSlug = params.id;
+  const projectId = params.id;
 
   const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}`],
+    queryKey: [`/api/projects/${projectId}`],
   });
 
   const reportTypes = [
@@ -68,7 +67,7 @@ export default function ShowReportsList() {
             className="text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to {getShowDisplayName(project?.slug) || project?.name}
+            Back to {(project as any)?.name}
           </Button>
           
           <Button

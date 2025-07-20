@@ -19,13 +19,13 @@ interface ContactAvailabilityParams {
 export default function ContactAvailability() {
   const [, setLocation] = useLocation();
   const params = useParams<ContactAvailabilityParams>();
-  const projectSlug = params.id!;
+  const projectId = parseInt(params.id!);
   const contactId = parseInt(params.contactId!);
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
 
   const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}`],
+    queryKey: [`/api/projects/${projectId}`],
   });
 
   const { data: contact, isLoading: isLoadingContact } = useQuery({

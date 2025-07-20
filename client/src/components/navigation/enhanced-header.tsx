@@ -13,7 +13,6 @@ import { useState, useEffect, useRef } from "react";
 import { useFeatureSettings } from "@/hooks/useFeatureSettings";
 import BreadcrumbNavigation from "./breadcrumb-navigation";
 import { useAdminView } from "@/contexts/AdminViewContext";
-import { getShowDisplayName } from "@shared/utils/slug";
 
 interface SwitchStatus {
   isViewingAs: boolean;
@@ -103,10 +102,8 @@ export default function EnhancedHeader() {
       });
       
       if (showData?.name) {
-        // Use centralized slug mapping for consistent show names
-        const displayName = getShowDisplayName(pathParts[2]) || showData.name;
         breadcrumbs.push({
-          label: displayName,
+          label: showData.name,
           href: `/shows/${pathParts[2]}`
         });
       }
@@ -271,7 +268,7 @@ export default function EnhancedHeader() {
                     <>
                       <DropdownMenuSeparator />
                       <div className="px-3 py-2 text-sm font-semibold text-gray-900">
-                        {getShowDisplayName(navContext.showId) || showData.name}
+                        {showData.name}
                       </div>
                       {isFeatureEnabled('reports') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/reports`)}>

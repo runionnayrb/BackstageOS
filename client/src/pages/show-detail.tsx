@@ -12,10 +12,9 @@ import {
 } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useFeatureSettings } from "@/hooks/useFeatureSettings";
-import { getShowDisplayName } from "@shared/utils/slug";
 
 interface ShowDetailParams {
-  slug: string;
+  id: string;
 }
 
 export default function ShowDetail() {
@@ -23,7 +22,7 @@ export default function ShowDetail() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<ShowDetailParams>();
-  const projectSlug = params.slug;
+  const projectId = params.id;
   const queryClient = useQueryClient();
 
   // State for drag and drop reordering
@@ -31,34 +30,34 @@ export default function ShowDetail() {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   // Import feature settings hook
-  const { isFeatureEnabled } = useFeatureSettings(projectSlug);
+  const { isFeatureEnabled } = useFeatureSettings(projectId);
   
   // Default sections array - filtered by feature settings
   const defaultSections = [
     ...(isFeatureEnabled('reports') ? [{
       id: "reports",
       title: "Reports",
-      href: `/shows/${projectSlug}/reports`,
+      href: `/shows/${projectId}/reports`,
     }] : []),
     ...(isFeatureEnabled('calendar') ? [{
       id: "calendar",
       title: "Calendar",
-      href: `/shows/${projectSlug}/calendar`,
+      href: `/shows/${projectId}/calendar`,
     }] : []),
     ...(isFeatureEnabled('script') ? [{
       id: "script",
       title: "Script",
-      href: `/shows/${projectSlug}/script`,
+      href: `/shows/${projectId}/script`,
     }] : []),
     ...(isFeatureEnabled('props') ? [{
       id: "props-costumes",
       title: "Props",
-      href: `/shows/${projectSlug}/props`,
+      href: `/shows/${projectId}/props`,
     }] : []),
     ...(isFeatureEnabled('contacts') ? [{
       id: "contacts",
       title: "Contacts",
-      href: `/shows/${projectSlug}/contacts`,
+      href: `/shows/${projectId}/contacts`,
     }] : []),
   ];
 
@@ -72,19 +71,19 @@ export default function ShowDetail() {
   });
 
   const { data: projectSettings } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}/settings`],
-    enabled: isAuthenticated && !!projectSlug,
+    queryKey: [`/api/projects/${projectId}/settings`],
+    enabled: isAuthenticated && !!projectId,
   });
 
   // Mutations - always defined in same order
   const saveSectionOrderMutation = useMutation({
     mutationFn: async (sectionOrder: string[]) => {
-      return apiRequest("PUT", `/api/projects/${projectSlug}/settings`, {
+      return apiRequest("PUT", `/api/projects/${projectId}/settings`, {
         sectionsOrder: sectionOrder,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectSlug}/settings`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
       toast({
         title: "Section order saved",
         description: "Your custom section order has been saved.",
@@ -172,7 +171,7 @@ export default function ShowDetail() {
     return null;
   }
 
-  const project = Array.isArray(projects) ? projects.find((p: any) => p.slug === projectSlug) : null;
+  const project = Array.isArray(projects) ? projects.find((p: any) => p.id === parseInt(projectId)) : null;
   
   if (!project) {
     return (
@@ -279,7 +278,7 @@ export default function ShowDetail() {
         </div>
         
         <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">{getShowDisplayName(project.slug) || project.name}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
           {project.venue && (
             <p className="text-gray-600 mt-1">{project.venue}</p>
           )}
@@ -316,7 +315,7 @@ export default function ShowDetail() {
         </div>
         
         <div className="mb-2">
-          <h1 className="text-3xl font-bold text-gray-900">{getShowDisplayName(project.slug) || project.name}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
           {project.venue && (
             <p className="text-gray-600 mt-1">{project.venue}</p>
           )}

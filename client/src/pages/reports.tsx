@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
 import { Edit3, FileText, Download } from "lucide-react";
 import { useState } from "react";
-import { getShowDisplayName } from "@shared/utils/slug";
 
 export default function Reports() {
   const [, setLocation] = useLocation();
@@ -103,7 +102,7 @@ export default function Reports() {
                   <SelectItem value="all">All Projects</SelectItem>
                   {(projects as any[]).map((project: any) => (
                     <SelectItem key={project.id} value={project.id.toString()}>
-                      {getShowDisplayName(project.slug) || project.name}
+                      {project.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

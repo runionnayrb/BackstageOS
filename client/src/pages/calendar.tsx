@@ -16,22 +16,22 @@ export default function Calendar() {
   const [showAvailabilityComparison, setShowAvailabilityComparison] = useState(false);
   const [showLocationAvailability, setShowLocationAvailability] = useState(false);
   const params = useParams<CalendarParams>();
-  const projectSlug = params.id;
+  const projectId = params.id;
 
   const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}`],
+    queryKey: [`/api/projects/${projectId}`],
   });
 
   const sections = [
     {
       title: "Schedule",
       description: "Rehearsal and performance calendar with drag-drop scheduling",
-      href: `/shows/${projectSlug}/calendar/schedule`,
+      href: `/shows/${projectId}/calendar/schedule`,
     },
     {
       title: "Daily Calls", 
       description: "Daily call sheets and scheduling information",
-      href: `/shows/${projectSlug}/calendar/calls`,
+      href: `/shows/${projectId}/calendar/calls`,
     },
   ];
 

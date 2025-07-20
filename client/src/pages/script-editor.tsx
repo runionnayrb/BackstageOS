@@ -23,7 +23,6 @@ import {
   FileClockIcon,
   ChevronDown
 } from "lucide-react";
-import { getShowDisplayName } from "@shared/utils/slug";
 
 interface ScriptEditorParams {
   id: string;

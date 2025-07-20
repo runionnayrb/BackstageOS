@@ -181,7 +181,6 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, ne, sql, gte, lte, or, isNull, count, max } from "drizzle-orm";
-import { generateUniqueSlug } from "@shared/utils/slug";
 
 export interface IStorage {
   // User operations (email/password auth)
@@ -236,8 +235,6 @@ export interface IStorage {
   // Project operations
   getProjectsByUserId(userId: string): Promise<Project[]>;
   getProjectById(id: number): Promise<Project | undefined>;
-  getProjectBySlug(slug: string): Promise<Project | undefined>;
-  getProjectBySlugOrId(slugOrId: string): Promise<Project | undefined>;
   createProject(project: InsertProject): Promise<Project>;
   updateProject(id: number, project: Partial<InsertProject>): Promise<Project>;
   deleteProject(id: number): Promise<void>;
@@ -634,30 +631,8 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async getProjectBySlug(slug: string): Promise<Project | undefined> {
-    const result = await db.select().from(projects).where(eq(projects.slug, slug));
-    return result[0];
-  }
-
-  async getProjectBySlugOrId(slugOrId: string): Promise<Project | undefined> {
-    // Check if it's a numeric ID (for backward compatibility)
-    if (/^\d+$/.test(slugOrId)) {
-      const id = parseInt(slugOrId, 10);
-      return this.getProjectById(id);
-    }
-    // Otherwise treat it as a slug
-    return this.getProjectBySlug(slugOrId);
-  }
-
   async createProject(project: InsertProject): Promise<Project> {
-    // Generate a unique slug from the project name
-    const existingSlugs = await db.select({ slug: projects.slug }).from(projects);
-    const slug = generateUniqueSlug(project.name, existingSlugs.map(p => p.slug));
-    
-    const result = await db.insert(projects).values({
-      ...project,
-      slug
-    }).returning();
+    const result = await db.insert(projects).values(project).returning();
     return result[0];
   }
 

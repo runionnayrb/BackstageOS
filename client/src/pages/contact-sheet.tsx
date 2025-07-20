@@ -63,7 +63,7 @@ const formatPhoneNumber = (phone: string | undefined): string => {
 export default function ContactSheet() {
   const [, setLocation] = useLocation();
   const params = useParams<ContactSheetParams>();
-  const projectSlug = params.id;
+  const projectId = params.id;
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

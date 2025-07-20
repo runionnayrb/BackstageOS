@@ -40,29 +40,29 @@ export default function ReportBuilder() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
   const [customTemplate, setCustomTemplate] = useState<any>(null);
   
-  const projectSlug = params.id!;
+  const projectId = parseInt(params.id!);
   const reportType = params.type;
   const reportId = params.reportId ? parseInt(params.reportId) : null;
   const isEditMode = !!reportId;
 
   const { data: project } = useQuery<any>({
-    queryKey: [`/api/projects/${projectSlug}`],
+    queryKey: [`/api/projects/${projectId}`],
   });
 
   const { data: existingReport } = useQuery<any>({
-    queryKey: [`/api/projects/${projectSlug}/reports/${reportId}`],
+    queryKey: [`/api/projects/${projectId}/reports/${reportId}`],
     enabled: !!reportId,
   });
 
   const { data: templateData } = useQuery({
-    queryKey: [`/api/projects/${projectSlug}/templates`],
-    enabled: !!projectSlug,
+    queryKey: [`/api/projects/${projectId}/templates`],
+    enabled: !!projectId,
   });
 
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
     defaultValues: {
-      projectId: 0, // Will be handled by backend with slug
+      projectId: projectId,
       title: "",
       type: reportType || "",
       date: new Date().toISOString().split('T')[0],
@@ -72,8 +72,8 @@ export default function ReportBuilder() {
 
   // Set form values when project and report type are available, or when editing existing report
   useEffect(() => {
-    if (projectSlug && reportType) {
-      form.setValue("projectId", 0); // Will be handled by backend with slug
+    if (projectId && reportType) {
+      form.setValue("projectId", projectId);
       form.setValue("type", reportType);
       
       if (existingReport && isEditMode) {
@@ -87,33 +87,33 @@ export default function ReportBuilder() {
         setSelectedTemplate(reportType);
       }
     }
-  }, [projectSlug, reportType, existingReport, isEditMode]);
+  }, [projectId, reportType, existingReport, isEditMode]);
 
   const mutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
       if (isEditMode && reportId) {
-        await apiRequest("PUT", `/api/projects/${projectSlug}/reports/${reportId}`, {
+        await apiRequest("PUT", `/api/projects/${projectId}/reports/${reportId}`, {
           ...data,
           date: new Date(data.date),
         });
       } else {
-        await apiRequest("POST", `/api/projects/${projectSlug}/reports`, {
+        await apiRequest("POST", `/api/projects/${projectId}/reports`, {
           ...data,
           date: new Date(data.date),
         });
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectSlug}/reports`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectSlug}/reports/${reportId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/reports`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/reports/${reportId}`] });
       toast({
         title: isEditMode ? "Report Updated" : "Report Created",
         description: isEditMode ? "Your report has been updated successfully!" : "Your report has been created successfully!",
       });
       if (isEditMode && reportId) {
-        setLocation(`/shows/${projectSlug}/reports/${reportType}/${reportId}`);
+        setLocation(`/shows/${projectId}/reports/${reportType}/${reportId}`);
       } else {
-        setLocation(`/shows/${projectSlug}/reports/${reportType}`);
+        setLocation(`/shows/${projectId}/reports/${reportType}`);
       }
     },
     onError: (error) => {
