@@ -1551,46 +1551,7 @@ export default function AvailabilityComparison({
                               );
                             })}
 
-                            {/* Schedule Events (showing as conflicts) */}
-                            {getFilteredScheduleEvents(contact.id).map((event: any) => {
-                              const startMinutes = timeToMinutes(event.startTime);
-                              const endMinutes = timeToMinutes(event.endTime);
-                              
-                              // Calculate percentage-based positioning for full width
-                              const startPercent = ((startMinutes - START_MINUTES) / TOTAL_MINUTES) * 100;
-                              const widthPercent = ((endMinutes - startMinutes) / TOTAL_MINUTES) * 100;
-
-                              // Get event type color (same as schedule views)
-                              const eventType = eventTypes.find(et => 
-                                et.id === event.eventTypeId || 
-                                et.name.toLowerCase() === event.type.toLowerCase() ||
-                                et.name.toLowerCase().replace(/\s+/g, '_') === event.type.toLowerCase() ||
-                                et.name.toLowerCase() === event.type.toLowerCase().replace(/_/g, ' ')
-                              );
-                              const eventColor = eventType?.color || '#8B5CF6'; // Default purple
-
-                              return (
-                                <div
-                                  key={`event-${event.id}`}
-                                  className="absolute text-xs text-white top-1 bottom-1 rounded border-2 z-15 pointer-events-none"
-                                  style={{
-                                    left: `${startPercent}%`,
-                                    width: `${widthPercent}%`,
-                                    minWidth: '20px',
-                                    backgroundColor: eventColor,
-                                    borderColor: eventColor,
-                                  }}
-                                  title={`Scheduled: ${event.title} (${formatTime(startMinutes)} - ${formatTime(endMinutes)})`}
-                                >
-                                  <div className="px-1 py-0.5 h-full flex flex-col justify-center">
-                                    <div className="font-medium truncate text-xs">{event.title}</div>
-                                    <div className="text-xs opacity-90 truncate">
-                                      {formatTime(startMinutes)} - {formatTime(endMinutes)}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
+                            {/* Schedule Events (conflicts hidden per user request) */}
 
                             {/* New block preview */}
                             {newBlock && newBlock.contactId === contact.id && (
