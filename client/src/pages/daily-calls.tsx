@@ -114,18 +114,38 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
   // Load existing daily call data when it changes
   useEffect(() => {
     if (existingDailyCall) {
+      // Ensure END-OF-DAY events are added to existing data
+      const locationsWithEndOfDay = (existingDailyCall.locations || []).map(location => {
+        const events = location.events || [];
+        const hasEndOfDay = events.some(event => event.title === 'END-OF-DAY');
+        if (!hasEndOfDay) {
+          return {
+            ...location,
+            events: [...events, {
+              id: -1,
+              title: 'END-OF-DAY',
+              startTime: '23:59',
+              endTime: '23:59',
+              cast: [],
+              notes: undefined
+            }]
+          };
+        }
+        return location;
+      });
+      
       setCallData({
-        locations: existingDailyCall.locations || [],
+        locations: locationsWithEndOfDay,
         announcements: existingDailyCall.announcements || ''
       });
-    } else if (actualProjectId && scheduleEvents.length > 0 && !existingDailyCall) {
-      // Auto-generate from schedule events for the selected date
+    } else if (actualProjectId && !existingDailyCall) {
+      // Auto-generate from schedule events for the selected date (even if no events exist)
       generateCallFromSchedule();
     }
   }, [existingDailyCall, selectedDate, actualProjectId]);
 
   const generateCallFromSchedule = () => {
-    if (!scheduleEvents.length || !actualProjectId || !contacts.length) return;
+    if (!actualProjectId) return;
 
     // Filter events for the selected date
     const dayEvents = scheduleEvents.filter(event => event.date === selectedDate);
@@ -133,6 +153,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
     // Group events by location
     const locationGroups: { [key: string]: any[] } = {};
     
+    // If there are schedule events for the day, group them by location
     dayEvents.forEach(event => {
       const location = event.location || 'Main Stage';
       if (!locationGroups[location]) {
@@ -154,6 +175,11 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
         notes: event.notes || event.description
       });
     });
+
+    // If no events exist for the day, create a default location
+    if (Object.keys(locationGroups).length === 0) {
+      locationGroups['Main Stage'] = [];
+    }
 
     // Convert to locations array and add END-OF-DAY to each location
     const locations: CallLocation[] = Object.entries(locationGroups).map(([name, events]) => {
@@ -191,9 +217,21 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
   };
 
   const addLocation = () => {
+    const newLocation = {
+      name: 'New Location',
+      events: [{
+        id: -1,
+        title: 'END-OF-DAY',
+        startTime: '23:59',
+        endTime: '23:59',
+        cast: [],
+        notes: undefined
+      }]
+    };
+    
     setCallData(prev => ({
       ...prev,
-      locations: [...prev.locations, { name: 'New Location', events: [] }]
+      locations: [...prev.locations, newLocation]
     }));
     setIsEditing(true);
   };
@@ -212,7 +250,22 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
       ...prev,
       locations: prev.locations.map((loc, idx) => 
         idx === locationIndex 
-          ? { ...loc, events: [...(loc.events || []), newEvent] }
+          ? { 
+              ...loc, 
+              events: [
+                ...(loc.events || []).filter(event => event.title !== 'END-OF-DAY'),
+                newEvent,
+                // Always add END-OF-DAY at the end
+                {
+                  id: -1,
+                  title: 'END-OF-DAY',
+                  startTime: '23:59',
+                  endTime: '23:59',
+                  cast: [],
+                  notes: undefined
+                }
+              ]
+            }
           : loc
       )
     }));
