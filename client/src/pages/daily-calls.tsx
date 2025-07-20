@@ -422,7 +422,7 @@ export default function DailyCallSheet() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <h1 className="text-3xl font-bold text-gray-900">
-              Daily Call - {format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}
+              {format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}
             </h1>
             <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
               <PopoverTrigger asChild>
