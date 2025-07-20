@@ -441,14 +441,6 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
 
           {/* Call Schedule by Location */}
           <div className="space-y-6">
-            {isEditing && (
-              <div className="flex justify-end">
-                <Button onClick={addLocation} variant="outline" size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Location
-                </Button>
-              </div>
-            )}
 
             {(callData.locations || []).length === 0 ? (
               <Card>
