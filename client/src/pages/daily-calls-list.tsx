@@ -159,7 +159,7 @@ export default function DailyCallsList() {
                     open={isExpanded}
                     onOpenChange={() => toggleWeek(weekKey)}
                   >
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white hover:bg-gray-50 rounded-lg transition-colors border border-gray-200">
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white hover:bg-gray-50 rounded-lg transition-colors">
                       <div className="text-left">
                         <h3 className="text-lg font-semibold text-gray-900">
                           {format(weekStart, 'MMMM d')} - {format(weekEnd, 'MMMM d, yyyy')}
@@ -181,7 +181,7 @@ export default function DailyCallsList() {
                           .map((call: any) => (
                             <div 
                               key={call.id} 
-                              className="cursor-pointer hover:opacity-75 transition-opacity p-3 bg-white border rounded-lg"
+                              className="cursor-pointer hover:opacity-75 transition-opacity"
                               onClick={() => setLocation(`/shows/${projectId}/calls/${call.date}`)}
                             >
                               <h4 className="text-base font-medium text-gray-900">
