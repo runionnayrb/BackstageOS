@@ -367,7 +367,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
               <div className="space-y-8">
                 {(callData.locations || []).map((location, locationIndex) => (
                   <div key={locationIndex} className="space-y-3">
-                    <div className="border-b-2 border-gray-300 pb-2">
+                    <div className="border-b-2 border-black pb-2">
                       <h4 className="text-lg font-semibold text-gray-900">
                         {isEditing ? (
                           <Input
@@ -462,7 +462,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                 <div className="grid grid-cols-3 gap-8">
                   {(callData.locations || []).map((location, locationIndex) => (
                     <div key={locationIndex} className={`space-y-3 ${locationIndex === 0 ? 'col-span-2' : 'col-span-1'}`}>
-                      <div className="border-b-2 border-gray-300 pb-2">
+                      <div className="border-b-2 border-black pb-2">
                         <h4 className="text-lg font-semibold text-gray-900">
                           {isEditing ? (
                             <Input
