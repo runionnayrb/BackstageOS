@@ -5202,6 +5202,58 @@ Best regards,
         createdBy: parseInt(req.user.id.toString()),
       });
 
+      // Sync changes back to schedule events if locations are provided
+      if (dailyCallData.locations) {
+        for (const location of dailyCallData.locations) {
+          if (location.events) {
+            for (const event of location.events) {
+              // Skip END-OF-DAY events (they have negative IDs)
+              if (event.id && event.id > 0) {
+                try {
+                  // Convert time format back to 24-hour format for database storage
+                  const convertTimeToDatabase = (timeStr: string) => {
+                    if (!timeStr) return timeStr;
+                    
+                    // If already in 24-hour format (contains no AM/PM), return as is
+                    if (!timeStr.includes('AM') && !timeStr.includes('PM')) {
+                      return timeStr;
+                    }
+                    
+                    // Convert from 12-hour to 24-hour format
+                    const [time, period] = timeStr.split(' ');
+                    const [hours, minutes] = time.split(':').map(Number);
+                    
+                    let hour24 = hours;
+                    if (period === 'PM' && hours !== 12) {
+                      hour24 += 12;
+                    } else if (period === 'AM' && hours === 12) {
+                      hour24 = 0;
+                    }
+                    
+                    return `${hour24.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                  };
+
+                  const scheduleEventUpdates: any = {};
+                  
+                  if (event.title) scheduleEventUpdates.title = event.title;
+                  if (event.startTime) scheduleEventUpdates.startTime = convertTimeToDatabase(event.startTime);
+                  if (event.endTime) scheduleEventUpdates.endTime = convertTimeToDatabase(event.endTime);
+                  if (event.notes !== undefined) scheduleEventUpdates.notes = event.notes;
+
+                  // Only update if there are changes
+                  if (Object.keys(scheduleEventUpdates).length > 0) {
+                    await storage.updateScheduleEvent(event.id, scheduleEventUpdates, parseInt(req.user.id.toString()));
+                  }
+                } catch (eventError) {
+                  console.warn(`Failed to sync event ${event.id} to schedule:`, eventError);
+                  // Continue processing other events even if one fails
+                }
+              }
+            }
+          }
+        }
+      }
+
       const dailyCall = await storage.createDailyCall(dailyCallData);
       res.status(201).json(dailyCall);
     } catch (error) {
@@ -5236,6 +5288,58 @@ Best regards,
 
       const updateSchema = insertDailyCallSchema.partial();
       const updateData = updateSchema.parse(req.body);
+
+      // Sync changes back to schedule events if locations are provided
+      if (updateData.locations) {
+        for (const location of updateData.locations) {
+          if (location.events) {
+            for (const event of location.events) {
+              // Skip END-OF-DAY events (they have negative IDs)
+              if (event.id && event.id > 0) {
+                try {
+                  // Convert time format back to 24-hour format for database storage
+                  const convertTimeToDatabase = (timeStr: string) => {
+                    if (!timeStr) return timeStr;
+                    
+                    // If already in 24-hour format (contains no AM/PM), return as is
+                    if (!timeStr.includes('AM') && !timeStr.includes('PM')) {
+                      return timeStr;
+                    }
+                    
+                    // Convert from 12-hour to 24-hour format
+                    const [time, period] = timeStr.split(' ');
+                    const [hours, minutes] = time.split(':').map(Number);
+                    
+                    let hour24 = hours;
+                    if (period === 'PM' && hours !== 12) {
+                      hour24 += 12;
+                    } else if (period === 'AM' && hours === 12) {
+                      hour24 = 0;
+                    }
+                    
+                    return `${hour24.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                  };
+
+                  const scheduleEventUpdates: any = {};
+                  
+                  if (event.title) scheduleEventUpdates.title = event.title;
+                  if (event.startTime) scheduleEventUpdates.startTime = convertTimeToDatabase(event.startTime);
+                  if (event.endTime) scheduleEventUpdates.endTime = convertTimeToDatabase(event.endTime);
+                  if (event.notes !== undefined) scheduleEventUpdates.notes = event.notes;
+
+                  // Only update if there are changes
+                  if (Object.keys(scheduleEventUpdates).length > 0) {
+                    await storage.updateScheduleEvent(event.id, scheduleEventUpdates, parseInt(req.user.id.toString()));
+                  }
+                } catch (eventError) {
+                  console.warn(`Failed to sync event ${event.id} to schedule:`, eventError);
+                  // Continue processing other events even if one fails
+                }
+              }
+            }
+          }
+        }
+      }
 
       const updatedDailyCall = await storage.updateDailyCall(callId, updateData);
       res.json(updatedDailyCall);

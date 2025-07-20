@@ -112,6 +112,8 @@ export default function DailyCallSheet() {
       });
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ['/api/projects', actualProjectId, 'daily-calls'] });
+      // Also invalidate schedule events since we're now syncing changes back to them
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', actualProjectId, 'schedule-events'] });
     },
     onError: () => {
       toast({
