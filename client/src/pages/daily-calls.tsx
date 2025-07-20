@@ -118,14 +118,14 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
         locations: existingDailyCall.locations || [],
         announcements: existingDailyCall.announcements || ''
       });
-    } else if (actualProjectId && scheduleEvents.length > 0) {
+    } else if (actualProjectId && scheduleEvents.length > 0 && !existingDailyCall) {
       // Auto-generate from schedule events for the selected date
       generateCallFromSchedule();
     }
-  }, [existingDailyCall, selectedDate, actualProjectId, scheduleEvents, timeFormat]);
+  }, [existingDailyCall, selectedDate, actualProjectId]);
 
   const generateCallFromSchedule = () => {
-    if (!scheduleEvents.length || !actualProjectId) return;
+    if (!scheduleEvents.length || !actualProjectId || !contacts.length) return;
 
     // Filter events for the selected date
     const dayEvents = scheduleEvents.filter(event => event.date === selectedDate);
@@ -212,7 +212,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
       ...prev,
       locations: prev.locations.map((loc, idx) => 
         idx === locationIndex 
-          ? { ...loc, events: [...loc.events, newEvent] }
+          ? { ...loc, events: [...(loc.events || []), newEvent] }
           : loc
       )
     }));
