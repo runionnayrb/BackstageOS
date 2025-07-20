@@ -386,21 +386,21 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
     <div className="flex-1 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation(`/shows/${actualProjectId}`)}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to {project?.name}
+          </Button>
+        </div>
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLocation(`/shows/${actualProjectId}`)}
-              className="text-gray-600 hover:text-gray-900"
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to {project?.name}
-            </Button>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Daily Call Sheets</h1>
-              <p className="text-gray-600">Create and manage daily call sheets for your production</p>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Daily Calls</h1>
+            <p className="text-gray-600">Create and manage daily call sheets for your production</p>
           </div>
           <div className="flex items-center space-x-3">
             {!isEditing && (
