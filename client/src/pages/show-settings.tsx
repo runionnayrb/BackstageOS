@@ -2296,7 +2296,7 @@ The Production Team`}
               <CardTitle>Schedule Sharing</CardTitle>
             </CardHeader>
             <CardContent>
-              <PersonalScheduleShare projectId={parseInt(params.id)} />
+              <PersonalScheduleShare projectId={params.id} />
             </CardContent>
           </Card>
 
@@ -2492,7 +2492,7 @@ The Production Team`}
           {/* Personal Schedule Sharing */}
           <Card className="mt-6 border-0 shadow-none">
             <CardContent className="pt-6">
-              <PersonalScheduleShare projectId={parseInt(params.id)} />
+              <PersonalScheduleShare projectId={params.id} />
             </CardContent>
           </Card>
 

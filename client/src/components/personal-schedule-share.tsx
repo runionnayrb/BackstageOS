@@ -51,7 +51,7 @@ interface EventTypeCalendarShare {
 }
 
 interface PublicCalendarShareProps {
-  projectId: number;
+  projectId: string | number;
 }
 
 export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
@@ -272,7 +272,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
     }
 
     createShareMutation.mutate({
-      contactId: parseInt(selectedContact),
+      contactId: parseInt(selectedContact!),
       expiresAt: expiresAt || undefined
     });
   };
@@ -294,7 +294,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
       return;
     }
     
-    const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact));
+    const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact!));
     if (!share) return;
     
     const link = `${window.location.origin}/personal-schedule/${share.token}`;
@@ -315,8 +315,8 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
       return;
     }
     
-    const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact));
-    const contact = getContactById(parseInt(selectedShareContact));
+    const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact!));
+    const contact = getContactById(parseInt(selectedShareContact!));
     if (!share || !contact) return;
     
     const link = `${window.location.origin}/api/schedule/${share.token}/subscribe.ics`;
@@ -340,7 +340,7 @@ export function PersonalScheduleShare({ projectId }: PublicCalendarShareProps) {
       return;
     }
     
-    const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact));
+    const share = shares.find((s: PublicCalendarShare) => s.contactId === parseInt(selectedShareContact!));
     if (!share) return;
     
     const subscriptionLink = `${window.location.origin}/api/schedule/${share.token}/subscribe.ics`;
