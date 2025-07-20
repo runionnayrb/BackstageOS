@@ -622,8 +622,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProjectsByUserId(userId: string): Promise<Project[]> {
-    const result = await db.select().from(projects).where(eq(projects.ownerId, parseInt(userId)));
+    const result = await db.select().from(projects).where(and(eq(projects.ownerId, parseInt(userId)), eq(projects.isArchived, false)));
     return result;
+  }
+
+  async getArchivedProjectsByUserId(userId: string): Promise<Project[]> {
+    const result = await db.select().from(projects).where(and(eq(projects.ownerId, parseInt(userId)), eq(projects.isArchived, true)));
+    return result;
+  }
+
+  async archiveProject(id: number): Promise<Project> {
+    const result = await db.update(projects)
+      .set({ 
+        isArchived: true, 
+        archivedAt: new Date() 
+      })
+      .where(eq(projects.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async unarchiveProject(id: number): Promise<Project> {
+    const result = await db.update(projects)
+      .set({ 
+        isArchived: false, 
+        archivedAt: null 
+      })
+      .where(eq(projects.id, id))
+      .returning();
+    return result[0];
   }
 
   async getProjectById(id: number): Promise<Project | undefined> {

@@ -72,6 +72,7 @@ import PublicCalendar from "@/pages/public-calendar";
 import PublicEventTypeCalendar from "@/pages/public-event-type-calendar";
 import DailyCallsList from "@/pages/daily-calls-list";
 import DailyCallSheet from "@/pages/daily-calls";
+import ArchivedShows from "@/pages/archived-shows";
 
 
 function Router() {
@@ -186,6 +187,8 @@ function Router() {
       <Layout>
         <Switch>
         <Route path="/" component={Projects} />
+        <Route path="/projects" component={Projects} />
+        <Route path="/projects/archived" component={ArchivedShows} />
         <Route path="/create-project" component={CreateProject} />
         <Route path="/shows/:id" component={ShowDetail} />
         <Route path="/shows/:id/reports" component={ShowReportsList} />

@@ -2013,6 +2013,62 @@ Best regards,
     }
   });
 
+  // Archive routes
+  app.get('/api/projects/archived', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const archivedProjects = await storage.getArchivedProjectsByUserId(userId);
+      res.json(archivedProjects);
+    } catch (error) {
+      console.error("Error fetching archived projects:", error);
+      res.status(500).json({ message: "Failed to fetch archived projects" });
+    }
+  });
+
+  app.post('/api/projects/:id/archive', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership - use loose equality to handle type conversion
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const archivedProject = await storage.archiveProject(projectId);
+      res.json(archivedProject);
+    } catch (error) {
+      console.error("Error archiving project:", error);
+      res.status(500).json({ message: "Failed to archive project" });
+    }
+  });
+
+  app.post('/api/projects/:id/unarchive', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership - use loose equality to handle type conversion
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const unarchivedProject = await storage.unarchiveProject(projectId);
+      res.json(unarchivedProject);
+    } catch (error) {
+      console.error("Error unarchiving project:", error);
+      res.status(500).json({ message: "Failed to unarchive project" });
+    }
+  });
+
   // Manual sync route for important dates (for existing projects)
   app.post('/api/projects/:id/sync-important-dates', isAuthenticated, async (req: any, res) => {
     try {

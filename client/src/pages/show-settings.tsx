@@ -44,6 +44,7 @@ import {
   Calendar,
   Save,
   Trash2,
+  Archive,
   UserPlus,
   Eye,
   EyeOff,
@@ -455,6 +456,28 @@ The Production Team`
       toast({
         title: "Error",
         description: "Failed to delete show. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const archiveProjectMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", `/api/projects/${params.id}/archive`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${params.id}`] });
+      setLocation("/");
+      toast({
+        title: "Show Archived",
+        description: "The show has been moved to archives while preserving all data.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to archive show. Please try again.",
         variant: "destructive",
       });
     },
@@ -919,6 +942,10 @@ The Production Team`
     deleteProjectMutation.mutate();
   };
 
+  const handleArchiveShow = () => {
+    archiveProjectMutation.mutate();
+  };
+
   // Event type management functions
   const handleCreateEventType = () => {
     setEditingEventType(null);
@@ -1340,37 +1367,76 @@ The Production Team`
             <CardHeader>
               <CardTitle className="text-red-600">Danger Zone</CardTitle>
               <CardDescription>
-                Permanently delete this show and all associated data.
+                Archive or permanently delete this show and all associated data.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="flex items-center gap-2">
-                    <Trash2 className="h-4 w-4" />
-                    Delete Show
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete "{(project as any)?.name}" 
-                      and remove all show data including reports, contacts, schedules, and templates.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeleteShow}
-                      className="bg-red-600 hover:bg-red-700"
-                      disabled={deleteProjectMutation.isPending}
-                    >
-                      {deleteProjectMutation.isPending ? "Deleting..." : "Yes, delete show"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <h4 className="font-medium">Archive Show</h4>
+                <p className="text-sm text-muted-foreground">
+                  Hide this show from active projects while preserving all data. Archived shows can be accessed from the footer.
+                </p>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" className="flex items-center gap-2 text-orange-600 border-orange-200 hover:bg-orange-50">
+                      <Archive className="h-4 w-4" />
+                      Archive Show
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Archive "{(project as any)?.name}"?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will hide the show from your active projects while preserving all data including reports, contacts, schedules, and templates. You can access archived shows from the footer link.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleArchiveShow}
+                        className="bg-orange-600 hover:bg-orange-700"
+                        disabled={archiveProjectMutation.isPending}
+                      >
+                        {archiveProjectMutation.isPending ? "Archiving..." : "Yes, archive show"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+              
+              <div className="border-t pt-4 space-y-2">
+                <h4 className="font-medium text-red-600">Delete Show</h4>
+                <p className="text-sm text-muted-foreground">
+                  Permanently delete this show and all associated data. This action cannot be undone.
+                </p>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="flex items-center gap-2">
+                      <Trash2 className="h-4 w-4" />
+                      Delete Show
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This action cannot be undone. This will permanently delete "{(project as any)?.name}" 
+                        and remove all show data including reports, contacts, schedules, and templates.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteShow}
+                        className="bg-red-600 hover:bg-red-700"
+                        disabled={deleteProjectMutation.isPending}
+                      >
+                        {deleteProjectMutation.isPending ? "Deleting..." : "Yes, delete show"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

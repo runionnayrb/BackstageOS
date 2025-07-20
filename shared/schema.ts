@@ -91,6 +91,8 @@ export const projects = pgTable("projects", {
   // Optional show-specific email overrides for sm@backstageos.com emails
   customReplyToEmail: varchar("custom_reply_to_email"),
   customEmailDisplayName: varchar("custom_email_display_name"),
+  isArchived: boolean("is_archived").default(false),
+  archivedAt: timestamp("archived_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

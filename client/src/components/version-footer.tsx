@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, CheckCircle } from "lucide-react";
+import { Calendar, CheckCircle, Archive } from "lucide-react";
+import { Link } from "wouter";
 
 const CURRENT_VERSION = "26.2.0";
 
@@ -111,7 +112,7 @@ export default function VersionFooter() {
     <>
       <footer className="border-t bg-gray-50 mt-auto">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-center">
+          <div className="flex justify-center items-center space-x-4">
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button 
@@ -184,6 +185,12 @@ export default function VersionFooter() {
                 </ScrollArea>
               </DialogContent>
             </Dialog>
+            <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground">
+              <Link href="/projects/archived" className="flex items-center gap-1">
+                <Archive className="h-3 w-3" />
+                Archived Shows
+              </Link>
+            </Button>
           </div>
         </div>
       </footer>
