@@ -581,25 +581,21 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
 
 
           {/* Announcements Section */}
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="text-lg">ANNOUNCEMENTS</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isEditing ? (
-                <Textarea
-                  value={callData.announcements}
-                  onChange={(e) => setCallData(prev => ({ ...prev, announcements: e.target.value }))}
-                  placeholder="Enter general announcements, notes, or reminders for the company..."
-                  className="min-h-20"
-                />
-              ) : (
-                <div className="min-h-20 text-gray-700 whitespace-pre-wrap">
-                  {callData.announcements || 'No announcements for today.'}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">ANNOUNCEMENTS</h3>
+            {isEditing ? (
+              <Textarea
+                value={callData.announcements}
+                onChange={(e) => setCallData(prev => ({ ...prev, announcements: e.target.value }))}
+                placeholder="Enter general announcements, notes, or reminders for the company..."
+                className="min-h-20"
+              />
+            ) : (
+              <div className="min-h-20 text-gray-700 whitespace-pre-wrap">
+                {callData.announcements || 'No announcements for today.'}
+              </div>
+            )}
+          </div>
 
           {/* Edit Button */}
           {!isEditing && (
