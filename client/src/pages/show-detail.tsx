@@ -283,7 +283,7 @@ export default function ShowDetail() {
           </Button>
           
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => setIsReordering(!isReordering)}
             className="flex items-center gap-2"
@@ -320,7 +320,7 @@ export default function ShowDetail() {
           </Button>
           
           <Button
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => setIsReordering(!isReordering)}
             className="flex items-center gap-2"

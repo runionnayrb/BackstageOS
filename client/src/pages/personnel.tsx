@@ -278,7 +278,7 @@ export default function Personnel() {
               </DropdownMenu>
             )}
             <Button
-              variant={isReordering ? "default" : "outline"}
+              variant={isReordering ? "default" : "ghost"}
               onClick={() => setIsReordering(!isReordering)}
               className="flex items-center gap-2"
             >
