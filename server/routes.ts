@@ -1760,6 +1760,18 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Archive routes (must be defined before parameterized routes)
+  app.get('/api/projects/archived', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      const archivedProjects = await storage.getArchivedProjectsByUserId(userId);
+      res.json(archivedProjects);
+    } catch (error) {
+      console.error("Error fetching archived projects:", error);
+      res.status(500).json({ message: "Failed to fetch archived projects" });
+    }
+  });
+
   app.get('/api/projects/:id', isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
@@ -2013,17 +2025,7 @@ Best regards,
     }
   });
 
-  // Archive routes
-  app.get('/api/projects/archived', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.id.toString();
-      const archivedProjects = await storage.getArchivedProjectsByUserId(userId);
-      res.json(archivedProjects);
-    } catch (error) {
-      console.error("Error fetching archived projects:", error);
-      res.status(500).json({ message: "Failed to fetch archived projects" });
-    }
-  });
+
 
   app.post('/api/projects/:id/archive', isAuthenticated, async (req: any, res) => {
     try {
