@@ -124,7 +124,7 @@ export default function Projects() {
                 variant="ghost" 
                 size="icon"
                 onClick={() => setLocation("/create-project")}
-                className="hover:text-blue-600 transition-colors"
+                className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
               >
                 <Plus className="w-5 h-5" />
               </Button>
