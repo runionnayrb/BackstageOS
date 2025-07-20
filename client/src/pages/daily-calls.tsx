@@ -114,30 +114,48 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
   // Load existing daily call data when it changes
   useEffect(() => {
     if (existingDailyCall) {
-      // Ensure END-OF-DAY events are added to existing data
-      const locationsWithEndOfDay = (existingDailyCall.locations || []).map(location => {
-        const events = location.events || [];
-        const hasEndOfDay = events.some(event => event.title === 'END-OF-DAY');
-        if (!hasEndOfDay) {
-          return {
-            ...location,
-            events: [...events, {
-              id: -1,
-              title: 'END-OF-DAY',
-              startTime: '23:59',
-              endTime: '23:59',
-              cast: [],
-              notes: undefined
-            }]
-          };
-        }
-        return location;
-      });
-      
-      setCallData({
-        locations: locationsWithEndOfDay,
-        announcements: existingDailyCall.announcements || ''
-      });
+      // The existingDailyCall might have a different structure from the database
+      // Check if it already has the structured format we expect
+      if (existingDailyCall.locations && Array.isArray(existingDailyCall.locations) && 
+          existingDailyCall.locations.length > 0 && 
+          typeof existingDailyCall.locations[0] === 'object' && 
+          'events' in existingDailyCall.locations[0]) {
+        // Already structured - just ensure END-OF-DAY events
+        const locationsWithEndOfDay = (existingDailyCall.locations as CallLocation[]).map(location => {
+          const events = location.events || [];
+          const hasEndOfDay = events.some(event => event.title === 'END-OF-DAY');
+          if (!hasEndOfDay) {
+            // Determine end-of-day time based on the last event's end time
+            let endOfDayTime = '23:59'; // Default fallback
+            if (events.length > 0) {
+              const sortedEvents = [...events].sort((a, b) => a.startTime.localeCompare(b.startTime));
+              const lastEvent = sortedEvents[sortedEvents.length - 1];
+              endOfDayTime = lastEvent.endTime;
+            }
+            
+            return {
+              ...location,
+              events: [...events, {
+                id: -1,
+                title: 'END-OF-DAY',
+                startTime: endOfDayTime,
+                endTime: endOfDayTime,
+                cast: [],
+                notes: undefined
+              }]
+            };
+          }
+          return location;
+        });
+        
+        setCallData({
+          locations: locationsWithEndOfDay,
+          announcements: existingDailyCall.announcements || ''
+        });
+      } else {
+        // Raw database format - need to transform
+        generateCallFromSchedule();
+      }
     } else if (actualProjectId && !existingDailyCall) {
       // Auto-generate from schedule events for the selected date (even if no events exist)
       generateCallFromSchedule();
@@ -162,7 +180,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
       
       // Get cast members for this event (this would come from participants in real implementation)
       const eventCast = contacts
-        .filter(contact => contact.contactType === 'cast')
+        .filter(contact => contact.category === 'cast')
         .slice(0, Math.floor(Math.random() * 5) + 2) // Random subset for demo
         .map(contact => `${contact.firstName.charAt(0)}. ${contact.lastName}`);
       
@@ -185,12 +203,19 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
     const locations: CallLocation[] = Object.entries(locationGroups).map(([name, events]) => {
       const sortedEvents = events.sort((a, b) => a.startTime.localeCompare(b.startTime));
       
+      // Determine end-of-day time based on the last event's end time
+      let endOfDayTime = '23:59'; // Default fallback
+      if (sortedEvents.length > 0) {
+        const lastEvent = sortedEvents[sortedEvents.length - 1];
+        endOfDayTime = lastEvent.endTime;
+      }
+      
       // Add END-OF-DAY event at the end
       sortedEvents.push({
         id: -1, // Special ID for END-OF-DAY
         title: 'END-OF-DAY',
-        startTime: '23:59',
-        endTime: '23:59',
+        startTime: endOfDayTime,
+        endTime: endOfDayTime,
         cast: [],
         notes: undefined
       });
@@ -222,7 +247,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
       events: [{
         id: -1,
         title: 'END-OF-DAY',
-        startTime: '23:59',
+        startTime: '23:59', // Default when no events exist
         endTime: '23:59',
         cast: [],
         notes: undefined
@@ -248,26 +273,96 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
     
     setCallData(prev => ({
       ...prev,
-      locations: prev.locations.map((loc, idx) => 
-        idx === locationIndex 
-          ? { 
-              ...loc, 
-              events: [
-                ...(loc.events || []).filter(event => event.title !== 'END-OF-DAY'),
-                newEvent,
-                // Always add END-OF-DAY at the end
-                {
-                  id: -1,
-                  title: 'END-OF-DAY',
-                  startTime: '23:59',
-                  endTime: '23:59',
-                  cast: [],
-                  notes: undefined
-                }
-              ]
-            }
-          : loc
-      )
+      locations: prev.locations.map((loc, idx) => {
+        if (idx === locationIndex) {
+          const allEventsExceptEndOfDay = (loc.events || []).filter(event => event.title !== 'END-OF-DAY');
+          const sortedEvents = [...allEventsExceptEndOfDay, newEvent].sort((a, b) => a.startTime.localeCompare(b.startTime));
+          
+          // Determine end-of-day time based on the last event's end time
+          let endOfDayTime = '23:59'; // Default fallback
+          if (sortedEvents.length > 0) {
+            const lastEvent = sortedEvents[sortedEvents.length - 1];
+            endOfDayTime = lastEvent.endTime;
+          }
+          
+          return {
+            ...loc,
+            events: [
+              ...sortedEvents,
+              // Always add END-OF-DAY at the end with correct time
+              {
+                id: -1,
+                title: 'END-OF-DAY',
+                startTime: endOfDayTime,
+                endTime: endOfDayTime,
+                cast: [],
+                notes: undefined
+              }
+            ]
+          };
+        }
+        return loc;
+      })
+    }));
+    setIsEditing(true);
+  };
+
+  // Helper function to update END-OF-DAY time for a location
+  const updateEndOfDayTime = (events: Array<{ id: number; title: string; startTime: string; endTime: string; cast: string[]; notes?: string; }>) => {
+    const nonEndOfDayEvents = events.filter(event => event.title !== 'END-OF-DAY');
+    let endOfDayTime = '23:59'; // Default fallback
+    
+    if (nonEndOfDayEvents.length > 0) {
+      const sortedEvents = [...nonEndOfDayEvents].sort((a, b) => a.startTime.localeCompare(b.startTime));
+      const lastEvent = sortedEvents[sortedEvents.length - 1];
+      endOfDayTime = lastEvent.endTime;
+    }
+    
+    return [
+      ...nonEndOfDayEvents,
+      {
+        id: -1,
+        title: 'END-OF-DAY',
+        startTime: endOfDayTime,
+        endTime: endOfDayTime,
+        cast: [],
+        notes: undefined
+      }
+    ];
+  };
+
+  const updateEvent = (locationIndex: number, eventIndex: number, updatedEvent: any) => {
+    setCallData(prev => ({
+      ...prev,
+      locations: prev.locations.map((loc, locIdx) => {
+        if (locIdx === locationIndex) {
+          const updatedEvents = loc.events.map((event, evtIdx) => 
+            evtIdx === eventIndex ? { ...event, ...updatedEvent } : event
+          );
+          return {
+            ...loc,
+            events: updateEndOfDayTime(updatedEvents)
+          };
+        }
+        return loc;
+      })
+    }));
+    setIsEditing(true);
+  };
+
+  const removeEvent = (locationIndex: number, eventIndex: number) => {
+    setCallData(prev => ({
+      ...prev,
+      locations: prev.locations.map((loc, locIdx) => {
+        if (locIdx === locationIndex) {
+          const filteredEvents = loc.events.filter((_, evtIdx) => evtIdx !== eventIndex);
+          return {
+            ...loc,
+            events: updateEndOfDayTime(filteredEvents)
+          };
+        }
+        return loc;
+      })
     }));
     setIsEditing(true);
   };
