@@ -159,7 +159,7 @@ export default function DailyCallsList() {
                     open={isExpanded}
                     onOpenChange={() => toggleWeek(weekKey)}
                   >
-                    <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
+                    <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-white hover:bg-gray-50 rounded-lg transition-colors border border-gray-200">
                       <div className="text-left">
                         <h3 className="text-lg font-semibold text-gray-900">
                           {format(weekStart, 'MMMM d')} - {format(weekEnd, 'MMMM d, yyyy')}
