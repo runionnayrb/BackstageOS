@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useParams } from "wouter";
 import { format, parseISO } from "date-fns";
-import { Calendar, Plus, Save, FileText, ChevronLeft, Users, ChevronRight } from "lucide-react";
+import { Calendar, Plus, Save, FileText, ChevronLeft, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { parseScheduleSettings, formatTimeDisplay } from "@/lib/timeUtils";
 import type { DailyCall, Project, Contact, ScheduleEvent } from "@shared/schema";
@@ -45,6 +47,7 @@ export default function DailyCallSheet() {
   // Check if we're in edit mode from URL query parameter
   const urlParams = new URLSearchParams(window.location.search);
   const [isEditing, setIsEditing] = useState(urlParams.get('edit') === 'true');
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [callData, setCallData] = useState<{
     locations: CallLocation[];
     announcements: string;
@@ -170,24 +173,12 @@ export default function DailyCallSheet() {
     }
   }, [existingDailyCall, selectedDate, actualProjectId]);
 
-  // Navigation functions
-  const navigateToNextCall = () => {
-    if (!allDailyCalls.length) return;
-    const sortedCalls = [...allDailyCalls].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const currentIndex = sortedCalls.findIndex(call => call.date === selectedDate);
-    if (currentIndex < sortedCalls.length - 1) {
-      const nextCall = sortedCalls[currentIndex + 1];
-      setLocation(`/shows/${actualProjectId}/calls/${nextCall.date}`);
-    }
-  };
-
-  const navigateToPrevCall = () => {
-    if (!allDailyCalls.length) return;
-    const sortedCalls = [...allDailyCalls].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const currentIndex = sortedCalls.findIndex(call => call.date === selectedDate);
-    if (currentIndex > 0) {
-      const prevCall = sortedCalls[currentIndex - 1];
-      setLocation(`/shows/${actualProjectId}/calls/${prevCall.date}`);
+  // Date picker navigation function
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      const selectedDateStr = format(date, 'yyyy-MM-dd');
+      setLocation(`/shows/${actualProjectId}/calls/${selectedDateStr}`);
+      setDatePickerOpen(false);
     }
   };
 
@@ -431,37 +422,25 @@ export default function DailyCallSheet() {
             <h1 className="text-3xl font-bold text-gray-900">
               Daily Call - {format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}
             </h1>
-            {allDailyCalls.length > 1 && (
-              <div className="flex items-center space-x-2">
+            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+              <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={navigateToPrevCall}
-                  disabled={(() => {
-                    const sortedCalls = [...allDailyCalls].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-                    const currentIndex = sortedCalls.findIndex(call => call.date === selectedDate);
-                    return currentIndex <= 0;
-                  })()}
                   className="text-gray-600 hover:text-gray-900"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <Calendar className="h-4 w-4" />
                 </Button>
-                <Calendar className="h-4 w-4 text-gray-500" />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={navigateToNextCall}
-                  disabled={(() => {
-                    const sortedCalls = [...allDailyCalls].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-                    const currentIndex = sortedCalls.findIndex(call => call.date === selectedDate);
-                    return currentIndex >= sortedCalls.length - 1;
-                  })()}
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={parseISO(selectedDate)}
+                  onSelect={handleDateSelect}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="flex items-center space-x-3">
             {!isEditing && (
