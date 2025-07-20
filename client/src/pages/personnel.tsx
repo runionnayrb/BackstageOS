@@ -291,12 +291,12 @@ export default function Personnel() {
         <div className="mb-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
           <Button
+            variant="ghost"
+            size="icon"
             onClick={handleNewContactClick}
-            size="sm"
-            className="flex items-center gap-2"
+            className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
           >
-            <Plus className="h-4 w-4" />
-            Add
+            <Plus className="w-5 h-5" />
           </Button>
         </div>
       </div>
@@ -348,11 +348,12 @@ export default function Personnel() {
         <div className="mb-2 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-gray-900">Contacts</h1>
           <Button
+            variant="ghost"
+            size="icon"
             onClick={handleNewContactClick}
-            className="flex items-center gap-2"
+            className="hover:bg-transparent hover:text-blue-600 transition-colors p-1"
           >
-            <Plus className="h-4 w-4" />
-            New Contact
+            <Plus className="w-5 h-5" />
           </Button>
         </div>
       </div>
