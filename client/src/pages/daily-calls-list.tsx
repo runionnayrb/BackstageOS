@@ -145,7 +145,7 @@ export default function DailyCallsList() {
             </Button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-[5px]">
             {Object.entries(groupedCalls)
               .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime()) // Sort weeks with most recent at top
               .map(([weekKey, calls]) => {
