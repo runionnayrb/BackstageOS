@@ -399,7 +399,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                               onClick={() => addEvent(locationIndex)}
                               variant="ghost"
                               size="sm"
-                              className="absolute -left-8 top-1/2 -translate-y-1/2 w-6 h-6 p-0 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-transparent hover:bg-transparent text-black"
+                              className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-6 p-0 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-transparent hover:bg-transparent text-black"
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
@@ -557,7 +557,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                             onClick={() => addEvent(locationIndex)}
                             variant="ghost"
                             size="sm"
-                            className="absolute -left-8 top-1/2 -translate-y-1/2 w-6 h-6 p-0 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-transparent hover:bg-transparent text-black"
+                            className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-6 p-0 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-transparent hover:bg-transparent text-black"
                           >
                             <Plus className="h-4 w-4" />
                           </Button>
