@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useParams } from "wouter";
 import { format, parseISO } from "date-fns";
-import { Calendar, Plus, Save, FileText, ChevronLeft, Users } from "lucide-react";
+import { Calendar, Plus, Save, FileText, ChevronLeft, Users, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -68,6 +68,12 @@ export default function DailyCallSheet() {
   // Fetch schedule events for the selected date
   const { data: scheduleEvents = [] } = useQuery<ScheduleEvent[]>({
     queryKey: ['/api/projects', actualProjectId, 'schedule-events'],
+    enabled: !!actualProjectId,
+  });
+
+  // Fetch all daily calls for navigation
+  const { data: allDailyCalls = [] } = useQuery({
+    queryKey: ['/api/projects', actualProjectId, 'daily-calls-list'],
     enabled: !!actualProjectId,
   });
 
@@ -163,6 +169,27 @@ export default function DailyCallSheet() {
       generateCallFromSchedule();
     }
   }, [existingDailyCall, selectedDate, actualProjectId]);
+
+  // Navigation functions
+  const navigateToNextCall = () => {
+    if (!allDailyCalls.length) return;
+    const sortedCalls = [...allDailyCalls].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const currentIndex = sortedCalls.findIndex(call => call.date === selectedDate);
+    if (currentIndex < sortedCalls.length - 1) {
+      const nextCall = sortedCalls[currentIndex + 1];
+      setLocation(`/shows/${actualProjectId}/calls/${nextCall.date}`);
+    }
+  };
+
+  const navigateToPrevCall = () => {
+    if (!allDailyCalls.length) return;
+    const sortedCalls = [...allDailyCalls].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    const currentIndex = sortedCalls.findIndex(call => call.date === selectedDate);
+    if (currentIndex > 0) {
+      const prevCall = sortedCalls[currentIndex - 1];
+      setLocation(`/shows/${actualProjectId}/calls/${prevCall.date}`);
+    }
+  };
 
   const generateCallFromSchedule = () => {
     if (!actualProjectId) return;
@@ -400,8 +427,41 @@ export default function DailyCallSheet() {
           </Button>
         </div>
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Daily Calls</h1>
+          <div className="flex items-center space-x-4">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Daily Call - {format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}
+            </h1>
+            {allDailyCalls.length > 1 && (
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={navigateToPrevCall}
+                  disabled={(() => {
+                    const sortedCalls = [...allDailyCalls].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                    const currentIndex = sortedCalls.findIndex(call => call.date === selectedDate);
+                    return currentIndex <= 0;
+                  })()}
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Calendar className="h-4 w-4 text-gray-500" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={navigateToNextCall}
+                  disabled={(() => {
+                    const sortedCalls = [...allDailyCalls].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+                    const currentIndex = sortedCalls.findIndex(call => call.date === selectedDate);
+                    return currentIndex >= sortedCalls.length - 1;
+                  })()}
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
           <div className="flex items-center space-x-3">
             {!isEditing && (
@@ -410,12 +470,6 @@ export default function DailyCallSheet() {
                 Edit Call
               </Button>
             )}
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">
-                {format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}
-              </span>
-            </div>
             {isEditing && (
               <Button onClick={handleSave} disabled={saveCallMutation.isPending}>
                 <Save className="h-4 w-4 mr-2" />
