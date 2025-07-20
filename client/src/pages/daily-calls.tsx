@@ -424,13 +424,9 @@ export default function DailyCallSheet() {
             </h1>
             <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
               <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  <Calendar className="h-4 w-4" />
-                </Button>
+                <button className="p-1 focus:outline-none">
+                  <Calendar className="h-4 w-4 text-gray-600 hover:text-blue-600 transition-colors" />
+                </button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <CalendarComponent
