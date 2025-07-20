@@ -406,7 +406,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
             {!isEditing && (
               <Button onClick={() => setIsEditing(true)} variant="outline">
                 <FileText className="h-4 w-4 mr-2" />
-                Edit Call Sheet
+                Edit Call
               </Button>
             )}
             <div className="flex items-center space-x-2">
