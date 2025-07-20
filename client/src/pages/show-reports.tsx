@@ -20,7 +20,7 @@ export default function ShowReports() {
   const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<ShowReportsParams>();
-  const projectId = params.id;
+  const projectSlug = params.id;
   const reportType = params.type;
 
   // Redirect to home if not authenticated

@@ -174,7 +174,7 @@ export default function TemplateSettings() {
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const params = useParams<TemplateSettingsParams>();
-  const projectId = params.id;
+  const projectSlug = params.id;
   
   const [selectedPhase, setSelectedPhase] = useState<string>("meetings");
   const [editingField, setEditingField] = useState<string | null>(null);

@@ -33,7 +33,7 @@ export default function Personnel() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<PersonnelParams>();
-  const projectId = params.id;
+  const projectSlug = params.id;
   const { toast } = useToast();
   const queryClient = useQueryClient();
 

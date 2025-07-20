@@ -32,11 +32,11 @@ export default function NewReport() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const projectId = parseInt(params.id!);
+  const projectSlug = params.id!;
   const reportType = params.type!;
 
   const { data: project } = useQuery({
-    queryKey: [`/api/projects/${projectId}`],
+    queryKey: [`/api/projects/${projectSlug}`],
   });
 
   const form = useForm<ReportFormData>({
@@ -65,20 +65,20 @@ export default function NewReport() {
 
   const mutation = useMutation({
     mutationFn: async (data: ReportFormData) => {
-      await apiRequest("POST", `/api/projects/${projectId}/reports`, {
+      await apiRequest("POST", `/api/projects/${projectSlug}/reports`, {
         ...data,
-        projectId: projectId,
+        projectId: project?.id,
         type: reportType,
         date: new Date().toISOString(),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/reports`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectSlug}/reports`] });
       toast({
         title: "Report Created",
         description: "Your report has been created successfully!",
       });
-      setLocation(`/shows/${projectId}/reports/${reportType}`);
+      setLocation(`/shows/${projectSlug}/reports/${reportType}`);
     },
     onError: (error) => {
       toast({

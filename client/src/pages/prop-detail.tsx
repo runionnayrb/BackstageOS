@@ -56,7 +56,7 @@ export default function PropDetail() {
   const { isAuthenticated, isLoading } = useAuth();
   const [, setLocation] = useLocation();
   const params = useParams<PropDetailParams>();
-  const projectId = params.id;
+  const projectSlug = params.id;
   const propId = params.propId;
   const { toast } = useToast();
   const queryClient = useQueryClient();

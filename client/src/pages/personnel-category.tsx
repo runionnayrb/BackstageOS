@@ -43,7 +43,7 @@ interface Contact {
 export default function PersonnelCategory() {
   const [, setLocation] = useLocation();
   const params = useParams<PersonnelCategoryParams>();
-  const projectId = params.id;
+  const projectSlug = params.id;
   const category = params.category;
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [showContactModal, setShowContactModal] = useState(false);
