@@ -59,6 +59,7 @@ import {
   emailTemplateCategories,
   publicCalendarShares,
   eventTypeCalendarShares,
+  dailyCalls,
 
   type User,
   type UpsertUser,
@@ -174,6 +175,8 @@ import {
   type InsertPublicCalendarShare,
   type EventTypeCalendarShare,
   type InsertEventTypeCalendarShare,
+  type DailyCall,
+  type InsertDailyCall,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -528,6 +531,14 @@ export interface IStorage {
   updateEventTypeCalendarShare(id: number, share: Partial<InsertEventTypeCalendarShare>): Promise<EventTypeCalendarShare>;
   deleteEventTypeCalendarShare(id: number): Promise<void>;
   updateEventTypeCalendarShareAccess(token: string): Promise<void>;
+
+  // Daily calls methods
+  getDailyCalls(projectId: number): Promise<DailyCall[]>;
+  getDailyCallById(id: number): Promise<DailyCall | undefined>;
+  getDailyCallByDate(projectId: number, date: string): Promise<DailyCall | undefined>;
+  createDailyCall(dailyCall: InsertDailyCall): Promise<DailyCall>;
+  updateDailyCall(id: number, dailyCall: Partial<InsertDailyCall>): Promise<DailyCall>;
+  deleteDailyCall(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3456,6 +3467,55 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(desc(personalSchedules.createdAt));
     return result[0];
+  }
+
+  // Daily Calls Implementation
+  async getDailyCalls(projectId: number): Promise<DailyCall[]> {
+    const result = await db
+      .select()
+      .from(dailyCalls)
+      .where(eq(dailyCalls.projectId, projectId))
+      .orderBy(desc(dailyCalls.date));
+    return result;
+  }
+
+  async getDailyCallById(id: number): Promise<DailyCall | undefined> {
+    const result = await db
+      .select()
+      .from(dailyCalls)
+      .where(eq(dailyCalls.id, id));
+    return result[0];
+  }
+
+  async getDailyCallByDate(projectId: number, date: string): Promise<DailyCall | undefined> {
+    const result = await db
+      .select()
+      .from(dailyCalls)
+      .where(
+        and(
+          eq(dailyCalls.projectId, projectId),
+          eq(dailyCalls.date, date)
+        )
+      );
+    return result[0];
+  }
+
+  async createDailyCall(dailyCall: InsertDailyCall): Promise<DailyCall> {
+    const result = await db.insert(dailyCalls).values(dailyCall).returning();
+    return result[0];
+  }
+
+  async updateDailyCall(id: number, dailyCall: Partial<InsertDailyCall>): Promise<DailyCall> {
+    const result = await db
+      .update(dailyCalls)
+      .set({ ...dailyCall, updatedAt: new Date() })
+      .where(eq(dailyCalls.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteDailyCall(id: number): Promise<void> {
+    await db.delete(dailyCalls).where(eq(dailyCalls.id, id));
   }
 
 }

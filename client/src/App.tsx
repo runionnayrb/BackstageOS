@@ -70,6 +70,7 @@ import Settings from "@/pages/settings";
 import PersonalScheduleViewer from "@/pages/personal-schedule";
 import PublicCalendar from "@/pages/public-calendar";
 import PublicEventTypeCalendar from "@/pages/public-event-type-calendar";
+import DailyCalls from "@/pages/daily-calls";
 
 
 function Router() {
@@ -193,6 +194,7 @@ function Router() {
         <Route path="/shows/:id/reports/:type" component={ShowReports} />
         <Route path="/shows/:id/calendar" component={Calendar} />
         <Route path="/shows/:id/calendar/schedule" component={Schedule} />
+        <Route path="/shows/:id/calendar/calls" component={DailyCalls} />
         <Route path="/shows/:id/script" component={ScriptEditor} />
         <Route path="/shows/:id/props-costumes" component={PropsAndCostumes} />
         <Route path="/shows/:id/props" component={PropsTracker} />

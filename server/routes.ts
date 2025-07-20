@@ -14,7 +14,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema } from "@shared/schema";
+import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -5025,6 +5025,163 @@ Best regards,
     } catch (error) {
       console.error("Error generating structured schedule changes:", error);
       res.status(500).json({ message: "Failed to generate structured changes" });
+    }
+  });
+
+  // ========== DAILY CALLS API ROUTES ==========
+
+  // Get all daily calls for a project
+  app.get('/api/projects/:id/daily-calls', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const dailyCalls = await storage.getDailyCalls(projectId);
+      res.json(dailyCalls);
+    } catch (error) {
+      console.error("Error fetching daily calls:", error);
+      res.status(500).json({ message: "Failed to fetch daily calls" });
+    }
+  });
+
+  // Get daily call by date
+  app.get('/api/projects/:id/daily-calls/:date', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const date = req.params.date;
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const dailyCall = await storage.getDailyCallByDate(projectId, date);
+      if (!dailyCall) {
+        return res.status(404).json({ message: "Daily call not found for this date" });
+      }
+
+      res.json(dailyCall);
+    } catch (error) {
+      console.error("Error fetching daily call:", error);
+      res.status(500).json({ message: "Failed to fetch daily call" });
+    }
+  });
+
+  // Create a new daily call
+  app.post('/api/projects/:id/daily-calls', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const dailyCallData = insertDailyCallSchema.parse({
+        ...req.body,
+        projectId,
+        createdBy: parseInt(req.user.id.toString()),
+      });
+
+      const dailyCall = await storage.createDailyCall(dailyCallData);
+      res.status(201).json(dailyCall);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid daily call data", errors: error.errors });
+      }
+      console.error("Error creating daily call:", error);
+      res.status(500).json({ message: "Failed to create daily call" });
+    }
+  });
+
+  // Update an existing daily call
+  app.patch('/api/projects/:id/daily-calls/:callId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const callId = parseInt(req.params.callId);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const dailyCall = await storage.getDailyCallById(callId);
+      if (!dailyCall || dailyCall.projectId !== projectId) {
+        return res.status(404).json({ message: "Daily call not found" });
+      }
+
+      const updateSchema = insertDailyCallSchema.partial();
+      const updateData = updateSchema.parse(req.body);
+
+      const updatedDailyCall = await storage.updateDailyCall(callId, updateData);
+      res.json(updatedDailyCall);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid daily call data", errors: error.errors });
+      }
+      console.error("Error updating daily call:", error);
+      res.status(500).json({ message: "Failed to update daily call" });
+    }
+  });
+
+  // Delete a daily call
+  app.delete('/api/projects/:id/daily-calls/:callId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const callId = parseInt(req.params.callId);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const dailyCall = await storage.getDailyCallById(callId);
+      if (!dailyCall || dailyCall.projectId !== projectId) {
+        return res.status(404).json({ message: "Daily call not found" });
+      }
+
+      await storage.deleteDailyCall(callId);
+      res.json({ message: "Daily call deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting daily call:", error);
+      res.status(500).json({ message: "Failed to delete daily call" });
     }
   });
 

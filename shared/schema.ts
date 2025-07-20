@@ -572,6 +572,21 @@ export const scheduleEmailTemplates = pgTable("schedule_email_templates", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ========== DAILY CALLS SYSTEM ==========
+
+// Daily calls/call sheets table
+export const dailyCalls = pgTable("daily_calls", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  date: date("date").notNull(),
+  locations: text("locations").array().notNull().default('["Rehearsal Hall"]'),
+  events: jsonb("events").notNull().default('[]'), // Array of call events
+  announcements: text("announcements").default(""),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // ========== EMAIL SYSTEM TABLES ==========
 
 // Email accounts (user@backstageos.com, showname@backstageos.com)
@@ -1855,6 +1870,18 @@ export const emailCollaborationsRelations = relations(emailCollaborations, ({ on
   }),
 }));
 
+// Daily calls relations
+export const dailyCallsRelations = relations(dailyCalls, ({ one }) => ({
+  project: one(projects, {
+    fields: [dailyCalls.projectId],
+    references: [projects.id],
+  }),
+  creator: one(users, {
+    fields: [dailyCalls.createdBy],
+    references: [users.id],
+  }),
+}));
+
 export const emailArchiveRulesRelations = relations(emailArchiveRules, ({ one }) => ({
   project: one(projects, {
     fields: [emailArchiveRules.projectId],
@@ -3108,6 +3135,12 @@ export const insertNoteAttachmentSchema = createInsertSchema(noteAttachments).om
   createdAt: true,
 });
 
+export const insertDailyCallSchema = createInsertSchema(dailyCalls).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Task management types
 export type TaskDatabase = typeof taskDatabases.$inferSelect;
 export type InsertTaskDatabase = z.infer<typeof insertTaskDatabaseSchema>;
@@ -3136,3 +3169,8 @@ export type NoteComment = typeof noteComments.$inferSelect;
 export type InsertNoteComment = z.infer<typeof insertNoteCommentSchema>;
 export type NoteAttachment = typeof noteAttachments.$inferSelect;
 export type InsertNoteAttachment = z.infer<typeof insertNoteAttachmentSchema>;
+
+// ========== DAILY CALLS TYPES ==========
+
+export type DailyCall = typeof dailyCalls.$inferSelect;
+export type InsertDailyCall = z.infer<typeof insertDailyCallSchema>;
