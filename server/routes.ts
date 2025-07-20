@@ -5053,8 +5053,8 @@ Best regards,
       const scheduleEvents = await storage.getScheduleEventsByProjectId(projectId);
       
       // Group events by date and filter by show schedule event types
-      const projectSettings = await storage.getProjectSettings(projectId);
-      const enabledEventTypes = projectSettings?.scheduleSettings?.enabledEventTypes || [];
+      const showSettings = await storage.getShowSettingsByProjectId(projectId);
+      const enabledEventTypes = showSettings?.scheduleSettings?.enabledEventTypes || [];
       
       const dateGroups = new Map();
       
