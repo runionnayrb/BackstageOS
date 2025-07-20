@@ -181,7 +181,7 @@ export default function DailyCallsList() {
                           .map((call: any) => (
                             <div 
                               key={call.id} 
-                              className="cursor-pointer hover:opacity-75 transition-opacity"
+                              className="cursor-pointer hover:bg-gray-50 transition-colors p-3 rounded-lg"
                               onClick={() => setLocation(`/shows/${projectId}/calls/${call.date}`)}
                             >
                               <h4 className="text-base font-medium text-gray-900">
