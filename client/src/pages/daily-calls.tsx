@@ -148,8 +148,8 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
       locationGroups[location].push({
         id: event.id,
         title: event.title,
-        startTime: formatTimeDisplay(event.startTime, timeFormat as '12' | '24'),
-        endTime: formatTimeDisplay(event.endTime, timeFormat as '12' | '24'),
+        startTime: formatTimeDisplay(event.startTime?.slice(0, 5) || event.startTime, timeFormat as '12' | '24'),
+        endTime: formatTimeDisplay(event.endTime?.slice(0, 5) || event.endTime, timeFormat as '12' | '24'),
         cast: eventCast,
         notes: event.notes || event.description
       });
@@ -339,7 +339,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                     
                     <div className="space-y-2">
                       {location.events.map((event, eventIdx) => (
-                        <div key={event.id} className="flex items-start gap-6 py-2 border-b border-gray-100 last:border-b-0">
+                        <div key={event.id} className={`flex items-start gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1' : 'py-2'}`}>
                           <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
                             {event.title === 'END-OF-DAY' ? '' : event.startTime}
                           </div>
@@ -356,7 +356,7 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                               />
                             ) : (
                               <div>
-                                <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900' : 'font-medium text-gray-800'}`}>
+                                <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900' : 'font-bold text-gray-800'}`}>
                                   {event.title}
                                 </div>
                                 {event.cast.length > 0 && (
@@ -389,83 +389,135 @@ export default function DailyCallsPage({ id: projectId }: DailyCallsPageProps) {
                 ))}
               </div>
             ) : (
-              // Multiple locations - 2/3 and 1/3 layout
-              <div className="grid grid-cols-3 gap-8">
-                {callData.locations.map((location, locationIndex) => (
-                  <div key={locationIndex} className={`space-y-3 ${locationIndex === 0 ? 'col-span-2' : 'col-span-1'}`}>
-                    <div className="border-b-2 border-gray-300 pb-2">
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        {isEditing ? (
-                          <Input
-                            value={location.name}
-                            onChange={(e) => {
-                              setCallData(prev => ({
-                                ...prev,
-                                locations: prev.locations.map((loc, idx) => 
-                                  idx === locationIndex 
-                                    ? { ...loc, name: e.target.value }
-                                    : loc
-                                )
-                              }));
-                            }}
-                            className="font-semibold text-lg"
-                          />
-                        ) : (
-                          location.name
-                        )}
-                      </h4>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      {location.events.map((event, eventIdx) => (
-                        <div key={event.id} className="flex items-start gap-4 py-2 border-b border-gray-100 last:border-b-0">
-                          <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
-                            {event.title === 'END-OF-DAY' ? '' : event.startTime}
-                          </div>
+              // Multiple locations - separate non-END-OF-DAY events by location, full-width END-OF-DAY events
+              <div className="space-y-4">
+                {/* Render all events chronologically with full-width END-OF-DAY */}
+                {callData.locations.reduce((allEvents, location, locationIndex) => {
+                  const locationEvents = location.events.map(event => ({
+                    ...event,
+                    locationIndex,
+                    locationName: location.name
+                  }));
+                  return [...allEvents, ...locationEvents];
+                }, [])
+                .sort((a, b) => {
+                  // Sort by start time if both have times, otherwise END-OF-DAY goes last
+                  if (a.title === 'END-OF-DAY' && b.title !== 'END-OF-DAY') return 1;
+                  if (b.title === 'END-OF-DAY' && a.title !== 'END-OF-DAY') return -1;
+                  if (a.title === 'END-OF-DAY' && b.title === 'END-OF-DAY') return 0;
+                  return (a.startTime || '').localeCompare(b.startTime || '');
+                })
+                .reduce((acc, event, index, array) => {
+                  if (event.title === 'END-OF-DAY') {
+                    // Render END-OF-DAY as full-width row
+                    acc.push(
+                      <div key={`${event.locationIndex}-${event.id}`} className="bg-gray-100 py-1">
+                        <div className="flex items-center">
+                          <div className="w-20 text-sm font-medium text-gray-700"></div>
                           <div className="flex-1">
-                            {isEditing && event.title !== 'END-OF-DAY' ? (
-                              <Input
-                                value={event.title}
-                                onChange={(e) => {
-                                  const newLocations = [...callData.locations];
-                                  newLocations[locationIndex].events[eventIdx].title = e.target.value;
-                                  setCallData(prev => ({ ...prev, locations: newLocations }));
-                                }}
-                                className="font-medium text-sm"
-                              />
-                            ) : (
-                              <div>
-                                <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900' : 'font-medium text-gray-800'}`}>
-                                  {event.title}
-                                </div>
-                                {event.cast.length > 0 && (
-                                  <div className="text-xs text-gray-600 mt-1 ml-4">
-                                    {event.cast.join(', ')}
-                                  </div>
-                                )}
-                                {event.notes && (
-                                  <div className="text-xs text-gray-500 italic mt-1 ml-4">{event.notes}</div>
-                                )}
-                              </div>
-                            )}
+                            <div className="text-sm font-bold text-gray-900">
+                              {event.title}
+                            </div>
                           </div>
                         </div>
-                      ))}
+                      </div>
+                    );
+                  } else {
+                    // Check if this is the start of a new time block for location-based grouping
+                    const prevEvent = array[index - 1];
+                    const nextEvent = array[index + 1];
+                    const shouldStartLocationGroup = !prevEvent || prevEvent.title === 'END-OF-DAY' || prevEvent.startTime !== event.startTime;
+                    const shouldEndLocationGroup = !nextEvent || nextEvent.title === 'END-OF-DAY' || nextEvent.startTime !== event.startTime;
+                    
+                    if (shouldStartLocationGroup) {
+                      // Start a new grid layout for this time block
+                      const sameTimeEvents = array.slice(index).filter(e => e.startTime === event.startTime && e.title !== 'END-OF-DAY');
+                      const endIndex = index + sameTimeEvents.length;
                       
-                      {isEditing && (
-                        <Button 
-                          onClick={() => addEvent(locationIndex)} 
-                          variant="ghost" 
-                          size="sm"
-                          className="w-full mt-4"
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Event
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                      acc.push(
+                        <div key={`time-block-${event.startTime}-${index}`} className="grid grid-cols-3 gap-8">
+                          {sameTimeEvents.map((timeEvent, timeIndex) => (
+                            <div key={`${timeEvent.locationIndex}-${timeEvent.id}`} className={`space-y-3 ${timeEvent.locationIndex === 0 ? 'col-span-2' : 'col-span-1'}`}>
+                              {timeIndex === 0 && (
+                                <div className="border-b-2 border-gray-300 pb-2">
+                                  <h4 className="text-lg font-semibold text-gray-900">
+                                    {isEditing ? (
+                                      <Input
+                                        value={timeEvent.locationName}
+                                        onChange={(e) => {
+                                          setCallData(prev => ({
+                                            ...prev,
+                                            locations: prev.locations.map((loc, idx) => 
+                                              idx === timeEvent.locationIndex 
+                                                ? { ...loc, name: e.target.value }
+                                                : loc
+                                            )
+                                          }));
+                                        }}
+                                        className="font-semibold text-lg"
+                                      />
+                                    ) : (
+                                      timeEvent.locationName
+                                    )}
+                                  </h4>
+                                </div>
+                              )}
+                              
+                              <div className="space-y-2">
+                                <div className="flex items-start gap-4 py-2">
+                                  <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
+                                    {timeEvent.startTime}
+                                  </div>
+                                  <div className="flex-1">
+                                    {isEditing ? (
+                                      <Input
+                                        value={timeEvent.title}
+                                        onChange={(e) => {
+                                          const newLocations = [...callData.locations];
+                                          const eventIdx = newLocations[timeEvent.locationIndex].events.findIndex(ev => ev.id === timeEvent.id);
+                                          newLocations[timeEvent.locationIndex].events[eventIdx].title = e.target.value;
+                                          setCallData(prev => ({ ...prev, locations: newLocations }));
+                                        }}
+                                        className="font-medium text-sm"
+                                      />
+                                    ) : (
+                                      <div>
+                                        <div className="text-sm font-bold text-gray-800">
+                                          {timeEvent.title}
+                                        </div>
+                                        {timeEvent.cast.length > 0 && (
+                                          <div className="text-xs text-gray-600 mt-1 ml-4">
+                                            {timeEvent.cast.join(', ')}
+                                          </div>
+                                        )}
+                                        {timeEvent.notes && (
+                                          <div className="text-xs text-gray-500 italic mt-1 ml-4">{timeEvent.notes}</div>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                {isEditing && timeIndex === 0 && (
+                                  <Button 
+                                    onClick={() => addEvent(timeEvent.locationIndex)} 
+                                    variant="ghost" 
+                                    size="sm"
+                                    className="w-full mt-4"
+                                  >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add Event
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    }
+                  }
+                  return acc;
+                }, [])}
               </div>
             )}
           </div>
