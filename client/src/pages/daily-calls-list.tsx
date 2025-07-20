@@ -1,7 +1,7 @@
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
 import { ChevronLeft, Plus, Calendar, FileText } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -73,30 +73,23 @@ export default function DailyCallsList() {
             </Button>
           </div>
         ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Daily Call Sheets</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-8">
-                {dailyCalls.map((call: any) => (
-                  <div 
-                    key={call.id} 
-                    className="cursor-pointer hover:opacity-75 transition-opacity"
-                    onClick={() => setLocation(`/shows/${projectId}/calls/${call.date}`)}
-                  >
-                    <h3 className="text-xl font-medium text-gray-900">
-                      {format(parseISO(call.date), 'EEEE, MMMM d, yyyy')}
-                    </h3>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Daily Call Sheet
-                      {call.updatedAt && ` • Updated ${format(parseISO(call.updatedAt), 'MMM d, h:mm a')}`}
-                    </p>
-                  </div>
-                ))}
+          <div className="space-y-8">
+            {dailyCalls.map((call: any) => (
+              <div 
+                key={call.id} 
+                className="cursor-pointer hover:opacity-75 transition-opacity"
+                onClick={() => setLocation(`/shows/${projectId}/calls/${call.date}`)}
+              >
+                <h3 className="text-xl font-medium text-gray-900">
+                  {format(parseISO(call.date), 'EEEE, MMMM d, yyyy')}
+                </h3>
+                <p className="text-sm text-gray-500 mt-1">
+                  Daily Call Sheet
+                  {call.updatedAt && ` • Updated ${format(parseISO(call.updatedAt), 'MMM d, h:mm a')}`}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
         )}
       </div>
     </div>
