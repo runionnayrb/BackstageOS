@@ -281,7 +281,7 @@ export function TaskManagement() {
             newTaskId={newTaskId}
             propertyVisibility={propertyVisibility}
             onPropertyReorder={setPropertyVisibility}
-            projectId={showId ? parseInt(showId) : undefined}
+            projectSlug={showId}
           />
         </div>
       </div>

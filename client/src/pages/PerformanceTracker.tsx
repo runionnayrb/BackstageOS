@@ -29,7 +29,7 @@ import { ShowContractSettingsForm } from "@/components/ShowContractSettingsForm"
 
 export default function PerformanceTracker() {
   const { id } = useParams<{ id: string }>();
-  const projectId = parseInt(id || "0");
+  const projectSlug = id;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
@@ -41,53 +41,53 @@ export default function PerformanceTracker() {
 
   // Check if this project has equity cast members
   const { data: equityCheck } = useQuery({
-    queryKey: ['/api/projects', projectId, 'has-equity-cast-members'],
-    enabled: !!projectId && !!user
+    queryKey: ['/api/projects', projectSlug, 'has-equity-cast-members'],
+    enabled: !!projectSlug && !!user
   });
 
   // Get contract settings
   const { data: contractSettings } = useQuery({
-    queryKey: ['/api/projects', projectId, 'show-contract-settings'],
-    enabled: !!projectId && !!user && equityCheck?.hasEquityMembers
+    queryKey: ['/api/projects', projectSlug, 'show-contract-settings'],
+    enabled: !!projectSlug && !!user && equityCheck?.hasEquityMembers
   });
 
   // Get performance data
   const { data: performances, isLoading: performancesLoading } = useQuery({
-    queryKey: ['/api/projects', projectId, 'performance-tracker'],
-    enabled: !!projectId && !!user && equityCheck?.hasEquityMembers
+    queryKey: ['/api/projects', projectSlug, 'performance-tracker'],
+    enabled: !!projectSlug && !!user && equityCheck?.hasEquityMembers
   });
 
   // Get rehearsal data
   const { data: rehearsals, isLoading: rehearsalsLoading } = useQuery({
-    queryKey: ['/api/projects', projectId, 'rehearsal-tracker'],
-    enabled: !!projectId && !!user && equityCheck?.hasEquityMembers
+    queryKey: ['/api/projects', projectSlug, 'rehearsal-tracker'],
+    enabled: !!projectSlug && !!user && equityCheck?.hasEquityMembers
   });
 
   // Get equity cast members
   const { data: equityMembers } = useQuery({
-    queryKey: ['/api/projects', projectId, 'equity-cast-members'],
-    enabled: !!projectId && !!user && equityCheck?.hasEquityMembers
+    queryKey: ['/api/projects', projectSlug, 'equity-cast-members'],
+    enabled: !!projectSlug && !!user && equityCheck?.hasEquityMembers
   });
 
   // Delete performance mutation
   const deletePerformanceMutation = useMutation({
     mutationFn: (performanceId: number) => 
-      apiRequest(`/api/projects/${projectId}/performance-tracker/${performanceId}`, {
+      apiRequest(`/api/projects/${projectSlug}/performance-tracker/${performanceId}`, {
         method: 'DELETE'
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'performance-tracker'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectSlug, 'performance-tracker'] });
     }
   });
 
   // Delete rehearsal mutation
   const deleteRehearsalMutation = useMutation({
     mutationFn: (rehearsalId: number) => 
-      apiRequest(`/api/projects/${projectId}/rehearsal-tracker/${rehearsalId}`, {
+      apiRequest(`/api/projects/${projectSlug}/rehearsal-tracker/${rehearsalId}`, {
         method: 'DELETE'
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'rehearsal-tracker'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectSlug, 'rehearsal-tracker'] });
     }
   });
 
