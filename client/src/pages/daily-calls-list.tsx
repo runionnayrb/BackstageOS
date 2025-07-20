@@ -190,7 +190,7 @@ export default function DailyCallsList() {
                                 {format(parseISO(call.date), 'EEEE, MMMM d, yyyy')}
                               </h4>
                               <p className="text-sm text-gray-500 mt-1">
-                                Daily Call Sheet
+                                Daily Call
                                 {call.updatedAt && ` • Updated ${format(parseISO(call.updatedAt), 'MMM d, h:mm a')}`}
                               </p>
                             </div>
