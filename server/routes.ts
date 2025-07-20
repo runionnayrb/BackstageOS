@@ -2704,10 +2704,16 @@ Best regards,
   // Show settings routes
   app.get("/api/projects/:id/settings", isAuthenticated, async (req: any, res) => {
     try {
-      const projectId = parseInt(req.params.id);
-      console.log(`🎨 GET /api/projects/${projectId}/settings - Backend endpoint hit`);
+      const projectIdOrSlug = req.params.id;
+      console.log(`🎨 GET /api/projects/${projectIdOrSlug}/settings - Backend endpoint hit`);
       
-      const project = await storage.getProjectById(projectId);
+      // Try to get project by slug first, then by ID if it's numeric
+      let project;
+      if (isNaN(parseInt(projectIdOrSlug))) {
+        project = await storage.getProjectBySlug(projectIdOrSlug);
+      } else {
+        project = await storage.getProjectById(parseInt(projectIdOrSlug));
+      }
       
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -2718,14 +2724,14 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
-      let settings = await storage.getShowSettingsByProjectId(projectId);
+      let settings = await storage.getShowSettingsByProjectId(project.id);
       console.log(`🎨 Retrieved settings from database:`, settings);
       
       if (!settings) {
         // Create default settings if none exist
-        console.log(`🎨 Creating default settings for project ${projectId}`);
+        console.log(`🎨 Creating default settings for project ${project.id}`);
         settings = await storage.upsertShowSettings({
-          projectId,
+          projectId: project.id,
           createdBy: req.user.id.toString(),
         });
       }
@@ -2740,8 +2746,15 @@ Best regards,
 
   app.patch("/api/projects/:id/settings", isAuthenticated, async (req: any, res) => {
     try {
-      const projectId = parseInt(req.params.id);
-      const project = await storage.getProjectById(projectId);
+      const projectIdOrSlug = req.params.id;
+      
+      // Try to get project by slug first, then by ID if it's numeric
+      let project;
+      if (isNaN(parseInt(projectIdOrSlug))) {
+        project = await storage.getProjectBySlug(projectIdOrSlug);
+      } else {
+        project = await storage.getProjectById(parseInt(projectIdOrSlug));
+      }
       
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -2753,7 +2766,7 @@ Best regards,
       }
       
       const settingsData = req.body;
-      const settings = await storage.updateShowSettings(projectId, settingsData);
+      const settings = await storage.updateShowSettings(project.id, settingsData);
       res.json(settings);
     } catch (error) {
       console.error("Error updating show settings:", error);
@@ -2763,8 +2776,15 @@ Best regards,
 
   app.put("/api/projects/:id/settings", isAuthenticated, async (req: any, res) => {
     try {
-      const projectId = parseInt(req.params.id);
-      const project = await storage.getProjectById(projectId);
+      const projectIdOrSlug = req.params.id;
+      
+      // Try to get project by slug first, then by ID if it's numeric
+      let project;
+      if (isNaN(parseInt(projectIdOrSlug))) {
+        project = await storage.getProjectBySlug(projectIdOrSlug);
+      } else {
+        project = await storage.getProjectById(parseInt(projectIdOrSlug));
+      }
       
       if (!project) {
         return res.status(404).json({ message: "Project not found" });
@@ -2776,7 +2796,7 @@ Best regards,
       }
       
       const settingsData = req.body;
-      const settings = await storage.updateShowSettings(projectId, settingsData);
+      const settings = await storage.updateShowSettings(project.id, settingsData);
       res.json(settings);
     } catch (error) {
       console.error("Error updating show settings:", error);
