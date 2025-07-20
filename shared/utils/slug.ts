@@ -2,6 +2,8 @@
  * Utility functions for generating URL-friendly slugs from project names
  */
 
+import { SHOW_SLUGS, getShowNameFromSlug, getSlugFromShowName, isValidShowSlug } from '../show-slugs';
+
 /**
  * Generate a URL-friendly slug from a project name
  * @param name - The project name to convert to a slug
@@ -63,3 +65,42 @@ export function isValidSlug(slug: string): boolean {
 export function isNumericId(param: string): boolean {
   return /^\d+$/.test(param);
 }
+
+/**
+ * Get the display name for a show from its slug using centralized mapping
+ * Falls back to formatting the slug if not found in mapping
+ * @param slug - The show slug
+ * @returns The display name for the show
+ */
+export function getShowDisplayName(slug: string): string {
+  // First check centralized mapping
+  if (isValidShowSlug(slug)) {
+    return getShowNameFromSlug(slug);
+  }
+  
+  // Fallback: format slug into a readable name
+  return slug
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+/**
+ * Convert a show name to its URL slug using centralized mapping
+ * Falls back to generating a slug if not found in mapping
+ * @param name - The show name
+ * @returns The URL slug for the show
+ */
+export function getShowSlug(name: string): string {
+  // First check centralized mapping
+  const mappedSlug = getSlugFromShowName(name);
+  if (mappedSlug !== name.toLowerCase().replace(/\s+/g, '-')) {
+    return mappedSlug;
+  }
+  
+  // Fallback: generate slug from name
+  return generateSlug(name);
+}
+
+// Re-export centralized mapping utilities for convenience
+export { SHOW_SLUGS, getShowNameFromSlug, getSlugFromShowName, isValidShowSlug } from '../show-slugs';

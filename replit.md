@@ -49,6 +49,14 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **Dual Views**: Master Notes (global) and Show Notes (project-specific)
 - **Advanced Features**: Pin/unpin notes, archive system, attachment support
 
+### Recent Updates (July 20, 2025)
+#### Slug-Based URLs & Centralized Show Name Management
+- ✅ **Fixed Critical parseInt() Issues**: Resolved NaN errors in API calls by removing parseInt() conversions on slug parameters across multiple components (ShowSettings, PersonalScheduleShare, etc.)
+- ✅ **Implemented Centralized Show Slug System**: Created `shared/show-slugs.ts` for centralized slug-to-name mapping management
+- ✅ **Enhanced Navigation**: Updated Enhanced Header component to use centralized show name mapping for consistent display
+- 🎯 **URL Structure**: Now using `/shows/hamlet` instead of `/shows/3` for user-friendly URLs
+- 📝 **Easy Management**: All show name changes can now be made in one place (`shared/show-slugs.ts`)
+
 ## Planned Features
 - **Calendar System**: Drag-drop scheduling with daily call sheet generation
 - **Cast Management**: Character breakdowns with scene appearances and requirements
