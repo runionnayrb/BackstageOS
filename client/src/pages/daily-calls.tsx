@@ -531,10 +531,10 @@ export default function DailyCallSheet() {
             const grayRows = clonedElement.querySelectorAll('.bg-gray-100');
             grayRows.forEach(row => {
               if (row.textContent?.includes('END-OF-DAY')) {
-                // Make the gray row appropriately sized
-                row.style.paddingTop = '4px';
-                row.style.paddingBottom = '4px';
-                row.style.minHeight = '24px';
+                // Make the gray row more compact
+                row.style.paddingTop = '2px';
+                row.style.paddingBottom = '2px';
+                row.style.minHeight = '20px';
                 
                 // Find all text-containing elements and push them up with bottom padding
                 const allTextElements = row.querySelectorAll('*');
