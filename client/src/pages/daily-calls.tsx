@@ -824,39 +824,62 @@ export default function DailyCallSheet() {
 
           {/* Fittings Section - only show if there are events at fitting locations */}
           {scheduleEvents.some(event => {
-            const eventDate = new Date(event.startTime).toISOString().split('T')[0];
-            if (eventDate !== selectedDate) return false;
-            
-            // Check if event is at a fittings location
-            const fittingLocations = (project?.eventLocations || [])
-              .filter(loc => loc.locationType === 'fittings')
-              .map(loc => loc.name);
-            return fittingLocations.includes(event.location);
+            try {
+              const eventDate = new Date(event.startTime).toISOString().split('T')[0];
+              if (eventDate !== selectedDate) return false;
+              
+              // Check if event is at a fittings location
+              const fittingLocations = (project?.eventLocations || [])
+                .filter(loc => loc.locationType === 'fittings')
+                .map(loc => loc.name);
+              return fittingLocations.includes(event.location);
+            } catch (error) {
+              console.warn('Invalid date in event:', event);
+              return false;
+            }
           }) && (
             <div className="mt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Fittings</h3>
               <div className="border-2 border-black p-3 space-y-2">
                 {scheduleEvents
                   .filter(event => {
-                    const eventDate = new Date(event.startTime).toISOString().split('T')[0];
-                    if (eventDate !== selectedDate) return false;
-                    
-                    const fittingLocations = (project?.eventLocations || [])
-                      .filter(loc => loc.locationType === 'fittings')
-                      .map(loc => loc.name);
-                    return fittingLocations.includes(event.location);
+                    try {
+                      const eventDate = new Date(event.startTime).toISOString().split('T')[0];
+                      if (eventDate !== selectedDate) return false;
+                      
+                      const fittingLocations = (project?.eventLocations || [])
+                        .filter(loc => loc.locationType === 'fittings')
+                        .map(loc => loc.name);
+                      return fittingLocations.includes(event.location);
+                    } catch (error) {
+                      console.warn('Invalid date in event:', event);
+                      return false;
+                    }
                   })
-                  .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+                  .sort((a, b) => {
+                    try {
+                      return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+                    } catch (error) {
+                      return 0;
+                    }
+                  })
                   .map((event, index) => {
-                    const startTime = formatTimeDisplay(
-                      format(new Date(event.startTime), 'HH:mm:ss'),
-                      timeFormat as '12' | '24'
-                    ).replace(':00', '');
-                    
-                    const endTime = formatTimeDisplay(
-                      format(new Date(event.endTime), 'HH:mm:ss'),
-                      timeFormat as '12' | '24'
-                    ).replace(':00', '');
+                    let startTime, endTime;
+                    try {
+                      startTime = formatTimeDisplay(
+                        format(new Date(event.startTime), 'HH:mm:ss'),
+                        timeFormat as '12' | '24'
+                      ).replace(':00', '');
+                      
+                      endTime = formatTimeDisplay(
+                        format(new Date(event.endTime), 'HH:mm:ss'),
+                        timeFormat as '12' | '24'
+                      ).replace(':00', '');
+                    } catch (error) {
+                      console.warn('Invalid date in event for formatting:', event);
+                      startTime = 'Invalid Time';
+                      endTime = 'Invalid Time';
+                    }
                     
                     // Get cast members for this event
                     const eventCast = contacts.filter(contact => 
@@ -898,39 +921,62 @@ export default function DailyCallSheet() {
 
           {/* Appointments & Meetings Section - only show if there are events at appointment locations */}
           {scheduleEvents.some(event => {
-            const eventDate = new Date(event.startTime).toISOString().split('T')[0];
-            if (eventDate !== selectedDate) return false;
-            
-            // Check if event is at an appointments location or is a meeting type
-            const appointmentLocations = (project?.eventLocations || [])
-              .filter(loc => loc.locationType === 'appointments')
-              .map(loc => loc.name);
-            return appointmentLocations.includes(event.location) || event.eventType === 'meeting';
+            try {
+              const eventDate = new Date(event.startTime).toISOString().split('T')[0];
+              if (eventDate !== selectedDate) return false;
+              
+              // Check if event is at an appointments location or is a meeting type
+              const appointmentLocations = (project?.eventLocations || [])
+                .filter(loc => loc.locationType === 'appointments')
+                .map(loc => loc.name);
+              return appointmentLocations.includes(event.location) || event.eventType === 'meeting';
+            } catch (error) {
+              console.warn('Invalid date in event:', event);
+              return false;
+            }
           }) && (
             <div className="mt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Appointments & Meetings</h3>
               <div className="border-2 border-black p-3 space-y-2">
                 {scheduleEvents
                   .filter(event => {
-                    const eventDate = new Date(event.startTime).toISOString().split('T')[0];
-                    if (eventDate !== selectedDate) return false;
-                    
-                    const appointmentLocations = (project?.eventLocations || [])
-                      .filter(loc => loc.locationType === 'appointments')
-                      .map(loc => loc.name);
-                    return appointmentLocations.includes(event.location) || event.eventType === 'meeting';
+                    try {
+                      const eventDate = new Date(event.startTime).toISOString().split('T')[0];
+                      if (eventDate !== selectedDate) return false;
+                      
+                      const appointmentLocations = (project?.eventLocations || [])
+                        .filter(loc => loc.locationType === 'appointments')
+                        .map(loc => loc.name);
+                      return appointmentLocations.includes(event.location) || event.eventType === 'meeting';
+                    } catch (error) {
+                      console.warn('Invalid date in event:', event);
+                      return false;
+                    }
                   })
-                  .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+                  .sort((a, b) => {
+                    try {
+                      return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+                    } catch (error) {
+                      return 0;
+                    }
+                  })
                   .map((event, index) => {
-                    const startTime = formatTimeDisplay(
-                      format(new Date(event.startTime), 'HH:mm:ss'),
-                      timeFormat as '12' | '24'
-                    ).replace(':00', '');
-                    
-                    const endTime = formatTimeDisplay(
-                      format(new Date(event.endTime), 'HH:mm:ss'),
-                      timeFormat as '12' | '24'
-                    ).replace(':00', '');
+                    let startTime, endTime;
+                    try {
+                      startTime = formatTimeDisplay(
+                        format(new Date(event.startTime), 'HH:mm:ss'),
+                        timeFormat as '12' | '24'
+                      ).replace(':00', '');
+                      
+                      endTime = formatTimeDisplay(
+                        format(new Date(event.endTime), 'HH:mm:ss'),
+                        timeFormat as '12' | '24'
+                      ).replace(':00', '');
+                    } catch (error) {
+                      console.warn('Invalid date in event for formatting:', event);
+                      startTime = 'Invalid Time';
+                      endTime = 'Invalid Time';
+                    }
                     
                     // Get participants for this event (not just cast)
                     const eventParticipants = contacts.filter(contact => 
