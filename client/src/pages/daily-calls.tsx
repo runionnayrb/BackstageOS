@@ -527,24 +527,24 @@ export default function DailyCallSheet() {
             clonedElement.style.borderRadius = '0';
             clonedElement.style.padding = '20px'; // Reduced padding for tighter margins
             
-            // Fix END-OF-DAY text alignment by making gray row taller and centering text
-            const grayRows = clonedElement.querySelectorAll('.bg-gray-100');
-            grayRows.forEach(row => {
-              if (row.textContent?.includes('END-OF-DAY')) {
-                // Make the gray row more compact
-                row.style.paddingTop = '2px';
-                row.style.paddingBottom = '2px';
-                row.style.minHeight = '20px';
+            // Fix END-OF-DAY text alignment - target all gray elements more aggressively
+            const grayElements = clonedElement.querySelectorAll('[class*="bg-gray"], .bg-gray-100, [style*="background"]');
+            grayElements.forEach(el => {
+              if (el.textContent?.includes('END-OF-DAY')) {
+                console.log('Found END-OF-DAY element:', el);
+                // Force compact row styling
+                el.style.padding = '1px 0';
+                el.style.minHeight = '18px';
+                el.style.height = '18px';
+                el.style.lineHeight = '18px';
                 
-                // Find all text-containing elements and push them up with bottom padding
-                const allTextElements = row.querySelectorAll('*');
-                allTextElements.forEach(el => {
-                  if (el.textContent && (el.textContent.includes('END-OF-DAY') || el.textContent.includes('14:00'))) {
-                    el.style.lineHeight = '1.2';
-                    el.style.margin = '0';
-                    el.style.paddingTop = '0';
-                    el.style.paddingBottom = '6px';
-                  }
+                // Also target all descendants
+                const descendants = el.querySelectorAll('*');
+                descendants.forEach(desc => {
+                  desc.style.lineHeight = '18px';
+                  desc.style.padding = '0';
+                  desc.style.margin = '0';
+                  desc.style.height = '18px';
                 });
               }
             });
