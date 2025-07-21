@@ -911,8 +911,10 @@ export default function DailyCallSheet() {
                         {event.startTime}
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm font-bold text-gray-800">{event.title}</div>
-                        <div className="text-xs text-gray-600 mt-1">{event.location}</div>
+                        <div className="flex justify-between items-center">
+                          <div className="text-sm font-bold text-gray-800">{event.title}</div>
+                          <div className="text-xs text-gray-600">{event.location}</div>
+                        </div>
                         {event.cast && event.cast.length > 0 && (
                           <div className="text-xs text-black mt-1">
                             {event.cast.join(', ')}
@@ -943,8 +945,10 @@ export default function DailyCallSheet() {
                         {event.startTime}
                       </div>
                       <div className="flex-1">
-                        <div className="text-sm font-bold text-gray-800">{event.title}</div>
-                        <div className="text-xs text-gray-600 mt-1">{event.location}</div>
+                        <div className="flex justify-between items-center">
+                          <div className="text-sm font-bold text-gray-800">{event.title}</div>
+                          <div className="text-xs text-gray-600">{event.location}</div>
+                        </div>
                         {event.cast && event.cast.length > 0 && (
                           <div className="text-xs text-black mt-1">
                             {event.cast.join(', ')}
