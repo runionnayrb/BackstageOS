@@ -149,7 +149,7 @@ export default function BillingManagement() {
   const formatPrice = (price: number, interval: string) => {
     if (interval === "year") {
       const monthlyEquivalent = Math.round(price / 12);
-      return `$${monthlyEquivalent}/mo (billed annually at $${price})`;
+      return `$${monthlyEquivalent}/mo (billed annually at $${price.toLocaleString()})`;
     }
     return `$${price}/mo`;
   };
