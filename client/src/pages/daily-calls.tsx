@@ -962,56 +962,6 @@ export default function DailyCallSheet() {
               </div>
             </div>
           )}
-                        format(new Date(event.startTime), 'HH:mm:ss'),
-                        timeFormat as '12' | '24'
-                      ).replace(':00', '');
-                      
-                      endTime = formatTimeDisplay(
-                        format(new Date(event.endTime), 'HH:mm:ss'),
-                        timeFormat as '12' | '24'
-                      ).replace(':00', '');
-                    } catch (error) {
-                      console.warn('Invalid date in event for formatting:', event);
-                      startTime = 'Invalid Time';
-                      endTime = 'Invalid Time';
-                    }
-                    
-                    // Get participants for this event (not just cast)
-                    const eventParticipants = contacts.filter(contact => 
-                      event.participants?.includes(contact.id)
-                    );
-                    
-                    return (
-                      <div key={`appointment-${event.id}`} className="flex items-start gap-4">
-                        <div className="w-24 text-sm font-medium text-gray-700 flex-shrink-0">
-                          {startTime} - {endTime}
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-semibold text-gray-900 mb-1">
-                            {event.title}
-                          </div>
-                          {event.location && (
-                            <div className="text-sm text-gray-600 mb-1">
-                              @ {event.location}
-                            </div>
-                          )}
-                          {eventParticipants.length > 0 && (
-                            <div className="text-sm text-gray-700">
-                              {eventParticipants.map(participant => participant.firstName).join(', ')}
-                            </div>
-                          )}
-                          {event.description && (
-                            <div className="text-sm text-gray-600 mt-1">
-                              {event.description}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
 
           {/* Announcements Section */}
           <div className="mt-6">
