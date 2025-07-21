@@ -67,6 +67,10 @@ import {
   userEngagementScores,
   subscriptionPlans,
   userSubscriptions,
+  billingPlans,
+  billingHistory,
+  paymentMethods,
+  subscriptionUsage,
 
   type User,
   type UpsertUser,
@@ -192,6 +196,14 @@ import {
   type InsertUserSession,
   type FeatureUsage,
   type InsertFeatureUsage,
+  type BillingPlan,
+  type InsertBillingPlan,
+  type BillingHistory,
+  type InsertBillingHistory,
+  type PaymentMethod,
+  type InsertPaymentMethod,
+  type SubscriptionUsage,
+  type InsertSubscriptionUsage,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -579,6 +591,36 @@ export interface IStorage {
   getUserSubscription(userId: number): Promise<any>;
   createUserSubscription(subscription: any): Promise<any>;
   updateUserSubscription(userId: number, updates: any): Promise<any>;
+
+  // Billing operations
+  getBillingPlans(): Promise<BillingPlan[]>;
+  getBillingPlanById(id: number): Promise<BillingPlan | undefined>;
+  getBillingPlanByPlanId(planId: string): Promise<BillingPlan | undefined>;
+  createBillingPlan(plan: InsertBillingPlan): Promise<BillingPlan>;
+  updateBillingPlan(id: number, plan: Partial<InsertBillingPlan>): Promise<BillingPlan>;
+  
+  getBillingHistory(userId: number): Promise<BillingHistory[]>;
+  createBillingHistoryEntry(entry: InsertBillingHistory): Promise<BillingHistory>;
+  
+  getPaymentMethods(userId: number): Promise<PaymentMethod[]>;
+  createPaymentMethod(method: InsertPaymentMethod): Promise<PaymentMethod>;
+  updatePaymentMethod(id: number, method: Partial<InsertPaymentMethod>): Promise<PaymentMethod>;
+  deletePaymentMethod(id: number): Promise<void>;
+  setDefaultPaymentMethod(userId: number, paymentMethodId: number): Promise<void>;
+  
+  getSubscriptionUsage(userId: number, planId: string): Promise<SubscriptionUsage[]>;
+  createSubscriptionUsage(usage: InsertSubscriptionUsage): Promise<SubscriptionUsage>;
+  
+  updateUserSubscription(userId: number, subscriptionData: {
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+    subscriptionStatus?: string;
+    subscriptionPlan?: string;
+    trialEndsAt?: Date;
+    subscriptionEndsAt?: Date;
+    paymentMethodRequired?: boolean;
+    grandfatheredFree?: boolean;
+  }): Promise<User>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -4202,10 +4244,127 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
 
-  async updateUserSubscription(userId: number, updates: any): Promise<any> {
-    const result = await db.update(userSubscriptions)
-      .set({ ...updates, updatedAt: new Date() })
-      .where(eq(userSubscriptions.userId, userId))
+  // Billing Plans Methods
+  async getBillingPlans(): Promise<BillingPlan[]> {
+    const result = await db.select().from(billingPlans)
+      .where(eq(billingPlans.isActive, true))
+      .orderBy(billingPlans.sortOrder);
+    return result;
+  }
+
+  async getBillingPlanById(id: number): Promise<BillingPlan | undefined> {
+    const result = await db.select().from(billingPlans)
+      .where(eq(billingPlans.id, id));
+    return result[0];
+  }
+
+  async getBillingPlanByPlanId(planId: string): Promise<BillingPlan | undefined> {
+    const result = await db.select().from(billingPlans)
+      .where(eq(billingPlans.planId, planId));
+    return result[0];
+  }
+
+  async createBillingPlan(plan: InsertBillingPlan): Promise<BillingPlan> {
+    const result = await db.insert(billingPlans).values(plan).returning();
+    return result[0];
+  }
+
+  async updateBillingPlan(id: number, plan: Partial<InsertBillingPlan>): Promise<BillingPlan> {
+    const result = await db.update(billingPlans)
+      .set({ ...plan, updatedAt: new Date() })
+      .where(eq(billingPlans.id, id))
+      .returning();
+    return result[0];
+  }
+
+  // Billing History Methods
+  async getBillingHistory(userId: number): Promise<BillingHistory[]> {
+    const result = await db.select().from(billingHistory)
+      .where(eq(billingHistory.userId, userId))
+      .orderBy(sql`${billingHistory.createdAt} DESC`);
+    return result;
+  }
+
+  async createBillingHistoryEntry(entry: InsertBillingHistory): Promise<BillingHistory> {
+    const result = await db.insert(billingHistory).values(entry).returning();
+    return result[0];
+  }
+
+  // Payment Methods
+  async getPaymentMethods(userId: number): Promise<PaymentMethod[]> {
+    const result = await db.select().from(paymentMethods)
+      .where(and(
+        eq(paymentMethods.userId, userId),
+        eq(paymentMethods.isActive, true)
+      ))
+      .orderBy(sql`${paymentMethods.isDefault} DESC, ${paymentMethods.createdAt} DESC`);
+    return result;
+  }
+
+  async createPaymentMethod(method: InsertPaymentMethod): Promise<PaymentMethod> {
+    const result = await db.insert(paymentMethods).values(method).returning();
+    return result[0];
+  }
+
+  async updatePaymentMethod(id: number, method: Partial<InsertPaymentMethod>): Promise<PaymentMethod> {
+    const result = await db.update(paymentMethods)
+      .set({ ...method, updatedAt: new Date() })
+      .where(eq(paymentMethods.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deletePaymentMethod(id: number): Promise<void> {
+    await db.update(paymentMethods)
+      .set({ isActive: false, updatedAt: new Date() })
+      .where(eq(paymentMethods.id, id));
+  }
+
+  async setDefaultPaymentMethod(userId: number, paymentMethodId: number): Promise<void> {
+    // First, set all payment methods to non-default
+    await db.update(paymentMethods)
+      .set({ isDefault: false, updatedAt: new Date() })
+      .where(eq(paymentMethods.userId, userId));
+    
+    // Then set the specified payment method as default
+    await db.update(paymentMethods)
+      .set({ isDefault: true, updatedAt: new Date() })
+      .where(eq(paymentMethods.id, paymentMethodId));
+  }
+
+  // Subscription Usage Methods
+  async getSubscriptionUsage(userId: number, planId: string): Promise<SubscriptionUsage[]> {
+    const result = await db.select().from(subscriptionUsage)
+      .where(and(
+        eq(subscriptionUsage.userId, userId),
+        eq(subscriptionUsage.planId, planId)
+      ))
+      .orderBy(sql`${subscriptionUsage.recordedAt} DESC`);
+    return result;
+  }
+
+  async createSubscriptionUsage(usage: InsertSubscriptionUsage): Promise<SubscriptionUsage> {
+    const result = await db.insert(subscriptionUsage).values(usage).returning();
+    return result[0];
+  }
+
+  // User Subscription Update (overridden method to handle billing fields)
+  async updateUserSubscription(userId: number, subscriptionData: {
+    stripeCustomerId?: string;
+    stripeSubscriptionId?: string;
+    subscriptionStatus?: string;
+    subscriptionPlan?: string;
+    trialEndsAt?: Date;
+    subscriptionEndsAt?: Date;
+    paymentMethodRequired?: boolean;
+    grandfatheredFree?: boolean;
+  }): Promise<User> {
+    const result = await db.update(users)
+      .set({ 
+        ...subscriptionData,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
       .returning();
     return result[0];
   }

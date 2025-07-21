@@ -43,6 +43,15 @@ export const users = pgTable("users", {
   // Email settings for show-specific communications via sm@backstageos.com
   defaultReplyToEmail: varchar("default_reply_to_email"),
   emailDisplayName: varchar("email_display_name"),
+  // Billing and subscription fields
+  stripeCustomerId: varchar("stripe_customer_id"),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  subscriptionStatus: varchar("subscription_status"), // 'trialing', 'active', 'past_due', 'canceled', 'unpaid'
+  subscriptionPlan: varchar("subscription_plan"), // 'monthly', 'annual', 'theatre'
+  trialEndsAt: timestamp("trial_ends_at"),
+  subscriptionEndsAt: timestamp("subscription_ends_at"),
+  paymentMethodRequired: boolean("payment_method_required").default(false),
+  grandfatheredFree: boolean("grandfathered_free").default(false), // For beta users
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -2023,6 +2032,97 @@ export const featureUsageRelations = relations(featureUsage, ({ one }) => ({
   }),
 }));
 
+// Billing Plans table (defines available subscription plans)
+export const billingPlans = pgTable("billing_plans", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(), // 'Monthly', 'Annual', 'Theatre'
+  planId: varchar("plan_id").unique().notNull(), // 'monthly', 'annual', 'theatre'
+  stripePriceId: varchar("stripe_price_id"), // Stripe price ID
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(), // Monthly price
+  billingInterval: varchar("billing_interval").notNull(), // 'month', 'year'
+  trialDays: integer("trial_days").default(30), // Trial period in days
+  features: jsonb("features"), // Array of included features
+  maxProjects: integer("max_projects"), // null = unlimited
+  maxTeamMembers: integer("max_team_members"), // null = unlimited
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Billing History table (tracks all billing events)
+export const billingHistory = pgTable("billing_history", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  eventType: varchar("event_type").notNull(), // 'subscription_created', 'payment_succeeded', 'payment_failed', 'trial_started', 'trial_ended'
+  stripeEventId: varchar("stripe_event_id"), // Stripe webhook event ID
+  amount: decimal("amount", { precision: 10, scale: 2 }), // Amount charged/refunded
+  currency: varchar("currency").default("usd"),
+  subscriptionId: varchar("subscription_id"), // Stripe subscription ID
+  invoiceId: varchar("invoice_id"), // Stripe invoice ID
+  planId: varchar("plan_id"), // Which plan was involved
+  metadata: jsonb("metadata"), // Additional event data
+  processedAt: timestamp("processed_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Payment Methods table (stores customer payment method info)
+export const paymentMethods = pgTable("payment_methods", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  stripePaymentMethodId: varchar("stripe_payment_method_id").notNull(),
+  type: varchar("type").notNull(), // 'card', 'bank_account'
+  brand: varchar("brand"), // 'visa', 'mastercard', 'amex'
+  last4: varchar("last4"), // Last 4 digits of card/account
+  expMonth: integer("exp_month"), // Card expiration month
+  expYear: integer("exp_year"), // Card expiration year
+  isDefault: boolean("is_default").default(false),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Subscription Usage table (tracks feature usage for billing purposes)
+export const subscriptionUsage = pgTable("subscription_usage", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  planId: varchar("plan_id").notNull(),
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  projectsUsed: integer("projects_used").default(0),
+  teamMembersUsed: integer("team_members_used").default(0),
+  apiCallsUsed: integer("api_calls_used").default(0),
+  storageUsed: decimal("storage_used", { precision: 10, scale: 2 }).default("0"), // GB used
+  emailsSent: integer("emails_sent").default(0),
+  recordedAt: timestamp("recorded_at").defaultNow(),
+});
+
+// Billing relations
+export const billingPlansRelations = relations(billingPlans, ({ many }) => ({
+  billingHistory: many(billingHistory),
+}));
+
+export const billingHistoryRelations = relations(billingHistory, ({ one }) => ({
+  user: one(users, {
+    fields: [billingHistory.userId],
+    references: [users.id],
+  }),
+}));
+
+export const paymentMethodsRelations = relations(paymentMethods, ({ one }) => ({
+  user: one(users, {
+    fields: [paymentMethods.userId],
+    references: [users.id],
+  }),
+}));
+
+export const subscriptionUsageRelations = relations(subscriptionUsage, ({ one }) => ({
+  user: one(users, {
+    fields: [subscriptionUsage.userId],
+    references: [users.id],
+  }),
+}));
+
 export const emailArchiveRulesRelations = relations(emailArchiveRules, ({ one }) => ({
   project: one(projects, {
     fields: [emailArchiveRules.projectId],
@@ -2452,6 +2552,30 @@ export const insertErrorImpactAnalysisSchema = createInsertSchema(errorImpactAna
   analyzedAt: true,
 });
 
+// Billing insert schemas
+export const insertBillingPlanSchema = createInsertSchema(billingPlans).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBillingHistorySchema = createInsertSchema(billingHistory).omit({
+  id: true,
+  processedAt: true,
+  createdAt: true,
+});
+
+export const insertPaymentMethodSchema = createInsertSchema(paymentMethods).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSubscriptionUsageSchema = createInsertSchema(subscriptionUsage).omit({
+  id: true,
+  recordedAt: true,
+});
+
 
 
 // Type exports
@@ -2869,6 +2993,16 @@ export type UserSession = typeof userSessions.$inferSelect;
 export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
 export type FeatureUsage = typeof featureUsage.$inferSelect;
 export type InsertFeatureUsage = z.infer<typeof insertFeatureUsageSchema>;
+
+// Billing types
+export type BillingPlan = typeof billingPlans.$inferSelect;
+export type InsertBillingPlan = z.infer<typeof insertBillingPlanSchema>;
+export type BillingHistory = typeof billingHistory.$inferSelect;
+export type InsertBillingHistory = z.infer<typeof insertBillingHistorySchema>;
+export type PaymentMethod = typeof paymentMethods.$inferSelect;
+export type InsertPaymentMethod = z.infer<typeof insertPaymentMethodSchema>;
+export type SubscriptionUsage = typeof subscriptionUsage.$inferSelect;
+export type InsertSubscriptionUsage = z.infer<typeof insertSubscriptionUsageSchema>;
 
 // ========== EMAIL SYSTEM ZODS AND TYPES ==========
 

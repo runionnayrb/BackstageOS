@@ -14,7 +14,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema } from "@shared/schema";
+import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertBillingPlanSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -12284,6 +12284,311 @@ The Production Team`;
     } catch (error) {
       console.error("Error creating test personal schedule data:", error);
       res.status(500).json({ message: "Failed to create test data" });
+    }
+  });
+
+  // Billing System API Routes
+  // Get billing plans
+  app.get("/api/billing/plans", async (req, res) => {
+    try {
+      const plans = await storage.getBillingPlans();
+      res.json(plans);
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to get billing plans", error: error.message });
+    }
+  });
+
+  // Get specific billing plan
+  app.get("/api/billing/plans/:id", async (req, res) => {
+    try {
+      const plan = await storage.getBillingPlanById(parseInt(req.params.id));
+      if (!plan) {
+        return res.status(404).json({ message: "Billing plan not found" });
+      }
+      res.json(plan);
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to get billing plan", error: error.message });
+    }
+  });
+
+  // Admin: Create billing plan
+  app.post("/api/admin/billing/plans", async (req, res) => {
+    if (!req.isAuthenticated() || !isAdmin(req.user)) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const planData = insertBillingPlanSchema.parse(req.body);
+      const plan = await storage.createBillingPlan(planData);
+      res.status(201).json(plan);
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to create billing plan", error: error.message });
+    }
+  });
+
+  // Admin: Update billing plan
+  app.put("/api/admin/billing/plans/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !isAdmin(req.user)) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const plan = await storage.updateBillingPlan(parseInt(req.params.id), req.body);
+      res.json(plan);
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to update billing plan", error: error.message });
+    }
+  });
+
+  // Get user billing history
+  app.get("/api/billing/history", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const history = await storage.getBillingHistory(req.user.id);
+      res.json(history);
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to get billing history", error: error.message });
+    }
+  });
+
+  // Create billing history entry
+  app.post("/api/billing/history", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const entryData = insertBillingHistorySchema.parse({
+        ...req.body,
+        userId: req.user.id
+      });
+      const entry = await storage.createBillingHistoryEntry(entryData);
+      res.status(201).json(entry);
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to create billing history entry", error: error.message });
+    }
+  });
+
+  // Get user payment methods
+  app.get("/api/billing/payment-methods", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const paymentMethods = await storage.getPaymentMethods(req.user.id);
+      res.json(paymentMethods);
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to get payment methods", error: error.message });
+    }
+  });
+
+  // Create payment method
+  app.post("/api/billing/payment-methods", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const methodData = insertPaymentMethodSchema.parse({
+        ...req.body,
+        userId: req.user.id
+      });
+      const method = await storage.createPaymentMethod(methodData);
+      res.status(201).json(method);
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to create payment method", error: error.message });
+    }
+  });
+
+  // Update payment method
+  app.put("/api/billing/payment-methods/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const method = await storage.updatePaymentMethod(parseInt(req.params.id), req.body);
+      res.json(method);
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to update payment method", error: error.message });
+    }
+  });
+
+  // Delete payment method
+  app.delete("/api/billing/payment-methods/:id", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      await storage.deletePaymentMethod(parseInt(req.params.id));
+      res.status(204).send();
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to delete payment method", error: error.message });
+    }
+  });
+
+  // Set default payment method
+  app.post("/api/billing/payment-methods/:id/default", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      await storage.setDefaultPaymentMethod(req.user.id, parseInt(req.params.id));
+      res.status(200).json({ message: "Default payment method updated" });
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to set default payment method", error: error.message });
+    }
+  });
+
+  // Get subscription usage
+  app.get("/api/billing/usage/:planId", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const usage = await storage.getSubscriptionUsage(req.user.id, req.params.planId);
+      res.json(usage);
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to get subscription usage", error: error.message });
+    }
+  });
+
+  // Create subscription usage entry
+  app.post("/api/billing/usage", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const usageData = insertSubscriptionUsageSchema.parse({
+        ...req.body,
+        userId: req.user.id
+      });
+      const usage = await storage.createSubscriptionUsage(usageData);
+      res.status(201).json(usage);
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to create subscription usage entry", error: error.message });
+    }
+  });
+
+  // Update user subscription (for Stripe integration)
+  app.put("/api/billing/subscription", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const user = await storage.updateUserSubscription(req.user.id, req.body);
+      res.json(user);
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to update user subscription", error: error.message });
+    }
+  });
+
+  // Start trial with payment method
+  app.post("/api/billing/start-trial", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const { planId, paymentMethodId } = req.body;
+
+      // Validate that user has a payment method
+      const paymentMethods = await storage.getPaymentMethods(req.user.id);
+      if (paymentMethods.length === 0 && !paymentMethodId) {
+        return res.status(400).json({ 
+          message: "Payment method required to start trial",
+          requiresPaymentMethod: true
+        });
+      }
+
+      // Set trial period (30 days from now)
+      const trialEndsAt = new Date();
+      trialEndsAt.setDate(trialEndsAt.getDate() + 30);
+
+      const updatedUser = await storage.updateUserSubscription(req.user.id, {
+        subscriptionPlan: planId,
+        subscriptionStatus: 'trialing',
+        trialEndsAt: trialEndsAt,
+        paymentMethodRequired: true
+      });
+
+      // Create billing history entry
+      await storage.createBillingHistoryEntry({
+        userId: req.user.id,
+        planId: planId,
+        action: 'trial_started',
+        amount: 0,
+        status: 'completed',
+        description: '30-day trial started'
+      });
+
+      res.json({ 
+        message: "Trial started successfully", 
+        user: updatedUser,
+        trialEndsAt: trialEndsAt
+      });
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to start trial", error: error.message });
+    }
+  });
+
+  // Check trial status
+  app.get("/api/billing/trial-status", async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const user = req.user;
+      const now = new Date();
+      
+      let status = 'none';
+      let daysRemaining = 0;
+      
+      if (user.subscriptionStatus === 'trialing' && user.trialEndsAt) {
+        const trialEnd = new Date(user.trialEndsAt);
+        if (now < trialEnd) {
+          status = 'active';
+          daysRemaining = Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        } else {
+          status = 'expired';
+        }
+      }
+
+      res.json({
+        status,
+        daysRemaining,
+        trialEndsAt: user.trialEndsAt,
+        subscriptionStatus: user.subscriptionStatus,
+        subscriptionPlan: user.subscriptionPlan,
+        paymentMethodRequired: user.paymentMethodRequired || false
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to get trial status", error: error.message });
+    }
+  });
+
+  // Admin: Update user subscription
+  app.put("/api/admin/users/:userId/subscription", async (req, res) => {
+    if (!req.isAuthenticated() || !isAdmin(req.user)) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const userId = parseInt(req.params.userId);
+      const user = await storage.updateUserSubscription(userId, req.body);
+      res.json(user);
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to update user subscription", error: error.message });
     }
   });
 
