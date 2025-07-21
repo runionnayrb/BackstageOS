@@ -647,7 +647,7 @@ export default function DailyCallSheet() {
               </div>
             ) : (
               // Multiple locations - chronologically aligned with no gap
-              <div className="space-y-4">
+              <div className="space-y-1">
                 {/* Column headers */}
                 <div className="grid grid-cols-7 gap-0">
                   {(callData.locations || []).map((location, locationIndex) => (
