@@ -6001,7 +6001,7 @@ Best regards,
       await browser.close();
       
       res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${projectName}-Daily-Call-${date}.pdf"`);
+      res.setHeader('Content-Disposition', `attachment; filename="${date}-${projectName}-Daily Call.pdf"`);
       res.send(pdf);
       
     } catch (error) {

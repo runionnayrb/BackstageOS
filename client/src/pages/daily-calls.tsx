@@ -494,7 +494,7 @@ export default function DailyCallSheet() {
         const a = document.createElement('a');
         const formattedDate = format(parseISO(selectedDate), 'yyyy-MM-dd');
         a.href = url;
-        a.download = `${project?.name}-Daily-Call-${formattedDate}.pdf`;
+        a.download = `${formattedDate}-${project?.name}-Daily Call.pdf`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
