@@ -3742,7 +3742,12 @@ export class DatabaseStorage implements IStorage {
           lastSession: lastSession?.startTime || null
         },
         costBreakdown,
-        lastSeen: lastSession?.startTime || null
+        lastSeen: lastSession?.startTime || null,
+        // Include billing status fields for user status calculation
+        isActive: user.isActive ?? true, // Default to true if not set
+        subscriptionStatus: user.subscriptionStatus,
+        subscriptionPlan: user.subscriptionPlan,
+        grandfatheredFree: user.grandfatheredFree ?? false
       };
     }));
 
@@ -4359,14 +4364,67 @@ export class DatabaseStorage implements IStorage {
     paymentMethodRequired?: boolean;
     grandfatheredFree?: boolean;
   }): Promise<User> {
+    // Calculate user status based on billing
+    const isActive = this.calculateUserStatus(subscriptionData);
+    
     const result = await db.update(users)
       .set({ 
         ...subscriptionData,
+        isActive,
         updatedAt: new Date()
       })
       .where(eq(users.id, userId))
       .returning();
     return result[0];
+  }
+
+  // Calculate user active status based on billing
+  calculateUserStatus(userData: {
+    subscriptionStatus?: string;
+    grandfatheredFree?: boolean;
+    subscriptionPlan?: string;
+  }): boolean {
+    // If user is grandfathered (beta user with permanent free access), they're active
+    if (userData.grandfatheredFree) {
+      return true;
+    }
+
+    // If user has a free plan, they're active
+    if (userData.subscriptionPlan === 'free') {
+      return true;
+    }
+
+    // If subscription status is active or trialing, they're active
+    if (userData.subscriptionStatus && 
+        ['active', 'trialing'].includes(userData.subscriptionStatus)) {
+      return true;
+    }
+
+    // If subscription is cancelled, past_due, or unpaid, they're inactive
+    if (userData.subscriptionStatus && 
+        ['canceled', 'cancelled', 'past_due', 'unpaid'].includes(userData.subscriptionStatus)) {
+      return false;
+    }
+
+    // Default to active for users without billing setup yet
+    return true;
+  }
+
+  // Update user status for all users based on current billing status
+  async updateAllUserStatuses(): Promise<void> {
+    const allUsers = await db.select().from(users);
+    
+    for (const user of allUsers) {
+      const isActive = this.calculateUserStatus({
+        subscriptionStatus: user.subscriptionStatus || undefined,
+        grandfatheredFree: user.grandfatheredFree || false,
+        subscriptionPlan: user.subscriptionPlan || undefined
+      });
+
+      await db.update(users)
+        .set({ isActive, updatedAt: new Date() })
+        .where(eq(users.id, user.id));
+    }
   }
 
 }

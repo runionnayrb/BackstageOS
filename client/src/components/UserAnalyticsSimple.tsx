@@ -22,6 +22,10 @@ interface UserAnalytics {
   betaAccess: boolean;
   betaFeatures: string[] | null;
   isAdmin: boolean;
+  isActive: boolean;
+  subscriptionStatus: string | null;
+  subscriptionPlan: string | null;
+  grandfatheredFree: boolean;
   createdAt: Date;
   lastSeen: Date | null;
   activityLevel: 'high' | 'medium' | 'low' | 'inactive';
@@ -252,6 +256,7 @@ export default function UserAnalyticsSimple() {
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Activity</TableHead>
                 <TableHead>Cost/Day</TableHead>
                 <TableHead>Cost/Month</TableHead>
@@ -316,6 +321,23 @@ export default function UserAnalyticsSimple() {
                         </div>
                       </PopoverContent>
                     </Popover>
+                  </TableCell>
+
+                  <TableCell>
+                    <div className="space-y-1">
+                      <Badge 
+                        variant={user.isActive ? "outline" : "destructive"}
+                        className={user.isActive ? "border-green-500 text-green-700" : ""}
+                      >
+                        {user.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                      {user.grandfatheredFree && (
+                        <div className="text-xs text-blue-600">Grandfathered</div>
+                      )}
+                      {user.subscriptionPlan && (
+                        <div className="text-xs text-gray-500">{user.subscriptionPlan}</div>
+                      )}
+                    </div>
                   </TableCell>
 
                   <TableCell>

@@ -52,6 +52,7 @@ export const users = pgTable("users", {
   subscriptionEndsAt: timestamp("subscription_ends_at"),
   paymentMethodRequired: boolean("payment_method_required").default(false),
   grandfatheredFree: boolean("grandfathered_free").default(false), // For beta users
+  isActive: boolean("is_active").default(true), // User status based on billing/subscription
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

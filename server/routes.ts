@@ -1670,6 +1670,23 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Update all user statuses based on billing
+  app.post('/api/admin/update-user-statuses', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      await storage.updateAllUserStatuses();
+      res.json({ message: "User statuses updated successfully" });
+    } catch (error) {
+      console.error("Error updating user statuses:", error);
+      res.status(500).json({ message: "Failed to update user statuses" });
+    }
+  });
+
   // Advanced Analytics - Engagement Scoring Routes
   app.post('/api/admin/calculate-engagement-scores', isAuthenticated, async (req: any, res) => {
     try {
