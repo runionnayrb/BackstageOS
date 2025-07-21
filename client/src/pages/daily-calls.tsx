@@ -495,9 +495,15 @@ export default function DailyCallSheet() {
       // Safari-specific optimizations
       const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
       
-      // Create canvas from the element with Safari optimizations
+      // Create PDF with higher quality settings
+      const pdf = new jsPDF('p', 'mm', 'letter');
+      
+      // Set high-quality rendering
+      pdf.internal.scaleFactor = 2.83; // 300 DPI equivalent
+      
+      // Create canvas with much higher resolution for crisp text
       const canvas = await html2canvas.default(element, {
-        scale: isSafari ? 1.5 : 2, // Lower scale for Safari to avoid memory issues
+        scale: 3, // Higher scale for better text quality
         useCORS: true,
         allowTaint: false,
         backgroundColor: '#ffffff',
@@ -505,26 +511,26 @@ export default function DailyCallSheet() {
         scrollY: 0,
         windowWidth: element.scrollWidth,
         windowHeight: element.scrollHeight,
-        // Safari-specific options
+        // Enhanced quality options
         onclone: (clonedDoc) => {
-          // Ensure all fonts are loaded in Safari
           const clonedElement = clonedDoc.getElementById('daily-call-content');
           if (clonedElement) {
+            // Set explicit font settings for better rendering
             clonedElement.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            clonedElement.style.webkitFontSmoothing = 'antialiased';
+            clonedElement.style.mozOsxFontSmoothing = 'grayscale';
+            clonedElement.style.textRendering = 'optimizeLegibility';
           }
         }
       });
       
-      // Create PDF
-      const pdf = new jsPDF('p', 'mm', 'letter');
-      
-      // Convert canvas to image data with error handling
+      // Convert canvas to high-quality image data
       let imgData;
       try {
-        imgData = canvas.toDataURL('image/png', 0.95); // Slightly compress for Safari
+        imgData = canvas.toDataURL('image/png', 1.0); // Maximum quality PNG
       } catch (canvasError) {
         console.warn('Canvas toDataURL failed, trying JPEG:', canvasError);
-        imgData = canvas.toDataURL('image/jpeg', 0.95);
+        imgData = canvas.toDataURL('image/jpeg', 1.0); // Maximum quality JPEG
       }
       
       // Calculate dimensions to fit on letter size page
@@ -533,8 +539,8 @@ export default function DailyCallSheet() {
       const imgWidth = pageWidth - 20; // 10mm margin on each side
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // Add image to PDF with proper scaling
-      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, Math.min(imgHeight, pageHeight - 20));
+      // Add image to PDF with maximum quality
+      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, Math.min(imgHeight, pageHeight - 20), '', 'FAST');
       
       // Generate filename and save with Safari-friendly approach
       const formattedDate = format(parseISO(selectedDate), 'yyyy-MM-dd');
