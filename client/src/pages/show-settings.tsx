@@ -2583,8 +2583,16 @@ The Production Team`}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={`text-xs font-medium ${location.locationType === 'main' ? 'text-blue-600' : 'text-purple-600'}`}>
-                          {location.locationType === 'main' ? 'Main' : 'Auxiliary'}
+                        <span className={`text-xs font-medium ${
+                          location.locationType === 'main' ? 'text-blue-600' : 
+                          location.locationType === 'auxiliary' ? 'text-purple-600' :
+                          location.locationType === 'fittings' ? 'text-green-600' :
+                          location.locationType === 'appointments' ? 'text-orange-600' : 'text-gray-600'
+                        }`}>
+                          {location.locationType === 'main' ? 'Primary' : 
+                           location.locationType === 'auxiliary' ? 'Secondary' :
+                           location.locationType === 'fittings' ? 'Fittings' :
+                           location.locationType === 'appointments' ? 'Appointments' : location.locationType}
                         </span>
                         <Button
                           variant="ghost"
@@ -2944,8 +2952,10 @@ The Production Team`}
                   <SelectValue placeholder="Select location type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="main">Main Location</SelectItem>
-                  <SelectItem value="auxiliary">Auxiliary Location</SelectItem>
+                  <SelectItem value="main">Primary</SelectItem>
+                  <SelectItem value="auxiliary">Secondary</SelectItem>
+                  <SelectItem value="fittings">Fittings</SelectItem>
+                  <SelectItem value="appointments">Appointments</SelectItem>
                 </SelectContent>
               </Select>
             </div>
