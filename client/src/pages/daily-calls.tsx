@@ -475,43 +475,85 @@ export default function DailyCallSheet() {
   };
 
   const exportToPDF = async () => {
+    if (!project) return;
+    
     try {
-      const response = await fetch(`/api/projects/${actualProjectId}/daily-calls/${selectedDate}/pdf`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          callData,
-          projectName: project?.name,
-          selectedDate
-        }),
+      const { jsPDF } = await import('jspdf');
+      const html2canvas = await import('html2canvas');
+      
+      // Get the daily call content element
+      const element = document.getElementById('daily-call-content');
+      if (!element) {
+        toast({
+          title: "Export failed",
+          description: "Unable to find content to export",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Safari-specific optimizations
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      
+      // Create canvas from the element with Safari optimizations
+      const canvas = await html2canvas.default(element, {
+        scale: isSafari ? 1.5 : 2, // Lower scale for Safari to avoid memory issues
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+        // Safari-specific options
+        onclone: (clonedDoc) => {
+          // Ensure all fonts are loaded in Safari
+          const clonedElement = clonedDoc.getElementById('daily-call-content');
+          if (clonedElement) {
+            clonedElement.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          }
+        }
       });
       
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const formattedDate = format(parseISO(selectedDate), 'yyyy-MM-dd');
-        a.href = url;
-        a.download = `${formattedDate}-${project?.name}-Daily Call.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        
+      // Create PDF
+      const pdf = new jsPDF('p', 'mm', 'letter');
+      
+      // Convert canvas to image data with error handling
+      let imgData;
+      try {
+        imgData = canvas.toDataURL('image/png', 0.95); // Slightly compress for Safari
+      } catch (canvasError) {
+        console.warn('Canvas toDataURL failed, trying JPEG:', canvasError);
+        imgData = canvas.toDataURL('image/jpeg', 0.95);
+      }
+      
+      // Calculate dimensions to fit on letter size page
+      const pageWidth = 215.9; // Letter width in mm
+      const pageHeight = 279.4; // Letter height in mm
+      const imgWidth = pageWidth - 20; // 10mm margin on each side
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Add image to PDF with proper scaling
+      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, Math.min(imgHeight, pageHeight - 20));
+      
+      // Generate filename and save with Safari-friendly approach
+      const formattedDate = format(parseISO(selectedDate), 'yyyy-MM-dd');
+      const filename = `${formattedDate}-${project.name}-Daily Call.pdf`;
+      
+      // Use a timeout to ensure Safari processes the PDF generation properly
+      setTimeout(() => {
+        pdf.save(filename);
         toast({
           title: "PDF Downloaded",
           description: "Daily call sheet has been exported as PDF.",
         });
-      } else {
-        throw new Error('Failed to generate PDF');
-      }
+      }, isSafari ? 100 : 0);
+      
     } catch (error) {
       console.error('PDF export error:', error);
       toast({
         title: "Export Error",
-        description: "Failed to export daily call sheet as PDF.",
+        description: `Failed to export daily call sheet as PDF${error.message ? ': ' + error.message : '.'}`,
         variant: "destructive",
       });
     }
@@ -574,7 +616,7 @@ export default function DailyCallSheet() {
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div id="daily-call-content" className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
           {/* Call Sheet Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900">{project?.name}</h2>
