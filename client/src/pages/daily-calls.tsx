@@ -531,26 +531,27 @@ export default function DailyCallSheet() {
             const grayRows = clonedElement.querySelectorAll('.bg-gray-100');
             grayRows.forEach(row => {
               if (row.textContent?.includes('END-OF-DAY')) {
-                // Force proper alignment on the gray row
+                // Force proper alignment on the gray row with padding approach
+                row.style.paddingTop = '6px';
+                row.style.paddingBottom = '6px';
                 row.style.display = 'flex';
                 row.style.alignItems = 'center';
                 row.style.minHeight = '28px';
                 
-                // Also fix any nested elements
-                const timeElement = row.querySelector('.w-20');
-                const titleElement = row.querySelector('.flex-1');
-                
-                if (timeElement) {
-                  timeElement.style.display = 'flex';
-                  timeElement.style.alignItems = 'center';
-                  timeElement.style.height = '100%';
-                }
-                
-                if (titleElement) {
-                  titleElement.style.display = 'flex';
-                  titleElement.style.alignItems = 'center';
-                  titleElement.style.height = '100%';
-                }
+                // Find all text-containing elements and center them
+                const allTextElements = row.querySelectorAll('*');
+                allTextElements.forEach(el => {
+                  if (el.textContent && (el.textContent.includes('END-OF-DAY') || el.textContent.includes('14:00'))) {
+                    el.style.display = 'flex';
+                    el.style.alignItems = 'center';
+                    el.style.justifyContent = el.textContent.includes('14:00') ? 'flex-start' : 'flex-start';
+                    el.style.height = '100%';
+                    el.style.lineHeight = '1';
+                    el.style.paddingTop = '0';
+                    el.style.paddingBottom = '0';
+                    el.style.margin = '0';
+                  }
+                });
               }
             });
 
