@@ -668,7 +668,7 @@ export default function DailyCallSheet() {
                     
                     <div className="space-y-2">
                       {(location.events || []).map((event, eventIdx) => (
-                        <div key={event.id} className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-3 relative' : 'py-2'}`}>
+                        <div key={event.id} className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative' : 'py-2'}`}>
                           {/* Add Event Button in Left Margin - only show on END-OF-DAY row */}
                           {isEditing && event.title === 'END-OF-DAY' && (
                             <Button
@@ -682,7 +682,7 @@ export default function DailyCallSheet() {
                           )}
                           <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
                             {event.title === 'END-OF-DAY' ? (
-                              <span className="font-bold">{event.startTime}</span>
+                              <span className="font-bold leading-none flex items-center h-full">{event.startTime}</span>
                             ) : (
                               isEditing ? (
                                 <Input
@@ -700,7 +700,7 @@ export default function DailyCallSheet() {
                           </div>
                           <div className="flex-1">
                             <div>
-                              <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900' : 'font-bold text-gray-800'}`}>
+                              <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900 leading-none flex items-center h-full' : 'font-bold text-gray-800'}`}>
                                 {isEditing && event.title !== 'END-OF-DAY' ? (
                                   <Input
                                     value={event.title}
