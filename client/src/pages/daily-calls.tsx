@@ -528,14 +528,29 @@ export default function DailyCallSheet() {
             clonedElement.style.padding = '20px'; // Reduced padding for tighter margins
             
             // Fix END-OF-DAY text alignment in PDF export
-            const endOfDayRows = clonedElement.querySelectorAll('[class*="bg-gray-200"]');
-            endOfDayRows.forEach(row => {
-              // Find the flex container and ensure it centers content
-              const flexContainer = row.querySelector('div');
-              if (flexContainer && flexContainer.textContent?.includes('END-OF-DAY')) {
-                flexContainer.style.display = 'flex';
-                flexContainer.style.alignItems = 'center';
-                flexContainer.style.justifyContent = 'flex-start';
+            const endOfDayElements = clonedElement.querySelectorAll('*');
+            endOfDayElements.forEach(element => {
+              if (element.textContent?.includes('END-OF-DAY')) {
+                // Find the closest parent with bg-gray styling
+                let parent = element.parentElement;
+                while (parent && !parent.className?.includes('bg-gray')) {
+                  parent = parent.parentElement;
+                }
+                if (parent) {
+                  // Force the parent container to center its content
+                  parent.style.display = 'flex';
+                  parent.style.alignItems = 'center';
+                  parent.style.minHeight = '32px'; // Ensure adequate height for centering
+                  
+                  // Also apply centering to immediate children
+                  Array.from(parent.children).forEach(child => {
+                    if (child.textContent?.includes('END-OF-DAY')) {
+                      child.style.display = 'flex';
+                      child.style.alignItems = 'center';
+                      child.style.height = '100%';
+                    }
+                  });
+                }
               }
             });
           }
