@@ -2570,12 +2570,7 @@ The Production Team`}
                       <div className="flex items-center gap-3 flex-1">
                         <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-medium">{location.name}</h4>
-                            <Badge variant={location.locationType === 'main' ? 'default' : 'secondary'} className="text-xs">
-                              {location.locationType === 'main' ? 'Main' : 'Auxiliary'}
-                            </Badge>
-                          </div>
+                          <h4 className="font-medium">{location.name}</h4>
                           {location.address && (
                             <p className="text-sm text-muted-foreground">{location.address}</p>
                           )}
@@ -2588,6 +2583,9 @@ The Production Team`}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
+                        <Badge variant={location.locationType === 'main' ? 'default' : 'secondary'} className="text-xs">
+                          {location.locationType === 'main' ? 'Main' : 'Auxiliary'}
+                        </Badge>
                         <Button
                           variant="ghost"
                           size="sm"
