@@ -178,8 +178,6 @@ export default function Header() {
     selectedBetaAccess,
     selectedProfileType
   });
-  
-  console.log("ADMIN DROPDOWNS SHOULD BE VISIBLE - forcing true condition");
 
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
@@ -214,16 +212,11 @@ export default function Header() {
           </div>
           
           <div className="flex items-center space-x-4">
-            {/* SIMPLE TEST - Should always show */}
-            <div style={{backgroundColor: 'red', padding: '10px', color: 'white'}}>
-              TEST DROPDOWN HERE
-            </div>
-            
             {/* Admin Only: Account Type Selection */}
-            {true && (
+            {isAdmin(user) && (
               <>
                 {/* Beta Access Level Selector */}
-                <div className="hidden lg:flex items-center space-x-2 bg-red-100 p-2 border border-red-500">
+                <div className="hidden lg:flex items-center space-x-2">
                   <Shield className="h-4 w-4 text-gray-500" />
                   <Select value={selectedBetaAccess} onValueChange={handleBetaAccessChange}>
                     <SelectTrigger className="w-32 h-8 text-xs">
@@ -238,7 +231,7 @@ export default function Header() {
                 </div>
 
                 {/* Profile Type Selector */}
-                <div className="hidden lg:flex items-center space-x-2 bg-blue-100 p-2 border border-blue-500">
+                <div className="hidden lg:flex items-center space-x-2">
                   <UserCheck className="h-4 w-4 text-gray-500" />
                   <Select value={selectedProfileType} onValueChange={handleProfileTypeChange}>
                     <SelectTrigger className="w-32 h-8 text-xs">
