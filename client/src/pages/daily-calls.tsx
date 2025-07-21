@@ -539,14 +539,15 @@ export default function DailyCallSheet() {
         imgData = canvas.toDataURL('image/jpeg', 1.0); // Maximum quality JPEG
       }
       
-      // Calculate dimensions to fit on letter size page
+      // Calculate dimensions to fit on letter size page with app-matching margins
       const pageWidth = 215.9; // Letter width in mm
       const pageHeight = 279.4; // Letter height in mm
-      const imgWidth = pageWidth - 20; // 10mm margin on each side
+      const marginMm = 15; // ~56px equivalent margin to match app interface
+      const imgWidth = pageWidth - (marginMm * 2); // Margins on both sides
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // Add image to PDF with maximum quality
-      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, Math.min(imgHeight, pageHeight - 20), '', 'FAST');
+      // Add image to PDF with maximum quality and app-matching margins
+      pdf.addImage(imgData, 'PNG', marginMm, marginMm, imgWidth, Math.min(imgHeight, pageHeight - (marginMm * 2)), '', 'FAST');
       
       // Generate filename and save with Safari-friendly approach
       const formattedDate = format(parseISO(selectedDate), 'yyyy-MM-dd');
