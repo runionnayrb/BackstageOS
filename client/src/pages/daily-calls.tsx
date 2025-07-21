@@ -174,7 +174,7 @@ export default function DailyCallSheet() {
       // Auto-generate from schedule events for the selected date (even if no events exist)
       generateCallFromSchedule();
     }
-  }, [existingDailyCall, selectedDate, actualProjectId]);
+  }, [existingDailyCall, selectedDate, actualProjectId, scheduleEvents]);
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
