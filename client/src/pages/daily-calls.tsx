@@ -995,7 +995,52 @@ export default function DailyCallSheet() {
               <Textarea
                 value={callData.announcements}
                 onChange={(e) => setCallData(prev => ({ ...prev, announcements: e.target.value }))}
-                placeholder="Enter general announcements, notes, or reminders for the company..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const textarea = e.target as HTMLTextAreaElement;
+                    const { value, selectionStart } = textarea;
+                    
+                    // Split content into lines up to cursor position
+                    const beforeCursor = value.substring(0, selectionStart);
+                    const afterCursor = value.substring(selectionStart);
+                    const lines = beforeCursor.split('\n');
+                    
+                    // Get the current line
+                    const currentLine = lines[lines.length - 1];
+                    
+                    // Check if current line starts with a number pattern (e.g., "1. ", "12. ")
+                    const numberMatch = currentLine.match(/^(\d+)\.\s/);
+                    
+                    let newText;
+                    let nextNumber;
+                    if (numberMatch) {
+                      // If we're on a numbered line, create the next number
+                      const currentNumber = parseInt(numberMatch[1]);
+                      nextNumber = currentNumber + 1;
+                      newText = beforeCursor + '\n' + nextNumber + '. ' + afterCursor;
+                    } else if (lines.length === 1 && currentLine.trim() === '') {
+                      // If it's the first line and empty, start with "1. "
+                      nextNumber = 1;
+                      newText = '1. ' + afterCursor;
+                    } else {
+                      // For any other case, determine the next number based on existing content
+                      const allLines = value.split('\n');
+                      const numberedLines = allLines.filter(line => /^\d+\.\s/.test(line));
+                      nextNumber = numberedLines.length + 1;
+                      newText = beforeCursor + '\n' + nextNumber + '. ' + afterCursor;
+                    }
+                    
+                    setCallData(prev => ({ ...prev, announcements: newText }));
+                    
+                    // Set cursor position after the new number
+                    setTimeout(() => {
+                      const newCursorPos = beforeCursor.length + 1 + nextNumber.toString().length + 2;
+                      textarea.setSelectionRange(newCursorPos, newCursorPos);
+                    }, 0);
+                  }
+                }}
+                placeholder="Start typing and press Enter to create numbered items..."
                 className="min-h-20 border-2 border-black"
               />
             ) : (
