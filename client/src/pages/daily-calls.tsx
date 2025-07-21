@@ -531,28 +531,15 @@ export default function DailyCallSheet() {
             const grayRows = clonedElement.querySelectorAll('.bg-gray-100');
             grayRows.forEach(row => {
               if (row.textContent?.includes('END-OF-DAY')) {
-                // Set the row to have consistent height and positioning
-                row.style.height = '32px';
-                row.style.display = 'table';
-                row.style.width = '100%';
-                
-                // Make all child elements display as table-cells for perfect vertical centering
-                const directChildren = Array.from(row.children);
-                directChildren.forEach(child => {
-                  child.style.display = 'table-cell';
-                  child.style.verticalAlign = 'middle';
-                  child.style.height = '32px';
-                  
-                  // Also handle any nested text elements
-                  const textNodes = child.querySelectorAll('*');
-                  textNodes.forEach(textEl => {
-                    if (textEl.textContent && (textEl.textContent.includes('END-OF-DAY') || textEl.textContent.includes('14:00'))) {
-                      textEl.style.lineHeight = '32px';
-                      textEl.style.height = '32px';
-                      textEl.style.margin = '0';
-                      textEl.style.padding = '0';
-                    }
-                  });
+                // Find all text-containing elements and reduce line-height to pull text up
+                const allTextElements = row.querySelectorAll('*');
+                allTextElements.forEach(el => {
+                  if (el.textContent && (el.textContent.includes('END-OF-DAY') || el.textContent.includes('14:00'))) {
+                    el.style.lineHeight = '0.8';
+                    el.style.paddingTop = '2px';
+                    el.style.paddingBottom = '0px';
+                    el.style.margin = '0';
+                  }
                 });
               }
             });
