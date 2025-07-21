@@ -913,7 +913,7 @@ export default function DailyCallSheet() {
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
                           <div className="text-sm font-bold text-gray-800">
-                            {event.title} {event.startTime && event.endTime && (() => {
+                            {event.title}{event.startTime && event.endTime && (() => {
                               const parseTime = (timeStr) => {
                                 if (!timeStr) return 0;
                                 const [hours, minutes] = timeStr.split(':').map(Number);
@@ -922,7 +922,7 @@ export default function DailyCallSheet() {
                               const startMinutes = parseTime(event.startTime);
                               const endMinutes = parseTime(event.endTime);
                               const duration = endMinutes - startMinutes;
-                              return duration > 0 ? `(${duration} Mins)` : '';
+                              return duration > 0 ? ` - (${duration} Mins)` : '';
                             })()}
                           </div>
                           <div className="text-xs text-gray-600">{event.location}</div>
@@ -959,7 +959,7 @@ export default function DailyCallSheet() {
                       <div className="flex-1">
                         <div className="flex justify-between items-center">
                           <div className="text-sm font-bold text-gray-800">
-                            {event.title} {event.startTime && event.endTime && (() => {
+                            {event.title}{event.startTime && event.endTime && (() => {
                               const parseTime = (timeStr) => {
                                 if (!timeStr) return 0;
                                 const [hours, minutes] = timeStr.split(':').map(Number);
@@ -968,7 +968,7 @@ export default function DailyCallSheet() {
                               const startMinutes = parseTime(event.startTime);
                               const endMinutes = parseTime(event.endTime);
                               const duration = endMinutes - startMinutes;
-                              return duration > 0 ? `(${duration} Mins)` : '';
+                              return duration > 0 ? ` - (${duration} Mins)` : '';
                             })()}
                           </div>
                           <div className="text-xs text-gray-600">{event.location}</div>
