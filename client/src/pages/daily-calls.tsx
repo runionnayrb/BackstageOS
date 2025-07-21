@@ -133,90 +133,86 @@ export default function DailyCallSheet() {
     },
   });
 
-  // Load existing daily call data when it changes
+  // Generate call data when dependencies change
   useEffect(() => {
-    const generateCallFromSchedule = () => {
-      if (!actualProjectId) return;
+    if (!actualProjectId || !scheduleEvents || !contacts || !timeFormat) {
+      return;
+    }
 
-      // Filter events for the selected date
-      const dayEvents = scheduleEvents.filter(event => event.date === selectedDate);
-      
-      // Group events by location
-      const locationGroups: { [key: string]: any[] } = {};
-      
-      // If there are schedule events for the day, group them by location
-      dayEvents.forEach(event => {
-        const location = event.location || 'Main Stage';
-        if (!locationGroups[location]) {
-          locationGroups[location] = [];
-        }
-        
-        // Get actual cast members called to this event (filter to only cast category)
-        const eventCast = (event.participants || [])
-          .filter(participant => {
-            // Find the contact to check their category
-            const contact = contacts.find(c => c.id === participant.contactId);
-            return participant.isRequired && contact && contact.category === 'cast';
-          })
-          .map(participant => `${participant.contactFirstName.charAt(0)}. ${participant.contactLastName}`);
-        
-        locationGroups[location].push({
-          id: event.id,
-          title: event.title,
-          startTime: formatTimeDisplay(event.startTime?.slice(0, 5) || event.startTime, timeFormat as '12' | '24'),
-          endTime: formatTimeDisplay(event.endTime?.slice(0, 5) || event.endTime, timeFormat as '12' | '24'),
-          cast: eventCast,
-          notes: event.notes || event.description
-        });
-      });
-
-      // If no events exist for the day, create a default location
-      if (Object.keys(locationGroups).length === 0) {
-        locationGroups['Main Stage'] = [];
-      }
-
-      // Convert to locations array and add END-OF-DAY to each location
-      const locations: CallLocation[] = Object.entries(locationGroups).map(([name, events]) => {
-        const sortedEvents = events.sort((a, b) => a.startTime.localeCompare(b.startTime));
-        
-        // Determine end-of-day time based on the last event's end time
-        let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24');
-        if (sortedEvents.length > 0) {
-          const lastEvent = sortedEvents[sortedEvents.length - 1];
-          endOfDayTime = lastEvent.endTime;
-        }
-        
-        // Add END-OF-DAY event at the end
-        sortedEvents.push({
-          id: -1,
-          title: 'END-OF-DAY',
-          startTime: endOfDayTime,
-          endTime: endOfDayTime,
-          cast: [],
-          notes: undefined
-        });
-        
-        return {
-          name,
-          events: sortedEvents
-        };
-      });
-
-      setCallData(prev => ({
-        ...prev,
-        locations
-      }));
-    };
-
-    if (existingDailyCall) {
+    // If we have existing daily call data, use it
+    if (existingDailyCall?.locations) {
       setCallData({
         locations: existingDailyCall.locations as CallLocation[],
         announcements: existingDailyCall.announcements || ''
       });
-    } else if (actualProjectId && scheduleEvents && contacts) {
-      generateCallFromSchedule();
+      return;
     }
-  }, [existingDailyCall, selectedDate, actualProjectId, scheduleEvents, contacts, timeFormat]);
+
+    // Generate from schedule events
+    const dayEvents = scheduleEvents.filter(event => event.date === selectedDate);
+    const locationGroups: { [key: string]: any[] } = {};
+    
+    // Group events by location
+    dayEvents.forEach(event => {
+      const location = event.location || 'Main Stage';
+      if (!locationGroups[location]) {
+        locationGroups[location] = [];
+      }
+      
+      // Get cast members
+      const eventCast = (event.participants || [])
+        .filter(participant => {
+          const contact = contacts.find(c => c.id === participant.contactId);
+          return participant.isRequired && contact && contact.category === 'cast';
+        })
+        .map(participant => `${participant.contactFirstName.charAt(0)}. ${participant.contactLastName}`);
+      
+      locationGroups[location].push({
+        id: event.id,
+        title: event.title,
+        startTime: formatTimeDisplay(event.startTime?.slice(0, 5) || event.startTime, timeFormat as '12' | '24'),
+        endTime: formatTimeDisplay(event.endTime?.slice(0, 5) || event.endTime, timeFormat as '12' | '24'),
+        cast: eventCast,
+        notes: event.notes || event.description
+      });
+    });
+
+    // Create default location if no events
+    if (Object.keys(locationGroups).length === 0) {
+      locationGroups['Main Stage'] = [];
+    }
+
+    // Calculate END-OF-DAY time ONCE for all locations (global latest end time)
+    let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24');
+    if (dayEvents.length > 0) {
+      // Find the event with the latest end time across ALL locations for this day
+      const latestEndingEvent = dayEvents.reduce((latest, current) => {
+        const latestEnd = latest.endTime || '00:00';
+        const currentEnd = current.endTime || '00:00';
+        return currentEnd > latestEnd ? current : latest;
+      });
+      endOfDayTime = formatTimeDisplay(latestEndingEvent.endTime?.slice(0, 5) || latestEndingEvent.endTime, timeFormat as '12' | '24');
+    }
+
+    // Convert to locations array with same END-OF-DAY time for all locations
+    const locations: CallLocation[] = Object.entries(locationGroups).map(([name, events]) => {
+      const sortedEvents = events.sort((a, b) => a.startTime.localeCompare(b.startTime));
+      
+      // Add END-OF-DAY using the global end time
+      sortedEvents.push({
+        id: -1,
+        title: 'END-OF-DAY',
+        startTime: endOfDayTime,
+        endTime: endOfDayTime,
+        cast: [],
+        notes: undefined
+      });
+      
+      return { name, events: sortedEvents };
+    });
+
+    setCallData({ locations, announcements: '' });
+  }, [actualProjectId, scheduleEvents, contacts, timeFormat, selectedDate, existingDailyCall]);
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
