@@ -134,36 +134,36 @@ export default function DailyCallSheet() {
           existingDailyCall.locations.length > 0 && 
           typeof existingDailyCall.locations[0] === 'object' && 
           'events' in existingDailyCall.locations[0]) {
-        // Already structured - just ensure END-OF-DAY events
-        const locationsWithEndOfDay = (existingDailyCall.locations as CallLocation[]).map(location => {
+        // Already structured - ensure only ONE END-OF-DAY event per location
+        const locationsWithSingleEndOfDay = (existingDailyCall.locations as CallLocation[]).map(location => {
           const events = location.events || [];
-          const hasEndOfDay = events.some(event => event.title === 'END-OF-DAY');
-          if (!hasEndOfDay) {
-            // Determine end-of-day time based on the last event's end time
-            let endOfDayTime = '23:59'; // Default fallback
-            if (events.length > 0) {
-              const sortedEvents = [...events].sort((a, b) => a.startTime.localeCompare(b.startTime));
-              const lastEvent = sortedEvents[sortedEvents.length - 1];
-              endOfDayTime = lastEvent.endTime;
-            }
-            
-            return {
-              ...location,
-              events: [...events, {
-                id: -1,
-                title: 'END-OF-DAY',
-                startTime: endOfDayTime,
-                endTime: endOfDayTime,
-                cast: [],
-                notes: undefined
-              }]
-            };
+          // Remove ALL existing END-OF-DAY events first
+          const eventsWithoutEndOfDay = events.filter(event => event.title !== 'END-OF-DAY');
+          
+          // Determine end-of-day time based on the last event's end time
+          let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback
+          if (eventsWithoutEndOfDay.length > 0) {
+            const sortedEvents = [...eventsWithoutEndOfDay].sort((a, b) => a.startTime.localeCompare(b.startTime));
+            const lastEvent = sortedEvents[sortedEvents.length - 1];
+            endOfDayTime = lastEvent.endTime;
           }
-          return location;
+          
+          // Add exactly ONE END-OF-DAY event
+          return {
+            ...location,
+            events: [...eventsWithoutEndOfDay, {
+              id: -1,
+              title: 'END-OF-DAY',
+              startTime: endOfDayTime,
+              endTime: endOfDayTime,
+              cast: [],
+              notes: undefined
+            }]
+          };
         });
         
         setCallData({
-          locations: locationsWithEndOfDay,
+          locations: locationsWithSingleEndOfDay,
           announcements: existingDailyCall.announcements || ''
         });
       } else {
@@ -174,7 +174,7 @@ export default function DailyCallSheet() {
       // Auto-generate from schedule events for the selected date (even if no events exist)
       generateCallFromSchedule();
     }
-  }, [existingDailyCall, selectedDate, actualProjectId, scheduleEvents]);
+  }, [existingDailyCall, selectedDate, actualProjectId, timeFormat]); // Removed scheduleEvents to prevent infinite loops
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
@@ -225,14 +225,14 @@ export default function DailyCallSheet() {
     const locations: CallLocation[] = Object.entries(locationGroups).map(([name, events]) => {
       const sortedEvents = events.sort((a, b) => a.startTime.localeCompare(b.startTime));
       
-      // Determine end-of-day time based on the last event's end time
-      let endOfDayTime = '23:59'; // Default fallback
+      // Determine end-of-day time based on the last event's end time, properly formatted
+      let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback with proper formatting
       if (sortedEvents.length > 0) {
         const lastEvent = sortedEvents[sortedEvents.length - 1];
-        endOfDayTime = lastEvent.endTime;
+        endOfDayTime = lastEvent.endTime; // Already formatted from earlier
       }
       
-      // Add END-OF-DAY event at the end
+      // Add exactly ONE END-OF-DAY event at the end
       sortedEvents.push({
         id: -1, // Special ID for END-OF-DAY
         title: 'END-OF-DAY',
@@ -269,8 +269,8 @@ export default function DailyCallSheet() {
       events: [{
         id: -1,
         title: 'END-OF-DAY',
-        startTime: '23:59', // Default when no events exist
-        endTime: '23:59',
+        startTime: formatTimeDisplay('23:59', timeFormat as '12' | '24'), // Default when no events exist with proper formatting
+        endTime: formatTimeDisplay('23:59', timeFormat as '12' | '24'),
         cast: [],
         notes: undefined
       }]
@@ -332,7 +332,7 @@ export default function DailyCallSheet() {
   // Helper function to update END-OF-DAY time for a location
   const updateEndOfDayTime = (events: Array<{ id: number; title: string; startTime: string; endTime: string; cast: string[]; notes?: string; }>) => {
     const nonEndOfDayEvents = events.filter(event => event.title !== 'END-OF-DAY');
-    let endOfDayTime = '23:59'; // Default fallback
+    let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback with proper formatting
     
     if (nonEndOfDayEvents.length > 0) {
       const sortedEvents = [...nonEndOfDayEvents].sort((a, b) => a.startTime.localeCompare(b.startTime));
