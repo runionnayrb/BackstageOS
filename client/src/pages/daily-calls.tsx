@@ -575,9 +575,9 @@ export default function DailyCallSheet() {
               // Multiple locations - 2/3 and 1/3 layout with full-width END-OF-DAY
               <div className="space-y-4">
                 {/* Regular events in grid layout */}
-                <div className="grid grid-cols-3 gap-8">
+                <div className="grid grid-cols-7 gap-0">
                   {(callData.locations || []).map((location, locationIndex) => (
-                    <div key={locationIndex} className={`space-y-3 ${locationIndex === 0 ? 'col-span-2' : 'col-span-1'}`}>
+                    <div key={locationIndex} className={`space-y-3 ${locationIndex === 0 ? 'col-span-4' : 'col-span-3'}`}>
                       <div className="border-b-2 border-black pb-2">
                         <h4 className="text-lg font-semibold text-gray-900">
                           {location.name}
