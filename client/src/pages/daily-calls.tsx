@@ -69,18 +69,6 @@ export default function DailyCallSheet() {
     enabled: !!actualProjectId,
   });
 
-  // Fetch show settings for time format
-  const { data: showSettings } = useQuery({
-    queryKey: ['/api/projects', actualProjectId, 'settings'],
-    enabled: !!actualProjectId,
-  });
-
-  // Fetch event locations with their types
-  const { data: eventLocations = [] } = useQuery({
-    queryKey: ['/api/projects', actualProjectId, 'event-locations'],
-    enabled: !!actualProjectId,
-  });
-
   // Fetch schedule events for the selected date
   const { data: scheduleEvents = [] } = useQuery<ScheduleEvent[]>({
     queryKey: ['/api/projects', actualProjectId, 'schedule-events'],
@@ -93,7 +81,11 @@ export default function DailyCallSheet() {
     enabled: !!actualProjectId,
   });
 
-
+  // Fetch show settings for timezone and time format preferences
+  const { data: showSettings } = useQuery({
+    queryKey: [`/api/projects/${actualProjectId}/settings`],
+    enabled: !!actualProjectId,
+  });
 
   // Fetch existing daily call for the selected date
   const { data: existingDailyCall, isLoading } = useQuery<DailyCall>({
@@ -133,38 +125,85 @@ export default function DailyCallSheet() {
     },
   });
 
-  // Generate call data when dependencies change
+  // Load existing daily call data when it changes
   useEffect(() => {
-    if (!actualProjectId || !scheduleEvents || !contacts || !timeFormat) {
-      return;
+    if (existingDailyCall) {
+      // The existingDailyCall might have a different structure from the database
+      // Check if it already has the structured format we expect
+      if (existingDailyCall.locations && Array.isArray(existingDailyCall.locations) && 
+          existingDailyCall.locations.length > 0 && 
+          typeof existingDailyCall.locations[0] === 'object' && 
+          'events' in existingDailyCall.locations[0]) {
+        // Already structured - just ensure END-OF-DAY events
+        const locationsWithEndOfDay = (existingDailyCall.locations as CallLocation[]).map(location => {
+          const events = location.events || [];
+          const hasEndOfDay = events.some(event => event.title === 'END-OF-DAY');
+          if (!hasEndOfDay) {
+            // Determine end-of-day time based on the last event's end time
+            let endOfDayTime = '23:59'; // Default fallback
+            if (events.length > 0) {
+              const sortedEvents = [...events].sort((a, b) => a.startTime.localeCompare(b.startTime));
+              const lastEvent = sortedEvents[sortedEvents.length - 1];
+              endOfDayTime = lastEvent.endTime;
+            }
+            
+            return {
+              ...location,
+              events: [...events, {
+                id: -1,
+                title: 'END-OF-DAY',
+                startTime: endOfDayTime,
+                endTime: endOfDayTime,
+                cast: [],
+                notes: undefined
+              }]
+            };
+          }
+          return location;
+        });
+        
+        setCallData({
+          locations: locationsWithEndOfDay,
+          announcements: existingDailyCall.announcements || ''
+        });
+      } else {
+        // Raw database format - need to transform
+        generateCallFromSchedule();
+      }
+    } else if (actualProjectId && !existingDailyCall) {
+      // Auto-generate from schedule events for the selected date (even if no events exist)
+      generateCallFromSchedule();
     }
+  }, [existingDailyCall, selectedDate, actualProjectId, scheduleEvents]);
 
-    // If we have existing daily call data, use it
-    if (existingDailyCall?.locations) {
-      setCallData({
-        locations: existingDailyCall.locations as CallLocation[],
-        announcements: existingDailyCall.announcements || ''
-      });
-      return;
+  // Date picker navigation function
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      const selectedDateStr = format(date, 'yyyy-MM-dd');
+      setLocation(`/shows/${actualProjectId}/calls/${selectedDateStr}`);
+      setDatePickerOpen(false);
     }
+  };
 
-    // Generate from schedule events
+  const generateCallFromSchedule = () => {
+    if (!actualProjectId) return;
+
+    // Filter events for the selected date
     const dayEvents = scheduleEvents.filter(event => event.date === selectedDate);
-    const locationGroups: { [key: string]: any[] } = {};
     
     // Group events by location
+    const locationGroups: { [key: string]: any[] } = {};
+    
+    // If there are schedule events for the day, group them by location
     dayEvents.forEach(event => {
       const location = event.location || 'Main Stage';
       if (!locationGroups[location]) {
         locationGroups[location] = [];
       }
       
-      // Get cast members
+      // Get actual participants called to this event
       const eventCast = (event.participants || [])
-        .filter(participant => {
-          const contact = contacts.find(c => c.id === participant.contactId);
-          return participant.isRequired && contact && contact.category === 'cast';
-        })
+        .filter(participant => participant.isRequired) // Only show required participants
         .map(participant => `${participant.contactFirstName.charAt(0)}. ${participant.contactLastName}`);
       
       locationGroups[location].push({
@@ -177,30 +216,25 @@ export default function DailyCallSheet() {
       });
     });
 
-    // Create default location if no events
+    // If no events exist for the day, create a default location
     if (Object.keys(locationGroups).length === 0) {
       locationGroups['Main Stage'] = [];
     }
 
-    // Calculate END-OF-DAY time ONCE for all locations (global latest end time)
-    let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24');
-    if (dayEvents.length > 0) {
-      // Find the event with the latest end time across ALL locations for this day
-      const latestEndingEvent = dayEvents.reduce((latest, current) => {
-        const latestEnd = latest.endTime || '00:00';
-        const currentEnd = current.endTime || '00:00';
-        return currentEnd > latestEnd ? current : latest;
-      });
-      endOfDayTime = formatTimeDisplay(latestEndingEvent.endTime?.slice(0, 5) || latestEndingEvent.endTime, timeFormat as '12' | '24');
-    }
-
-    // Convert to locations array with same END-OF-DAY time for all locations
+    // Convert to locations array and add END-OF-DAY to each location
     const locations: CallLocation[] = Object.entries(locationGroups).map(([name, events]) => {
       const sortedEvents = events.sort((a, b) => a.startTime.localeCompare(b.startTime));
       
-      // Add END-OF-DAY using the global end time
+      // Determine end-of-day time based on the last event's end time
+      let endOfDayTime = '23:59'; // Default fallback
+      if (sortedEvents.length > 0) {
+        const lastEvent = sortedEvents[sortedEvents.length - 1];
+        endOfDayTime = lastEvent.endTime;
+      }
+      
+      // Add END-OF-DAY event at the end
       sortedEvents.push({
-        id: -1,
+        id: -1, // Special ID for END-OF-DAY
         title: 'END-OF-DAY',
         startTime: endOfDayTime,
         endTime: endOfDayTime,
@@ -208,22 +242,17 @@ export default function DailyCallSheet() {
         notes: undefined
       });
       
-      return { name, events: sortedEvents };
+      return {
+        name,
+        events: sortedEvents
+      };
     });
 
-    setCallData({ locations, announcements: '' });
-  }, [actualProjectId, scheduleEvents, contacts, timeFormat, selectedDate, existingDailyCall]);
-
-  // Date picker navigation function
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      const selectedDateStr = format(date, 'yyyy-MM-dd');
-      setLocation(`/shows/${actualProjectId}/calls/${selectedDateStr}`);
-      setDatePickerOpen(false);
-    }
+    setCallData(prev => ({
+      ...prev,
+      locations
+    }));
   };
-
-
 
   const handleSave = () => {
     saveCallMutation.mutate({
@@ -240,8 +269,8 @@ export default function DailyCallSheet() {
       events: [{
         id: -1,
         title: 'END-OF-DAY',
-        startTime: formatTimeDisplay('23:59', timeFormat as '12' | '24'), // Default when no events exist with proper formatting
-        endTime: formatTimeDisplay('23:59', timeFormat as '12' | '24'),
+        startTime: '23:59', // Default when no events exist
+        endTime: '23:59',
         cast: [],
         notes: undefined
       }]
@@ -455,33 +484,46 @@ export default function DailyCallSheet() {
                     </div>
                     
                     <div className="space-y-2">
-                      {(location.events || []).filter(event => event.title !== 'END-OF-DAY').map((event, eventIdx) => (
-                        <div key={event.id} className="flex items-start gap-6 py-2">
+                      {(location.events || []).map((event, eventIdx) => (
+                        <div key={event.id} className={`flex items-start gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative' : 'py-2'}`}>
+                          {/* Add Event Button in Left Margin - only show on END-OF-DAY row */}
+                          {isEditing && event.title === 'END-OF-DAY' && (
+                            <Button
+                              onClick={() => addEvent(locationIndex)}
+                              variant="ghost"
+                              size="sm"
+                              className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-6 p-0 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-transparent hover:bg-transparent text-black"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          )}
                           <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
-                            {isEditing ? (
-                              <Input
-                                value={event.startTime}
-                                onChange={(e) => {
-                                  const newLocations = [...callData.locations];
-                                  const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
-                                  newLocations[locationIndex].events[originalEventIdx].startTime = e.target.value;
-                                  setCallData(prev => ({ ...prev, locations: newLocations }));
-                                }}
-                                className="text-xs w-16"
-                                placeholder="9:00 AM"
-                              />
-                            ) : event.startTime}
+                            {event.title === 'END-OF-DAY' ? (
+                              <span className="font-bold">{event.startTime}</span>
+                            ) : (
+                              isEditing ? (
+                                <Input
+                                  value={event.startTime}
+                                  onChange={(e) => {
+                                    const newLocations = [...callData.locations];
+                                    newLocations[locationIndex].events[eventIdx].startTime = e.target.value;
+                                    setCallData(prev => ({ ...prev, locations: newLocations }));
+                                  }}
+                                  className="text-xs w-16"
+                                  placeholder="9:00 AM"
+                                />
+                              ) : event.startTime
+                            )}
                           </div>
                           <div className="flex-1">
                             <div>
-                              <div className="text-sm font-bold text-gray-800">
-                                {isEditing ? (
+                              <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900' : 'font-bold text-gray-800'}`}>
+                                {isEditing && event.title !== 'END-OF-DAY' ? (
                                   <Input
                                     value={event.title}
                                     onChange={(e) => {
                                       const newLocations = [...callData.locations];
-                                      const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
-                                      newLocations[locationIndex].events[originalEventIdx].title = e.target.value;
+                                      newLocations[locationIndex].events[eventIdx].title = e.target.value;
                                       setCallData(prev => ({ ...prev, locations: newLocations }));
                                     }}
                                     className="font-medium text-sm"
@@ -490,7 +532,7 @@ export default function DailyCallSheet() {
                                   event.title
                                 )}
                               </div>
-                              {isEditing ? (
+                              {isEditing && event.title !== 'END-OF-DAY' ? (
                                 <div className="mt-2">
                                   <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
                                   <div className="mt-1">
@@ -499,8 +541,7 @@ export default function DailyCallSheet() {
                                       selectedCast={event.cast}
                                       onChange={(newCast) => {
                                         const newLocations = [...callData.locations];
-                                        const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
-                                        newLocations[locationIndex].events[originalEventIdx].cast = newCast;
+                                        newLocations[locationIndex].events[eventIdx].cast = newCast;
                                         setCallData(prev => ({ ...prev, locations: newLocations }));
                                       }}
                                       placeholder="Type to search cast members..."
@@ -518,114 +559,26 @@ export default function DailyCallSheet() {
                           </div>
                         </div>
                       ))}
+                      
+
                     </div>
                   </div>
                 ))}
-                
-                {/* Single calculated END-OF-DAY for single location */}
-                {(() => {
-                  // Find the latest event time across all locations
-                  const allEvents = (callData.locations || []).flatMap(location => 
-                    (location.events || []).filter(event => event.title !== 'END-OF-DAY')
-                  );
-                  
-                  if (allEvents.length === 0) return null;
-                  
-                  // Find the latest time
-                  const latestEvent = allEvents.reduce((latest, current) => {
-                    const currentTime = current.startTime || '00:00';
-                    const latestTime = latest.startTime || '00:00';
-                    return currentTime > latestTime ? current : latest;
-                  });
-                  
-                  // Calculate END-OF-DAY time (add 30 minutes to latest event)
-                  const calculateEndTime = (startTime) => {
-                    if (!startTime) return 'END-OF-DAY';
-                    
-                    // Parse time - handle both 12-hour and 24-hour formats
-                    let hours, minutes;
-                    
-                    // Check if it has AM/PM (12-hour format)
-                    const twelveHourMatch = startTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-                    if (twelveHourMatch) {
-                      hours = parseInt(twelveHourMatch[1]);
-                      minutes = parseInt(twelveHourMatch[2]);
-                      const isPM = twelveHourMatch[3].toUpperCase() === 'PM';
-                      
-                      // Convert to 24-hour format
-                      if (isPM && hours !== 12) hours += 12;
-                      if (!isPM && hours === 12) hours = 0;
-                    } else {
-                      // Assume 24-hour format (HH:MM)
-                      const twentyFourHourMatch = startTime.match(/(\d{1,2}):(\d{2})/);
-                      if (!twentyFourHourMatch) return 'END-OF-DAY';
-                      
-                      hours = parseInt(twentyFourHourMatch[1]);
-                      minutes = parseInt(twentyFourHourMatch[2]);
-                    }
-                    
-                    // Add 30 minutes
-                    minutes += 30;
-                    if (minutes >= 60) {
-                      hours += 1;
-                      minutes -= 60;
-                    }
-                    
-                    // Get time format from show settings (default to 12-hour)
-                    const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
-                    const timeFormat = scheduleSettings?.timeFormat || '12h';
-                    
-                    // Format according to show settings
-                    if (timeFormat === '24h') {
-                      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                    } else {
-                      // 12-hour format
-                      const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
-                      const ampm = hours >= 12 ? 'PM' : 'AM';
-                      return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-                    }
-                  };
-                  
-                  const endTime = calculateEndTime(latestEvent.startTime);
-                  
-                  return (
-                    <div className="bg-gray-100 py-1">
-                      <div className="flex items-center">
-                        <div className="w-20 text-sm font-medium text-gray-700">
-                          <span className="font-bold">{endTime}</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-bold text-gray-900">
-                            END-OF-DAY
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
               </div>
             ) : (
               // Multiple locations - 2/3 and 1/3 layout with full-width END-OF-DAY
               <div className="space-y-4">
                 {/* Regular events in grid layout */}
                 <div className="grid grid-cols-3 gap-8">
-                  {/* Main locations in left 2/3 columns */}
-                  <div className="col-span-2 space-y-6">
-                    {(callData.locations || [])
-                      .filter(location => {
-                        const eventLocation = eventLocations.find(el => el.name === location.name);
-                        return !eventLocation || eventLocation.locationType === 'main';
-                      })
-                      .map((location, locationIndex) => (
-                    <div key={locationIndex} className="space-y-3">
+                  {(callData.locations || []).map((location, locationIndex) => (
+                    <div key={locationIndex} className={`space-y-3 ${locationIndex === 0 ? 'col-span-2' : 'col-span-1'}`}>
+                      <div className="border-b-2 border-black pb-2">
+                        <h4 className="text-lg font-semibold text-gray-900">
+                          {location.name}
+                        </h4>
+                      </div>
+                      
                       <div className="space-y-2">
-                        <div className="border-b-2 border-black pb-2">
-                          <h4 className="text-lg font-semibold text-gray-900">
-                            {location.name}
-                          </h4>
-                        </div>
-                        
-                        {/* Regular events for this location */}
                         {(location.events || []).filter(event => event.title !== 'END-OF-DAY').map((event, eventIdx) => (
                           <div key={event.id} className="flex items-start gap-4 py-2">
                             <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
@@ -689,179 +642,49 @@ export default function DailyCallSheet() {
                             </div>
                           </div>
                         ))}
+                        
+
                       </div>
                     </div>
                   ))}
-                  </div>
-                  
-                  {/* Auxiliary locations in right 1/3 column */}
-                  <div className="col-span-1 space-y-6">
-                    {(callData.locations || [])
-                      .filter(location => {
-                        const eventLocation = eventLocations.find(el => el.name === location.name);
-                        return eventLocation && eventLocation.locationType === 'auxiliary';
-                      })
-                      .map((location, auxLocationIndex) => (
-                    <div key={auxLocationIndex} className="space-y-3">
-                      <div className="space-y-2">
-                        <div className="border-b-2 border-black pb-2">
-                          <h4 className="text-lg font-semibold text-gray-900">
-                            {location.name}
-                          </h4>
-                        </div>
-                        {(location.events || []).filter(event => event.title !== 'END-OF-DAY').map((event, eventIdx) => (
-                          <div key={event.id} className="flex items-start gap-4 py-2">
-                            <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
-                              {isEditing ? (
-                                <Input
-                                  value={event.startTime}
-                                  onChange={(e) => {
-                                    const newLocations = [...callData.locations];
-                                    const actualLocationIndex = callData.locations.findIndex(loc => loc.name === location.name);
-                                    const originalEventIdx = newLocations[actualLocationIndex].events.findIndex(ev => ev.id === event.id);
-                                    newLocations[actualLocationIndex].events[originalEventIdx].startTime = e.target.value;
-                                    setCallData(prev => ({ ...prev, locations: newLocations }));
-                                  }}
-                                  className="text-xs w-14"
-                                  placeholder="9:00 AM"
-                                />
-                              ) : event.startTime}
-                            </div>
-                            <div className="flex-1">
-                              <div>
-                                <div className="text-sm font-bold text-gray-800">
-                                  {isEditing ? (
-                                    <Input
-                                      value={event.title}
-                                      onChange={(e) => {
-                                        const newLocations = [...callData.locations];
-                                        const actualLocationIndex = callData.locations.findIndex(loc => loc.name === location.name);
-                                        const originalEventIdx = newLocations[actualLocationIndex].events.findIndex(ev => ev.id === event.id);
-                                        newLocations[actualLocationIndex].events[originalEventIdx].title = e.target.value;
-                                        setCallData(prev => ({ ...prev, locations: newLocations }));
-                                      }}
-                                      className="font-medium text-sm"
-                                    />
-                                  ) : (
-                                    event.title
-                                  )}
-                                </div>
-                                {isEditing ? (
-                                  <div className="mt-2">
-                                    <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
-                                    <div className="mt-1">
-                                      <CastSelector
-                                        contacts={contacts}
-                                        selectedCast={event.cast}
-                                        onChange={(newCast) => {
-                                          const newLocations = [...callData.locations];
-                                          const actualLocationIndex = callData.locations.findIndex(loc => loc.name === location.name);
-                                          const originalEventIdx = newLocations[actualLocationIndex].events.findIndex(ev => ev.id === event.id);
-                                          newLocations[actualLocationIndex].events[originalEventIdx].cast = newCast;
-                                          setCallData(prev => ({ ...prev, locations: newLocations }));
-                                        }}
-                                        placeholder="Type to search cast members..."
-                                      />
-                                    </div>
-                                  </div>
-                                ) : (
-                                  event.cast && event.cast.length > 0 && (
-                                    <div className="text-xs text-black mt-1">
-                                      {event.cast.join(', ')}
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                  </div>
                 </div>
 
-                {/* Single calculated END-OF-DAY */}
-                {(() => {
-                  // Find the latest event time across all locations
-                  const allEvents = (callData.locations || []).flatMap(location => 
-                    (location.events || []).filter(event => event.title !== 'END-OF-DAY')
-                  );
-                  
-                  if (allEvents.length === 0) return null;
-                  
-                  // Find the latest time
-                  const latestEvent = allEvents.reduce((latest, current) => {
-                    const currentTime = current.startTime || '00:00';
-                    const latestTime = latest.startTime || '00:00';
-                    return currentTime > latestTime ? current : latest;
-                  });
-                  
-                  // Calculate END-OF-DAY time (add 30 minutes to latest event)
-                  const calculateEndTime = (startTime) => {
-                    if (!startTime) return 'END-OF-DAY';
-                    
-                    // Parse time - handle both 12-hour and 24-hour formats
-                    let hours, minutes;
-                    
-                    // Check if it has AM/PM (12-hour format)
-                    const twelveHourMatch = startTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
-                    if (twelveHourMatch) {
-                      hours = parseInt(twelveHourMatch[1]);
-                      minutes = parseInt(twelveHourMatch[2]);
-                      const isPM = twelveHourMatch[3].toUpperCase() === 'PM';
-                      
-                      // Convert to 24-hour format
-                      if (isPM && hours !== 12) hours += 12;
-                      if (!isPM && hours === 12) hours = 0;
-                    } else {
-                      // Assume 24-hour format (HH:MM)
-                      const twentyFourHourMatch = startTime.match(/(\d{1,2}):(\d{2})/);
-                      if (!twentyFourHourMatch) return 'END-OF-DAY';
-                      
-                      hours = parseInt(twentyFourHourMatch[1]);
-                      minutes = parseInt(twentyFourHourMatch[2]);
-                    }
-                    
-                    // Add 30 minutes
-                    minutes += 30;
-                    if (minutes >= 60) {
-                      hours += 1;
-                      minutes -= 60;
-                    }
-                    
-                    // Get time format from show settings (default to 12-hour)
-                    const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
-                    const timeFormat = scheduleSettings?.timeFormat || '12h';
-                    
-                    // Format according to show settings
-                    if (timeFormat === '24h') {
-                      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                    } else {
-                      // 12-hour format
-                      const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
-                      const ampm = hours >= 12 ? 'PM' : 'AM';
-                      return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-                    }
-                  };
-                  
-                  const endTime = calculateEndTime(latestEvent.startTime);
-                  
-                  return (
-                    <div className="bg-gray-100 py-1">
-                      <div className="flex items-center">
-                        <div className="w-20 text-sm font-medium text-gray-700">
-                          <span className="font-bold">{endTime}</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-bold text-gray-900">
-                            END-OF-DAY
+                {/* Full-width END-OF-DAY events */}
+                {(callData.locations || []).some(location => 
+                  (location.events || []).some(event => event.title === 'END-OF-DAY')
+                ) && (
+                  <div className="space-y-1">
+                    {(callData.locations || []).flatMap((location, locationIndex) => 
+                      (location.events || [])
+                        .filter(event => event.title === 'END-OF-DAY')
+                        .map(event => ({ event, locationIndex }))
+                    ).map(({ event, locationIndex }, index) => (
+                      <div key={`end-of-day-${index}`} className="bg-gray-100 py-1 relative">
+                        {/* Add Event Button in Left Margin - only show on first END-OF-DAY row */}
+                        {isEditing && index === 0 && (
+                          <Button
+                            onClick={() => addEvent(locationIndex)}
+                            variant="ghost"
+                            size="sm"
+                            className="absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-6 p-0 opacity-0 hover:opacity-100 transition-opacity duration-200 bg-transparent hover:bg-transparent text-black"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <div className="flex items-center">
+                          <div className="w-20 text-sm font-medium text-gray-700">
+                            <span className="font-bold">{event.startTime}</span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-sm font-bold text-gray-900">
+                              {event.title}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })()}
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
