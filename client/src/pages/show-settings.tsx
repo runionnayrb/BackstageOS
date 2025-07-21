@@ -160,7 +160,7 @@ export default function ShowSettings() {
   const [draggedLocationId, setDraggedLocationId] = useState<number | null>(null);
   const [dragOverLocationId, setDragOverLocationId] = useState<number | null>(null);
   const [eventTypeForm, setEventTypeForm] = useState({ name: '', description: '', color: '#3b82f6' });
-  const [locationForm, setLocationForm] = useState({ name: '', address: '', description: '', capacity: '', notes: '' });
+  const [locationForm, setLocationForm] = useState({ name: '', address: '', description: '', capacity: '', notes: '', locationType: 'main' });
 
   // Phase 5 schedule settings state
   const [showGoogleAuth, setShowGoogleAuth] = useState(false);
@@ -1037,7 +1037,7 @@ The Production Team`
   // Location management functions
   const handleCreateLocation = () => {
     setEditingLocation(null);
-    setLocationForm({ name: '', address: '', description: '', capacity: '', notes: '' });
+    setLocationForm({ name: '', address: '', description: '', capacity: '', notes: '', locationType: 'main' });
     setIsLocationDialogOpen(true);
   };
 
@@ -1048,7 +1048,8 @@ The Production Team`
       address: location.address || '',
       description: location.description || '',
       capacity: location.capacity?.toString() || '',
-      notes: location.notes || ''
+      notes: location.notes || '',
+      locationType: location.locationType || 'main'
     });
     setIsLocationDialogOpen(true);
   };
@@ -2568,7 +2569,12 @@ The Production Team`}
                       <div className="flex items-center gap-3 flex-1">
                         <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         <div className="flex-1">
-                          <h4 className="font-medium">{location.name}</h4>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium">{location.name}</h4>
+                            <Badge variant={location.locationType === 'main' ? 'default' : 'secondary'} className="text-xs">
+                              {location.locationType === 'main' ? 'Main' : 'Auxiliary'}
+                            </Badge>
+                          </div>
                           {location.address && (
                             <p className="text-sm text-muted-foreground">{location.address}</p>
                           )}
@@ -2927,6 +2933,22 @@ The Production Team`}
                 onChange={(e) => setLocationForm(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="e.g., Main Theater, Studio A, Conference Room"
               />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="locationType">Location Type</Label>
+              <Select
+                value={locationForm.locationType}
+                onValueChange={(value) => setLocationForm(prev => ({ ...prev, locationType: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select location type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="main">Main Location</SelectItem>
+                  <SelectItem value="auxiliary">Auxiliary Location</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="space-y-2">
