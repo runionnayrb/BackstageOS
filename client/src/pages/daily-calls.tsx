@@ -516,46 +516,46 @@ export default function DailyCallSheet() {
                             )}
                           </div>
                           <div className="flex-1">
-                            {isEditing && event.title !== 'END-OF-DAY' ? (
-                              <Input
-                                value={event.title}
-                                onChange={(e) => {
-                                  const newLocations = [...callData.locations];
-                                  newLocations[locationIndex].events[eventIdx].title = e.target.value;
-                                  setCallData(prev => ({ ...prev, locations: newLocations }));
-                                }}
-                                className="font-medium text-sm"
-                              />
-                            ) : (
-                              <div>
-                                <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900' : 'font-bold text-gray-800'}`}>
-                                  {event.title}
-                                </div>
+                            <div>
+                              <div className={`text-sm ${event.title === 'END-OF-DAY' ? 'font-bold text-gray-900' : 'font-bold text-gray-800'}`}>
                                 {isEditing && event.title !== 'END-OF-DAY' ? (
-                                  <div className="mt-2">
-                                    <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
-                                    <div className="mt-1">
-                                      <CastSelector
-                                        contacts={contacts}
-                                        selectedCast={event.cast}
-                                        onChange={(newCast) => {
-                                          const newLocations = [...callData.locations];
-                                          newLocations[locationIndex].events[eventIdx].cast = newCast;
-                                          setCallData(prev => ({ ...prev, locations: newLocations }));
-                                        }}
-                                        placeholder="Type to search cast members..."
-                                      />
-                                    </div>
-                                  </div>
+                                  <Input
+                                    value={event.title}
+                                    onChange={(e) => {
+                                      const newLocations = [...callData.locations];
+                                      newLocations[locationIndex].events[eventIdx].title = e.target.value;
+                                      setCallData(prev => ({ ...prev, locations: newLocations }));
+                                    }}
+                                    className="font-medium text-sm"
+                                  />
                                 ) : (
-                                  event.cast.length > 0 && (
-                                    <div className="text-xs text-black mt-1">
-                                      {event.cast.join(', ')}
-                                    </div>
-                                  )
+                                  event.title
                                 )}
                               </div>
-                            )}
+                              {isEditing && event.title !== 'END-OF-DAY' ? (
+                                <div className="mt-2">
+                                  <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
+                                  <div className="mt-1">
+                                    <CastSelector
+                                      contacts={contacts}
+                                      selectedCast={event.cast}
+                                      onChange={(newCast) => {
+                                        const newLocations = [...callData.locations];
+                                        newLocations[locationIndex].events[eventIdx].cast = newCast;
+                                        setCallData(prev => ({ ...prev, locations: newLocations }));
+                                      }}
+                                      placeholder="Type to search cast members..."
+                                    />
+                                  </div>
+                                </div>
+                              ) : (
+                                event.cast && event.cast.length > 0 && (
+                                  <div className="text-xs text-black mt-1">
+                                    {event.cast.join(', ')}
+                                  </div>
+                                )
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -597,48 +597,48 @@ export default function DailyCallSheet() {
                               ) : event.startTime}
                             </div>
                             <div className="flex-1">
-                              {isEditing ? (
-                                <Input
-                                  value={event.title}
-                                  onChange={(e) => {
-                                    const newLocations = [...callData.locations];
-                                    const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
-                                    newLocations[locationIndex].events[originalEventIdx].title = e.target.value;
-                                    setCallData(prev => ({ ...prev, locations: newLocations }));
-                                  }}
-                                  className="font-medium text-sm"
-                                />
-                              ) : (
-                                <div>
-                                  <div className="text-sm font-bold text-gray-800">
-                                    {event.title}
-                                  </div>
+                              <div>
+                                <div className="text-sm font-bold text-gray-800">
                                   {isEditing ? (
-                                    <div className="mt-2">
-                                      <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
-                                      <div className="mt-1">
-                                        <CastSelector
-                                          contacts={contacts}
-                                          selectedCast={event.cast}
-                                          onChange={(newCast) => {
-                                            const newLocations = [...callData.locations];
-                                            const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
-                                            newLocations[locationIndex].events[originalEventIdx].cast = newCast;
-                                            setCallData(prev => ({ ...prev, locations: newLocations }));
-                                          }}
-                                          placeholder="Type to search cast members..."
-                                        />
-                                      </div>
-                                    </div>
+                                    <Input
+                                      value={event.title}
+                                      onChange={(e) => {
+                                        const newLocations = [...callData.locations];
+                                        const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
+                                        newLocations[locationIndex].events[originalEventIdx].title = e.target.value;
+                                        setCallData(prev => ({ ...prev, locations: newLocations }));
+                                      }}
+                                      className="font-medium text-sm"
+                                    />
                                   ) : (
-                                    event.cast.length > 0 && (
-                                      <div className="text-xs text-black mt-1">
-                                        {event.cast.join(', ')}
-                                      </div>
-                                    )
+                                    event.title
                                   )}
                                 </div>
-                              )}
+                                {isEditing ? (
+                                  <div className="mt-2">
+                                    <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
+                                    <div className="mt-1">
+                                      <CastSelector
+                                        contacts={contacts}
+                                        selectedCast={event.cast}
+                                        onChange={(newCast) => {
+                                          const newLocations = [...callData.locations];
+                                          const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
+                                          newLocations[locationIndex].events[originalEventIdx].cast = newCast;
+                                          setCallData(prev => ({ ...prev, locations: newLocations }));
+                                        }}
+                                        placeholder="Type to search cast members..."
+                                      />
+                                    </div>
+                                  </div>
+                                ) : (
+                                  event.cast && event.cast.length > 0 && (
+                                    <div className="text-xs text-black mt-1">
+                                      {event.cast.join(', ')}
+                                    </div>
+                                  )
+                                )}
+                              </div>
                             </div>
                           </div>
                         ))}
