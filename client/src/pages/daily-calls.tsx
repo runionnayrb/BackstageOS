@@ -520,6 +520,12 @@ export default function DailyCallSheet() {
             clonedElement.style.webkitFontSmoothing = 'antialiased';
             clonedElement.style.mozOsxFontSmoothing = 'grayscale';
             clonedElement.style.textRendering = 'optimizeLegibility';
+            
+            // Remove border and shadow to make it look like a clean document
+            clonedElement.style.border = 'none';
+            clonedElement.style.boxShadow = 'none';
+            clonedElement.style.borderRadius = '0';
+            clonedElement.style.padding = '32px'; // Keep padding but remove visual container styling
           }
         }
       });
