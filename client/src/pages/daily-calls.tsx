@@ -525,7 +525,19 @@ export default function DailyCallSheet() {
             clonedElement.style.border = 'none';
             clonedElement.style.boxShadow = 'none';
             clonedElement.style.borderRadius = '0';
-            clonedElement.style.padding = '32px'; // Keep padding but remove visual container styling
+            clonedElement.style.padding = '20px'; // Reduced padding for tighter margins
+            
+            // Fix END-OF-DAY text alignment in PDF export
+            const endOfDayRows = clonedElement.querySelectorAll('[class*="bg-gray-200"]');
+            endOfDayRows.forEach(row => {
+              // Find the flex container and ensure it centers content
+              const flexContainer = row.querySelector('div');
+              if (flexContainer && flexContainer.textContent?.includes('END-OF-DAY')) {
+                flexContainer.style.display = 'flex';
+                flexContainer.style.alignItems = 'center';
+                flexContainer.style.justifyContent = 'flex-start';
+              }
+            });
           }
         }
       });
@@ -539,14 +551,14 @@ export default function DailyCallSheet() {
         imgData = canvas.toDataURL('image/jpeg', 1.0); // Maximum quality JPEG
       }
       
-      // Calculate dimensions to fit on letter size page with app-matching margins
+      // Calculate dimensions to fit on letter size page with minimal margins
       const pageWidth = 215.9; // Letter width in mm
       const pageHeight = 279.4; // Letter height in mm
-      const marginMm = 15; // ~56px equivalent margin to match app interface
+      const marginMm = 8; // Much smaller margins to match app interface more closely
       const imgWidth = pageWidth - (marginMm * 2); // Margins on both sides
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // Add image to PDF with maximum quality and app-matching margins
+      // Add image to PDF with maximum quality and minimal margins
       pdf.addImage(imgData, 'PNG', marginMm, marginMm, imgWidth, Math.min(imgHeight, pageHeight - (marginMm * 2)), '', 'FAST');
       
       // Generate filename and save with Safari-friendly approach
