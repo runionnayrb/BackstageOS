@@ -899,8 +899,10 @@ export default function DailyCallSheet() {
           {/* Fittings Section - only show if there are fittings events */}
           {(callData.fittingsEvents && callData.fittingsEvents.length > 0) && (
             <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Fittings</h3>
-              <div className="border-2 border-black p-3 space-y-2">
+              <div className="border-b-2 border-black pb-2">
+                <h3 className="text-lg font-semibold text-gray-900">Fittings</h3>
+              </div>
+              <div className="p-3 space-y-2 mt-4">
                 {callData.fittingsEvents
                   .sort((a, b) => a.startTime.localeCompare(b.startTime))
                   .map((event, index) => (
@@ -929,8 +931,10 @@ export default function DailyCallSheet() {
           {/* Appointments & Meetings Section - only show if there are appointments events */}
           {(callData.appointmentsEvents && callData.appointmentsEvents.length > 0) && (
             <div className="mt-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Appointments & Meetings</h3>
-              <div className="border-2 border-black p-3 space-y-2">
+              <div className="border-b-2 border-black pb-2">
+                <h3 className="text-lg font-semibold text-gray-900">Appointments & Meetings</h3>
+              </div>
+              <div className="p-3 space-y-2 mt-4">
                 {callData.appointmentsEvents
                   .sort((a, b) => a.startTime.localeCompare(b.startTime))
                   .map((event, index) => (
