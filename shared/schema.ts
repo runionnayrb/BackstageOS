@@ -1884,6 +1884,89 @@ export const dailyCallsRelations = relations(dailyCalls, ({ one }) => ({
   }),
 }));
 
+// ========== USER ANALYTICS & COST TRACKING TABLES ==========
+
+// User activity tracking table
+export const userActivity = pgTable("user_activity", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sessionId: varchar("session_id", { length: 255 }),
+  page: varchar("page", { length: 255 }).notNull(),
+  action: varchar("action", { length: 100 }).notNull(), // click, page_view, form_submit, etc.
+  feature: varchar("feature", { length: 100 }), // reports, scripts, props, etc.
+  elementClicked: varchar("element_clicked", { length: 255 }),
+  duration: integer("duration"), // Time spent on page in seconds
+  additionalData: jsonb("additional_data"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// API cost tracking table
+export const apiCosts = pgTable("api_costs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  service: varchar("service", { length: 50 }).notNull(), // sendgrid, openai, cloudflare, etc.
+  endpoint: varchar("endpoint", { length: 255 }),
+  requestCount: integer("request_count").default(1),
+  cost: decimal("cost", { precision: 10, scale: 4 }).notNull(), // Cost in USD with 4 decimal precision
+  metadata: jsonb("metadata"), // Additional cost breakdown data
+  date: date("date").notNull(), // Date for daily aggregation
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// User session tracking
+export const userSessions = pgTable("user_sessions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  sessionId: varchar("session_id", { length: 255 }).notNull(),
+  startTime: timestamp("start_time").defaultNow().notNull(),
+  endTime: timestamp("end_time"),
+  duration: integer("duration"), // Session duration in seconds
+  pageViews: integer("page_views").default(0),
+  actions: integer("actions").default(0),
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address", { length: 45 }),
+});
+
+// Feature usage tracking
+export const featureUsage = pgTable("feature_usage", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  feature: varchar("feature", { length: 100 }).notNull(),
+  usageCount: integer("usage_count").default(1),
+  totalTime: integer("total_time").default(0), // Total time spent in seconds
+  lastUsed: timestamp("last_used").defaultNow().notNull(),
+  date: date("date").notNull(), // Date for daily aggregation
+});
+
+// Analytics relations
+export const userActivityRelations = relations(userActivity, ({ one }) => ({
+  user: one(users, {
+    fields: [userActivity.userId],
+    references: [users.id],
+  }),
+}));
+
+export const apiCostsRelations = relations(apiCosts, ({ one }) => ({
+  user: one(users, {
+    fields: [apiCosts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userSessionsRelations = relations(userSessions, ({ one }) => ({
+  user: one(users, {
+    fields: [userSessions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const featureUsageRelations = relations(featureUsage, ({ one }) => ({
+  user: one(users, {
+    fields: [featureUsage.userId],
+    references: [users.id],
+  }),
+}));
+
 export const emailArchiveRulesRelations = relations(emailArchiveRules, ({ one }) => ({
   project: one(projects, {
     fields: [emailArchiveRules.projectId],
@@ -2694,6 +2777,25 @@ export const insertRehearsalTrackerSchema = createInsertSchema(rehearsalTracker)
   updatedAt: true,
 });
 
+// Insert schemas for analytics tables
+export const insertUserActivitySchema = createInsertSchema(userActivity).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertApiCostSchema = createInsertSchema(apiCosts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserSessionSchema = createInsertSchema(userSessions).omit({
+  id: true,
+});
+
+export const insertFeatureUsageSchema = createInsertSchema(featureUsage).omit({
+  id: true,
+});
+
 // Type exports for new tables
 export type ShowContractSettings = typeof showContractSettings.$inferSelect;
 export type InsertShowContractSettings = z.infer<typeof insertShowContractSettingsSchema>;
@@ -2701,6 +2803,16 @@ export type PerformanceTracker = typeof performanceTracker.$inferSelect;
 export type InsertPerformanceTracker = z.infer<typeof insertPerformanceTrackerSchema>;
 export type RehearsalTracker = typeof rehearsalTracker.$inferSelect;
 export type InsertRehearsalTracker = z.infer<typeof insertRehearsalTrackerSchema>;
+
+// Analytics types
+export type UserActivity = typeof userActivity.$inferSelect;
+export type InsertUserActivity = z.infer<typeof insertUserActivitySchema>;
+export type ApiCost = typeof apiCosts.$inferSelect;
+export type InsertApiCost = z.infer<typeof insertApiCostSchema>;
+export type UserSession = typeof userSessions.$inferSelect;
+export type InsertUserSession = z.infer<typeof insertUserSessionSchema>;
+export type FeatureUsage = typeof featureUsage.$inferSelect;
+export type InsertFeatureUsage = z.infer<typeof insertFeatureUsageSchema>;
 
 // ========== EMAIL SYSTEM ZODS AND TYPES ==========
 

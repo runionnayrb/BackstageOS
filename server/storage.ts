@@ -60,6 +60,10 @@ import {
   publicCalendarShares,
   eventTypeCalendarShares,
   dailyCalls,
+  userActivity,
+  apiCosts,
+  userSessions,
+  featureUsage,
 
   type User,
   type UpsertUser,
@@ -177,6 +181,14 @@ import {
   type InsertEventTypeCalendarShare,
   type DailyCall,
   type InsertDailyCall,
+  type UserActivity,
+  type InsertUserActivity,
+  type ApiCost,
+  type InsertApiCost,
+  type UserSession,
+  type InsertUserSession,
+  type FeatureUsage,
+  type InsertFeatureUsage,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -539,6 +551,18 @@ export interface IStorage {
   createDailyCall(dailyCall: InsertDailyCall): Promise<DailyCall>;
   updateDailyCall(id: number, dailyCall: Partial<InsertDailyCall>): Promise<DailyCall>;
   deleteDailyCall(id: number): Promise<void>;
+
+  // User Analytics
+  getUserAnalytics(): Promise<any[]>;
+  getAnalyticsStats(): Promise<any>;
+  createUserActivity(activity: InsertUserActivity): Promise<UserActivity>;
+  createApiCost(cost: InsertApiCost): Promise<ApiCost>;
+  createUserSession(session: InsertUserSession): Promise<UserSession>;
+  createFeatureUsage(usage: InsertFeatureUsage): Promise<FeatureUsage>;
+  getUserActivityByUserId(userId: number, startDate?: Date, endDate?: Date): Promise<UserActivity[]>;
+  getApiCostsByUserId(userId: number, startDate?: Date, endDate?: Date): Promise<ApiCost[]>;
+  getFeatureUsageByUserId(userId: number): Promise<FeatureUsage[]>;
+  getUserSessionsByUserId(userId: number, startDate?: Date, endDate?: Date): Promise<UserSession[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3543,6 +3567,250 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDailyCall(id: number): Promise<void> {
     await db.delete(dailyCalls).where(eq(dailyCalls.id, id));
+  }
+
+  // User Analytics Implementation
+  async getUserAnalytics(): Promise<any[]> {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Get all users with their basic data
+    const allUsers = await db.select().from(users);
+    
+    // Get analytics data for each user
+    const userAnalytics = await Promise.all(allUsers.map(async (user) => {
+      // Get activity data
+      const activities = await db.select()
+        .from(userActivity)
+        .where(and(
+          eq(userActivity.userId, user.id),
+          gte(userActivity.createdAt, thirtyDaysAgo)
+        ));
+
+      // Get cost data
+      const dailyCosts = await db.select()
+        .from(apiCosts)
+        .where(and(
+          eq(apiCosts.userId, user.id),
+          gte(apiCosts.date, todayStart)
+        ));
+
+      const monthlyCosts = await db.select()
+        .from(apiCosts)
+        .where(and(
+          eq(apiCosts.userId, user.id),
+          gte(apiCosts.date, thirtyDaysAgo)
+        ));
+
+      // Get session data
+      const sessions = await db.select()
+        .from(userSessions)
+        .where(and(
+          eq(userSessions.userId, user.id),
+          gte(userSessions.startTime, thirtyDaysAgo)
+        ));
+
+      // Get feature usage
+      const featureUsages = await db.select()
+        .from(featureUsage)
+        .where(eq(featureUsage.userId, user.id));
+
+      // Calculate analytics
+      const dailyCost = dailyCosts.reduce((sum, cost) => sum + parseFloat(cost.cost), 0);
+      const monthlyCost = monthlyCosts.reduce((sum, cost) => sum + parseFloat(cost.cost), 0);
+      
+      const totalSessions = sessions.length;
+      const averageSessionMinutes = totalSessions > 0 
+        ? sessions.reduce((sum, session) => {
+            const duration = session.endTime 
+              ? (new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) / (1000 * 60)
+              : 0;
+            return sum + duration;
+          }, 0) / totalSessions
+        : 0;
+
+      const lastSession = sessions.length > 0 
+        ? sessions.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())[0]
+        : null;
+
+      // Determine activity level
+      let activityLevel: 'high' | 'medium' | 'low' | 'inactive' = 'inactive';
+      if (activities.length > 50) activityLevel = 'high';
+      else if (activities.length > 20) activityLevel = 'medium';
+      else if (activities.length > 0) activityLevel = 'low';
+
+      // Top features
+      const featureMap = new Map<string, number>();
+      featureUsages.forEach(usage => {
+        featureMap.set(usage.featureName, (featureMap.get(usage.featureName) || 0) + usage.usageCount);
+      });
+      
+      const totalUsage = Array.from(featureMap.values()).reduce((sum, count) => sum + count, 0);
+      const topFeatures = Array.from(featureMap.entries())
+        .map(([feature, usage]) => ({
+          feature,
+          usage,
+          percentage: totalUsage > 0 ? Math.round((usage / totalUsage) * 100) : 0
+        }))
+        .sort((a, b) => b.usage - a.usage)
+        .slice(0, 5);
+
+      // Cost breakdown by service
+      const costBreakdown = monthlyCosts.reduce((breakdown, cost) => {
+        const existing = breakdown.find(item => item.service === cost.service);
+        if (existing) {
+          existing.cost += parseFloat(cost.cost);
+          existing.requests += cost.requests;
+        } else {
+          breakdown.push({
+            service: cost.service,
+            cost: parseFloat(cost.cost),
+            requests: cost.requests
+          });
+        }
+        return breakdown;
+      }, [] as Array<{ service: string; cost: number; requests: number }>);
+
+      return {
+        ...user,
+        activityLevel,
+        dailyCost,
+        monthlyCost,
+        topFeatures,
+        sessionStats: {
+          averageSession: averageSessionMinutes,
+          totalSessions,
+          lastSession: lastSession?.startTime || null
+        },
+        costBreakdown,
+        lastSeen: lastSession?.startTime || null
+      };
+    }));
+
+    return userAnalytics;
+  }
+
+  async getAnalyticsStats(): Promise<any> {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Total users
+    const totalUsersResult = await db.select({ count: sql<number>`count(*)` }).from(users);
+    const totalUsers = totalUsersResult[0].count;
+
+    // Active users (had activity in last 30 days)
+    const activeUsersResult = await db.select({ 
+      count: sql<number>`count(distinct user_id)` 
+    }).from(userActivity).where(gte(userActivity.createdAt, thirtyDaysAgo));
+    const activeUsers = activeUsersResult[0].count;
+
+    // Total monthly cost
+    const monthlyCostResult = await db.select({ 
+      total: sql<number>`sum(cost)` 
+    }).from(apiCosts).where(gte(apiCosts.date, thirtyDaysAgo));
+    const totalMonthlyCost = monthlyCostResult[0].total || 0;
+
+    // Average session time
+    const sessionsResult = await db.select().from(userSessions).where(gte(userSessions.startTime, thirtyDaysAgo));
+    const averageSessionTime = sessionsResult.length > 0 
+      ? sessionsResult.reduce((sum, session) => {
+          const duration = session.endTime 
+            ? (new Date(session.endTime).getTime() - new Date(session.startTime).getTime()) / (1000 * 60)
+            : 0;
+          return sum + duration;
+        }, 0) / sessionsResult.length
+      : 0;
+
+    // Top feature
+    const featureUsagesResult = await db.select().from(featureUsage);
+    const featureMap = new Map<string, number>();
+    featureUsagesResult.forEach(usage => {
+      featureMap.set(usage.featureName, (featureMap.get(usage.featureName) || 0) + usage.usageCount);
+    });
+    const topFeature = featureMap.size > 0 
+      ? Array.from(featureMap.entries()).sort((a, b) => b[1] - a[1])[0][0]
+      : 'None';
+
+    return {
+      totalUsers,
+      activeUsers,
+      totalMonthlyCost,
+      averageSessionTime,
+      topFeature
+    };
+  }
+
+  async createUserActivity(activity: InsertUserActivity): Promise<UserActivity> {
+    const result = await db.insert(userActivity).values(activity).returning();
+    return result[0];
+  }
+
+  async createApiCost(cost: InsertApiCost): Promise<ApiCost> {
+    const result = await db.insert(apiCosts).values(cost).returning();
+    return result[0];
+  }
+
+  async createUserSession(session: InsertUserSession): Promise<UserSession> {
+    const result = await db.insert(userSessions).values(session).returning();
+    return result[0];
+  }
+
+  async createFeatureUsage(usage: InsertFeatureUsage): Promise<FeatureUsage> {
+    const result = await db.insert(featureUsage).values(usage).returning();
+    return result[0];
+  }
+
+  async getUserActivityByUserId(userId: number, startDate?: Date, endDate?: Date): Promise<UserActivity[]> {
+    let query = db.select().from(userActivity).where(eq(userActivity.userId, userId));
+    
+    if (startDate && endDate) {
+      query = db.select().from(userActivity).where(
+        and(
+          eq(userActivity.userId, userId),
+          gte(userActivity.createdAt, startDate),
+          lte(userActivity.createdAt, endDate)
+        )
+      );
+    }
+    
+    return await query;
+  }
+
+  async getApiCostsByUserId(userId: number, startDate?: Date, endDate?: Date): Promise<ApiCost[]> {
+    let query = db.select().from(apiCosts).where(eq(apiCosts.userId, userId));
+    
+    if (startDate && endDate) {
+      query = db.select().from(apiCosts).where(
+        and(
+          eq(apiCosts.userId, userId),
+          gte(apiCosts.date, startDate),
+          lte(apiCosts.date, endDate)
+        )
+      );
+    }
+    
+    return await query;
+  }
+
+  async getFeatureUsageByUserId(userId: number): Promise<FeatureUsage[]> {
+    return await db.select().from(featureUsage).where(eq(featureUsage.userId, userId));
+  }
+
+  async getUserSessionsByUserId(userId: number, startDate?: Date, endDate?: Date): Promise<UserSession[]> {
+    let query = db.select().from(userSessions).where(eq(userSessions.userId, userId));
+    
+    if (startDate && endDate) {
+      query = db.select().from(userSessions).where(
+        and(
+          eq(userSessions.userId, userId),
+          gte(userSessions.startTime, startDate),
+          lte(userSessions.startTime, endDate)
+        )
+      );
+    }
+    
+    return await query;
   }
 
 }

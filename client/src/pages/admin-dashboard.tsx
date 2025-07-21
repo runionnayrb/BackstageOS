@@ -10,6 +10,7 @@ import BetaFeatureComponent from "./beta-feature-component";
 import AdminFeedback from "./admin-feedback";
 import AdminErrorLogs from "./admin-error-logs";
 import WaitlistManagement from "@/components/WaitlistManagement";
+import UserAnalytics from "@/components/UserAnalytics";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("users");
@@ -62,8 +63,8 @@ export default function AdminDashboard() {
           <div className="w-full overflow-x-hidden">
             <TabsContent value="users" className="space-y-4 sm:space-y-6">
               <div>
-                <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">User Management</h2>
-                <AdminUsersComponent />
+                <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">User Analytics & Management</h2>
+                <UserAnalytics />
               </div>
             </TabsContent>
 

@@ -14,7 +14,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema } from "@shared/schema";
+import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -1634,6 +1634,116 @@ Respond with valid JSON only.`;
     } catch (error) {
       console.error("Error fetching all users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // User Analytics endpoints
+  app.get('/api/admin/user-analytics', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const analytics = await storage.getUserAnalytics();
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching user analytics:", error);
+      res.status(500).json({ message: "Failed to fetch user analytics" });
+    }
+  });
+
+  app.get('/api/admin/analytics-stats', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const stats = await storage.getAnalyticsStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching analytics stats:", error);
+      res.status(500).json({ message: "Failed to fetch analytics stats" });
+    }
+  });
+
+  // Analytics data collection endpoints
+  app.post('/api/analytics/activity', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.user.id);
+      const activityData = insertUserActivitySchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const activity = await storage.createUserActivity(activityData);
+      res.json(activity);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid activity data", errors: error.errors });
+      }
+      console.error("Error creating user activity:", error);
+      res.status(500).json({ message: "Failed to create user activity" });
+    }
+  });
+
+  app.post('/api/analytics/api-cost', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.user.id);
+      const costData = insertApiCostSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const cost = await storage.createApiCost(costData);
+      res.json(cost);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid cost data", errors: error.errors });
+      }
+      console.error("Error creating API cost:", error);
+      res.status(500).json({ message: "Failed to create API cost" });
+    }
+  });
+
+  app.post('/api/analytics/session', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.user.id);
+      const sessionData = insertUserSessionSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const session = await storage.createUserSession(sessionData);
+      res.json(session);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid session data", errors: error.errors });
+      }
+      console.error("Error creating user session:", error);
+      res.status(500).json({ message: "Failed to create user session" });
+    }
+  });
+
+  app.post('/api/analytics/feature-usage', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.user.id);
+      const usageData = insertFeatureUsageSchema.parse({
+        ...req.body,
+        userId
+      });
+      
+      const usage = await storage.createFeatureUsage(usageData);
+      res.json(usage);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid usage data", errors: error.errors });
+      }
+      console.error("Error creating feature usage:", error);
+      res.status(500).json({ message: "Failed to create feature usage" });
     }
   });
 
