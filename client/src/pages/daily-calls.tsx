@@ -135,6 +135,87 @@ export default function DailyCallSheet() {
 
   // Load existing daily call data when it changes
   useEffect(() => {
+    const generateCallFromSchedule = () => {
+      if (!actualProjectId) return;
+
+      // Filter events for the selected date
+      const dayEvents = scheduleEvents.filter(event => event.date === selectedDate);
+      
+      // Group events by location
+      const locationGroups: { [key: string]: any[] } = {};
+      
+      // If there are schedule events for the day, group them by location
+      dayEvents.forEach(event => {
+        const location = event.location || 'Main Stage';
+        if (!locationGroups[location]) {
+          locationGroups[location] = [];
+        }
+        
+        // Get actual cast members called to this event (filter to only cast category)
+        const eventCast = (event.participants || [])
+          .filter(participant => {
+            // Find the contact to check their category
+            const contact = contacts.find(c => c.id === participant.contactId);
+            return participant.isRequired && contact && contact.category === 'cast';
+          })
+          .map(participant => `${participant.contactFirstName.charAt(0)}. ${participant.contactLastName}`);
+        
+        locationGroups[location].push({
+          id: event.id,
+          title: event.title,
+          startTime: formatTimeDisplay(event.startTime?.slice(0, 5) || event.startTime, timeFormat as '12' | '24'),
+          endTime: formatTimeDisplay(event.endTime?.slice(0, 5) || event.endTime, timeFormat as '12' | '24'),
+          cast: eventCast,
+          notes: event.notes || event.description
+        });
+      });
+
+      // If no events exist for the day, create a default location
+      if (Object.keys(locationGroups).length === 0) {
+        locationGroups['Main Stage'] = [];
+      }
+
+      // Convert to locations array and add END-OF-DAY to each location
+      const locations: CallLocation[] = Object.entries(locationGroups).map(([name, events]) => {
+        const sortedEvents = events.sort((a, b) => a.startTime.localeCompare(b.startTime));
+        
+        // Determine end-of-day time based on the last event's END time (not start time)
+        let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback with proper formatting
+        if (sortedEvents.length > 0) {
+          // Find the event with the latest END time, not just the last in start time order
+          const eventWithLatestEndTime = sortedEvents.reduce((latest, current) => {
+            // Compare raw end times (HH:MM format) to find the actual latest ending event
+            const latestEndTime = latest.endTime.replace(/[AP]M/i, '').trim();
+            const currentEndTime = current.endTime.replace(/[AP]M/i, '').trim();
+            return currentEndTime > latestEndTime ? current : latest;
+          });
+          // The endTime is already formatted from formatTimeDisplay above, so use it directly
+          endOfDayTime = eventWithLatestEndTime.endTime;
+
+        }
+        
+        // Add END-OF-DAY event at the end
+        sortedEvents.push({
+          id: -1, // Special ID for END-OF-DAY
+          title: 'END-OF-DAY',
+          startTime: endOfDayTime,
+          endTime: endOfDayTime,
+          cast: [],
+          notes: undefined
+        });
+        
+        return {
+          name,
+          events: sortedEvents
+        };
+      });
+
+      setCallData(prev => ({
+        ...prev,
+        locations
+      }));
+    };
+
     if (existingDailyCall) {
       // The existingDailyCall might have a different structure from the database
       // Check if it already has the structured format we expect
@@ -147,12 +228,17 @@ export default function DailyCallSheet() {
           const events = location.events || [];
           const hasEndOfDay = events.some(event => event.title === 'END-OF-DAY');
           if (!hasEndOfDay) {
-            // Determine end-of-day time based on the last event's end time
-            let endOfDayTime = '23:59'; // Default fallback
+            // Determine end-of-day time based on the last event's END time (not start time)
+            let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback with proper formatting
             if (events.length > 0) {
-              const sortedEvents = [...events].sort((a, b) => a.startTime.localeCompare(b.startTime));
-              const lastEvent = sortedEvents[sortedEvents.length - 1];
-              endOfDayTime = lastEvent.endTime;
+              // Find the event with the latest END time, not just the last in start time order
+              const eventWithLatestEndTime = events.reduce((latest, current) => {
+                // Compare raw end times to find the actual latest ending event
+                const latestEndTime = latest.endTime?.replace(/[AP]M/i, '').trim() || '00:00';
+                const currentEndTime = current.endTime?.replace(/[AP]M/i, '').trim() || '00:00';
+                return currentEndTime > latestEndTime ? current : latest;
+              });
+              endOfDayTime = eventWithLatestEndTime.endTime || formatTimeDisplay('23:59', timeFormat as '12' | '24');
             }
             
             return {
@@ -178,11 +264,11 @@ export default function DailyCallSheet() {
         // Raw database format - need to transform
         generateCallFromSchedule();
       }
-    } else if (actualProjectId && !existingDailyCall) {
+    } else if (actualProjectId && !existingDailyCall && scheduleEvents.length >= 0) {
       // Auto-generate from schedule events for the selected date (even if no events exist)
       generateCallFromSchedule();
     }
-  }, [existingDailyCall, selectedDate, actualProjectId, scheduleEvents]);
+  }, [existingDailyCall, selectedDate, actualProjectId, scheduleEvents, contacts, timeFormat]);
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
@@ -193,74 +279,7 @@ export default function DailyCallSheet() {
     }
   };
 
-  const generateCallFromSchedule = () => {
-    if (!actualProjectId) return;
 
-    // Filter events for the selected date
-    const dayEvents = scheduleEvents.filter(event => event.date === selectedDate);
-    
-    // Group events by location
-    const locationGroups: { [key: string]: any[] } = {};
-    
-    // If there are schedule events for the day, group them by location
-    dayEvents.forEach(event => {
-      const location = event.location || 'Main Stage';
-      if (!locationGroups[location]) {
-        locationGroups[location] = [];
-      }
-      
-      // Get actual participants called to this event
-      const eventCast = (event.participants || [])
-        .filter(participant => participant.isRequired) // Only show required participants
-        .map(participant => `${participant.contactFirstName.charAt(0)}. ${participant.contactLastName}`);
-      
-      locationGroups[location].push({
-        id: event.id,
-        title: event.title,
-        startTime: formatTimeDisplay(event.startTime?.slice(0, 5) || event.startTime, timeFormat as '12' | '24'),
-        endTime: formatTimeDisplay(event.endTime?.slice(0, 5) || event.endTime, timeFormat as '12' | '24'),
-        cast: eventCast,
-        notes: event.notes || event.description
-      });
-    });
-
-    // If no events exist for the day, create a default location
-    if (Object.keys(locationGroups).length === 0) {
-      locationGroups['Main Stage'] = [];
-    }
-
-    // Convert to locations array and add END-OF-DAY to each location
-    const locations: CallLocation[] = Object.entries(locationGroups).map(([name, events]) => {
-      const sortedEvents = events.sort((a, b) => a.startTime.localeCompare(b.startTime));
-      
-      // Determine end-of-day time based on the last event's end time
-      let endOfDayTime = '23:59'; // Default fallback
-      if (sortedEvents.length > 0) {
-        const lastEvent = sortedEvents[sortedEvents.length - 1];
-        endOfDayTime = lastEvent.endTime;
-      }
-      
-      // Add END-OF-DAY event at the end
-      sortedEvents.push({
-        id: -1, // Special ID for END-OF-DAY
-        title: 'END-OF-DAY',
-        startTime: endOfDayTime,
-        endTime: endOfDayTime,
-        cast: [],
-        notes: undefined
-      });
-      
-      return {
-        name,
-        events: sortedEvents
-      };
-    });
-
-    setCallData(prev => ({
-      ...prev,
-      locations
-    }));
-  };
 
   const handleSave = () => {
     saveCallMutation.mutate({
@@ -277,8 +296,8 @@ export default function DailyCallSheet() {
       events: [{
         id: -1,
         title: 'END-OF-DAY',
-        startTime: '23:59', // Default when no events exist
-        endTime: '23:59',
+        startTime: formatTimeDisplay('23:59', timeFormat as '12' | '24'), // Default when no events exist with proper formatting
+        endTime: formatTimeDisplay('23:59', timeFormat as '12' | '24'),
         cast: [],
         notes: undefined
       }]
