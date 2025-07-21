@@ -822,7 +822,152 @@ export default function DailyCallSheet() {
             )}
           </div>
 
+          {/* Fittings Section - only show if there are events at fitting locations */}
+          {scheduleEvents.some(event => {
+            const eventDate = new Date(event.startTime).toISOString().split('T')[0];
+            if (eventDate !== selectedDate) return false;
+            
+            // Check if event is at a fittings location
+            const fittingLocations = (project?.eventLocations || [])
+              .filter(loc => loc.locationType === 'fittings')
+              .map(loc => loc.name);
+            return fittingLocations.includes(event.location);
+          }) && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Fittings</h3>
+              <div className="border-2 border-black p-3 space-y-2">
+                {scheduleEvents
+                  .filter(event => {
+                    const eventDate = new Date(event.startTime).toISOString().split('T')[0];
+                    if (eventDate !== selectedDate) return false;
+                    
+                    const fittingLocations = (project?.eventLocations || [])
+                      .filter(loc => loc.locationType === 'fittings')
+                      .map(loc => loc.name);
+                    return fittingLocations.includes(event.location);
+                  })
+                  .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+                  .map((event, index) => {
+                    const startTime = formatTimeDisplay(
+                      format(new Date(event.startTime), 'HH:mm:ss'),
+                      timeFormat as '12' | '24'
+                    ).replace(':00', '');
+                    
+                    const endTime = formatTimeDisplay(
+                      format(new Date(event.endTime), 'HH:mm:ss'),
+                      timeFormat as '12' | '24'
+                    ).replace(':00', '');
+                    
+                    // Get cast members for this event
+                    const eventCast = contacts.filter(contact => 
+                      contact.contactCategory === 'cast' && 
+                      event.participants?.includes(contact.id)
+                    );
+                    
+                    return (
+                      <div key={`fitting-${event.id}`} className="flex items-start gap-4">
+                        <div className="w-24 text-sm font-medium text-gray-700 flex-shrink-0">
+                          {startTime} - {endTime}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-gray-900 mb-1">
+                            {event.title}
+                          </div>
+                          {event.location && (
+                            <div className="text-sm text-gray-600 mb-1">
+                              @ {event.location}
+                            </div>
+                          )}
+                          {eventCast.length > 0 && (
+                            <div className="text-sm text-gray-700">
+                              {eventCast.map(cast => cast.firstName).join(', ')}
+                            </div>
+                          )}
+                          {event.description && (
+                            <div className="text-sm text-gray-600 mt-1">
+                              {event.description}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
 
+          {/* Appointments & Meetings Section - only show if there are events at appointment locations */}
+          {scheduleEvents.some(event => {
+            const eventDate = new Date(event.startTime).toISOString().split('T')[0];
+            if (eventDate !== selectedDate) return false;
+            
+            // Check if event is at an appointments location or is a meeting type
+            const appointmentLocations = (project?.eventLocations || [])
+              .filter(loc => loc.locationType === 'appointments')
+              .map(loc => loc.name);
+            return appointmentLocations.includes(event.location) || event.eventType === 'meeting';
+          }) && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Appointments & Meetings</h3>
+              <div className="border-2 border-black p-3 space-y-2">
+                {scheduleEvents
+                  .filter(event => {
+                    const eventDate = new Date(event.startTime).toISOString().split('T')[0];
+                    if (eventDate !== selectedDate) return false;
+                    
+                    const appointmentLocations = (project?.eventLocations || [])
+                      .filter(loc => loc.locationType === 'appointments')
+                      .map(loc => loc.name);
+                    return appointmentLocations.includes(event.location) || event.eventType === 'meeting';
+                  })
+                  .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+                  .map((event, index) => {
+                    const startTime = formatTimeDisplay(
+                      format(new Date(event.startTime), 'HH:mm:ss'),
+                      timeFormat as '12' | '24'
+                    ).replace(':00', '');
+                    
+                    const endTime = formatTimeDisplay(
+                      format(new Date(event.endTime), 'HH:mm:ss'),
+                      timeFormat as '12' | '24'
+                    ).replace(':00', '');
+                    
+                    // Get participants for this event (not just cast)
+                    const eventParticipants = contacts.filter(contact => 
+                      event.participants?.includes(contact.id)
+                    );
+                    
+                    return (
+                      <div key={`appointment-${event.id}`} className="flex items-start gap-4">
+                        <div className="w-24 text-sm font-medium text-gray-700 flex-shrink-0">
+                          {startTime} - {endTime}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-semibold text-gray-900 mb-1">
+                            {event.title}
+                          </div>
+                          {event.location && (
+                            <div className="text-sm text-gray-600 mb-1">
+                              @ {event.location}
+                            </div>
+                          )}
+                          {eventParticipants.length > 0 && (
+                            <div className="text-sm text-gray-700">
+                              {eventParticipants.map(participant => participant.firstName).join(', ')}
+                            </div>
+                          )}
+                          {event.description && (
+                            <div className="text-sm text-gray-600 mt-1">
+                              {event.description}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
 
           {/* Announcements Section */}
           <div className="mt-6">
