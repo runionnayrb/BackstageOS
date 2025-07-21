@@ -135,9 +135,9 @@ export default function DailyCallSheet() {
 
   // Load existing daily call data when it changes
   useEffect(() => {
-    const generateCallFromSchedule = () => {
-      if (!actualProjectId) return;
+    if (!actualProjectId || !timeFormat) return;
 
+    const generateCallFromSchedule = () => {
       // Filter events for the selected date
       const dayEvents = scheduleEvents.filter(event => event.date === selectedDate);
       
@@ -182,16 +182,22 @@ export default function DailyCallSheet() {
         // Determine end-of-day time based on the last event's END time (not start time)
         let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback with proper formatting
         if (sortedEvents.length > 0) {
-          // Find the event with the latest END time, not just the last in start time order
-          const eventWithLatestEndTime = sortedEvents.reduce((latest, current) => {
-            // Compare raw end times (HH:MM format) to find the actual latest ending event
-            const latestEndTime = latest.endTime.replace(/[AP]M/i, '').trim();
-            const currentEndTime = current.endTime.replace(/[AP]M/i, '').trim();
+          // Find the event with the latest END time by comparing the raw schedule events
+          // This ensures we get the actual latest end time from the source data
+          const latestScheduleEvent = dayEvents.reduce((latest, current) => {
+            const latestEndTime = latest.endTime || '00:00';
+            const currentEndTime = current.endTime || '00:00';
             return currentEndTime > latestEndTime ? current : latest;
           });
-          // The endTime is already formatted from formatTimeDisplay above, so use it directly
-          endOfDayTime = eventWithLatestEndTime.endTime;
-
+          
+          // Format the actual end time from the schedule event
+          endOfDayTime = formatTimeDisplay(latestScheduleEvent.endTime?.slice(0, 5) || latestScheduleEvent.endTime, timeFormat as '12' | '24');
+          console.log('END-OF-DAY calculation from schedule:', {
+            latestEvent: latestScheduleEvent.title,
+            rawEndTime: latestScheduleEvent.endTime,
+            formattedEndTime: endOfDayTime,
+            timeFormat
+          });
         }
         
         // Add END-OF-DAY event at the end
@@ -210,65 +216,18 @@ export default function DailyCallSheet() {
         };
       });
 
-      setCallData(prev => ({
-        ...prev,
-        locations
-      }));
+      setCallData({
+        locations,
+        announcements: ''
+      });
     };
 
-    if (existingDailyCall) {
-      // The existingDailyCall might have a different structure from the database
-      // Check if it already has the structured format we expect
-      if (existingDailyCall.locations && Array.isArray(existingDailyCall.locations) && 
-          existingDailyCall.locations.length > 0 && 
-          typeof existingDailyCall.locations[0] === 'object' && 
-          'events' in existingDailyCall.locations[0]) {
-        // Already structured - just ensure END-OF-DAY events
-        const locationsWithEndOfDay = (existingDailyCall.locations as CallLocation[]).map(location => {
-          const events = location.events || [];
-          const hasEndOfDay = events.some(event => event.title === 'END-OF-DAY');
-          if (!hasEndOfDay) {
-            // Determine end-of-day time based on the last event's END time (not start time)
-            let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback with proper formatting
-            if (events.length > 0) {
-              // Find the event with the latest END time, not just the last in start time order
-              const eventWithLatestEndTime = events.reduce((latest, current) => {
-                // Compare raw end times to find the actual latest ending event
-                const latestEndTime = latest.endTime?.replace(/[AP]M/i, '').trim() || '00:00';
-                const currentEndTime = current.endTime?.replace(/[AP]M/i, '').trim() || '00:00';
-                return currentEndTime > latestEndTime ? current : latest;
-              });
-              endOfDayTime = eventWithLatestEndTime.endTime || formatTimeDisplay('23:59', timeFormat as '12' | '24');
-            }
-            
-            return {
-              ...location,
-              events: [...events, {
-                id: -1,
-                title: 'END-OF-DAY',
-                startTime: endOfDayTime,
-                endTime: endOfDayTime,
-                cast: [],
-                notes: undefined
-              }]
-            };
-          }
-          return location;
-        });
-        
-        setCallData({
-          locations: locationsWithEndOfDay,
-          announcements: existingDailyCall.announcements || ''
-        });
-      } else {
-        // Raw database format - need to transform
-        generateCallFromSchedule();
-      }
-    } else if (actualProjectId && !existingDailyCall && scheduleEvents.length >= 0) {
-      // Auto-generate from schedule events for the selected date (even if no events exist)
+    // Always regenerate from schedule to ensure we have the latest END-OF-DAY times
+    // Don't use existingDailyCall data as it may have stale END-OF-DAY times
+    if (scheduleEvents && contacts) {
       generateCallFromSchedule();
     }
-  }, [existingDailyCall, selectedDate, actualProjectId, scheduleEvents, contacts, timeFormat]);
+  }, [selectedDate, actualProjectId, scheduleEvents, contacts, timeFormat]);
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
