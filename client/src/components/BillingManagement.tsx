@@ -60,6 +60,8 @@ interface User {
   id: number;
   email: string;
   username: string;
+  firstName?: string;
+  lastName?: string;
   subscriptionStatus?: string;
   subscriptionPlan?: string;
   trialEndsAt?: string;
@@ -75,12 +77,12 @@ export default function BillingManagement() {
   const [isCreatePlanOpen, setIsCreatePlanOpen] = useState(false);
 
   // Fetch billing plans
-  const { data: billingPlans = [], isLoading: plansLoading } = useQuery({
+  const { data: billingPlans = [], isLoading: plansLoading } = useQuery<BillingPlan[]>({
     queryKey: ["/api/billing/plans"],
   });
 
   // Fetch users for subscription management
-  const { data: users = [], isLoading: usersLoading } = useQuery({
+  const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ["/api/admin/users"],
   });
 
@@ -187,7 +189,11 @@ export default function BillingManagement() {
               <DialogTitle>Create Billing Plan</DialogTitle>
               <DialogDescription>Create a new subscription plan for users</DialogDescription>
             </DialogHeader>
-            <form action={handleCreatePlan}>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              handleCreatePlan(formData);
+            }}>
               <div className="grid grid-cols-2 gap-4 py-4">
                 <div>
                   <Label htmlFor="planId">Plan ID</Label>
@@ -318,7 +324,11 @@ export default function BillingManagement() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-4">
                           <div>
-                            <p className="font-medium">{user.username}</p>
+                            <p className="font-medium">
+                              {user.firstName && user.lastName 
+                                ? `${user.firstName} ${user.lastName}` 
+                                : user.username || user.email}
+                            </p>
                             <p className="text-sm text-muted-foreground">{user.email}</p>
                           </div>
                           <div className="flex items-center space-x-2">
