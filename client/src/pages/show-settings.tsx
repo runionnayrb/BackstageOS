@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useAdminView } from "@/contexts/AdminViewContext";
 import { PersonalScheduleShare } from "@/components/personal-schedule-share";
 import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
 import {
@@ -177,7 +178,10 @@ export default function ShowSettings() {
   const [testEmailAddress, setTestEmailAddress] = useState('');
   const [showTestEmailDialog, setShowTestEmailDialog] = useState(false);
 
-  const isFullTime = user?.profileType === "fulltime";
+  // Use admin view context to override profile type for testing
+  const { selectedProfileType } = useAdminView();
+  const effectiveProfileType = user ? (selectedProfileType === 'all' ? user.profileType : selectedProfileType) : 'freelance';
+  const isFullTime = effectiveProfileType === "fulltime";
   const showLabel = isFullTime ? "Show" : "Project";
 
   const { data: project, isLoading: projectLoading, error: projectError } = useQuery({
