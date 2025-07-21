@@ -556,7 +556,7 @@ export default function DailyCallSheet() {
               // Single location - full width
               <div className="space-y-8">
                 {(callData.locations || []).map((location, locationIndex) => (
-                  <div key={locationIndex} className="space-y-3">
+                  <div key={locationIndex} className="space-y-1">
                     <div className="border-b-2 border-black pb-2">
                       <h4 className="text-lg font-semibold text-gray-900">
                         {location.name}
