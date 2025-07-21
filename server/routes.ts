@@ -5972,22 +5972,14 @@ Best regards,
         }
       }
 
-      // Import puppeteer dynamically
-      const puppeteer = await import('puppeteer');
+      // Import html-pdf-node dynamically
+      const htmlPdf = await import('html-pdf-node');
       
       // Generate HTML for PDF
       const html = generateDailyCallHTML(callData, projectName, date);
       
-      // Launch puppeteer and generate PDF
-      const browser = await puppeteer.default.launch({ 
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-      const page = await browser.newPage();
-      
-      await page.setContent(html, { waitUntil: 'networkidle0' });
-      
-      const pdf = await page.pdf({
+      // Configure PDF options
+      const options = {
         format: 'Letter',
         margin: {
           top: '0.5in',
@@ -5995,10 +5987,15 @@ Best regards,
           left: '0.75in',
           right: '0.75in'
         },
-        printBackground: true
-      });
+        printBackground: true,
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox'
+        ]
+      };
       
-      await browser.close();
+      // Generate PDF
+      const pdf = await htmlPdf.default.generatePdf({ content: html }, options);
       
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${date}-${projectName}-Daily Call.pdf"`);
