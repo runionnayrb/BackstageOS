@@ -527,32 +527,7 @@ export default function DailyCallSheet() {
             clonedElement.style.borderRadius = '0';
             clonedElement.style.padding = '20px'; // Reduced padding for tighter margins
             
-            // Fix END-OF-DAY text alignment in PDF export
-            const endOfDayElements = clonedElement.querySelectorAll('*');
-            endOfDayElements.forEach(element => {
-              if (element.textContent?.includes('END-OF-DAY')) {
-                // Find the closest parent with bg-gray styling
-                let parent = element.parentElement;
-                while (parent && !parent.className?.includes('bg-gray')) {
-                  parent = parent.parentElement;
-                }
-                if (parent) {
-                  // Force the parent container to center its content
-                  parent.style.display = 'flex';
-                  parent.style.alignItems = 'center';
-                  parent.style.minHeight = '32px'; // Ensure adequate height for centering
-                  
-                  // Also apply centering to immediate children
-                  Array.from(parent.children).forEach(child => {
-                    if (child.textContent?.includes('END-OF-DAY')) {
-                      child.style.display = 'flex';
-                      child.style.alignItems = 'center';
-                      child.style.height = '100%';
-                    }
-                  });
-                }
-              }
-            });
+
           }
         }
       });
@@ -693,7 +668,7 @@ export default function DailyCallSheet() {
                     
                     <div className="space-y-2">
                       {(location.events || []).map((event, eventIdx) => (
-                        <div key={event.id} className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-1 relative' : 'py-2'}`}>
+                        <div key={event.id} className={`flex ${event.title === 'END-OF-DAY' ? 'items-center' : 'items-start'} gap-6 ${event.title === 'END-OF-DAY' ? 'bg-gray-100 py-3 relative' : 'py-2'}`}>
                           {/* Add Event Button in Left Margin - only show on END-OF-DAY row */}
                           {isEditing && event.title === 'END-OF-DAY' && (
                             <Button
