@@ -166,6 +166,10 @@ export default function ShowSettings() {
   const [newTemplateCategory, setNewTemplateCategory] = useState({ name: '', description: '' });
   const [showNewCategoryDialog, setShowNewCategoryDialog] = useState(false);
   
+  // Venue creation state
+  const [showNewVenueDialog, setShowNewVenueDialog] = useState(false);
+  const [newVenueForm, setNewVenueForm] = useState({ name: '', address: '', capacity: '', notes: '' });
+  
   // Email template refs
   const emailSubjectRef = useRef<HTMLInputElement>(null);
   const emailBodyRef = useRef<HTMLTextAreaElement>(null);
@@ -221,6 +225,12 @@ export default function ShowSettings() {
   const { data: changeStats } = useQuery({
     queryKey: [`/api/projects/${params.id}/schedule/change-stats`],
     enabled: !!params.id,
+  });
+
+  // Query venues for full-time users
+  const { data: venues = [], refetch: refetchVenues } = useQuery({
+    queryKey: ["/api/venues"],
+    enabled: !!user && isFullTime,
   });
 
   const { data: emailTemplateCategories = [] } = useQuery({
@@ -843,6 +853,32 @@ The Production Team`
     },
   });
 
+  // Venue mutations for full-time users
+  const createVenueMutation = useMutation({
+    mutationFn: async (venueData: { name: string; address?: string; capacity?: string; notes?: string }) => {
+      return apiRequest('POST', '/api/venues', {
+        ...venueData,
+        capacity: venueData.capacity ? parseInt(venueData.capacity) : null,
+      });
+    },
+    onSuccess: () => {
+      refetchVenues();
+      setShowNewVenueDialog(false);
+      setNewVenueForm({ name: '', address: '', capacity: '', notes: '' });
+      toast({
+        title: "Venue created",
+        description: "New venue has been created successfully.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create venue. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleSettingsUpdate = (section: string, updates: any) => {
     const settingsData = settings as any || {};
     
@@ -923,6 +959,7 @@ The Production Team`
       setShowBasicInfo({
         name: (project as any).name || "",
         venue: (project as any).venue || "",
+        venueId: (project as any).venueId || null,
         description: (project as any).description || "",
       });
       setIsEditingBasicInfo(true);
@@ -936,6 +973,19 @@ The Production Team`
   const handleBasicInfoCancel = () => {
     setIsEditingBasicInfo(false);
     setShowBasicInfo({});
+  };
+
+  const handleCreateVenue = () => {
+    if (!newVenueForm.name.trim()) {
+      toast({
+        title: "Venue name required",
+        description: "Please enter a venue name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createVenueMutation.mutate(newVenueForm);
   };
 
   const handleDeleteShow = () => {
@@ -1179,12 +1229,47 @@ The Production Team`
                   </div>
                   <div>
                     <Label htmlFor="venue">Venue</Label>
-                    <Input
-                      id="venue"
-                      value={showBasicInfo.venue || ""}
-                      onChange={(e) => setShowBasicInfo(prev => ({ ...prev, venue: e.target.value }))}
-                      placeholder="Enter venue"
-                    />
+                    {isFullTime ? (
+                      <Select
+                        value={showBasicInfo.venueId ? showBasicInfo.venueId.toString() : ""}
+                        onValueChange={(value) => {
+                          if (value === "new") {
+                            setShowNewVenueDialog(true);
+                          } else {
+                            const selectedVenue = venues.find((v: any) => v.id.toString() === value);
+                            setShowBasicInfo((prev: any) => ({ 
+                              ...prev, 
+                              venueId: selectedVenue ? selectedVenue.id : null,
+                              venue: selectedVenue ? selectedVenue.name : ""
+                            }));
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select venue" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {venues?.map((venue: any) => (
+                            <SelectItem key={venue.id} value={venue.id.toString()}>
+                              {venue.name}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="new" className="border-t mt-2 pt-2">
+                            <div className="flex items-center gap-2">
+                              <Plus className="h-4 w-4" />
+                              New Venue
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        id="venue"
+                        value={showBasicInfo.venue || ""}
+                        onChange={(e) => setShowBasicInfo((prev: any) => ({ ...prev, venue: e.target.value }))}
+                        placeholder="Enter venue"
+                      />
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="description">Description</Label>
@@ -2895,6 +2980,79 @@ The Production Team`}
               disabled={!locationForm.name.trim() || createLocationMutation.isPending || updateLocationMutation.isPending}
             >
               {createLocationMutation.isPending || updateLocationMutation.isPending ? 'Saving...' : 'Save Location'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* New Venue Dialog */}
+      <Dialog open={showNewVenueDialog} onOpenChange={setShowNewVenueDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Venue</DialogTitle>
+            <DialogDescription>
+              Create a new venue that can be used across all your shows.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="venueName">Venue Name *</Label>
+              <Input
+                id="venueName"
+                value={newVenueForm.name}
+                onChange={(e) => setNewVenueForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter venue name"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="venueAddress">Address</Label>
+              <Input
+                id="venueAddress"
+                value={newVenueForm.address}
+                onChange={(e) => setNewVenueForm(prev => ({ ...prev, address: e.target.value }))}
+                placeholder="Enter venue address"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="venueCapacity">Capacity</Label>
+              <Input
+                id="venueCapacity"
+                type="number"
+                value={newVenueForm.capacity}
+                onChange={(e) => setNewVenueForm(prev => ({ ...prev, capacity: e.target.value }))}
+                placeholder="Enter seating capacity"
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="venueNotes">Notes</Label>
+              <Textarea
+                id="venueNotes"
+                value={newVenueForm.notes}
+                onChange={(e) => setNewVenueForm(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Additional notes about this venue"
+                className="mt-1"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowNewVenueDialog(false);
+                setNewVenueForm({ name: '', address: '', capacity: '', notes: '' });
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateVenue}
+              disabled={!newVenueForm.name.trim() || createVenueMutation.isPending}
+            >
+              {createVenueMutation.isPending ? 'Creating...' : 'Create Venue'}
             </Button>
           </DialogFooter>
         </DialogContent>
