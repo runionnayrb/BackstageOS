@@ -141,6 +141,7 @@ interface ShowSettings {
 
 export default function ShowSettings() {
   const params = useParams<ShowSettingsParams>();
+  const { id } = params;
   const { user } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
