@@ -2583,9 +2583,9 @@ The Production Team`}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge variant={location.locationType === 'main' ? 'default' : 'secondary'} className="text-xs">
+                        <span className={`text-xs font-medium ${location.locationType === 'main' ? 'text-blue-600' : 'text-purple-600'}`}>
                           {location.locationType === 'main' ? 'Main' : 'Auxiliary'}
-                        </Badge>
+                        </span>
                         <Button
                           variant="ghost"
                           size="sm"
