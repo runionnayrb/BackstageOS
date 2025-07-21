@@ -23,6 +23,291 @@ import { ScheduleChangeDetectionService } from "./services/scheduleChangeDetecti
 import { z } from "zod";
 import sgMail from "@sendgrid/mail";
 
+// Function to generate HTML for daily call PDF
+function generateDailyCallHTML(callData: any, projectName: string, date: string): string {
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
+  const formatCast = (cast: string[]) => {
+    if (!cast || cast.length === 0) return 'TBD';
+    return cast.join(', ');
+  };
+
+  const announcements = callData.announcements || '1.   No announcements for today';
+
+  let locationsHTML = '';
+  
+  // Handle single vs multiple locations
+  if (callData.locations && callData.locations.length === 1) {
+    const location = callData.locations[0];
+    locationsHTML = `
+      <div style="margin-bottom: 32px;">
+        <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 4px; border-bottom: 2px solid black; padding-bottom: 8px;">
+          ${location.name}
+        </h4>
+        <div style="margin-top: 4px;">
+          ${location.events.map(event => `
+            <div style="display: flex; align-items: flex-start; gap: 24px; padding: 8px 0; ${event.title === 'END-OF-DAY' ? 'background-color: #f3f4f6;' : ''}">
+              <div style="width: 80px; font-size: 14px; font-weight: 500; color: #374151; flex-shrink: 0;">
+                ${event.title === 'END-OF-DAY' ? `<strong>${event.startTime}</strong>` : event.startTime}
+              </div>
+              <div style="flex: 1;">
+                <div style="font-size: 14px; font-weight: bold; color: ${event.title === 'END-OF-DAY' ? '#111827' : '#1f2937'};">
+                  ${event.title}
+                </div>
+                ${event.cast && event.cast.length > 0 ? `
+                  <div style="font-size: 12px; color: black; margin-top: 4px;">
+                    ${formatCast(event.cast)}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  } else if (callData.locations && callData.locations.length > 1) {
+    // Multiple locations - chronological layout
+    locationsHTML = `
+      <div style="margin-bottom: 32px;">
+        <div style="display: grid; grid-template-columns: 4fr 3fr; gap: 0; margin-bottom: 4px;">
+          ${callData.locations.map((location, index) => `
+            <div>
+              <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 8px; border-bottom: 2px solid black; padding-bottom: 8px;">
+                ${location.name}
+              </h4>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div style="margin-top: 8px;">
+          ${(() => {
+            // Get all events and sort chronologically
+            const allEvents = callData.locations.flatMap((location, locationIndex) =>
+              location.events.filter(event => event.title !== 'END-OF-DAY').map(event => ({
+                ...event,
+                locationIndex,
+                locationName: location.name
+              }))
+            );
+            
+            const sortedEvents = allEvents.sort((a, b) => {
+              const parseTime = (timeStr) => {
+                if (!timeStr) return 0;
+                const cleanTime = timeStr.trim();
+                if (cleanTime.includes(' ')) {
+                  const [time, period] = cleanTime.split(' ');
+                  if (time && time.includes(':')) {
+                    let [hours, minutes] = time.split(':').map(Number);
+                    if (period === 'PM' && hours !== 12) hours += 12;
+                    if (period === 'AM' && hours === 12) hours = 0;
+                    return hours * 60 + (minutes || 0);
+                  }
+                } else if (cleanTime.includes(':')) {
+                  const [hours, minutes] = cleanTime.split(':').map(Number);
+                  return hours * 60 + (minutes || 0);
+                }
+                return 0;
+              };
+              return parseTime(a.startTime) - parseTime(b.startTime);
+            });
+
+            return sortedEvents.map(event => `
+              <div style="display: grid; grid-template-columns: 4fr 3fr; gap: 0; margin-bottom: 8px;">
+                <div style="${event.locationIndex === 0 ? '' : 'visibility: hidden;'}">
+                  ${event.locationIndex === 0 ? `
+                    <div style="display: flex; align-items: flex-start; gap: 16px; padding: 8px 0;">
+                      <div style="width: 64px; font-size: 14px; font-weight: 500; color: #374151; flex-shrink: 0;">
+                        ${event.startTime}
+                      </div>
+                      <div style="flex: 1;">
+                        <div style="font-size: 14px; font-weight: bold; color: #1f2937;">
+                          ${event.title}
+                        </div>
+                        ${event.cast && event.cast.length > 0 ? `
+                          <div style="font-size: 12px; color: black; margin-top: 4px;">
+                            ${formatCast(event.cast)}
+                          </div>
+                        ` : ''}
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+                <div style="${event.locationIndex === 1 ? '' : 'visibility: hidden;'}">
+                  ${event.locationIndex === 1 ? `
+                    <div style="display: flex; align-items: flex-start; gap: 16px; padding: 8px 0;">
+                      <div style="width: 64px; font-size: 14px; font-weight: 500; color: #374151; flex-shrink: 0;">
+                        ${event.startTime}
+                      </div>
+                      <div style="flex: 1;">
+                        <div style="font-size: 14px; font-weight: bold; color: #1f2937;">
+                          ${event.title}
+                        </div>
+                        ${event.cast && event.cast.length > 0 ? `
+                          <div style="font-size: 12px; color: black; margin-top: 4px;">
+                            ${formatCast(event.cast)}
+                          </div>
+                        ` : ''}
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            `).join('');
+          })()}
+        </div>
+      </div>
+    `;
+  }
+
+  // Fittings section
+  let fittingsHTML = '';
+  if (callData.fittingsEvents && callData.fittingsEvents.length > 0) {
+    fittingsHTML = `
+      <div style="margin-bottom: 32px;">
+        <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 4px; border-bottom: 2px solid black; padding-bottom: 8px;">
+          Fittings
+        </h4>
+        <div style="margin-top: 4px;">
+          ${callData.fittingsEvents.map(event => `
+            <div style="display: flex; align-items: flex-start; gap: 24px; padding: 8px 0;">
+              <div style="width: 80px; font-size: 14px; font-weight: 500; color: #374151; flex-shrink: 0;">
+                ${event.startTime}
+              </div>
+              <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="font-size: 14px; font-weight: bold; color: #1f2937;">
+                    ${event.title}${event.startTime && event.endTime ? ` - (${(() => {
+                      const parseTime = (timeStr) => {
+                        if (!timeStr) return 0;
+                        const [hours, minutes] = timeStr.split(':').map(Number);
+                        return hours * 60 + minutes;
+                      };
+                      const duration = parseTime(event.endTime) - parseTime(event.startTime);
+                      return duration > 0 ? `${duration} Mins` : '';
+                    })()})` : ''}
+                  </div>
+                  <div style="font-size: 12px; color: #6b7280;">${event.location}</div>
+                </div>
+                ${event.cast && event.cast.length > 0 ? `
+                  <div style="font-size: 12px; color: black; margin-top: 4px;">
+                    ${formatCast(event.cast)}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // Appointments section
+  let appointmentsHTML = '';
+  if (callData.appointmentsEvents && callData.appointmentsEvents.length > 0) {
+    appointmentsHTML = `
+      <div style="margin-bottom: 32px;">
+        <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 4px; border-bottom: 2px solid black; padding-bottom: 8px;">
+          Appointments & Meetings
+        </h4>
+        <div style="margin-top: 4px;">
+          ${callData.appointmentsEvents.map(event => `
+            <div style="display: flex; align-items: flex-start; gap: 24px; padding: 8px 0;">
+              <div style="width: 80px; font-size: 14px; font-weight: 500; color: #374151; flex-shrink: 0;">
+                ${event.startTime}
+              </div>
+              <div style="flex: 1;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div style="font-size: 14px; font-weight: bold; color: #1f2937;">
+                    ${event.title}${event.startTime && event.endTime ? ` - (${(() => {
+                      const parseTime = (timeStr) => {
+                        if (!timeStr) return 0;
+                        const [hours, minutes] = timeStr.split(':').map(Number);
+                        return hours * 60 + minutes;
+                      };
+                      const duration = parseTime(event.endTime) - parseTime(event.startTime);
+                      return duration > 0 ? `${duration} Mins` : '';
+                    })()})` : ''}
+                  </div>
+                  <div style="font-size: 12px; color: #6b7280;">${event.location}</div>
+                </div>
+                ${event.cast && event.cast.length > 0 ? `
+                  <div style="font-size: 12px; color: black; margin-top: 4px;">
+                    ${formatCast(event.cast)}
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>${projectName} Daily Call - ${formatDate(date)}</title>
+      <style>
+        body { 
+          font-family: system-ui, -apple-system, sans-serif; 
+          margin: 0; 
+          padding: 20px;
+          font-size: 14px;
+          line-height: 1.4;
+        }
+        .container { 
+          max-width: 800px; 
+          margin: 0 auto; 
+          background: white; 
+          border: 1px solid #e5e7eb; 
+          border-radius: 8px;
+          padding: 32px;
+        }
+        .header { text-align: center; margin-bottom: 32px; }
+        .project-name { font-size: 24px; font-weight: bold; color: #111827; margin-bottom: 8px; }
+        .daily-schedule { font-size: 20px; color: black; margin-bottom: 2px; }
+        .date { font-size: 18px; color: black; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="project-name">${projectName}</div>
+          <div class="daily-schedule">DAILY SCHEDULE</div>
+          <div class="date">${formatDate(date)}</div>
+        </div>
+        
+        ${locationsHTML}
+        ${fittingsHTML}
+        ${appointmentsHTML}
+        
+        <div style="margin-bottom: 32px;">
+          <h4 style="font-size: 18px; font-weight: 600; margin-bottom: 4px;">Announcements</h4>
+          <div style="min-height: 80px; font-size: 14px; color: black; white-space: pre-wrap; border: 2px solid black; padding: 12px;">
+            ${announcements}
+          </div>
+        </div>
+        
+        <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #e5e7eb; text-align: center;">
+          <div style="font-weight: bold; color: black; font-size: 12px; margin-bottom: 8px;">SUBJECT TO CHANGE</div>
+          <div style="font-size: 12px; color: #6b7280;">Page 1 of 1</div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
 // Helper function to generate ICS content
 function generateICSContent(events: any[], project: any, contact: any): string {
   const formatDate = (date: string, time?: string) => {
@@ -5662,6 +5947,66 @@ Best regards,
     } catch (error) {
       console.error("Error deleting daily call:", error);
       res.status(500).json({ message: "Failed to delete daily call" });
+    }
+  });
+
+  // Export daily call as PDF
+  app.post('/api/projects/:id/daily-calls/:date/pdf', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { date } = req.params;
+      const { callData, projectName } = req.body;
+      
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      // Import puppeteer dynamically
+      const puppeteer = await import('puppeteer');
+      
+      // Generate HTML for PDF
+      const html = generateDailyCallHTML(callData, projectName, date);
+      
+      // Launch puppeteer and generate PDF
+      const browser = await puppeteer.default.launch({ 
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+      const page = await browser.newPage();
+      
+      await page.setContent(html, { waitUntil: 'networkidle0' });
+      
+      const pdf = await page.pdf({
+        format: 'Letter',
+        margin: {
+          top: '0.5in',
+          bottom: '0.5in',
+          left: '0.75in',
+          right: '0.75in'
+        },
+        printBackground: true
+      });
+      
+      await browser.close();
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${projectName}-Daily-Call-${date}.pdf"`);
+      res.send(pdf);
+      
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      res.status(500).json({ message: "Failed to generate PDF" });
     }
   });
 

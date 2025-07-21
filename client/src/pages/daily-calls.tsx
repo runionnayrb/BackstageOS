@@ -3,18 +3,18 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useLocation, useParams } from "wouter";
 import { format, parseISO } from "date-fns";
-import { Calendar, Plus, Save, FileText, ChevronLeft, Users, Edit } from "lucide-react";
+import { Calendar, Plus, Save, FileText, ChevronLeft, Users, Edit, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { useToast } from "@/hooks/use-toast";
 import { parseScheduleSettings, formatTimeDisplay } from "@/lib/timeUtils";
 import { CastSelector } from "@/components/cast-selector";
 import type { DailyCall, Project, Contact, ScheduleEvent } from "@shared/schema";
@@ -474,6 +474,49 @@ export default function DailyCallSheet() {
     return cast.join(', ');
   };
 
+  const exportToPDF = async () => {
+    try {
+      const response = await fetch(`/api/projects/${actualProjectId}/daily-calls/${selectedDate}/pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          callData,
+          projectName: project?.name,
+          selectedDate
+        }),
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const formattedDate = format(parseISO(selectedDate), 'yyyy-MM-dd');
+        a.href = url;
+        a.download = `${project?.name}-Daily-Call-${formattedDate}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast({
+          title: "PDF Downloaded",
+          description: "Daily call sheet has been exported as PDF.",
+        });
+      } else {
+        throw new Error('Failed to generate PDF');
+      }
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast({
+        title: "Export Error",
+        description: "Failed to export daily call sheet as PDF.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -511,6 +554,9 @@ export default function DailyCallSheet() {
             </Popover>
           </div>
           <div className="flex items-center space-x-3">
+            <Button onClick={exportToPDF} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
+              <Download className="h-4 w-4 hover:text-blue-600 transition-colors" />
+            </Button>
             {!isEditing && (
               <Button onClick={() => setIsEditing(true)} variant="ghost" size="icon" className="border-0 hover:bg-transparent">
                 <Edit className="h-4 w-4 hover:text-blue-600 transition-colors" />
