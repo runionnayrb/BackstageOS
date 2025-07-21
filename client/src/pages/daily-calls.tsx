@@ -572,87 +572,214 @@ export default function DailyCallSheet() {
                 ))}
               </div>
             ) : (
-              // Multiple locations - 2/3 and 1/3 layout with full-width END-OF-DAY
+              // Multiple locations - chronologically aligned with no gap
               <div className="space-y-4">
-                {/* Regular events in grid layout */}
+                {/* Column headers */}
                 <div className="grid grid-cols-7 gap-0">
                   {(callData.locations || []).map((location, locationIndex) => (
-                    <div key={locationIndex} className={`space-y-3 ${locationIndex === 0 ? 'col-span-4' : 'col-span-3'}`}>
+                    <div key={locationIndex} className={`${locationIndex === 0 ? 'col-span-4' : 'col-span-3'}`}>
                       <div className="border-b-2 border-black pb-2">
                         <h4 className="text-lg font-semibold text-gray-900">
                           {location.name}
                         </h4>
                       </div>
-                      
-                      <div className="space-y-2">
-                        {(location.events || []).filter(event => event.title !== 'END-OF-DAY').map((event, eventIdx) => (
-                          <div key={event.id} className="flex items-start gap-4 py-2">
-                            <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
-                              {isEditing ? (
-                                <Input
-                                  value={event.startTime}
-                                  onChange={(e) => {
-                                    const newLocations = [...callData.locations];
-                                    const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
-                                    newLocations[locationIndex].events[originalEventIdx].startTime = e.target.value;
-                                    setCallData(prev => ({ ...prev, locations: newLocations }));
-                                  }}
-                                  className="text-xs w-14"
-                                  placeholder="9:00 AM"
-                                />
-                              ) : event.startTime}
-                            </div>
-                            <div className="flex-1">
-                              <div>
-                                <div className="text-sm font-bold text-gray-800">
-                                  {isEditing ? (
-                                    <Input
-                                      value={event.title}
-                                      onChange={(e) => {
-                                        const newLocations = [...callData.locations];
-                                        const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
-                                        newLocations[locationIndex].events[originalEventIdx].title = e.target.value;
-                                        setCallData(prev => ({ ...prev, locations: newLocations }));
-                                      }}
-                                      className="font-medium text-sm"
-                                    />
-                                  ) : (
-                                    event.title
-                                  )}
-                                </div>
-                                {isEditing ? (
-                                  <div className="mt-2">
-                                    <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
-                                    <div className="mt-1">
-                                      <CastSelector
-                                        contacts={contacts}
-                                        selectedCast={event.cast}
-                                        onChange={(newCast) => {
-                                          const newLocations = [...callData.locations];
-                                          const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
-                                          newLocations[locationIndex].events[originalEventIdx].cast = newCast;
-                                          setCallData(prev => ({ ...prev, locations: newLocations }));
-                                        }}
-                                        placeholder="Type to search cast members..."
-                                      />
-                                    </div>
-                                  </div>
-                                ) : (
-                                  event.cast && event.cast.length > 0 && (
-                                    <div className="text-xs text-black mt-1">
-                                      {event.cast.join(', ')}
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                        
-
-                      </div>
                     </div>
                   ))}
+                </div>
+
+                {/* Events chronologically aligned across columns */}
+                <div className="space-y-2">
+                  {(() => {
+                    // Get all non-END-OF-DAY events from all locations with their location info
+                    const allEventsWithLocation = (callData.locations || []).flatMap((location, locationIndex) => 
+                      (location.events || [])
+                        .filter(event => event.title !== 'END-OF-DAY')
+                        .map(event => ({ 
+                          ...event, 
+                          locationIndex,
+                          locationName: location.name 
+                        }))
+                    );
+
+                    // Sort all events chronologically by start time
+                    const sortedEvents = allEventsWithLocation.sort((a, b) => {
+                      // Parse time string to comparable format
+                      const parseTime = (timeStr) => {
+                        if (!timeStr || typeof timeStr !== 'string') return 0;
+                        
+                        // Handle different time formats
+                        let cleanTime = timeStr.trim();
+                        if (cleanTime.includes(' ')) {
+                          // Format: "9:00 AM" or "2:30 PM"
+                          const [time, period] = cleanTime.split(' ');
+                          if (time && time.includes(':')) {
+                            let [hours, minutes] = time.split(':').map(Number);
+                            if (period === 'PM' && hours !== 12) hours += 12;
+                            if (period === 'AM' && hours === 12) hours = 0;
+                            return hours * 60 + (minutes || 0);
+                          }
+                        } else if (cleanTime.includes(':')) {
+                          // Format: "09:00" or "14:30"
+                          const [hours, minutes] = cleanTime.split(':').map(Number);
+                          return hours * 60 + (minutes || 0);
+                        }
+                        return 0;
+                      };
+                      
+                      return parseTime(a.startTime) - parseTime(b.startTime);
+                    });
+
+                    // Render each event in chronological order, positioned in its column
+                    return sortedEvents.map((event, eventIndex) => (
+                      <div key={`${event.id}-${eventIndex}`} className="grid grid-cols-7 gap-0">
+                        {/* Left column (location 0) */}
+                        <div className="col-span-4">
+                          {event.locationIndex === 0 && (
+                            <div className="flex items-start gap-4 py-2">
+                              <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
+                                {isEditing ? (
+                                  <Input
+                                    value={event.startTime}
+                                    onChange={(e) => {
+                                      const newLocations = [...callData.locations];
+                                      const originalEventIdx = newLocations[0].events.findIndex(ev => ev.id === event.id);
+                                      if (originalEventIdx !== -1) {
+                                        newLocations[0].events[originalEventIdx].startTime = e.target.value;
+                                        setCallData(prev => ({ ...prev, locations: newLocations }));
+                                      }
+                                    }}
+                                    className="text-xs w-14"
+                                    placeholder="9:00 AM"
+                                  />
+                                ) : event.startTime}
+                              </div>
+                              <div className="flex-1">
+                                <div>
+                                  <div className="text-sm font-bold text-gray-800">
+                                    {isEditing ? (
+                                      <Input
+                                        value={event.title}
+                                        onChange={(e) => {
+                                          const newLocations = [...callData.locations];
+                                          const originalEventIdx = newLocations[0].events.findIndex(ev => ev.id === event.id);
+                                          if (originalEventIdx !== -1) {
+                                            newLocations[0].events[originalEventIdx].title = e.target.value;
+                                            setCallData(prev => ({ ...prev, locations: newLocations }));
+                                          }
+                                        }}
+                                        className="font-medium text-sm"
+                                      />
+                                    ) : (
+                                      event.title
+                                    )}
+                                  </div>
+                                  {isEditing ? (
+                                    <div className="mt-2">
+                                      <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
+                                      <div className="mt-1">
+                                        <CastSelector
+                                          contacts={contacts}
+                                          selectedCast={event.cast || []}
+                                          onChange={(newCast) => {
+                                            const newLocations = [...callData.locations];
+                                            const originalEventIdx = newLocations[0].events.findIndex(ev => ev.id === event.id);
+                                            if (originalEventIdx !== -1) {
+                                              newLocations[0].events[originalEventIdx].cast = newCast;
+                                              setCallData(prev => ({ ...prev, locations: newLocations }));
+                                            }
+                                          }}
+                                          placeholder="Type to search cast members..."
+                                        />
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    event.cast && event.cast.length > 0 && (
+                                      <div className="text-xs text-black mt-1">
+                                        {event.cast.join(', ')}
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Right column (location 1) */}
+                        <div className="col-span-3">
+                          {event.locationIndex === 1 && (
+                            <div className="flex items-start gap-4 py-2">
+                              <div className="w-16 text-sm font-medium text-gray-700 flex-shrink-0">
+                                {isEditing ? (
+                                  <Input
+                                    value={event.startTime}
+                                    onChange={(e) => {
+                                      const newLocations = [...callData.locations];
+                                      const originalEventIdx = newLocations[1].events.findIndex(ev => ev.id === event.id);
+                                      if (originalEventIdx !== -1) {
+                                        newLocations[1].events[originalEventIdx].startTime = e.target.value;
+                                        setCallData(prev => ({ ...prev, locations: newLocations }));
+                                      }
+                                    }}
+                                    className="text-xs w-14"
+                                    placeholder="9:00 AM"
+                                  />
+                                ) : event.startTime}
+                              </div>
+                              <div className="flex-1">
+                                <div>
+                                  <div className="text-sm font-bold text-gray-800">
+                                    {isEditing ? (
+                                      <Input
+                                        value={event.title}
+                                        onChange={(e) => {
+                                          const newLocations = [...callData.locations];
+                                          const originalEventIdx = newLocations[1].events.findIndex(ev => ev.id === event.id);
+                                          if (originalEventIdx !== -1) {
+                                            newLocations[1].events[originalEventIdx].title = e.target.value;
+                                            setCallData(prev => ({ ...prev, locations: newLocations }));
+                                          }
+                                        }}
+                                        className="font-medium text-sm"
+                                      />
+                                    ) : (
+                                      event.title
+                                    )}
+                                  </div>
+                                  {isEditing ? (
+                                    <div className="mt-2">
+                                      <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
+                                      <div className="mt-1">
+                                        <CastSelector
+                                          contacts={contacts}
+                                          selectedCast={event.cast || []}
+                                          onChange={(newCast) => {
+                                            const newLocations = [...callData.locations];
+                                            const originalEventIdx = newLocations[1].events.findIndex(ev => ev.id === event.id);
+                                            if (originalEventIdx !== -1) {
+                                              newLocations[1].events[originalEventIdx].cast = newCast;
+                                              setCallData(prev => ({ ...prev, locations: newLocations }));
+                                            }
+                                          }}
+                                          placeholder="Type to search cast members..."
+                                        />
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    event.cast && event.cast.length > 0 && (
+                                      <div className="text-xs text-black mt-1">
+                                        {event.cast.join(', ')}
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ));
+                  })()}
                 </div>
 
                 {/* Full-width END-OF-DAY events */}
