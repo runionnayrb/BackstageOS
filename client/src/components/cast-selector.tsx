@@ -158,7 +158,7 @@ export function CastSelector({
               ) : (
                 <CommandGroup>
                   {filteredCastMembers.map((contact) => {
-                    const displayName = formatContactName(contact);
+                    const fullName = `${contact.firstName} ${contact.lastName}`;
                     return (
                       <CommandItem
                         key={contact.id}
@@ -166,7 +166,7 @@ export function CastSelector({
                         className="cursor-pointer"
                       >
                         <div className="flex flex-col">
-                          <span className="font-medium">{displayName}</span>
+                          <span className="font-medium">{fullName}</span>
                           {contact.role && (
                             <span className="text-xs text-muted-foreground">
                               {contact.role.toUpperCase()}
