@@ -173,12 +173,13 @@ export default function DailyCallSheet() {
       }
       
       // Get actual cast members called to this event (filter by contact category = 'cast')
-      console.log('Event participants:', event.participants);
       const eventCast = (event.participants || [])
         .filter(participant => {
-          console.log('Participant data:', participant);
-          return participant.isRequired; // Only show required participants for now
-          // TODO: Add cast filtering once we understand the data structure
+          if (!participant.isRequired) return false;
+          
+          // Find the actual contact to get the category
+          const contact = contacts.find(c => c.id === participant.contactId);
+          return contact && contact.category === 'cast';
         })
         .map(participant => `${participant.contactFirstName.charAt(0)}. ${participant.contactLastName}`);
       
