@@ -137,8 +137,11 @@ export default function DailyCallSheet() {
         // Already structured - ensure only ONE END-OF-DAY event per location
         const locationsWithSingleEndOfDay = (existingDailyCall.locations as CallLocation[]).map(location => {
           const events = location.events || [];
+          console.log(`Processing location ${location.name} with ${events.length} events:`, events);
+          
           // Remove ALL existing END-OF-DAY events first
           const eventsWithoutEndOfDay = events.filter(event => event.title !== 'END-OF-DAY');
+          console.log(`After removing END-OF-DAY events: ${eventsWithoutEndOfDay.length} events remaining`);
           
           // Determine end-of-day time based on the last event's end time
           let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback
@@ -146,19 +149,24 @@ export default function DailyCallSheet() {
             const sortedEvents = [...eventsWithoutEndOfDay].sort((a, b) => a.startTime.localeCompare(b.startTime));
             const lastEvent = sortedEvents[sortedEvents.length - 1];
             endOfDayTime = lastEvent.endTime;
+            console.log(`Setting END-OF-DAY time to ${endOfDayTime} based on last event: ${lastEvent.title}`);
           }
           
           // Add exactly ONE END-OF-DAY event
+          const finalEvents = [...eventsWithoutEndOfDay, {
+            id: -1,
+            title: 'END-OF-DAY',
+            startTime: endOfDayTime,
+            endTime: endOfDayTime,
+            cast: [],
+            notes: undefined
+          }];
+          
+          console.log(`Final events for location ${location.name}:`, finalEvents.map(e => `${e.title} (${e.startTime})`));
+          
           return {
             ...location,
-            events: [...eventsWithoutEndOfDay, {
-              id: -1,
-              title: 'END-OF-DAY',
-              startTime: endOfDayTime,
-              endTime: endOfDayTime,
-              cast: [],
-              notes: undefined
-            }]
+            events: finalEvents
           };
         });
         
