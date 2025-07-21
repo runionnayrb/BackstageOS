@@ -64,6 +64,9 @@ import {
   apiCosts,
   userSessions,
   featureUsage,
+  userEngagementScores,
+  subscriptionPlans,
+  userSubscriptions,
 
   type User,
   type UpsertUser,
@@ -563,6 +566,19 @@ export interface IStorage {
   getApiCostsByUserId(userId: number, startDate?: Date, endDate?: Date): Promise<ApiCost[]>;
   getFeatureUsageByUserId(userId: number): Promise<FeatureUsage[]>;
   getUserSessionsByUserId(userId: number, startDate?: Date, endDate?: Date): Promise<UserSession[]>;
+  
+  // Advanced Analytics - Engagement Scoring
+  calculateEngagementScores(): Promise<void>;
+  getUserEngagementScore(userId: number): Promise<any>;
+  getEngagementAnalytics(): Promise<any>;
+  getCostOptimizationRecommendations(): Promise<any[]>;
+  getUserBehaviorInsights(): Promise<any[]>;
+  
+  // Billing System
+  getSubscriptionPlans(): Promise<any[]>;
+  getUserSubscription(userId: number): Promise<any>;
+  createUserSubscription(subscription: any): Promise<any>;
+  updateUserSubscription(userId: number, updates: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -3811,6 +3827,387 @@ export class DatabaseStorage implements IStorage {
     }
     
     return await query;
+  }
+
+  // Advanced Analytics - Engagement Scoring Implementation
+  async calculateEngagementScores(): Promise<void> {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const calculationStart = new Date(thirtyDaysAgo.getFullYear(), thirtyDaysAgo.getMonth(), thirtyDaysAgo.getDate());
+    const calculationEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    // Get all users
+    const allUsers = await db.select().from(users);
+    
+    for (const user of allUsers) {
+      // Get user activity data for scoring
+      const activities = await db.select().from(userActivity)
+        .where(and(
+          eq(userActivity.userId, user.id),
+          gte(userActivity.createdAt, thirtyDaysAgo)
+        ));
+
+      const sessions = await db.select().from(userSessions)
+        .where(and(
+          eq(userSessions.userId, user.id),
+          gte(userSessions.startTime, thirtyDaysAgo)
+        ));
+
+      const features = await db.select().from(featureUsage)
+        .where(eq(featureUsage.userId, user.id));
+
+      // Calculate engagement metrics
+      const totalActivities = activities.length;
+      const uniqueFeatures = new Set(features.map(f => f.feature)).size;
+      const totalSessions = sessions.length;
+      
+      // Session consistency (how regularly they use the app)
+      const sessionDays = new Set(sessions.map(s => 
+        new Date(s.startTime).toISOString().split('T')[0]
+      )).size;
+      const sessionConsistency = Math.min(100, (sessionDays / 30) * 100);
+
+      // Feature diversity (how many different features they use)
+      const featureDiversity = Math.min(100, (uniqueFeatures / 15) * 100); // Assuming 15 core features
+
+      // Base engagement score (weighted combination)
+      let engagementScore = Math.round(
+        (totalActivities * 0.4) +
+        (totalSessions * 2) +
+        (uniqueFeatures * 5) +
+        (sessionConsistency * 0.3) +
+        (featureDiversity * 0.3)
+      );
+      engagementScore = Math.min(100, Math.max(0, engagementScore));
+
+      // Determine engagement level
+      let engagementLevel: string = 'inactive';
+      if (engagementScore >= 80) engagementLevel = 'champion';
+      else if (engagementScore >= 60) engagementLevel = 'high';
+      else if (engagementScore >= 40) engagementLevel = 'medium';
+      else if (engagementScore >= 20) engagementLevel = 'low';
+
+      // Calculate churn risk (inverse of engagement with additional factors)
+      const daysSinceLastActivity = activities.length > 0 
+        ? Math.floor((now.getTime() - new Date(activities[0].createdAt).getTime()) / (1000 * 60 * 60 * 24))
+        : 30;
+      
+      let churnRiskScore = Math.round(
+        (100 - engagementScore) * 0.6 +
+        (daysSinceLastActivity / 30 * 100) * 0.4
+      );
+      churnRiskScore = Math.min(100, Math.max(0, churnRiskScore));
+
+      // Determine churn risk level
+      let churnRiskLevel: string = 'low';
+      if (churnRiskScore >= 75) churnRiskLevel = 'critical';
+      else if (churnRiskScore >= 50) churnRiskLevel = 'high';
+      else if (churnRiskScore >= 25) churnRiskLevel = 'medium';
+
+      // Determine usage trend (comparing recent vs older activity)
+      const recentActivities = activities.filter(a => 
+        new Date(a.createdAt).getTime() > now.getTime() - 14 * 24 * 60 * 60 * 1000
+      ).length;
+      const olderActivities = activities.length - recentActivities;
+      
+      let usageTrend: string = 'stable';
+      if (recentActivities > olderActivities * 1.5) usageTrend = 'improving';
+      else if (recentActivities < olderActivities * 0.5) usageTrend = 'declining';
+
+      // Upsert engagement score record
+      await db.insert(userEngagementScores).values({
+        userId: user.id,
+        engagementScore,
+        engagementLevel,
+        churnRiskScore,
+        churnRiskLevel,
+        featureDiversityScore: Math.round(featureDiversity),
+        sessionConsistencyScore: Math.round(sessionConsistency),
+        usageTrend,
+        calculationPeriodStart: calculationStart,
+        calculationPeriodEnd: calculationEnd,
+      }).onConflictDoUpdate({
+        target: [userEngagementScores.userId],
+        set: {
+          engagementScore,
+          engagementLevel,
+          churnRiskScore,
+          churnRiskLevel,
+          featureDiversityScore: Math.round(featureDiversity),
+          sessionConsistencyScore: Math.round(sessionConsistency),
+          usageTrend,
+          lastCalculated: new Date(),
+          calculationPeriodStart: calculationStart,
+          calculationPeriodEnd: calculationEnd,
+          updatedAt: new Date(),
+        }
+      });
+    }
+  }
+
+  async getUserEngagementScore(userId: number): Promise<any> {
+    const result = await db.select().from(userEngagementScores)
+      .where(eq(userEngagementScores.userId, userId));
+    return result[0] || null;
+  }
+
+  async getEngagementAnalytics(): Promise<any> {
+    const scores = await db.select().from(userEngagementScores);
+    
+    // Calculate aggregate metrics
+    const totalUsers = scores.length;
+    const engagementLevels = {
+      champion: scores.filter(s => s.engagementLevel === 'champion').length,
+      high: scores.filter(s => s.engagementLevel === 'high').length,
+      medium: scores.filter(s => s.engagementLevel === 'medium').length,
+      low: scores.filter(s => s.engagementLevel === 'low').length,
+      inactive: scores.filter(s => s.engagementLevel === 'inactive').length,
+    };
+
+    const churnRiskLevels = {
+      critical: scores.filter(s => s.churnRiskLevel === 'critical').length,
+      high: scores.filter(s => s.churnRiskLevel === 'high').length,
+      medium: scores.filter(s => s.churnRiskLevel === 'medium').length,
+      low: scores.filter(s => s.churnRiskLevel === 'low').length,
+    };
+
+    const usageTrends = {
+      improving: scores.filter(s => s.usageTrend === 'improving').length,
+      stable: scores.filter(s => s.usageTrend === 'stable').length,
+      declining: scores.filter(s => s.usageTrend === 'declining').length,
+    };
+
+    const averageEngagementScore = totalUsers > 0 
+      ? Math.round(scores.reduce((sum, s) => sum + s.engagementScore, 0) / totalUsers)
+      : 0;
+
+    const averageChurnRisk = totalUsers > 0
+      ? Math.round(scores.reduce((sum, s) => sum + s.churnRiskScore, 0) / totalUsers)
+      : 0;
+
+    return {
+      totalUsers,
+      averageEngagementScore,
+      averageChurnRisk,
+      engagementLevels,
+      churnRiskLevels,
+      usageTrends,
+      lastCalculated: scores.length > 0 ? scores[0].lastCalculated : null,
+    };
+  }
+
+  async getCostOptimizationRecommendations(): Promise<any[]> {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Get cost data with user engagement
+    const costData = await db.select({
+      userId: apiCosts.userId,
+      totalCost: sql<number>`SUM(${apiCosts.cost})`,
+      service: apiCosts.service,
+    })
+      .from(apiCosts)
+      .where(gte(apiCosts.date, thirtyDaysAgo))
+      .groupBy(apiCosts.userId, apiCosts.service);
+
+    const engagementData = await db.select().from(userEngagementScores);
+    const engagementMap = new Map(engagementData.map(e => [e.userId, e]));
+
+    // Analyze cost patterns and generate recommendations
+    const recommendations: any[] = [];
+    const costsByUser = new Map();
+
+    // Group costs by user
+    costData.forEach(cost => {
+      if (!costsByUser.has(cost.userId)) {
+        costsByUser.set(cost.userId, { total: 0, services: new Map() });
+      }
+      const userCosts = costsByUser.get(cost.userId);
+      userCosts.total += cost.totalCost;
+      userCosts.services.set(cost.service, cost.totalCost);
+    });
+
+    // Generate recommendations based on cost vs engagement patterns
+    for (const [userId, costs] of costsByUser) {
+      const engagement = engagementMap.get(userId);
+      const user = await this.getUser(userId.toString());
+      
+      if (!user || !engagement) continue;
+
+      // High cost, low engagement users
+      if (costs.total > 50 && engagement.engagementLevel === 'low') {
+        recommendations.push({
+          type: 'cost_optimization',
+          priority: 'high',
+          userId,
+          userName: user.username || user.email,
+          title: 'High Cost, Low Engagement User',
+          description: `User ${user.username || user.email} has generated $${costs.total.toFixed(2)} in costs but has low engagement. Consider reaching out to understand their needs.`,
+          estimatedSavings: costs.total * 0.7,
+          actionItems: ['Schedule user interview', 'Review feature usage patterns', 'Consider usage limits'],
+        });
+      }
+
+      // Heavy API users with declining trends
+      if (costs.total > 25 && engagement.usageTrend === 'declining') {
+        recommendations.push({
+          type: 'churn_prevention',
+          priority: 'medium',
+          userId,
+          userName: user.username || user.email,
+          title: 'High-Cost User with Declining Usage',
+          description: `User ${user.username || user.email} has high API costs ($${costs.total.toFixed(2)}) but declining usage. Risk of churn.`,
+          estimatedSavings: costs.total,
+          actionItems: ['Send re-engagement email', 'Offer usage consultation', 'Review pain points'],
+        });
+      }
+
+      // Service-specific optimizations
+      for (const [service, cost] of costs.services) {
+        if (service === 'openai' && cost > 30) {
+          recommendations.push({
+            type: 'service_optimization',
+            priority: 'low',
+            userId,
+            userName: user.username || user.email,
+            title: 'High OpenAI API Usage',
+            description: `User has high OpenAI costs ($${cost.toFixed(2)}). Consider implementing caching or rate limiting.`,
+            estimatedSavings: cost * 0.3,
+            actionItems: ['Implement response caching', 'Add rate limiting', 'Optimize prompts'],
+          });
+        }
+      }
+    }
+
+    return recommendations.sort((a, b) => {
+      const priorityOrder = { high: 3, medium: 2, low: 1 };
+      return priorityOrder[b.priority] - priorityOrder[a.priority];
+    });
+  }
+
+  async getUserBehaviorInsights(): Promise<any[]> {
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // Get comprehensive user behavior data
+    const activities = await db.select().from(userActivity)
+      .where(gte(userActivity.createdAt, thirtyDaysAgo));
+
+    const sessions = await db.select().from(userSessions)
+      .where(gte(userSessions.startTime, thirtyDaysAgo));
+
+    const features = await db.select().from(featureUsage);
+
+    // Analyze patterns
+    const insights: any[] = [];
+
+    // Peak usage hours
+    const hourlyActivity = new Map();
+    activities.forEach(activity => {
+      const hour = new Date(activity.createdAt).getHours();
+      hourlyActivity.set(hour, (hourlyActivity.get(hour) || 0) + 1);
+    });
+
+    const peakHour = Array.from(hourlyActivity.entries())
+      .sort((a, b) => b[1] - a[1])[0];
+
+    if (peakHour) {
+      insights.push({
+        type: 'usage_pattern',
+        title: 'Peak Usage Hour',
+        description: `Most user activity occurs at ${peakHour[0]}:00 with ${peakHour[1]} activities`,
+        impact: 'infrastructure_planning',
+        recommendation: 'Schedule maintenance and deployments outside peak hours',
+      });
+    }
+
+    // Feature adoption patterns
+    const featurePopularity = new Map();
+    features.forEach(feature => {
+      featurePopularity.set(feature.feature, (featurePopularity.get(feature.feature) || 0) + feature.usageCount);
+    });
+
+    const topFeatures = Array.from(featurePopularity.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    insights.push({
+      type: 'feature_adoption',
+      title: 'Most Popular Features',
+      description: `Top features: ${topFeatures.map(f => f[0]).join(', ')}`,
+      impact: 'product_development',
+      recommendation: 'Focus development resources on top-performing features',
+      data: topFeatures,
+    });
+
+    // Session duration patterns
+    const sessionDurations = sessions
+      .filter(s => s.endTime)
+      .map(s => (new Date(s.endTime!).getTime() - new Date(s.startTime).getTime()) / (1000 * 60));
+
+    if (sessionDurations.length > 0) {
+      const avgDuration = sessionDurations.reduce((sum, d) => sum + d, 0) / sessionDurations.length;
+      const shortSessions = sessionDurations.filter(d => d < 5).length;
+      const shortSessionPercentage = (shortSessions / sessionDurations.length) * 100;
+
+      insights.push({
+        type: 'session_analysis',
+        title: 'Session Duration Insights',
+        description: `Average session: ${avgDuration.toFixed(1)} minutes, ${shortSessionPercentage.toFixed(1)}% are under 5 minutes`,
+        impact: 'user_experience',
+        recommendation: shortSessionPercentage > 30 
+          ? 'High bounce rate detected. Review onboarding and initial user experience'
+          : 'Healthy session durations indicate good user engagement',
+      });
+    }
+
+    // User growth trends
+    const userRegistrations = await db.select().from(users)
+      .where(gte(users.createdAt, thirtyDaysAgo));
+
+    const dailySignups = new Map();
+    userRegistrations.forEach(user => {
+      const day = new Date(user.createdAt).toISOString().split('T')[0];
+      dailySignups.set(day, (dailySignups.get(day) || 0) + 1);
+    });
+
+    insights.push({
+      type: 'growth_analysis',
+      title: 'User Growth Trend',
+      description: `${userRegistrations.length} new users in the last 30 days`,
+      impact: 'business_metrics',
+      recommendation: userRegistrations.length > 10 
+        ? 'Strong growth trend. Consider scaling infrastructure'
+        : 'Consider growth marketing initiatives',
+      data: Array.from(dailySignups.entries()),
+    });
+
+    return insights;
+  }
+
+  // Billing System Methods
+  async getSubscriptionPlans(): Promise<any[]> {
+    return await db.select().from(subscriptionPlans)
+      .where(eq(subscriptionPlans.isActive, true));
+  }
+
+  async getUserSubscription(userId: number): Promise<any> {
+    const result = await db.select().from(userSubscriptions)
+      .where(eq(userSubscriptions.userId, userId));
+    return result[0] || null;
+  }
+
+  async createUserSubscription(subscription: any): Promise<any> {
+    const result = await db.insert(userSubscriptions).values(subscription).returning();
+    return result[0];
+  }
+
+  async updateUserSubscription(userId: number, updates: any): Promise<any> {
+    const result = await db.update(userSubscriptions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userSubscriptions.userId, userId))
+      .returning();
+    return result[0];
   }
 
 }

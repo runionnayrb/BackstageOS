@@ -1938,6 +1938,62 @@ export const featureUsage = pgTable("feature_usage", {
   date: date("date").notNull(), // Date for daily aggregation
 });
 
+// User engagement scoring system
+export const userEngagementScores = pgTable("user_engagement_scores", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  engagementScore: integer("engagement_score").notNull().default(0), // 0-100 scale
+  engagementLevel: varchar("engagement_level", { length: 20 }).notNull().default("inactive"), // inactive, low, medium, high, champion
+  churnRiskScore: integer("churn_risk_score").notNull().default(0), // 0-100 scale
+  churnRiskLevel: varchar("churn_risk_level", { length: 20 }).notNull().default("low"), // low, medium, high, critical
+  featureDiversityScore: integer("feature_diversity_score").notNull().default(0), // How many different features used
+  sessionConsistencyScore: integer("session_consistency_score").notNull().default(0), // How regular their usage is
+  usageTrend: varchar("usage_trend", { length: 20 }).default("stable"), // improving, stable, declining
+  lastCalculated: timestamp("last_calculated").defaultNow().notNull(),
+  calculationPeriodStart: date("calculation_period_start").notNull(),
+  calculationPeriodEnd: date("calculation_period_end").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Subscription plans for billing system
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 50 }).notNull(), // monthly, annual, theatre
+  displayName: varchar("display_name", { length: 100 }).notNull(),
+  description: text("description"),
+  priceMonthly: decimal("price_monthly", { precision: 10, scale: 2 }).notNull(),
+  priceAnnual: decimal("price_annual", { precision: 10, scale: 2 }),
+  features: jsonb("features").notNull(), // Array of included features
+  usageLimits: jsonb("usage_limits"), // API calls, storage, team members etc
+  trialDays: integer("trial_days").default(30),
+  requiresPaymentMethod: boolean("requires_payment_method").default(true),
+  stripePriceIdMonthly: varchar("stripe_price_id_monthly", { length: 100 }),
+  stripePriceIdAnnual: varchar("stripe_price_id_annual", { length: 100 }),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// User subscriptions for billing system
+export const userSubscriptions = pgTable("user_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  planId: integer("plan_id").notNull().references(() => subscriptionPlans.id),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 100 }),
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 100 }),
+  stripePaymentMethodId: varchar("stripe_payment_method_id", { length: 100 }),
+  status: varchar("status", { length: 50 }).notNull().default("trialing"), // trialing, active, past_due, canceled, incomplete
+  trialStart: date("trial_start"),
+  trialEnd: date("trial_end"),
+  currentPeriodStart: date("current_period_start"),
+  currentPeriodEnd: date("current_period_end"),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+  canceledAt: timestamp("canceled_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Analytics relations
 export const userActivityRelations = relations(userActivity, ({ one }) => ({
   user: one(users, {

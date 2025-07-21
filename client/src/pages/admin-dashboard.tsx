@@ -10,7 +10,7 @@ import BetaFeatureComponent from "./beta-feature-component";
 import AdminFeedback from "./admin-feedback";
 import AdminErrorLogs from "./admin-error-logs";
 import WaitlistManagement from "@/components/WaitlistManagement";
-import UserAnalytics from "@/components/UserAnalytics";
+import UserAnalytics from "@/components/UserAnalyticsSimple";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("users");

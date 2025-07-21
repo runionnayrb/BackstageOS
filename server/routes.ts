@@ -1670,6 +1670,105 @@ Respond with valid JSON only.`;
     }
   });
 
+  // Advanced Analytics - Engagement Scoring Routes
+  app.post('/api/admin/calculate-engagement-scores', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      await storage.calculateEngagementScores();
+      res.json({ message: "Engagement scores calculated successfully" });
+    } catch (error) {
+      console.error("Error calculating engagement scores:", error);
+      res.status(500).json({ message: "Failed to calculate engagement scores" });
+    }
+  });
+
+  app.get('/api/admin/engagement-analytics', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const analytics = await storage.getEngagementAnalytics();
+      res.json(analytics);
+    } catch (error) {
+      console.error("Error fetching engagement analytics:", error);
+      res.status(500).json({ message: "Failed to fetch engagement analytics" });
+    }
+  });
+
+  app.get('/api/admin/cost-optimization-recommendations', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const recommendations = await storage.getCostOptimizationRecommendations();
+      res.json(recommendations);
+    } catch (error) {
+      console.error("Error fetching cost optimization recommendations:", error);
+      res.status(500).json({ message: "Failed to fetch cost optimization recommendations" });
+    }
+  });
+
+  app.get('/api/admin/user-behavior-insights', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const insights = await storage.getUserBehaviorInsights();
+      res.json(insights);
+    } catch (error) {
+      console.error("Error fetching user behavior insights:", error);
+      res.status(500).json({ message: "Failed to fetch user behavior insights" });
+    }
+  });
+
+  // Billing System Routes
+  app.get('/api/admin/subscription-plans', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const plans = await storage.getSubscriptionPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error("Error fetching subscription plans:", error);
+      res.status(500).json({ message: "Failed to fetch subscription plans" });
+    }
+  });
+
+  app.get('/api/admin/user-subscription/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const targetUserId = parseInt(req.params.userId);
+      const subscription = await storage.getUserSubscription(targetUserId);
+      res.json(subscription);
+    } catch (error) {
+      console.error("Error fetching user subscription:", error);
+      res.status(500).json({ message: "Failed to fetch user subscription" });
+    }
+  });
+
   // Analytics data collection endpoints
   app.post('/api/analytics/activity', isAuthenticated, async (req: any, res) => {
     try {
