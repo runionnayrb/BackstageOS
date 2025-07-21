@@ -105,10 +105,9 @@ export default function Personnel() {
   // Save category order mutation
   const saveCategoryOrderMutation = useMutation({
     mutationFn: async (categoryOrder: string[]) => {
-      const response = await apiRequest("PATCH", `/api/projects/${projectId}/settings`, {
+      return await apiRequest("PATCH", `/api/projects/${projectId}/settings`, {
         contactCategoriesOrder: categoryOrder
       });
-      return response.json();
     },
     onError: (error: any) => {
       toast({

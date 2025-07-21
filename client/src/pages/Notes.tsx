@@ -35,7 +35,7 @@ export default function Notes() {
   // Fetch folders - always call hooks first
   const { data: folders = [] } = useQuery({
     queryKey: ['/api/note-folders', projectId, viewMode === "all"],
-    queryFn: () => apiRequest(`/api/note-folders?${projectId ? `projectId=${projectId}` : 'isGlobal=true'}`)
+    queryFn: () => apiRequest('GET', `/api/note-folders?${projectId ? `projectId=${projectId}` : 'isGlobal=true'}`)
   });
 
   // Fetch notes - always call hooks first
@@ -46,17 +46,14 @@ export default function Notes() {
       if (projectId && viewMode === "project") params.append('projectId', projectId);
       if (selectedFolder) params.append('folderId', selectedFolder.toString());
       if (searchQuery) params.append('searchQuery', searchQuery);
-      return apiRequest(`/api/notes?${params.toString()}`);
+      return apiRequest('GET', `/api/notes?${params.toString()}`);
     }
   });
 
   // Pin/unpin note mutation
   const pinNoteMutation = useMutation({
     mutationFn: (data: { noteId: number; isPinned: boolean }) =>
-      apiRequest(`/api/notes/${data.noteId}`, {
-        method: 'PUT',
-        body: { isPinned: data.isPinned }
-      }),
+      apiRequest('PUT', `/api/notes/${data.noteId}`, { isPinned: data.isPinned }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notes'] });
     }
@@ -65,10 +62,7 @@ export default function Notes() {
   // Archive note mutation
   const archiveNoteMutation = useMutation({
     mutationFn: (data: { noteId: number; isArchived: boolean }) =>
-      apiRequest(`/api/notes/${data.noteId}`, {
-        method: 'PUT',
-        body: { isArchived: data.isArchived }
-      }),
+      apiRequest('PUT', `/api/notes/${data.noteId}`, { isArchived: data.isArchived }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notes'] });
     }
