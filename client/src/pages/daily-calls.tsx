@@ -69,6 +69,12 @@ export default function DailyCallSheet() {
     enabled: !!actualProjectId,
   });
 
+  // Fetch show settings for time format
+  const { data: showSettings } = useQuery({
+    queryKey: ['/api/projects', actualProjectId, 'settings'],
+    enabled: !!actualProjectId,
+  });
+
   // Fetch event locations with their types
   const { data: eventLocations = [] } = useQuery({
     queryKey: ['/api/projects', actualProjectId, 'event-locations'],
@@ -87,11 +93,7 @@ export default function DailyCallSheet() {
     enabled: !!actualProjectId,
   });
 
-  // Fetch show settings for timezone and time format preferences
-  const { data: showSettings } = useQuery({
-    queryKey: [`/api/projects/${actualProjectId}/settings`],
-    enabled: !!actualProjectId,
-  });
+
 
   // Fetch existing daily call for the selected date
   const { data: existingDailyCall, isLoading } = useQuery<DailyCall>({
@@ -577,17 +579,27 @@ export default function DailyCallSheet() {
                   const calculateEndTime = (startTime) => {
                     if (!startTime) return 'END-OF-DAY';
                     
-                    // Parse the time
-                    const timeMatch = startTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-                    if (!timeMatch) return 'END-OF-DAY';
+                    // Parse time - handle both 12-hour and 24-hour formats
+                    let hours, minutes;
                     
-                    let hours = parseInt(timeMatch[1]);
-                    let minutes = parseInt(timeMatch[2]);
-                    const isPM = timeMatch[3]?.toUpperCase() === 'PM';
-                    
-                    // Convert to 24-hour format
-                    if (isPM && hours !== 12) hours += 12;
-                    if (!isPM && hours === 12) hours = 0;
+                    // Check if it has AM/PM (12-hour format)
+                    const twelveHourMatch = startTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+                    if (twelveHourMatch) {
+                      hours = parseInt(twelveHourMatch[1]);
+                      minutes = parseInt(twelveHourMatch[2]);
+                      const isPM = twelveHourMatch[3].toUpperCase() === 'PM';
+                      
+                      // Convert to 24-hour format
+                      if (isPM && hours !== 12) hours += 12;
+                      if (!isPM && hours === 12) hours = 0;
+                    } else {
+                      // Assume 24-hour format (HH:MM)
+                      const twentyFourHourMatch = startTime.match(/(\d{1,2}):(\d{2})/);
+                      if (!twentyFourHourMatch) return 'END-OF-DAY';
+                      
+                      hours = parseInt(twentyFourHourMatch[1]);
+                      minutes = parseInt(twentyFourHourMatch[2]);
+                    }
                     
                     // Add 30 minutes
                     minutes += 30;
@@ -596,11 +608,19 @@ export default function DailyCallSheet() {
                       minutes -= 60;
                     }
                     
-                    // Convert back to 12-hour format
-                    const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
-                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    // Get time format from show settings (default to 12-hour)
+                    const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
+                    const timeFormat = scheduleSettings?.timeFormat || '12h';
                     
-                    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+                    // Format according to show settings
+                    if (timeFormat === '24h') {
+                      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                    } else {
+                      // 12-hour format
+                      const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+                      const ampm = hours >= 12 ? 'PM' : 'AM';
+                      return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+                    }
                   };
                   
                   const endTime = calculateEndTime(latestEvent.startTime);
@@ -818,17 +838,27 @@ export default function DailyCallSheet() {
                   const calculateEndTime = (startTime) => {
                     if (!startTime) return 'END-OF-DAY';
                     
-                    // Parse the time
-                    const timeMatch = startTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-                    if (!timeMatch) return 'END-OF-DAY';
+                    // Parse time - handle both 12-hour and 24-hour formats
+                    let hours, minutes;
                     
-                    let hours = parseInt(timeMatch[1]);
-                    let minutes = parseInt(timeMatch[2]);
-                    const isPM = timeMatch[3]?.toUpperCase() === 'PM';
-                    
-                    // Convert to 24-hour format
-                    if (isPM && hours !== 12) hours += 12;
-                    if (!isPM && hours === 12) hours = 0;
+                    // Check if it has AM/PM (12-hour format)
+                    const twelveHourMatch = startTime.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+                    if (twelveHourMatch) {
+                      hours = parseInt(twelveHourMatch[1]);
+                      minutes = parseInt(twelveHourMatch[2]);
+                      const isPM = twelveHourMatch[3].toUpperCase() === 'PM';
+                      
+                      // Convert to 24-hour format
+                      if (isPM && hours !== 12) hours += 12;
+                      if (!isPM && hours === 12) hours = 0;
+                    } else {
+                      // Assume 24-hour format (HH:MM)
+                      const twentyFourHourMatch = startTime.match(/(\d{1,2}):(\d{2})/);
+                      if (!twentyFourHourMatch) return 'END-OF-DAY';
+                      
+                      hours = parseInt(twentyFourHourMatch[1]);
+                      minutes = parseInt(twentyFourHourMatch[2]);
+                    }
                     
                     // Add 30 minutes
                     minutes += 30;
@@ -837,11 +867,19 @@ export default function DailyCallSheet() {
                       minutes -= 60;
                     }
                     
-                    // Convert back to 12-hour format
-                    const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
-                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    // Get time format from show settings (default to 12-hour)
+                    const scheduleSettings = parseScheduleSettings((showSettings as any)?.scheduleSettings);
+                    const timeFormat = scheduleSettings?.timeFormat || '12h';
                     
-                    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+                    // Format according to show settings
+                    if (timeFormat === '24h') {
+                      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                    } else {
+                      // 12-hour format
+                      const displayHours = hours > 12 ? hours - 12 : (hours === 0 ? 12 : hours);
+                      const ampm = hours >= 12 ? 'PM' : 'AM';
+                      return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+                    }
                   };
                   
                   const endTime = calculateEndTime(latestEvent.startTime);
