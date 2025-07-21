@@ -535,10 +535,11 @@ export default function DailyCallSheet() {
                 const allTextElements = row.querySelectorAll('*');
                 allTextElements.forEach(el => {
                   if (el.textContent && (el.textContent.includes('END-OF-DAY') || el.textContent.includes('14:00'))) {
-                    el.style.lineHeight = '0.8';
-                    el.style.paddingTop = '2px';
+                    el.style.lineHeight = '1';
+                    el.style.marginTop = '-3px';
+                    el.style.paddingTop = '0px';
                     el.style.paddingBottom = '0px';
-                    el.style.margin = '0';
+                    el.style.marginBottom = '0';
                   }
                 });
               }
