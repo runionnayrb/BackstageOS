@@ -536,13 +536,14 @@ export default function DailyCallSheet() {
                 row.style.paddingBottom = '8px';
                 row.style.minHeight = '36px';
                 
-                // Find all text-containing elements and center them
+                // Find all text-containing elements and push them up with bottom padding
                 const allTextElements = row.querySelectorAll('*');
                 allTextElements.forEach(el => {
                   if (el.textContent && (el.textContent.includes('END-OF-DAY') || el.textContent.includes('14:00'))) {
                     el.style.lineHeight = '1.2';
                     el.style.margin = '0';
-                    el.style.padding = '0';
+                    el.style.paddingTop = '0';
+                    el.style.paddingBottom = '6px';
                   }
                 });
               }
