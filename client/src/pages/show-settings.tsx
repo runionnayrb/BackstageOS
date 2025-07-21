@@ -179,9 +179,6 @@ export default function ShowSettings() {
 
   const isFullTime = user?.profileType === "fulltime";
   const showLabel = isFullTime ? "Show" : "Project";
-  
-  // Temporary override for testing - force full-time mode
-  const testFullTime = true; // Set to true to test venue dropdown
 
   const { data: project, isLoading: projectLoading, error: projectError } = useQuery({
     queryKey: [`/api/projects/${params.id}`],
@@ -233,11 +230,10 @@ export default function ShowSettings() {
   // Query venues for full-time users
   const { data: venues = [], refetch: refetchVenues } = useQuery({
     queryKey: ["/api/venues"],
-    enabled: !!user && (isFullTime || testFullTime),
+    enabled: !!user && isFullTime,
   });
 
-  // Debug log for venues and user type  
-  console.log('User:', user, 'isFullTime:', isFullTime, 'venues:', venues);
+
 
   const { data: emailTemplateCategories = [] } = useQuery({
     queryKey: [`/api/projects/${params.id}/email-template-categories`],
@@ -1235,7 +1231,7 @@ The Production Team`
                   </div>
                   <div>
                     <Label htmlFor="venue">Venue</Label>
-                    {(isFullTime || testFullTime) ? (
+                    {isFullTime ? (
                       <Select
                         value={showBasicInfo.venueId ? showBasicInfo.venueId.toString() : ""}
                         onValueChange={(value) => {
