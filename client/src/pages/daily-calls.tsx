@@ -990,7 +990,7 @@ export default function DailyCallSheet() {
 
           {/* Announcements Section */}
           <div className="mt-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Announcements</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-1">Announcements</h3>
             {isEditing ? (
               <Textarea
                 value={callData.announcements}
