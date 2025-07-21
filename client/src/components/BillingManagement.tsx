@@ -147,7 +147,11 @@ export default function BillingManagement() {
   };
 
   const formatPrice = (price: number, interval: string) => {
-    return `$${price}/${interval === "month" ? "mo" : "yr"}`;
+    if (interval === "year") {
+      const monthlyEquivalent = Math.round(price / 12);
+      return `$${monthlyEquivalent}/mo (billed annually at $${price})`;
+    }
+    return `$${price}/mo`;
   };
 
   const getSubscriptionStatusBadge = (status?: string) => {
