@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
 import { parseScheduleSettings, formatTimeDisplay } from "@/lib/timeUtils";
+import { CastSelector } from "@/components/cast-selector";
 import type { DailyCall, Project, Contact, ScheduleEvent } from "@shared/schema";
 
 interface DailyCallSheetParams {
@@ -533,37 +534,17 @@ export default function DailyCallSheet() {
                                 {isEditing && event.title !== 'END-OF-DAY' ? (
                                   <div className="mt-2">
                                     <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
-                                    <div className="mt-1 space-y-1 max-h-24 overflow-y-auto">
-                                      {contacts.filter(contact => contact.category === 'cast').map(contact => {
-                                        const contactDisplayName = `${contact.firstName.charAt(0)}. ${contact.lastName}`;
-                                        const isSelected = event.cast.includes(contactDisplayName);
-                                        return (
-                                          <label key={contact.id} className="flex items-center space-x-2 cursor-pointer">
-                                            <input
-                                              type="checkbox"
-                                              checked={isSelected}
-                                              onChange={(e) => {
-                                                const newLocations = [...callData.locations];
-                                                const currentCast = [...event.cast];
-                                                if (e.target.checked) {
-                                                  if (!currentCast.includes(contactDisplayName)) {
-                                                    currentCast.push(contactDisplayName);
-                                                  }
-                                                } else {
-                                                  const index = currentCast.indexOf(contactDisplayName);
-                                                  if (index > -1) {
-                                                    currentCast.splice(index, 1);
-                                                  }
-                                                }
-                                                newLocations[locationIndex].events[eventIdx].cast = currentCast;
-                                                setCallData(prev => ({ ...prev, locations: newLocations }));
-                                              }}
-                                              className="h-3 w-3 text-blue-600 rounded border-gray-300"
-                                            />
-                                            <span className="text-xs text-gray-700">{contactDisplayName}</span>
-                                          </label>
-                                        );
-                                      })}
+                                    <div className="mt-1">
+                                      <CastSelector
+                                        contacts={contacts}
+                                        selectedCast={event.cast}
+                                        onChange={(newCast) => {
+                                          const newLocations = [...callData.locations];
+                                          newLocations[locationIndex].events[eventIdx].cast = newCast;
+                                          setCallData(prev => ({ ...prev, locations: newLocations }));
+                                        }}
+                                        placeholder="Type to search cast members..."
+                                      />
                                     </div>
                                   </div>
                                 ) : (
@@ -635,38 +616,18 @@ export default function DailyCallSheet() {
                                   {isEditing ? (
                                     <div className="mt-2">
                                       <Label className="text-xs font-medium text-gray-600">Cast Called:</Label>
-                                      <div className="mt-1 space-y-1 max-h-24 overflow-y-auto">
-                                        {contacts.filter(contact => contact.category === 'cast').map(contact => {
-                                          const contactDisplayName = `${contact.firstName.charAt(0)}. ${contact.lastName}`;
-                                          const isSelected = event.cast.includes(contactDisplayName);
-                                          return (
-                                            <label key={contact.id} className="flex items-center space-x-2 cursor-pointer">
-                                              <input
-                                                type="checkbox"
-                                                checked={isSelected}
-                                                onChange={(e) => {
-                                                  const newLocations = [...callData.locations];
-                                                  const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
-                                                  const currentCast = [...newLocations[locationIndex].events[originalEventIdx].cast];
-                                                  if (e.target.checked) {
-                                                    if (!currentCast.includes(contactDisplayName)) {
-                                                      currentCast.push(contactDisplayName);
-                                                    }
-                                                  } else {
-                                                    const index = currentCast.indexOf(contactDisplayName);
-                                                    if (index > -1) {
-                                                      currentCast.splice(index, 1);
-                                                    }
-                                                  }
-                                                  newLocations[locationIndex].events[originalEventIdx].cast = currentCast;
-                                                  setCallData(prev => ({ ...prev, locations: newLocations }));
-                                                }}
-                                                className="h-3 w-3 text-blue-600 rounded border-gray-300"
-                                              />
-                                              <span className="text-xs text-gray-700">{contactDisplayName}</span>
-                                            </label>
-                                          );
-                                        })}
+                                      <div className="mt-1">
+                                        <CastSelector
+                                          contacts={contacts}
+                                          selectedCast={event.cast}
+                                          onChange={(newCast) => {
+                                            const newLocations = [...callData.locations];
+                                            const originalEventIdx = newLocations[locationIndex].events.findIndex(ev => ev.id === event.id);
+                                            newLocations[locationIndex].events[originalEventIdx].cast = newCast;
+                                            setCallData(prev => ({ ...prev, locations: newLocations }));
+                                          }}
+                                          placeholder="Type to search cast members..."
+                                        />
                                       </div>
                                     </div>
                                   ) : (
