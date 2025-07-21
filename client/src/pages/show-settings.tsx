@@ -179,6 +179,9 @@ export default function ShowSettings() {
 
   const isFullTime = user?.profileType === "fulltime";
   const showLabel = isFullTime ? "Show" : "Project";
+  
+  // Debug: Log profile type and fullTime status
+  console.log("Profile type:", user?.profileType, "isFullTime:", isFullTime);
 
   const { data: project, isLoading: projectLoading, error: projectError } = useQuery({
     queryKey: [`/api/projects/${params.id}`],
