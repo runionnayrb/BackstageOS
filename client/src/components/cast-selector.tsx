@@ -120,7 +120,6 @@ export function CastSelector({
                   variant="secondary"
                   className="flex items-center gap-1 text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800"
                 >
-                  <Users className="h-3 w-3" />
                   {castName}
                   {!disabled && (
                     <button
