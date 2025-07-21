@@ -527,19 +527,22 @@ export default function DailyCallSheet() {
             clonedElement.style.borderRadius = '0';
             clonedElement.style.padding = '20px'; // Reduced padding for tighter margins
             
-            // Fix END-OF-DAY text alignment by finding gray background rows
+            // Fix END-OF-DAY text alignment by making gray row taller and centering text
             const grayRows = clonedElement.querySelectorAll('.bg-gray-100');
             grayRows.forEach(row => {
               if (row.textContent?.includes('END-OF-DAY')) {
-                // Find all text-containing elements and reduce line-height to pull text up
+                // Make the gray row taller
+                row.style.paddingTop = '8px';
+                row.style.paddingBottom = '8px';
+                row.style.minHeight = '36px';
+                
+                // Find all text-containing elements and center them
                 const allTextElements = row.querySelectorAll('*');
                 allTextElements.forEach(el => {
                   if (el.textContent && (el.textContent.includes('END-OF-DAY') || el.textContent.includes('14:00'))) {
-                    el.style.lineHeight = '1';
-                    el.style.marginTop = '-3px';
-                    el.style.paddingTop = '0px';
-                    el.style.paddingBottom = '0px';
-                    el.style.marginBottom = '0';
+                    el.style.lineHeight = '1.2';
+                    el.style.margin = '0';
+                    el.style.padding = '0';
                   }
                 });
               }
