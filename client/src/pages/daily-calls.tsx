@@ -89,6 +89,12 @@ export default function DailyCallSheet() {
     enabled: !!actualProjectId,
   });
 
+  // Fetch event locations to map location names to types
+  const { data: eventLocations = [] } = useQuery({
+    queryKey: [`/api/projects/${actualProjectId}/event-locations`],
+    enabled: !!actualProjectId,
+  });
+
   // Fetch existing daily call for the selected date
   const { data: existingDailyCall, isLoading } = useQuery<DailyCall>({
     queryKey: ['/api/projects', actualProjectId, 'daily-calls', selectedDate],
@@ -147,7 +153,7 @@ export default function DailyCallSheet() {
       // Auto-generate from schedule events for the selected date (even if no events exist)
       generateCallFromSchedule();
     }
-  }, [existingDailyCall, selectedDate, actualProjectId, timeFormat, scheduleEvents]); // Include scheduleEvents to regenerate when data loads
+  }, [existingDailyCall, selectedDate, actualProjectId, timeFormat, scheduleEvents, eventLocations]); // Include scheduleEvents and eventLocations to regenerate when data loads
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
@@ -159,7 +165,7 @@ export default function DailyCallSheet() {
   };
 
   const generateCallFromSchedule = () => {
-    if (!actualProjectId) return;
+    if (!actualProjectId || !scheduleEvents || !eventLocations) return;
 
     // Filter events for the selected date - handle different date formats
     const dayEvents = scheduleEvents.filter(event => {
@@ -181,28 +187,18 @@ export default function DailyCallSheet() {
       }
     });
     
-    console.log('Daily Call Debug:', {
-      selectedDate,
-      totalEvents: scheduleEvents.length,
-      filteredEvents: dayEvents.length,
-      dayEvents: dayEvents.map(e => ({ id: e.id, title: e.title, date: e.date, startTime: e.startTime }))
-    });
-    
-    // Group events by location type (Primary, Secondary, Fittings, Appointments)
+    // Group events by location type (Main, Auxiliary, Fittings, Appointments)
     const locationTypeGroups: { [key: string]: any[] } = {
-      primary: [],
-      secondary: [],
+      main: [],
+      auxiliary: [],
       fittings: [],
       appointments: []
     };
     
-    // Get event locations from project settings to map location names to types
-    const eventLocations = project?.eventLocations || [];
-    
     // If there are schedule events for the day, group them by location type
     dayEvents.forEach(event => {
       const eventLocation = eventLocations.find(loc => loc.name === event.location);
-      const locationType = eventLocation?.locationType || 'primary'; // Default to primary if not found
+      const locationType = eventLocation?.locationType || 'main'; // Default to main if not found
       
       if (!locationTypeGroups[locationType]) {
         locationTypeGroups[locationType] = [];
@@ -229,7 +225,6 @@ export default function DailyCallSheet() {
         location: event.location // Keep location name for display
       };
       
-      console.log('Processing event for location type:', locationType, '(' + event.location + ')', processedEvent);
       locationTypeGroups[locationType].push(processedEvent);
     });
 
@@ -245,39 +240,39 @@ export default function DailyCallSheet() {
     }
 
     // Group events by actual location names within each location type
-    const primaryLocationGroups: { [key: string]: any[] } = {};
-    const secondaryLocationGroups: { [key: string]: any[] } = {};
+    const mainLocationGroups: { [key: string]: any[] } = {};
+    const auxiliaryLocationGroups: { [key: string]: any[] } = {};
     
-    // Group primary events by location name
-    locationTypeGroups.primary.forEach(event => {
-      const locationName = event.location || 'Primary Location';
-      if (!primaryLocationGroups[locationName]) {
-        primaryLocationGroups[locationName] = [];
+    // Group main events by location name
+    locationTypeGroups.main.forEach(event => {
+      const locationName = event.location || 'Main Location';
+      if (!mainLocationGroups[locationName]) {
+        mainLocationGroups[locationName] = [];
       }
-      primaryLocationGroups[locationName].push(event);
+      mainLocationGroups[locationName].push(event);
     });
     
-    // Group secondary events by location name  
-    locationTypeGroups.secondary.forEach(event => {
-      const locationName = event.location || 'Secondary Location';
-      if (!secondaryLocationGroups[locationName]) {
-        secondaryLocationGroups[locationName] = [];
+    // Group auxiliary events by location name  
+    locationTypeGroups.auxiliary.forEach(event => {
+      const locationName = event.location || 'Auxiliary Location';
+      if (!auxiliaryLocationGroups[locationName]) {
+        auxiliaryLocationGroups[locationName] = [];
       }
-      secondaryLocationGroups[locationName].push(event);
+      auxiliaryLocationGroups[locationName].push(event);
     });
 
     // Create the main locations array for two-column layout
     const locations: CallLocation[] = [];
     
-    // Get the primary location names (left column)
-    const primaryLocationNames = Object.keys(primaryLocationGroups);
-    if (primaryLocationNames.length > 0) {
-      // For now, take the first primary location for left column
-      const primaryLocationName = primaryLocationNames[0];
-      const primaryEvents = primaryLocationGroups[primaryLocationName].sort((a, b) => a.startTime.localeCompare(b.startTime));
+    // Get the main location names (left column)
+    const mainLocationNames = Object.keys(mainLocationGroups);
+    if (mainLocationNames.length > 0) {
+      // For now, take the first main location for left column
+      const mainLocationName = mainLocationNames[0];
+      const mainEvents = mainLocationGroups[mainLocationName].sort((a, b) => a.startTime.localeCompare(b.startTime));
       
-      // Add END-OF-DAY to the first (primary) location
-      primaryEvents.push({
+      // Add END-OF-DAY to the first (main) location
+      mainEvents.push({
         id: -1,
         title: 'END-OF-DAY',
         startTime: globalEndOfDayTime,
@@ -288,28 +283,26 @@ export default function DailyCallSheet() {
       });
       
       locations.push({
-        name: primaryLocationName,
-        events: primaryEvents,
-        locationType: 'primary'
+        name: mainLocationName,
+        events: mainEvents,
+        locationType: 'main'
       });
     }
     
-    // Get the secondary location names (right column)
-    const secondaryLocationNames = Object.keys(secondaryLocationGroups);
-    if (secondaryLocationNames.length > 0) {
-      // Take the first secondary location for right column
-      const secondaryLocationName = secondaryLocationNames[0];
-      const secondaryEvents = secondaryLocationGroups[secondaryLocationName].sort((a, b) => a.startTime.localeCompare(b.startTime));
+    // Get the auxiliary location names (right column)
+    const auxiliaryLocationNames = Object.keys(auxiliaryLocationGroups);
+    if (auxiliaryLocationNames.length > 0) {
+      // Take the first auxiliary location for right column
+      const auxiliaryLocationName = auxiliaryLocationNames[0];
+      const auxiliaryEvents = auxiliaryLocationGroups[auxiliaryLocationName].sort((a, b) => a.startTime.localeCompare(b.startTime));
       
       locations.push({
-        name: secondaryLocationName,
-        events: secondaryEvents,
-        locationType: 'secondary'
+        name: auxiliaryLocationName,
+        events: auxiliaryEvents,
+        locationType: 'auxiliary'
       });
     }
 
-    console.log('Final locations being set:', locations);
-    
     // Also store fittings and appointments data for conditional sections
     setCallData(prev => ({
       ...prev,
