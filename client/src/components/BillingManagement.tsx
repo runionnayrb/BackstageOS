@@ -318,7 +318,7 @@ export default function BillingManagement() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-4">
                           <div>
-                            <p className="font-medium">{user.username || user.email}</p>
+                            <p className="font-medium">{user.username}</p>
                             <p className="text-sm text-muted-foreground">{user.email}</p>
                           </div>
                           <div className="flex items-center space-x-2">
