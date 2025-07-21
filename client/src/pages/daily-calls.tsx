@@ -531,26 +531,28 @@ export default function DailyCallSheet() {
             const grayRows = clonedElement.querySelectorAll('.bg-gray-100');
             grayRows.forEach(row => {
               if (row.textContent?.includes('END-OF-DAY')) {
-                // Force proper alignment on the gray row with padding approach
-                row.style.paddingTop = '6px';
-                row.style.paddingBottom = '6px';
-                row.style.display = 'flex';
-                row.style.alignItems = 'center';
-                row.style.minHeight = '28px';
+                // Set the row to have consistent height and positioning
+                row.style.height = '32px';
+                row.style.display = 'table';
+                row.style.width = '100%';
                 
-                // Find all text-containing elements and center them
-                const allTextElements = row.querySelectorAll('*');
-                allTextElements.forEach(el => {
-                  if (el.textContent && (el.textContent.includes('END-OF-DAY') || el.textContent.includes('14:00'))) {
-                    el.style.display = 'flex';
-                    el.style.alignItems = 'center';
-                    el.style.justifyContent = el.textContent.includes('14:00') ? 'flex-start' : 'flex-start';
-                    el.style.height = '100%';
-                    el.style.lineHeight = '1';
-                    el.style.paddingTop = '0';
-                    el.style.paddingBottom = '0';
-                    el.style.margin = '0';
-                  }
+                // Make all child elements display as table-cells for perfect vertical centering
+                const directChildren = Array.from(row.children);
+                directChildren.forEach(child => {
+                  child.style.display = 'table-cell';
+                  child.style.verticalAlign = 'middle';
+                  child.style.height = '32px';
+                  
+                  // Also handle any nested text elements
+                  const textNodes = child.querySelectorAll('*');
+                  textNodes.forEach(textEl => {
+                    if (textEl.textContent && (textEl.textContent.includes('END-OF-DAY') || textEl.textContent.includes('14:00'))) {
+                      textEl.style.lineHeight = '32px';
+                      textEl.style.height = '32px';
+                      textEl.style.margin = '0';
+                      textEl.style.padding = '0';
+                    }
+                  });
                 });
               }
             });
