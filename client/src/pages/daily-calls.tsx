@@ -145,7 +145,7 @@ export default function DailyCallSheet() {
       // Auto-generate from schedule events for the selected date (even if no events exist)
       generateCallFromSchedule();
     }
-  }, [existingDailyCall, selectedDate, actualProjectId, timeFormat]); // Removed scheduleEvents to prevent infinite loops
+  }, [existingDailyCall, selectedDate, actualProjectId, timeFormat, scheduleEvents]); // Include scheduleEvents to regenerate when data loads
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
@@ -159,8 +159,32 @@ export default function DailyCallSheet() {
   const generateCallFromSchedule = () => {
     if (!actualProjectId) return;
 
-    // Filter events for the selected date
-    const dayEvents = scheduleEvents.filter(event => event.date === selectedDate);
+    // Filter events for the selected date - handle different date formats
+    const dayEvents = scheduleEvents.filter(event => {
+      try {
+        // Handle different possible date formats in the event data
+        let eventDateStr = '';
+        if (event.date) {
+          eventDateStr = event.date;
+        } else if (event.startTime) {
+          // Extract date from startTime if needed
+          const dateFromStartTime = new Date(event.startTime).toISOString().split('T')[0];
+          eventDateStr = dateFromStartTime;
+        }
+        
+        return eventDateStr === selectedDate;
+      } catch (error) {
+        console.warn('Error parsing date for event:', event);
+        return false;
+      }
+    });
+    
+    console.log('Daily Call Debug:', {
+      selectedDate,
+      totalEvents: scheduleEvents.length,
+      filteredEvents: dayEvents.length,
+      dayEvents: dayEvents.map(e => ({ id: e.id, title: e.title, date: e.date, startTime: e.startTime }))
+    });
     
     // Group events by location
     const locationGroups: { [key: string]: any[] } = {};
@@ -183,14 +207,17 @@ export default function DailyCallSheet() {
         })
         .map(participant => `${participant.contactFirstName.charAt(0)}. ${participant.contactLastName}`);
       
-      locationGroups[location].push({
+      const processedEvent = {
         id: event.id,
         title: event.title,
         startTime: formatTimeDisplay(event.startTime?.slice(0, 5) || event.startTime, timeFormat as '12' | '24'),
         endTime: formatTimeDisplay(event.endTime?.slice(0, 5) || event.endTime, timeFormat as '12' | '24'),
         cast: eventCast,
         notes: event.notes || event.description
-      });
+      };
+      
+      console.log('Processing event for location:', location, processedEvent);
+      locationGroups[location].push(processedEvent);
     });
 
     // If no events exist for the day, create a default location
@@ -232,6 +259,7 @@ export default function DailyCallSheet() {
       };
     });
 
+    console.log('Final locations being set:', locations);
     setCallData(prev => ({
       ...prev,
       locations
