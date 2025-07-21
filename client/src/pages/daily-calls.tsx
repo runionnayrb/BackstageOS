@@ -1044,8 +1044,8 @@ export default function DailyCallSheet() {
                 className="min-h-20 border-2 border-black"
               />
             ) : (
-              <div className="min-h-20 text-sm text-gray-700 whitespace-pre-wrap border-2 border-black p-3">
-                {callData.announcements || 'No announcements for today.'}
+              <div className="min-h-20 text-sm text-black whitespace-pre-wrap border-2 border-black p-3">
+                {callData.announcements || '1.   No announcements for today'}
               </div>
             )}
           </div>
