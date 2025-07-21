@@ -527,6 +527,12 @@ export default function DailyCallSheet() {
             clonedElement.style.borderRadius = '0';
             clonedElement.style.padding = '20px'; // Reduced padding for tighter margins
             
+            // Hide the app footer since we'll add it as proper PDF footer
+            const appFooter = clonedElement.querySelector('.text-center.text-gray-600');
+            if (appFooter && appFooter.textContent?.includes('SUBJECT TO CHANGE')) {
+              appFooter.style.display = 'none';
+            }
+            
             // Fix END-OF-DAY text alignment - target all gray elements more aggressively
             const grayElements = clonedElement.querySelectorAll('[class*="bg-gray"], .bg-gray-100, [style*="background"]');
             grayElements.forEach(el => {
@@ -607,18 +613,22 @@ export default function DailyCallSheet() {
         // Add the image slice to this page
         pdf.addImage(sliceImgData, 'PNG', marginMm, marginMm, imgWidth, sliceHeight, '', 'FAST');
         
-        // Add footer with page numbers and "SUBJECT TO CHANGE"
-        const footerY = pageHeight - marginMm - 2;
+        // Add footer matching app footer exactly - centered and bolded
+        const footerStartY = pageHeight - marginMm - 8;
         
-        // Left side: SUBJECT TO CHANGE
+        // First line: SUBJECT TO CHANGE (bold, centered)
         pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(100, 100, 100); // Gray color
-        pdf.text('SUBJECT TO CHANGE', marginMm, footerY);
+        const subjectText = 'SUBJECT TO CHANGE';
+        const subjectTextWidth = pdf.getTextWidth(subjectText);
+        pdf.text(subjectText, (pageWidth - subjectTextWidth) / 2, footerStartY);
         
-        // Right side: Page X of Y
+        // Second line: Page X of Y (normal weight, centered)
+        pdf.setFont('helvetica', 'normal');
         const pageText = `Page ${pageNum} of ${totalPages}`;
         const pageTextWidth = pdf.getTextWidth(pageText);
-        pdf.text(pageText, pageWidth - marginMm - pageTextWidth, footerY);
+        pdf.text(pageText, (pageWidth - pageTextWidth) / 2, footerStartY + 4);
       }
       
       // Generate filename and save with Safari-friendly approach
