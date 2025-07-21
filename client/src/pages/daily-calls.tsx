@@ -906,9 +906,9 @@ export default function DailyCallSheet() {
                 {callData.fittingsEvents
                   .sort((a, b) => a.startTime.localeCompare(b.startTime))
                   .map((event, index) => (
-                    <div key={`fitting-${event.id}`} className="flex items-start gap-4">
-                      <div className="w-24 text-sm font-medium text-gray-700 flex-shrink-0">
-                        {event.startTime} - {event.endTime}
+                    <div key={`fitting-${event.id}`} className="flex items-start gap-6 py-2">
+                      <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
+                        {event.startTime}
                       </div>
                       <div className="flex-1">
                         <div className="text-sm font-bold text-gray-800">{event.title}</div>
@@ -938,9 +938,9 @@ export default function DailyCallSheet() {
                 {callData.appointmentsEvents
                   .sort((a, b) => a.startTime.localeCompare(b.startTime))
                   .map((event, index) => (
-                    <div key={`appointment-${event.id}`} className="flex items-start gap-4">
-                      <div className="w-24 text-sm font-medium text-gray-700 flex-shrink-0">
-                        {event.startTime} - {event.endTime}
+                    <div key={`appointment-${event.id}`} className="flex items-start gap-6 py-2">
+                      <div className="w-20 text-sm font-medium text-gray-700 flex-shrink-0">
+                        {event.startTime}
                       </div>
                       <div className="flex-1">
                         <div className="text-sm font-bold text-gray-800">{event.title}</div>
