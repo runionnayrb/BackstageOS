@@ -564,15 +564,62 @@ export default function DailyCallSheet() {
         imgData = canvas.toDataURL('image/jpeg', 1.0); // Maximum quality JPEG
       }
       
-      // Calculate dimensions to fit on letter size page with minimal margins
+      // Page dimensions and layout
       const pageWidth = 215.9; // Letter width in mm
       const pageHeight = 279.4; // Letter height in mm
-      const marginMm = 8; // Much smaller margins to match app interface more closely
-      const imgWidth = pageWidth - (marginMm * 2); // Margins on both sides
+      const marginMm = 8; // Margins
+      const contentWidth = pageWidth - (marginMm * 2);
+      const contentHeight = pageHeight - (marginMm * 2) - 10; // Reserve 10mm for footer
+      
+      // Calculate how the content scales to fit the page width
+      const imgWidth = contentWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // Add image to PDF with maximum quality and minimal margins
-      pdf.addImage(imgData, 'PNG', marginMm, marginMm, imgWidth, Math.min(imgHeight, pageHeight - (marginMm * 2)), '', 'FAST');
+      // Determine if we need multiple pages
+      const totalPages = Math.ceil(imgHeight / contentHeight);
+      
+      // Add content page by page
+      for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        if (pageNum > 1) {
+          pdf.addPage(); // Add new page for subsequent pages
+        }
+        
+        // Calculate the vertical slice for this page
+        const yOffset = (pageNum - 1) * contentHeight;
+        const sliceHeight = Math.min(contentHeight, imgHeight - yOffset);
+        
+        // Calculate the source rectangle for this slice
+        const sourceY = (yOffset / imgHeight) * canvas.height;
+        const sourceHeight = (sliceHeight / imgHeight) * canvas.height;
+        
+        // Create a temporary canvas with just this slice
+        const sliceCanvas = document.createElement('canvas');
+        const sliceCtx = sliceCanvas.getContext('2d');
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = sourceHeight;
+        
+        // Draw the slice
+        sliceCtx.drawImage(canvas, 0, sourceY, canvas.width, sourceHeight, 0, 0, canvas.width, sourceHeight);
+        
+        // Convert slice to data URL
+        const sliceImgData = sliceCanvas.toDataURL('image/png', 1.0);
+        
+        // Add the image slice to this page
+        pdf.addImage(sliceImgData, 'PNG', marginMm, marginMm, imgWidth, sliceHeight, '', 'FAST');
+        
+        // Add footer with page numbers and "SUBJECT TO CHANGE"
+        const footerY = pageHeight - marginMm - 2;
+        
+        // Left side: SUBJECT TO CHANGE
+        pdf.setFontSize(10);
+        pdf.setTextColor(100, 100, 100); // Gray color
+        pdf.text('SUBJECT TO CHANGE', marginMm, footerY);
+        
+        // Right side: Page X of Y
+        const pageText = `Page ${pageNum} of ${totalPages}`;
+        const pageTextWidth = pdf.getTextWidth(pageText);
+        pdf.text(pageText, pageWidth - marginMm - pageTextWidth, footerY);
+      }
       
       // Generate filename and save with Safari-friendly approach
       const formattedDate = format(parseISO(selectedDate), 'yyyy-MM-dd');
@@ -583,7 +630,7 @@ export default function DailyCallSheet() {
         pdf.save(filename);
         toast({
           title: "PDF Downloaded",
-          description: "Daily call sheet has been exported as PDF.",
+          description: `Daily call sheet exported as ${totalPages}-page PDF.`,
         });
       }, isSafari ? 100 : 0);
       
