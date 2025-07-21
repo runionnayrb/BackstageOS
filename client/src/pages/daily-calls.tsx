@@ -52,6 +52,8 @@ export default function DailyCallSheet() {
   const [callData, setCallData] = useState<{
     locations: CallLocation[];
     announcements: string;
+    fittingsEvents?: any[];
+    appointmentsEvents?: any[];
   }>({
     locations: [],
     announcements: ''
@@ -186,14 +188,24 @@ export default function DailyCallSheet() {
       dayEvents: dayEvents.map(e => ({ id: e.id, title: e.title, date: e.date, startTime: e.startTime }))
     });
     
-    // Group events by location
-    const locationGroups: { [key: string]: any[] } = {};
+    // Group events by location type (Primary, Secondary, Fittings, Appointments)
+    const locationTypeGroups: { [key: string]: any[] } = {
+      primary: [],
+      secondary: [],
+      fittings: [],
+      appointments: []
+    };
     
-    // If there are schedule events for the day, group them by location
+    // Get event locations from project settings to map location names to types
+    const eventLocations = project?.eventLocations || [];
+    
+    // If there are schedule events for the day, group them by location type
     dayEvents.forEach(event => {
-      const location = event.location || 'Main Stage';
-      if (!locationGroups[location]) {
-        locationGroups[location] = [];
+      const eventLocation = eventLocations.find(loc => loc.name === event.location);
+      const locationType = eventLocation?.locationType || 'primary'; // Default to primary if not found
+      
+      if (!locationTypeGroups[locationType]) {
+        locationTypeGroups[locationType] = [];
       }
       
       // Get actual cast members called to this event (filter by contact category = 'cast')
@@ -213,56 +225,97 @@ export default function DailyCallSheet() {
         startTime: formatTimeDisplay(event.startTime?.slice(0, 5) || event.startTime, timeFormat as '12' | '24'),
         endTime: formatTimeDisplay(event.endTime?.slice(0, 5) || event.endTime, timeFormat as '12' | '24'),
         cast: eventCast,
-        notes: event.notes || event.description
+        notes: event.notes || event.description,
+        location: event.location // Keep location name for display
       };
       
-      console.log('Processing event for location:', location, processedEvent);
-      locationGroups[location].push(processedEvent);
+      console.log('Processing event for location type:', locationType, '(' + event.location + ')', processedEvent);
+      locationTypeGroups[locationType].push(processedEvent);
     });
-
-    // If no events exist for the day, create a default location
-    if (Object.keys(locationGroups).length === 0) {
-      locationGroups['Main Stage'] = [];
-    }
 
     // Calculate single END-OF-DAY time for the entire day (latest end time across all events)
     let globalEndOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback
-    const allEventsAcrossLocations = Object.values(locationGroups).flat();
-    if (allEventsAcrossLocations.length > 0) {
+    const allEventsAcrossTypes = Object.values(locationTypeGroups).flat();
+    if (allEventsAcrossTypes.length > 0) {
       // Find the latest end time across all events on this day
-      const latestEndTime = allEventsAcrossLocations.reduce((latest, event) => {
+      const latestEndTime = allEventsAcrossTypes.reduce((latest, event) => {
         return event.endTime > latest ? event.endTime : latest;
       }, '00:00');
       globalEndOfDayTime = latestEndTime;
     }
 
-    // Convert to locations array and add END-OF-DAY only to the first location
-    const locationEntries = Object.entries(locationGroups);
-    const locations: CallLocation[] = locationEntries.map(([name, events], index) => {
-      const sortedEvents = events.sort((a, b) => a.startTime.localeCompare(b.startTime));
-      
-      // Add END-OF-DAY only to the first location (represents the entire day)
-      if (index === 0) {
-        sortedEvents.push({
-          id: -1, // Special ID for END-OF-DAY
-          title: 'END-OF-DAY',
-          startTime: globalEndOfDayTime,
-          endTime: globalEndOfDayTime,
-          cast: [],
-          notes: undefined
-        });
+    // Group events by actual location names within each location type
+    const primaryLocationGroups: { [key: string]: any[] } = {};
+    const secondaryLocationGroups: { [key: string]: any[] } = {};
+    
+    // Group primary events by location name
+    locationTypeGroups.primary.forEach(event => {
+      const locationName = event.location || 'Primary Location';
+      if (!primaryLocationGroups[locationName]) {
+        primaryLocationGroups[locationName] = [];
       }
-      
-      return {
-        name,
-        events: sortedEvents
-      };
+      primaryLocationGroups[locationName].push(event);
+    });
+    
+    // Group secondary events by location name  
+    locationTypeGroups.secondary.forEach(event => {
+      const locationName = event.location || 'Secondary Location';
+      if (!secondaryLocationGroups[locationName]) {
+        secondaryLocationGroups[locationName] = [];
+      }
+      secondaryLocationGroups[locationName].push(event);
     });
 
+    // Create the main locations array for two-column layout
+    const locations: CallLocation[] = [];
+    
+    // Get the primary location names (left column)
+    const primaryLocationNames = Object.keys(primaryLocationGroups);
+    if (primaryLocationNames.length > 0) {
+      // For now, take the first primary location for left column
+      const primaryLocationName = primaryLocationNames[0];
+      const primaryEvents = primaryLocationGroups[primaryLocationName].sort((a, b) => a.startTime.localeCompare(b.startTime));
+      
+      // Add END-OF-DAY to the first (primary) location
+      primaryEvents.push({
+        id: -1,
+        title: 'END-OF-DAY',
+        startTime: globalEndOfDayTime,
+        endTime: globalEndOfDayTime,
+        cast: [],
+        notes: undefined,
+        location: ''
+      });
+      
+      locations.push({
+        name: primaryLocationName,
+        events: primaryEvents,
+        locationType: 'primary'
+      });
+    }
+    
+    // Get the secondary location names (right column)
+    const secondaryLocationNames = Object.keys(secondaryLocationGroups);
+    if (secondaryLocationNames.length > 0) {
+      // Take the first secondary location for right column
+      const secondaryLocationName = secondaryLocationNames[0];
+      const secondaryEvents = secondaryLocationGroups[secondaryLocationName].sort((a, b) => a.startTime.localeCompare(b.startTime));
+      
+      locations.push({
+        name: secondaryLocationName,
+        events: secondaryEvents,
+        locationType: 'secondary'
+      });
+    }
+
     console.log('Final locations being set:', locations);
+    
+    // Also store fittings and appointments data for conditional sections
     setCallData(prev => ({
       ...prev,
-      locations
+      locations,
+      fittingsEvents: locationTypeGroups.fittings,
+      appointmentsEvents: locationTypeGroups.appointments
     }));
   };
 
@@ -850,148 +903,65 @@ export default function DailyCallSheet() {
             )}
           </div>
 
-          {/* Fittings Section - only show if there are events at fitting locations */}
-          {scheduleEvents.some(event => {
-            try {
-              const eventDate = new Date(event.startTime).toISOString().split('T')[0];
-              if (eventDate !== selectedDate) return false;
-              
-              // Check if event is at a fittings location
-              const fittingLocations = (project?.eventLocations || [])
-                .filter(loc => loc.locationType === 'fittings')
-                .map(loc => loc.name);
-              return fittingLocations.includes(event.location);
-            } catch (error) {
-              console.warn('Invalid date in event:', event);
-              return false;
-            }
-          }) && (
+          {/* Fittings Section - only show if there are fittings events */}
+          {(callData.fittingsEvents && callData.fittingsEvents.length > 0) && (
             <div className="mt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Fittings</h3>
               <div className="border-2 border-black p-3 space-y-2">
-                {scheduleEvents
-                  .filter(event => {
-                    try {
-                      const eventDate = new Date(event.startTime).toISOString().split('T')[0];
-                      if (eventDate !== selectedDate) return false;
-                      
-                      const fittingLocations = (project?.eventLocations || [])
-                        .filter(loc => loc.locationType === 'fittings')
-                        .map(loc => loc.name);
-                      return fittingLocations.includes(event.location);
-                    } catch (error) {
-                      console.warn('Invalid date in event:', event);
-                      return false;
-                    }
-                  })
-                  .sort((a, b) => {
-                    try {
-                      return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
-                    } catch (error) {
-                      return 0;
-                    }
-                  })
-                  .map((event, index) => {
-                    let startTime, endTime;
-                    try {
-                      startTime = formatTimeDisplay(
-                        format(new Date(event.startTime), 'HH:mm:ss'),
-                        timeFormat as '12' | '24'
-                      ).replace(':00', '');
-                      
-                      endTime = formatTimeDisplay(
-                        format(new Date(event.endTime), 'HH:mm:ss'),
-                        timeFormat as '12' | '24'
-                      ).replace(':00', '');
-                    } catch (error) {
-                      console.warn('Invalid date in event for formatting:', event);
-                      startTime = 'Invalid Time';
-                      endTime = 'Invalid Time';
-                    }
-                    
-                    // Get cast members for this event
-                    const eventCast = contacts.filter(contact => 
-                      contact.contactCategory === 'cast' && 
-                      event.participants?.includes(contact.id)
-                    );
-                    
-                    return (
-                      <div key={`fitting-${event.id}`} className="flex items-start gap-4">
-                        <div className="w-24 text-sm font-medium text-gray-700 flex-shrink-0">
-                          {startTime} - {endTime}
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-semibold text-gray-900 mb-1">
-                            {event.title}
-                          </div>
-                          {event.location && (
-                            <div className="text-sm text-gray-600 mb-1">
-                              @ {event.location}
-                            </div>
-                          )}
-                          {eventCast.length > 0 && (
-                            <div className="text-sm text-gray-700">
-                              {eventCast.map(cast => cast.firstName).join(', ')}
-                            </div>
-                          )}
-                          {event.description && (
-                            <div className="text-sm text-gray-600 mt-1">
-                              {event.description}
-                            </div>
-                          )}
-                        </div>
+                {callData.fittingsEvents
+                  .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                  .map((event, index) => (
+                    <div key={`fitting-${event.id}`} className="flex items-start gap-4">
+                      <div className="w-24 text-sm font-medium text-gray-700 flex-shrink-0">
+                        {event.startTime} - {event.endTime}
                       </div>
-                    );
-                  })}
+                      <div className="flex-1">
+                        <div className="text-sm font-bold text-gray-800">{event.title}</div>
+                        <div className="text-xs text-gray-600 mt-1">{event.location}</div>
+                        {event.cast && event.cast.length > 0 && (
+                          <div className="text-xs text-black mt-1">
+                            {event.cast.join(', ')}
+                          </div>
+                        )}
+                        {event.notes && (
+                          <div className="text-xs text-gray-600 mt-1">{event.notes}</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
               </div>
             </div>
           )}
 
-          {/* Appointments & Meetings Section - only show if there are events at appointment locations */}
-          {scheduleEvents.some(event => {
-            try {
-              const eventDate = new Date(event.startTime).toISOString().split('T')[0];
-              if (eventDate !== selectedDate) return false;
-              
-              // Check if event is at an appointments location or is a meeting type
-              const appointmentLocations = (project?.eventLocations || [])
-                .filter(loc => loc.locationType === 'appointments')
-                .map(loc => loc.name);
-              return appointmentLocations.includes(event.location) || event.eventType === 'meeting';
-            } catch (error) {
-              console.warn('Invalid date in event:', event);
-              return false;
-            }
-          }) && (
+          {/* Appointments & Meetings Section - only show if there are appointments events */}
+          {(callData.appointmentsEvents && callData.appointmentsEvents.length > 0) && (
             <div className="mt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Appointments & Meetings</h3>
               <div className="border-2 border-black p-3 space-y-2">
-                {scheduleEvents
-                  .filter(event => {
-                    try {
-                      const eventDate = new Date(event.startTime).toISOString().split('T')[0];
-                      if (eventDate !== selectedDate) return false;
-                      
-                      const appointmentLocations = (project?.eventLocations || [])
-                        .filter(loc => loc.locationType === 'appointments')
-                        .map(loc => loc.name);
-                      return appointmentLocations.includes(event.location) || event.eventType === 'meeting';
-                    } catch (error) {
-                      console.warn('Invalid date in event:', event);
-                      return false;
-                    }
-                  })
-                  .sort((a, b) => {
-                    try {
-                      return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
-                    } catch (error) {
-                      return 0;
-                    }
-                  })
-                  .map((event, index) => {
-                    let startTime, endTime;
-                    try {
-                      startTime = formatTimeDisplay(
+                {callData.appointmentsEvents
+                  .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                  .map((event, index) => (
+                    <div key={`appointment-${event.id}`} className="flex items-start gap-4">
+                      <div className="w-24 text-sm font-medium text-gray-700 flex-shrink-0">
+                        {event.startTime} - {event.endTime}
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-bold text-gray-800">{event.title}</div>
+                        <div className="text-xs text-gray-600 mt-1">{event.location}</div>
+                        {event.cast && event.cast.length > 0 && (
+                          <div className="text-xs text-black mt-1">
+                            {event.cast.join(', ')}
+                          </div>
+                        )}
+                        {event.notes && (
+                          <div className="text-xs text-gray-600 mt-1">{event.notes}</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
                         format(new Date(event.startTime), 'HH:mm:ss'),
                         timeFormat as '12' | '24'
                       ).replace(':00', '');
