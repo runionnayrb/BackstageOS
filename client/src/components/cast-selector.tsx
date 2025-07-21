@@ -165,12 +165,13 @@ export function CastSelector({
                         onSelect={() => handleSelectCast(contact)}
                         className="cursor-pointer"
                       >
-                        <Users className="mr-2 h-4 w-4" />
                         <div className="flex flex-col">
                           <span className="font-medium">{displayName}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {contact.role && `${contact.role} • `}{contact.email}
-                          </span>
+                          {contact.role && (
+                            <span className="text-xs text-muted-foreground">
+                              {contact.role.toUpperCase()}
+                            </span>
+                          )}
                         </div>
                       </CommandItem>
                     );
