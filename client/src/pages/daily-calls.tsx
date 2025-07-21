@@ -532,8 +532,8 @@ export default function DailyCallSheet() {
           {/* Call Sheet Header */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900">{project?.name}</h2>
-            <h3 className="text-xl text-gray-700 mt-2">DAILY SCHEDULE</h3>
-            <p className="text-lg text-gray-600 mt-1">
+            <h3 className="text-xl text-black mt-2">DAILY SCHEDULE</h3>
+            <p className="text-lg text-black mt-1">
               {format(parseISO(selectedDate), 'EEEE, MMMM d, yyyy')}
             </p>
           </div>
