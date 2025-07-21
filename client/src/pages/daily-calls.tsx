@@ -192,26 +192,33 @@ export default function DailyCallSheet() {
       locationGroups['Main Stage'] = [];
     }
 
-    // Convert to locations array and add END-OF-DAY to each location
-    const locations: CallLocation[] = Object.entries(locationGroups).map(([name, events]) => {
+    // Calculate single END-OF-DAY time for the entire day (latest end time across all events)
+    let globalEndOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback
+    const allEventsAcrossLocations = Object.values(locationGroups).flat();
+    if (allEventsAcrossLocations.length > 0) {
+      // Find the latest end time across all events on this day
+      const latestEndTime = allEventsAcrossLocations.reduce((latest, event) => {
+        return event.endTime > latest ? event.endTime : latest;
+      }, '00:00');
+      globalEndOfDayTime = latestEndTime;
+    }
+
+    // Convert to locations array and add END-OF-DAY only to the first location
+    const locationEntries = Object.entries(locationGroups);
+    const locations: CallLocation[] = locationEntries.map(([name, events], index) => {
       const sortedEvents = events.sort((a, b) => a.startTime.localeCompare(b.startTime));
       
-      // Determine end-of-day time based on the last event's end time, properly formatted
-      let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback with proper formatting
-      if (sortedEvents.length > 0) {
-        const lastEvent = sortedEvents[sortedEvents.length - 1];
-        endOfDayTime = lastEvent.endTime; // Already formatted from earlier
+      // Add END-OF-DAY only to the first location (represents the entire day)
+      if (index === 0) {
+        sortedEvents.push({
+          id: -1, // Special ID for END-OF-DAY
+          title: 'END-OF-DAY',
+          startTime: globalEndOfDayTime,
+          endTime: globalEndOfDayTime,
+          cast: [],
+          notes: undefined
+        });
       }
-      
-      // Add exactly ONE END-OF-DAY event at the end
-      sortedEvents.push({
-        id: -1, // Special ID for END-OF-DAY
-        title: 'END-OF-DAY',
-        startTime: endOfDayTime,
-        endTime: endOfDayTime,
-        cast: [],
-        notes: undefined
-      });
       
       return {
         name,
@@ -300,63 +307,85 @@ export default function DailyCallSheet() {
     setIsEditing(true);
   };
 
-  // Helper function to update END-OF-DAY time for a location
-  const updateEndOfDayTime = (events: Array<{ id: number; title: string; startTime: string; endTime: string; cast: string[]; notes?: string; }>) => {
-    const nonEndOfDayEvents = events.filter(event => event.title !== 'END-OF-DAY');
-    let endOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24'); // Default fallback with proper formatting
+  // Helper function to update END-OF-DAY time for the entire day (single END-OF-DAY)
+  const updateGlobalEndOfDay = (locations: CallLocation[]) => {
+    // Remove all existing END-OF-DAY events from all locations
+    const locationsWithoutEndOfDay = locations.map(location => ({
+      ...location,
+      events: location.events.filter(event => event.title !== 'END-OF-DAY')
+    }));
+
+    // Calculate global end-of-day time across all locations
+    let globalEndOfDayTime = formatTimeDisplay('23:59', timeFormat as '12' | '24');
+    const allEvents = locationsWithoutEndOfDay.flatMap(loc => loc.events);
     
-    if (nonEndOfDayEvents.length > 0) {
-      const sortedEvents = [...nonEndOfDayEvents].sort((a, b) => a.startTime.localeCompare(b.startTime));
-      const lastEvent = sortedEvents[sortedEvents.length - 1];
-      endOfDayTime = lastEvent.endTime;
+    if (allEvents.length > 0) {
+      const latestEndTime = allEvents.reduce((latest, event) => {
+        return event.endTime > latest ? event.endTime : latest;
+      }, '00:00');
+      globalEndOfDayTime = latestEndTime;
     }
-    
-    return [
-      ...nonEndOfDayEvents,
-      {
-        id: -1,
-        title: 'END-OF-DAY',
-        startTime: endOfDayTime,
-        endTime: endOfDayTime,
-        cast: [],
-        notes: undefined
+
+    // Add END-OF-DAY only to the first location
+    return locationsWithoutEndOfDay.map((location, index) => {
+      if (index === 0) {
+        return {
+          ...location,
+          events: [...location.events, {
+            id: -1,
+            title: 'END-OF-DAY',
+            startTime: globalEndOfDayTime,
+            endTime: globalEndOfDayTime,
+            cast: [],
+            notes: undefined
+          }]
+        };
       }
-    ];
+      return location;
+    });
   };
 
   const updateEvent = (locationIndex: number, eventIndex: number, updatedEvent: any) => {
-    setCallData(prev => ({
-      ...prev,
-      locations: prev.locations.map((loc, locIdx) => {
+    setCallData(prev => {
+      const updatedLocations = prev.locations.map((loc, locIdx) => {
         if (locIdx === locationIndex) {
           const updatedEvents = loc.events.map((event, evtIdx) => 
             evtIdx === eventIndex ? { ...event, ...updatedEvent } : event
           );
           return {
             ...loc,
-            events: updateEndOfDayTime(updatedEvents)
+            events: updatedEvents
           };
         }
         return loc;
-      })
-    }));
+      });
+      
+      return {
+        ...prev,
+        locations: updateGlobalEndOfDay(updatedLocations)
+      };
+    });
     setIsEditing(true);
   };
 
   const removeEvent = (locationIndex: number, eventIndex: number) => {
-    setCallData(prev => ({
-      ...prev,
-      locations: prev.locations.map((loc, locIdx) => {
+    setCallData(prev => {
+      const updatedLocations = prev.locations.map((loc, locIdx) => {
         if (locIdx === locationIndex) {
           const filteredEvents = loc.events.filter((_, evtIdx) => evtIdx !== eventIndex);
           return {
             ...loc,
-            events: updateEndOfDayTime(filteredEvents)
+            events: filteredEvents
           };
         }
         return loc;
-      })
-    }));
+      });
+      
+      return {
+        ...prev,
+        locations: updateGlobalEndOfDay(updatedLocations)
+      };
+    });
     setIsEditing(true);
   };
 
