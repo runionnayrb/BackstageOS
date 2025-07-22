@@ -439,7 +439,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     items: [],
     gridCols: 12,
     gridRows: 20,
-    gridGap: 8
+    gridGap: 4
   }));
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
   
@@ -756,7 +756,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       ],
       gridCols: 12,
       gridRows: 20,
-      gridGap: 8
+      gridGap: 4
     };
 
     setConfiguration(defaultConfig);
@@ -820,7 +820,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
         {/* Grid Layout */}
         <div className={cn(
-          "border rounded-lg p-4 bg-white",
+          "border rounded-lg p-2 bg-white",
           isEditMode && "bg-gray-50/50"
         )}>
           {!isLayoutMounted && (
@@ -838,9 +838,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                 layouts={layouts}
                 breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
                 cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-                rowHeight={30}
+                rowHeight={24}
                 width={1200}
-                margin={[8, 8]}
+                margin={[4, 4]}
                 containerPadding={[0, 0]}
                 isDraggable={isEditMode}
                 isResizable={isEditMode}
