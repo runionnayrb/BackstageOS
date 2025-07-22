@@ -812,6 +812,12 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
   // Add new item to layout (creates grouped sections)
   const addNewItem = (type: LayoutItem['type']) => {
+    console.log('🆕 Adding new item:', type);
+    console.log('🔍 Current configuration before adding:', {
+      itemCount: configuration.items.length,
+      items: configuration.items.map(item => ({ id: item.id, type: item.type }))
+    });
+    
     if (type === 'department-header') {
       // Create a new department section with header and notes
       const deptName = 'new-dept';
@@ -847,6 +853,11 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         ...configuration,
         items: [...configuration.items, newItem]
       };
+      
+      console.log('🚀 New configuration after adding:', {
+        itemCount: newConfig.items.length,
+        items: newConfig.items.map(item => ({ id: item.id, type: item.type }))
+      });
 
       setConfiguration(newConfig);
       onConfigurationChange?.(newConfig);
