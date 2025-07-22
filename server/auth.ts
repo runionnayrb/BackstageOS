@@ -220,6 +220,29 @@ export function setupAuth(app: Express) {
           reason: "account_inactive"
         });
       }
+
+      // Check subscription status - block problematic payment statuses completely
+      try {
+        const user = await storage.getUser(req.user.id.toString());
+        if (user && !user.isAdmin) {
+          const isBlocked = user.subscriptionStatus === 'past_due' ||
+                           user.subscriptionStatus === 'canceled' ||
+                           user.subscriptionStatus === 'incomplete';
+
+          if (isBlocked) {
+            console.log(`Access denied: User ${req.user.email} has subscription status: ${user.subscriptionStatus}`);
+            return res.status(402).json({ 
+              message: "Subscription payment required to access the platform.",
+              subscriptionStatus: user.subscriptionStatus,
+              reason: "payment_required"
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Subscription status check error in /api/user:", error);
+        // Continue on error to avoid blocking legitimate users
+      }
+
       return res.json(req.user);
     }
     

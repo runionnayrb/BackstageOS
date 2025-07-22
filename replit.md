@@ -318,7 +318,7 @@ Required environment variables:
 - Current beta users can be grandfathered with permanent free access
 - Complimentary access available for trusted testers and partnerships
 - Trial period for new users before subscription requirement
-- Only past_due/canceled subscriptions have restricted access
+- Past_due/canceled/incomplete subscriptions are completely blocked from platform access
 - Admin dashboard manages all access types (paid, free, trial, grandfathered)
 
 **Implementation Plan**: Database schema extension → Access control integration → Admin dashboard enhancement → Payment integration → Beta-to-production migration with grandfathered pricing for early adopters

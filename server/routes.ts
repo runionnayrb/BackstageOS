@@ -723,53 +723,41 @@ async function isAuthenticated(req: any, res: any, next: any) {
         reason: "account_inactive"
       });
     }
+
+    // Check subscription status - block problematic payment statuses completely
+    try {
+      const user = await storage.getUser(req.user.id.toString());
+      if (user && !user.isAdmin) {
+        const isBlocked = user.subscriptionStatus === 'past_due' ||
+                         user.subscriptionStatus === 'canceled' ||
+                         user.subscriptionStatus === 'incomplete';
+
+        if (isBlocked) {
+          console.log(`Access denied: User ${req.user.email} has subscription status: ${user.subscriptionStatus}`);
+          return res.status(402).json({ 
+            message: "Subscription payment required to access the platform.",
+            subscriptionStatus: user.subscriptionStatus,
+            reason: "payment_required"
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Subscription status check error:", error);
+      // Continue on error to avoid blocking legitimate users
+    }
+
     return next();
   }
   res.status(401).json({ message: "Unauthorized" });
 }
 
-// Subscription-based feature access middleware
+// Subscription-based feature access middleware (now redundant since main auth handles this)
+// Keeping for potential future premium feature restrictions
 async function requiresActiveSubscription(req: any, res: any, next: any) {
-  // First ensure user is authenticated
-  await new Promise((resolve, reject) => {
-    isAuthenticated(req, res, (error: any) => {
-      if (error) reject(error);
-      else resolve(null);
-    });
-  });
-
-  try {
-    // Get user's current subscription status
-    const user = await storage.getUser(req.user.id.toString());
-    if (!user) {
-      return res.status(401).json({ message: "User not found" });
-    }
-
-    // Allow access if user has any valid status or is admin
-    // Free accounts have full access - billing restrictions only apply to past_due/canceled
-    const hasActiveAccess = user.subscriptionStatus === 'active' || 
-                           user.subscriptionStatus === 'trialing' ||
-                           user.subscriptionStatus === 'free' || // Free accounts get full access
-                           user.isAdmin; // Admins always have access
-
-    // Only block users with problematic payment status
-    const isBlocked = user.subscriptionStatus === 'past_due' ||
-                     user.subscriptionStatus === 'canceled' ||
-                     user.subscriptionStatus === 'incomplete';
-
-    if (isBlocked && !user.isAdmin) {
-      return res.status(402).json({ 
-        message: "Subscription payment required", 
-        subscriptionStatus: user.subscriptionStatus,
-        reason: "payment_required"
-      });
-    }
-
-    next();
-  } catch (error) {
-    console.error("Subscription check error:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
+  // Since main authentication now blocks past_due/canceled/incomplete users,
+  // this middleware is primarily for potential future premium feature gates
+  // For now, it just passes through since access control is handled at auth level
+  next();
 }
 
 // Admin middleware
