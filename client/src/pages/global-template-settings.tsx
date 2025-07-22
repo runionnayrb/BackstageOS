@@ -355,10 +355,10 @@ export default function GlobalTemplateSettings() {
                   <Label className="text-base font-medium">Production Logo</Label>
                   <div className="mt-2 space-y-4">
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      {settings.branding.productionLogo ? (
+                      {settings.branding?.productionLogo ? (
                         <div className="space-y-2">
                           <img 
-                            src={settings.branding.productionLogo} 
+                            src={settings.branding?.productionLogo} 
                             alt="Production Logo" 
                             className="max-h-24 mx-auto"
                           />
@@ -367,7 +367,7 @@ export default function GlobalTemplateSettings() {
                             size="sm"
                             onClick={() => setSettings(prev => ({
                               ...prev,
-                              branding: { ...prev.branding, productionLogo: undefined }
+                              branding: { ...(prev.branding || {}), productionLogo: undefined }
                             }))}
                           >
                             Remove Logo
@@ -388,7 +388,7 @@ export default function GlobalTemplateSettings() {
                                 reader.onload = (e) => {
                                   setSettings(prev => ({
                                     ...prev,
-                                    branding: { ...prev.branding, productionLogo: e.target?.result as string }
+                                    branding: { ...(prev.branding || {}), productionLogo: e.target?.result as string }
                                   }));
                                 };
                                 reader.readAsDataURL(file);
@@ -403,10 +403,10 @@ export default function GlobalTemplateSettings() {
                       <div className="space-y-2">
                         <Label>Logo Position</Label>
                         <Select
-                          value={settings.branding.logoPosition}
+                          value={settings.branding?.logoPosition}
                           onValueChange={(value: any) => setSettings(prev => ({
                             ...prev,
-                            branding: { ...prev.branding, logoPosition: value }
+                            branding: { ...(prev.branding || {}), logoPosition: value }
                           }))}
                         >
                           <SelectTrigger>
@@ -425,10 +425,10 @@ export default function GlobalTemplateSettings() {
                       <div className="space-y-2">
                         <Label>Logo Size</Label>
                         <Select
-                          value={settings.branding.logoSize}
+                          value={settings.branding?.logoSize}
                           onValueChange={(value: any) => setSettings(prev => ({
                             ...prev,
-                            branding: { ...prev.branding, logoSize: value }
+                            branding: { ...(prev.branding || {}), logoSize: value }
                           }))}
                         >
                           <SelectTrigger>
