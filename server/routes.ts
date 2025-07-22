@@ -12682,7 +12682,7 @@ The Production Team`;
 
   // Admin: Create billing plan
   app.post("/api/admin/billing/plans", async (req, res) => {
-    if (!req.isAuthenticated() || !isAdmin(req.user)) {
+    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -12702,7 +12702,7 @@ The Production Team`;
 
   // Admin: Update billing plan
   app.put("/api/admin/billing/plans/:id", async (req, res) => {
-    if (!req.isAuthenticated() || !isAdmin(req.user)) {
+    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
@@ -12721,7 +12721,7 @@ The Production Team`;
 
   // Admin: Delete billing plan
   app.delete("/api/admin/billing/plans/:id", async (req, res) => {
-    if (!req.isAuthenticated() || !isAdmin(req.user)) {
+    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
