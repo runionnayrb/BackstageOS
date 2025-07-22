@@ -69,6 +69,8 @@ export default function BillingManagement() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState<BillingPlan | null>(null);
 
+
+
   // Fetch billing plans
   const { data: billingPlans = [], isLoading: plansLoading } = useQuery<BillingPlan[]>({
     queryKey: ["/api/billing/plans"],
@@ -206,9 +208,9 @@ export default function BillingManagement() {
   const formatPrice = (price: number, interval: string) => {
     if (interval === "year") {
       const monthlyEquivalent = Math.round(price / 12);
-      return `$${monthlyEquivalent}/mo (billed annually at $${price.toLocaleString()})`;
+      return `$${monthlyEquivalent.toLocaleString()}/mo (billed annually at $${price.toLocaleString()})`;
     }
-    return `$${price}/mo`;
+    return `$${price.toLocaleString()}/mo`;
   };
 
 
@@ -241,7 +243,7 @@ export default function BillingManagement() {
                 </div>
                 <div>
                   <Label htmlFor="price">Price</Label>
-                  <Input id="price" name="price" type="number" step="0.01" placeholder="119.00" required />
+                  <Input id="price" name="price" type="number" step="0.01" placeholder="1,199.00" required />
                 </div>
                 <div>
                   <Label htmlFor="billingInterval">Billing Interval</Label>
@@ -311,6 +313,7 @@ export default function BillingManagement() {
                   type="number" 
                   step="0.01" 
                   defaultValue={editingPlan?.price || ""}
+                  placeholder="1,199.00"
                   required 
                 />
               </div>
