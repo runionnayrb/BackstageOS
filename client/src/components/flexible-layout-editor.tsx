@@ -296,7 +296,7 @@ const LayoutItemRenderer: React.FC<{
       // Check if this is a Day or Date field - these should not have auto-numbering
       const fieldId = item.content?.fieldId?.toLowerCase();
       const isDateField = fieldId === 'date' || fieldId?.includes('date');
-      const isDayField = fieldId === 'day' || (fieldId?.endsWith('day') && !fieldId.includes('today'));
+      const isDayField = fieldId === 'day';
       
       if (isDateField || isDayField) {
         // For Date and Day fields, show inline label format
