@@ -167,7 +167,14 @@ function AdminUsersContent() {
                 <div className="flex items-center gap-2">
                   {getBetaAccessBadge(user.betaAccess)}
                   <Badge variant="outline">
-                    {profileTypes.find((pt: any) => pt.name.toLowerCase() === user.profileType?.toLowerCase())?.name || user.profileType || 'Unknown'}
+                    {(() => {
+                      // Map user database values back to profile type names
+                      const profileType = profileTypes.find((pt: any) => {
+                        const dbValue = pt.name === "Full-timer" ? "fulltime" : pt.name.toLowerCase();
+                        return dbValue === user.profileType?.toLowerCase();
+                      });
+                      return profileType?.name || user.profileType || 'Unknown';
+                    })()}
                   </Badge>
                 </div>
               </div>
@@ -187,11 +194,15 @@ function AdminUsersContent() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {profileTypes.map((profileType: any) => (
-                            <SelectItem key={profileType.id} value={profileType.name.toLowerCase()}>
-                              {profileType.name}
-                            </SelectItem>
-                          ))}
+                          {profileTypes.map((profileType: any) => {
+                            // Map profile type names to database values
+                            const value = profileType.name === "Full-timer" ? "fulltime" : profileType.name.toLowerCase();
+                            return (
+                              <SelectItem key={profileType.id} value={value}>
+                                {profileType.name}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     </div>
