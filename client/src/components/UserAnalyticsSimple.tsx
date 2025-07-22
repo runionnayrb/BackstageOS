@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { Edit2, Trash2, Save, X, CreditCard, Calendar, Settings } from "lucide-react";
+import BillingStatus from "@/components/BillingStatus";
 
 interface UserAnalytics {
   id: number;
@@ -697,6 +698,14 @@ export default function UserAnalyticsSimple() {
           </Dialog>
         </CardContent>
       </Card>
+      
+      {/* Billing Status Integration */}
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Account Billing Status</h3>
+          <BillingStatus />
+        </div>
+      </div>
     </div>
   );
 }
