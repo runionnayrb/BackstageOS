@@ -598,8 +598,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
         gridGap: 8
       };
       setConfiguration(initialConfig);
-      // Delay showing layout until after dimensions are calculated
-      setTimeout(() => setIsLayoutMounted(true), 150);
+      setIsLayoutMounted(true);
     }
   }, [template, generateLayoutFromTemplate, configuration.items.length, initialLoadComplete, showSettings]);
 
@@ -628,7 +627,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           items: newLayoutItems
         };
         setConfiguration(newConfig);
-        setTimeout(() => setIsLayoutMounted(true), 150);
+        setIsLayoutMounted(true);
       } else {
         // Check for Day/Date fields with headers and remove them
         const needsHeaderMigration = savedConfig.items?.some((item: any) => {
@@ -681,7 +680,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           setUserHasEditedLayout(false); // Allow this migration save
           onConfigurationChange?.(migratedConfig);
           
-          setTimeout(() => setIsLayoutMounted(true), 150);
+          setIsLayoutMounted(true);
         } else {
           console.log('🔄 Using saved configuration directly');
           // Filter out any footer items from saved configuration since footers are handled by template-settings.tsx
@@ -701,7 +700,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           }
           
           setConfiguration(filteredConfig);
-          setTimeout(() => setIsLayoutMounted(true), 150);
+          setIsLayoutMounted(true);
         }
       }
       setInitialLoadComplete(true);
