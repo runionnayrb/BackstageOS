@@ -656,7 +656,7 @@ export default function DailyCallSheet() {
 
   const handlePrint = async () => {
     try {
-      // Generate the PDF first using the same logic as exportToPDF
+      // Generate PDF using the exact same logic as exportToPDF
       const { jsPDF } = await import('jspdf');
       const html2canvas = (await import('html2canvas')).default;
       
@@ -670,7 +670,7 @@ export default function DailyCallSheet() {
         return;
       }
       
-      // Clone and prepare element for PDF generation
+      // Clone the element just like in exportToPDF
       const clonedElement = dailyCallElement.cloneNode(true) as HTMLElement;
       clonedElement.style.width = '794px';
       clonedElement.style.minHeight = 'auto';
@@ -682,10 +682,10 @@ export default function DailyCallSheet() {
       // Hide the app footer
       const appFooter = clonedElement.querySelector('.mt-8.pt-6.border-t.border-gray-200.text-center');
       if (appFooter) {
-        appFooter.style.display = 'none';
+        (appFooter as HTMLElement).style.display = 'none';
       }
       
-      // Create canvas with high resolution
+      // Create canvas exactly like exportToPDF
       const canvas = await html2canvas(clonedElement, {
         scale: 3,
         useCORS: true,
@@ -696,7 +696,7 @@ export default function DailyCallSheet() {
         windowWidth: 1200
       });
       
-      // Create PDF
+      // Create PDF exactly like exportToPDF
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -734,7 +734,7 @@ export default function DailyCallSheet() {
         const pageTextWidth = pdf.getTextWidth(pageText);
         pdf.text(pageText, (pageWidth - pageTextWidth) / 2, footerStartY + 4);
       } else {
-        // Multi-page handling (same logic as exportToPDF)
+        // Multi-page handling
         const totalPages = Math.ceil(imgHeight / contentHeight);
         
         for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
@@ -766,7 +766,6 @@ export default function DailyCallSheet() {
       // Open PDF in new window for printing
       const printWindow = window.open(blobUrl, '_blank');
       if (printWindow) {
-        // Focus the window and trigger print dialog after content loads
         printWindow.focus();
         setTimeout(() => {
           printWindow.print();
@@ -781,9 +780,10 @@ export default function DailyCallSheet() {
       
     } catch (error) {
       console.error('Print error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       toast({
         title: "Print Error",
-        description: `Failed to generate daily call for printing${error.message ? ': ' + error.message : '.'}`,
+        description: `Failed to generate daily call for printing: ${errorMessage}`,
         variant: "destructive",
       });
     }
