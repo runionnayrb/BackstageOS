@@ -598,6 +598,7 @@ export interface IStorage {
   getBillingPlanByPlanId(planId: string): Promise<BillingPlan | undefined>;
   createBillingPlan(plan: InsertBillingPlan): Promise<BillingPlan>;
   updateBillingPlan(id: number, plan: Partial<InsertBillingPlan>): Promise<BillingPlan>;
+  deleteBillingPlan(id: number): Promise<void>;
   
   getBillingHistory(userId: number): Promise<BillingHistory[]>;
   createBillingHistoryEntry(entry: InsertBillingHistory): Promise<BillingHistory>;
@@ -4280,6 +4281,10 @@ export class DatabaseStorage implements IStorage {
       .where(eq(billingPlans.id, id))
       .returning();
     return result[0];
+  }
+
+  async deleteBillingPlan(id: number): Promise<void> {
+    await db.delete(billingPlans).where(eq(billingPlans.id, id));
   }
 
   // Billing History Methods

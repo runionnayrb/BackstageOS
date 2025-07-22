@@ -12699,6 +12699,20 @@ The Production Team`;
     }
   });
 
+  // Admin: Delete billing plan
+  app.delete("/api/admin/billing/plans/:id", async (req, res) => {
+    if (!req.isAuthenticated() || !isAdmin(req.user)) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      await storage.deleteBillingPlan(parseInt(req.params.id));
+      res.json({ message: "Billing plan deleted successfully" });
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to delete billing plan", error: error.message });
+    }
+  });
+
   // Get user billing history
   app.get("/api/billing/history", async (req, res) => {
     if (!req.isAuthenticated()) {

@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Edit2, Trash2 } from "lucide-react";
 
 interface BillingPlan {
   id: number;
@@ -62,6 +63,8 @@ export default function BillingManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreatePlanOpen, setIsCreatePlanOpen] = useState(false);
+  const [isEditPlanOpen, setIsEditPlanOpen] = useState(false);
+  const [editingPlan, setEditingPlan] = useState<BillingPlan | null>(null);
 
   // Fetch billing plans
   const { data: billingPlans = [], isLoading: plansLoading } = useQuery<BillingPlan[]>({
@@ -88,6 +91,47 @@ export default function BillingManagement() {
     },
   });
 
+  // Update billing plan mutation
+  const updatePlanMutation = useMutation({
+    mutationFn: ({ planId, planData }: { planId: number; planData: any }) => 
+      apiRequest("PUT", `/api/admin/billing/plans/${planId}`, planData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/billing/plans"] });
+      setIsEditPlanOpen(false);
+      setEditingPlan(null);
+      toast({
+        title: "Success",
+        description: "Billing plan updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update billing plan",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete billing plan mutation
+  const deletePlanMutation = useMutation({
+    mutationFn: (planId: number) => apiRequest("DELETE", `/api/admin/billing/plans/${planId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/billing/plans"] });
+      toast({
+        title: "Success",
+        description: "Billing plan deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete billing plan",
+        variant: "destructive",
+      });
+    },
+  });
+
 
 
   const handleCreatePlan = (formData: FormData) => {
@@ -106,6 +150,37 @@ export default function BillingManagement() {
     };
 
     createPlanMutation.mutate(planData);
+  };
+
+  const handleEditPlan = (formData: FormData) => {
+    if (!editingPlan) return;
+
+    const planData = {
+      planId: formData.get("planId") as string,
+      name: formData.get("name") as string,
+      description: formData.get("description") as string,
+      price: parseFloat(formData.get("price") as string),
+      billingInterval: formData.get("billingInterval") as string,
+      trialDays: parseInt(formData.get("trialDays") as string),
+      features: JSON.parse(formData.get("features") as string || "[]"),
+      maxProjects: formData.get("maxProjects") ? parseInt(formData.get("maxProjects") as string) : null,
+      maxTeamMembers: formData.get("maxTeamMembers") ? parseInt(formData.get("maxTeamMembers") as string) : null,
+      isActive: formData.get("isActive") === "on",
+      sortOrder: parseInt(formData.get("sortOrder") as string),
+    };
+
+    updatePlanMutation.mutate({ planId: editingPlan.id, planData });
+  };
+
+  const handleDeletePlan = (planId: number) => {
+    if (confirm("Are you sure you want to delete this billing plan? This action cannot be undone.")) {
+      deletePlanMutation.mutate(planId);
+    }
+  };
+
+  const openEditDialog = (plan: BillingPlan) => {
+    setEditingPlan(plan);
+    setIsEditPlanOpen(true);
   };
 
 
@@ -205,6 +280,115 @@ export default function BillingManagement() {
         </Dialog>
       </div>
 
+      {/* Edit Plan Dialog */}
+      <Dialog open={isEditPlanOpen} onOpenChange={setIsEditPlanOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Billing Plan</DialogTitle>
+            <DialogDescription>Update the subscription plan details</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            handleEditPlan(formData);
+          }}>
+            <div className="grid grid-cols-2 gap-4 py-4">
+              <div>
+                <Label htmlFor="edit-planId">Plan ID</Label>
+                <Input 
+                  id="edit-planId" 
+                  name="planId" 
+                  defaultValue={editingPlan?.planId || ""}
+                  required 
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-name">Plan Name</Label>
+                <Input 
+                  id="edit-name" 
+                  name="name" 
+                  defaultValue={editingPlan?.name || ""}
+                  required 
+                />
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea 
+                  id="edit-description" 
+                  name="description" 
+                  defaultValue={editingPlan?.description || ""}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-price">Price</Label>
+                <Input 
+                  id="edit-price" 
+                  name="price" 
+                  type="number" 
+                  step="0.01" 
+                  defaultValue={editingPlan?.price || ""}
+                  required 
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-billingInterval">Billing Interval</Label>
+                <Select name="billingInterval" defaultValue={editingPlan?.billingInterval || ""}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select interval" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="month">Monthly</SelectItem>
+                    <SelectItem value="year">Yearly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="edit-trialDays">Trial Days</Label>
+                <Input 
+                  id="edit-trialDays" 
+                  name="trialDays" 
+                  type="number" 
+                  defaultValue={editingPlan?.trialDays || "30"}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-sortOrder">Sort Order</Label>
+                <Input 
+                  id="edit-sortOrder" 
+                  name="sortOrder" 
+                  type="number" 
+                  defaultValue={editingPlan?.sortOrder || "1"}
+                />
+              </div>
+              <div className="col-span-2">
+                <Label htmlFor="edit-features">Features (JSON Array)</Label>
+                <Textarea 
+                  id="edit-features" 
+                  name="features" 
+                  defaultValue={editingPlan?.features ? JSON.stringify(editingPlan.features) : '[]'}
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch 
+                  id="edit-isActive" 
+                  name="isActive" 
+                  defaultChecked={editingPlan?.isActive || false}
+                />
+                <Label htmlFor="edit-isActive">Active Plan</Label>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={() => setIsEditPlanOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updatePlanMutation.isPending}>
+                Update Plan
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       <div className="space-y-4">
         {plansLoading ? (
           <div className="flex items-center justify-center p-8">
@@ -243,6 +427,25 @@ export default function BillingManagement() {
                         </div>
                       </div>
                     )}
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => openEditDialog(plan)}
+                      className="flex-1"
+                    >
+                      <Edit2 className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleDeletePlan(plan.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
