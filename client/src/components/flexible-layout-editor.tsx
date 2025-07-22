@@ -638,8 +638,8 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
   // Convert configuration items to react-grid-layout format
   const convertToGridLayouts = useCallback((items: LayoutItem[]) => {
-    // Apply intelligent width calculations only in view mode to maintain saved layout in edit mode
-    const finalItems = !effectiveEditMode ? calculateIntelligentWidths(items) : items;
+    // Use the same layout data for both edit and view modes to ensure consistency
+    const finalItems = items;
     
     const layout = finalItems.map(item => ({
       i: item.id,
@@ -720,6 +720,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
     // Only apply intelligent width calculation for position changes, not manual resizes
     if (isPositionChange && !isSizeChangeOnly && effectiveEditMode && !isDragging) {
+      console.log('🎯 Applying intelligent width calculation due to position change');
       updatedItems = calculateIntelligentWidths(updatedItems);
     }
 
@@ -935,16 +936,16 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                 containerPadding={[8, 8]}
                 isDraggable={effectiveEditMode}
                 isResizable={effectiveEditMode}
-                onLayoutChange={handleLayoutChange}
-                onResizeStop={handleLayoutChange}
-                onDragStart={handleDragStart}
-                onDragStop={handleDragStop}
+                onLayoutChange={effectiveEditMode ? handleLayoutChange : undefined}
+                onResizeStop={effectiveEditMode ? handleLayoutChange : undefined}
+                onDragStart={effectiveEditMode ? handleDragStart : undefined}
+                onDragStop={effectiveEditMode ? handleDragStop : undefined}
                 draggableHandle=".drag-handle"
                 useCSSTransforms={true}
                 compactType={null}
                 preventCollision={false}
                 allowOverlap={true}
-                resizeHandles={['se']}
+                resizeHandles={effectiveEditMode ? ['se'] : []}
                 style={{ minHeight: '400px', width: '100%' }}
               >
                 {configuration.items.map((item) => (
