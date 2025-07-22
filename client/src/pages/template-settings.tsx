@@ -663,8 +663,25 @@ export default function TemplateSettings() {
                             const scheduleSettings = parseScheduleSettings(showSettings?.scheduleSettings);
                             const timeFormat = scheduleSettings.timeFormat === '24' ? '24' : '12';
                             const timezone = scheduleSettings.timezone;
+                            const date = new Date(showSettings.updatedAt);
                             
-                            return formatTimestamp(new Date(showSettings.updatedAt), timeFormat, timezone);
+                            // Format date as "July 22, 2025"
+                            const dateStr = date.toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              timeZone: timezone || 'America/New_York'
+                            });
+                            
+                            // Format time without seconds based on user preference
+                            const timeStr = date.toLocaleTimeString('en-US', {
+                              hour12: timeFormat !== '24',
+                              hour: timeFormat === '24' ? '2-digit' : 'numeric',
+                              minute: '2-digit',
+                              timeZone: timezone || 'America/New_York'
+                            });
+                            
+                            return `${dateStr} at ${timeStr}`;
                           })()}
                         </span>
                       ) : (
