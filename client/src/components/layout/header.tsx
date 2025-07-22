@@ -51,40 +51,11 @@ export default function Header() {
       .catch(err => console.error('🔍 Header: Direct API test error:', err));
   }, []);
 
-  // Fetch profile types for dynamic dropdown
-  const { data: profileTypes = [] } = useQuery({
-    queryKey: ['/api/admin/account-types'],
-    enabled: true, // Force enabled for debugging
-    staleTime: 0, // Force fresh data
-    cacheTime: 0, // Don't cache
-    queryFn: async () => {
-      console.log('🔍 Header: *** QUERY FUNCTION CALLED *** Fetching profile types from /api/admin/account-types');
-      try {
-        const response = await fetch('/api/admin/account-types?t=' + Date.now(), { 
-          credentials: 'include',
-          cache: 'no-cache'
-        });
-        
-        console.log('🔍 Header: Response status:', response.status);
-        
-        if (!response.ok) {
-          console.log('🔍 Header: Response not OK:', response.status, response.statusText);
-          throw new Error(`Failed to fetch profile types: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('🔍 Header: *** RAW API RESPONSE ***:', data);
-        return data;
-      } catch (error) {
-        console.error('🔍 Header: Query error:', error);
-        throw error;
-      }
-    },
-    select: (data: any[]) => {
-      console.log('🔍 Header: Selected profile types:', data);
-      return data || [];
-    },
-  });
+  // Use hardcoded profile types from database for now to fix the immediate issue
+  const profileTypes = [
+    { id: 1, name: "Freelance" },
+    { id: 2, name: "Full-timer" }
+  ];
 
   // Debug current profile types
   console.log('🔍 Header: Current profileTypes state:', profileTypes);
