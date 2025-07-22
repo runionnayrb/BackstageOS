@@ -4623,11 +4623,11 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const userId = req.user.id.toString();
+      const userId = req.user.id;
       const settingsData = insertGlobalTemplateSettingsSchema.parse({
         ...req.body,
         projectId,
-        createdBy: userId,
+        createdBy: parseInt(userId.toString()),
       });
 
       const settings = await storage.upsertGlobalTemplateSettings(settingsData);
@@ -4639,6 +4639,39 @@ Best regards,
       }
       console.error("Error saving global template settings:", error);
       res.status(500).json({ message: "Failed to save global template settings" });
+    }
+  });
+
+  app.put('/api/projects/:id/global-template-settings', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const userId = req.user.id;
+      const settingsData = insertGlobalTemplateSettingsSchema.parse({
+        ...req.body,
+        projectId,
+        createdBy: parseInt(userId.toString()),
+      });
+
+      const settings = await storage.upsertGlobalTemplateSettings(settingsData);
+      res.json(settings);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error("Validation errors:", error.errors);
+        return res.status(400).json({ message: "Invalid input", errors: error.errors });
+      }
+      console.error("Error updating global template settings:", error);
+      res.status(500).json({ message: "Failed to update global template settings" });
     }
   });
 
