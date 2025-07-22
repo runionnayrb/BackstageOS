@@ -53,6 +53,11 @@ export default function QuickSectionSwitcher({
       id: "performance-tracker",
       title: "Performance Tracker",
       href: `/shows/${currentShowId}/performance-tracker`
+    },
+    {
+      id: "report-notes",
+      title: "Report Notes",
+      href: `/shows/${currentShowId}/notes-tracking`
     }
   ];
 
