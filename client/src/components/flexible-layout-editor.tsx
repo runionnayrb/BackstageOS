@@ -110,7 +110,7 @@ const DraggableGridItem: React.FC<{
           <Button
             size="sm"
             variant="ghost"
-            className="h-6 w-6 p-0 text-white hover:text-red-500 hover:bg-transparent"
+            className="h-6 w-6 p-0 text-gray-600 hover:text-red-500 hover:bg-red-50 bg-white/80 backdrop-blur-sm shadow-sm border border-gray-200"
             onClick={() => setShowDeleteConfirm(true)}
           >
             <Trash2 className="h-4 w-4" />
