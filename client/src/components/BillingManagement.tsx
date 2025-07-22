@@ -221,7 +221,6 @@ export default function BillingManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Billing Plan Management</h2>
-          <p className="text-muted-foreground">Create and manage subscription plans for the platform</p>
         </div>
         <Dialog open={isCreatePlanOpen} onOpenChange={setIsCreatePlanOpen}>
           <DialogTrigger asChild>

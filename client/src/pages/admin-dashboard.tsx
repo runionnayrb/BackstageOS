@@ -40,27 +40,27 @@ export default function AdminDashboard() {
             <TabsList className="grid w-full grid-cols-6 min-w-max sm:min-w-0">
               <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
                 <Users className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">Users</span>
+                <span>Users</span>
               </TabsTrigger>
               <TabsTrigger value="billing" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
                 <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">Billing</span>
+                <span>Billing</span>
               </TabsTrigger>
               <TabsTrigger value="features" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
                 <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">Features</span>
+                <span>Beta Configuration</span>
               </TabsTrigger>
               <TabsTrigger value="waitlist" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
                 <ClipboardList className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">Waitlist</span>
+                <span>Waitlist</span>
               </TabsTrigger>
               <TabsTrigger value="feedback" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
                 <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">Feedback</span>
+                <span>Feedback</span>
               </TabsTrigger>
               <TabsTrigger value="errors" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
                 <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="hidden xs:inline">Logs</span>
+                <span>Error Log</span>
               </TabsTrigger>
             </TabsList>
           </div>
