@@ -543,25 +543,70 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
         setConfiguration(newConfig);
         setTimeout(() => setIsLayoutMounted(true), 150);
       } else {
-        console.log('🔄 Using saved configuration directly');
-        // Filter out any footer items from saved configuration since footers are handled by template-settings.tsx
-        const filteredConfig = {
-          ...savedConfig,
-          items: savedConfig.items.filter((item: any) => item.type !== 'footer' && item.id !== 'template-footer')
-        };
+        // Check for Day/Date fields with headers and remove them
+        const needsHeaderMigration = savedConfig.items?.some((item: any) => {
+          if (item.type === 'grouped-section') {
+            const fieldId = item.content?.fieldId?.toLowerCase();
+            const isDateOrDayField = fieldId === 'date' || fieldId === 'day' || fieldId?.includes('date') || fieldId?.includes('day');
+            return isDateOrDayField && item.children?.some((child: any) => child.type === 'field-header');
+          }
+          return false;
+        });
         
-        // Check if we actually filtered out any footer items
-        const hadFooterItems = savedConfig.items.length !== filteredConfig.items.length;
-        if (hadFooterItems) {
-          console.log('🧹 Filtered out footer items from saved configuration - forcing save');
-          // Reset user edit flag to allow this cleanup save
-          setUserHasEditedLayout(false);
-          // Save the filtered configuration to permanently remove footer items
-          onConfigurationChange?.(filteredConfig);
+        if (needsHeaderMigration) {
+          console.log('🔄 Migrating Day/Date fields to remove headers');
+          const migratedItems = savedConfig.items.map((item: any) => {
+            if (item.type === 'grouped-section') {
+              const fieldId = item.content?.fieldId?.toLowerCase();
+              const isDateOrDayField = fieldId === 'date' || fieldId === 'day' || fieldId?.includes('date') || fieldId?.includes('day');
+              
+              if (isDateOrDayField) {
+                // Remove header child and adjust notes positioning
+                const notesChild = item.children?.find((child: any) => child.type === 'notes');
+                if (notesChild) {
+                  return {
+                    ...item,
+                    h: 2, // Reduced height
+                    children: [{
+                      ...notesChild,
+                      x: 0,
+                      y: 0, // Move to top
+                      h: 2  // Full height
+                    }]
+                  };
+                }
+              }
+            }
+            return item;
+          });
+          
+          const migratedConfig = {
+            ...savedConfig,
+            items: migratedItems
+          };
+          setConfiguration(migratedConfig);
+          setTimeout(() => setIsLayoutMounted(true), 150);
+        } else {
+          console.log('🔄 Using saved configuration directly');
+          // Filter out any footer items from saved configuration since footers are handled by template-settings.tsx
+          const filteredConfig = {
+            ...savedConfig,
+            items: savedConfig.items.filter((item: any) => item.type !== 'footer' && item.id !== 'template-footer')
+          };
+          
+          // Check if we actually filtered out any footer items
+          const hadFooterItems = savedConfig.items.length !== filteredConfig.items.length;
+          if (hadFooterItems) {
+            console.log('🧹 Filtered out footer items from saved configuration - forcing save');
+            // Reset user edit flag to allow this cleanup save
+            setUserHasEditedLayout(false);
+            // Save the filtered configuration to permanently remove footer items
+            onConfigurationChange?.(filteredConfig);
+          }
+          
+          setConfiguration(filteredConfig);
+          setTimeout(() => setIsLayoutMounted(true), 150);
         }
-        
-        setConfiguration(filteredConfig);
-        setTimeout(() => setIsLayoutMounted(true), 150);
       }
       setInitialLoadComplete(true);
     } else if (initialLoadComplete || userHasEditedLayout) {
