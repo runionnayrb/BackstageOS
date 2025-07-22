@@ -12715,10 +12715,14 @@ The Production Team`;
 
   // Admin: Update billing plan
   app.put("/api/admin/billing/plans/:id", async (req, res) => {
+    console.log(`Billing PUT request - isAuthenticated: ${req.isAuthenticated()}, user-agent: ${req.headers['user-agent']}`);
+    
     // Apply Safari admin bypass if needed
     if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
+      console.log("Applying Safari admin bypass for billing update");
       try {
         const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
+        console.log("Admin user lookup result:", adminUser ? `Found user ${adminUser.email}, isAdmin: ${adminUser.isAdmin}` : 'User not found');
         if (adminUser && adminUser.isAdmin) {
           console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
           req.user = adminUser;
@@ -12728,6 +12732,8 @@ The Production Team`;
       }
     }
 
+    console.log(`Final auth check - isAuthenticated: ${req.isAuthenticated()}, user: ${req.user ? req.user.email : 'none'}, isAdmin: ${req.user ? isAdmin(req.user.id.toString()) : 'N/A'}`);
+    
     if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
       return res.status(401).json({ message: "Unauthorized" });
     }
