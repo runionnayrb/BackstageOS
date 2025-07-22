@@ -396,32 +396,55 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       .sort((a: any, b: any) => a.order - b.order);
     
     templateFields.forEach((field: any, index: number) => {
-      // Create grouped section containing field header and notes
-      items.push({
-        id: `field-section-${field.id}`,
-        type: 'grouped-section' as const,
-        content: { fieldId: field.id, label: field.label },
-        x: 0, y: currentY, w: 12, h: 4,
-        minW: 3, minH: 4,
-        children: [
-          {
-            id: `field-header-${field.id}`,
-            type: 'field-header' as const,
-            content: { fieldId: field.id, label: field.label },
-            x: 0, y: 0, w: 12, h: 1,
-            minW: 3, minH: 1
-          },
-          {
-            id: `field-notes-${field.id}`,
-            type: 'notes' as const,
-            content: { fieldId: field.id, placeholder: field.placeholder || "Sample content..." },
-            x: 0, y: 1, w: 12, h: 3,
-            minW: 3, minH: 2
-          }
-        ]
-      });
+      const fieldId = field.id.toLowerCase();
+      const isDateOrDayField = fieldId === 'date' || fieldId === 'day' || fieldId.includes('date') || fieldId.includes('day');
       
-      currentY += 5;
+      if (isDateOrDayField) {
+        // For Date and Day fields, create simplified section without separate header
+        items.push({
+          id: `field-section-${field.id}`,
+          type: 'grouped-section' as const,
+          content: { fieldId: field.id, label: field.label },
+          x: 0, y: currentY, w: 12, h: 2,  // Reduced height since no header
+          minW: 3, minH: 2,
+          children: [
+            {
+              id: `field-notes-${field.id}`,
+              type: 'notes' as const,
+              content: { fieldId: field.id, placeholder: field.placeholder || "Sample content..." },
+              x: 0, y: 0, w: 12, h: 2,  // Takes full height
+              minW: 3, minH: 2
+            }
+          ]
+        });
+        currentY += 3;  // Less spacing for date/day fields
+      } else {
+        // Create grouped section containing field header and notes for other fields
+        items.push({
+          id: `field-section-${field.id}`,
+          type: 'grouped-section' as const,
+          content: { fieldId: field.id, label: field.label },
+          x: 0, y: currentY, w: 12, h: 4,
+          minW: 3, minH: 4,
+          children: [
+            {
+              id: `field-header-${field.id}`,
+              type: 'field-header' as const,
+              content: { fieldId: field.id, label: field.label },
+              x: 0, y: 0, w: 12, h: 1,
+              minW: 3, minH: 1
+            },
+            {
+              id: `field-notes-${field.id}`,
+              type: 'notes' as const,
+              content: { fieldId: field.id, placeholder: field.placeholder || "Sample content..." },
+              x: 0, y: 1, w: 12, h: 3,
+              minW: 3, minH: 2
+            }
+          ]
+        });
+        currentY += 5;
+      }
     });
     
     // Add department sections (wider for better visibility)
