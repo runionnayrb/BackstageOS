@@ -137,10 +137,21 @@ export default function BillingManagement() {
 
 
 
+  // Auto-generate planId from name
+  const generatePlanId = (name: string): string => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+      .replace(/\s+/g, '-')         // Spaces to hyphens
+      .replace(/-+/g, '-')          // Multiple hyphens to single
+      .replace(/^-+|-+$/g, '');     // Remove leading/trailing hyphens
+  };
+
   const handleCreatePlan = (formData: FormData) => {
+    const name = formData.get("name") as string;
     const planData = {
-      planId: formData.get("planId") as string,
-      name: formData.get("name") as string,
+      planId: generatePlanId(name),
+      name: name,
       price: parseFloat(formData.get("price") as string),
       billingInterval: formData.get("billingInterval") as string,
       trialDays: parseInt(formData.get("trialDays") as string),
@@ -156,9 +167,10 @@ export default function BillingManagement() {
   const handleEditPlan = (formData: FormData) => {
     if (!editingPlan) return;
 
+    const name = formData.get("name") as string;
     const planData = {
-      planId: formData.get("planId") as string,
-      name: formData.get("name") as string,
+      planId: generatePlanId(name),
+      name: name,
       price: parseFloat(formData.get("price") as string),
       billingInterval: formData.get("billingInterval") as string,
       trialDays: parseInt(formData.get("trialDays") as string),
@@ -223,11 +235,7 @@ export default function BillingManagement() {
               handleCreatePlan(formData);
             }}>
               <div className="grid grid-cols-2 gap-4 py-4">
-                <div>
-                  <Label htmlFor="planId">Plan ID</Label>
-                  <Input id="planId" name="planId" placeholder="monthly-standard" required />
-                </div>
-                <div>
+                <div className="col-span-2">
                   <Label htmlFor="name">Plan Name</Label>
                   <Input id="name" name="name" placeholder="Monthly Standard" required />
                 </div>
@@ -286,16 +294,7 @@ export default function BillingManagement() {
             handleEditPlan(formData);
           }}>
             <div className="grid grid-cols-2 gap-4 py-4">
-              <div>
-                <Label htmlFor="edit-planId">Plan ID</Label>
-                <Input 
-                  id="edit-planId" 
-                  name="planId" 
-                  defaultValue={editingPlan?.planId || ""}
-                  required 
-                />
-              </div>
-              <div>
+              <div className="col-span-2">
                 <Label htmlFor="edit-name">Plan Name</Label>
                 <Input 
                   id="edit-name" 

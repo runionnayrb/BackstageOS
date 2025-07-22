@@ -12670,6 +12670,16 @@ The Production Team`;
     }
   });
 
+  // Helper function to auto-generate planId from name
+  const generatePlanId = (name: string): string => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+      .replace(/\s+/g, '-')         // Spaces to hyphens
+      .replace(/-+/g, '-')          // Multiple hyphens to single
+      .replace(/^-+|-+$/g, '');     // Remove leading/trailing hyphens
+  };
+
   // Admin: Create billing plan
   app.post("/api/admin/billing/plans", async (req, res) => {
     if (!req.isAuthenticated() || !isAdmin(req.user)) {
@@ -12677,7 +12687,12 @@ The Production Team`;
     }
 
     try {
-      const planData = insertBillingPlanSchema.parse(req.body);
+      // Auto-generate planId from name
+      const planDataWithId = {
+        ...req.body,
+        planId: generatePlanId(req.body.name)
+      };
+      const planData = insertBillingPlanSchema.parse(planDataWithId);
       const plan = await storage.createBillingPlan(planData);
       res.status(201).json(plan);
     } catch (error: any) {
@@ -12692,7 +12707,12 @@ The Production Team`;
     }
 
     try {
-      const plan = await storage.updateBillingPlan(parseInt(req.params.id), req.body);
+      // Auto-generate planId from name if name is being updated
+      const planDataWithId = {
+        ...req.body,
+        planId: generatePlanId(req.body.name)
+      };
+      const plan = await storage.updateBillingPlan(parseInt(req.params.id), planDataWithId);
       res.json(plan);
     } catch (error: any) {
       res.status(400).json({ message: "Failed to update billing plan", error: error.message });
