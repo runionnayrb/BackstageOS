@@ -39,6 +39,17 @@ export default function Header() {
   const { data: profileTypes = [] } = useQuery({
     queryKey: ['/api/admin/account-types'],
     enabled: isAdmin(user),
+    queryFn: async () => {
+      const response = await fetch('/api/admin/account-types', { 
+        credentials: 'include' 
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile types');
+      }
+      
+      return response.json();
+    },
     select: (data: any[]) => data || [],
   });
 
@@ -192,6 +203,8 @@ export default function Header() {
     userId: user?.id,
     userEmail: user?.email,
     allUsers: allUsers.length,
+    profileTypes: profileTypes.length,
+    profileTypesData: profileTypes,
     selectedBetaAccess,
     selectedProfileType
   });
