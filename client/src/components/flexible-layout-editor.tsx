@@ -572,8 +572,10 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       maxH: item.maxH,
       isResizable: effectiveEditMode ? (item.isResizable !== false) : false,
       isDraggable: effectiveEditMode ? (item.isDraggable !== false) : false,
-      static: false // Always false to prevent layout engine differences
+      static: !effectiveEditMode // Make items static in view mode to prevent any repositioning
     }));
+    
+    console.log('🔍 Layout items created:', layout.map(l => ({ id: l.i, x: l.x, y: l.y, static: l.static })));
 
     return {
       lg: layout,
