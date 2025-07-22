@@ -116,24 +116,23 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
     phase: "tech",
     name: "Technical Rehearsal Report", 
     description: "Technical rehearsal and cue integration with department notes",
-    header: "{{showName}} - Tech Rehearsal Report\nDate: {{date}} | Tech Day {{techDay}}\nStage Manager: {{stageManager}}",
+    header: "{{showName}} - Tech Rehearsal Report\nDate: {{date}}\nStage Manager: {{stageManager}}",
     footer: "Next tech: {{nextTech}}\nTechnical Director: {{technicalDirector}}",
     fields: [
       { id: "date", type: "date", label: "Date", required: true, order: 1 },
       { id: "day", type: "text", label: "Day", required: true, order: 2 },
-      { id: "techDay", type: "number", label: "Tech Day #", required: true, order: 3 },
-      { id: "sessionOverview", type: "textarea", label: "Session Overview", placeholder: "Overall goals and achievements for this tech session", required: true, order: 4 },
-      { id: "cuesRun", type: "textarea", label: "Cues Rehearsed", placeholder: "Light cues 1-25, Sound cues A-M", required: true, order: 5 },
+      { id: "sessionOverview", type: "textarea", label: "Session Overview", placeholder: "Overall goals and achievements for this tech session", required: true, order: 3 },
+      { id: "cuesRun", type: "textarea", label: "Cues Rehearsed", placeholder: "Light cues 1-25, Sound cues A-M", required: true, order: 4 },
       
       // Department Notes Sections
-      { id: "scenicNotes", type: "textarea", label: "Scenic Department Notes", placeholder: "Set changes, scenic cues, technical notes for scenic department", required: false, order: 6 },
-      { id: "lightingNotes", type: "textarea", label: "Lighting Department Notes", placeholder: "Light cues, equipment issues, lighting notes", required: false, order: 7 },
-      { id: "audioNotes", type: "textarea", label: "Audio Department Notes", placeholder: "Sound cues, microphone issues, audio equipment notes", required: false, order: 8 },
-      { id: "videoNotes", type: "textarea", label: "Video Department Notes", placeholder: "Video cues, projection issues, media notes", required: false, order: 9 },
-      { id: "propsNotes", type: "textarea", label: "Props Department Notes", placeholder: "Prop tracking, quick changes, costume notes", required: false, order: 10 },
+      { id: "scenicNotes", type: "textarea", label: "Scenic Department Notes", placeholder: "Set changes, scenic cues, technical notes for scenic department", required: false, order: 5 },
+      { id: "lightingNotes", type: "textarea", label: "Lighting Department Notes", placeholder: "Light cues, equipment issues, lighting notes", required: false, order: 6 },
+      { id: "audioNotes", type: "textarea", label: "Audio Department Notes", placeholder: "Sound cues, microphone issues, audio equipment notes", required: false, order: 7 },
+      { id: "videoNotes", type: "textarea", label: "Video Department Notes", placeholder: "Video cues, projection issues, media notes", required: false, order: 8 },
+      { id: "propsNotes", type: "textarea", label: "Props Department Notes", placeholder: "Prop tracking, quick changes, costume notes", required: false, order: 9 },
       
-      { id: "outstandingIssues", type: "textarea", label: "Outstanding Issues", placeholder: "Unresolved problems requiring follow-up", required: false, order: 11 },
-      { id: "notes", type: "textarea", label: "General Notes", placeholder: "Additional notes and observations", required: false, order: 12 }
+      { id: "outstandingIssues", type: "textarea", label: "Outstanding Issues", placeholder: "Unresolved problems requiring follow-up", required: false, order: 10 },
+      { id: "notes", type: "textarea", label: "General Notes", placeholder: "Additional notes and observations", required: false, order: 11 }
     ]
   },
   previews: {
