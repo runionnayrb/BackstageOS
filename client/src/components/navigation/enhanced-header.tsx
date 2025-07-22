@@ -312,6 +312,12 @@ export default function EnhancedHeader() {
                         <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                         Show Notes
                       </DropdownMenuItem>
+                      {isFeatureEnabled('reports') && (
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/notes-tracking`)}>
+                          <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
+                          Report Notes
+                        </DropdownMenuItem>
+                      )}
                     </>
                   )}
                   
