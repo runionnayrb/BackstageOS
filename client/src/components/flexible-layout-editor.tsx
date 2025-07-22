@@ -212,25 +212,33 @@ const LayoutItemRenderer: React.FC<{
       const isDayField = fieldId === 'day' || fieldId?.includes('day');
       
       if (isDateField || isDayField) {
-        // For Date and Day fields, use regular input instead of auto-numbering
+        // For Date and Day fields, show inline label format
         return (
-          <div className="w-full h-full">
+          <div className="w-full h-full flex items-center px-1 py-2 text-sm">
             {isDateField ? (
-              <input 
-                type="date"
-                value={selectedDate || ''}
-                onChange={(e) => onDateChange?.(e.target.value)}
-                className="w-full border-0 shadow-none focus:ring-0 focus:border-0 bg-transparent text-sm"
-                placeholder="Select date"
-              />
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Date:</span>
+                {selectedDate ? (
+                  <span>{new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                  })}</span>
+                ) : (
+                  <input 
+                    type="date"
+                    value={selectedDate || ''}
+                    onChange={(e) => onDateChange?.(e.target.value)}
+                    className="border-0 shadow-none focus:ring-0 focus:border-0 bg-transparent text-sm flex-1"
+                    placeholder="Select date"
+                  />
+                )}
+              </div>
             ) : (
-              <input 
-                type="text"
-                value={dayOfWeek || ''}
-                className="w-full border-0 shadow-none focus:ring-0 focus:border-0 bg-transparent text-sm"
-                placeholder="Day will auto-populate"
-                readOnly
-              />
+              <div className="flex items-center gap-2">
+                <span className="font-medium">Day:</span>
+                <span>{dayOfWeek || 'Will auto-populate'}</span>
+              </div>
             )}
           </div>
         );
