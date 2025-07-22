@@ -698,7 +698,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   useEffect(() => {
     const newLayouts = convertToGridLayouts(configuration.items);
     setLayouts(newLayouts);
-  }, [configuration, convertToGridLayouts]);
+  }, [configuration.items]); // Remove convertToGridLayouts from deps to prevent infinite loop
 
   // Force layout refresh when switching between edit/view modes - but preserve manual sizing
   useEffect(() => {
@@ -733,6 +733,20 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       }
       return item;
     });
+
+    // Check if anything actually changed to prevent unnecessary updates
+    const hasChanges = updatedItems.some((item, index) => {
+      const originalItem = configuration.items[index];
+      return !originalItem || 
+             Math.abs(item.x - originalItem.x) > 0.1 ||
+             Math.abs(item.y - originalItem.y) > 0.1 ||
+             Math.abs(item.w - originalItem.w) > 0.1 ||
+             Math.abs(item.h - originalItem.h) > 0.1;
+    });
+
+    if (!hasChanges) {
+      return; // No significant changes, skip update
+    }
 
     // Check if this is a position change (drag) vs a size change (resize)
     const isPositionChange = updatedItems.some(item => {
