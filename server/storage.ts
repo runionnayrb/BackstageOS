@@ -67,6 +67,7 @@ import {
   userEngagementScores,
   subscriptionPlans,
   userSubscriptions,
+  accountTypes,
   billingPlans,
   billingHistory,
   paymentMethods,
@@ -196,6 +197,8 @@ import {
   type InsertUserSession,
   type FeatureUsage,
   type InsertFeatureUsage,
+  type AccountType,
+  type InsertAccountType,
   type BillingPlan,
   type InsertBillingPlan,
   type BillingHistory,
@@ -591,6 +594,13 @@ export interface IStorage {
   getUserSubscription(userId: number): Promise<any>;
   createUserSubscription(subscription: any): Promise<any>;
   updateUserSubscription(userId: number, updates: any): Promise<any>;
+
+  // Account Types operations
+  getAccountTypes(): Promise<AccountType[]>;
+  getAccountTypeById(id: number): Promise<AccountType | undefined>;
+  createAccountType(accountType: InsertAccountType): Promise<AccountType>;
+  updateAccountType(id: number, accountType: Partial<InsertAccountType>): Promise<AccountType>;
+  deleteAccountType(id: number): Promise<void>;
 
   // Billing operations
   getBillingPlans(): Promise<BillingPlan[]>;
@@ -4248,6 +4258,37 @@ export class DatabaseStorage implements IStorage {
   async createUserSubscription(subscription: any): Promise<any> {
     const result = await db.insert(userSubscriptions).values(subscription).returning();
     return result[0];
+  }
+
+  // Account Types Methods
+  async getAccountTypes(): Promise<AccountType[]> {
+    const result = await db.select().from(accountTypes)
+      .where(eq(accountTypes.isActive, true))
+      .orderBy(accountTypes.sortOrder);
+    return result;
+  }
+
+  async getAccountTypeById(id: number): Promise<AccountType | undefined> {
+    const result = await db.select().from(accountTypes)
+      .where(eq(accountTypes.id, id));
+    return result[0];
+  }
+
+  async createAccountType(accountType: InsertAccountType): Promise<AccountType> {
+    const result = await db.insert(accountTypes).values(accountType).returning();
+    return result[0];
+  }
+
+  async updateAccountType(id: number, accountType: Partial<InsertAccountType>): Promise<AccountType> {
+    const result = await db.update(accountTypes)
+      .set({ ...accountType, updatedAt: new Date() })
+      .where(eq(accountTypes.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteAccountType(id: number): Promise<void> {
+    await db.delete(accountTypes).where(eq(accountTypes.id, id));
   }
 
   // Billing Plans Methods

@@ -2034,11 +2034,23 @@ export const featureUsageRelations = relations(featureUsage, ({ one }) => ({
   }),
 }));
 
+// Account Types table (defines different user account categories)
+export const accountTypes = pgTable("account_types", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(), // 'Freelancer', 'Full-Timer', 'Theater Company', etc.
+  description: text("description"), // Description of the account type
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Billing Plans table (defines available subscription plans)
 export const billingPlans = pgTable("billing_plans", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(), // 'Monthly', 'Annual', 'Theatre'
   planId: varchar("plan_id").unique().notNull(), // 'monthly', 'annual', 'theatre'
+  accountTypeId: integer("account_type_id").references(() => accountTypes.id), // Link to account type
   stripePriceId: varchar("stripe_price_id"), // Stripe price ID
   price: decimal("price", { precision: 10, scale: 2 }).notNull(), // Monthly price
   billingInterval: varchar("billing_interval").notNull(), // 'month', 'year'
@@ -2100,7 +2112,15 @@ export const subscriptionUsage = pgTable("subscription_usage", {
 });
 
 // Billing relations
-export const billingPlansRelations = relations(billingPlans, ({ many }) => ({
+export const accountTypesRelations = relations(accountTypes, ({ many }) => ({
+  billingPlans: many(billingPlans),
+}));
+
+export const billingPlansRelations = relations(billingPlans, ({ one, many }) => ({
+  accountType: one(accountTypes, {
+    fields: [billingPlans.accountTypeId],
+    references: [accountTypes.id],
+  }),
   billingHistory: many(billingHistory),
 }));
 
@@ -2554,6 +2574,13 @@ export const insertErrorImpactAnalysisSchema = createInsertSchema(errorImpactAna
   analyzedAt: true,
 });
 
+// Account Types insert schemas
+export const insertAccountTypeSchema = createInsertSchema(accountTypes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Billing insert schemas
 export const insertBillingPlanSchema = createInsertSchema(billingPlans).omit({
   id: true,
@@ -2586,6 +2613,8 @@ export const insertSubscriptionUsageSchema = createInsertSchema(subscriptionUsag
 // Type exports
 export type UpsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type AccountType = typeof accountTypes.$inferSelect;
+export type InsertAccountType = z.infer<typeof insertAccountTypeSchema>;
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type TeamMember = typeof teamMembers.$inferSelect;

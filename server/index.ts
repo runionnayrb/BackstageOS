@@ -87,8 +87,45 @@ app.use((req, res, next) => {
   next();
 });
 
+// Initialize default account types
+async function initializeDefaultAccountTypes() {
+  try {
+    const { storage } = await import('./storage');
+    
+    // Check if account types already exist
+    const existingAccountTypes = await storage.getAccountTypes();
+    
+    if (existingAccountTypes.length === 0) {
+      console.log('Creating default account types...');
+      
+      // Create Freelancer account type
+      await storage.createAccountType({
+        name: 'Freelancer',
+        description: 'Individual freelance theater professionals',
+        sortOrder: 1,
+        isActive: true
+      });
+      
+      // Create Full-time account type
+      await storage.createAccountType({
+        name: 'Full-time',
+        description: 'Full-time theater professionals and staff',
+        sortOrder: 2,
+        isActive: true
+      });
+      
+      console.log('✅ Default account types created successfully');
+    }
+  } catch (error) {
+    console.error('Failed to initialize default account types:', error);
+  }
+}
+
 (async () => {
   const server = await registerRoutes(app);
+  
+  // Initialize default data
+  await initializeDefaultAccountTypes();
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

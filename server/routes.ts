@@ -14,7 +14,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertBillingPlanSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
+import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -12643,6 +12643,146 @@ The Production Team`;
     } catch (error) {
       console.error("Error creating test personal schedule data:", error);
       res.status(500).json({ message: "Failed to create test data" });
+    }
+  });
+
+  // Account Types API Routes
+  // Get account types
+  app.get("/api/admin/account-types", async (req, res) => {
+    // Apply Safari admin bypass if needed
+    if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
+      try {
+        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
+        if (adminUser && adminUser.isAdmin) {
+          console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
+          req.user = adminUser;
+        }
+      } catch (error) {
+        console.log("Admin bypass check failed:", error);
+      }
+    }
+
+    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const accountTypes = await storage.getAccountTypes();
+      res.json(accountTypes);
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to get account types", error: error.message });
+    }
+  });
+
+  // Get specific account type
+  app.get("/api/admin/account-types/:id", async (req, res) => {
+    // Apply Safari admin bypass if needed
+    if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
+      try {
+        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
+        if (adminUser && adminUser.isAdmin) {
+          console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
+          req.user = adminUser;
+        }
+      } catch (error) {
+        console.log("Admin bypass check failed:", error);
+      }
+    }
+
+    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const accountType = await storage.getAccountTypeById(parseInt(req.params.id));
+      if (!accountType) {
+        return res.status(404).json({ message: "Account type not found" });
+      }
+      res.json(accountType);
+    } catch (error: any) {
+      res.status(500).json({ message: "Failed to get account type", error: error.message });
+    }
+  });
+
+  // Create account type
+  app.post("/api/admin/account-types", async (req, res) => {
+    // Apply Safari admin bypass if needed
+    if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
+      try {
+        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
+        if (adminUser && adminUser.isAdmin) {
+          console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
+          req.user = adminUser;
+        }
+      } catch (error) {
+        console.log("Admin bypass check failed:", error);
+      }
+    }
+
+    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const accountTypeData = insertAccountTypeSchema.parse(req.body);
+      const accountType = await storage.createAccountType(accountTypeData);
+      res.status(201).json(accountType);
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to create account type", error: error.message });
+    }
+  });
+
+  // Update account type
+  app.put("/api/admin/account-types/:id", async (req, res) => {
+    // Apply Safari admin bypass if needed
+    if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
+      try {
+        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
+        if (adminUser && adminUser.isAdmin) {
+          console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
+          req.user = adminUser;
+        }
+      } catch (error) {
+        console.log("Admin bypass check failed:", error);
+      }
+    }
+
+    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const accountType = await storage.updateAccountType(parseInt(req.params.id), req.body);
+      res.json(accountType);
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to update account type", error: error.message });
+    }
+  });
+
+  // Delete account type
+  app.delete("/api/admin/account-types/:id", async (req, res) => {
+    // Apply Safari admin bypass if needed
+    if (!req.isAuthenticated() && req.headers['user-agent']?.includes('Safari')) {
+      try {
+        const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
+        if (adminUser && adminUser.isAdmin) {
+          console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
+          req.user = adminUser;
+        }
+      } catch (error) {
+        console.log("Admin bypass check failed:", error);
+      }
+    }
+
+    if (!req.isAuthenticated() || !isAdmin(req.user.id.toString())) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      await storage.deleteAccountType(parseInt(req.params.id));
+      res.json({ message: "Account type deleted successfully" });
+    } catch (error: any) {
+      res.status(400).json({ message: "Failed to delete account type", error: error.message });
     }
   });
 
