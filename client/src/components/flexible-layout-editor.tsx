@@ -445,55 +445,31 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       .sort((a: any, b: any) => a.order - b.order);
     
     templateFields.forEach((field: any, index: number) => {
-      const fieldId = field.id.toLowerCase();
-      const isDateOrDayField = fieldId === 'date' || fieldId === 'day' || fieldId.includes('date') || (fieldId.endsWith('day') && !fieldId.includes('today'));
-      
-      if (isDateOrDayField) {
-        // For Date and Day fields, create simplified section without separate header
-        items.push({
-          id: `field-section-${field.id}`,
-          type: 'grouped-section' as const,
-          content: { fieldId: field.id, label: field.label },
-          x: 0, y: currentY, w: 12, h: 2,  // Reduced height since no header
-          minW: 3, minH: 2,
-          children: [
-            {
-              id: `field-notes-${field.id}`,
-              type: 'notes' as const,
-              content: { fieldId: field.id, placeholder: field.placeholder || "Sample content..." },
-              x: 0, y: 0, w: 12, h: 2,  // Takes full height
-              minW: 3, minH: 2
-            }
-          ]
-        });
-        currentY += 2;  // Minimal spacing for date/day fields
-      } else {
-        // Create grouped section containing field header and notes for other fields
-        items.push({
-          id: `field-section-${field.id}`,
-          type: 'grouped-section' as const,
-          content: { fieldId: field.id, label: field.label },
-          x: 0, y: currentY, w: 12, h: 4,
-          minW: 3, minH: 4,
-          children: [
-            {
-              id: `field-header-${field.id}`,
-              type: 'field-header' as const,
-              content: { fieldId: field.id, label: field.label },
-              x: 0, y: 0, w: 12, h: 1,
-              minW: 3, minH: 1
-            },
-            {
-              id: `field-notes-${field.id}`,
-              type: 'notes' as const,
-              content: { fieldId: field.id, placeholder: field.placeholder || "Sample content..." },
-              x: 0, y: 1, w: 12, h: 3,
-              minW: 3, minH: 2
-            }
-          ]
-        });
-        currentY += 5;
-      }
+      // All fields now use the same grouped section structure since date/day fields have been removed
+      items.push({
+        id: `field-section-${field.id}`,
+        type: 'grouped-section' as const,
+        content: { fieldId: field.id, label: field.label },
+        x: 0, y: currentY, w: 12, h: 4,
+        minW: 3, minH: 4,
+        children: [
+          {
+            id: `field-header-${field.id}`,
+            type: 'field-header' as const,
+            content: { fieldId: field.id, label: field.label },
+            x: 0, y: 0, w: 12, h: 1,
+            minW: 3, minH: 1
+          },
+          {
+            id: `field-notes-${field.id}`,
+            type: 'notes' as const,
+            content: { fieldId: field.id, placeholder: field.placeholder || "Sample content..." },
+            x: 0, y: 1, w: 12, h: 3,
+            minW: 3, minH: 2
+          }
+        ]
+      });
+      currentY += 5;
     });
     
     // Add department sections (wider for better visibility)
@@ -591,57 +567,27 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
         setConfiguration(newConfig);
         setIsLayoutMounted(true);
       } else {
-        // Check for Day/Date fields with headers and remove them
-        const needsHeaderMigration = savedConfig.items?.some((item: any) => {
-          if (item.type === 'grouped-section') {
-            const fieldId = item.content?.fieldId?.toLowerCase();
-            const isDateOrDayField = fieldId === 'date' || fieldId === 'day' || fieldId?.includes('date') || fieldId?.includes('day');
-            return isDateOrDayField && item.children?.some((child: any) => child.type === 'field-header');
-          }
-          return false;
-        });
+        // Check if saved configuration has fields that no longer exist in template - if so, regenerate
+        const templateFieldIds = template.fields.map((f: any) => f.id.toLowerCase());
+        const savedFieldIds = savedConfig.items
+          ?.filter((item: any) => item.type === 'grouped-section' && item.content?.fieldId)
+          ?.map((item: any) => item.content.fieldId.toLowerCase()) || [];
         
-        if (needsHeaderMigration) {
-          console.log('🔄 Migrating Day/Date fields to remove headers');
-          const migratedItems = savedConfig.items.map((item: any) => {
-            if (item.type === 'grouped-section') {
-              const fieldId = item.content?.fieldId?.toLowerCase();
-              const isDateOrDayField = fieldId === 'date' || fieldId === 'day' || fieldId?.includes('date') || fieldId?.includes('day');
-              
-              if (isDateOrDayField) {
-                // Remove header child and adjust notes positioning
-                const notesChild = item.children?.find((child: any) => child.type === 'notes');
-                if (notesChild) {
-                  // For Date field, position it directly after Day field
-                  const newY = fieldId === 'date' ? 2 : item.y; // Date at y=2, Day keeps original position
-                  return {
-                    ...item,
-                    y: newY,
-                    h: 2, // Reduced height
-                    children: [{
-                      ...notesChild,
-                      x: 0,
-                      y: 0, // Move to top
-                      h: 2  // Full height
-                    }]
-                  };
-                }
-              }
-            }
-            return item;
-          });
-          
-          const migratedConfig = {
+        const hasObsoleteFields = savedFieldIds.some(fieldId => !templateFieldIds.includes(fieldId));
+        const hasMissingFields = templateFieldIds.some(fieldId => !savedFieldIds.includes(fieldId));
+        
+        if (hasObsoleteFields || hasMissingFields) {
+          console.log('🔄 Template structure mismatch - regenerating layout from template');
+          console.log('Template fields:', templateFieldIds);
+          console.log('Saved fields:', savedFieldIds);
+          const newLayoutItems = generateLayoutFromTemplate();
+          const newConfig = {
             ...savedConfig,
-            items: migratedItems
+            items: newLayoutItems
           };
-          setConfiguration(migratedConfig);
-          
-          // Force save the migrated configuration to database
-          console.log('🔄 Force saving migrated configuration to remove headers permanently');
-          setUserHasEditedLayout(false); // Allow this migration save
-          onConfigurationChange?.(migratedConfig);
-          
+          setConfiguration(newConfig);
+          setUserHasEditedLayout(false); // Allow this regeneration save
+          onConfigurationChange?.(newConfig);
           setIsLayoutMounted(true);
         } else {
           console.log('🔄 Using saved configuration directly');
