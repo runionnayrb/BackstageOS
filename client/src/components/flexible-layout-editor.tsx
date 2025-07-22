@@ -296,7 +296,7 @@ const LayoutItemRenderer: React.FC<{
       // Check if this is a Day or Date field - these should not have auto-numbering
       const fieldId = item.content?.fieldId?.toLowerCase();
       const isDateField = fieldId === 'date' || fieldId?.includes('date');
-      const isDayField = fieldId === 'day' || fieldId?.includes('day');
+      const isDayField = fieldId === 'day' || (fieldId?.endsWith('day') && !fieldId.includes('today'));
       
       if (isDateField || isDayField) {
         // For Date and Day fields, show inline label format
@@ -484,7 +484,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     
     templateFields.forEach((field: any, index: number) => {
       const fieldId = field.id.toLowerCase();
-      const isDateOrDayField = fieldId === 'date' || fieldId === 'day' || fieldId.includes('date') || fieldId.includes('day');
+      const isDateOrDayField = fieldId === 'date' || fieldId === 'day' || fieldId.includes('date') || (fieldId.endsWith('day') && !fieldId.includes('today'));
       
       if (isDateOrDayField) {
         // For Date and Day fields, create simplified section without separate header
