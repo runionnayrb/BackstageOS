@@ -210,9 +210,9 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
     // Display mode - show formatted content with same styling as edit mode
     return (
       <div 
-        className={`p-1 min-h-[18px] whitespace-pre-line text-black text-sm ${className}`}
+        className={`px-1 py-2 min-h-[20px] whitespace-pre-line text-black text-sm ${className}`}
         style={{ 
-          height: '18px', 
+          height: '20px', 
           lineHeight: '1.2',
           fontFamily: 'inherit',
           fontSize: '0.875rem' // 14px - same as text-sm
@@ -230,9 +230,9 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       placeholder={placeholder}
-      className={`auto-numbering-textarea min-h-[18px] resize-none border-0 shadow-none focus:ring-0 p-1 text-sm placeholder:text-gray-500 ${className}`}
+      className={`auto-numbering-textarea min-h-[20px] resize-none border-0 shadow-none focus:ring-0 px-1 py-2 text-sm placeholder:text-gray-500 ${className}`}
       style={{ 
-        height: '18px', 
+        height: '20px', 
         lineHeight: '1.2',
         fontFamily: 'inherit',
         fontSize: '0.875rem' // 14px - same as text-sm
