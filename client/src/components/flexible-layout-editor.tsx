@@ -207,6 +207,34 @@ const LayoutItemRenderer: React.FC<{
       );
     
     case 'notes':
+      // Check if this is a Day or Date field - these should not have auto-numbering
+      const fieldId = item.content?.fieldId?.toLowerCase();
+      const isDateField = fieldId === 'date' || fieldId?.includes('date');
+      const isDayField = fieldId === 'day' || fieldId?.includes('day');
+      
+      if (isDateField || isDayField) {
+        // For Date and Day fields, use regular input instead of auto-numbering
+        return (
+          <div className="w-full h-full p-2">
+            {isDateField ? (
+              <input 
+                type="date"
+                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Select date"
+              />
+            ) : (
+              <input 
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded bg-gray-100"
+                placeholder="Day will auto-populate"
+                readOnly
+              />
+            )}
+          </div>
+        );
+      }
+      
+      // For all other fields, use auto-numbering
       return (
         <AutoNumberingTextarea
           projectId={projectId}

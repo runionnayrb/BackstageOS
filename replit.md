@@ -334,6 +334,12 @@ Required environment variables:
 - Maintains exact same template appearance while adding auto-numbering functionality
 - Preserves all existing template formatting and visual design
 
+**Smart Field Detection:**
+- Date fields automatically display date picker input instead of auto-numbering
+- Day fields show read-only text input with "Day will auto-populate" placeholder
+- All other department fields use auto-numbering functionality
+- Intelligent field detection based on fieldId content (date, day keywords)
+
 **Notes Tracking System:**
 - Built complete notes-tracking.tsx page for separate note management and follow-up
 - Added backend API routes and storage methods for notes tracking functionality 
@@ -347,6 +353,7 @@ Required environment variables:
 
 **System Benefits:**
 - Theater professionals can press Enter in department text areas to create automatic numbered lines
+- Date and Day fields have appropriate input types (date picker and auto-populated day)
 - All notes automatically tracked in separate system for follow-up without changing template appearance
 - Easy access to notes tracking through show-specific navigation menu
 - Maintains complete template compatibility while adding powerful note management capabilities
@@ -354,11 +361,11 @@ Required environment variables:
 **Files Updated:**
 - `client/src/components/auto-numbering-textarea.tsx`: Core auto-numbering component
 - `client/src/pages/notes-tracking.tsx`: Notes tracking management page
-- `client/src/components/flexible-layout-editor.tsx`: Template integration
+- `client/src/components/flexible-layout-editor.tsx`: Template integration with smart field detection
 - `client/src/components/navigation/quick-section-switcher.tsx`: Navigation menu integration
 - `server/routes.ts` and `server/storage.ts`: Backend API support
 
-**Status**: Fully operational auto-numbering system with complete notes tracking and navigation integration.
+**Status**: Fully operational auto-numbering system with smart field detection, complete notes tracking, and navigation integration.
 
 ### July 22, 2025: **PAYMENT REQUIRED ACCESS CONTROL SYSTEM COMPLETE**
 **Successfully implemented comprehensive payment-based access control ensuring users with billing issues can log in but must resolve payment before platform access:**
