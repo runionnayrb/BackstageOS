@@ -219,6 +219,12 @@ export default function TemplateSettings() {
     queryKey: [`/api/projects/${projectId}/templates`],
   });
 
+  // Fetch global template settings for tech report headers/footers
+  const { data: globalSettings } = useQuery({
+    queryKey: [`/api/projects/${projectId}/global-template-settings`],
+    enabled: !!projectId,
+  });
+
   // Initialize templates with defaults and merge with user templates
   useEffect(() => {
     const initialTemplates: Record<string, ProductionTemplate> = {};
@@ -747,23 +753,42 @@ export default function TemplateSettings() {
                     {/* Header - Inline Editable */}
                     <div className="text-center mb-6 pb-4 border-b">
                       <EditableHeaderFooter
-                        content={template.header}
+                        content={selectedPhase === 'tech' ? (globalSettings?.defaultHeader || template.header) : template.header}
                         onChange={(newHeader) => {
-                          const updatedTemplate = {
-                            ...template,
-                            header: newHeader
-                          };
-                          setTemplates(prev => ({
-                            ...prev,
-                            [phase]: updatedTemplate
-                          }));
-                          saveTemplate.mutate(updatedTemplate);
+                          if (selectedPhase === 'tech') {
+                            // For tech templates, update global settings
+                            if (globalSettings) {
+                              apiRequest("PUT", `/api/projects/${projectId}/global-template-settings`, {
+                                ...globalSettings,
+                                defaultHeader: newHeader
+                              }).then(() => {
+                                // Invalidate global settings cache
+                                queryClient.invalidateQueries({
+                                  queryKey: [`/api/projects/${projectId}/global-template-settings`]
+                                });
+                              });
+                            }
+                          } else {
+                            // For other templates, update local template
+                            const updatedTemplate = {
+                              ...template,
+                              header: newHeader
+                            };
+                            setTemplates(prev => ({
+                              ...prev,
+                              [phase]: updatedTemplate
+                            }));
+                            saveTemplate.mutate(updatedTemplate);
+                          }
                         }}
                         className="text-lg font-semibold text-center"
                         projectId={projectId}
                         type="header"
                         effectiveEditMode={isEditMode}
                       />
+                      {selectedPhase === 'tech' && (
+                        <p className="text-xs text-gray-500 mt-1">Using global template settings</p>
+                      )}
                     </div>
 
                     {/* Fields Preview */}
@@ -845,23 +870,42 @@ export default function TemplateSettings() {
                     {/* Footer - Inline Editable */}
                     <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
                       <EditableHeaderFooter
-                        content={template.footer}
+                        content={selectedPhase === 'tech' ? (globalSettings?.defaultFooter || template.footer) : template.footer}
                         onChange={(newFooter) => {
-                          const updatedTemplate = {
-                            ...template,
-                            footer: newFooter
-                          };
-                          setTemplates(prev => ({
-                            ...prev,
-                            [phase]: updatedTemplate
-                          }));
-                          saveTemplate.mutate(updatedTemplate);
+                          if (selectedPhase === 'tech') {
+                            // For tech templates, update global settings
+                            if (globalSettings) {
+                              apiRequest("PUT", `/api/projects/${projectId}/global-template-settings`, {
+                                ...globalSettings,
+                                defaultFooter: newFooter
+                              }).then(() => {
+                                // Invalidate global settings cache
+                                queryClient.invalidateQueries({
+                                  queryKey: [`/api/projects/${projectId}/global-template-settings`]
+                                });
+                              });
+                            }
+                          } else {
+                            // For other templates, update local template
+                            const updatedTemplate = {
+                              ...template,
+                              footer: newFooter
+                            };
+                            setTemplates(prev => ({
+                              ...prev,
+                              [phase]: updatedTemplate
+                            }));
+                            saveTemplate.mutate(updatedTemplate);
+                          }
                         }}
                         className="text-sm text-gray-600 text-center"
                         projectId={projectId}
                         type="footer"
                         effectiveEditMode={isEditMode}
                       />
+                      {selectedPhase === 'tech' && (
+                        <p className="text-xs text-gray-500 mt-1">Using global template settings</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>

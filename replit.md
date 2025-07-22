@@ -325,6 +325,33 @@ Required environment variables:
 
 ## Recent Changes
 
+### July 22, 2025: **TECH REPORT GLOBAL HEADER/FOOTER INTEGRATION COMPLETE**
+**Successfully modified tech reports to use global template settings for headers and footers instead of local template-specific content:**
+
+**Global Settings Integration:**
+- Added global template settings query to template-settings.tsx page
+- Modified tech report header to use `globalSettings.defaultHeader` instead of `template.header`
+- Modified tech report footer to use `globalSettings.defaultFooter` instead of `template.footer`
+- Added fallback to local template content if global settings not available
+- Implemented proper cache invalidation for global settings when headers/footers are edited
+
+**User Experience:**
+- Tech reports now display "Using global template settings" indicator below header and footer
+- When editing tech report headers/footers, changes save to global settings (affecting all tech reports)
+- Other report types (rehearsal, performance, meetings, previews) continue using local template-specific headers/footers
+- Seamless integration with existing edit/lock mode functionality
+
+**System Benefits:**
+- Consistent headers and footers across all tech reports in a production
+- Centralized management of tech report branding and formatting
+- Maintains backward compatibility with existing template system
+- Clear visual distinction between global and local template content
+
+**Files Updated:**
+- `client/src/pages/template-settings.tsx`: Added global settings query and modified header/footer rendering logic for tech templates
+
+**Status**: Tech reports now use global header/footer settings as requested, providing consistent branding across all technical rehearsal reports.
+
 ### July 22, 2025: **HEADER/FOOTER EDIT/LOCK MODE INTEGRATION WITH DUPLICATE FOOTER FIX COMPLETE**
 **Successfully integrated header and footer editing with template edit/lock mode system and resolved duplicate footer issue:**
 
