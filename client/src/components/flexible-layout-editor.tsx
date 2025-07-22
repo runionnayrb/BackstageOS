@@ -591,19 +591,35 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           setIsLayoutMounted(true);
         } else {
           console.log('🔄 Using saved configuration directly');
-          // Filter out any footer items from saved configuration since footers are handled by template-settings.tsx
+          // Filter out footer items AND date/day fields permanently
           const filteredConfig = {
             ...savedConfig,
-            items: savedConfig.items.filter((item: any) => item.type !== 'footer' && item.id !== 'template-footer')
+            items: savedConfig.items.filter((item: any) => {
+              // Remove footer items
+              if (item.type === 'footer' || item.id === 'template-footer') {
+                return false;
+              }
+              
+              // Remove date and day field sections permanently
+              if (item.type === 'grouped-section' && item.content?.fieldId) {
+                const fieldId = item.content.fieldId.toLowerCase();
+                if (fieldId === 'date' || fieldId === 'day' || fieldId.includes('date') || fieldId.includes('day')) {
+                  console.log(`🗑️ Permanently removing ${fieldId} field from layout`);
+                  return false;
+                }
+              }
+              
+              return true;
+            })
           };
           
-          // Check if we actually filtered out any footer items
-          const hadFooterItems = savedConfig.items.length !== filteredConfig.items.length;
-          if (hadFooterItems) {
-            console.log('🧹 Filtered out footer items from saved configuration - forcing save');
+          // Check if we actually filtered out any items
+          const hadFilteredItems = savedConfig.items.length !== filteredConfig.items.length;
+          if (hadFilteredItems) {
+            console.log('🧹 Filtered out unwanted items from saved configuration - forcing save');
             // Reset user edit flag to allow this cleanup save
             setUserHasEditedLayout(false);
-            // Save the filtered configuration to permanently remove footer items
+            // Save the filtered configuration to permanently remove unwanted items
             onConfigurationChange?.(filteredConfig);
           }
           
