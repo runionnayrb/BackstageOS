@@ -133,27 +133,13 @@ export default function DailyCallSheet() {
     },
   });
 
-  // Load existing daily call data when it changes
+  // Load existing daily call data when it changes  
   useEffect(() => {
-    if (existingDailyCall) {
-      // The existingDailyCall might have a different structure from the database
-      // Check if it already has the structured format we expect
-      if (existingDailyCall.locations && Array.isArray(existingDailyCall.locations) && 
-          existingDailyCall.locations.length > 0 && 
-          typeof existingDailyCall.locations[0] === 'object' && 
-          'events' in existingDailyCall.locations[0]) {
-        // Force regeneration from schedule to fix duplicate END-OF-DAY issue
-        generateCallFromSchedule();
-        return; // Early return to avoid setting stale data
-      } else {
-        // Raw database format - need to transform
-        generateCallFromSchedule();
-      }
-    } else if (actualProjectId && !existingDailyCall) {
-      // Auto-generate from schedule events for the selected date (even if no events exist)
-      generateCallFromSchedule();
-    }
-  }, [existingDailyCall, selectedDate, actualProjectId, timeFormat, scheduleEvents, eventLocations]); // Include scheduleEvents and eventLocations to regenerate when data loads
+    if (!actualProjectId || !scheduleEvents || !eventLocations || !contacts) return;
+    
+    // Always regenerate from schedule to ensure consistency and avoid duplicates
+    generateCallFromSchedule();
+  }, [actualProjectId, selectedDate, timeFormat, scheduleEvents, eventLocations, contacts]); // Include necessary data dependencies
 
   // Date picker navigation function
   const handleDateSelect = (date: Date | undefined) => {
@@ -670,23 +656,8 @@ export default function DailyCallSheet() {
         return;
       }
       
-      // Clone and prepare element for PDF generation
-      const clonedElement = dailyCallElement.cloneNode(true) as HTMLElement;
-      clonedElement.style.width = '794px';
-      clonedElement.style.minHeight = 'auto';
-      clonedElement.style.backgroundColor = 'white';
-      clonedElement.style.boxShadow = 'none';
-      clonedElement.style.borderRadius = '0';
-      clonedElement.style.padding = '20px';
-      
-      // Hide the app footer
-      const appFooter = clonedElement.querySelector('.mt-8.pt-6.border-t.border-gray-200.text-center');
-      if (appFooter) {
-        (appFooter as HTMLElement).style.display = 'none';
-      }
-      
-      // Create canvas with high resolution
-      const canvas = await html2canvas(clonedElement, {
+      // Create canvas directly from the original element (like exportToPDF does)
+      const canvas = await html2canvas(dailyCallElement, {
         scale: 3,
         useCORS: true,
         allowTaint: true,
