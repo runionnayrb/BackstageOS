@@ -36,9 +36,12 @@ export default function EditableHeaderFooter({
     
     return content
       .replace(/\{\{showName\}\}/g, 'Test Production')
+      .replace(/\{\{reportType\}\}/g, 'Tech Report')
       .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
       .replace(/\{\{pageNumber\}\}/g, '1')
-      .replace(/\{\{totalPages\}\}/g, String(estimatedPages));
+      .replace(/\{\{totalPages\}\}/g, String(estimatedPages))
+      .replace(/\{\{stageManager\}\}/g, 'Stage Manager')
+      .replace(/\{\{venue\}\}/g, 'Theater');
   };
 
   // Apply formatting from settings

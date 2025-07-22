@@ -1063,7 +1063,9 @@ export default function GlobalTemplateSettings() {
                     <div className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
                       <div 
                         dangerouslySetInnerHTML={{
-                          __html: settings.defaultHeader.replace(/{{(\w+)}}/g, (match, key) => {
+                          __html: (() => {
+                            console.log('🔍 Original header content:', settings.defaultHeader);
+                            
                             const sampleData: Record<string, string> = {
                               showName: project?.name || "Sample Show",
                               reportType: "Tech Report",
@@ -1071,9 +1073,16 @@ export default function GlobalTemplateSettings() {
                               stageManager: "John Doe",
                               venue: project?.venue || "Sample Theater"
                             };
-                            console.log(`🔍 Variable replacement - match: "${match}", key: "${key}", replacement: "${sampleData[key] || match}"`);
-                            return sampleData[key] || match;
-                          })
+                            
+                            const result = settings.defaultHeader.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+                              const replacement = sampleData[key] || match;
+                              console.log(`🔍 Variable replacement - match: "${match}", key: "${key}", replacement: "${replacement}"`);
+                              return replacement;
+                            });
+                            
+                            console.log('🔍 Final result:', result);
+                            return result;
+                          })()
                         }}
                       />
                     </div>
