@@ -417,7 +417,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
             }
           ]
         });
-        currentY += 3;  // Less spacing for date/day fields
+        currentY += 2;  // Minimal spacing for date/day fields
       } else {
         // Create grouped section containing field header and notes for other fields
         items.push({
