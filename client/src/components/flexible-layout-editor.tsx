@@ -780,10 +780,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
         {/* Grid Layout */}
         <div className={cn(
-          "border rounded-lg bg-white",
+          "bg-white",
           effectiveEditMode && "bg-gray-50/50"
-        )}
-        style={{ padding: '4px' }}>
+        )}>
           {!isLayoutMounted && (
             <div className="flex items-center justify-center h-64 text-gray-500">
               <div className="text-center">
