@@ -1065,11 +1065,11 @@ export default function GlobalTemplateSettings() {
                         dangerouslySetInnerHTML={{
                           __html: settings.defaultHeader.replace(/{{(\w+)}}/g, (match, key) => {
                             const sampleData: Record<string, string> = {
-                              showName: "Sample Show",
-                              reportType: "Rehearsal Report",
+                              showName: project?.name || "Sample Show",
+                              reportType: "Tech Report",
                               date: new Date().toLocaleDateString(),
                               stageManager: "John Doe",
-                              venue: "Sample Theater"
+                              venue: project?.venue || "Sample Theater"
                             };
                             return sampleData[key] || match;
                           })
@@ -1132,10 +1132,12 @@ export default function GlobalTemplateSettings() {
                         dangerouslySetInnerHTML={{
                           __html: settings.defaultFooter.replace(/{{(\w+)}}/g, (match, key) => {
                             const sampleData: Record<string, string> = {
-                              preparedBy: "Jane Smith",
+                              preparedBy: "Stage Manager",
                               nextReportDate: new Date(Date.now() + 86400000).toLocaleDateString(),
-                              contactInfo: "contact@theater.com",
-                              emergencyContact: "(555) 123-4567"
+                              contactInfo: project?.name ? `${project.name} Production` : "Production Team",
+                              emergencyContact: "(555) 123-4567",
+                              pageNumber: "1",
+                              totalPages: "1"
                             };
                             return sampleData[key] || match;
                           })
