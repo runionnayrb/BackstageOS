@@ -547,75 +547,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     );
   }, []);
 
-  // Helper function to calculate intelligent widths based on side-by-side positioning
-  const calculateIntelligentWidths = useCallback((items: LayoutItem[]) => {
-    // Don't recalculate widths if user has manually edited layout
-    if (userHasEditedLayout) {
-      console.log('🛡️ Preserving user width changes - no intelligent recalculation');
-      return items;
-    }
-    const processedItems = [...items];
-    
-    // Group items by Y position (same row)
-    const rowGroups = new Map<number, LayoutItem[]>();
-    
-    processedItems.forEach(item => {
-      // Group by Y position, allowing for slight variations in height
-      let foundRow = false;
-      for (const [rowY, rowItems] of rowGroups.entries()) {
-        // Check if item overlaps with this row (Y position overlap)
-        if (item.y < rowY + rowItems[0].h && rowY < item.y + item.h) {
-          rowItems.push(item);
-          foundRow = true;
-          break;
-        }
-      }
-      
-      if (!foundRow) {
-        rowGroups.set(item.y, [item]);
-      }
-    });
-    
-    // Process each row
-    rowGroups.forEach(rowItems => {
-      if (rowItems.length === 1) {
-        // Single item in row - make it full width
-        const item = rowItems[0];
-        const itemIndex = processedItems.findIndex(p => p.id === item.id);
-        if (itemIndex !== -1) {
-          processedItems[itemIndex] = {
-            ...processedItems[itemIndex],
-            w: 12, // Full width
-            x: 0,  // Start at left edge
-            minW: 3,
-            maxW: 12
-          };
-        }
-      } else {
-        // Multiple items in same row - distribute width equally
-        const itemCount = Math.min(rowItems.length, 4); // Max 4 components
-        const equalWidth = 12 / itemCount;
-        
-        // Sort by X position
-        rowItems.sort((a, b) => a.x - b.x);
-        
-        rowItems.forEach((item, index) => {
-          const itemIndex = processedItems.findIndex(p => p.id === item.id);
-          if (itemIndex !== -1) {
-            processedItems[itemIndex] = {
-              ...processedItems[itemIndex],
-              x: Math.floor(index * equalWidth),
-              w: snapToQuarters(equalWidth),
-              minW: 3,
-              maxW: 12
-            };
-          }
-        });
-      }
-    });
-    
-    return processedItems;
-  }, [snapToQuarters, userHasEditedLayout]);
+  // Removed intelligent width calculation - users now have full manual control via resize handles
 
   // Convert configuration items to react-grid-layout format
   const convertToGridLayouts = useCallback((items: LayoutItem[]) => {
@@ -650,7 +582,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       xs: layout,
       xxs: layout
     };
-  }, [effectiveEditMode, calculateIntelligentWidths]);
+  }, [effectiveEditMode]);
 
   // Update layouts when configuration changes
   useEffect(() => {
@@ -700,46 +632,8 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       return item;
     });
 
-    // Check if this is a position change (drag) vs a size change (resize)
-    const isPositionChange = updatedItems.some(item => {
-      const lastPos = lastLayoutRef.current[item.id];
-      if (!lastPos) return true;
-      
-      // Check if position changed (x or y) - indicates drag
-      const xChanged = Math.abs(item.x - lastPos.x) > 0.5;
-      const yChanged = Math.abs(item.y - lastPos.y) > 0.5;
-      
-      if (xChanged || yChanged) {
-        console.log(`📍 Position change detected for ${item.id}:`, {
-          oldPos: { x: lastPos.x, y: lastPos.y },
-          newPos: { x: item.x, y: item.y },
-          xChanged,
-          yChanged
-        });
-      }
-      
-      return xChanged || yChanged;
-    });
-
-    // Check if this is a size change only (resize) 
-    const isSizeChangeOnly = updatedItems.some(item => {
-      const lastPos = lastLayoutRef.current[item.id];
-      if (!lastPos) return false;
-      
-      // Position didn't change but size did - indicates manual resize
-      const positionUnchanged = Math.abs(item.x - lastPos.x) <= 0.5 && Math.abs(item.y - lastPos.y) <= 0.5;
-      const sizeChanged = Math.abs(item.w - lastPos.w) > 0.5 || Math.abs(item.h - lastPos.h) > 0.5;
-      
-      return positionUnchanged && sizeChanged;
-    });
-
-    // Don't apply intelligent width calculation if user has edited layout - preserve all user changes
-    if (isPositionChange && !isSizeChangeOnly && effectiveEditMode && !isDragging && !userHasEditedLayout) {
-      console.log('🎯 Applying intelligent width calculation due to position change');
-      updatedItems = calculateIntelligentWidths(updatedItems);
-    } else if (userHasEditedLayout && (isPositionChange || isSizeChangeOnly)) {
-      console.log('🛡️ Preserving user position/size changes - no intelligent recalculation');
-    }
+    // No intelligent width calculation needed - users have manual resize controls
+    console.log('💡 All layout changes preserved - no automatic recalculation');
 
     // Update position tracking
     updatedItems.forEach(item => {
