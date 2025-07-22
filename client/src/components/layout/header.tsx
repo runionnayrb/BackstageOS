@@ -8,7 +8,7 @@ import { isAdmin } from "@/lib/admin";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAdminView } from "@/contexts/AdminViewContext";
 
 interface SwitchStatus {
@@ -42,6 +42,15 @@ export default function Header() {
     userObject: user 
   });
 
+  // Force test the API directly  
+  React.useEffect(() => {
+    console.log('🔍 Header: Testing API directly...');
+    fetch('/api/admin/account-types', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => console.log('🔍 Header: Direct API test result:', data))
+      .catch(err => console.error('🔍 Header: Direct API test error:', err));
+  }, []);
+
   // Fetch profile types for dynamic dropdown
   const { data: profileTypes = [] } = useQuery({
     queryKey: ['/api/admin/account-types'],
@@ -49,19 +58,27 @@ export default function Header() {
     staleTime: 0, // Force fresh data
     cacheTime: 0, // Don't cache
     queryFn: async () => {
-      console.log('🔍 Header: Fetching profile types from /api/admin/account-types');
-      const response = await fetch('/api/admin/account-types?t=' + Date.now(), { 
-        credentials: 'include',
-        cache: 'no-cache'
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch profile types: ${response.status}`);
+      console.log('🔍 Header: *** QUERY FUNCTION CALLED *** Fetching profile types from /api/admin/account-types');
+      try {
+        const response = await fetch('/api/admin/account-types?t=' + Date.now(), { 
+          credentials: 'include',
+          cache: 'no-cache'
+        });
+        
+        console.log('🔍 Header: Response status:', response.status);
+        
+        if (!response.ok) {
+          console.log('🔍 Header: Response not OK:', response.status, response.statusText);
+          throw new Error(`Failed to fetch profile types: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('🔍 Header: *** RAW API RESPONSE ***:', data);
+        return data;
+      } catch (error) {
+        console.error('🔍 Header: Query error:', error);
+        throw error;
       }
-      
-      const data = await response.json();
-      console.log('🔍 Header: Raw API response:', data);
-      return data;
     },
     select: (data: any[]) => {
       console.log('🔍 Header: Selected profile types:', data);
@@ -72,6 +89,7 @@ export default function Header() {
   // Debug current profile types
   console.log('🔍 Header: Current profileTypes state:', profileTypes);
   console.log('🔍 Header: profileTypes array length:', profileTypes.length);
+  console.log('🔍 Header: Query key being used:', ['/api/admin/account-types']);
 
   // Fetch all users for account switching (admin only)
   const { data: allUsers = [] } = useQuery({
