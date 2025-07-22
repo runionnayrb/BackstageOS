@@ -188,28 +188,18 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
     }
   };
 
-  // Auto-resize functionality
+  // Keep single line height - no auto-resize
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      const resizeTextarea = () => {
-        textarea.style.height = 'auto';
-        textarea.style.height = Math.max(24, textarea.scrollHeight) + 'px';
-      };
-      
-      resizeTextarea();
-      textarea.addEventListener('input', resizeTextarea);
-      
-      return () => {
-        textarea.removeEventListener('input', resizeTextarea);
-      };
+      textarea.style.height = '18px';
     }
   }, [value]);
 
   if (!isEditing) {
     // Display mode - show formatted content
     return (
-      <div className={`p-2 min-h-[24px] whitespace-pre-line ${className}`}>
+      <div className={`p-2 min-h-[18px] whitespace-pre-line ${className}`}>
         {currentValue || placeholder}
       </div>
     );
@@ -222,12 +212,13 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       placeholder={placeholder}
-      className={`min-h-[24px] resize-none border-0 shadow-none focus:ring-0 overflow-y-hidden ${className}`}
+      className={`min-h-[18px] max-h-[18px] resize-none border-0 shadow-none focus:ring-0 overflow-y-hidden ${className}`}
       style={{ 
-        height: '24px', 
+        height: '18px', 
         lineHeight: '1.2',
         fontFamily: 'inherit'
       }}
+      rows={1}
     />
   );
 };
