@@ -791,9 +791,9 @@ export default function TemplateSettings() {
                             
                             setLastSaved(new Date());
                             
-                            // Only invalidate cache to refresh other parts of settings, not for layout
-                            // The layout editor handles its own state to prevent data loss
-                            console.log('📝 Layout saved - skipping cache invalidation to preserve layout state');
+                            // Layout change automatically saved to database
+                            // No cache invalidation needed - change is permanent
+                            console.log('📝 Layout change permanently saved to database');
                             
                           } catch (error) {
                             console.error('❌ Failed to save layout configuration:', error);
