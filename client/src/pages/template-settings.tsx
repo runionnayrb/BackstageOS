@@ -700,7 +700,7 @@ export default function TemplateSettings() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => addNewItem('department-header')}
+                              onClick={() => flexibleLayoutRef.current?.addNewItem('department-header')}
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
@@ -708,7 +708,7 @@ export default function TemplateSettings() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => addNewItem('empty-space')}
+                              onClick={() => flexibleLayoutRef.current?.addNewItem('empty-space')}
                             >
                               [    ]
                             </Button>
@@ -721,7 +721,7 @@ export default function TemplateSettings() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={handleResetClick}
+                            onClick={() => flexibleLayoutRef.current?.resetLayout()}
                           >
                             <RotateCcw className="h-4 w-4" />
                           </Button>
