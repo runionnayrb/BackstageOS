@@ -1071,6 +1071,7 @@ export default function GlobalTemplateSettings() {
                               stageManager: "John Doe",
                               venue: project?.venue || "Sample Theater"
                             };
+                            console.log(`🔍 Variable replacement - match: "${match}", key: "${key}", replacement: "${sampleData[key] || match}"`);
                             return sampleData[key] || match;
                           })
                         }}
