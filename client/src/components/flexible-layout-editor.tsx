@@ -620,7 +620,11 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   const lastLayoutRef = useRef<{[key: string]: {x: number, y: number, w: number, h: number}}>({});
 
   const handleLayoutChange = (layout: Layout[], allLayouts: Layouts) => {
-    if (!effectiveEditMode) return;
+    if (!effectiveEditMode) {
+      console.log('🚨 Layout change triggered in VIEW mode - this may be causing position reversion!');
+      console.log('🔍 View mode layout data:', layout.map(l => ({ id: l.i, x: l.x, y: l.y })));
+      return;
+    }
 
     let updatedItems = configuration.items.map(item => {
       const layoutItem = layout.find(l => l.i === item.id);
