@@ -232,7 +232,7 @@ export default function EditableFieldHeading({
     <>
       <div className="relative group">
         <div 
-          className={`${className} cursor-pointer hover:opacity-80 transition-opacity p-1 rounded min-h-[24px] outline-none editable-field-heading`}
+          className={`drag-handle ${className} cursor-move hover:opacity-80 transition-opacity p-1 rounded min-h-[24px] outline-none editable-field-heading`}
           contentEditable
           suppressContentEditableWarning
           data-field-heading="true"

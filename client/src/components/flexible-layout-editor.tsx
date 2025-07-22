@@ -118,14 +118,7 @@ const DraggableGridItem: React.FC<{
         </div>
       )}
       
-      {/* Drag handle */}
-      {effectiveEditMode && (
-        <div className="absolute -top-6 right-0 z-40">
-          <div className="drag-handle cursor-move p-1 bg-blue-500 text-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity">
-            <Move className="h-3 w-3" />
-          </div>
-        </div>
-      )}
+
 
       {children}
 

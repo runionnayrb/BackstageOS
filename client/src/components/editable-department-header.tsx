@@ -621,7 +621,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
   return (
     <div className="mb-2 group relative">
       <div 
-        className={`w-full transition-opacity ${isEditing ? 'cursor-pointer hover:opacity-80' : 'cursor-default'}`}
+        className={`drag-handle w-full transition-opacity ${isEditing ? 'cursor-move hover:opacity-80' : 'cursor-default'}`}
         onClick={handleHeaderClick}
         style={{
           fontWeight: formatting.bold ? 'bold' : 'normal',
