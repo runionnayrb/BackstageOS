@@ -84,8 +84,8 @@ export default function UserAnalyticsSimple() {
     username: '',
     profileType: '',
     isActive: true,
-    subscriptionStatus: '',
-    subscriptionPlan: '',
+    subscriptionStatus: 'free',
+    subscriptionPlan: 'none',
     grandfatheredFree: false,
     isAdmin: false
   });
@@ -179,8 +179,8 @@ export default function UserAnalyticsSimple() {
       username: user.username || '',
       profileType: user.profileType || '',
       isActive: user.isActive,
-      subscriptionStatus: user.subscriptionStatus || '',
-      subscriptionPlan: user.subscriptionPlan || '',
+      subscriptionStatus: user.subscriptionStatus || 'free',
+      subscriptionPlan: user.subscriptionPlan || 'none',
       grandfatheredFree: user.grandfatheredFree,
       isAdmin: user.isAdmin
     });
@@ -189,9 +189,17 @@ export default function UserAnalyticsSimple() {
 
   const handleSave = () => {
     if (!editingUser) return;
+    
+    // Convert UI values back to database format
+    const dataToSave = {
+      ...editData,
+      subscriptionStatus: editData.subscriptionStatus === 'free' ? null : editData.subscriptionStatus,
+      subscriptionPlan: editData.subscriptionPlan === 'none' ? null : editData.subscriptionPlan
+    };
+    
     updateMutation.mutate({
       userId: editingUser.id,
-      updates: editData
+      updates: dataToSave
     });
   };
 
@@ -205,8 +213,8 @@ export default function UserAnalyticsSimple() {
       username: '',
       profileType: '',
       isActive: true,
-      subscriptionStatus: '',
-      subscriptionPlan: '',
+      subscriptionStatus: 'free',
+      subscriptionPlan: 'none',
       grandfatheredFree: false,
       isAdmin: false
     });
@@ -688,7 +696,7 @@ export default function UserAnalyticsSimple() {
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Free</SelectItem>
+                        <SelectItem value="free">Free</SelectItem>
                         <SelectItem value="active">Active</SelectItem>
                         <SelectItem value="trialing">Trialing</SelectItem>
                         <SelectItem value="past_due">Past Due</SelectItem>
@@ -708,7 +716,7 @@ export default function UserAnalyticsSimple() {
                         <SelectValue placeholder="Select plan" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No Plan</SelectItem>
+                        <SelectItem value="none">No Plan</SelectItem>
                         {billingPlans.map(plan => (
                           <SelectItem key={plan.planId} value={plan.planId}>
                             {plan.name}
