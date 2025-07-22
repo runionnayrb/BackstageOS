@@ -656,7 +656,7 @@ export default function DailyCallSheet() {
 
   const handlePrint = async () => {
     try {
-      // Generate PDF using the exact same logic as exportToPDF
+      // Generate PDF and open for printing (similar to exportToPDF but opens for print)
       const { jsPDF } = await import('jspdf');
       const html2canvas = (await import('html2canvas')).default;
       
@@ -670,7 +670,7 @@ export default function DailyCallSheet() {
         return;
       }
       
-      // Clone the element just like in exportToPDF
+      // Clone and prepare element for PDF generation
       const clonedElement = dailyCallElement.cloneNode(true) as HTMLElement;
       clonedElement.style.width = '794px';
       clonedElement.style.minHeight = 'auto';
@@ -685,7 +685,7 @@ export default function DailyCallSheet() {
         (appFooter as HTMLElement).style.display = 'none';
       }
       
-      // Create canvas exactly like exportToPDF
+      // Create canvas with high resolution
       const canvas = await html2canvas(clonedElement, {
         scale: 3,
         useCORS: true,
@@ -696,7 +696,7 @@ export default function DailyCallSheet() {
         windowWidth: 1200
       });
       
-      // Create PDF exactly like exportToPDF
+      // Create PDF
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -721,7 +721,6 @@ export default function DailyCallSheet() {
         
         // Add footer
         const footerStartY = pageHeight - marginMm - 8;
-        
         pdf.setFontSize(10);
         pdf.setFont('helvetica', 'bold');
         pdf.setTextColor(100, 100, 100);
