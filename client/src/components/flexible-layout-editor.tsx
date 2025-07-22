@@ -439,9 +439,18 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     const items: LayoutItem[] = [];
     let currentY = 0;
     
-    // Add all template fields as grouped sections (full width)
+    // Add all template fields as grouped sections (full width) - EXCLUDE date and day fields permanently
     const templateFields = template.fields
-      .filter((field: any) => !field.id.includes('Notes') || field.id === 'notes')
+      .filter((field: any) => {
+        const fieldId = field.id.toLowerCase();
+        // Exclude date and day fields permanently
+        if (fieldId === 'date' || fieldId === 'day' || fieldId.includes('date') || fieldId.includes('day')) {
+          console.log(`🗑️ Skipping ${field.id} field during layout generation - permanently excluded`);
+          return false;
+        }
+        // Include regular fields
+        return !field.id.includes('Notes') || field.id === 'notes';
+      })
       .sort((a: any, b: any) => a.order - b.order);
     
     templateFields.forEach((field: any, index: number) => {

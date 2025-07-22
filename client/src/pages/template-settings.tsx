@@ -116,8 +116,8 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
     phase: "tech",
     name: "Technical Rehearsal Report", 
     description: "Technical rehearsal and cue integration with department notes",
-    header: "{{showName}} - Tech Rehearsal Report\nDate: {{date}}\nStage Manager: {{stageManager}}",
-    footer: "Next tech: {{nextTech}}\nTechnical Director: {{technicalDirector}}",
+    header: "{{showName}} - Tech Rehearsal Report\nStage Manager: {{stageManager}}",
+    footer: "Technical Director: {{technicalDirector}}",
     fields: [
       { id: "todaysSchedule", type: "textarea", label: "Today's Schedule", placeholder: "1. No notes. Thank you.", required: true, order: 1 },
       { id: "late", type: "textarea", label: "Late", placeholder: "1. No notes. Thank you.", required: false, order: 2 },
