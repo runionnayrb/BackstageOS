@@ -91,12 +91,11 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
     header: "{{showName}} - Production Meeting Report\nDate: {{date}}\nStage Manager: {{stageManager}}",
     footer: "Next meeting due: {{nextMeetingDate}}\nContact: {{contactInfo}}",
     fields: [
-      { id: "date", type: "date", label: "Meeting Date", required: true, order: 1 },
-      { id: "meetingType", type: "text", label: "Meeting Type", placeholder: "e.g., Production Meeting, Design Meeting", required: true, order: 2 },
-      { id: "attendees", type: "textarea", label: "Attendees", placeholder: "List of meeting attendees", required: true, order: 3 },
-      { id: "agendaItems", type: "textarea", label: "Agenda Items", placeholder: "Topics discussed", required: false, order: 4 },
-      { id: "actionItems", type: "textarea", label: "Action Items", placeholder: "Tasks and assignments", required: true, order: 5 },
-      { id: "notes", type: "textarea", label: "Additional Notes", required: false, order: 6 }
+      { id: "meetingType", type: "text", label: "Meeting Type", placeholder: "e.g., Production Meeting, Design Meeting", required: true, order: 1 },
+      { id: "attendees", type: "textarea", label: "Attendees", placeholder: "List of meeting attendees", required: true, order: 2 },
+      { id: "agendaItems", type: "textarea", label: "Agenda Items", placeholder: "Topics discussed", required: false, order: 3 },
+      { id: "actionItems", type: "textarea", label: "Action Items", placeholder: "Tasks and assignments", required: true, order: 4 },
+      { id: "notes", type: "textarea", label: "Additional Notes", required: false, order: 5 }
     ]
   },
   rehearsal: {
@@ -106,13 +105,11 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
     header: "{{showName}} - Rehearsal Report\nDate: {{date}} | Day {{rehearsalDay}}\nStage Manager: {{stageManager}}",
     footer: "Next rehearsal: {{nextRehearsal}}\nCompany Manager: {{companyManager}}",
     fields: [
-      { id: "date", type: "date", label: "Rehearsal Date", required: true, order: 1 },
-      { id: "day", type: "number", label: "Rehearsal Day #", required: true, order: 2 },
-      { id: "location", type: "text", label: "Location", placeholder: "Rehearsal room/venue", required: true, order: 3 },
-      { id: "scenes", type: "textarea", label: "Scenes Worked", placeholder: "Act I, Scene 1-3", required: true, order: 4 },
-      { id: "notes", type: "textarea", label: "Director's Notes", required: true, order: 5 },
-      { id: "technical", type: "textarea", label: "Technical Notes", placeholder: "Props, costumes, set pieces", required: false, order: 6 },
-      { id: "attendance", type: "textarea", label: "Attendance Notes", placeholder: "Late arrivals, absences", required: false, order: 7 }
+      { id: "location", type: "text", label: "Location", placeholder: "Rehearsal room/venue", required: true, order: 1 },
+      { id: "scenes", type: "textarea", label: "Scenes Worked", placeholder: "Act I, Scene 1-3", required: true, order: 2 },
+      { id: "notes", type: "textarea", label: "Director's Notes", required: true, order: 3 },
+      { id: "technical", type: "textarea", label: "Technical Notes", placeholder: "Props, costumes, set pieces", required: false, order: 4 },
+      { id: "attendance", type: "textarea", label: "Attendance Notes", placeholder: "Late arrivals, absences", required: false, order: 5 }
     ]
   },
   tech: {
@@ -122,19 +119,18 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
     header: "{{showName}} - Tech Rehearsal Report\nDate: {{date}}\nStage Manager: {{stageManager}}",
     footer: "Next tech: {{nextTech}}\nTechnical Director: {{technicalDirector}}",
     fields: [
-      { id: "date", type: "date", label: "Date", required: true, order: 1 },
-      { id: "sessionOverview", type: "textarea", label: "Session Overview", placeholder: "Overall goals and achievements for this tech session", required: true, order: 2 },
-      { id: "cuesRun", type: "textarea", label: "Cues Rehearsed", placeholder: "Light cues 1-25, Sound cues A-M", required: true, order: 3 },
+      { id: "sessionOverview", type: "textarea", label: "Session Overview", placeholder: "Overall goals and achievements for this tech session", required: true, order: 1 },
+      { id: "cuesRun", type: "textarea", label: "Cues Rehearsed", placeholder: "Light cues 1-25, Sound cues A-M", required: true, order: 2 },
       
       // Department Notes Sections
-      { id: "scenicNotes", type: "textarea", label: "Scenic Department Notes", placeholder: "Set changes, scenic cues, technical notes for scenic department", required: false, order: 4 },
-      { id: "lightingNotes", type: "textarea", label: "Lighting Department Notes", placeholder: "Light cues, equipment issues, lighting notes", required: false, order: 5 },
-      { id: "audioNotes", type: "textarea", label: "Audio Department Notes", placeholder: "Sound cues, microphone issues, audio equipment notes", required: false, order: 6 },
-      { id: "videoNotes", type: "textarea", label: "Video Department Notes", placeholder: "Video cues, projection issues, media notes", required: false, order: 7 },
-      { id: "propsNotes", type: "textarea", label: "Props Department Notes", placeholder: "Prop tracking, quick changes, costume notes", required: false, order: 8 },
+      { id: "scenicNotes", type: "textarea", label: "Scenic Department Notes", placeholder: "Set changes, scenic cues, technical notes for scenic department", required: false, order: 3 },
+      { id: "lightingNotes", type: "textarea", label: "Lighting Department Notes", placeholder: "Light cues, equipment issues, lighting notes", required: false, order: 4 },
+      { id: "audioNotes", type: "textarea", label: "Audio Department Notes", placeholder: "Sound cues, microphone issues, audio equipment notes", required: false, order: 5 },
+      { id: "videoNotes", type: "textarea", label: "Video Department Notes", placeholder: "Video cues, projection issues, media notes", required: false, order: 6 },
+      { id: "propsNotes", type: "textarea", label: "Props Department Notes", placeholder: "Prop tracking, quick changes, costume notes", required: false, order: 7 },
       
-      { id: "outstandingIssues", type: "textarea", label: "Outstanding Issues", placeholder: "Unresolved problems requiring follow-up", required: false, order: 9 },
-      { id: "notes", type: "textarea", label: "General Notes", placeholder: "Additional notes and observations", required: false, order: 10 }
+      { id: "outstandingIssues", type: "textarea", label: "Outstanding Issues", placeholder: "Unresolved problems requiring follow-up", required: false, order: 8 },
+      { id: "notes", type: "textarea", label: "General Notes", placeholder: "Additional notes and observations", required: false, order: 9 }
     ]
   },
   previews: {
@@ -144,13 +140,12 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
     header: "{{showName}} - Preview Report\nDate: {{date}} | Preview {{previewNumber}}\nStage Manager: {{stageManager}}",
     footer: "Next preview: {{nextPreview}}\nAudience: {{audienceCount}}",
     fields: [
-      { id: "date", type: "date", label: "Preview Date", required: true, order: 1 },
-      { id: "previewNumber", type: "number", label: "Preview #", required: true, order: 2 },
-      { id: "audienceCount", type: "number", label: "Audience Count", required: false, order: 3 },
-      { id: "runtime", type: "text", label: "Runtime", placeholder: "2h 15min", required: false, order: 4 },
-      { id: "technical", type: "textarea", label: "Technical Notes", required: false, order: 5 },
-      { id: "performance", type: "textarea", label: "Performance Notes", required: true, order: 6 },
-      { id: "audienceResponse", type: "textarea", label: "Audience Response", required: false, order: 7 }
+      { id: "previewNumber", type: "number", label: "Preview #", required: true, order: 1 },
+      { id: "audienceCount", type: "number", label: "Audience Count", required: false, order: 2 },
+      { id: "runtime", type: "text", label: "Runtime", placeholder: "2h 15min", required: false, order: 3 },
+      { id: "technical", type: "textarea", label: "Technical Notes", required: false, order: 4 },
+      { id: "performance", type: "textarea", label: "Performance Notes", required: true, order: 5 },
+      { id: "audienceResponse", type: "textarea", label: "Audience Response", required: false, order: 6 }
     ]
   },
   performance: {
@@ -160,13 +155,12 @@ const defaultTemplates: Record<string, Omit<ProductionTemplate, "id">> = {
     header: "{{showName}} - Performance Report\nDate: {{date}} | Performance {{performanceNumber}}\nStage Manager: {{stageManager}}",
     footer: "Next performance: {{nextPerformance}}\nBox Office: {{ticketsSold}}/{{capacity}}",
     fields: [
-      { id: "date", type: "date", label: "Performance Date", required: true, order: 1 },
-      { id: "performanceNumber", type: "number", label: "Performance #", required: true, order: 2 },
-      { id: "ticketsSold", type: "number", label: "Tickets Sold", required: false, order: 3 },
-      { id: "runtime", type: "text", label: "Total Runtime", placeholder: "2h 18min", required: false, order: 4 },
-      { id: "technical", type: "textarea", label: "Technical Issues", placeholder: "Equipment problems, delays", required: false, order: 5 },
-      { id: "incidentReport", type: "textarea", label: "Incident Report", placeholder: "Accidents, emergencies, unusual events", required: false, order: 6 },
-      { id: "companyNotes", type: "textarea", label: "Company Notes", placeholder: "Cast/crew notes, announcements", required: false, order: 7 }
+      { id: "performanceNumber", type: "number", label: "Performance #", required: true, order: 1 },
+      { id: "ticketsSold", type: "number", label: "Tickets Sold", required: false, order: 2 },
+      { id: "runtime", type: "text", label: "Total Runtime", placeholder: "2h 18min", required: false, order: 3 },
+      { id: "technical", type: "textarea", label: "Technical Issues", placeholder: "Equipment problems, delays", required: false, order: 4 },
+      { id: "incidentReport", type: "textarea", label: "Incident Report", placeholder: "Accidents, emergencies, unusual events", required: false, order: 5 },
+      { id: "companyNotes", type: "textarea", label: "Company Notes", placeholder: "Cast/crew notes, announcements", required: false, order: 6 }
     ]
   }
 };

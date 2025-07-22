@@ -293,45 +293,7 @@ const LayoutItemRenderer: React.FC<{
       );
     
     case 'notes':
-      // Check if this is a Day or Date field - these should not have auto-numbering
-      const fieldId = item.content?.fieldId?.toLowerCase();
-      const isDateField = fieldId === 'date' || fieldId?.includes('date');
-      const isDayField = fieldId === 'day';
-      
-      if (isDateField || isDayField) {
-        // For Date and Day fields, show inline label format
-        return (
-          <div className="w-full h-full flex items-center px-1 py-2 text-sm">
-            {isDateField ? (
-              <div className="flex items-center gap-2">
-                <span className="font-medium">Date:</span>
-                {selectedDate ? (
-                  <span>{new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}</span>
-                ) : (
-                  <input 
-                    type="date"
-                    value={selectedDate || ''}
-                    onChange={(e) => onDateChange?.(e.target.value)}
-                    className="border-0 shadow-none focus:ring-0 focus:border-0 bg-transparent text-sm flex-1"
-                    placeholder="Select date"
-                  />
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <span className="font-medium">Day:</span>
-                <span>{dayOfWeek || 'Will auto-populate'}</span>
-              </div>
-            )}
-          </div>
-        );
-      }
-      
-      // For all other fields, use auto-numbering
+      // All fields now use auto-numbering since day/date fields have been removed from templates
       return (
         <AutoNumberingTextarea
           projectId={projectId}
