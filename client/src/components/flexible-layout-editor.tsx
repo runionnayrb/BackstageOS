@@ -34,6 +34,7 @@ import {
 import EditableDepartmentHeader from './editable-department-header';
 import EditableFieldHeading from './editable-field-heading';
 import ReportNotesManager from './report-notes-manager';
+import AutoNumberingTextarea from './auto-numbering-textarea';
 import EditableHeaderFooter from './editable-header-footer';
 import { cn } from '@/lib/utils';
 
@@ -162,7 +163,8 @@ const LayoutItemRenderer: React.FC<{
   reportId?: number;
   reportType?: string;
   isEditMode: boolean;
-}> = ({ item, projectId, reportId, reportType, isEditMode }) => {
+  template?: any;
+}> = ({ item, projectId, reportId, reportType, isEditMode, template }) => {
   switch (item.type) {
     case 'grouped-section':
       return (
@@ -175,6 +177,7 @@ const LayoutItemRenderer: React.FC<{
                 reportId={reportId}
                 reportType={reportType}
                 isEditMode={isEditMode}
+                template={template}
               />
             </div>
           ))}
@@ -205,12 +208,14 @@ const LayoutItemRenderer: React.FC<{
     
     case 'notes':
       return reportId ? (
-        <ReportNotesManager
-          reportId={reportId}
+        <AutoNumberingTextarea
           projectId={projectId}
-          reportType={reportType || 'tech'}
+          reportId={reportId}
           department={item.content?.department}
+          placeholder={`1. No ${item.content?.department || 'department'} notes.`}
+          className="w-full h-full resize-none border-0 shadow-none focus:ring-0"
           isEditing={isEditMode}
+          template={template}
         />
       ) : (
         <div className="p-4 border border-gray-200 rounded bg-gray-50">
@@ -837,6 +842,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                         reportId={reportId}
                         reportType={reportType}
                         isEditMode={isEditMode}
+                        template={template}
                       />
                     </DraggableGridItem>
                   </div>

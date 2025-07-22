@@ -939,6 +939,22 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async deleteReportNotesByDepartment(reportId: number, department: string): Promise<void> {
+    await db.delete(reportNotes).where(
+      and(
+        eq(reportNotes.reportId, reportId),
+        eq(reportNotes.department, department)
+      )
+    );
+  }
+
+  async getAllReportNotesByProjectId(projectId: number): Promise<ReportNote[]> {
+    const result = await db.select().from(reportNotes)
+      .where(eq(reportNotes.projectId, projectId))
+      .orderBy(reportNotes.createdAt);
+    return result;
+  }
+
   // Email groups operations
   async getEmailGroups(userId: string): Promise<EmailGroup[]> {
     const result = await db.select().from(emailGroups)

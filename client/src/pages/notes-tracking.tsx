@@ -1,0 +1,343 @@
+import React, { useState } from 'react';
+import { useParams } from 'wouter';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  Search, 
+  Filter, 
+  CheckSquare, 
+  Clock, 
+  User, 
+  Calendar,
+  ArrowRight,
+  FileText,
+  AlertCircle,
+  CheckCircle2
+} from 'lucide-react';
+import type { ReportNote } from '@shared/schema';
+
+interface NotesTrackingParams {
+  id: string; // project ID
+}
+
+const NotesTracking: React.FC = () => {
+  const { id: projectId } = useParams<NotesTrackingParams>();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+  const [selectedPriority, setSelectedPriority] = useState<string>('all');
+
+  // Fetch all notes for the project
+  const { data: allNotes = [], isLoading } = useQuery<ReportNote[]>({
+    queryKey: ['/api/projects', projectId, 'notes-tracking'],
+    queryFn: async () => {
+      const response = await fetch(`/api/projects/${projectId}/notes/all`);
+      if (!response.ok) throw new Error('Failed to fetch notes');
+      return response.json();
+    }
+  });
+
+  // Fetch project data for context
+  const { data: project } = useQuery({
+    queryKey: [`/api/projects/${projectId}`],
+  });
+
+  // Fetch reports for context
+  const { data: reports = [] } = useQuery({
+    queryKey: [`/api/projects/${projectId}/reports`],
+  });
+
+  // Update note status mutation
+  const updateNoteMutation = useMutation({
+    mutationFn: async ({ noteId, data }: { noteId: number; data: Partial<ReportNote> }) => {
+      const response = await fetch(`/api/projects/${projectId}/notes/${noteId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to update note');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['/api/projects', projectId, 'notes-tracking']
+      });
+      toast({ title: 'Note updated successfully' });
+    },
+    onError: () => {
+      toast({ 
+        title: 'Error updating note', 
+        description: 'Please try again',
+        variant: 'destructive' 
+      });
+    }
+  });
+
+  // Filter notes based on search and filters
+  const filteredNotes = allNotes.filter(note => {
+    const matchesSearch = note.content.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDepartment = selectedDepartment === 'all' || note.department === selectedDepartment;
+    const matchesStatus = selectedStatus === 'all' || 
+      (selectedStatus === 'completed' && note.isCompleted) ||
+      (selectedStatus === 'pending' && !note.isCompleted);
+    const matchesPriority = selectedPriority === 'all' || note.priority === selectedPriority;
+    
+    return matchesSearch && matchesDepartment && matchesStatus && matchesPriority;
+  });
+
+  // Group notes by status
+  const pendingNotes = filteredNotes.filter(note => !note.isCompleted);
+  const completedNotes = filteredNotes.filter(note => note.isCompleted);
+
+  // Get unique departments
+  const departments = Array.from(new Set(allNotes.map(note => note.department).filter(Boolean)));
+
+  const handleToggleComplete = (note: ReportNote) => {
+    updateNoteMutation.mutate({
+      noteId: note.id,
+      data: { isCompleted: !note.isCompleted }
+    });
+  };
+
+  const handlePriorityChange = (note: ReportNote, newPriority: string) => {
+    updateNoteMutation.mutate({
+      noteId: note.id,
+      data: { priority: newPriority }
+    });
+  };
+
+  const getReport = (reportId: number) => {
+    return reports.find((r: any) => r.id === reportId);
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+      case 'medium': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+      case 'low': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
+    }
+  };
+
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case 'high': return <AlertCircle className="w-3 h-3" />;
+      case 'medium': return <Clock className="w-3 h-3" />;
+      case 'low': return <CheckCircle2 className="w-3 h-3" />;
+      default: return <Clock className="w-3 h-3" />;
+    }
+  };
+
+  const NoteCard = ({ note }: { note: ReportNote }) => {
+    const report = getReport(note.reportId);
+    
+    return (
+      <Card className={`transition-all duration-200 ${note.isCompleted ? 'opacity-75' : ''}`}>
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Checkbox 
+              checked={note.isCompleted}
+              onCheckedChange={() => handleToggleComplete(note)}
+              className="mt-1"
+            />
+            
+            <div className="flex-1 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <p className={`text-sm leading-relaxed ${note.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+                  {note.content}
+                </p>
+                
+                <Select 
+                  value={note.priority} 
+                  onValueChange={(value) => handlePriorityChange(note, value)}
+                >
+                  <SelectTrigger className="w-24 h-6 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Badge variant="outline" className="text-xs">
+                  <FileText className="w-3 h-3 mr-1" />
+                  {report?.title || 'Unknown Report'}
+                </Badge>
+                
+                {note.department && (
+                  <Badge variant="outline" className="text-xs">
+                    {note.department}
+                  </Badge>
+                )}
+                
+                <Badge className={`text-xs ${getPriorityColor(note.priority)}`}>
+                  {getPriorityIcon(note.priority)}
+                  <span className="ml-1 capitalize">{note.priority}</span>
+                </Badge>
+                
+                <span className="text-xs">
+                  <Calendar className="w-3 h-3 inline mr-1" />
+                  {new Date(note.createdAt).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-20 bg-gray-200 rounded-lg"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Notes Tracking</h2>
+          <p className="text-gray-600">
+            Track and follow up on all notes from {project?.name || 'this project'}
+          </p>
+        </div>
+        
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <AlertCircle className="w-4 h-4 text-yellow-600" />
+            {pendingNotes.length} pending
+          </span>
+          <span className="flex items-center gap-1">
+            <CheckCircle2 className="w-4 h-4 text-green-600" />
+            {completedNotes.length} completed
+          </span>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search notes..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            
+            <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+              <SelectTrigger>
+                <SelectValue placeholder="All departments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All departments</SelectItem>
+                {departments.map(dept => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+              <SelectTrigger>
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedPriority} onValueChange={setSelectedPriority}>
+              <SelectTrigger>
+                <SelectValue placeholder="All priorities" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All priorities</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Notes Display */}
+      <Tabs defaultValue="pending" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="pending" className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            Pending ({pendingNotes.length})
+          </TabsTrigger>
+          <TabsTrigger value="completed" className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4" />
+            Completed ({completedNotes.length})
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="pending" className="space-y-3">
+          {pendingNotes.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
+                <p className="text-gray-500">No pending notes to follow up on.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            pendingNotes.map(note => (
+              <NoteCard key={note.id} note={note} />
+            ))
+          )}
+        </TabsContent>
+        
+        <TabsContent value="completed" className="space-y-3">
+          {completedNotes.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No completed notes</h3>
+                <p className="text-gray-500">Completed notes will appear here.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            completedNotes.map(note => (
+              <NoteCard key={note.id} note={note} />
+            ))
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default NotesTracking;

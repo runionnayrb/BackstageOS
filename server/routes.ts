@@ -3238,6 +3238,83 @@ Best regards,
     }
   });
 
+  // Delete notes by department (for auto-numbering textarea)
+  app.delete('/api/projects/:projectId/reports/:reportId/notes/department/:department', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const reportId = parseInt(req.params.reportId);
+      const department = req.params.department;
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check access (owner or team member)
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const report = await storage.getReportById(reportId);
+      if (!report || report.projectId !== projectId) {
+        return res.status(404).json({ message: "Report not found" });
+      }
+
+      await storage.deleteReportNotesByDepartment(reportId, department);
+      res.json({ message: "Department notes deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting department notes:", error);
+      res.status(500).json({ message: "Failed to delete department notes" });
+    }
+  });
+
+  // Get all notes for a project (for notes tracking)
+  app.get('/api/projects/:projectId/notes/all', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check access (owner or team member)
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const notes = await storage.getAllReportNotesByProjectId(projectId);
+      res.json(notes);
+    } catch (error) {
+      console.error("Error fetching all project notes:", error);
+      res.status(500).json({ message: "Failed to fetch project notes" });
+    }
+  });
+
+  // Update individual note (for notes tracking)
+  app.patch('/api/projects/:projectId/notes/:noteId', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      const noteId = parseInt(req.params.noteId);
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check access (owner or team member)
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updatedNote = await storage.updateReportNote(noteId, req.body);
+      res.json(updatedNote);
+    } catch (error) {
+      console.error("Error updating note:", error);
+      res.status(500).json({ message: "Failed to update note" });
+    }
+  });
+
   // Report template routes (show-specific)
   // This duplicate route is removed - the correct route is at line 2990 using :id parameter
 

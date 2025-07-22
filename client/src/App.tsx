@@ -76,6 +76,7 @@ import ArchivedShows from "@/pages/archived-shows";
 import Checkout from "@/pages/checkout";
 import Subscribe from "@/pages/subscribe";
 import Billing from "@/pages/billing";
+import NotesTracking from "@/pages/notes-tracking";
 
 
 function Router() {
@@ -223,6 +224,7 @@ function Router() {
         <Route path="/shows/:id/tasks" component={TaskManagement} />
         <Route path="/tasks" component={TaskManagement} />
         <Route path="/shows/:id/notes" component={Notes} />
+        <Route path="/shows/:id/notes-tracking" component={NotesTracking} />
         <Route path="/notes" component={Notes} />
         <Route path="/shows/:id/templates/new" component={TemplateBuilder} />
         <Route path="/shows/:id/templates/:templateId/edit" component={TemplateBuilder} />
