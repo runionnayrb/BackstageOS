@@ -264,11 +264,15 @@ const LayoutItemRenderer: React.FC<{
     case 'empty-space':
       return (
         <div className={cn(
-          "w-full h-full border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center",
+          "w-full h-full border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center min-h-[20px] relative",
           isEditMode ? "bg-gray-50" : "bg-transparent border-transparent"
         )}>
           {isEditMode && (
             <div className="text-gray-500 text-sm">Empty Space</div>
+          )}
+          {/* Invisible clickable area to ensure hover detection works */}
+          {isEditMode && (
+            <div className="absolute inset-0 bg-transparent" />
           )}
         </div>
       );
