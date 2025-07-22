@@ -79,6 +79,13 @@ export default function Header() {
     enabled: isAdmin(user),
   });
 
+  // Fetch profile types for admin dropdown
+  const { data: profileTypes = [] } = useQuery({
+    queryKey: ['/api/admin/account-types'],
+    enabled: isAdmin(user),
+    select: (data: any[]) => data || [],
+  });
+
   // Switch account mutation
   const switchAccountMutation = useMutation({
     mutationFn: (targetUserId: string) => 
@@ -239,8 +246,11 @@ export default function Header() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
-                      <SelectItem value="freelance">Freelance</SelectItem>
-                      <SelectItem value="fulltime">Full-time</SelectItem>
+                      {profileTypes.map((profileType: any) => (
+                        <SelectItem key={profileType.id} value={profileType.name.toLowerCase()}>
+                          {profileType.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

@@ -51,6 +51,11 @@ function AdminUsersContent() {
     queryKey: ['/api/admin/users']
   });
 
+  const { data: profileTypes = [] } = useQuery({
+    queryKey: ['/api/admin/account-types'],
+    select: (data: any[]) => data || [],
+  });
+
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, updates }: { userId: string; updates: any }) => {
       const response = await apiRequest('PATCH', `/api/admin/users/${userId}`, updates);
@@ -162,7 +167,7 @@ function AdminUsersContent() {
                 <div className="flex items-center gap-2">
                   {getBetaAccessBadge(user.betaAccess)}
                   <Badge variant="outline">
-                    {user.profileType === 'fulltime' ? 'Full-time' : 'Freelance'}
+                    {profileTypes.find((pt: any) => pt.name.toLowerCase() === user.profileType?.toLowerCase())?.name || user.profileType || 'Unknown'}
                   </Badge>
                 </div>
               </div>
@@ -182,8 +187,11 @@ function AdminUsersContent() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="freelance">Freelance</SelectItem>
-                          <SelectItem value="fulltime">Full-time</SelectItem>
+                          {profileTypes.map((profileType: any) => (
+                            <SelectItem key={profileType.id} value={profileType.name.toLowerCase()}>
+                              {profileType.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
