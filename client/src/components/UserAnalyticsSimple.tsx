@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
 import { Edit2, Trash2, Save, X, CreditCard, Calendar, Settings } from "lucide-react";
-import BillingStatus from "@/components/BillingStatus";
+
 
 interface UserAnalytics {
   id: number;
@@ -698,14 +698,44 @@ export default function UserAnalyticsSimple() {
           </Dialog>
         </CardContent>
       </Card>
-      
-      {/* Billing Status Integration */}
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Account Billing Status</h3>
-          <BillingStatus />
-        </div>
-      </div>
+
+      {/* Admin Billing Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Billing Overview
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">
+                {users.filter(u => u.subscriptionStatus === 'active').length}
+              </div>
+              <div className="text-sm text-muted-foreground">Active Subscriptions</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600">
+                {users.filter(u => u.subscriptionStatus === 'trialing').length}
+              </div>
+              <div className="text-sm text-muted-foreground">Trial Users</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-600">
+                {users.filter(u => u.subscriptionStatus === 'past_due').length}
+              </div>
+              <div className="text-sm text-muted-foreground">Past Due</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-600">
+                {users.filter(u => !u.subscriptionStatus || u.subscriptionStatus === 'none').length}
+              </div>
+              <div className="text-sm text-muted-foreground">Free/No Plan</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
