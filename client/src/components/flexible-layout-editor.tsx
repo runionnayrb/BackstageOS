@@ -1014,14 +1014,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           "bg-white",
           effectiveEditMode && "bg-gray-50/50"
         )}>
-          {!isLayoutMounted && (
-            <div className="flex items-center justify-center h-64 text-gray-500">
-              <div className="text-center">
-                <div className="animate-spin h-8 w-8 border-2 border-gray-300 border-t-blue-600 rounded-full mx-auto mb-2"></div>
-                Loading template...
-              </div>
-            </div>
-          )}
           {isLayoutMounted && (
             <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
               <ResponsiveGridLayout
