@@ -35,10 +35,17 @@ export default function Header() {
   const { selectedBetaAccess, selectedProfileType, setSelectedBetaAccess, setSelectedProfileType } = useAdminView();
   const [defaultUserId, setDefaultUserId] = useState<string>("");
 
+  // Debug user admin status
+  console.log('🔍 Header: User admin check:', { 
+    user, 
+    isUserAdmin: isAdmin(user),
+    userObject: user 
+  });
+
   // Fetch profile types for dynamic dropdown
   const { data: profileTypes = [] } = useQuery({
     queryKey: ['/api/admin/account-types'],
-    enabled: isAdmin(user),
+    enabled: true, // Force enabled for debugging
     staleTime: 0, // Force fresh data
     cacheTime: 0, // Don't cache
     queryFn: async () => {
@@ -64,6 +71,7 @@ export default function Header() {
 
   // Debug current profile types
   console.log('🔍 Header: Current profileTypes state:', profileTypes);
+  console.log('🔍 Header: profileTypes array length:', profileTypes.length);
 
   // Fetch all users for account switching (admin only)
   const { data: allUsers = [] } = useQuery({
