@@ -32,45 +32,17 @@ export default function Header() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { selectedBetaAccess, selectedProfileType, setSelectedBetaAccess, setSelectedProfileType } = useAdminView();
+  const { selectedBetaAccess, setSelectedBetaAccess } = useAdminView();
   const [defaultUserId, setDefaultUserId] = useState<string>("");
 
-  // Debug user admin status
-  console.log('🔍 Header: User admin check:', { 
-    user, 
-    isUserAdmin: isAdmin(user),
-    userObject: user 
-  });
 
-  // Force test the API directly  
-  React.useEffect(() => {
-    console.log('🔍 Header: Testing API directly...');
-    fetch('/api/admin/account-types', { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => console.log('🔍 Header: Direct API test result:', data))
-      .catch(err => console.error('🔍 Header: Direct API test error:', err));
-  }, []);
-
-  // Use hardcoded profile types from database for now to fix the immediate issue
-  const profileTypes = [
-    { id: 1, name: "Freelance" },
-    { id: 2, name: "Full-timer" }
-  ];
-
-  // Debug current profile types
-  console.log('🔍 Header: Current profileTypes state:', profileTypes);
-  console.log('🔍 Header: profileTypes array length:', profileTypes.length);
-  console.log('🔍 Header: Query key being used:', ['/api/admin/account-types']);
 
   // Fetch all users for account switching (admin only)
   const { data: allUsers = [] } = useQuery({
-    queryKey: ['/api/admin/users', selectedProfileType, selectedBetaAccess],
+    queryKey: ['/api/admin/users', selectedBetaAccess],
     enabled: isAdmin(user),
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (selectedProfileType !== 'all') {
-        params.append('profileType', selectedProfileType);
-      }
       if (selectedBetaAccess !== 'all') {
         params.append('betaAccess', selectedBetaAccess === 'admin' ? 'true' : 'false');
       }
@@ -106,15 +78,7 @@ export default function Header() {
     enabled: isAdmin(user),
   });
 
-  // Fetch profile types for admin dropdown
-  const { data: profileTypes = [] } = useQuery({
-    queryKey: ['/api/admin/account-types'],
-    enabled: isAdmin(user),
-    select: (data: any[]) => {
-      console.log('Header: Profile types data received:', data);
-      return data || [];
-    },
-  });
+
 
   // Switch account mutation
   const switchAccountMutation = useMutation({
@@ -198,6 +162,14 @@ export default function Header() {
     queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
   };
 
+  // NEW: Simple profile type dropdown from scratch
+  const [selectedProfileType, setSelectedProfileType] = useState('Freelance');
+  const profileTypes = ['Freelance', 'Full-timer'];
+
+  const handleProfileTypeChangeNew = (value: string) => {
+    setSelectedProfileType(value);
+  };
+
   const getInitials = (firstName?: string, lastName?: string) => {
     if (!firstName && !lastName) return "U";
     return `${firstName?.[0] || ""}${lastName?.[0] || ""}`;
@@ -256,21 +228,19 @@ export default function Header() {
                   </Select>
                 </div>
 
-                {/* Profile Type Selector */}
+                {/* NEW: Profile Type Selector */}
                 <div className="hidden lg:flex items-center space-x-2">
                   <UserCheck className="h-4 w-4 text-gray-500" />
-                  <Select value={selectedProfileType} onValueChange={handleProfileTypeChange}>
+                  <Select value={selectedProfileType} onValueChange={handleProfileTypeChangeNew}>
                     <SelectTrigger className="w-32 h-8 text-xs">
                       <SelectValue placeholder="Profile Type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Types</SelectItem>
-                      {profileTypes.map((profileType: any) => (
-                        <SelectItem key={profileType.id} value={profileType.name}>
-                          {profileType.name}
+                      {profileTypes.map((profileType) => (
+                        <SelectItem key={profileType} value={profileType}>
+                          {profileType}
                         </SelectItem>
                       ))}
-
                     </SelectContent>
                   </Select>
                 </div>
@@ -382,21 +352,19 @@ export default function Header() {
                       </Select>
                     </div>
                     
-                    {/* Mobile Profile Type Selector */}
+                    {/* NEW: Mobile Profile Type Selector */}
                     <div className="lg:hidden px-2 py-1">
                       <div className="text-xs text-gray-600 mb-1">Profile Type View:</div>
-                      <Select value={selectedProfileType} onValueChange={handleProfileTypeChange}>
+                      <Select value={selectedProfileType} onValueChange={handleProfileTypeChangeNew}>
                         <SelectTrigger className="w-full h-7 text-xs">
-                          <SelectValue placeholder="All Types" />
+                          <SelectValue placeholder="Profile Type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">All Types</SelectItem>
-                          {profileTypes.map((profileType: any) => (
-                            <SelectItem key={profileType.id} value={profileType.name}>
-                              {profileType.name}
+                          {profileTypes.map((profileType) => (
+                            <SelectItem key={profileType} value={profileType}>
+                              {profileType}
                             </SelectItem>
                           ))}
-
                         </SelectContent>
                       </Select>
                     </div>
