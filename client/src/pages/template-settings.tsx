@@ -189,9 +189,6 @@ export default function TemplateSettings() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   
-  // Manual save function reference
-  const [layoutSaveFunction, setLayoutSaveFunction] = useState<(() => void) | null>(null);
-  
   // Department reordering state
   const [isReordering, setIsReordering] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -711,16 +708,6 @@ export default function TemplateSettings() {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {isEditMode && layoutSaveFunction && (
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => layoutSaveFunction()}
-                            disabled={isSaving}
-                          >
-                            {isSaving ? "Saving..." : "Save Layout"}
-                          </Button>
-                        )}
                         {isEditMode && (
                           <Button
                             variant="ghost"
@@ -779,7 +766,6 @@ export default function TemplateSettings() {
                         setIsSaving={setIsSaving}
                         setLastSaved={setLastSaved}
                         externalEditMode={isEditMode}
-                        onSaveLayout={setLayoutSaveFunction}
                       />
                     ) : (
                       /* Standard layout for other templates */
