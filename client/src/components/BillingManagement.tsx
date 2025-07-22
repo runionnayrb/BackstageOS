@@ -205,12 +205,13 @@ export default function BillingManagement() {
 
 
 
-  const formatPrice = (price: number, interval: string) => {
+  const formatPrice = (price: number | string, interval: string) => {
+    const numPrice = typeof price === 'string' ? parseFloat(price) : price;
     if (interval === "year") {
-      const monthlyEquivalent = Math.round(price / 12);
-      return `$${monthlyEquivalent.toLocaleString()}/mo (billed annually at $${price.toLocaleString()})`;
+      const monthlyEquivalent = Math.round(numPrice / 12);
+      return `$${monthlyEquivalent.toLocaleString()}/mo (billed annually at $${numPrice.toLocaleString()})`;
     }
-    return `$${price.toLocaleString()}/mo`;
+    return `$${numPrice.toLocaleString()}/mo`;
   };
 
 
