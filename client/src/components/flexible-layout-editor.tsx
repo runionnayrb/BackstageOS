@@ -207,22 +207,16 @@ const LayoutItemRenderer: React.FC<{
       );
     
     case 'notes':
-      return reportId ? (
+      return (
         <AutoNumberingTextarea
           projectId={projectId}
-          reportId={reportId}
-          department={item.content?.department}
-          placeholder={`1. No ${item.content?.department || 'department'} notes.`}
+          reportId={reportId || undefined}
+          department={item.content?.department || item.content?.fieldId}
+          placeholder={`1. No ${item.content?.department || item.content?.fieldId || 'department'} notes.`}
           className="w-full h-full resize-none border-0 shadow-none focus:ring-0"
           isEditing={isEditMode}
           template={template}
         />
-      ) : (
-        <div className="p-4 border border-gray-200 rounded bg-gray-50">
-          <div className="text-sm text-gray-600 italic">
-            Save report to add notes...
-          </div>
-        </div>
       );
     
     case 'footer':
