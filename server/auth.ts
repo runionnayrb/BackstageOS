@@ -221,20 +221,22 @@ export function setupAuth(app: Express) {
         });
       }
 
-      // Check subscription status - block problematic payment statuses completely
+      // Check subscription status and add payment info to user data
       try {
         const user = await storage.getUser(req.user.id.toString());
         if (user && !user.isAdmin) {
-          const isBlocked = user.subscriptionStatus === 'past_due' ||
-                           user.subscriptionStatus === 'canceled' ||
-                           user.subscriptionStatus === 'incomplete';
+          const needsPayment = user.subscriptionStatus === 'past_due' ||
+                              user.subscriptionStatus === 'canceled' ||
+                              user.subscriptionStatus === 'incomplete';
 
-          if (isBlocked) {
-            console.log(`Access denied: User ${req.user.email} has subscription status: ${user.subscriptionStatus}`);
-            return res.status(402).json({ 
-              message: "Subscription payment required to access the platform.",
+          // Add payment status to user response for frontend handling
+          if (needsPayment) {
+            console.log(`User ${req.user.email} needs payment: ${user.subscriptionStatus}`);
+            return res.json({ 
+              ...req.user,
+              needsPayment: true,
               subscriptionStatus: user.subscriptionStatus,
-              reason: "payment_required"
+              redirectTo: "/billing"
             });
           }
         }

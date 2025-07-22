@@ -325,6 +325,43 @@ Required environment variables:
 
 ## Recent Changes
 
+### July 22, 2025: **PAYMENT REQUIRED ACCESS CONTROL SYSTEM COMPLETE**
+**Successfully implemented comprehensive payment-based access control ensuring users with billing issues can log in but must resolve payment before platform access:**
+
+**Backend Access Control:**
+- Users with past_due, canceled, or incomplete subscription status can authenticate and access billing/payment endpoints
+- All other platform features return 402 Payment Required status with redirect to /billing
+- Admin users bypass all subscription status checks 
+- Payment endpoints (billing, stripe webhooks, user info, logout) remain accessible even with payment issues
+- Enhanced error responses include redirectTo field pointing users to subscription resolution
+
+**Frontend Payment Flow:**
+- Automatic detection of users needing payment through needsPayment flag in user data
+- Redirect logic sends users with payment issues directly to /subscribe page
+- Enhanced subscribe page displays contextual alerts based on subscription status (past_due, canceled, incomplete)
+- Payment required users see status-specific messaging explaining their billing situation
+- Seamless integration with existing Stripe payment processing and subscription management
+
+**Status-Specific Messaging:**
+- Past Due: "Your subscription payment is overdue. Please update your payment method."  
+- Canceled: "Your subscription has been canceled. Subscribe again to restore access."
+- Incomplete: "Your payment setup is incomplete. Please complete your payment information."
+
+**System Flow:**
+1. User logs in successfully regardless of subscription status
+2. Backend detects payment issues and flags user data with needsPayment
+3. Frontend redirects to subscribe page with appropriate error messaging
+4. User resolves billing issue through Stripe payment flow
+5. Upon successful payment, user gains full platform access
+
+**Files Updated:**
+- `server/routes.ts`: Added payment endpoint filtering and 402 response handling
+- `server/auth.ts`: Enhanced user authentication response with payment status flags
+- `client/src/App.tsx`: Added payment redirect logic for users with billing issues
+- `client/src/pages/subscribe.tsx`: Enhanced with payment required alerts and status-specific messaging
+
+**Business Rule Enforcement**: Complete access control where problematic payment statuses receive login access but immediate payment screen redirect, ensuring smooth user experience while maintaining payment compliance.
+
 ### July 22, 2025: **STRIPE PAYMENT INTEGRATION COMPLETE**
 **Comprehensive Stripe billing system successfully integrated with existing billing infrastructure:**
 

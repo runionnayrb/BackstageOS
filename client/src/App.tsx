@@ -184,6 +184,12 @@ function Router() {
     return <ProfileSelection />;
   }
 
+  // Check if user needs payment (past_due, canceled, incomplete)
+  if (user && (user as any).needsPayment && window.location.pathname !== '/subscribe' && window.location.pathname !== '/checkout') {
+    window.location.href = '/subscribe';
+    return null;
+  }
+
   return (
     <ErrorBoundary>
       <Layout>

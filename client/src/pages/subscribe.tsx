@@ -3,10 +3,12 @@ import { loadStripe } from '@stripe/stripe-js';
 import { useEffect, useState } from 'react';
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Check, Loader2, AlertCircle } from "lucide-react";
 import { useLocation } from "wouter";
 
 // Make sure to call `loadStripe` outside of a component's render to avoid
@@ -99,6 +101,11 @@ export default function Subscribe() {
   const [planPrice, setPlanPrice] = useState(119);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
+  
+  // Check if user needs payment (came from payment required redirect)
+  const needsPayment = (user as any)?.needsPayment;
+  const subscriptionStatus = (user as any)?.subscriptionStatus;
 
   useEffect(() => {
     // Get plan details from URL params
@@ -172,10 +179,44 @@ export default function Subscribe() {
     );
   }
 
+  const getStatusMessage = () => {
+    switch (subscriptionStatus) {
+      case 'past_due':
+        return {
+          title: "Payment Required",
+          message: "Your subscription payment is overdue. Please update your payment method to continue using BackstageOS.",
+          variant: "destructive" as const
+        };
+      case 'canceled':
+        return {
+          title: "Subscription Canceled", 
+          message: "Your subscription has been canceled. Subscribe again to restore access to BackstageOS.",
+          variant: "destructive" as const
+        };
+      case 'incomplete':
+        return {
+          title: "Payment Setup Required",
+          message: "Your payment setup is incomplete. Please complete your payment information to access BackstageOS.",
+          variant: "destructive" as const
+        };
+      default:
+        return null;
+    }
+  };
+
   if (!clientSecret) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
-        <div className="max-w-4xl mx-auto px-4 text-center">
+        <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
+          {needsPayment && getStatusMessage() && (
+            <Alert variant={getStatusMessage()?.variant} className="max-w-md mx-auto">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>{getStatusMessage()?.title}</strong><br />
+                {getStatusMessage()?.message}
+              </AlertDescription>
+            </Alert>
+          )}
           <h1 className="text-3xl font-bold mb-4">Subscription Setup Required</h1>
           <p className="text-muted-foreground mb-8">
             We're still setting up subscription billing. Please contact support for access.
@@ -192,8 +233,19 @@ export default function Subscribe() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="max-w-6xl mx-auto px-4">
+        {needsPayment && getStatusMessage() && (
+          <Alert variant={getStatusMessage()?.variant} className="max-w-4xl mx-auto mb-8">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>{getStatusMessage()?.title}</strong><br />
+              {getStatusMessage()?.message}
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4">Choose Your BackstageOS Plan</h1>
+          <h1 className="text-4xl font-bold mb-4">
+            {needsPayment ? 'Resolve Payment Issue' : 'Choose Your BackstageOS Plan'}
+          </h1>
           <p className="text-xl text-muted-foreground">
             Professional stage management tools for theater professionals
           </p>

@@ -724,20 +724,29 @@ async function isAuthenticated(req: any, res: any, next: any) {
       });
     }
 
-    // Check subscription status - block problematic payment statuses completely
+    // Check subscription status - allow access but flag for payment redirect
     try {
       const user = await storage.getUser(req.user.id.toString());
       if (user && !user.isAdmin) {
-        const isBlocked = user.subscriptionStatus === 'past_due' ||
-                         user.subscriptionStatus === 'canceled' ||
-                         user.subscriptionStatus === 'incomplete';
+        const needsPayment = user.subscriptionStatus === 'past_due' ||
+                            user.subscriptionStatus === 'canceled' ||
+                            user.subscriptionStatus === 'incomplete';
 
-        if (isBlocked) {
-          console.log(`Access denied: User ${req.user.email} has subscription status: ${user.subscriptionStatus}`);
+        // Allow billing/payment related endpoints even with payment issues
+        const isPaymentEndpoint = req.url.startsWith('/api/billing') ||
+                                 req.url.startsWith('/api/create-payment-intent') ||
+                                 req.url.startsWith('/api/get-or-create-subscription') ||
+                                 req.url.startsWith('/api/stripe-webhook') ||
+                                 req.url === '/api/user' ||
+                                 req.url === '/api/logout';
+
+        if (needsPayment && !isPaymentEndpoint) {
+          console.log(`Payment required: User ${req.user.email} has subscription status: ${user.subscriptionStatus}`);
           return res.status(402).json({ 
-            message: "Subscription payment required to access the platform.",
+            message: "Payment required to access this feature.",
             subscriptionStatus: user.subscriptionStatus,
-            reason: "payment_required"
+            reason: "payment_required",
+            redirectTo: "/billing"
           });
         }
       }
