@@ -160,7 +160,25 @@ const LayoutItemRenderer: React.FC<{
   selectedDate?: string;
   dayOfWeek?: string;
   onDateChange?: (date: string) => void;
-}> = ({ item, projectId, reportId, reportType, effectiveEditMode, template, selectedDate, dayOfWeek, onDateChange }) => {
+  configuration?: FlexibleLayoutConfiguration;
+  setConfiguration?: React.Dispatch<React.SetStateAction<FlexibleLayoutConfiguration>>;
+  setUserHasEditedLayout?: React.Dispatch<React.SetStateAction<boolean>>;
+  onConfigurationChange?: (config: FlexibleLayoutConfiguration) => void;
+}> = ({ 
+  item, 
+  projectId, 
+  reportId, 
+  reportType, 
+  effectiveEditMode, 
+  template, 
+  selectedDate, 
+  dayOfWeek, 
+  onDateChange,
+  configuration,
+  setConfiguration,
+  setUserHasEditedLayout,
+  onConfigurationChange
+}) => {
   switch (item.type) {
     case 'grouped-section':
       return (
@@ -177,6 +195,10 @@ const LayoutItemRenderer: React.FC<{
                 selectedDate={selectedDate}
                 dayOfWeek={dayOfWeek}
                 onDateChange={onDateChange}
+                configuration={configuration}
+                setConfiguration={setConfiguration}
+                setUserHasEditedLayout={setUserHasEditedLayout}
+                onConfigurationChange={onConfigurationChange}
               />
             </div>
           ))}
@@ -1043,6 +1065,10 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                         selectedDate={selectedDate}
                         dayOfWeek={dayOfWeek}
                         onDateChange={handleDateChange}
+                        configuration={configuration}
+                        setConfiguration={setConfiguration}
+                        setUserHasEditedLayout={setUserHasEditedLayout}
+                        onConfigurationChange={onConfigurationChange}
                       />
                     </DraggableGridItem>
                   </div>

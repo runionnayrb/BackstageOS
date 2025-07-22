@@ -325,28 +325,34 @@ Required environment variables:
 
 ## Recent Changes
 
-### July 22, 2025: **GLOBAL TEMPLATE SETTINGS SYSTEM COMPLETE WITH RICH TEXT EDITING RESTORED**
-**Successfully completed global template settings system with full rich text editing capabilities and working variable substitution:**
+### July 22, 2025: **CACHE INVALIDATION CONFLICT RESOLVED - PERSISTENT HEADER EDITING COMPLETE**
+**Successfully resolved cache invalidation conflict causing header content to revert after 1 minute and fixed critical JavaScript error:**
 
-**Architecture Decisions:**
-- **RichTextEditor Restored**: Maintained full rich text formatting capabilities for global template headers and footers
-- **Variable Substitution Working**: Confirmed {{reportType}}, {{showName}}, {{date}} variables properly substitute to real data
-- **Clean Separation**: Global settings control formatting while templates contain content with variables
-- **Preview System**: Both global settings preview and actual template preview correctly replace variables
+**Root Cause Analysis:**
+- Template settings page was invalidating global settings cache after every change
+- Cache invalidation triggered global template settings page to reload data
+- Data reload overwrote user's local changes via useEffect, causing the reverting behavior
+- Additional JavaScript error "configuration is not defined" in flexible-layout-editor.tsx
 
-**Technical Implementation:**
-- RichTextEditor components properly integrated with global template system
-- Variable substitution confirmed working: {{reportType}} → "Tech Report", {{showName}} → "Macbeth" 
-- Console logging confirms proper variable replacement in both preview systems
-- Template headers and footers maintain HTML formatting while supporting variable substitution
+**Comprehensive Solution Implemented:**
+- **Cache Conflict Resolved**: Removed automatic cache invalidation from template settings page that was causing reload conflicts
+- **Persistence Fixed**: Changes now save to database immediately without triggering cache refreshes that overwrite user changes
+- **JavaScript Error Fixed**: Passed configuration, setConfiguration, setUserHasEditedLayout, and onConfigurationChange props to LayoutItemRenderer component
+- **Clean Architecture**: Both pages can now edit global settings without interfering with each other
+
+**Technical Fixes Applied:**
+- Removed `queryClient.invalidateQueries()` from both header and footer onChange handlers in template-settings.tsx
+- Added configuration management props to LayoutItemRenderer component interface and recursive calls
+- Updated main LayoutItemRenderer call to pass all necessary configuration state and handlers
+- Preserved immediate database saves while eliminating conflicting cache management
 
 **System Benefits:**
-- Theater professionals have full rich text formatting control in global settings
-- Variables correctly substitute with real project data in all previews
-- No conflicts between rich text formatting and variable system
-- Professional template editing experience with proper formatting capabilities
+- Header and footer changes now persist permanently without reverting after 1 minute
+- No more cache invalidation conflicts between global and template settings pages
+- JavaScript errors eliminated from flexible layout editor
+- Professional template editing experience with reliable data persistence
 
-**Status**: Global template settings fully operational with rich text editing restored and confirmed variable substitution working correctly.
+**Status**: Global template settings fully operational with persistent editing, resolved cache conflicts, and eliminated JavaScript errors.
 
 ### July 22, 2025: **TECH REPORT GLOBAL HEADER/FOOTER INTEGRATION COMPLETE**
 **Successfully modified tech reports to use global template settings for headers and footers instead of local template-specific content:**
