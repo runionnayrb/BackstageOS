@@ -217,17 +217,17 @@ const LayoutItemRenderer: React.FC<{
       if (isDateField || isDayField) {
         // For Date and Day fields, use regular input instead of auto-numbering
         return (
-          <div className="w-full h-full p-2">
+          <div className="w-full h-full">
             {isDateField ? (
               <input 
                 type="date"
-                className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full border-0 shadow-none focus:ring-0 focus:border-0 bg-transparent"
                 placeholder="Select date"
               />
             ) : (
               <input 
                 type="text"
-                className="w-full p-2 border border-gray-300 rounded bg-gray-100"
+                className="w-full border-0 shadow-none focus:ring-0 focus:border-0 bg-transparent"
                 placeholder="Day will auto-populate"
                 readOnly
               />
