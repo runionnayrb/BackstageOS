@@ -188,18 +188,28 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
     }
   };
 
-  // Keep single line height - no auto-resize
+  // Auto-resize functionality - but not draggable
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.style.height = '18px';
+      const resizeTextarea = () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.max(18, textarea.scrollHeight) + 'px';
+      };
+      
+      resizeTextarea();
+      textarea.addEventListener('input', resizeTextarea);
+      
+      return () => {
+        textarea.removeEventListener('input', resizeTextarea);
+      };
     }
   }, [value]);
 
   if (!isEditing) {
     // Display mode - show formatted content
     return (
-      <div className={`p-2 min-h-[18px] whitespace-pre-line ${className}`}>
+      <div className={`p-1 min-h-[18px] whitespace-pre-line ${className}`}>
         {currentValue || placeholder}
       </div>
     );
@@ -212,7 +222,7 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       placeholder={placeholder}
-      className={`min-h-[18px] max-h-[18px] resize-none border-0 shadow-none focus:ring-0 overflow-y-hidden ${className}`}
+      className={`min-h-[18px] resize-none border-0 shadow-none focus:ring-0 p-1 ${className}`}
       style={{ 
         height: '18px', 
         lineHeight: '1.2',
