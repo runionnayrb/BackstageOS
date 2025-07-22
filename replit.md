@@ -325,6 +325,37 @@ Required environment variables:
 
 ## Recent Changes
 
+### July 22, 2025: **AUTO-NUMBERING EMPTY STATE IMPROVEMENT AND DEPARTMENT HEADER PERSISTENCE FIXES COMPLETE**
+
+**Auto-Numbering Empty State Enhancement:**
+- Updated all auto-numbering text areas to display "No notes. Thank you." when fields are empty (both in editing and display modes)
+- Changed placeholder text from department-specific messages like "1. No department notes." to universal "No notes. Thank you."
+- Applied to all department sections (Scenic, Lighting, Audio, Video, Props) and general field notes
+- Provides professional, consistent empty state messaging across all report templates
+
+**Department Header Persistence Issue Resolved:**
+- Fixed critical issue where Scenic department header changes were reverting after save
+- Root cause: Immediate cache invalidation in both `updateDepartmentNameMutation` and `updateFormattingMutation` was overwriting user changes
+- Solution: Implemented delayed cache invalidation (500ms timeout) to prevent data conflicts, same approach used for template headers
+- Department header changes now persist correctly without reverting to previous state
+
+**Technical Implementation:**
+- Modified `flexible-layout-editor.tsx` to pass "No notes. Thank you." placeholder to all AutoNumberingTextarea components
+- Updated `auto-numbering-textarea.tsx` default placeholder and display mode empty state handling
+- Applied delayed cache invalidation to `editable-department-header.tsx` mutations to prevent save conflicts
+
+**System Benefits:**
+- Consistent professional messaging across all empty report fields
+- Reliable department header editing without data loss issues
+- Enhanced user experience with persistent formatting and name changes
+
+**Files Updated:**
+- `client/src/components/flexible-layout-editor.tsx`: Updated placeholder text for auto-numbering fields
+- `client/src/components/auto-numbering-textarea.tsx`: Modified default placeholder and empty state display
+- `client/src/components/editable-department-header.tsx`: Added delayed cache invalidation to prevent save conflicts
+
+**Status**: Auto-numbering empty states now show professional "No notes. Thank you." message and department header changes persist correctly.
+
 ### July 22, 2025: **CACHE INVALIDATION CONFLICT RESOLVED - PERSISTENT HEADER EDITING COMPLETE**
 **Successfully resolved cache invalidation conflict causing header content to revert after 1 minute and fixed critical JavaScript error:**
 
