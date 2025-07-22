@@ -246,13 +246,7 @@ export default function Personnel() {
       {/* Mobile Header */}
       <div className="md:hidden px-4 py-4">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <QuickSectionSwitcher 
-              currentShowId={projectId}
-              currentShowName={project.name}
-              currentSection="contacts"
-            />
-          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
           
           <div className="flex items-center gap-2">
             <Button
