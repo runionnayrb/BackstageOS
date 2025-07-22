@@ -83,6 +83,18 @@
   min-height: 200px;
 }
 
+/* Remove all focus outlines from contentEditable elements */
+[contenteditable="true"]:focus {
+  outline: none !important;
+  border: none !important;
+}
+
+.editable-field-heading:focus,
+.editable-department-header:focus {
+  outline: none !important;
+  border: none !important;
+}
+
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;

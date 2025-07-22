@@ -587,7 +587,7 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
           className="outline-none cursor-text w-full editable-department-header"
           data-department-header="true"
           style={{
-            border: '2px solid #3b82f6',
+            border: 'none',
             borderRadius: '4px',
             fontWeight: formatting.bold ? 'bold' : 'normal',
             fontStyle: formatting.italic ? 'italic' : 'normal',
@@ -597,10 +597,10 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
             fontSize: formatting.fontSize,
             color: formatting.textColor,
             backgroundColor: formatting.backgroundColor,
-            borderTop: formatting.borderTop ? `${formatting.borderWeight} solid ${formatting.borderColor}` : '2px solid #3b82f6',
-            borderRight: formatting.borderRight ? `${formatting.borderWeight} solid ${formatting.borderColor}` : '2px solid #3b82f6',
-            borderBottom: formatting.borderBottom ? `${formatting.borderWeight} solid ${formatting.borderColor}` : '2px solid #3b82f6',
-            borderLeft: formatting.borderLeft ? `${formatting.borderWeight} solid ${formatting.borderColor}` : '2px solid #3b82f6',
+            borderTop: formatting.borderTop ? `${formatting.borderWeight} solid ${formatting.borderColor}` : 'none',
+            borderRight: formatting.borderRight ? `${formatting.borderWeight} solid ${formatting.borderColor}` : 'none',
+            borderBottom: formatting.borderBottom ? `${formatting.borderWeight} solid ${formatting.borderColor}` : 'none',
+            borderLeft: formatting.borderLeft ? `${formatting.borderWeight} solid ${formatting.borderColor}` : 'none',
             padding: '4px',
             minHeight: '24px',
             display: 'block',
