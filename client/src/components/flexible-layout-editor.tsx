@@ -573,73 +573,60 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
   // Helper function to calculate intelligent widths based on side-by-side positioning
   const calculateIntelligentWidths = useCallback((items: LayoutItem[]) => {
-    
     const processedItems = [...items];
     
-    // Find actual side-by-side groups by checking X position overlap in addition to Y
-    const sideBySideGroups: LayoutItem[][] = [];
-    const processedItemIds = new Set<string>();
+    // Group items by Y position (same row)
+    const rowGroups = new Map<number, LayoutItem[]>();
     
-    processedItems.forEach(currentItem => {
-      if (processedItemIds.has(currentItem.id)) return;
-      
-      // Find all items that are actually positioned side-by-side with current item
-      const sideBySideGroup = [currentItem];
-      processedItemIds.add(currentItem.id);
-      
-      processedItems.forEach(otherItem => {
-        if (processedItemIds.has(otherItem.id)) return;
-        
-        // Check if items are truly side-by-side (overlapping in Y and positioned next to each other in X)
-        const yOverlap = currentItem.y < otherItem.y + otherItem.h && 
-                        otherItem.y < currentItem.y + currentItem.h;
-        
-        const xNextToEachOther = Math.abs(currentItem.x - (otherItem.x + otherItem.w)) <= 1 ||
-                                Math.abs(otherItem.x - (currentItem.x + currentItem.w)) <= 1 ||
-                                (currentItem.x < otherItem.x + otherItem.w && otherItem.x < currentItem.x + currentItem.w);
-        
-        if (yOverlap && xNextToEachOther) {
-          sideBySideGroup.push(otherItem);
-          processedItemIds.add(otherItem.id);
+    processedItems.forEach(item => {
+      // Group by Y position, allowing for slight variations in height
+      let foundRow = false;
+      for (const [rowY, rowItems] of rowGroups.entries()) {
+        // Check if item overlaps with this row (Y position overlap)
+        if (item.y < rowY + rowItems[0].h && rowY < item.y + item.h) {
+          rowItems.push(item);
+          foundRow = true;
+          break;
         }
-      });
+      }
       
-      sideBySideGroups.push(sideBySideGroup);
+      if (!foundRow) {
+        rowGroups.set(item.y, [item]);
+      }
     });
     
-    // Process each side-by-side group
-    sideBySideGroups.forEach(groupItems => {
-      if (groupItems.length === 1) {
-        // Single item - always full width, but preserve Y position
-        const item = groupItems[0];
+    // Process each row
+    rowGroups.forEach(rowItems => {
+      if (rowItems.length === 1) {
+        // Single item in row - make it full width
+        const item = rowItems[0];
         const itemIndex = processedItems.findIndex(p => p.id === item.id);
         if (itemIndex !== -1) {
           processedItems[itemIndex] = {
             ...processedItems[itemIndex],
-            w: 12, // Full width for single components
-            x: 0, // Start at left edge but preserve Y position
-            minW: 3, // Minimum 25% (3/12)
-            maxW: 12 // Maximum 100% (12/12)
+            w: 12, // Full width
+            x: 0,  // Start at left edge
+            minW: 3,
+            maxW: 12
           };
         }
       } else {
-        // Multiple items side-by-side - distribute width equally but preserve relative positions
-        const maxSideBySide = Math.min(groupItems.length, 4); // Max 4 components
-        const equalWidth = 12 / maxSideBySide; // Equal distribution
+        // Multiple items in same row - distribute width equally
+        const itemCount = Math.min(rowItems.length, 4); // Max 4 components
+        const equalWidth = 12 / itemCount;
         
-        // Sort by x position for proper ordering
-        groupItems.sort((a, b) => a.x - b.x);
+        // Sort by X position
+        rowItems.sort((a, b) => a.x - b.x);
         
-        groupItems.forEach((item, index) => {
+        rowItems.forEach((item, index) => {
           const itemIndex = processedItems.findIndex(p => p.id === item.id);
           if (itemIndex !== -1) {
             processedItems[itemIndex] = {
               ...processedItems[itemIndex],
               x: Math.floor(index * equalWidth),
-              w: snapToQuarters(equalWidth), // Snap to quarters
-              // Preserve Y position - don't change it
-              minW: 3, // Minimum 25% (3/12)
-              maxW: 12 // Can expand to full width
+              w: snapToQuarters(equalWidth),
+              minW: 3,
+              maxW: 12
             };
           }
         });
@@ -684,6 +671,43 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   }, [configuration, convertToGridLayouts]);
 
   // Handle layout changes from react-grid-layout with auto-save
+  // Helper function to prevent overlaps and snap to grid
+  const preventOverlaps = useCallback((items: LayoutItem[]) => {
+    const processedItems = [...items];
+    
+    // Sort by Y position first, then X position for processing order
+    processedItems.sort((a, b) => a.y - b.y || a.x - b.x);
+    
+    processedItems.forEach((currentItem, index) => {
+      // Check for overlaps with items that come before it
+      for (let i = 0; i < index; i++) {
+        const otherItem = processedItems[i];
+        
+        // Check if items overlap
+        const xOverlap = currentItem.x < otherItem.x + otherItem.w && 
+                        otherItem.x < currentItem.x + currentItem.w;
+        const yOverlap = currentItem.y < otherItem.y + otherItem.h && 
+                        otherItem.y < currentItem.y + currentItem.h;
+        
+        if (xOverlap && yOverlap) {
+          // Items overlap, move current item to avoid collision
+          
+          // Try to place it to the right of the other item first
+          const rightPosition = otherItem.x + otherItem.w;
+          if (rightPosition + currentItem.w <= 12) {
+            currentItem.x = rightPosition;
+          } else {
+            // Not enough space to the right, move below
+            currentItem.y = otherItem.y + otherItem.h;
+            currentItem.x = 0; // Reset to left edge
+          }
+        }
+      }
+    });
+    
+    return processedItems;
+  }, []);
+
   const handleLayoutChange = (layout: Layout[], allLayouts: Layouts) => {
     if (!effectiveEditMode) return;
 
@@ -701,7 +725,10 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       return item;
     });
 
-    // Apply intelligent width adjustments after drag/resize (only in edit mode)
+    // Prevent overlaps first
+    updatedItems = preventOverlaps(updatedItems);
+    
+    // Then apply intelligent width adjustments after drag/resize (only in edit mode)
     if (effectiveEditMode) {
       updatedItems = calculateIntelligentWidths(updatedItems);
     }
@@ -903,8 +930,8 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                 draggableHandle=".drag-handle"
                 useCSSTransforms={true}
                 compactType={null}
-                preventCollision={false}
-                allowOverlap={true}
+                preventCollision={true}
+                allowOverlap={false}
                 resizeHandles={['se']}
                 style={{ minHeight: '400px', width: '100%' }}
               >
