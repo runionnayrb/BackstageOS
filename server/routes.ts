@@ -715,9 +715,55 @@ async function isAuthenticated(req: any, res: any, next: any) {
   }
   
   if (req.isAuthenticated()) {
+    // Check if user account is active
+    if (req.user && req.user.isActive === false) {
+      console.log(`Access denied: User ${req.user.email} has inactive account`);
+      return res.status(403).json({ 
+        message: "Account is inactive. Please contact support.",
+        reason: "account_inactive"
+      });
+    }
     return next();
   }
   res.status(401).json({ message: "Unauthorized" });
+}
+
+// Subscription-based feature access middleware
+async function requiresActiveSubscription(req: any, res: any, next: any) {
+  // First ensure user is authenticated
+  await new Promise((resolve, reject) => {
+    isAuthenticated(req, res, (error: any) => {
+      if (error) reject(error);
+      else resolve(null);
+    });
+  });
+
+  try {
+    // Get user's current subscription status
+    const user = await storage.getUser(req.user.id.toString());
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    // Allow access if user has active subscription or is in trial
+    const hasActiveAccess = user.subscriptionStatus === 'active' || 
+                           user.subscriptionStatus === 'trialing' ||
+                           user.subscriptionStatus === 'free' || // Free tier access
+                           user.isAdmin; // Admins always have access
+
+    if (!hasActiveAccess) {
+      return res.status(402).json({ 
+        message: "Active subscription required", 
+        subscriptionStatus: user.subscriptionStatus,
+        reason: "subscription_required"
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error("Subscription check error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 }
 
 // Admin middleware

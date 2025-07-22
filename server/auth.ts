@@ -19,6 +19,7 @@ declare global {
       betaAccess: string | null;
       betaFeatures?: unknown;
       isAdmin?: boolean | null;
+      isActive?: boolean | null;
       createdAt: Date | null;
       updatedAt: Date | null;
     }
@@ -89,6 +90,7 @@ export function setupAuth(app: Express) {
             profileType: user.profileType || undefined,
             betaAccess: user.betaAccess || "none",
             isAdmin: user.isAdmin || false,
+            isActive: user.isActive !== false, // Default to true unless explicitly false
           };
           return done(null, transformedUser);
         } catch (error) {
@@ -114,6 +116,7 @@ export function setupAuth(app: Express) {
         profileType: user.profileType || undefined,
         betaAccess: user.betaAccess || "none",
         isAdmin: user.isAdmin || false,
+        isActive: user.isActive !== false, // Default to true unless explicitly false
       };
       done(null, transformedUser);
     } catch (error) {
@@ -165,6 +168,7 @@ export function setupAuth(app: Express) {
         profileType: user.profileType || undefined,
         betaAccess: user.betaAccess || "none",
         isAdmin: user.isAdmin || false,
+        isActive: user.isActive !== false, // Default to true unless explicitly false
       };
       req.login(transformedUser, (err) => {
         if (err) return next(err);
@@ -208,6 +212,14 @@ export function setupAuth(app: Express) {
   app.get("/api/user", async (req, res) => {
     // Check normal authentication first
     if (req.isAuthenticated()) {
+      // Check if user account is active
+      if (req.user && req.user.isActive === false) {
+        console.log(`Access denied: User ${req.user.email} has inactive account`);
+        return res.status(403).json({ 
+          message: "Account is inactive. Please contact support.",
+          reason: "account_inactive"
+        });
+      }
       return res.json(req.user);
     }
     
@@ -226,6 +238,7 @@ export function setupAuth(app: Express) {
             profileType: adminUser.profileType || undefined,
             betaAccess: adminUser.betaAccess || false,
             isAdmin: adminUser.isAdmin || false,
+            isActive: adminUser.isActive !== false, // Default to true unless explicitly false
           };
           return res.json(transformedUser);
         }
