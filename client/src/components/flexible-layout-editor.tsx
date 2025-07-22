@@ -477,6 +477,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [userHasEditedLayout, setUserHasEditedLayout] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -504,7 +505,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
   // Load configuration from settings (with migration to grouped format) - only once on initial load
   useEffect(() => {
-    if ((showSettings as any)?.layoutConfiguration && !initialLoadComplete && !hasUnsavedChanges) {
+    if ((showSettings as any)?.layoutConfiguration && !initialLoadComplete && !hasUnsavedChanges && !userHasEditedLayout) {
       const savedConfig = (showSettings as any).layoutConfiguration;
       console.log('🔄 Loading saved layout configuration:', savedConfig);
       
@@ -531,8 +532,10 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       console.log('🚫 Skipping configuration reload - already loaded');
     } else if ((showSettings as any)?.layoutConfiguration && hasUnsavedChanges) {
       console.log('🚫 Skipping configuration reload - has unsaved changes');
+    } else if ((showSettings as any)?.layoutConfiguration && userHasEditedLayout) {
+      console.log('🚫 Skipping configuration reload - user has edited layout, preserving changes');
     }
-  }, [showSettings, template, initialLoadComplete, hasUnsavedChanges, generateLayoutFromTemplate]);
+  }, [showSettings, template, initialLoadComplete, hasUnsavedChanges, userHasEditedLayout, generateLayoutFromTemplate]);
 
   // Helper function to snap width to quarters (25%, 50%, 75%, 100%)
   const snapToQuarters = useCallback((width: number) => {
@@ -746,6 +749,8 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
     setConfiguration(newConfig);
     setHasUnsavedChanges(true);
+    setUserHasEditedLayout(true); // Mark that user has made layout changes
+    console.log('👤 User has edited layout - preventing future configuration reloads');
     onConfigurationChange?.(newConfig);
     
     // Clear unsaved changes flag after successful save (with delay)

@@ -791,13 +791,9 @@ export default function TemplateSettings() {
                             
                             setLastSaved(new Date());
                             
-                            // Delay cache invalidation to prevent race condition with configuration loading
-                            setTimeout(() => {
-                              queryClient.invalidateQueries({
-                                queryKey: ['/api/projects', projectId, 'settings']
-                              });
-                              console.log('🔄 Cache invalidated after layout save (delayed)');
-                            }, 500);
+                            // Only invalidate cache to refresh other parts of settings, not for layout
+                            // The layout editor handles its own state to prevent data loss
+                            console.log('📝 Layout saved - skipping cache invalidation to preserve layout state');
                             
                           } catch (error) {
                             console.error('❌ Failed to save layout configuration:', error);
