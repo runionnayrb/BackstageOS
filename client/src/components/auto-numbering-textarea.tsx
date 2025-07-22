@@ -27,7 +27,7 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
   department,
   value = '',
   onChange,
-  placeholder = "No notes. Thank you.",
+  placeholder = "1. No notes. Thank you.",
   className = '',
   isEditing = true,
   template
@@ -220,7 +220,7 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
           verticalAlign: 'top'
         }}
       >
-        {currentValue || 'No notes. Thank you.'}
+        {currentValue || '1. No notes. Thank you.'}
       </div>
     );
   }

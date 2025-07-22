@@ -337,7 +337,7 @@ const LayoutItemRenderer: React.FC<{
           projectId={projectId}
           reportId={reportId || undefined}
           department={item.content?.department || item.content?.fieldId}
-          placeholder="No notes. Thank you."
+          placeholder="1. No notes. Thank you."
           className="w-full h-full resize-none border-0 shadow-none focus:ring-0"
           isEditing={effectiveEditMode}
           template={template}
