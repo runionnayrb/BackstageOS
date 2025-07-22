@@ -58,7 +58,7 @@ interface PaymentMethod {
   createdAt: string;
 }
 
-interface AccountType {
+interface ProfileType {
   id: number;
   name: string;
   description?: string;
@@ -79,12 +79,12 @@ export default function BillingManagement() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [planToDelete, setPlanToDelete] = useState<BillingPlan | null>(null);
   
-  // Account Types state
-  const [isCreateAccountTypeOpen, setIsCreateAccountTypeOpen] = useState(false);
-  const [isEditAccountTypeOpen, setIsEditAccountTypeOpen] = useState(false);
-  const [editingAccountType, setEditingAccountType] = useState<AccountType | null>(null);
-  const [isDeleteAccountTypeDialogOpen, setIsDeleteAccountTypeDialogOpen] = useState(false);
-  const [accountTypeToDelete, setAccountTypeToDelete] = useState<AccountType | null>(null);
+  // Profile Types state
+  const [isCreateProfileTypeOpen, setIsCreateProfileTypeOpen] = useState(false);
+  const [isEditProfileTypeOpen, setIsEditProfileTypeOpen] = useState(false);
+  const [editingProfileType, setEditingProfileType] = useState<ProfileType | null>(null);
+  const [isDeleteProfileTypeDialogOpen, setIsDeleteProfileTypeDialogOpen] = useState(false);
+  const [profileTypeToDelete, setProfileTypeToDelete] = useState<ProfileType | null>(null);
 
 
 
@@ -93,8 +93,8 @@ export default function BillingManagement() {
     queryKey: ["/api/billing/plans"],
   });
 
-  // Fetch account types
-  const { data: accountTypes = [], isLoading: accountTypesLoading } = useQuery<AccountType[]>({
+  // Fetch profile types
+  const { data: profileTypes = [], isLoading: profileTypesLoading } = useQuery<ProfileType[]>({
     queryKey: ["/api/admin/account-types"],
   });
 
@@ -159,60 +159,60 @@ export default function BillingManagement() {
     },
   });
 
-  // Account Types mutations
-  const createAccountTypeMutation = useMutation({
-    mutationFn: (accountTypeData: any) => apiRequest("POST", "/api/admin/account-types", accountTypeData),
+  // Profile Types mutations
+  const createProfileTypeMutation = useMutation({
+    mutationFn: (profileTypeData: any) => apiRequest("POST", "/api/admin/account-types", profileTypeData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/account-types"] });
-      setIsCreateAccountTypeOpen(false);
+      setIsCreateProfileTypeOpen(false);
       toast({
         title: "Success",
-        description: "Account type created successfully",
+        description: "Profile type created successfully",
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to create account type",
+        description: error.message || "Failed to create profile type",
         variant: "destructive",
       });
     },
   });
 
-  const updateAccountTypeMutation = useMutation({
-    mutationFn: ({ accountTypeId, accountTypeData }: { accountTypeId: number; accountTypeData: any }) => 
-      apiRequest("PUT", `/api/admin/account-types/${accountTypeId}`, accountTypeData),
+  const updateProfileTypeMutation = useMutation({
+    mutationFn: ({ profileTypeId, profileTypeData }: { profileTypeId: number; profileTypeData: any }) => 
+      apiRequest("PUT", `/api/admin/account-types/${profileTypeId}`, profileTypeData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/account-types"] });
-      setIsEditAccountTypeOpen(false);
-      setEditingAccountType(null);
+      setIsEditProfileTypeOpen(false);
+      setEditingProfileType(null);
       toast({
         title: "Success",
-        description: "Account type updated successfully",
+        description: "Profile type updated successfully",
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to update account type",
+        description: error.message || "Failed to update profile type",
         variant: "destructive",
       });
     },
   });
 
-  const deleteAccountTypeMutation = useMutation({
-    mutationFn: (accountTypeId: number) => apiRequest("DELETE", `/api/admin/account-types/${accountTypeId}`),
+  const deleteProfileTypeMutation = useMutation({
+    mutationFn: (profileTypeId: number) => apiRequest("DELETE", `/api/admin/account-types/${profileTypeId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/admin/account-types"] });
       toast({
         title: "Success",
-        description: "Account type deleted successfully",
+        description: "Profile type deleted successfully",
       });
     },
     onError: (error: any) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to delete account type",
+        description: error.message || "Failed to delete profile type",
         variant: "destructive",
       });
     },
@@ -279,49 +279,49 @@ export default function BillingManagement() {
     }
   };
 
-  // Account Types handlers
-  const handleCreateAccountType = (formData: FormData) => {
-    const accountTypeData = {
+  // Profile Types handlers
+  const handleCreateProfileType = (formData: FormData) => {
+    const profileTypeData = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
       sortOrder: parseInt(formData.get("sortOrder") as string) || 0,
       isActive: formData.get("isActive") === "on",
     };
     
-    createAccountTypeMutation.mutate(accountTypeData);
+    createProfileTypeMutation.mutate(profileTypeData);
   };
 
-  const openEditAccountTypeDialog = (accountType: AccountType) => {
-    setEditingAccountType(accountType);
-    setIsEditAccountTypeOpen(true);
+  const openEditProfileTypeDialog = (profileType: ProfileType) => {
+    setEditingProfileType(profileType);
+    setIsEditProfileTypeOpen(true);
   };
 
-  const handleUpdateAccountType = (formData: FormData) => {
-    if (editingAccountType) {
-      const accountTypeData = {
+  const handleUpdateProfileType = (formData: FormData) => {
+    if (editingProfileType) {
+      const profileTypeData = {
         name: formData.get("name") as string,
         description: formData.get("description") as string,
         sortOrder: parseInt(formData.get("sortOrder") as string),
         isActive: formData.get("isActive") === "on",
       };
       
-      updateAccountTypeMutation.mutate({
-        accountTypeId: editingAccountType.id,
-        accountTypeData,
+      updateProfileTypeMutation.mutate({
+        profileTypeId: editingProfileType.id,
+        profileTypeData,
       });
     }
   };
 
-  const handleDeleteAccountType = (accountType: AccountType) => {
-    setAccountTypeToDelete(accountType);
-    setIsDeleteAccountTypeDialogOpen(true);
+  const handleDeleteProfileType = (profileType: ProfileType) => {
+    setProfileTypeToDelete(profileType);
+    setIsDeleteProfileTypeDialogOpen(true);
   };
 
-  const confirmDeleteAccountType = () => {
-    if (accountTypeToDelete) {
-      deleteAccountTypeMutation.mutate(accountTypeToDelete.id);
-      setIsDeleteAccountTypeDialogOpen(false);
-      setAccountTypeToDelete(null);
+  const confirmDeleteProfileType = () => {
+    if (profileTypeToDelete) {
+      deleteProfileTypeMutation.mutate(profileTypeToDelete.id);
+      setIsDeleteProfileTypeDialogOpen(false);
+      setProfileTypeToDelete(null);
     }
   };
 
@@ -348,14 +348,14 @@ export default function BillingManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Billing Management</h2>
-          <p className="text-muted-foreground">Manage billing plans and account types</p>
+          <p className="text-muted-foreground">Manage billing plans and profile types</p>
         </div>
       </div>
 
       <Tabs defaultValue="billing-plans" className="space-y-4">
         <TabsList>
           <TabsTrigger value="billing-plans">Billing Plans</TabsTrigger>
-          <TabsTrigger value="account-types">Account Types</TabsTrigger>
+          <TabsTrigger value="account-types">Profile Types</TabsTrigger>
         </TabsList>
 
         <TabsContent value="billing-plans" className="space-y-4">
@@ -604,22 +604,22 @@ export default function BillingManagement() {
         <TabsContent value="account-types" className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-medium">Account Types</h3>
+              <h3 className="text-lg font-medium">Profile Types</h3>
               <p className="text-sm text-muted-foreground">Organize billing plans by user category</p>
             </div>
-            <Dialog open={isCreateAccountTypeOpen} onOpenChange={setIsCreateAccountTypeOpen}>
+            <Dialog open={isCreateProfileTypeOpen} onOpenChange={setIsCreateProfileTypeOpen}>
               <DialogTrigger asChild>
-                <Button>Create Account Type</Button>
+                <Button>Create Profile Type</Button>
               </DialogTrigger>
               <DialogContent className="max-w-lg">
                 <DialogHeader>
-                  <DialogTitle>Create Account Type</DialogTitle>
-                  <DialogDescription>Create a new account type category for billing plans</DialogDescription>
+                  <DialogTitle>Create Profile Type</DialogTitle>
+                  <DialogDescription>Create a new profile type category for billing plans</DialogDescription>
                 </DialogHeader>
                 <form onSubmit={(e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
-                  handleCreateAccountType(formData);
+                  handleCreateProfileType(formData);
                 }}>
                   <div className="grid gap-4 py-4">
                     <div>
@@ -640,11 +640,11 @@ export default function BillingManagement() {
                     </div>
                   </div>
                   <div className="flex justify-end space-x-2">
-                    <Button type="button" variant="outline" onClick={() => setIsCreateAccountTypeOpen(false)}>
+                    <Button type="button" variant="outline" onClick={() => setIsCreateProfileTypeOpen(false)}>
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={createAccountTypeMutation.isPending}>
-                      {createAccountTypeMutation.isPending ? "Creating..." : "Create Type"}
+                    <Button type="submit" disabled={createProfileTypeMutation.isPending}>
+                      {createProfileTypeMutation.isPending ? "Creating..." : "Create Type"}
                     </Button>
                   </div>
                 </form>
@@ -652,17 +652,17 @@ export default function BillingManagement() {
             </Dialog>
           </div>
 
-          {/* Edit Account Type Dialog */}
-          <Dialog open={isEditAccountTypeOpen} onOpenChange={setIsEditAccountTypeOpen}>
+          {/* Edit Profile Type Dialog */}
+          <Dialog open={isEditProfileTypeOpen} onOpenChange={setIsEditProfileTypeOpen}>
             <DialogContent className="max-w-lg">
               <DialogHeader>
-                <DialogTitle>Edit Account Type</DialogTitle>
-                <DialogDescription>Update account type information</DialogDescription>
+                <DialogTitle>Edit Profile Type</DialogTitle>
+                <DialogDescription>Update profile type information</DialogDescription>
               </DialogHeader>
               <form onSubmit={(e) => {
                 e.preventDefault();
                 const formData = new FormData(e.currentTarget);
-                handleUpdateAccountType(formData);
+                handleUpdateProfileType(formData);
               }}>
                 <div className="grid gap-4 py-4">
                   <div>
@@ -670,7 +670,7 @@ export default function BillingManagement() {
                     <Input 
                       id="editAccountTypeName" 
                       name="name" 
-                      defaultValue={editingAccountType?.name || ""} 
+                      defaultValue={editingProfileType?.name || ""} 
                       required 
                     />
                   </div>
@@ -679,7 +679,7 @@ export default function BillingManagement() {
                     <Textarea 
                       id="editAccountTypeDescription" 
                       name="description" 
-                      defaultValue={editingAccountType?.description || ""} 
+                      defaultValue={editingProfileType?.description || ""} 
                     />
                   </div>
                   <div>
@@ -688,14 +688,14 @@ export default function BillingManagement() {
                       id="editAccountTypeSortOrder" 
                       name="sortOrder" 
                       type="number" 
-                      defaultValue={editingAccountType?.sortOrder || 1} 
+                      defaultValue={editingProfileType?.sortOrder || 1} 
                     />
                   </div>
                   <div className="flex items-center space-x-2">
                     <Switch 
                       id="editAccountTypeIsActive" 
                       name="isActive" 
-                      defaultChecked={editingAccountType?.isActive} 
+                      defaultChecked={editingProfileType?.isActive} 
                     />
                     <Label htmlFor="editAccountTypeIsActive">Active Type</Label>
                   </div>
@@ -705,14 +705,14 @@ export default function BillingManagement() {
                     type="button" 
                     variant="outline" 
                     onClick={() => {
-                      setIsEditAccountTypeOpen(false);
-                      setEditingAccountType(null);
+                      setIsEditProfileTypeOpen(false);
+                      setEditingProfileType(null);
                     }}
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={updateAccountTypeMutation.isPending}>
-                    {updateAccountTypeMutation.isPending ? "Updating..." : "Update Type"}
+                  <Button type="submit" disabled={updateProfileTypeMutation.isPending}>
+                    {updateProfileTypeMutation.isPending ? "Updating..." : "Update Type"}
                   </Button>
                 </div>
               </form>
@@ -720,31 +720,31 @@ export default function BillingManagement() {
           </Dialog>
 
           <div className="space-y-4">
-            {accountTypesLoading ? (
+            {profileTypesLoading ? (
               <div className="flex items-center justify-center p-8">
                 <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {accountTypes.map((accountType: AccountType) => (
-                  <Card key={accountType.id} className={!accountType.isActive ? "opacity-60" : ""}>
+                {profileTypes.map((profileType: ProfileType) => (
+                  <Card key={profileType.id} className={!profileType.isActive ? "opacity-60" : ""}>
                     <CardHeader>
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-lg">{accountType.name}</CardTitle>
-                        <Badge variant={accountType.isActive ? "default" : "secondary"}>
-                          {accountType.isActive ? "Active" : "Inactive"}
+                        <CardTitle className="text-lg">{profileType.name}</CardTitle>
+                        <Badge variant={profileType.isActive ? "default" : "secondary"}>
+                          {profileType.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {accountType.description && (
-                        <p className="text-sm text-muted-foreground">{accountType.description}</p>
+                      {profileType.description && (
+                        <p className="text-sm text-muted-foreground">{profileType.description}</p>
                       )}
                       <div className="flex gap-2 pt-2">
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          onClick={() => openEditAccountTypeDialog(accountType)}
+                          onClick={() => openEditProfileTypeDialog(profileType)}
                           className="flex-1"
                         >
                           <Edit2 className="h-4 w-4 mr-2" />
@@ -753,7 +753,7 @@ export default function BillingManagement() {
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          onClick={() => handleDeleteAccountType(accountType)}
+                          onClick={() => handleDeleteProfileType(profileType)}
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -766,28 +766,28 @@ export default function BillingManagement() {
             )}
           </div>
 
-          {/* Account Type Delete Confirmation Dialog */}
-          <AlertDialog open={isDeleteAccountTypeDialogOpen} onOpenChange={setIsDeleteAccountTypeDialogOpen}>
+          {/* Profile Type Delete Confirmation Dialog */}
+          <AlertDialog open={isDeleteProfileTypeDialogOpen} onOpenChange={setIsDeleteProfileTypeDialogOpen}>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Account Type</AlertDialogTitle>
+                <AlertDialogTitle>Delete Profile Type</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete the account type "{accountTypeToDelete?.name}"? This action cannot be undone.
+                  Are you sure you want to delete the profile type "{profileTypeToDelete?.name}"? This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel onClick={() => {
-                  setIsDeleteAccountTypeDialogOpen(false);
-                  setAccountTypeToDelete(null);
+                  setIsDeleteProfileTypeDialogOpen(false);
+                  setProfileTypeToDelete(null);
                 }}>
                   Cancel
                 </AlertDialogCancel>
                 <AlertDialogAction 
-                  onClick={confirmDeleteAccountType}
+                  onClick={confirmDeleteProfileType}
                   className="bg-red-600 hover:bg-red-700"
-                  disabled={deleteAccountTypeMutation.isPending}
+                  disabled={deleteProfileTypeMutation.isPending}
                 >
-                  {deleteAccountTypeMutation.isPending ? "Deleting..." : "Delete Type"}
+                  {deleteProfileTypeMutation.isPending ? "Deleting..." : "Delete Type"}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
