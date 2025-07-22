@@ -166,7 +166,10 @@ const LayoutItemRenderer: React.FC<{
   reportType?: string;
   effectiveEditMode: boolean;
   template?: any;
-}> = ({ item, projectId, reportId, reportType, effectiveEditMode, template }) => {
+  selectedDate?: string;
+  dayOfWeek?: string;
+  onDateChange?: (date: string) => void;
+}> = ({ item, projectId, reportId, reportType, effectiveEditMode, template, selectedDate, dayOfWeek, onDateChange }) => {
   switch (item.type) {
     case 'grouped-section':
       return (
@@ -180,6 +183,9 @@ const LayoutItemRenderer: React.FC<{
                 reportType={reportType}
                 effectiveEditMode={effectiveEditMode}
                 template={template}
+                selectedDate={selectedDate}
+                dayOfWeek={dayOfWeek}
+                onDateChange={onDateChange}
               />
             </div>
           ))}
@@ -221,13 +227,16 @@ const LayoutItemRenderer: React.FC<{
             {isDateField ? (
               <input 
                 type="date"
-                className="w-full border-0 shadow-none focus:ring-0 focus:border-0 bg-transparent"
+                value={selectedDate || ''}
+                onChange={(e) => onDateChange?.(e.target.value)}
+                className="w-full border-0 shadow-none focus:ring-0 focus:border-0 bg-transparent text-sm"
                 placeholder="Select date"
               />
             ) : (
               <input 
                 type="text"
-                className="w-full border-0 shadow-none focus:ring-0 focus:border-0 bg-transparent"
+                value={dayOfWeek || ''}
+                className="w-full border-0 shadow-none focus:ring-0 focus:border-0 bg-transparent text-sm"
                 placeholder="Day will auto-populate"
                 readOnly
               />
@@ -304,9 +313,25 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   const [isEditMode, setIsEditMode] = useState(isEditing);
   const [layouts, setLayouts] = useState<Layouts>({});
   const [showResetDialog, setShowResetDialog] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<string>('');
+  const [dayOfWeek, setDayOfWeek] = useState<string>('');
   
   // Use external edit mode if provided, otherwise use internal state
   const effectiveEditMode = externalEditMode !== undefined ? externalEditMode : isEditMode;
+
+  // Helper function to convert date to day of week
+  const formatDayOfWeek = useCallback((dateString: string) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+  }, []);
+
+  // Handle date changes and auto-populate day
+  const handleDateChange = useCallback((newDate: string) => {
+    setSelectedDate(newDate);
+    const day = formatDayOfWeek(newDate);
+    setDayOfWeek(day);
+  }, [formatDayOfWeek]);
   
   // Generate layout from template data with grouped sections
   const generateLayoutFromTemplate = useCallback(() => {
@@ -979,6 +1004,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                         reportType={reportType}
                         effectiveEditMode={effectiveEditMode}
                         template={template}
+                        selectedDate={selectedDate}
+                        dayOfWeek={dayOfWeek}
+                        onDateChange={handleDateChange}
                       />
                     </DraggableGridItem>
                   </div>
