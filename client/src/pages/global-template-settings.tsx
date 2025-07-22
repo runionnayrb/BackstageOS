@@ -211,7 +211,13 @@ export default function GlobalTemplateSettings() {
     if (globalSettings) {
       setSettings(prev => ({
         ...prev,
-        ...globalSettings
+        ...globalSettings,
+        branding: globalSettings.branding || prev.branding,
+        pageMargins: globalSettings.pageMargins || prev.pageMargins,
+        pageNumbering: globalSettings.pageNumbering || prev.pageNumbering,
+        fonts: globalSettings.fonts || prev.fonts,
+        lists: globalSettings.lists || prev.lists,
+        email: globalSettings.email || prev.email
       }));
     }
   }, [globalSettings]);
@@ -551,10 +557,10 @@ export default function GlobalTemplateSettings() {
                       <Input
                         id="margin-top"
                         name="margin-top"
-                        value={settings.pageMargins.top}
+                        value={settings.pageMargins?.top || ''}
                         onChange={(e) => setSettings(prev => ({
                           ...prev,
-                          pageMargins: { ...prev.pageMargins, top: e.target.value }
+                          pageMargins: { ...(prev.pageMargins || {}), top: e.target.value }
                         }))}
                         placeholder="1in"
                       />
@@ -564,10 +570,10 @@ export default function GlobalTemplateSettings() {
                       <Input
                         id="margin-bottom"
                         name="margin-bottom"
-                        value={settings.pageMargins.bottom}
+                        value={settings.pageMargins?.bottom || ''}
                         onChange={(e) => setSettings(prev => ({
                           ...prev,
-                          pageMargins: { ...prev.pageMargins, bottom: e.target.value }
+                          pageMargins: { ...(prev.pageMargins || {}), bottom: e.target.value }
                         }))}
                         placeholder="1in"
                       />
@@ -577,10 +583,10 @@ export default function GlobalTemplateSettings() {
                       <Input
                         id="margin-left"
                         name="margin-left"
-                        value={settings.pageMargins.left}
+                        value={settings.pageMargins?.left || ''}
                         onChange={(e) => setSettings(prev => ({
                           ...prev,
-                          pageMargins: { ...prev.pageMargins, left: e.target.value }
+                          pageMargins: { ...(prev.pageMargins || {}), left: e.target.value }
                         }))}
                         placeholder="1in"
                       />
@@ -590,10 +596,10 @@ export default function GlobalTemplateSettings() {
                       <Input
                         id="margin-right"
                         name="margin-right"
-                        value={settings.pageMargins.right}
+                        value={settings.pageMargins?.right || ''}
                         onChange={(e) => setSettings(prev => ({
                           ...prev,
-                          pageMargins: { ...prev.pageMargins, right: e.target.value }
+                          pageMargins: { ...(prev.pageMargins || {}), right: e.target.value }
                         }))}
                         placeholder="1in"
                       />
