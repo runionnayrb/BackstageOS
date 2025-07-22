@@ -449,10 +449,10 @@ export default function GlobalTemplateSettings() {
                   <Label className="text-base font-medium">Production Photo</Label>
                   <div className="mt-2 space-y-4">
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      {settings.branding.productionPhoto ? (
+                      {settings.branding?.productionPhoto ? (
                         <div className="space-y-2">
                           <img 
-                            src={settings.branding.productionPhoto} 
+                            src={settings.branding?.productionPhoto} 
                             alt="Production Photo" 
                             className="max-h-32 mx-auto rounded"
                           />
@@ -461,7 +461,7 @@ export default function GlobalTemplateSettings() {
                             size="sm"
                             onClick={() => setSettings(prev => ({
                               ...prev,
-                              branding: { ...prev.branding, productionPhoto: undefined }
+                              branding: { ...(prev.branding || {}), productionPhoto: undefined }
                             }))}
                           >
                             Remove Photo
@@ -482,7 +482,7 @@ export default function GlobalTemplateSettings() {
                                 reader.onload = (e) => {
                                   setSettings(prev => ({
                                     ...prev,
-                                    branding: { ...prev.branding, productionPhoto: e.target?.result as string }
+                                    branding: { ...(prev.branding || {}), productionPhoto: e.target?.result as string }
                                   }));
                                 };
                                 reader.readAsDataURL(file);
@@ -496,23 +496,23 @@ export default function GlobalTemplateSettings() {
                     <div className="space-y-4">
                       <div className="flex items-center space-x-2">
                         <Switch
-                          checked={settings.branding.showProductionPhoto}
+                          checked={settings.branding?.showProductionPhoto}
                           onCheckedChange={(checked) => setSettings(prev => ({
                             ...prev,
-                            branding: { ...prev.branding, showProductionPhoto: checked }
+                            branding: { ...(prev.branding || {}), showProductionPhoto: checked }
                           }))}
                         />
                         <Label>Show production photo in reports</Label>
                       </div>
                       
-                      {settings.branding.showProductionPhoto && (
+                      {settings.branding?.showProductionPhoto && (
                         <div className="space-y-2">
                           <Label>Photo Position</Label>
                           <Select
-                            value={settings.branding.photoPosition}
+                            value={settings.branding?.photoPosition}
                             onValueChange={(value: any) => setSettings(prev => ({
                               ...prev,
-                              branding: { ...prev.branding, photoPosition: value }
+                              branding: { ...(prev.branding || {}), photoPosition: value }
                             }))}
                           >
                             <SelectTrigger>
