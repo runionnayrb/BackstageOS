@@ -39,19 +39,31 @@ export default function Header() {
   const { data: profileTypes = [] } = useQuery({
     queryKey: ['/api/admin/account-types'],
     enabled: isAdmin(user),
+    staleTime: 0, // Force fresh data
+    cacheTime: 0, // Don't cache
     queryFn: async () => {
-      const response = await fetch('/api/admin/account-types', { 
-        credentials: 'include' 
+      console.log('🔍 Header: Fetching profile types from /api/admin/account-types');
+      const response = await fetch('/api/admin/account-types?t=' + Date.now(), { 
+        credentials: 'include',
+        cache: 'no-cache'
       });
       
       if (!response.ok) {
         throw new Error(`Failed to fetch profile types: ${response.status}`);
       }
       
-      return response.json();
+      const data = await response.json();
+      console.log('🔍 Header: Raw API response:', data);
+      return data;
     },
-    select: (data: any[]) => data || [],
+    select: (data: any[]) => {
+      console.log('🔍 Header: Selected profile types:', data);
+      return data || [];
+    },
   });
+
+  // Debug current profile types
+  console.log('🔍 Header: Current profileTypes state:', profileTypes);
 
   // Fetch all users for account switching (admin only)
   const { data: allUsers = [] } = useQuery({
