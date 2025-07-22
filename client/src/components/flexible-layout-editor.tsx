@@ -851,6 +851,15 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         itemCount: newConfig.items.length,
         items: newConfig.items.map(item => ({ id: item.id, type: item.type }))
       });
+      console.log('🔍 New item details:', {
+        id: newItem.id,
+        x: newItem.x, 
+        y: newItem.y, 
+        w: newItem.w, 
+        h: newItem.h,
+        minW: newItem.minW,
+        maxW: newItem.maxW
+      });
 
       setConfiguration(newConfig);
       onConfigurationChange?.(newConfig);
