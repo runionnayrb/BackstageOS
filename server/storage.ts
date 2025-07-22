@@ -594,6 +594,7 @@ export interface IStorage {
   getUserSubscription(userId: number): Promise<any>;
   createUserSubscription(subscription: any): Promise<any>;
   updateUserSubscription(userId: number, updates: any): Promise<any>;
+  updateUserProfileType(userId: string, profileType: string): Promise<User>;
 
   // Account Types operations
   getAccountTypes(): Promise<AccountType[]>;
@@ -705,6 +706,14 @@ export class DatabaseStorage implements IStorage {
   }): Promise<User> {
     const result = await db.update(users)
       .set(updates)
+      .where(eq(users.id, parseInt(userId)))
+      .returning();
+    return result[0];
+  }
+
+  async updateUserProfileType(userId: string, profileType: string): Promise<User> {
+    const result = await db.update(users)
+      .set({ profileType })
       .where(eq(users.id, parseInt(userId)))
       .returning();
     return result[0];

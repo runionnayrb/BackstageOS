@@ -13552,6 +13552,107 @@ The Production Team`;
     }
   });
 
+  // ========== USER BILLING PAGE ENDPOINTS ==========
+  
+  // Billing status endpoint for user billing page
+  app.get('/api/billing/status', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const user = req.user;
+      
+      let billingData = {
+        status: user.subscriptionStatus || 'none',
+        planName: 'No active subscription',
+        amount: null,
+        interval: null,
+        currentPeriodEnd: null,
+        trialEnd: null
+      };
+
+      // If user has Stripe subscription, get details from Stripe
+      if (user.stripeSubscriptionId) {
+        const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+        const product = await stripe.products.retrieve(subscription.items.data[0].price.product as string);
+        
+        billingData = {
+          status: subscription.status,
+          planName: product.name,
+          amount: subscription.items.data[0].price.unit_amount ? subscription.items.data[0].price.unit_amount / 100 : null,
+          interval: subscription.items.data[0].price.recurring?.interval || null,
+          currentPeriodEnd: subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null,
+          trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null
+        };
+      }
+
+      res.json(billingData);
+    } catch (error: any) {
+      console.error('Billing status error:', error);
+      res.status(500).json({ message: 'Failed to get billing status: ' + error.message });
+    }
+  });
+
+  // Switch to annual billing
+  app.post('/api/billing/switch-to-annual', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const user = req.user;
+      if (!user || !user.stripeSubscriptionId) {
+        return res.status(404).json({ message: 'No active subscription found' });
+      }
+
+      const subscription = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+      
+      // Update subscription to annual pricing
+      const annualPriceId = process.env.STRIPE_ANNUAL_PRICE_ID || 'price_annual_placeholder';
+      
+      if (annualPriceId.includes('placeholder')) {
+        return res.status(400).json({ 
+          message: "Annual pricing not configured. Please contact support." 
+        });
+      }
+      
+      await stripe.subscriptions.update(user.stripeSubscriptionId, {
+        items: [{
+          id: subscription.items.data[0].id,
+          price: annualPriceId,
+        }],
+        proration_behavior: 'create_prorations'
+      });
+
+      res.json({ message: 'Upgraded to annual billing successfully' });
+    } catch (error: any) {
+      console.error('Switch to annual error:', error);
+      res.status(500).json({ message: 'Failed to switch to annual: ' + error.message });
+    }
+  });
+
+  // Update profile type endpoint
+  app.post('/api/user/profile-type', async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const { profileType } = req.body;
+      
+      if (!['freelance', 'fulltime'].includes(profileType)) {
+        return res.status(400).json({ message: 'Invalid profile type' });
+      }
+
+      const updatedUser = await storage.updateUserProfileType(req.user.id.toString(), profileType);
+      res.json({ message: 'Profile type updated successfully', user: updatedUser });
+    } catch (error: any) {
+      console.error('Update profile type error:', error);
+      res.status(500).json({ message: 'Failed to update profile type: ' + error.message });
+    }
+  });
+
   const server = createServer(app);
   
   // Start email cleanup scheduler for automatic 30-day trash cleanup

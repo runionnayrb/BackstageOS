@@ -75,6 +75,7 @@ import DailyCallSheet from "@/pages/daily-calls";
 import ArchivedShows from "@/pages/archived-shows";
 import Checkout from "@/pages/checkout";
 import Subscribe from "@/pages/subscribe";
+import Billing from "@/pages/billing";
 
 
 function Router() {
@@ -251,6 +252,7 @@ function Router() {
         <Route path="/navigation-demo" component={NavigationDemo} />
         <Route path="/checkout" component={Checkout} />
         <Route path="/subscribe" component={Subscribe} />
+        <Route path="/billing" component={Billing} />
         <Route component={NotFound} />
         </Switch>
       </Layout>
