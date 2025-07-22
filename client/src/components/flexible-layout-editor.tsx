@@ -614,19 +614,20 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     // Process each side-by-side group
     sideBySideGroups.forEach(groupItems => {
       if (groupItems.length === 1) {
-        // Single item - always full width
+        // Single item - always full width, but preserve Y position
         const item = groupItems[0];
         const itemIndex = processedItems.findIndex(p => p.id === item.id);
         if (itemIndex !== -1) {
           processedItems[itemIndex] = {
             ...processedItems[itemIndex],
             w: 12, // Full width for single components
+            x: 0, // Start at left edge but preserve Y position
             minW: 3, // Minimum 25% (3/12)
             maxW: 12 // Maximum 100% (12/12)
           };
         }
       } else {
-        // Multiple items side-by-side - distribute width equally
+        // Multiple items side-by-side - distribute width equally but preserve relative positions
         const maxSideBySide = Math.min(groupItems.length, 4); // Max 4 components
         const equalWidth = 12 / maxSideBySide; // Equal distribution
         
@@ -640,6 +641,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
               ...processedItems[itemIndex],
               x: Math.floor(index * equalWidth),
               w: snapToQuarters(equalWidth), // Snap to quarters
+              // Preserve Y position - don't change it
               minW: 3, // Minimum 25% (3/12)
               maxW: 12 // Can expand to full width
             };
@@ -653,10 +655,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
   // Convert configuration items to react-grid-layout format
   const convertToGridLayouts = useCallback((items: LayoutItem[]) => {
-    // Apply intelligent width calculations
-    const intelligentItems = calculateIntelligentWidths(items);
-    
-    const layout = intelligentItems.map(item => ({
+    // Don't apply intelligent width calculations here - it causes layout differences between edit/view modes
+    // Instead, use the items as they are saved
+    const layout = items.map(item => ({
       i: item.id,
       x: item.x,
       y: item.y,
@@ -678,7 +679,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       xs: layout,
       xxs: layout
     };
-  }, [effectiveEditMode, calculateIntelligentWidths]);
+  }, [effectiveEditMode]);
 
   // Update layouts when configuration changes
   useEffect(() => {
