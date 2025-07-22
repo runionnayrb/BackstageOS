@@ -325,6 +325,33 @@ Required environment variables:
 
 ## Recent Changes
 
+### July 22, 2025: **CRITICAL TEMPLATE LAYOUT EDIT/LOCK MODE POSITION PERSISTENCE RESOLVED COMPLETELY**
+**Successfully resolved the major issue where vertical position changes (up/down movement) would revert when switching from edit mode to locked mode:**
+
+**Root Cause Identified:**
+- React Grid Layout was treating edit and locked modes as different layout configurations due to complex `static`, `isDraggable`, and `isResizable` properties being set individually on each layout item
+- Over-engineered key forcing and mode-specific layout item properties were causing React Grid Layout to recalculate positions during mode switches
+- The layout system was overcomplicating what should be a simple toggle between interaction states
+
+**Solution Implemented:**
+- **Simplified Layout Item Configuration**: Removed individual `static`, `isDraggable`, and `isResizable` properties from layout items
+- **Global Interaction Control**: Mode switching now only controls the global ResponsiveGridLayout `isDraggable` and `isResizable` props
+- **Removed Complex Key Logic**: Eliminated forced re-rendering keys that were causing layout inconsistencies
+- **Unified Layout Data**: Both edit and locked modes now use identical layout item data structures
+
+**System Benefits:**
+- Edit and locked modes now display identical layouts - the only difference is interaction capability
+- User position changes persist perfectly when switching between modes
+- Simplified codebase with removed over-engineering and complex workarounds
+- Professional template editing experience where "Lock" simply disables interaction without changing layout
+
+**User Validation**: User confirmed "Yep. that was the fix" - vertical positioning persistence issue completely resolved.
+
+**Files Updated:**
+- `client/src/components/flexible-layout-editor.tsx`: Simplified layout item configuration and removed complex key logic
+
+**Status**: Major template layout persistence bug completely resolved - edit/lock mode switching now works as intended with perfect position persistence.
+
 ### July 22, 2025: **TEMPLATE TIMESTAMP FIX WITH COMPLETE AUTO-SAVE REMOVAL FINISHED**
 **Successfully resolved critical timestamp update issue where "Updated" text wasn't refreshing when templates were unlocked, modified, and locked:**
 
