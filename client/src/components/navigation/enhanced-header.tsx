@@ -271,10 +271,16 @@ export default function EnhancedHeader() {
                         {showData.name}
                       </div>
                       {isFeatureEnabled('reports') && (
-                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/reports`)}>
-                          <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                          Reports
-                        </DropdownMenuItem>
+                        <>
+                          <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/reports`)}>
+                            <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
+                            Reports
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/notes-tracking`)}>
+                            <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
+                            Report Notes
+                          </DropdownMenuItem>
+                        </>
                       )}
                       {isFeatureEnabled('calendar') && (
                         <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/calendar`)}>
@@ -312,12 +318,6 @@ export default function EnhancedHeader() {
                         <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
                         Show Notes
                       </DropdownMenuItem>
-                      {isFeatureEnabled('reports') && (
-                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/notes-tracking`)}>
-                          <FileText className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                          Report Notes
-                        </DropdownMenuItem>
-                      )}
                     </>
                   )}
                   

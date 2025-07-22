@@ -75,11 +75,6 @@ export default function ShowDetail() {
       title: "Contacts",
       href: `/shows/${projectId}/contacts`,
     }] : []),
-    ...(isFeatureEnabled('reports') ? [{
-      id: "report-notes",
-      title: "Report Notes",
-      href: `/shows/${projectId}/notes-tracking`,
-    }] : []),
   ];
 
   // State for sections - start empty to prevent flash
