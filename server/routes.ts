@@ -706,7 +706,17 @@ async function isAuthenticated(req: any, res: any, next: any) {
       const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
       if (adminUser && adminUser.isAdmin) {
         console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
-        req.user = adminUser;
+        // Transform user to match Express.User interface with numeric ID
+        req.user = {
+          ...adminUser,
+          id: parseInt(adminUser.id.toString()), // Ensure ID is numeric
+          firstName: adminUser.firstName || undefined,
+          lastName: adminUser.lastName || undefined,
+          profileType: adminUser.profileType || undefined,
+          betaAccess: adminUser.betaAccess || false,
+          isAdmin: adminUser.isAdmin || false,
+          isActive: adminUser.isActive !== false,
+        };
         return next();
       }
     } catch (error) {
@@ -4624,11 +4634,19 @@ Best regards,
       }
 
       const userId = req.user.id;
-      const settingsData = insertGlobalTemplateSettingsSchema.parse({
+      console.log("DEBUG POST: userId from req.user:", userId, "type:", typeof userId);
+      const createdByValue = parseInt(userId.toString());
+      console.log("DEBUG POST: createdBy after parseInt:", createdByValue, "type:", typeof createdByValue);
+      
+      const requestData = {
         ...req.body,
         projectId,
-        createdBy: parseInt(userId.toString()),
-      });
+        createdBy: createdByValue,
+      };
+      console.log("DEBUG POST: requestData.createdBy:", requestData.createdBy, "type:", typeof requestData.createdBy);
+      console.log("DEBUG POST: Full request data:", JSON.stringify(requestData, null, 2));
+      
+      const settingsData = insertGlobalTemplateSettingsSchema.parse(requestData);
 
       const settings = await storage.upsertGlobalTemplateSettings(settingsData);
       res.json(settings);
