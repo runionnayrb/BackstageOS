@@ -671,42 +671,11 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   }, [configuration, convertToGridLayouts]);
 
   // Handle layout changes from react-grid-layout with auto-save
-  // Helper function to prevent overlaps and snap to grid
-  const preventOverlaps = useCallback((items: LayoutItem[]) => {
-    const processedItems = [...items];
-    
-    // Sort by Y position first, then X position for processing order
-    processedItems.sort((a, b) => a.y - b.y || a.x - b.x);
-    
-    processedItems.forEach((currentItem, index) => {
-      // Check for overlaps with items that come before it
-      for (let i = 0; i < index; i++) {
-        const otherItem = processedItems[i];
-        
-        // Check if items overlap
-        const xOverlap = currentItem.x < otherItem.x + otherItem.w && 
-                        otherItem.x < currentItem.x + currentItem.w;
-        const yOverlap = currentItem.y < otherItem.y + otherItem.h && 
-                        otherItem.y < currentItem.y + currentItem.h;
-        
-        if (xOverlap && yOverlap) {
-          // Items overlap, move current item to avoid collision
-          
-          // Try to place it to the right of the other item first
-          const rightPosition = otherItem.x + otherItem.w;
-          if (rightPosition + currentItem.w <= 12) {
-            currentItem.x = rightPosition;
-          } else {
-            // Not enough space to the right, move below
-            currentItem.y = otherItem.y + otherItem.h;
-            currentItem.x = 0; // Reset to left edge
-          }
-        }
-      }
-    });
-    
-    return processedItems;
-  }, []);
+
+
+  // Track if we're in the middle of a drag operation to prevent constant recalculation
+  const [isDragging, setIsDragging] = useState(false);
+  const lastLayoutRef = useRef<{[key: string]: {x: number, y: number, w: number, h: number}}>({});
 
   const handleLayoutChange = (layout: Layout[], allLayouts: Layouts) => {
     if (!effectiveEditMode) return;
@@ -725,13 +694,31 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       return item;
     });
 
-    // Prevent overlaps first
-    updatedItems = preventOverlaps(updatedItems);
-    
-    // Then apply intelligent width adjustments after drag/resize (only in edit mode)
-    if (effectiveEditMode) {
+    // Only apply intelligent width calculation if position actually changed significantly
+    const shouldApplyIntelligentWidth = updatedItems.some(item => {
+      const lastPos = lastLayoutRef.current[item.id];
+      if (!lastPos) return true;
+      
+      // Check if position changed significantly (more than just a minor adjustment)
+      const xChanged = Math.abs(item.x - lastPos.x) > 0.5;
+      const yChanged = Math.abs(item.y - lastPos.y) > 0.5;
+      
+      return xChanged || yChanged;
+    });
+
+    if (shouldApplyIntelligentWidth && effectiveEditMode && !isDragging) {
       updatedItems = calculateIntelligentWidths(updatedItems);
     }
+
+    // Update position tracking
+    updatedItems.forEach(item => {
+      lastLayoutRef.current[item.id] = {
+        x: item.x,
+        y: item.y,
+        w: item.w,
+        h: item.h
+      };
+    });
 
     const newConfig = {
       ...configuration,
@@ -743,6 +730,25 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     
     // Trigger auto-save
     autoSaveLayout(newConfig);
+  };
+
+  const handleDragStart = () => {
+    setIsDragging(true);
+  };
+
+  const handleDragStop = () => {
+    setIsDragging(false);
+    // Apply intelligent width calculation after drag completes
+    if (effectiveEditMode) {
+      const updatedItems = calculateIntelligentWidths(configuration.items);
+      const newConfig = {
+        ...configuration,
+        items: updatedItems
+      };
+      setConfiguration(newConfig);
+      onConfigurationChange?.(newConfig);
+      autoSaveLayout(newConfig);
+    }
   };
 
   // Add new item to layout (creates grouped sections)
@@ -927,10 +933,12 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                 isResizable={effectiveEditMode}
                 onLayoutChange={handleLayoutChange}
                 onResizeStop={handleLayoutChange}
+                onDragStart={handleDragStart}
+                onDragStop={handleDragStop}
                 draggableHandle=".drag-handle"
                 useCSSTransforms={true}
                 compactType={null}
-                preventCollision={true}
+                preventCollision={false}
                 allowOverlap={false}
                 resizeHandles={['se']}
                 style={{ minHeight: '400px', width: '100%' }}
