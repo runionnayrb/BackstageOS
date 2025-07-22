@@ -939,7 +939,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                 useCSSTransforms={true}
                 compactType={null}
                 preventCollision={false}
-                allowOverlap={false}
+                allowOverlap={true}
                 resizeHandles={['se']}
                 style={{ minHeight: '400px', width: '100%' }}
               >
