@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,6 +66,8 @@ export default function BillingManagement() {
   const [isCreatePlanOpen, setIsCreatePlanOpen] = useState(false);
   const [isEditPlanOpen, setIsEditPlanOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<BillingPlan | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState<BillingPlan | null>(null);
 
   // Fetch billing plans
   const { data: billingPlans = [], isLoading: plansLoading } = useQuery<BillingPlan[]>({
@@ -138,11 +141,9 @@ export default function BillingManagement() {
     const planData = {
       planId: formData.get("planId") as string,
       name: formData.get("name") as string,
-      description: formData.get("description") as string,
       price: parseFloat(formData.get("price") as string),
       billingInterval: formData.get("billingInterval") as string,
       trialDays: parseInt(formData.get("trialDays") as string),
-      features: JSON.parse(formData.get("features") as string || "[]"),
       maxProjects: formData.get("maxProjects") ? parseInt(formData.get("maxProjects") as string) : null,
       maxTeamMembers: formData.get("maxTeamMembers") ? parseInt(formData.get("maxTeamMembers") as string) : null,
       isActive: formData.get("isActive") === "on",
@@ -158,11 +159,9 @@ export default function BillingManagement() {
     const planData = {
       planId: formData.get("planId") as string,
       name: formData.get("name") as string,
-      description: formData.get("description") as string,
       price: parseFloat(formData.get("price") as string),
       billingInterval: formData.get("billingInterval") as string,
       trialDays: parseInt(formData.get("trialDays") as string),
-      features: JSON.parse(formData.get("features") as string || "[]"),
       maxProjects: formData.get("maxProjects") ? parseInt(formData.get("maxProjects") as string) : null,
       maxTeamMembers: formData.get("maxTeamMembers") ? parseInt(formData.get("maxTeamMembers") as string) : null,
       isActive: formData.get("isActive") === "on",
@@ -172,9 +171,16 @@ export default function BillingManagement() {
     updatePlanMutation.mutate({ planId: editingPlan.id, planData });
   };
 
-  const handleDeletePlan = (planId: number) => {
-    if (confirm("Are you sure you want to delete this billing plan? This action cannot be undone.")) {
-      deletePlanMutation.mutate(planId);
+  const handleDeletePlan = (plan: BillingPlan) => {
+    setPlanToDelete(plan);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeletePlan = () => {
+    if (planToDelete) {
+      deletePlanMutation.mutate(planToDelete.id);
+      setIsDeleteDialogOpen(false);
+      setPlanToDelete(null);
     }
   };
 
@@ -225,10 +231,6 @@ export default function BillingManagement() {
                   <Label htmlFor="name">Plan Name</Label>
                   <Input id="name" name="name" placeholder="Monthly Standard" required />
                 </div>
-                <div className="col-span-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea id="description" name="description" placeholder="Plan description" />
-                </div>
                 <div>
                   <Label htmlFor="price">Price</Label>
                   <Input id="price" name="price" type="number" step="0.01" placeholder="119.00" required />
@@ -252,15 +254,6 @@ export default function BillingManagement() {
                 <div>
                   <Label htmlFor="sortOrder">Sort Order</Label>
                   <Input id="sortOrder" name="sortOrder" type="number" defaultValue="1" />
-                </div>
-                <div className="col-span-2">
-                  <Label htmlFor="features">Features (JSON Array)</Label>
-                  <Textarea 
-                    id="features" 
-                    name="features" 
-                    placeholder='["reports", "calendar", "script"]'
-                    defaultValue='["reports", "calendar", "script", "props", "contacts"]'
-                  />
                 </div>
                 <div className="flex items-center space-x-2">
                   <Switch id="isActive" name="isActive" defaultChecked />
@@ -311,14 +304,6 @@ export default function BillingManagement() {
                   required 
                 />
               </div>
-              <div className="col-span-2">
-                <Label htmlFor="edit-description">Description</Label>
-                <Textarea 
-                  id="edit-description" 
-                  name="description" 
-                  defaultValue={editingPlan?.description || ""}
-                />
-              </div>
               <div>
                 <Label htmlFor="edit-price">Price</Label>
                 <Input 
@@ -360,14 +345,6 @@ export default function BillingManagement() {
                   defaultValue={editingPlan?.sortOrder || "1"}
                 />
               </div>
-              <div className="col-span-2">
-                <Label htmlFor="edit-features">Features (JSON Array)</Label>
-                <Textarea 
-                  id="edit-features" 
-                  name="features" 
-                  defaultValue={editingPlan?.features ? JSON.stringify(editingPlan.features) : '[]'}
-                />
-              </div>
               <div className="flex items-center space-x-2">
                 <Switch 
                   id="edit-isActive" 
@@ -405,7 +382,6 @@ export default function BillingManagement() {
                       {plan.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </div>
-                  <CardDescription>{plan.description || "No description"}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="text-2xl font-bold text-primary">
@@ -415,18 +391,6 @@ export default function BillingManagement() {
                     <p className="text-sm text-muted-foreground">
                       {plan.trialDays}-day trial included
                     </p>
-                    {plan.features && plan.features.length > 0 && (
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Features:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {plan.features.map((feature, index) => (
-                            <Badge key={index} variant="outline" className="text-xs">
-                              {feature}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
                   </div>
                   <div className="flex gap-2 pt-2">
                     <Button 
@@ -441,7 +405,7 @@ export default function BillingManagement() {
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      onClick={() => handleDeletePlan(plan.id)}
+                      onClick={() => handleDeletePlan(plan)}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -453,6 +417,33 @@ export default function BillingManagement() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Billing Plan</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the billing plan "{planToDelete?.name}"? This action cannot be undone and will affect any users currently subscribed to this plan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setIsDeleteDialogOpen(false);
+              setPlanToDelete(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDeletePlan}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deletePlanMutation.isPending}
+            >
+              {deletePlanMutation.isPending ? "Deleting..." : "Delete Plan"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
