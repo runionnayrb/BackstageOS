@@ -164,7 +164,10 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
       setIsEditingText(false);
       setShowToolbar(false);
       onNameChange?.(editValue);
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      // Delayed cache invalidation to prevent overwriting user changes
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      }, 500);
     },
     onError: (error) => {
       toast({
@@ -204,7 +207,10 @@ const EditableDepartmentHeader: React.FC<EditableDepartmentHeaderProps> = ({
         description: applyToAll ? "Formatting applied to all departments" : "Department formatting updated successfully",
       });
       onFormattingChange?.(formatting);
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      // Delayed cache invalidation to prevent overwriting user changes
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      }, 500);
     },
     onError: (error) => {
       toast({
