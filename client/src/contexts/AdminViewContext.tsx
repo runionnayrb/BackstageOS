@@ -11,7 +11,7 @@ const AdminViewContext = createContext<AdminViewContextType | undefined>(undefin
 
 export function AdminViewProvider({ children }: { children: ReactNode }) {
   const [selectedBetaAccess, setSelectedBetaAccess] = useState('admin');
-  const [selectedProfileType, setSelectedProfileType] = useState('freelance');
+  const [selectedProfileType, setSelectedProfileType] = useState('Freelance');
 
   return (
     <AdminViewContext.Provider value={{

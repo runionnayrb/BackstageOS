@@ -246,15 +246,11 @@ export default function Header() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Types</SelectItem>
-                      {profileTypes.map((profileType: any) => {
-                        // Map profile type names to database values
-                        const value = profileType.name === "Full-timer" ? "fulltime" : profileType.name.toLowerCase();
-                        return (
-                          <SelectItem key={profileType.id} value={value}>
-                            {profileType.name}
-                          </SelectItem>
-                        );
-                      })}
+                      {profileTypes.map((profileType: any) => (
+                        <SelectItem key={profileType.id} value={profileType.name}>
+                          {profileType.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
