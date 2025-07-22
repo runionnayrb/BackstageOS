@@ -820,7 +820,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
         content: { department: deptName, displayName: 'New Department' },
         x: 0,
         y: Math.max(...configuration.items.map(i => i.y + i.h), 0),
-        w: 6,
+        w: 12,
         h: 3,
         minW: 4,
         minH: 3,
@@ -829,14 +829,14 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
             id: `dept-header-${deptName}-${Date.now()}`,
             type: 'department-header' as const,
             content: { department: deptName, displayName: 'New Department' },
-            x: 0, y: 0, w: 6, h: 1,
+            x: 0, y: 0, w: 12, h: 1,
             minW: 2, minH: 1
           },
           {
             id: `dept-notes-${deptName}-${Date.now()}`,
             type: 'notes' as const,
             content: { department: deptName },
-            x: 0, y: 1, w: 6, h: 2,
+            x: 0, y: 1, w: 12, h: 2,
             minW: 3, minH: 1
           }
         ]
