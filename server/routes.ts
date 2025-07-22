@@ -745,17 +745,23 @@ async function requiresActiveSubscription(req: any, res: any, next: any) {
       return res.status(401).json({ message: "User not found" });
     }
 
-    // Allow access if user has active subscription or is in trial
+    // Allow access if user has any valid status or is admin
+    // Free accounts have full access - billing restrictions only apply to past_due/canceled
     const hasActiveAccess = user.subscriptionStatus === 'active' || 
                            user.subscriptionStatus === 'trialing' ||
-                           user.subscriptionStatus === 'free' || // Free tier access
+                           user.subscriptionStatus === 'free' || // Free accounts get full access
                            user.isAdmin; // Admins always have access
 
-    if (!hasActiveAccess) {
+    // Only block users with problematic payment status
+    const isBlocked = user.subscriptionStatus === 'past_due' ||
+                     user.subscriptionStatus === 'canceled' ||
+                     user.subscriptionStatus === 'incomplete';
+
+    if (isBlocked && !user.isAdmin) {
       return res.status(402).json({ 
-        message: "Active subscription required", 
+        message: "Subscription payment required", 
         subscriptionStatus: user.subscriptionStatus,
-        reason: "subscription_required"
+        reason: "payment_required"
       });
     }
 

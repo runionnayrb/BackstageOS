@@ -314,9 +314,11 @@ Required environment variables:
 - **Theatre**: Custom pricing - Base price for first user + additional per-user pricing for theater companies
 
 **Access Control Strategy**:
+- Free accounts have full platform access (admin-designated)
 - Current beta users can be grandfathered with permanent free access
 - Complimentary access available for trusted testers and partnerships
 - Trial period for new users before subscription requirement
+- Only past_due/canceled subscriptions have restricted access
 - Admin dashboard manages all access types (paid, free, trial, grandfathered)
 
 **Implementation Plan**: Database schema extension → Access control integration → Admin dashboard enhancement → Payment integration → Beta-to-production migration with grandfathered pricing for early adopters
