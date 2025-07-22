@@ -717,8 +717,25 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const lastLayoutRef = useRef<{[key: string]: {x: number, y: number, w: number, h: number}}>({});
 
-  const handleLayoutChange = (layout: Layout[], allLayouts: Layouts) => {
+  const handleLayoutChange = useCallback((layout: Layout[], allLayouts: Layouts) => {
     if (!effectiveEditMode) return;
+
+    // Create a serialized representation of the current layout to check for changes
+    const currentLayoutString = JSON.stringify(
+      configuration.items.map(item => ({ id: item.id, x: item.x, y: item.y, w: item.w, h: item.h }))
+        .sort((a, b) => a.id.localeCompare(b.id))
+    );
+
+    // Create a serialized representation of the new layout
+    const newLayoutString = JSON.stringify(
+      layout.map(item => ({ id: item.i, x: item.x, y: item.y, w: item.w, h: item.h }))
+        .sort((a, b) => a.id.localeCompare(b.id))
+    );
+
+    // If the layouts are identical, don't trigger an update
+    if (currentLayoutString === newLayoutString) {
+      return;
+    }
 
     let updatedItems = configuration.items.map(item => {
       const layoutItem = layout.find(l => l.i === item.id);
@@ -734,60 +751,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       return item;
     });
 
-    // Check if anything actually changed to prevent unnecessary updates
-    const hasChanges = updatedItems.some((item, index) => {
-      const originalItem = configuration.items[index];
-      return !originalItem || 
-             Math.abs(item.x - originalItem.x) > 0.1 ||
-             Math.abs(item.y - originalItem.y) > 0.1 ||
-             Math.abs(item.w - originalItem.w) > 0.1 ||
-             Math.abs(item.h - originalItem.h) > 0.1;
-    });
-
-    if (!hasChanges) {
-      return; // No significant changes, skip update
-    }
-
-    // Check if this is a position change (drag) vs a size change (resize)
-    const isPositionChange = updatedItems.some(item => {
-      const lastPos = lastLayoutRef.current[item.id];
-      if (!lastPos) return true;
-      
-      // Check if position changed (x or y) - indicates drag
-      const xChanged = Math.abs(item.x - lastPos.x) > 0.5;
-      const yChanged = Math.abs(item.y - lastPos.y) > 0.5;
-      
-      return xChanged || yChanged;
-    });
-
-    // Check if this is a size change only (resize) 
-    const isSizeChangeOnly = updatedItems.some(item => {
-      const lastPos = lastLayoutRef.current[item.id];
-      if (!lastPos) return false;
-      
-      // Position didn't change but size did - indicates manual resize
-      const positionUnchanged = Math.abs(item.x - lastPos.x) <= 0.5 && Math.abs(item.y - lastPos.y) <= 0.5;
-      const sizeChanged = Math.abs(item.w - lastPos.w) > 0.5 || Math.abs(item.h - lastPos.h) > 0.5;
-      
-      return positionUnchanged && sizeChanged;
-    });
-
-    // Only apply intelligent width calculation for position changes, not manual resizes
-    if (isPositionChange && !isSizeChangeOnly && effectiveEditMode && !isDragging) {
-      console.log('🎯 Applying intelligent width calculation due to position change');
-      updatedItems = calculateIntelligentWidths(updatedItems);
-    }
-
-    // Update position tracking
-    updatedItems.forEach(item => {
-      lastLayoutRef.current[item.id] = {
-        x: item.x,
-        y: item.y,
-        w: item.w,
-        h: item.h
-      };
-    });
-
     const newConfig = {
       ...configuration,
       items: updatedItems
@@ -795,7 +758,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
     setConfiguration(newConfig);
     onConfigurationChange?.(newConfig);
-  };
+  }, [effectiveEditMode, configuration.items, onConfigurationChange]);
 
   const handleDragStart = () => {
     setIsDragging(true);
