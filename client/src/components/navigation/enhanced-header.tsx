@@ -418,7 +418,7 @@ export default function EnhancedHeader() {
                   
                   <DropdownMenuItem onClick={() => setLocation('/billing')}>
                     <CreditCard className="mr-2 h-4 w-4" />
-                    Billing
+                    Billing Settings
                   </DropdownMenuItem>
 
                   <DropdownMenuItem onClick={() => setLocation('/feedback')}>

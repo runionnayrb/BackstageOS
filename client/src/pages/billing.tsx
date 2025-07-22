@@ -11,7 +11,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   CreditCard, 
   Calendar, 
-  User, 
   AlertCircle, 
   Check, 
   X, 
@@ -77,28 +76,7 @@ export default function Billing() {
     }
   });
 
-  // Switch profile type mutation
-  const switchProfileMutation = useMutation({
-    mutationFn: async (profileType: string) => {
-      const res = await apiRequest('POST', '/api/user/profile-type', { profileType });
-      return res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: "Profile Updated",
-        description: "Your profile type has been updated successfully.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-      window.location.reload(); // Refresh to show updated interface
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Update Failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
+
 
   const handleStartSubscription = async () => {
     setIsProcessing(true);
@@ -296,52 +274,7 @@ export default function Billing() {
           </CardContent>
         </Card>
 
-        {/* Profile Management */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Profile Settings
-            </CardTitle>
-            <CardDescription>
-              Update your account preferences
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div>
-              <p className="text-sm font-medium mb-2">Current Profile Type</p>
-              <Badge variant="outline" className="mb-3">
-                {user?.profileType === 'freelance' ? 'Freelance Stage Manager' : 'Full-time Theater Professional'}
-              </Badge>
-            </div>
-            
-            <Separator />
-            
-            <p className="text-sm text-muted-foreground">Switch profile type:</p>
-            
-            {user?.profileType !== 'freelance' && (
-              <Button
-                onClick={() => switchProfileMutation.mutate('freelance')}
-                disabled={switchProfileMutation.isPending}
-                variant="outline"
-                className="w-full"
-              >
-                Switch to Freelance
-              </Button>
-            )}
-            
-            {user?.profileType !== 'fulltime' && (
-              <Button
-                onClick={() => switchProfileMutation.mutate('fulltime')}
-                disabled={switchProfileMutation.isPending}
-                variant="outline"
-                className="w-full"
-              >
-                Switch to Full-time
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+
       </div>
 
       {/* Billing History */}
