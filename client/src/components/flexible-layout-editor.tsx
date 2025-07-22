@@ -520,7 +520,23 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
         setTimeout(() => setIsLayoutMounted(true), 150);
       } else {
         console.log('🔄 Using saved configuration directly');
-        setConfiguration(savedConfig);
+        // Filter out any footer items from saved configuration since footers are handled by template-settings.tsx
+        const filteredConfig = {
+          ...savedConfig,
+          items: savedConfig.items.filter((item: any) => item.type !== 'footer' && item.id !== 'template-footer')
+        };
+        
+        // Check if we actually filtered out any footer items
+        const hadFooterItems = savedConfig.items.length !== filteredConfig.items.length;
+        if (hadFooterItems) {
+          console.log('🧹 Filtered out footer items from saved configuration - forcing save');
+          // Reset user edit flag to allow this cleanup save
+          setUserHasEditedLayout(false);
+          // Save the filtered configuration to permanently remove footer items
+          onConfigurationChange?.(filteredConfig);
+        }
+        
+        setConfiguration(filteredConfig);
         setTimeout(() => setIsLayoutMounted(true), 150);
       }
       setInitialLoadComplete(true);
@@ -541,8 +557,8 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
   // Convert configuration items to react-grid-layout format
   const convertToGridLayouts = useCallback((items: LayoutItem[]) => {
-    // Use the same layout data for both edit and view modes to ensure consistency
-    const finalItems = items;
+    // Filter out footer items at render time since footers are handled by template-settings.tsx
+    const finalItems = items.filter(item => item.type !== 'footer' && item.id !== 'template-footer');
     
     console.log('🔍 Converting to grid layouts:', { 
       effectiveEditMode, 
