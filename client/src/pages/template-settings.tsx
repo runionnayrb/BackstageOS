@@ -781,20 +781,23 @@ export default function TemplateSettings() {
                           saveTemplate.mutate(updatedTemplate);
                         }}
                         onConfigurationChange={async (config) => {
+                          console.log('💾 Saving layout configuration:', config);
                           setIsSaving(true);
                           try {
-                            await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
+                            const response = await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
                               layoutConfiguration: config
                             });
+                            console.log('✅ Layout configuration saved successfully:', response);
                             
                             // Invalidate cache to refresh settings with new updatedAt timestamp
                             queryClient.invalidateQueries({
                               queryKey: ['/api/projects', projectId, 'settings']
                             });
+                            console.log('🔄 Cache invalidated after layout save');
                             
                             setLastSaved(new Date());
                           } catch (error) {
-                            console.error('Failed to save layout configuration:', error);
+                            console.error('❌ Failed to save layout configuration:', error);
                           } finally {
                             setIsSaving(false);
                           }

@@ -475,6 +475,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     gridGap: 4
   }));
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -485,9 +486,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     enabled: !!projectId
   });
 
-  // Initialize layout when template is available
+  // Initialize layout when template is available (only on first load)
   useEffect(() => {
-    if (template && configuration.items.length === 0) {
+    if (template && configuration.items.length === 0 && !initialLoadComplete && !showSettings?.layoutConfiguration) {
       const initialConfig = {
         items: generateLayoutFromTemplate(),
         gridCols: 12,
@@ -498,21 +499,20 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       // Delay showing layout until after dimensions are calculated
       setTimeout(() => setIsLayoutMounted(true), 150);
     }
-  }, [template, generateLayoutFromTemplate, configuration.items.length]);
-
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  }, [template, generateLayoutFromTemplate, configuration.items.length, initialLoadComplete, showSettings]);
 
   // Load configuration from settings (with migration to grouped format)
   useEffect(() => {
     if ((showSettings as any)?.layoutConfiguration && !initialLoadComplete) {
       const savedConfig = (showSettings as any).layoutConfiguration;
+      console.log('🔄 Loading saved layout configuration:', savedConfig);
       
       // Check if saved config uses old format (individual items) or new format (grouped sections)
       const hasGroupedSections = savedConfig.items?.some((item: any) => item.type === 'grouped-section');
       
       if (!hasGroupedSections && template) {
         // Migration needed: convert to grouped format
-        console.log('Migrating layout to grouped format');
+        console.log('🔄 Migrating layout to grouped format');
         const newLayoutItems = generateLayoutFromTemplate();
         const newConfig = {
           ...savedConfig,
@@ -521,12 +521,16 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
         setConfiguration(newConfig);
         setTimeout(() => setIsLayoutMounted(true), 150);
       } else {
+        console.log('🔄 Using saved configuration directly');
         setConfiguration(savedConfig);
         setTimeout(() => setIsLayoutMounted(true), 150);
       }
       setInitialLoadComplete(true);
+    } else if ((showSettings as any)?.layoutConfiguration && initialLoadComplete) {
+      // Don't reload if we've already loaded - this prevents resetting after saves
+      console.log('🚫 Skipping configuration reload - already loaded');
     }
-  }, [showSettings, template, initialLoadComplete]);
+  }, [showSettings, template, initialLoadComplete, generateLayoutFromTemplate]);
 
   // Helper function to snap width to quarters (25%, 50%, 75%, 100%)
   const snapToQuarters = useCallback((width: number) => {
