@@ -455,17 +455,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       });
     });
     
-    // Add footer at the bottom (full width)
-    const maxYPosition = Math.max(...items.map(item => item.y + item.h), 0);
-    items.push({
-      id: 'template-footer',
-      type: 'footer' as const,
-      content: { text: template.footer || 'Click to edit footer' },
-      x: 0, y: maxYPosition + 1, w: 12, h: 2,
-      minW: 6, minH: 1,
-      isResizable: true
-    });
-    
     return items;
   }, [template]);
 
