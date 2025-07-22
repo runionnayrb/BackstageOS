@@ -1,4 +1,4 @@
-import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus, FileText, Calendar, TrendingUp, CheckSquare } from "lucide-react";
+import { Settings, Users, LogOut, ChevronDown, MessageSquare, UserCheck, Shield, Globe, Search, Bot, Menu, Mail, FolderOpen, Plus, FileText, Calendar, TrendingUp, CheckSquare, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -412,10 +412,17 @@ export default function EnhancedHeader() {
                   <DropdownMenuSeparator />
                   
                   <DropdownMenuItem onClick={() => setLocation('/profile')}>
+                    <Settings className="mr-2 h-4 w-4" />
                     Profile Settings
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem onClick={() => setLocation('/billing')}>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Billing
                   </DropdownMenuItem>
 
                   <DropdownMenuItem onClick={() => setLocation('/feedback')}>
+                    <MessageSquare className="mr-2 h-4 w-4" />
                     Send Feedback
                   </DropdownMenuItem>
 
