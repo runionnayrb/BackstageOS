@@ -36,37 +36,21 @@ export default function Header() {
   const [defaultUserId, setDefaultUserId] = useState<string>("");
 
   // Fetch profile types for dynamic dropdown
-  const { data: profileTypes = [], isLoading: profileTypesLoading, error: profileTypesError } = useQuery({
+  const { data: profileTypes = [] } = useQuery({
     queryKey: ['/api/admin/account-types'],
     enabled: isAdmin(user),
     queryFn: async () => {
-      console.log('Header: Fetching profile types...');
       const response = await fetch('/api/admin/account-types', { 
         credentials: 'include' 
       });
       
       if (!response.ok) {
-        console.error('Header: Profile types fetch failed:', response.status, response.statusText);
         throw new Error(`Failed to fetch profile types: ${response.status}`);
       }
       
-      const data = await response.json();
-      console.log('Header: Profile types received:', data);
-      return data;
+      return response.json();
     },
-    select: (data: any[]) => {
-      console.log('Header: Profile types selected:', data);
-      return data || [];
-    },
-  });
-
-  // Log profile types state
-  console.log('Header: Profile types state:', {
-    profileTypes,
-    profileTypesLoading,
-    profileTypesError,
-    isAdminUser: isAdmin(user),
-    userLoaded: !!user
+    select: (data: any[]) => data || [],
   });
 
   // Fetch all users for account switching (admin only)
@@ -212,19 +196,6 @@ export default function Header() {
 
   const currentUser = switchStatus?.isViewingAs ? switchStatus?.viewingUser : user;
 
-  // Debug logging for admin check
-  console.log("Header debug:", {
-    user,
-    isAdminResult: isAdmin(user),
-    userId: user?.id,
-    userEmail: user?.email,
-    allUsers: allUsers.length,
-    profileTypes: profileTypes.length,
-    profileTypesData: profileTypes,
-    selectedBetaAccess,
-    selectedProfileType
-  });
-
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -290,9 +261,7 @@ export default function Header() {
                           {profileType.name}
                         </SelectItem>
                       ))}
-                      {profileTypes.length === 0 && (
-                        <SelectItem value="loading" disabled>Loading...</SelectItem>
-                      )}
+
                     </SelectContent>
                   </Select>
                 </div>
@@ -418,9 +387,7 @@ export default function Header() {
                               {profileType.name}
                             </SelectItem>
                           ))}
-                          {profileTypes.length === 0 && (
-                            <SelectItem value="loading" disabled>Loading...</SelectItem>
-                          )}
+
                         </SelectContent>
                       </Select>
                     </div>
