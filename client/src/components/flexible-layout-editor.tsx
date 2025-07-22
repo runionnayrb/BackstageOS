@@ -573,15 +573,12 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
   // Helper function to calculate intelligent widths based on side-by-side positioning
   const calculateIntelligentWidths = useCallback((items: LayoutItem[]) => {
-    const processedItems = [...items];
+    // Skip intelligent width calculation during edit mode to prevent constant adjustments
+    if (effectiveEditMode) {
+      return items;
+    }
     
-    console.log('🔍 Input items for width calculation:', items.map(item => ({
-      id: item.id,
-      x: item.x,
-      y: item.y,
-      w: item.w,
-      h: item.h
-    })));
+    const processedItems = [...items];
     
     // Find actual side-by-side groups by checking X position overlap in addition to Y
     const sideBySideGroups: LayoutItem[][] = [];
@@ -605,24 +602,14 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                                 Math.abs(otherItem.x - (currentItem.x + currentItem.w)) <= 1 ||
                                 (currentItem.x < otherItem.x + otherItem.w && otherItem.x < currentItem.x + currentItem.w);
         
-        console.log(`🔍 Checking ${currentItem.id} vs ${otherItem.id}:`, {
-          yOverlap,
-          xNextToEachOther,
-          currentItem: { x: currentItem.x, y: currentItem.y, w: currentItem.w, h: currentItem.h },
-          otherItem: { x: otherItem.x, y: otherItem.y, w: otherItem.w, h: otherItem.h }
-        });
-        
         if (yOverlap && xNextToEachOther) {
           sideBySideGroup.push(otherItem);
           processedItemIds.add(otherItem.id);
         }
       });
       
-      console.log(`🔍 Side-by-side group for ${currentItem.id}:`, sideBySideGroup.map(item => item.id));
       sideBySideGroups.push(sideBySideGroup);
     });
-    
-    console.log('🔍 All side-by-side groups:', sideBySideGroups.map(group => group.map(item => item.id)));
     
     // Process each side-by-side group
     sideBySideGroups.forEach(groupItems => {
@@ -631,7 +618,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
         const item = groupItems[0];
         const itemIndex = processedItems.findIndex(p => p.id === item.id);
         if (itemIndex !== -1) {
-          console.log(`🔍 Setting single item ${item.id} to full width (12)`);
           processedItems[itemIndex] = {
             ...processedItems[itemIndex],
             w: 12, // Full width for single components
@@ -647,8 +633,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
         // Sort by x position for proper ordering
         groupItems.sort((a, b) => a.x - b.x);
         
-        console.log(`🔍 Distributing width for ${groupItems.length} side-by-side items:`, groupItems.map(item => item.id));
-        
         groupItems.forEach((item, index) => {
           const itemIndex = processedItems.findIndex(p => p.id === item.id);
           if (itemIndex !== -1) {
@@ -659,29 +643,18 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
               minW: 3, // Minimum 25% (3/12)
               maxW: 12 // Can expand to full width
             };
-            console.log(`🔍 Set ${item.id} to width ${snapToQuarters(equalWidth)}`);
           }
         });
       }
     });
     
     return processedItems;
-  }, [snapToQuarters]);
+  }, [snapToQuarters, effectiveEditMode]);
 
   // Convert configuration items to react-grid-layout format
   const convertToGridLayouts = useCallback((items: LayoutItem[]) => {
     // Apply intelligent width calculations
     const intelligentItems = calculateIntelligentWidths(items);
-    console.log('🎯 Converting to grid layouts:', {
-      originalItems: items.length,
-      intelligentItems: intelligentItems.length,
-      widthChanges: intelligentItems.map(item => ({ 
-        id: item.id, 
-        originalW: items.find(orig => orig.id === item.id)?.w,
-        newW: item.w,
-        y: item.y 
-      }))
-    });
     
     const layout = intelligentItems.map(item => ({
       i: item.id,
@@ -731,13 +704,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     });
 
     // Apply intelligent width adjustments after drag/resize
-    const originalLength = updatedItems.length;
     updatedItems = calculateIntelligentWidths(updatedItems);
-    console.log('🎯 Intelligent width calculation applied:', {
-      originalLength,
-      processedLength: updatedItems.length,
-      widths: updatedItems.map(item => ({ id: item.id, w: item.w, y: item.y }))
-    });
 
     const newConfig = {
       ...configuration,
