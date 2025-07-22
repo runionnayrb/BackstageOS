@@ -170,8 +170,8 @@ const defaultGlobalSettings: Omit<GlobalTemplateSettings, "id" | "projectId"> = 
   },
   dateFormat: "MM/DD/YYYY",
   timeFormat: "12h",
-  defaultHeader: '<div style="text-align: center; font-weight: bold;">{{showName}} - {{reportType}}<br>Date: {{date}}<br>Stage Manager: {{stageManager}}</div>',
-  defaultFooter: '<div style="text-align: center; color: #666666;">Prepared by: {{preparedBy}}<br>Next report: {{nextReportDate}}</div>',
+  defaultHeader: '{{showName}}, {{reportType}}, {{date}}',
+  defaultFooter: 'Page {{pageNumber}} of {{totalPages}}',
   email: {
     distributionLists: {
       to: [],
@@ -1091,23 +1091,14 @@ export default function GlobalTemplateSettings() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Header Content</Label>
-                      <RichTextEditor
-                        content={settings.defaultHeader}
-                        onChange={(content) => setSettings(prev => ({
+                      <Textarea
+                        value={settings.defaultHeader}
+                        onChange={(e) => setSettings(prev => ({
                           ...prev,
-                          defaultHeader: content
+                          defaultHeader: e.target.value
                         }))}
-                        placeholder="Enter header content with rich formatting..."
+                        placeholder="Enter header content with variables like {{showName}}, {{reportType}}, {{date}}"
                         className="min-h-[120px]"
-                        showPageNumbers={true}
-                        pageNumberFormat={settings.pageNumbering.format}
-                        onPageNumberFormatChange={(format) => setSettings(prev => ({
-                          ...prev,
-                          pageNumbering: {
-                            ...prev.pageNumbering,
-                            format: format as "1" | "1 of X" | "Page 1" | "Page 1 of X"
-                          }
-                        }))}
                       />
                       <p className="text-sm text-muted-foreground">
                         Use variables: {`{{showName}}, {{reportType}}, {{date}}, {{stageManager}}, {{venue}}`} • Use the page number dropdown and Insert button on the right side of the toolbar
@@ -1159,23 +1150,14 @@ export default function GlobalTemplateSettings() {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Footer Content</Label>
-                      <RichTextEditor
-                        content={settings.defaultFooter}
-                        onChange={(content) => setSettings(prev => ({
+                      <Textarea
+                        value={settings.defaultFooter}
+                        onChange={(e) => setSettings(prev => ({
                           ...prev,
-                          defaultFooter: content
+                          defaultFooter: e.target.value
                         }))}
-                        placeholder="Enter footer content with rich formatting..."
+                        placeholder="Enter footer content with variables like {{preparedBy}}, {{pageNumber}}, {{totalPages}}"
                         className="min-h-[100px]"
-                        showPageNumbers={true}
-                        pageNumberFormat={settings.pageNumbering.format}
-                        onPageNumberFormatChange={(format) => setSettings(prev => ({
-                          ...prev,
-                          pageNumbering: {
-                            ...prev.pageNumbering,
-                            format: format as "1" | "1 of X" | "Page 1" | "Page 1 of X"
-                          }
-                        }))}
                       />
                       <p className="text-sm text-muted-foreground">
                         Use variables: {`{{preparedBy}}, {{nextReportDate}}, {{contactInfo}}, {{emergencyContact}}`} • Use the page number dropdown and Insert button on the right side of the toolbar
