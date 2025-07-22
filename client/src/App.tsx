@@ -73,6 +73,8 @@ import PublicEventTypeCalendar from "@/pages/public-event-type-calendar";
 import DailyCallsList from "@/pages/daily-calls-list";
 import DailyCallSheet from "@/pages/daily-calls";
 import ArchivedShows from "@/pages/archived-shows";
+import Checkout from "@/pages/checkout";
+import Subscribe from "@/pages/subscribe";
 
 
 function Router() {
@@ -241,6 +243,8 @@ function Router() {
         <Route path="/test-notes" component={TestNotesPage} />
         <Route path="/test-image-upload" component={TestImageUpload} />
         <Route path="/navigation-demo" component={NavigationDemo} />
+        <Route path="/checkout" component={Checkout} />
+        <Route path="/subscribe" component={Subscribe} />
         <Route component={NotFound} />
         </Switch>
       </Layout>

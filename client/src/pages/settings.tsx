@@ -14,6 +14,7 @@ import { z } from "zod";
 import { insertSeasonSchema, insertVenueSchema, type Season, type Venue } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import BillingStatus from "@/components/BillingStatus";
 
 const SeasonFormSchema = insertSeasonSchema.omit({ userId: true });
 const VenueFormSchema = insertVenueSchema.omit({ userId: true });
@@ -373,7 +374,7 @@ export default function Settings() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid gap-8 md:grid-cols-2">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {/* Seasons */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
@@ -504,6 +505,11 @@ export default function Settings() {
               )}
             </CardContent>
           </Card>
+
+          {/* Billing Status */}
+          <div className="md:col-span-2 lg:col-span-1">
+            <BillingStatus />
+          </div>
         </div>
       </div>
     </div>
