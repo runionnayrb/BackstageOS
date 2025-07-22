@@ -655,14 +655,9 @@ export default function TemplateSettings() {
                     <CardTitle>
                       {template.name}
                     </CardTitle>
-                    {/* Auto-save indicator */}
+                    {/* Updated timestamp without loading animation */}
                     <div className="text-sm text-gray-500 mt-1">
-                      {isSaving ? (
-                        <span className="flex items-center gap-1">
-                          <div className="animate-spin h-3 w-3 border border-gray-300 border-t-blue-500 rounded-full"></div>
-                          Saving...
-                        </span>
-                      ) : showSettings?.updatedAt ? (
+                      {showSettings?.updatedAt ? (
                         <span>
                           Updated: {(() => {
                             // Parse user's schedule settings for time format and timezone
