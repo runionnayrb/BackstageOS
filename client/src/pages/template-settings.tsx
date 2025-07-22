@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -182,10 +182,15 @@ export default function TemplateSettings() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newDepartmentName, setNewDepartmentName] = useState("");
 
+  // Ref to connect to FlexibleLayoutEditor
+  const flexibleLayoutRef = useRef<{ addNewItem: (type: string) => void; removeItem: (id: string) => void; resetLayout: () => void } | null>(null);
+
   // Toolbar functions
   const addNewItem = (type: string) => {
-    // This will be passed to FlexibleLayoutEditor via a ref or props
     console.log('Add new item:', type);
+    if (flexibleLayoutRef.current) {
+      flexibleLayoutRef.current.addNewItem(type);
+    }
   };
 
   const handleResetClick = () => {
