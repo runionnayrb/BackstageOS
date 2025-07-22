@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { Responsive, WidthProvider, Layout, Layouts } from 'react-grid-layout';
@@ -81,6 +81,12 @@ interface FlexibleLayoutEditorProps {
 
   // External edit mode control
   externalEditMode?: boolean;
+}
+
+export interface FlexibleLayoutEditorRef {
+  addNewItem: (type: string) => void;
+  removeItem: (id: string) => void;
+  resetLayout: () => void;
 }
 
 // Draggable component wrapper for grid items
@@ -346,7 +352,7 @@ const LayoutItemRenderer: React.FC<{
   }
 };
 
-export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
+export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, FlexibleLayoutEditorProps>(({
   projectId,
   reportId,
   reportType = 'tech',
@@ -358,7 +364,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   setIsSaving,
   setLastSaved,
   externalEditMode
-}) => {
+}, ref) => {
   const [isEditMode, setIsEditMode] = useState(isEditing);
   const [layouts, setLayouts] = useState<Layouts>({});
   const [showResetDialog, setShowResetDialog] = useState(false);
@@ -367,6 +373,13 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   
   // Use external edit mode if provided, otherwise use internal state
   const effectiveEditMode = externalEditMode !== undefined ? externalEditMode : isEditMode;
+
+  // Expose functions to parent component via ref
+  useImperativeHandle(ref, () => ({
+    addNewItem,
+    removeItem,
+    resetLayout
+  }), []);
 
   // Helper function to convert date to day of week
   const formatDayOfWeek = useCallback((dateString: string) => {
@@ -1024,6 +1037,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       </AlertDialog>
     </DndProvider>
   );
-};
+});
 
 export default FlexibleLayoutEditor;

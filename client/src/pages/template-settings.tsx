@@ -777,6 +777,7 @@ export default function TemplateSettings() {
                     {selectedPhase === 'tech' ? (
                       /* Flexible Layout Editor for entire tech template */
                       <FlexibleLayoutEditor
+                        ref={flexibleLayoutRef}
                         projectId={parseInt(params.id)}
                         reportType="tech"
                         isEditing={true}
