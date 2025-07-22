@@ -8,12 +8,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
-import { Edit2, Trash2, Save, X, CreditCard, Calendar } from "lucide-react";
+import { Edit2, Trash2, Save, X, CreditCard, Calendar, Settings } from "lucide-react";
 
 interface UserAnalytics {
   id: number;
@@ -72,11 +75,18 @@ const BETA_FEATURES = [
 ];
 
 export default function UserAnalyticsSimple() {
-  const [editingUser, setEditingUser] = useState<number | null>(null);
+  const [editingUser, setEditingUser] = useState<UserAnalytics | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editData, setEditData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    username: '',
     profileType: '',
-    betaAccess: false,
-    betaFeatures: [] as string[],
+    isActive: true,
+    subscriptionStatus: '',
+    subscriptionPlan: '',
+    grandfatheredFree: false,
     isAdmin: false
   });
   const { toast } = useToast();
@@ -107,6 +117,7 @@ export default function UserAnalyticsSimple() {
         description: "User settings have been saved.",
       });
       setEditingUser(null);
+      setIsEditDialogOpen(false);
     },
     onError: () => {
       toast({
@@ -160,40 +171,45 @@ export default function UserAnalyticsSimple() {
   });
 
   const handleEdit = (user: UserAnalytics) => {
-    setEditingUser(user.id);
+    setEditingUser(user);
     setEditData({
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      email: user.email || '',
+      username: user.username || '',
       profileType: user.profileType || '',
-      betaAccess: user.betaAccess,
-      betaFeatures: user.betaFeatures || [],
+      isActive: user.isActive,
+      subscriptionStatus: user.subscriptionStatus || '',
+      subscriptionPlan: user.subscriptionPlan || '',
+      grandfatheredFree: user.grandfatheredFree,
       isAdmin: user.isAdmin
     });
+    setIsEditDialogOpen(true);
   };
 
   const handleSave = () => {
     if (!editingUser) return;
     updateMutation.mutate({
-      userId: editingUser,
+      userId: editingUser.id,
       updates: editData
     });
   };
 
   const handleCancel = () => {
     setEditingUser(null);
+    setIsEditDialogOpen(false);
     setEditData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      username: '',
       profileType: '',
-      betaAccess: false,
-      betaFeatures: [],
+      isActive: true,
+      subscriptionStatus: '',
+      subscriptionPlan: '',
+      grandfatheredFree: false,
       isAdmin: false
     });
-  };
-
-  const handleFeatureToggle = (featureId: string, checked: boolean) => {
-    setEditData(prev => ({
-      ...prev,
-      betaFeatures: checked 
-        ? [...prev.betaFeatures, featureId]
-        : prev.betaFeatures.filter(f => f !== featureId)
-    }));
   };
 
   const getActivityBadge = (level: string) => {
@@ -342,8 +358,7 @@ export default function UserAnalyticsSimple() {
                             {user.isAdmin && <span className="text-xs text-blue-600 ml-2">Admin</span>}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {user.profileType && `${user.profileType} • `}
-                            {user.betaAccess ? 'Beta Access' : 'No Beta'}
+                            {user.profileType && `${user.profileType}`}
                           </div>
                         </div>
                       </PopoverTrigger>
@@ -356,18 +371,7 @@ export default function UserAnalyticsSimple() {
                             <div>Sessions: {user.sessionStats.totalSessions}</div>
                             <div>Avg Session: {formatTime(user.sessionStats.averageSession)}</div>
                           </div>
-                          {user.betaFeatures && user.betaFeatures.length > 0 && (
-                            <div>
-                              <div className="text-sm font-medium mb-1">Beta Features:</div>
-                              <div className="flex flex-wrap gap-1">
-                                {user.betaFeatures.map(feature => (
-                                  <Badge key={feature} variant="outline" className="text-xs">
-                                    {BETA_FEATURES.find(f => f.id === feature)?.label || feature}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+
                           {user.costBreakdown.length > 0 && (
                             <div>
                               <div className="text-sm font-medium mb-1">Cost Breakdown:</div>
@@ -523,7 +527,7 @@ export default function UserAnalyticsSimple() {
 
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      {editingUser === user.id ? (
+                      {editingUser?.id === user.id ? (
                         <>
                           <Button
                             size="sm"
@@ -576,7 +580,7 @@ export default function UserAnalyticsSimple() {
                           variant="ghost"
                           onClick={() => handleEdit(user)}
                         >
-                          <Edit2 className="h-3 w-3" />
+                          <Settings className="h-3 w-3" />
                         </Button>
                       )}
                     </div>
@@ -586,80 +590,172 @@ export default function UserAnalyticsSimple() {
             </TableBody>
           </Table>
 
-          {editingUser && (
-            <div className="mt-6 p-4 border rounded-lg bg-gray-50">
-              <h3 className="font-medium mb-4">Edit User Settings</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Profile Type</label>
-                  <Select
-                    value={editData.profileType}
-                    onValueChange={(value) => setEditData(prev => ({ ...prev, profileType: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select profile type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="freelance">Freelance</SelectItem>
-                      <SelectItem value="fulltime">Full-time</SelectItem>
-                    </SelectContent>
-                  </Select>
+          {/* Comprehensive User Edit Dialog */}
+          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Edit User Profile</DialogTitle>
+                <DialogDescription>
+                  Update user information, account status, and subscription details.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="grid grid-cols-2 gap-6">
+                {/* Personal Information */}
+                <div className="space-y-4">
+                  <div className="font-medium text-sm text-gray-700">Personal Information</div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="firstName">First Name</Label>
+                    <Input
+                      id="firstName"
+                      value={editData.firstName}
+                      onChange={(e) => setEditData(prev => ({ ...prev, firstName: e.target.value }))}
+                      placeholder="Enter first name"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="lastName">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      value={editData.lastName}
+                      onChange={(e) => setEditData(prev => ({ ...prev, lastName: e.target.value }))}
+                      placeholder="Enter last name"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={editData.email}
+                      onChange={(e) => setEditData(prev => ({ ...prev, email: e.target.value }))}
+                      placeholder="Enter email address"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      value={editData.username}
+                      onChange={(e) => setEditData(prev => ({ ...prev, username: e.target.value }))}
+                      placeholder="Enter username"
+                    />
+                  </div>
                 </div>
-                
-                <div>
+
+                {/* Account & Subscription Settings */}
+                <div className="space-y-4">
+                  <div className="font-medium text-sm text-gray-700">Account & Subscription</div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="profileType">Profile Type</Label>
+                    <Select
+                      value={editData.profileType}
+                      onValueChange={(value) => setEditData(prev => ({ ...prev, profileType: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select profile type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="freelance">Freelance</SelectItem>
+                        <SelectItem value="fulltime">Full-time</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
                   <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="beta-access"
-                      checked={editData.betaAccess}
+                    <Switch
+                      id="isActive"
+                      checked={editData.isActive}
                       onCheckedChange={(checked) => 
-                        setEditData(prev => ({ ...prev, betaAccess: checked as boolean }))
+                        setEditData(prev => ({ ...prev, isActive: checked }))
                       }
                     />
-                    <label htmlFor="beta-access" className="text-sm font-medium">
-                      Beta Access
-                    </label>
+                    <Label htmlFor="isActive">Account Active</Label>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="subscriptionStatus">Subscription Status</Label>
+                    <Select
+                      value={editData.subscriptionStatus}
+                      onValueChange={(value) => setEditData(prev => ({ ...prev, subscriptionStatus: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Free</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="trialing">Trialing</SelectItem>
+                        <SelectItem value="past_due">Past Due</SelectItem>
+                        <SelectItem value="canceled">Canceled</SelectItem>
+                        <SelectItem value="incomplete">Incomplete</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="subscriptionPlan">Subscription Plan</Label>
+                    <Select
+                      value={editData.subscriptionPlan}
+                      onValueChange={(value) => setEditData(prev => ({ ...prev, subscriptionPlan: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select plan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">No Plan</SelectItem>
+                        {billingPlans.map(plan => (
+                          <SelectItem key={plan.planId} value={plan.planId}>
+                            {plan.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="grandfatheredFree"
+                      checked={editData.grandfatheredFree}
+                      onCheckedChange={(checked) => 
+                        setEditData(prev => ({ ...prev, grandfatheredFree: checked }))
+                      }
+                    />
+                    <Label htmlFor="grandfatheredFree">Grandfathered Free Access</Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="isAdmin"
+                      checked={editData.isAdmin}
+                      onCheckedChange={(checked) => 
+                        setEditData(prev => ({ ...prev, isAdmin: checked }))
+                      }
+                    />
+                    <Label htmlFor="isAdmin">Administrator Access</Label>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="admin-status"
-                    checked={editData.isAdmin}
-                    onCheckedChange={(checked) => 
-                      setEditData(prev => ({ ...prev, isAdmin: checked as boolean }))
-                    }
-                  />
-                  <label htmlFor="admin-status" className="text-sm font-medium">
-                    Administrator Access
-                  </label>
-                </div>
-              </div>
-
-              {editData.betaAccess && (
-                <div className="mt-4">
-                  <label className="text-sm font-medium mb-2 block">Beta Features</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    {BETA_FEATURES.map(feature => (
-                      <div key={feature.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={feature.id}
-                          checked={editData.betaFeatures.includes(feature.id)}
-                          onCheckedChange={(checked) => 
-                            handleFeatureToggle(feature.id, checked as boolean)
-                          }
-                        />
-                        <label htmlFor={feature.id} className="text-sm">
-                          {feature.label}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+              <DialogFooter className="flex gap-2">
+                <Button variant="outline" onClick={handleCancel}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSave}
+                  disabled={updateMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </CardContent>
       </Card>
     </div>
