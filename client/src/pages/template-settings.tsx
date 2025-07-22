@@ -656,19 +656,19 @@ export default function TemplateSettings() {
                           <div className="animate-spin h-3 w-3 border border-gray-300 border-t-blue-500 rounded-full"></div>
                           Saving...
                         </span>
-                      ) : lastSaved ? (
+                      ) : showSettings?.updatedAt ? (
                         <span>
-                          Auto-saved at: {(() => {
+                          Updated: {(() => {
                             // Parse user's schedule settings for time format and timezone
                             const scheduleSettings = parseScheduleSettings(showSettings?.scheduleSettings);
                             const timeFormat = scheduleSettings.timeFormat === '24' ? '24' : '12';
                             const timezone = scheduleSettings.timezone;
                             
-                            return formatTimestamp(lastSaved, timeFormat, timezone);
+                            return formatTimestamp(new Date(showSettings.updatedAt), timeFormat, timezone);
                           })()}
                         </span>
                       ) : (
-                        <span>Auto-saved</span>
+                        <span>Updated</span>
                       )}
                     </div>
                   </div>
