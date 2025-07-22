@@ -654,175 +654,139 @@ export default function DailyCallSheet() {
     }
   };
 
-  const handlePrint = () => {
-    // Create a new window with the daily call content for printing
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      toast({
-        title: "Print Error",
-        description: "Please allow pop-ups to use the print function.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Get the daily call content element
-    const dailyCallElement = document.querySelector('#daily-call-content');
-    if (!dailyCallElement) {
-      toast({
-        title: "Print Error",
-        description: "Could not find daily call content to print.",
-        variant: "destructive",
-      });
-      printWindow.close();
-      return;
-    }
-
-    // Clone the element to avoid affecting the original
-    const clonedElement = dailyCallElement.cloneNode(true) as HTMLElement;
-    
-    // Hide the app footer from the print version
-    const appFooter = clonedElement.querySelector('.mt-8.pt-6.border-t.border-gray-200.text-center');
-    if (appFooter) {
-      appFooter.remove();
-    }
-
-    // Create HTML document for printing with identical styling to PDF
-    const html = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8">
-          <title>${format(parseISO(selectedDate), 'yyyy-MM-dd')}-${project?.name}-Daily Call</title>
-          <style>
-            @page {
-              size: letter;
-              margin: 8mm;
-            }
-            
-            @media print {
-              body {
-                margin: 0;
-                padding: 0;
-                font-family: system-ui, -apple-system, sans-serif;
-                background: white;
-                color: black;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-              
-              .print-footer {
-                position: fixed;
-                bottom: 0;
-                left: 50%;
-                transform: translateX(-50%);
-                width: 100%;
-                text-align: center;
-                font-size: 10px;
-                color: #666;
-                background: white;
-                padding-bottom: 8mm;
-              }
-              
-              .print-footer .subject {
-                font-weight: bold;
-                margin-bottom: 2px;
-              }
-              
-              .print-footer .page {
-                font-weight: normal;
-              }
-              
-              .print-content {
-                margin-bottom: 40px;
-                padding: 0 20px;
-              }
-              
-              /* Match all the styling from the original component */
-              .bg-gray-100 { background-color: #f3f4f6 !important; }
-              .bg-gray-50 { background-color: #f9fafb !important; }
-              .text-gray-600 { color: #4b5563 !important; }
-              .text-gray-700 { color: #374151 !important; }
-              .text-gray-800 { color: #1f2937 !important; }
-              .text-gray-900 { color: #111827 !important; }
-              .border-gray-200 { border-color: #e5e7eb !important; }
-              .border-gray-300 { border-color: #d1d5db !important; }
-              
-              /* Ensure proper spacing and layout */
-              .space-y-1 > * + * { margin-top: 0.25rem !important; }
-              .mt-1 { margin-top: 0.25rem !important; }
-              .mt-4 { margin-top: 1rem !important; }
-              .mt-6 { margin-top: 1.5rem !important; }
-              .mb-2 { margin-bottom: 0.5rem !important; }
-              .mb-4 { margin-bottom: 1rem !important; }
-              .p-4 { padding: 1rem !important; }
-              .px-3 { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
-              .py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
-              .py-4 { padding-top: 1rem !important; padding-bottom: 1rem !important; }
-              
-              /* Typography */
-              .text-xs { font-size: 0.75rem !important; }
-              .text-sm { font-size: 0.875rem !important; }
-              .text-base { font-size: 1rem !important; }
-              .text-lg { font-size: 1.125rem !important; }
-              .text-xl { font-size: 1.25rem !important; }
-              .text-2xl { font-size: 1.5rem !important; }
-              .text-3xl { font-size: 1.875rem !important; }
-              .font-medium { font-weight: 500 !important; }
-              .font-semibold { font-weight: 600 !important; }
-              .font-bold { font-weight: 700 !important; }
-              
-              /* Layout */
-              .grid { display: grid !important; }
-              .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-              .gap-6 { gap: 1.5rem !important; }
-              .flex { display: flex !important; }
-              .items-center { align-items: center !important; }
-              .justify-between { justify-content: space-between !important; }
-              .text-center { text-align: center !important; }
-              .text-right { text-align: right !important; }
-              
-              /* Borders and backgrounds */
-              .border-b { border-bottom: 1px solid !important; }
-              .border-t { border-top: 1px solid !important; }
-              .rounded { border-radius: 0.25rem !important; }
-            }
-            
-            @media screen {
-              body {
-                font-family: system-ui, -apple-system, sans-serif;
-                padding: 20px;
-                background: #f9fafb;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="print-content">
-            ${clonedElement.innerHTML}
-          </div>
-          <div class="print-footer">
-            <div class="subject">SUBJECT TO CHANGE</div>
-            <div class="page">Page 1 of 1</div>
-          </div>
-        </body>
-      </html>
-    `;
-
-    // Write the HTML to the print window
-    printWindow.document.write(html);
-    printWindow.document.close();
-
-    // Wait for content to load, then print
-    setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
+  const handlePrint = async () => {
+    try {
+      // Generate the PDF first using the same logic as exportToPDF
+      const { jsPDF } = await import('jspdf');
+      const html2canvas = (await import('html2canvas')).default;
       
-      // Close the print window after printing
-      setTimeout(() => {
-        printWindow.close();
-      }, 1000);
-    }, 500);
+      const dailyCallElement = document.querySelector('#daily-call-content');
+      if (!dailyCallElement) {
+        toast({
+          title: "Print Error",
+          description: "Could not find daily call content to print.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Clone and prepare element for PDF generation
+      const clonedElement = dailyCallElement.cloneNode(true) as HTMLElement;
+      clonedElement.style.width = '794px';
+      clonedElement.style.minHeight = 'auto';
+      clonedElement.style.backgroundColor = 'white';
+      clonedElement.style.boxShadow = 'none';
+      clonedElement.style.borderRadius = '0';
+      clonedElement.style.padding = '20px';
+      
+      // Hide the app footer
+      const appFooter = clonedElement.querySelector('.mt-8.pt-6.border-t.border-gray-200.text-center');
+      if (appFooter) {
+        appFooter.style.display = 'none';
+      }
+      
+      // Create canvas with high resolution
+      const canvas = await html2canvas(clonedElement, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: 'white',
+        logging: false,
+        width: 794,
+        windowWidth: 1200
+      });
+      
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'letter'
+      });
+      
+      const marginMm = 8;
+      const pageWidth = 215.9;
+      const pageHeight = 279.4;
+      const contentWidth = pageWidth - (2 * marginMm);
+      const contentHeight = pageHeight - (2 * marginMm);
+      
+      const imgWidth = contentWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Add content to PDF
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      
+      if (imgHeight <= contentHeight) {
+        // Single page
+        pdf.addImage(imgData, 'PNG', marginMm, marginMm, imgWidth, imgHeight);
+        
+        // Add footer
+        const footerStartY = pageHeight - marginMm - 8;
+        
+        pdf.setFontSize(10);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(100, 100, 100);
+        const subjectText = 'SUBJECT TO CHANGE';
+        const subjectTextWidth = pdf.getTextWidth(subjectText);
+        pdf.text(subjectText, (pageWidth - subjectTextWidth) / 2, footerStartY);
+        
+        pdf.setFont('helvetica', 'normal');
+        const pageText = 'Page 1 of 1';
+        const pageTextWidth = pdf.getTextWidth(pageText);
+        pdf.text(pageText, (pageWidth - pageTextWidth) / 2, footerStartY + 4);
+      } else {
+        // Multi-page handling (same logic as exportToPDF)
+        const totalPages = Math.ceil(imgHeight / contentHeight);
+        
+        for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+          if (pageNum > 1) pdf.addPage();
+          
+          const yOffset = -(pageNum - 1) * contentHeight;
+          pdf.addImage(imgData, 'PNG', marginMm, marginMm + yOffset, imgWidth, imgHeight);
+          
+          const footerStartY = pageHeight - marginMm - 8;
+          
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(100, 100, 100);
+          const subjectText = 'SUBJECT TO CHANGE';
+          const subjectTextWidth = pdf.getTextWidth(subjectText);
+          pdf.text(subjectText, (pageWidth - subjectTextWidth) / 2, footerStartY);
+          
+          pdf.setFont('helvetica', 'normal');
+          const pageText = `Page ${pageNum} of ${totalPages}`;
+          const pageTextWidth = pdf.getTextWidth(pageText);
+          pdf.text(pageText, (pageWidth - pageTextWidth) / 2, footerStartY + 4);
+        }
+      }
+      
+      // Create blob URL and open for printing
+      const pdfBlob = pdf.output('blob');
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      
+      // Open PDF in new window for printing
+      const printWindow = window.open(blobUrl, '_blank');
+      if (printWindow) {
+        // Focus the window and trigger print dialog after content loads
+        printWindow.focus();
+        setTimeout(() => {
+          printWindow.print();
+        }, 1000);
+      } else {
+        toast({
+          title: "Print Error",
+          description: "Please allow pop-ups to use the print function.",
+          variant: "destructive",
+        });
+      }
+      
+    } catch (error) {
+      console.error('Print error:', error);
+      toast({
+        title: "Print Error",
+        description: `Failed to generate daily call for printing${error.message ? ': ' + error.message : '.'}`,
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
