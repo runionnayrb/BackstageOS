@@ -200,6 +200,71 @@ const LayoutItemRenderer: React.FC<{
           onChange={(newContent) => {
             // Handle field header content changes
             console.log('Field header changed:', newContent);
+            
+            // Update both the header label and generate new fieldId for relationship tracking
+            const newFieldId = newContent.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const currentFieldId = item.content?.fieldId;
+            
+            // Find all items that need to be updated (header and its corresponding notes)
+            const updatedItems = configuration.items.map(configItem => {
+              if (configItem.type === 'grouped-section' && configItem.children) {
+                // Update grouped section with field header and notes
+                const updatedChildren = configItem.children.map(child => {
+                  if (child.type === 'field-header' && child.content?.fieldId === currentFieldId) {
+                    // Update the header
+                    return {
+                      ...child,
+                      content: {
+                        ...child.content,
+                        label: newContent,
+                        fieldId: newFieldId
+                      }
+                    };
+                  } else if (child.type === 'notes' && child.content?.fieldId === currentFieldId) {
+                    // Update the corresponding notes field
+                    return {
+                      ...child,
+                      content: {
+                        ...child.content,
+                        fieldId: newFieldId
+                      }
+                    };
+                  }
+                  return child;
+                });
+                
+                // Also update the parent grouped-section if it matches
+                if (configItem.content?.fieldId === currentFieldId) {
+                  return {
+                    ...configItem,
+                    content: {
+                      ...configItem.content,
+                      label: newContent,
+                      fieldId: newFieldId
+                    },
+                    children: updatedChildren
+                  };
+                }
+                
+                return {
+                  ...configItem,
+                  children: updatedChildren
+                };
+              }
+              
+              return configItem;
+            });
+            
+            // Update the configuration and save immediately
+            const newConfig = {
+              ...configuration,
+              items: updatedItems
+            };
+            
+            console.log(`🔗 Updated field relationship: "${currentFieldId}" → "${newFieldId}"`);
+            setConfiguration(newConfig);
+            setUserHasEditedLayout(true); // Mark that user has made layout changes
+            onConfigurationChange?.(newConfig);
           }}
           projectId={String(projectId)}
         />
