@@ -137,6 +137,12 @@ textarea:active {
   padding: 8px 4px !important; /* py-2 px-1 in pixels */
   margin: 0 !important;
   vertical-align: top !important;
+  line-height: 1.4 !important;
+}
+
+/* Ensure consistent baseline alignment for text areas */
+.auto-numbering-textarea:focus {
+  vertical-align: top !important;
 }
 
 .ProseMirror p.is-editor-empty:first-child::before {

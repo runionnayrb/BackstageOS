@@ -193,8 +193,9 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
     const textarea = textareaRef.current;
     if (textarea) {
       const resizeTextarea = () => {
-        // Keep height fixed to prevent positioning shifts
-        textarea.style.height = '20px';
+        textarea.style.height = 'auto';
+        // Add extra padding to prevent text cutoff - minimum 24px height
+        textarea.style.height = Math.max(24, textarea.scrollHeight) + 'px';
       };
       
       resizeTextarea();
@@ -210,12 +211,13 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
     // Display mode - show formatted content with same styling as edit mode
     return (
       <div 
-        className={`px-1 py-2 min-h-[20px] whitespace-pre-line text-black text-sm ${className}`}
+        className={`px-1 py-2 min-h-[24px] whitespace-pre-line text-black text-sm ${className}`}
         style={{ 
-          height: '20px', 
-          lineHeight: '1.2',
+          minHeight: '24px', 
+          lineHeight: '1.4',
           fontFamily: 'inherit',
-          fontSize: '0.875rem' // 14px - same as text-sm
+          fontSize: '0.875rem', // 14px - same as text-sm
+          verticalAlign: 'top'
         }}
       >
         {currentValue || placeholder}
@@ -230,12 +232,13 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       placeholder={placeholder}
-      className={`auto-numbering-textarea min-h-[20px] resize-none border-0 shadow-none focus:ring-0 px-1 py-2 text-sm placeholder:text-gray-500 ${className}`}
+      className={`auto-numbering-textarea min-h-[24px] resize-none border-0 shadow-none focus:ring-0 px-1 py-2 text-sm placeholder:text-gray-500 ${className}`}
       style={{ 
-        height: '20px', 
-        lineHeight: '1.2',
+        minHeight: '24px',
+        lineHeight: '1.4',
         fontFamily: 'inherit',
-        fontSize: '0.875rem' // 14px - same as text-sm
+        fontSize: '0.875rem', // 14px - same as text-sm
+        verticalAlign: 'top'
       }}
       rows={1}
     />
