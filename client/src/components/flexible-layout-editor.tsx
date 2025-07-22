@@ -921,7 +921,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="space-y-4">
+      <div className="space-y-2">
 
         {/* Grid Layout */}
         <div className={cn(
@@ -945,8 +945,8 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                 cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
                 rowHeight={18}
                 width={1200}
-                margin={[4, 4]}
-                containerPadding={[8, 8]}
+                margin={[2, 2]}
+                containerPadding={[0, 0]}
                 isDraggable={effectiveEditMode}
                 isResizable={effectiveEditMode}
                 onLayoutChange={effectiveEditMode ? handleLayoutChange : undefined}
