@@ -374,13 +374,6 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
   // Use external edit mode if provided, otherwise use internal state
   const effectiveEditMode = externalEditMode !== undefined ? externalEditMode : isEditMode;
 
-  // Expose functions to parent component via ref
-  useImperativeHandle(ref, () => ({
-    addNewItem,
-    removeItem,
-    resetLayout
-  }), []);
-
   // Helper function to convert date to day of week
   const formatDayOfWeek = useCallback((dateString: string) => {
     if (!dateString) return '';
@@ -961,6 +954,13 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     onConfigurationChange?.(defaultConfig);
     setShowResetDialog(false); // Close the dialog
   };
+
+  // Expose functions to parent component via ref
+  useImperativeHandle(ref, () => ({
+    addNewItem,
+    removeItem,
+    resetLayout
+  }), [addNewItem, removeItem, resetLayout]);
 
   return (
     <DndProvider backend={HTML5Backend}>
