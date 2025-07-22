@@ -709,6 +709,15 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       const xChanged = Math.abs(item.x - lastPos.x) > 0.5;
       const yChanged = Math.abs(item.y - lastPos.y) > 0.5;
       
+      if (xChanged || yChanged) {
+        console.log(`📍 Position change detected for ${item.id}:`, {
+          oldPos: { x: lastPos.x, y: lastPos.y },
+          newPos: { x: item.x, y: item.y },
+          xChanged,
+          yChanged
+        });
+      }
+      
       return xChanged || yChanged;
     });
 
