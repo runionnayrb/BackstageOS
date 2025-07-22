@@ -83,7 +83,10 @@ export default function Header() {
   const { data: profileTypes = [] } = useQuery({
     queryKey: ['/api/admin/account-types'],
     enabled: isAdmin(user),
-    select: (data: any[]) => data || [],
+    select: (data: any[]) => {
+      console.log('Header: Profile types data received:', data);
+      return data || [];
+    },
   });
 
   // Switch account mutation

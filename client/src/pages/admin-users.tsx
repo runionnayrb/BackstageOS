@@ -53,7 +53,10 @@ function AdminUsersContent() {
 
   const { data: profileTypes = [] } = useQuery({
     queryKey: ['/api/admin/account-types'],
-    select: (data: any[]) => data || [],
+    select: (data: any[]) => {
+      console.log('Profile types data received:', data);
+      return data || [];
+    },
   });
 
   const updateUserMutation = useMutation({
@@ -187,11 +190,14 @@ function AdminUsersContent() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {profileTypes.map((profileType: any) => (
-                            <SelectItem key={profileType.id} value={profileType.name}>
-                              {profileType.name}
-                            </SelectItem>
-                          ))}
+                          {profileTypes.map((profileType: any) => {
+                            console.log('Rendering profile type option:', profileType);
+                            return (
+                              <SelectItem key={profileType.id} value={profileType.name}>
+                                {profileType.name}
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
                     </div>
