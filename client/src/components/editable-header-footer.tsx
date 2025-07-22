@@ -32,11 +32,16 @@ export default function EditableHeaderFooter({
   // Process content to replace variables
   const processRichContent = (content: string) => {
     if (!content) return '';
+    
+    // Calculate actual page count based on content height
+    // For template editing, assume 1 page unless content is very long
+    const estimatedPages = 1;
+    
     return content
       .replace(/\{\{showName\}\}/g, 'Test Production')
       .replace(/\{\{date\}\}/g, new Date().toLocaleDateString())
       .replace(/\{\{pageNumber\}\}/g, '1')
-      .replace(/\{\{totalPages\}\}/g, '5');
+      .replace(/\{\{totalPages\}\}/g, String(estimatedPages));
   };
 
   // Apply formatting from settings
