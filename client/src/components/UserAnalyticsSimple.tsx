@@ -97,6 +97,12 @@ export default function UserAnalyticsSimple() {
     queryKey: ["/api/billing/plans"],
   });
 
+  // Fetch profile types for dynamic dropdown
+  const { data: profileTypes = [] } = useQuery({
+    queryKey: ['/api/admin/account-types'],
+    select: (data: any[]) => data || [],
+  });
+
   const { data: users = [], isLoading } = useQuery<UserAnalytics[]>({
     queryKey: ["/api/admin/user-analytics"],
   });
@@ -591,8 +597,11 @@ export default function UserAnalyticsSimple() {
                         <SelectValue placeholder="Select profile type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="freelance">Freelance</SelectItem>
-                        <SelectItem value="fulltime">Full-time</SelectItem>
+                        {profileTypes.map((profileType: any) => (
+                          <SelectItem key={profileType.id} value={profileType.name}>
+                            {profileType.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
