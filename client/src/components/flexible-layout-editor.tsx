@@ -595,13 +595,17 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
   // Force layout refresh when switching between edit/view modes - but preserve user changes
   useEffect(() => {
+    console.log(`🔄 MODE SWITCH DETECTED - Edit Mode: ${effectiveEditMode}, User Has Edited: ${userHasEditedLayout}`);
+    
     // Only refresh layout if user hasn't made any changes - preserve user edits completely
     if (userHasEditedLayout) {
       console.log('🛡️ Preserving user layout changes - no refresh on mode switch');
+      console.log('🔍 Current Y positions before mode switch:', configuration.items.map(item => ({ id: item.id, y: item.y })));
       return;
     }
     
     const timer = setTimeout(() => {
+      console.log('🔄 Refreshing layout due to mode switch');
       const newLayouts = convertToGridLayouts(configuration.items);
       setLayouts(newLayouts);
     }, 100);
@@ -621,6 +625,17 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     let updatedItems = configuration.items.map(item => {
       const layoutItem = layout.find(l => l.i === item.id);
       if (layoutItem) {
+        // Log position changes, especially Y changes
+        const yChanged = item.y !== layoutItem.y;
+        if (yChanged) {
+          console.log(`🔥 Y POSITION CHANGE DETECTED for ${item.id}:`, {
+            oldY: item.y,
+            newY: layoutItem.y,
+            oldX: item.x,
+            newX: layoutItem.x
+          });
+        }
+        
         return {
           ...item,
           x: layoutItem.x,
