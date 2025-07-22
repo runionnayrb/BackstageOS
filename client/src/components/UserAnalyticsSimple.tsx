@@ -8,10 +8,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { format } from "date-fns";
-import { Edit2, Trash2, Save, X } from "lucide-react";
+import { Edit2, Trash2, Save, X, CreditCard, Calendar } from "lucide-react";
 
 interface UserAnalytics {
   id: number;
@@ -26,6 +28,9 @@ interface UserAnalytics {
   subscriptionStatus: string | null;
   subscriptionPlan: string | null;
   grandfatheredFree: boolean;
+  trialEndsAt: string | null;
+  subscriptionEndsAt: string | null;
+  paymentMethodRequired: boolean | null;
   createdAt: Date;
   lastSeen: Date | null;
   activityLevel: 'high' | 'medium' | 'low' | 'inactive';
@@ -38,6 +43,16 @@ interface UserAnalytics {
     lastSession: Date | null;
   };
   costBreakdown: Array<{ service: string; cost: number; requests: number }>;
+}
+
+interface BillingPlan {
+  id: number;
+  planId: string;
+  name: string;
+  description?: string;
+  price: number;
+  billingInterval: string;
+  isActive: boolean;
 }
 
 interface UserAnalyticsStats {
@@ -66,6 +81,11 @@ export default function UserAnalyticsSimple() {
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch billing plans for subscription management
+  const { data: billingPlans = [] } = useQuery<BillingPlan[]>({
+    queryKey: ["/api/billing/plans"],
+  });
 
   const { data: users = [], isLoading } = useQuery<UserAnalytics[]>({
     queryKey: ["/api/admin/user-analytics"],
@@ -113,6 +133,27 @@ export default function UserAnalyticsSimple() {
       toast({
         title: "Delete failed",
         description: "Failed to delete user.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update user subscription mutation
+  const updateSubscriptionMutation = useMutation({
+    mutationFn: (data: { userId: number; subscriptionData: any }) =>
+      apiRequest("PUT", `/api/admin/users/${data.userId}/subscription`, data.subscriptionData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/user-analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/analytics-stats"] });
+      toast({
+        title: "Success",
+        description: "User subscription updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update subscription",
         variant: "destructive",
       });
     },
@@ -179,6 +220,27 @@ export default function UserAnalyticsSimple() {
     const hours = Math.floor(minutes / 60);
     const mins = Math.round(minutes % 60);
     return `${hours}h ${mins}m`;
+  };
+
+  const getSubscriptionStatusBadge = (status?: string | null) => {
+    if (!status) return <Badge variant="secondary">Free</Badge>;
+    
+    switch (status) {
+      case "active":
+        return <Badge variant="default">Active</Badge>;
+      case "trialing":
+        return <Badge variant="outline">Trial</Badge>;
+      case "past_due":
+        return <Badge variant="destructive">Past Due</Badge>;
+      case "canceled":
+        return <Badge variant="secondary">Canceled</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
+  };
+
+  const handleUpdateUserSubscription = (userId: number, subscriptionData: any) => {
+    updateSubscriptionMutation.mutate({ userId, subscriptionData });
   };
 
   if (isLoading) {
@@ -256,7 +318,8 @@ export default function UserAnalyticsSimple() {
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Account Status</TableHead>
+                <TableHead>Subscription</TableHead>
                 <TableHead>Activity</TableHead>
                 <TableHead>Cost/Day</TableHead>
                 <TableHead>Cost/Month</TableHead>
@@ -318,24 +381,112 @@ export default function UserAnalyticsSimple() {
                               </div>
                             </div>
                           )}
+                          
+                          <Separator className="my-3" />
+                          
+                          {/* Subscription Management Section */}
+                          <div>
+                            <div className="text-sm font-medium mb-2 flex items-center gap-2">
+                              <CreditCard className="h-4 w-4" />
+                              Subscription Management
+                            </div>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span>Status:</span>
+                                <span>{getSubscriptionStatusBadge(user.subscriptionStatus)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Plan:</span>
+                                <span>{user.subscriptionPlan || "Free"}</span>
+                              </div>
+                              {user.trialEndsAt && (
+                                <div className="flex justify-between">
+                                  <span>Trial Ends:</span>
+                                  <span className="text-xs">{new Date(user.trialEndsAt).toLocaleDateString()}</span>
+                                </div>
+                              )}
+                              {user.subscriptionEndsAt && (
+                                <div className="flex justify-between">
+                                  <span>Subscription Ends:</span>
+                                  <span className="text-xs">{new Date(user.subscriptionEndsAt).toLocaleDateString()}</span>
+                                </div>
+                              )}
+                              {user.grandfatheredFree && (
+                                <div className="text-xs text-blue-600">Grandfathered Free Account</div>
+                              )}
+                              
+                              <div className="pt-2">
+                                <Label className="text-xs">Update Subscription</Label>
+                                <Select 
+                                  onValueChange={(value) => {
+                                    if (value === "cancel") {
+                                      handleUpdateUserSubscription(user.id, {
+                                        subscriptionStatus: "canceled",
+                                        subscriptionEndsAt: new Date()
+                                      });
+                                    } else if (value === "free") {
+                                      handleUpdateUserSubscription(user.id, {
+                                        subscriptionStatus: null,
+                                        subscriptionPlan: null,
+                                        subscriptionEndsAt: null
+                                      });
+                                    } else {
+                                      const plan = billingPlans.find(p => p.planId === value);
+                                      if (plan) {
+                                        handleUpdateUserSubscription(user.id, {
+                                          subscriptionStatus: "active",
+                                          subscriptionPlan: plan.planId,
+                                          subscriptionEndsAt: null
+                                        });
+                                      }
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue placeholder="Select action" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="free">Set to Free</SelectItem>
+                                    {billingPlans
+                                      .filter(plan => plan.isActive)
+                                      .map(plan => (
+                                        <SelectItem key={plan.planId} value={plan.planId}>
+                                          Upgrade to {plan.name}
+                                        </SelectItem>
+                                      ))}
+                                    <SelectItem value="cancel">Cancel Subscription</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </PopoverContent>
                     </Popover>
                   </TableCell>
 
                   <TableCell>
+                    <Badge 
+                      variant={user.isActive ? "outline" : "destructive"}
+                      className={user.isActive ? "border-green-500 text-green-700" : ""}
+                    >
+                      {user.isActive ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </TableCell>
+
+                  <TableCell>
                     <div className="space-y-1">
-                      <Badge 
-                        variant={user.isActive ? "outline" : "destructive"}
-                        className={user.isActive ? "border-green-500 text-green-700" : ""}
-                      >
-                        {user.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
-                      {user.grandfatheredFree && (
-                        <div className="text-xs text-blue-600">Grandfathered</div>
-                      )}
+                      {getSubscriptionStatusBadge(user.subscriptionStatus)}
                       {user.subscriptionPlan && (
                         <div className="text-xs text-gray-500">{user.subscriptionPlan}</div>
+                      )}
+                      {user.grandfatheredFree && (
+                        <Badge variant="secondary" className="text-xs">Grandfathered</Badge>
+                      )}
+                      {user.trialEndsAt && (
+                        <div className="text-xs text-orange-600">
+                          Trial ends {new Date(user.trialEndsAt).toLocaleDateString()}
+                        </div>
                       )}
                     </div>
                   </TableCell>

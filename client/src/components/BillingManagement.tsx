@@ -56,34 +56,16 @@ interface PaymentMethod {
   createdAt: string;
 }
 
-interface User {
-  id: number;
-  email: string;
-  username: string;
-  firstName?: string;
-  lastName?: string;
-  subscriptionStatus?: string;
-  subscriptionPlan?: string;
-  trialEndsAt?: string;
-  subscriptionEndsAt?: string;
-  paymentMethodRequired?: boolean;
-  grandfatheredFree?: boolean;
-}
+
 
 export default function BillingManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isCreatePlanOpen, setIsCreatePlanOpen] = useState(false);
 
   // Fetch billing plans
   const { data: billingPlans = [], isLoading: plansLoading } = useQuery<BillingPlan[]>({
     queryKey: ["/api/billing/plans"],
-  });
-
-  // Fetch users for subscription management
-  const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
-    queryKey: ["/api/admin/users"],
   });
 
   // Create billing plan mutation
@@ -106,25 +88,7 @@ export default function BillingManagement() {
     },
   });
 
-  // Update user subscription mutation
-  const updateSubscriptionMutation = useMutation({
-    mutationFn: (data: { userId: number; subscriptionData: any }) =>
-      apiRequest("PUT", `/api/admin/users/${data.userId}/subscription`, data.subscriptionData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
-      toast({
-        title: "Success",
-        description: "User subscription updated successfully",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update subscription",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   const handleCreatePlan = (formData: FormData) => {
     const planData = {
@@ -144,9 +108,7 @@ export default function BillingManagement() {
     createPlanMutation.mutate(planData);
   };
 
-  const handleUpdateUserSubscription = (userId: number, subscriptionData: any) => {
-    updateSubscriptionMutation.mutate({ userId, subscriptionData });
-  };
+
 
   const formatPrice = (price: number, interval: string) => {
     if (interval === "year") {
@@ -156,29 +118,14 @@ export default function BillingManagement() {
     return `$${price}/mo`;
   };
 
-  const getSubscriptionStatusBadge = (status?: string) => {
-    if (!status) return <Badge variant="secondary">Free</Badge>;
-    
-    switch (status) {
-      case "active":
-        return <Badge variant="default">Active</Badge>;
-      case "trialing":
-        return <Badge variant="outline">Trial</Badge>;
-      case "past_due":
-        return <Badge variant="destructive">Past Due</Badge>;
-      case "canceled":
-        return <Badge variant="secondary">Canceled</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
+
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Billing Management</h2>
-          <p className="text-muted-foreground">Manage subscription plans and user billing</p>
+          <h2 className="text-2xl font-bold tracking-tight">Billing Plan Management</h2>
+          <p className="text-muted-foreground">Create and manage subscription plans for the platform</p>
         </div>
         <Dialog open={isCreatePlanOpen} onOpenChange={setIsCreatePlanOpen}>
           <DialogTrigger asChild>
@@ -258,160 +205,51 @@ export default function BillingManagement() {
         </Dialog>
       </div>
 
-      <Tabs defaultValue="plans" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="plans">Billing Plans</TabsTrigger>
-          <TabsTrigger value="subscriptions">User Subscriptions</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="plans" className="space-y-4">
-          {plansLoading ? (
-            <div className="flex items-center justify-center p-8">
-              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {billingPlans.map((plan: BillingPlan) => (
-                <Card key={plan.id} className={!plan.isActive ? "opacity-60" : ""}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{plan.name}</CardTitle>
-                      <Badge variant={plan.isActive ? "default" : "secondary"}>
-                        {plan.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </div>
-                    <CardDescription>{plan.description || "No description"}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="text-2xl font-bold text-primary">
-                      {formatPrice(plan.price, plan.billingInterval)}
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">
-                        {plan.trialDays}-day trial included
-                      </p>
-                      {plan.features && plan.features.length > 0 && (
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium">Features:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {plan.features.map((feature, index) => (
-                              <Badge key={index} variant="outline" className="text-xs">
-                                {feature}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="subscriptions" className="space-y-4">
-          {usersLoading ? (
-            <div className="flex items-center justify-center p-8">
-              <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {users.map((user: User) => (
-                <Card key={user.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-4">
-                          <div>
-                            <p className="font-medium">
-                              {user.firstName && user.lastName 
-                                ? `${user.firstName} ${user.lastName}` 
-                                : user.username || user.email}
-                            </p>
-                            <p className="text-sm text-muted-foreground">{user.email}</p>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            {getSubscriptionStatusBadge(user.subscriptionStatus)}
-                            {user.subscriptionPlan && (
-                              <Badge variant="outline">{user.subscriptionPlan}</Badge>
-                            )}
-                            {user.grandfatheredFree && (
-                              <Badge variant="secondary">Grandfathered</Badge>
-                            )}
-                          </div>
+      <div className="space-y-4">
+        {plansLoading ? (
+          <div className="flex items-center justify-center p-8">
+            <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {billingPlans.map((plan: BillingPlan) => (
+              <Card key={plan.id} className={!plan.isActive ? "opacity-60" : ""}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{plan.name}</CardTitle>
+                    <Badge variant={plan.isActive ? "default" : "secondary"}>
+                      {plan.isActive ? "Active" : "Inactive"}
+                    </Badge>
+                  </div>
+                  <CardDescription>{plan.description || "No description"}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-2xl font-bold text-primary">
+                    {formatPrice(plan.price, plan.billingInterval)}
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      {plan.trialDays}-day trial included
+                    </p>
+                    {plan.features && plan.features.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">Features:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {plan.features.map((feature, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {feature}
+                            </Badge>
+                          ))}
                         </div>
                       </div>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            Manage
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-80">
-                          <div className="space-y-4">
-                            <div>
-                              <h4 className="font-medium">Subscription Details</h4>
-                              <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-                                <p>Status: {user.subscriptionStatus || "Free"}</p>
-                                <p>Plan: {user.subscriptionPlan || "None"}</p>
-                                {user.trialEndsAt && (
-                                  <p>Trial Ends: {new Date(user.trialEndsAt).toLocaleDateString()}</p>
-                                )}
-                                {user.subscriptionEndsAt && (
-                                  <p>Subscription Ends: {new Date(user.subscriptionEndsAt).toLocaleDateString()}</p>
-                                )}
-                              </div>
-                            </div>
-                            <Separator />
-                            <div className="space-y-2">
-                              <Label>Update Subscription</Label>
-                              <Select 
-                                onValueChange={(value) => {
-                                  if (value === "cancel") {
-                                    handleUpdateUserSubscription(user.id, {
-                                      subscriptionStatus: "canceled",
-                                      subscriptionEndsAt: new Date()
-                                    });
-                                  } else if (value === "grandfathered") {
-                                    handleUpdateUserSubscription(user.id, {
-                                      grandfatheredFree: true,
-                                      subscriptionStatus: "active",
-                                      subscriptionPlan: "free"
-                                    });
-                                  } else {
-                                    handleUpdateUserSubscription(user.id, {
-                                      subscriptionPlan: value,
-                                      subscriptionStatus: "active"
-                                    });
-                                  }
-                                }}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select action" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {billingPlans.map((plan: BillingPlan) => (
-                                    <SelectItem key={plan.planId} value={plan.planId}>
-                                      Set to {plan.name}
-                                    </SelectItem>
-                                  ))}
-                                  <SelectItem value="grandfathered">Grant Free Access</SelectItem>
-                                  <SelectItem value="cancel">Cancel Subscription</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
