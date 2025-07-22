@@ -243,7 +243,12 @@ export default function BillingManagement() {
                 </div>
                 <div>
                   <Label htmlFor="price">Price</Label>
-                  <Input id="price" name="price" type="number" step="0.01" placeholder="1,199.00" required />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <span className="text-gray-500 text-sm">$</span>
+                    </div>
+                    <Input id="price" name="price" type="number" step="0.01" placeholder="1,199.00" className="pl-8" required />
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="billingInterval">Billing Interval</Label>
@@ -307,15 +312,21 @@ export default function BillingManagement() {
               </div>
               <div>
                 <Label htmlFor="edit-price">Price</Label>
-                <Input 
-                  id="edit-price" 
-                  name="price" 
-                  type="number" 
-                  step="0.01" 
-                  defaultValue={editingPlan?.price || ""}
-                  placeholder="1,199.00"
-                  required 
-                />
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-gray-500 text-sm">$</span>
+                  </div>
+                  <Input 
+                    id="edit-price" 
+                    name="price" 
+                    type="number" 
+                    step="0.01" 
+                    defaultValue={editingPlan?.price || ""}
+                    placeholder="1,199.00"
+                    className="pl-8"
+                    required 
+                  />
+                </div>
               </div>
               <div>
                 <Label htmlFor="edit-billingInterval">Billing Interval</Label>
