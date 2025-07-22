@@ -377,7 +377,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
         type: 'grouped-section' as const,
         content: { fieldId: field.id, label: field.label },
         x: 0, y: currentY, w: 12, h: 4,
-        minW: 8, minH: 4,
+        minW: 3, minH: 4,
         children: [
           {
             id: `field-header-${field.id}`,
@@ -411,7 +411,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
         type: 'grouped-section' as const,
         content: { department: dept, displayName: dept.charAt(0).toUpperCase() + dept.slice(1) },
         x: xPos, y: yPos, w: 6, h: 4,
-        minW: 5, minH: 4,
+        minW: 3, minH: 4,
         children: [
           {
             id: `dept-header-${dept}`,
@@ -807,8 +807,8 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                 onLayoutChange={handleLayoutChange}
                 draggableHandle=".drag-handle"
                 useCSSTransforms={false}
-                compactType="vertical"
-                preventCollision={false}
+                compactType={null}
+                preventCollision={true}
                 style={{ minHeight: '400px', width: '100%' }}
               >
                 {configuration.items.map((item) => (
