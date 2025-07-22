@@ -3739,10 +3739,8 @@ Best regards,
         layoutConfiguration: layoutConfiguration
       });
 
-      res.json({
-        success: true,
-        layoutConfiguration: updatedSettings.layoutConfiguration
-      });
+      // Return the complete updated settings object for cache consistency
+      res.json(updatedSettings);
     } catch (error) {
       console.error("Error updating layout configuration:", error);
       res.status(500).json({ message: "Failed to update layout configuration" });

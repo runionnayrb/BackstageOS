@@ -325,6 +325,45 @@ Required environment variables:
 
 ## Recent Changes
 
+### July 22, 2025: **TEMPLATE TIMESTAMP FIX WITH COMPLETE AUTO-SAVE REMOVAL FINISHED**
+**Successfully resolved critical timestamp update issue where "Updated" text wasn't refreshing when templates were unlocked, modified, and locked:**
+
+**Backend Timestamp Fix:**
+- Fixed layout configuration endpoint to return complete updated settings object instead of partial data
+- Updated API route `/api/projects/:id/settings/layout-configuration` to trigger proper `updatedAt` timestamp updates
+- Backend storage already properly sets `updatedAt: new Date()` on all show settings modifications
+
+**Frontend Integration:**
+- Added `onConfigurationChange` callback to FlexibleLayoutEditor in template settings page
+- Template layout changes now automatically save and trigger cache invalidation
+- Cache invalidation ensures frontend displays new `updatedAt` timestamp immediately
+- Connected layout editor changes to proper API endpoint with timestamp updates
+
+**Timestamp Display Enhancement:**
+- Changed "Auto-saved" text to show "Updated: [timestamp]" using show settings updatedAt field
+- Custom timestamp format displays full date and time without seconds (e.g., "July 22, 2025 at 19:17")
+- Format respects user's timezone and time format preferences from schedule settings
+- Timestamp now accurately reflects when template was last modified/locked
+
+**Auto-Save Removal Completed:**
+- Completely removed all auto-save functionality from flexible layout editor to prevent data loss
+- Preserved email composer auto-save (serves different purpose for email drafts)
+- System now operates with manual saves only, eliminating data overwrite issues
+
+**System Benefits:**
+- Template "Updated" timestamp now properly refreshes when changes are made
+- No more confusing static timestamps after template modifications  
+- Complete elimination of auto-save data loss issues
+- Professional timestamp display matching user preferences
+- Reliable manual save workflow preventing accidental overwrites
+
+**Files Updated:**
+- `server/routes.ts`: Fixed layout configuration endpoint to return complete settings with timestamp
+- `client/src/pages/template-settings.tsx`: Added configuration change handler and updated timestamp display
+- `client/src/components/flexible-layout-editor.tsx`: Connected to proper save mechanism (via callback)
+
+**Status**: Timestamp update issue completely resolved - template modifications now properly update and display current "Updated" time.
+
 ### July 22, 2025: **AUTO-NUMBERING DEPARTMENT TEXT AREAS WITH REPORT NOTES TRACKING SYSTEM COMPLETE**
 **Successfully implemented comprehensive auto-numbering functionality for department text areas in BackstageOS report templates with separate notes tracking system:**
 

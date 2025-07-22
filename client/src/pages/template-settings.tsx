@@ -780,6 +780,25 @@ export default function TemplateSettings() {
                           }));
                           saveTemplate.mutate(updatedTemplate);
                         }}
+                        onConfigurationChange={async (config) => {
+                          setIsSaving(true);
+                          try {
+                            await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
+                              layoutConfiguration: config
+                            });
+                            
+                            // Invalidate cache to refresh settings with new updatedAt timestamp
+                            queryClient.invalidateQueries({
+                              queryKey: ['/api/projects', projectId, 'settings']
+                            });
+                            
+                            setLastSaved(new Date());
+                          } catch (error) {
+                            console.error('Failed to save layout configuration:', error);
+                          } finally {
+                            setIsSaving(false);
+                          }
+                        }}
                         setIsSaving={setIsSaving}
                         setLastSaved={setLastSaved}
                         externalEditMode={isEditMode}
