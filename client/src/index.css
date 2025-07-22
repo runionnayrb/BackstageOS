@@ -95,6 +95,42 @@
   border: none !important;
 }
 
+/* Remove focus borders from textarea elements */
+textarea:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove focus states from auto-numbering textarea */
+.auto-numbering-textarea:focus,
+.auto-numbering-textarea:focus-visible {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Override Tailwind focus-visible classes for textareas */
+textarea.focus\:ring-0:focus,
+textarea.focus-visible\:ring-2:focus-visible {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  --tw-ring-shadow: none !important;
+}
+
+/* Nuclear approach - remove all focus states from all textareas */
+textarea,
+textarea:focus,
+textarea:focus-visible,
+textarea:active {
+  outline: none !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+  --tw-ring-shadow: none !important;
+  --tw-ring-offset-shadow: none !important;
+}
+
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;

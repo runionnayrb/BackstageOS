@@ -230,7 +230,7 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       placeholder={placeholder}
-      className={`min-h-[18px] resize-none border-0 shadow-none focus:ring-0 p-1 text-sm placeholder:text-gray-500 ${className}`}
+      className={`auto-numbering-textarea min-h-[18px] resize-none border-0 shadow-none focus:ring-0 p-1 text-sm placeholder:text-gray-500 ${className}`}
       style={{ 
         height: '18px', 
         lineHeight: '1.2',
