@@ -857,6 +857,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           {isLayoutMounted && (
             <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
               <ResponsiveGridLayout
+                key={`grid-${effectiveEditMode ? 'edit' : 'view'}-${JSON.stringify(configuration.items.map(i => ({ id: i.id, x: i.x, y: i.y })))}`}
                 className="layout"
                 layouts={layouts}
                 breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
