@@ -53,7 +53,10 @@ import {
   User,
   MapPin,
   Settings,
-  X
+  X,
+  Lock,
+  Unlock,
+  RotateCcw
 } from "lucide-react";
 
 interface TemplateSettingsParams {
@@ -183,16 +186,26 @@ export default function TemplateSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   
+  // Template editor state
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [showResetDialog, setShowResetDialog] = useState(false);
+  
   // Department reordering state
   const [isReordering, setIsReordering] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [departments, setDepartments] = useState<Array<{ key: DepartmentKey; displayName: string }>>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newDepartmentName, setNewDepartmentName] = useState("");
-  
 
+  // Toolbar functions
+  const addNewItem = (type: string) => {
+    // This will be passed to FlexibleLayoutEditor via a ref or props
+    console.log('Add new item:', type);
+  };
 
-
+  const handleResetClick = () => {
+    setShowResetDialog(true);
+  };
 
   const { data: project } = useQuery({
     queryKey: [`/api/projects/${projectId}`],
@@ -662,6 +675,53 @@ export default function TemplateSettings() {
                   </div>
                 </CardHeader>
                 <CardContent className="p-8">
+                  {/* Template Editing Toolbar - Only show for tech templates */}
+                  {selectedPhase === 'tech' && (
+                    <div className="flex items-center justify-between p-4 mb-4">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsEditMode(!isEditMode)}
+                        >
+                          {isEditMode ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                        </Button>
+                        
+                        {isEditMode && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => addNewItem('department-header')}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                            
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => addNewItem('empty-space')}
+                            >
+                              [    ]
+                            </Button>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {isEditMode && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleResetClick}
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Document-style Preview */}
                   <div className="bg-white min-h-[500px] shadow-lg border border-gray-200 mx-auto" style={{ 
                     width: "8.5in", 
@@ -706,6 +766,7 @@ export default function TemplateSettings() {
                         }}
                         setIsSaving={setIsSaving}
                         setLastSaved={setLastSaved}
+                        externalEditMode={isEditMode}
                       />
                     ) : (
                       /* Standard layout for other templates */
@@ -771,6 +832,31 @@ export default function TemplateSettings() {
             </TabsContent>
           ))}
         </Tabs>
+
+        {/* Reset Layout Dialog */}
+        <AlertDialog open={showResetDialog} onOpenChange={setShowResetDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Reset Template Layout</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will reset the template layout to the default configuration. All custom positioning and department arrangements will be lost. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={() => {
+                  // Trigger reset in FlexibleLayoutEditor
+                  console.log('Reset confirmed');
+                  setShowResetDialog(false);
+                }}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Reset Layout
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

@@ -81,16 +81,18 @@ interface FlexibleLayoutEditorProps {
   // Auto-save state from parent
   setIsSaving?: (saving: boolean) => void;
   setLastSaved?: (date: Date) => void;
+  // External edit mode control
+  externalEditMode?: boolean;
 }
 
 // Draggable component wrapper for grid items
 const DraggableGridItem: React.FC<{
   item: LayoutItem;
   children: React.ReactNode;
-  isEditMode: boolean;
+  effectiveEditMode: boolean;
   onEdit?: () => void;
   onDelete?: () => void;
-}> = ({ item, children, isEditMode, onEdit, onDelete }) => {
+}> = ({ item, children, effectiveEditMode, onEdit, onDelete }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -101,7 +103,7 @@ const DraggableGridItem: React.FC<{
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Delete control overlay inside the element */}
-      {isEditMode && isHovered && (
+      {effectiveEditMode && isHovered && (
         <div 
           className="absolute top-2 right-2 z-50"
           onMouseEnter={() => setIsHovered(true)}
@@ -119,7 +121,7 @@ const DraggableGridItem: React.FC<{
       )}
       
       {/* Drag handle */}
-      {isEditMode && (
+      {effectiveEditMode && (
         <div className="absolute -top-6 right-0 z-40">
           <div className="drag-handle cursor-move p-1 bg-blue-500 text-white rounded-sm opacity-0 group-hover:opacity-100 transition-opacity">
             <Move className="h-3 w-3" />
@@ -162,9 +164,9 @@ const LayoutItemRenderer: React.FC<{
   projectId: number;
   reportId?: number;
   reportType?: string;
-  isEditMode: boolean;
+  effectiveEditMode: boolean;
   template?: any;
-}> = ({ item, projectId, reportId, reportType, isEditMode, template }) => {
+}> = ({ item, projectId, reportId, reportType, effectiveEditMode, template }) => {
   switch (item.type) {
     case 'grouped-section':
       return (
@@ -176,7 +178,7 @@ const LayoutItemRenderer: React.FC<{
                 projectId={projectId}
                 reportId={reportId}
                 reportType={reportType}
-                isEditMode={isEditMode}
+                effectiveEditMode={effectiveEditMode}
                 template={template}
               />
             </div>
@@ -190,7 +192,7 @@ const LayoutItemRenderer: React.FC<{
           projectId={projectId}
           department={item.content?.department || 'scenic'}
           displayName={item.content?.displayName || 'Department'}
-          isEditing={isEditMode}
+          isEditing={effectiveEditMode}
         />
       );
     
@@ -242,7 +244,7 @@ const LayoutItemRenderer: React.FC<{
           department={item.content?.department || item.content?.fieldId}
           placeholder={`1. No ${item.content?.department || item.content?.fieldId || 'department'} notes.`}
           className="w-full h-full resize-none border-0 shadow-none focus:ring-0"
-          isEditing={isEditMode}
+          isEditing={effectiveEditMode}
           template={template}
         />
       );
@@ -265,13 +267,13 @@ const LayoutItemRenderer: React.FC<{
       return (
         <div className={cn(
           "w-full h-full border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center min-h-[20px] relative",
-          isEditMode ? "bg-gray-50" : "bg-transparent border-transparent"
+          effectiveEditMode ? "bg-gray-50" : "bg-transparent border-transparent"
         )}>
-          {isEditMode && (
+          {effectiveEditMode && (
             <div className="text-gray-500 text-sm">Empty Space</div>
           )}
           {/* Invisible clickable area to ensure hover detection works */}
-          {isEditMode && (
+          {effectiveEditMode && (
             <div className="absolute inset-0 bg-transparent" />
           )}
         </div>
@@ -296,11 +298,15 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   template,
   onTemplateUpdate,
   setIsSaving,
-  setLastSaved
+  setLastSaved,
+  externalEditMode
 }) => {
   const [isEditMode, setIsEditMode] = useState(isEditing);
   const [layouts, setLayouts] = useState<Layouts>({});
   const [showResetDialog, setShowResetDialog] = useState(false);
+  
+  // Use external edit mode if provided, otherwise use internal state
+  const effectiveEditMode = externalEditMode !== undefined ? externalEditMode : isEditMode;
   
   // Generate layout from template data with grouped sections
   const generateLayoutFromTemplate = useCallback(() => {
@@ -571,7 +577,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       maxH: item.maxH && item.maxH > item.h ? item.maxH : undefined, // Only set maxH if it's larger than current height
       isResizable: item.isResizable !== false,
       isDraggable: item.isDraggable !== false,
-      static: !isEditMode
+      static: !effectiveEditMode
     }));
 
     return {
@@ -581,7 +587,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       xs: layout,
       xxs: layout
     };
-  }, [isEditMode]);
+  }, [effectiveEditMode]);
 
   // Update layouts when configuration changes
   useEffect(() => {
@@ -590,7 +596,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
   // Handle layout changes from react-grid-layout with auto-save
   const handleLayoutChange = (layout: Layout[], allLayouts: Layouts) => {
-    if (!isEditMode) return;
+    if (!effectiveEditMode) return;
 
     const updatedItems = configuration.items.map(item => {
       const layoutItem = layout.find(l => l.i === item.id);
@@ -771,61 +777,11 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="space-y-4">
-        {/* Toolbar */}
-        {isEditing && (
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsEditMode(!isEditMode)}
-              >
-                {isEditMode ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-              </Button>
-              
-              {isEditMode && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => addNewItem('department-header')}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => addNewItem('empty-space')}
-                  >
-                    [    ]
-                  </Button>
-                </>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {isEditMode && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleResetClick}
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-              
-
-            </div>
-          </div>
-        )}
 
         {/* Grid Layout */}
         <div className={cn(
           "border rounded-lg bg-white",
-          isEditMode && "bg-gray-50/50"
+          effectiveEditMode && "bg-gray-50/50"
         )}
         style={{ padding: '4px' }}>
           {!isLayoutMounted && (
@@ -847,8 +803,8 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                 width={1200}
                 margin={[2, 2]}
                 containerPadding={[0, 0]}
-                isDraggable={isEditMode}
-                isResizable={isEditMode}
+                isDraggable={effectiveEditMode}
+                isResizable={effectiveEditMode}
                 onLayoutChange={handleLayoutChange}
                 draggableHandle=".drag-handle"
                 useCSSTransforms={false}
@@ -860,7 +816,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                   <div key={item.id} className="group" style={{ width: '100%' }}>
                     <DraggableGridItem
                       item={item}
-                      isEditMode={isEditMode}
+                      effectiveEditMode={effectiveEditMode}
                       onDelete={() => removeItem(item.id)}
                     >
                       <LayoutItemRenderer
@@ -868,7 +824,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                         projectId={projectId}
                         reportId={reportId}
                         reportType={reportType}
-                        isEditMode={isEditMode}
+                        effectiveEditMode={effectiveEditMode}
                         template={template}
                       />
                     </DraggableGridItem>
