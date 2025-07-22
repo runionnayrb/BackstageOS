@@ -12,6 +12,7 @@ import AdminErrorLogs from "./admin-error-logs";
 import WaitlistManagement from "@/components/WaitlistManagement";
 import UserAnalytics from "@/components/UserAnalyticsSimple";
 import BillingManagement from "@/components/BillingManagement";
+import BillingStatus from "@/components/BillingStatus";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("users");
@@ -74,7 +75,16 @@ export default function AdminDashboard() {
             </TabsContent>
 
             <TabsContent value="billing" className="space-y-4 sm:space-y-6">
-              <BillingManagement />
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">User Billing Status</h2>
+                  <BillingStatus />
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Plan Management</h2>
+                  <BillingManagement />
+                </div>
+              </div>
             </TabsContent>
 
             <TabsContent value="features" className="space-y-4 sm:space-y-6">
