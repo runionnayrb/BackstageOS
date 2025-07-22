@@ -903,9 +903,6 @@ export default function TemplateSettings() {
                         type="footer"
                         effectiveEditMode={isEditMode}
                       />
-                      {selectedPhase === 'tech' && (
-                        <p className="text-xs text-gray-500 mt-1">Using global template settings</p>
-                      )}
                     </div>
                   </div>
                 </CardContent>
