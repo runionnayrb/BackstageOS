@@ -193,8 +193,8 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
     const textarea = textareaRef.current;
     if (textarea) {
       const resizeTextarea = () => {
-        textarea.style.height = 'auto';
-        textarea.style.height = Math.max(18, textarea.scrollHeight) + 'px';
+        // Keep height fixed to prevent positioning shifts
+        textarea.style.height = '20px';
       };
       
       resizeTextarea();

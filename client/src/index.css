@@ -131,6 +131,14 @@ textarea:active {
   --tw-ring-offset-shadow: none !important;
 }
 
+/* Prevent position shifts on focus by ensuring consistent box model */
+.auto-numbering-textarea {
+  box-sizing: border-box !important;
+  padding: 8px 4px !important; /* py-2 px-1 in pixels */
+  margin: 0 !important;
+  vertical-align: top !important;
+}
+
 .ProseMirror p.is-editor-empty:first-child::before {
   content: attr(data-placeholder);
   float: left;
