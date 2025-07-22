@@ -724,10 +724,12 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       return positionUnchanged && sizeChanged;
     });
 
-    // Only apply intelligent width calculation for position changes, not manual resizes
-    if (isPositionChange && !isSizeChangeOnly && effectiveEditMode && !isDragging) {
+    // Don't apply intelligent width calculation if user has edited layout - preserve all user changes
+    if (isPositionChange && !isSizeChangeOnly && effectiveEditMode && !isDragging && !userHasEditedLayout) {
       console.log('🎯 Applying intelligent width calculation due to position change');
       updatedItems = calculateIntelligentWidths(updatedItems);
+    } else if (userHasEditedLayout && (isPositionChange || isSizeChangeOnly)) {
+      console.log('🛡️ Preserving user position/size changes - no intelligent recalculation');
     }
 
     // Update position tracking
