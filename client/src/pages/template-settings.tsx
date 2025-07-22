@@ -762,6 +762,7 @@ export default function TemplateSettings() {
                         className="text-lg font-semibold text-center"
                         projectId={projectId}
                         type="header"
+                        effectiveEditMode={isEditMode}
                       />
                     </div>
 
@@ -859,6 +860,7 @@ export default function TemplateSettings() {
                         className="text-sm text-gray-600 text-center"
                         projectId={projectId}
                         type="footer"
+                        effectiveEditMode={isEditMode}
                       />
                     </div>
                   </div>

@@ -267,6 +267,7 @@ const LayoutItemRenderer: React.FC<{
           className="text-sm text-gray-600 text-center"
           projectId={String(projectId)}
           type="footer"
+          effectiveEditMode={effectiveEditMode}
         />
       );
 

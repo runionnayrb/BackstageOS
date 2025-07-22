@@ -9,6 +9,7 @@ interface EditableHeaderFooterProps {
   className?: string;
   projectId: string;
   type: 'header' | 'footer';
+  effectiveEditMode: boolean;
 }
 
 export default function EditableHeaderFooter({ 
@@ -16,7 +17,8 @@ export default function EditableHeaderFooter({
   onChange,
   className = "text-sm font-medium text-gray-700 mb-1",
   projectId,
-  type
+  type,
+  effectiveEditMode
 }: EditableHeaderFooterProps) {
   const [showToolbar, setShowToolbar] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -57,20 +59,26 @@ export default function EditableHeaderFooter({
         <div
           ref={headerRef}
           className={className}
-          contentEditable
+          contentEditable={effectiveEditMode}
           suppressContentEditableWarning
           data-template-header={type === 'header' ? "true" : undefined}
           data-template-footer={type === 'footer' ? "true" : undefined}
           onClick={() => {
-            console.log(`🎯 ${type.toUpperCase()} CLICKED - Setting up for editing`);
-            setShowToolbar(true);
+            if (effectiveEditMode) {
+              console.log(`🎯 ${type.toUpperCase()} CLICKED - Setting up for editing`);
+              setShowToolbar(true);
+            }
           }}
           onFocus={() => {
-            console.log(`🎯 ${type.toUpperCase()} FOCUSED - Setting up for editing`);
+            if (effectiveEditMode) {
+              console.log(`🎯 ${type.toUpperCase()} FOCUSED - Setting up for editing`);
+            }
           }}
           onBlur={() => {
-            const newContent = headerRef.current?.textContent || '';
-            onChange(newContent);
+            if (effectiveEditMode) {
+              const newContent = headerRef.current?.textContent || '';
+              onChange(newContent);
+            }
           }}
           dangerouslySetInnerHTML={{
             __html: processRichContent(content).replace(/\n/g, '<br>')
@@ -93,11 +101,12 @@ export default function EditableHeaderFooter({
         />
       </div>
 
-      {/* Use the working InlineFormattingToolbar */}
-      <InlineFormattingToolbar
-        targetElement={showToolbar ? headerRef.current : null}
-        isVisible={showToolbar}
-        onAutoSave={async () => {
+      {/* Use the working InlineFormattingToolbar - only show in edit mode */}
+      {effectiveEditMode && (
+        <InlineFormattingToolbar
+          targetElement={showToolbar ? headerRef.current : null}
+          isVisible={showToolbar}
+          onAutoSave={async () => {
           if (headerRef.current) {
             const newContent = headerRef.current.textContent || '';
             onChange(newContent);
@@ -136,9 +145,10 @@ export default function EditableHeaderFooter({
             }
           }
         }}
-        showVariables={true} // Show variables for both headers and footers
-        onClose={() => setShowToolbar(false)}
-      />
+          showVariables={true} // Show variables for both headers and footers
+          onClose={() => setShowToolbar(false)}
+        />
+      )}
     </>
   );
 }
