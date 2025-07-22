@@ -21,7 +21,6 @@ import {
 export default function Billing() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [isProcessing, setIsProcessing] = useState(false);
 
   // Get current subscription status
   const { data: subscriptionData, isLoading } = useQuery({
@@ -54,22 +53,44 @@ export default function Billing() {
     }
   });
 
-  // Upgrade to annual mutation
-  const upgradeToAnnualMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest('POST', '/api/billing/switch-to-annual');
+  // Switch between monthly and annual plans
+  const switchPlanMutation = useMutation({
+    mutationFn: async (interval: 'month' | 'year') => {
+      const res = await apiRequest('POST', '/api/billing/switch-plan', { interval });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, interval) => {
       toast({
-        title: "Upgraded to Annual",
-        description: "You've been upgraded to our annual plan with 18% savings!",
+        title: "Plan Updated",
+        description: `Successfully switched to ${interval === 'year' ? 'annual' : 'monthly'} billing${interval === 'year' ? ' with 18% savings!' : '.'}`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/billing/status'] });
     },
     onError: (error: any) => {
       toast({
-        title: "Upgrade Failed",
+        title: "Plan Switch Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Cancel trial mutation
+  const cancelTrialMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/billing/cancel-trial');
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Trial Canceled",
+        description: "Your trial has been canceled. You can continue using the app until your trial period ends.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/billing/status'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Trial Cancellation Failed",
         description: error.message,
         variant: "destructive",
       });
@@ -78,25 +99,7 @@ export default function Billing() {
 
 
 
-  const handleStartSubscription = async () => {
-    setIsProcessing(true);
-    try {
-      const res = await apiRequest('POST', '/api/get-or-create-subscription');
-      const data = await res.json();
-      
-      if (data.clientSecret) {
-        // Redirect to subscribe page with client secret
-        window.location.href = `/subscribe?plan=monthly`;
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to initialize subscription",
-        variant: "destructive",
-      });
-    }
-    setIsProcessing(false);
-  };
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -193,7 +196,16 @@ export default function Billing() {
             <Alert>
               <Calendar className="h-4 w-4" />
               <AlertDescription>
-                You're currently on a free trial. You'll be automatically billed when your trial ends unless you cancel.
+                You're on a 30-day free trial. Choose a plan before your trial ends to continue using BackstageOS.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {subscriptionData?.status === 'canceled' && subscriptionData?.trialEnd && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                Your trial has been canceled. You can use the app until {new Date(subscriptionData.trialEnd).toLocaleDateString()}, then you'll be redirected to the payment screen to continue.
               </AlertDescription>
             </Alert>
           )}
@@ -214,34 +226,73 @@ export default function Billing() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {!subscriptionData?.status || subscriptionData?.status === 'canceled' ? (
-              <Button 
-                onClick={handleStartSubscription}
-                disabled={isProcessing}
-                className="w-full"
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Starting...
-                  </>
-                ) : (
-                  'Start Subscription'
-                )}
-              </Button>
-            ) : (
+            {/* Trial Management */}
+            {subscriptionData?.status === 'trialing' && (
               <>
+                <div className="text-sm text-muted-foreground mb-3">
+                  Your 30-day free trial is active. Choose a plan before it ends to continue using BackstageOS.
+                </div>
+                
+                <Button 
+                  onClick={() => window.location.href = '/subscribe?plan=monthly'}
+                  className="w-full"
+                >
+                  Choose Monthly Plan ($29/month)
+                </Button>
+                
+                <Button 
+                  onClick={() => window.location.href = '/subscribe?plan=annual'}
+                  className="w-full"
+                  variant="outline"
+                >
+                  Choose Annual Plan ($285/year - Save 18%)
+                </Button>
+                
+                <Button
+                  onClick={() => cancelTrialMutation.mutate()}
+                  disabled={cancelTrialMutation.isPending}
+                  variant="destructive"
+                  className="w-full"
+                >
+                  {cancelTrialMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    'Cancel Trial'
+                  )}
+                </Button>
+              </>
+            )}
+
+            {/* Active Subscription Management */}
+            {subscriptionData?.status === 'active' && (
+              <>
+                {/* Plan switching options */}
                 {subscriptionData.interval === 'month' && (
                   <Button 
-                    onClick={() => upgradeToAnnualMutation.mutate()}
-                    disabled={upgradeToAnnualMutation.isPending}
+                    onClick={() => switchPlanMutation.mutate('year')}
+                    disabled={switchPlanMutation.isPending}
                     className="w-full"
                     variant="outline"
                   >
-                    {upgradeToAnnualMutation.isPending ? (
+                    {switchPlanMutation.isPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
-                      'Upgrade to Annual (Save 18%)'
+                      'Switch to Annual (Save 18%)'
+                    )}
+                  </Button>
+                )}
+
+                {subscriptionData.interval === 'year' && (
+                  <Button 
+                    onClick={() => switchPlanMutation.mutate('month')}
+                    disabled={switchPlanMutation.isPending}
+                    className="w-full"
+                    variant="outline"
+                  >
+                    {switchPlanMutation.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      'Switch to Monthly Billing'
                     )}
                   </Button>
                 )}
@@ -255,20 +306,75 @@ export default function Billing() {
                   Manage Payment Methods
                 </Button>
 
-                {subscriptionData.status !== 'canceled' && (
-                  <Button
-                    onClick={() => cancelMutation.mutate()}
-                    disabled={cancelMutation.isPending}
-                    variant="destructive"
-                    className="w-full"
-                  >
-                    {cancelMutation.isPending ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      'Cancel Subscription'
-                    )}
-                  </Button>
-                )}
+                <Button
+                  onClick={() => cancelMutation.mutate()}
+                  disabled={cancelMutation.isPending}
+                  variant="destructive"
+                  className="w-full"
+                >
+                  {cancelMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    'Cancel Subscription'
+                  )}
+                </Button>
+              </>
+            )}
+
+            {/* Canceled Subscription */}
+            {subscriptionData?.status === 'canceled' && (
+              <>
+                <div className="text-sm text-muted-foreground mb-3">
+                  Your subscription is canceled. You can still access the app until {new Date(subscriptionData.currentPeriodEnd).toLocaleDateString()}.
+                </div>
+                
+                <Button 
+                  onClick={() => window.location.href = '/subscribe?plan=monthly'}
+                  className="w-full"
+                >
+                  Reactivate Monthly Plan
+                </Button>
+                
+                <Button 
+                  onClick={() => window.location.href = '/subscribe?plan=annual'}
+                  className="w-full"
+                  variant="outline"
+                >
+                  Reactivate Annual Plan
+                </Button>
+              </>
+            )}
+
+            {/* Past Due */}
+            {subscriptionData?.status === 'past_due' && (
+              <>
+                <Button
+                  onClick={() => window.open('https://billing.stripe.com/p/login/test_00000000001', '_blank')}
+                  className="w-full"
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Update Payment Method
+                </Button>
+              </>
+            )}
+
+            {/* No active subscription */}
+            {(!subscriptionData?.status || subscriptionData?.status === 'incomplete') && (
+              <>
+                <Button 
+                  onClick={() => window.location.href = '/subscribe?plan=monthly'}
+                  className="w-full"
+                >
+                  Start Monthly Plan ($29/month)
+                </Button>
+                
+                <Button 
+                  onClick={() => window.location.href = '/subscribe?plan=annual'}
+                  className="w-full"
+                  variant="outline"
+                >
+                  Start Annual Plan ($285/year - Save 18%)
+                </Button>
               </>
             )}
           </CardContent>
