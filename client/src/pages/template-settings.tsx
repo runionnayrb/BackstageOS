@@ -764,12 +764,8 @@ export default function TemplateSettings() {
                               apiRequest("PUT", `/api/projects/${projectId}/global-template-settings`, {
                                 ...globalSettings,
                                 defaultHeader: newHeader
-                              }).then(() => {
-                                // Invalidate global settings cache
-                                queryClient.invalidateQueries({
-                                  queryKey: [`/api/projects/${projectId}/global-template-settings`]
-                                });
                               });
+                              // Note: No cache invalidation here to prevent reload conflicts
                             }
                           } else {
                             // For other templates, update local template
@@ -881,12 +877,8 @@ export default function TemplateSettings() {
                               apiRequest("PUT", `/api/projects/${projectId}/global-template-settings`, {
                                 ...globalSettings,
                                 defaultFooter: newFooter
-                              }).then(() => {
-                                // Invalidate global settings cache
-                                queryClient.invalidateQueries({
-                                  queryKey: [`/api/projects/${projectId}/global-template-settings`]
-                                });
                               });
+                              // Note: No cache invalidation here to prevent reload conflicts
                             }
                           } else {
                             // For other templates, update local template
