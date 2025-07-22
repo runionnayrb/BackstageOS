@@ -511,7 +511,10 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     onSuccess: () => {
       if (setIsSaving) setIsSaving(false);
       if (setLastSaved) setLastSaved(new Date());
-      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      // Don't invalidate queries during user editing to prevent overwriting changes
+      if (!hasUserChanges) {
+        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
+      }
     },
     onError: (error) => {
       if (setIsSaving) setIsSaving(false);
@@ -561,9 +564,13 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     }
   }, [template, generateLayoutFromTemplate, configuration.items.length]);
 
+  // Track if user has made changes to prevent overwriting
+  const [hasUserChanges, setHasUserChanges] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
   // Load configuration from settings (with migration to grouped format)
   useEffect(() => {
-    if ((showSettings as any)?.layoutConfiguration) {
+    if ((showSettings as any)?.layoutConfiguration && !initialLoadComplete) {
       const savedConfig = (showSettings as any).layoutConfiguration;
       
       // Check if saved config uses old format (individual items) or new format (grouped sections)
@@ -585,8 +592,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
         setConfiguration(savedConfig);
         setTimeout(() => setIsLayoutMounted(true), 150);
       }
+      setInitialLoadComplete(true);
     }
-  }, [showSettings, template]);
+  }, [showSettings, template, initialLoadComplete]);
 
   // Helper function to snap width to quarters (25%, 50%, 75%, 100%)
   const snapToQuarters = useCallback((width: number) => {
