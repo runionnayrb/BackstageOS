@@ -700,7 +700,12 @@ export default function TemplateSettings() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => flexibleLayoutRef.current?.addNewItem('department-header')}
+                              onClick={() => {
+                                console.log('🔥 PLUS BUTTON CLICKED - template-settings.tsx');
+                                console.log('🔍 Ref current:', flexibleLayoutRef.current);
+                                console.log('🔍 addNewItem function:', flexibleLayoutRef.current?.addNewItem);
+                                flexibleLayoutRef.current?.addNewItem('department-header');
+                              }}
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
