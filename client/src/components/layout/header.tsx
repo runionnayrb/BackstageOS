@@ -36,21 +36,37 @@ export default function Header() {
   const [defaultUserId, setDefaultUserId] = useState<string>("");
 
   // Fetch profile types for dynamic dropdown
-  const { data: profileTypes = [] } = useQuery({
+  const { data: profileTypes = [], isLoading: profileTypesLoading, error: profileTypesError } = useQuery({
     queryKey: ['/api/admin/account-types'],
     enabled: isAdmin(user),
     queryFn: async () => {
+      console.log('Header: Fetching profile types...');
       const response = await fetch('/api/admin/account-types', { 
         credentials: 'include' 
       });
       
       if (!response.ok) {
-        throw new Error('Failed to fetch profile types');
+        console.error('Header: Profile types fetch failed:', response.status, response.statusText);
+        throw new Error(`Failed to fetch profile types: ${response.status}`);
       }
       
-      return response.json();
+      const data = await response.json();
+      console.log('Header: Profile types received:', data);
+      return data;
     },
-    select: (data: any[]) => data || [],
+    select: (data: any[]) => {
+      console.log('Header: Profile types selected:', data);
+      return data || [];
+    },
+  });
+
+  // Log profile types state
+  console.log('Header: Profile types state:', {
+    profileTypes,
+    profileTypesLoading,
+    profileTypesError,
+    isAdminUser: isAdmin(user),
+    userLoaded: !!user
   });
 
   // Fetch all users for account switching (admin only)
@@ -274,6 +290,9 @@ export default function Header() {
                           {profileType.name}
                         </SelectItem>
                       ))}
+                      {profileTypes.length === 0 && (
+                        <SelectItem value="loading" disabled>Loading...</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -399,6 +418,9 @@ export default function Header() {
                               {profileType.name}
                             </SelectItem>
                           ))}
+                          {profileTypes.length === 0 && (
+                            <SelectItem value="loading" disabled>Loading...</SelectItem>
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
