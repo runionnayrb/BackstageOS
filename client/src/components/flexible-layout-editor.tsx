@@ -641,6 +641,12 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     // Use the same layout data for both edit and view modes to ensure consistency
     const finalItems = items;
     
+    console.log('🔍 Converting to grid layouts:', { 
+      effectiveEditMode, 
+      itemCount: finalItems.length, 
+      items: finalItems.map(item => ({ id: item.id, x: item.x, y: item.y, w: item.w, h: item.h }))
+    });
+    
     const layout = finalItems.map(item => ({
       i: item.id,
       x: item.x,
@@ -651,9 +657,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       minH: item.minH || 1,
       maxW: item.maxW || 12, // Default maximum 100% width
       maxH: item.maxH,
-      isResizable: item.isResizable !== false,
-      isDraggable: item.isDraggable !== false,
-      static: !effectiveEditMode
+      isResizable: effectiveEditMode ? (item.isResizable !== false) : false,
+      isDraggable: effectiveEditMode ? (item.isDraggable !== false) : false,
+      static: false // Always false to prevent layout engine differences
     }));
 
     return {
@@ -667,8 +673,19 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
   // Update layouts when configuration changes
   useEffect(() => {
-    setLayouts(convertToGridLayouts(configuration.items));
+    const newLayouts = convertToGridLayouts(configuration.items);
+    setLayouts(newLayouts);
   }, [configuration, convertToGridLayouts]);
+
+  // Force layout refresh when switching between edit/view modes - but preserve manual sizing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Don't recalculate intelligent widths when entering edit mode - preserve user's manual sizing
+      const newLayouts = convertToGridLayouts(configuration.items);
+      setLayouts(newLayouts);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [effectiveEditMode, configuration.items]); // Remove convertToGridLayouts from deps to prevent recalculation
 
   // Handle layout changes from react-grid-layout with auto-save
 
