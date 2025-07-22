@@ -789,13 +789,16 @@ export default function TemplateSettings() {
                             });
                             console.log('✅ Layout configuration saved successfully:', response);
                             
-                            // Invalidate cache to refresh settings with new updatedAt timestamp
-                            queryClient.invalidateQueries({
-                              queryKey: ['/api/projects', projectId, 'settings']
-                            });
-                            console.log('🔄 Cache invalidated after layout save');
-                            
                             setLastSaved(new Date());
+                            
+                            // Delay cache invalidation to prevent race condition with configuration loading
+                            setTimeout(() => {
+                              queryClient.invalidateQueries({
+                                queryKey: ['/api/projects', projectId, 'settings']
+                              });
+                              console.log('🔄 Cache invalidated after layout save (delayed)');
+                            }, 500);
+                            
                           } catch (error) {
                             console.error('❌ Failed to save layout configuration:', error);
                           } finally {

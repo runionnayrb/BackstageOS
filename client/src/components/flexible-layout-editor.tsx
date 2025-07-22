@@ -476,6 +476,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   }));
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -501,9 +502,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     }
   }, [template, generateLayoutFromTemplate, configuration.items.length, initialLoadComplete, showSettings]);
 
-  // Load configuration from settings (with migration to grouped format)
+  // Load configuration from settings (with migration to grouped format) - only once on initial load
   useEffect(() => {
-    if ((showSettings as any)?.layoutConfiguration && !initialLoadComplete) {
+    if ((showSettings as any)?.layoutConfiguration && !initialLoadComplete && !hasUnsavedChanges) {
       const savedConfig = (showSettings as any).layoutConfiguration;
       console.log('🔄 Loading saved layout configuration:', savedConfig);
       
@@ -527,10 +528,11 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       }
       setInitialLoadComplete(true);
     } else if ((showSettings as any)?.layoutConfiguration && initialLoadComplete) {
-      // Don't reload if we've already loaded - this prevents resetting after saves
       console.log('🚫 Skipping configuration reload - already loaded');
+    } else if ((showSettings as any)?.layoutConfiguration && hasUnsavedChanges) {
+      console.log('🚫 Skipping configuration reload - has unsaved changes');
     }
-  }, [showSettings, template, initialLoadComplete, generateLayoutFromTemplate]);
+  }, [showSettings, template, initialLoadComplete, hasUnsavedChanges, generateLayoutFromTemplate]);
 
   // Helper function to snap width to quarters (25%, 50%, 75%, 100%)
   const snapToQuarters = useCallback((width: number) => {
@@ -646,6 +648,17 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     setLayouts(newLayouts);
   }, [configuration, convertToGridLayouts]);
 
+  // Save configuration when exiting edit mode to prevent data loss
+  const prevEditModeRef = useRef(effectiveEditMode);
+  useEffect(() => {
+    // If we're switching from edit mode to view mode, ensure current configuration is saved
+    if (prevEditModeRef.current && !effectiveEditMode && configuration.items.length > 0) {
+      console.log('🔒 Exiting edit mode - saving current configuration to prevent data loss');
+      onConfigurationChange?.(configuration);
+    }
+    prevEditModeRef.current = effectiveEditMode;
+  }, [effectiveEditMode, configuration, onConfigurationChange]);
+
   // Force layout refresh when switching between edit/view modes - but preserve manual sizing
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -725,8 +738,21 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       items: updatedItems
     };
 
+    console.log('🔧 Layout changed, updating configuration and saving:', { 
+      editMode: effectiveEditMode, 
+      hasChanges: true,
+      itemCount: updatedItems.length
+    });
+
     setConfiguration(newConfig);
+    setHasUnsavedChanges(true);
     onConfigurationChange?.(newConfig);
+    
+    // Clear unsaved changes flag after successful save (with delay)
+    setTimeout(() => {
+      setHasUnsavedChanges(false);
+      console.log('✅ Unsaved changes flag cleared');
+    }, 1000);
   };
 
   const handleDragStart = () => {

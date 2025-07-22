@@ -364,6 +364,41 @@ Required environment variables:
 
 **Status**: Timestamp update issue completely resolved - template modifications now properly update and display current "Updated" time.
 
+### July 22, 2025: **CRITICAL TEMPLATE LAYOUT PERSISTENCE BUG RESOLVED COMPLETELY**
+**Successfully fixed the critical data loss issue where template layout changes would revert after clicking "Lock Template":**
+
+**Root Cause Analysis:**
+- Layout changes made in edit mode were being saved immediately but cache invalidation after saves was triggering configuration reloads from database
+- When users clicked "Lock Template" (exiting edit mode), the old configuration was being loaded from the database, overriding user's local changes
+- Race condition between save operations and mode transitions causing data loss
+
+**Comprehensive Solution Implemented:**
+- **Automatic Save on Mode Exit**: Added useEffect with prevEditModeRef to detect edit mode transitions and automatically save configuration when exiting edit mode
+- **Delayed Cache Invalidation**: Implemented 500ms delay on cache invalidation after saves to prevent immediate database reloads that override local changes  
+- **Unsaved Changes Tracking**: Added hasUnsavedChanges state flag to prevent configuration reloads when recent changes exist
+- **Enhanced Logging**: Added comprehensive debugging to track configuration loading, saving, and cache invalidation cycles
+- **Prevention of Unwanted Reloads**: Modified configuration loading logic to skip reloads when already loaded or when unsaved changes exist
+
+**Technical Implementation:**
+- Added prevEditModeRef to track mode transitions and trigger saves when exiting edit mode
+- Modified onConfigurationChange callback with delayed cache invalidation using setTimeout
+- Enhanced configuration loading useEffect with hasUnsavedChanges guard clause  
+- Added setHasUnsavedChanges tracking with automatic clearing after successful saves
+- Improved handleLayoutChange with detailed logging for debugging save operations
+
+**System Benefits:**
+- Template layout changes now persist correctly when clicking "Lock Template"
+- Eliminated data loss issue that was critical for theater professionals' workflow
+- Maintained real-time saving for layout changes during edit mode
+- Preserved all existing functionality while fixing persistence issue
+- Added robust debugging for future layout-related issues
+
+**Files Updated:**
+- `client/src/components/flexible-layout-editor.tsx`: Core persistence logic and state management
+- `client/src/pages/template-settings.tsx`: Delayed cache invalidation in save callback
+
+**Status**: Critical layout persistence bug completely resolved. User layout customizations now persist correctly across edit/lock mode transitions without data loss.
+
 ### July 22, 2025: **AUTO-NUMBERING DEPARTMENT TEXT AREAS WITH REPORT NOTES TRACKING SYSTEM COMPLETE**
 **Successfully implemented comprehensive auto-numbering functionality for department text areas in BackstageOS report templates with separate notes tracking system:**
 
