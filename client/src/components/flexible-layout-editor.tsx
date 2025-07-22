@@ -502,11 +502,18 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     }
   }, [template, generateLayoutFromTemplate, configuration.items.length, initialLoadComplete, showSettings]);
 
-  // Load configuration from settings (with migration to grouped format) - only once on initial load
+  // Load configuration from settings ONLY on the very first load, never again
   useEffect(() => {
-    if ((showSettings as any)?.layoutConfiguration && !initialLoadComplete && !userHasEditedLayout) {
+    // Once user has edited layout, NEVER load from database again
+    if (userHasEditedLayout) {
+      console.log('🛡️ User has edited layout - NEVER loading from database again');
+      return;
+    }
+    
+    // Only load if we haven't completed initial load and user hasn't made changes
+    if ((showSettings as any)?.layoutConfiguration && !initialLoadComplete) {
       const savedConfig = (showSettings as any).layoutConfiguration;
-      console.log('🔄 Loading saved layout configuration:', savedConfig);
+      console.log('🔄 First-time loading saved layout configuration:', savedConfig);
       
       // Check if saved config uses old format (individual items) or new format (grouped sections)
       const hasGroupedSections = savedConfig.items?.some((item: any) => item.type === 'grouped-section');
@@ -527,10 +534,8 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
         setTimeout(() => setIsLayoutMounted(true), 150);
       }
       setInitialLoadComplete(true);
-    } else if ((showSettings as any)?.layoutConfiguration && initialLoadComplete) {
-      console.log('🚫 Skipping configuration reload - already loaded');
-    } else if ((showSettings as any)?.layoutConfiguration && userHasEditedLayout) {
-      console.log('🚫 Skipping configuration reload - user has edited layout, preserving changes');
+    } else if (initialLoadComplete || userHasEditedLayout) {
+      console.log('🚫 Skipping configuration reload - user changes are protected');
     }
   }, [showSettings, template, initialLoadComplete, userHasEditedLayout, generateLayoutFromTemplate]);
 
@@ -544,6 +549,11 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
   // Helper function to calculate intelligent widths based on side-by-side positioning
   const calculateIntelligentWidths = useCallback((items: LayoutItem[]) => {
+    // Don't recalculate widths if user has manually edited layout
+    if (userHasEditedLayout) {
+      console.log('🛡️ Preserving user width changes - no intelligent recalculation');
+      return items;
+    }
     const processedItems = [...items];
     
     // Group items by Y position (same row)
@@ -605,7 +615,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     });
     
     return processedItems;
-  }, [snapToQuarters]);
+  }, [snapToQuarters, userHasEditedLayout]);
 
   // Convert configuration items to react-grid-layout format
   const convertToGridLayouts = useCallback((items: LayoutItem[]) => {
@@ -651,15 +661,20 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   // No need to save on mode exit since we save immediately with every layout change
   // Every change becomes the new permanent template configuration automatically
 
-  // Force layout refresh when switching between edit/view modes - but preserve manual sizing
+  // Force layout refresh when switching between edit/view modes - but preserve user changes
   useEffect(() => {
+    // Only refresh layout if user hasn't made any changes - preserve user edits completely
+    if (userHasEditedLayout) {
+      console.log('🛡️ Preserving user layout changes - no refresh on mode switch');
+      return;
+    }
+    
     const timer = setTimeout(() => {
-      // Don't recalculate intelligent widths when entering edit mode - preserve user's manual sizing
       const newLayouts = convertToGridLayouts(configuration.items);
       setLayouts(newLayouts);
     }, 100);
     return () => clearTimeout(timer);
-  }, [effectiveEditMode, configuration.items]); // Remove convertToGridLayouts from deps to prevent recalculation
+  }, [effectiveEditMode, configuration.items, userHasEditedLayout, convertToGridLayouts]);
 
   // Handle layout changes from react-grid-layout
 

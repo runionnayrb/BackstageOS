@@ -399,6 +399,40 @@ Required environment variables:
 
 **Status**: Critical layout persistence bug completely resolved. User layout customizations now persist correctly across edit/lock mode transitions without data loss.
 
+### July 22, 2025: **TEMPLATE LAYOUT PERSISTENCE SYSTEM COMPLETELY FIXED**
+**Successfully resolved critical template layout persistence issue where user customizations were reverting visually after mode switching:**
+
+**Root Cause Identified:**
+- Database saves were working correctly but visual changes reverted due to multiple layout refresh mechanisms
+- Configuration loading, mode switching effects, and intelligent width recalculation were overriding user changes
+- System was treating every page load as needing to reload from database instead of preserving user modifications
+
+**Complete Solution Implemented:**
+- **Immediate Database Persistence**: Every layout change now saves instantly to database instead of waiting for mode exit
+- **User Edit Protection**: Once user makes any layout change, system never loads from database again (`userHasEditedLayout` flag)
+- **Mode Switch Protection**: Layout refresh on edit/view mode switching blocked when user has made changes
+- **Width Calculation Protection**: Intelligent width recalculation disabled once user has manually edited layout
+- **No Unsaved Changes Tracking**: Removed unsaved changes state since every change saves immediately
+
+**User Experience:**
+- Drag/resize any component → Immediate database save → Permanent template change
+- No reverting on mode switching (edit ↔ view)  
+- No reverting on page reload or login
+- User changes become the new template truth immediately
+- Complete visual persistence matching database state
+
+**System Logs Confirm Success:**
+- `🛡️ User has edited layout - NEVER loading from database again`
+- `🛡️ Preserving user layout changes - no refresh on mode switch`
+- `🛡️ Preserving user width changes - no intelligent recalculation`
+- `💾 Layout change saved immediately - this is now the permanent template configuration`
+
+**Files Updated:**
+- `client/src/components/flexible-layout-editor.tsx`: Complete persistence protection system
+- `client/src/pages/template-settings.tsx`: Removed redundant save-on-exit logic
+
+**Status**: Template layout persistence completely resolved - user customizations now persist permanently across all sessions with no visual reverting.
+
 ### July 22, 2025: **AUTO-NUMBERING DEPARTMENT TEXT AREAS WITH REPORT NOTES TRACKING SYSTEM COMPLETE**
 **Successfully implemented comprehensive auto-numbering functionality for department text areas in BackstageOS report templates with separate notes tracking system:**
 
