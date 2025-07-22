@@ -694,19 +694,32 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       return item;
     });
 
-    // Only apply intelligent width calculation if position actually changed significantly
-    const shouldApplyIntelligentWidth = updatedItems.some(item => {
+    // Check if this is a position change (drag) vs a size change (resize)
+    const isPositionChange = updatedItems.some(item => {
       const lastPos = lastLayoutRef.current[item.id];
       if (!lastPos) return true;
       
-      // Check if position changed significantly (more than just a minor adjustment)
+      // Check if position changed (x or y) - indicates drag
       const xChanged = Math.abs(item.x - lastPos.x) > 0.5;
       const yChanged = Math.abs(item.y - lastPos.y) > 0.5;
       
       return xChanged || yChanged;
     });
 
-    if (shouldApplyIntelligentWidth && effectiveEditMode && !isDragging) {
+    // Check if this is a size change only (resize) 
+    const isSizeChangeOnly = updatedItems.some(item => {
+      const lastPos = lastLayoutRef.current[item.id];
+      if (!lastPos) return false;
+      
+      // Position didn't change but size did - indicates manual resize
+      const positionUnchanged = Math.abs(item.x - lastPos.x) <= 0.5 && Math.abs(item.y - lastPos.y) <= 0.5;
+      const sizeChanged = Math.abs(item.w - lastPos.w) > 0.5 || Math.abs(item.h - lastPos.h) > 0.5;
+      
+      return positionUnchanged && sizeChanged;
+    });
+
+    // Only apply intelligent width calculation for position changes, not manual resizes
+    if (isPositionChange && !isSizeChangeOnly && effectiveEditMode && !isDragging) {
       updatedItems = calculateIntelligentWidths(updatedItems);
     }
 
@@ -738,17 +751,8 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
   const handleDragStop = () => {
     setIsDragging(false);
-    // Apply intelligent width calculation after drag completes
-    if (effectiveEditMode) {
-      const updatedItems = calculateIntelligentWidths(configuration.items);
-      const newConfig = {
-        ...configuration,
-        items: updatedItems
-      };
-      setConfiguration(newConfig);
-      onConfigurationChange?.(newConfig);
-      autoSaveLayout(newConfig);
-    }
+    // Apply intelligent width calculation after drag completes, but not after resize
+    // The handleLayoutChange will have already handled this appropriately
   };
 
   // Add new item to layout (creates grouped sections)
