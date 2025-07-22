@@ -78,9 +78,7 @@ interface FlexibleLayoutEditorProps {
   onConfigurationChange?: (config: FlexibleLayoutConfiguration) => void;
   template?: any;
   onTemplateUpdate?: (template: any) => void;
-  // Auto-save state from parent
-  setIsSaving?: (saving: boolean) => void;
-  setLastSaved?: (date: Date) => void;
+
   // External edit mode control
   externalEditMode?: boolean;
 }
@@ -478,9 +476,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   }));
   const [isLayoutMounted, setIsLayoutMounted] = useState(false);
   
-  // Auto-save functionality
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -489,65 +484,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     queryKey: ['/api/projects', projectId, 'settings'],
     enabled: !!projectId
   });
-
-  // Auto-save layout configuration mutation
-  const saveLayoutMutation = useMutation({
-    mutationFn: async (newConfig: FlexibleLayoutConfiguration) => {
-      const response = await fetch(`/api/projects/${projectId}/settings/layout-configuration`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ layoutConfiguration: newConfig })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to save layout configuration');
-      }
-      
-      return response.json();
-    },
-    onMutate: () => {
-      if (setIsSaving) setIsSaving(true);
-    },
-    onSuccess: () => {
-      if (setIsSaving) setIsSaving(false);
-      if (setLastSaved) setLastSaved(new Date());
-      // Don't invalidate queries during user editing to prevent overwriting changes
-      if (!hasUserChanges) {
-        queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
-      }
-    },
-    onError: (error) => {
-      if (setIsSaving) setIsSaving(false);
-      toast({
-        title: "Auto-save failed",
-        description: "Failed to auto-save layout changes",
-        variant: "destructive"
-      });
-      console.error('Failed to auto-save layout:', error);
-    }
-  });
-
-  // Auto-save function with debouncing
-  const autoSaveLayout = useCallback((newConfig: FlexibleLayoutConfiguration) => {
-    // Clear existing timeout
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-    
-    // Set new timeout for 2 seconds
-    saveTimeoutRef.current = setTimeout(() => {
-      saveLayoutMutation.mutate(newConfig);
-    }, 2000);
-  }, [saveLayoutMutation]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Initialize layout when template is available
   useEffect(() => {
@@ -564,8 +500,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     }
   }, [template, generateLayoutFromTemplate, configuration.items.length]);
 
-  // Track if user has made changes to prevent overwriting
-  const [hasUserChanges, setHasUserChanges] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   // Load configuration from settings (with migration to grouped format)
@@ -585,8 +519,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           items: newLayoutItems
         };
         setConfiguration(newConfig);
-        // Save the migrated configuration
-        saveLayoutMutation.mutate(newConfig);
         setTimeout(() => setIsLayoutMounted(true), 150);
       } else {
         setConfiguration(savedConfig);
@@ -720,7 +652,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     return () => clearTimeout(timer);
   }, [effectiveEditMode, configuration.items]); // Remove convertToGridLayouts from deps to prevent recalculation
 
-  // Handle layout changes from react-grid-layout with auto-save
+  // Handle layout changes from react-grid-layout
 
 
   // Track if we're in the middle of a drag operation to prevent constant recalculation
@@ -791,9 +723,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
     setConfiguration(newConfig);
     onConfigurationChange?.(newConfig);
-    
-    // Trigger auto-save
-    autoSaveLayout(newConfig);
   };
 
   const handleDragStart = () => {
@@ -846,9 +775,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
       setConfiguration(newConfig);
       onConfigurationChange?.(newConfig);
-      
-      // Trigger auto-save
-      autoSaveLayout(newConfig);
     } else if (type === 'empty-space') {
       // Create a simple empty space item
       const newItem: LayoutItem = {
@@ -870,9 +796,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
       setConfiguration(newConfig);
       onConfigurationChange?.(newConfig);
-      
-      // Trigger auto-save
-      autoSaveLayout(newConfig);
     }
   };
 
@@ -885,9 +808,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
     setConfiguration(newConfig);
     onConfigurationChange?.(newConfig);
-    
-    // Trigger auto-save
-    autoSaveLayout(newConfig);
   };
 
   // Show reset confirmation dialog
