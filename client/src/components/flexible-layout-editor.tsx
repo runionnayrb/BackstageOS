@@ -573,10 +573,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
 
   // Helper function to calculate intelligent widths based on side-by-side positioning
   const calculateIntelligentWidths = useCallback((items: LayoutItem[]) => {
-    // Skip intelligent width calculation during edit mode to prevent constant adjustments
-    if (effectiveEditMode) {
-      return items;
-    }
     
     const processedItems = [...items];
     
@@ -651,13 +647,14 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     });
     
     return processedItems;
-  }, [snapToQuarters, effectiveEditMode]);
+  }, [snapToQuarters]);
 
   // Convert configuration items to react-grid-layout format
   const convertToGridLayouts = useCallback((items: LayoutItem[]) => {
-    // Don't apply intelligent width calculations here - it causes layout differences between edit/view modes
-    // Instead, use the items as they are saved
-    const layout = items.map(item => ({
+    // Apply intelligent width calculations only in view mode to maintain saved layout in edit mode
+    const finalItems = !effectiveEditMode ? calculateIntelligentWidths(items) : items;
+    
+    const layout = finalItems.map(item => ({
       i: item.id,
       x: item.x,
       y: item.y,
@@ -679,7 +676,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       xs: layout,
       xxs: layout
     };
-  }, [effectiveEditMode]);
+  }, [effectiveEditMode, calculateIntelligentWidths]);
 
   // Update layouts when configuration changes
   useEffect(() => {
@@ -704,8 +701,10 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       return item;
     });
 
-    // Apply intelligent width adjustments after drag/resize
-    updatedItems = calculateIntelligentWidths(updatedItems);
+    // Apply intelligent width adjustments after drag/resize (only in edit mode)
+    if (effectiveEditMode) {
+      updatedItems = calculateIntelligentWidths(updatedItems);
+    }
 
     const newConfig = {
       ...configuration,
