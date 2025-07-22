@@ -3763,10 +3763,10 @@ export class DatabaseStorage implements IStorage {
     const totalUsersResult = await db.select({ count: sql<number>`count(*)` }).from(users);
     const totalUsers = totalUsersResult[0].count;
 
-    // Active users (had activity in last 30 days)
+    // Active users (users with is_active = true)
     const activeUsersResult = await db.select({ 
-      count: sql<number>`count(distinct user_id)` 
-    }).from(userActivity).where(gte(userActivity.createdAt, thirtyDaysAgo));
+      count: sql<number>`count(*)` 
+    }).from(users).where(eq(users.isActive, true));
     const activeUsers = activeUsersResult[0].count;
 
     // Total monthly cost
