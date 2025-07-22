@@ -2559,6 +2559,9 @@ export const insertBillingPlanSchema = createInsertSchema(billingPlans).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  // Accept price as number from frontend and transform to string for database
+  price: z.union([z.string(), z.number()]).transform(val => String(val)),
 });
 
 export const insertBillingHistorySchema = createInsertSchema(billingHistory).omit({

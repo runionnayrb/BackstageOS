@@ -12700,26 +12700,16 @@ The Production Team`;
     }
 
     try {
-      console.log("Create billing plan request body:", JSON.stringify(req.body, null, 2));
-      
       // Auto-generate planId from name
       const planDataWithId = {
         ...req.body,
         planId: generatePlanId(req.body.name)
       };
       
-      console.log("Plan data with generated ID:", JSON.stringify(planDataWithId, null, 2));
-      
       const planData = insertBillingPlanSchema.parse(planDataWithId);
-      console.log("Parsed plan data:", JSON.stringify(planData, null, 2));
-      
       const plan = await storage.createBillingPlan(planData);
       res.status(201).json(plan);
     } catch (error: any) {
-      console.error("Create billing plan error:", error.message);
-      if (error.issues) {
-        console.error("Validation issues:", JSON.stringify(error.issues, null, 2));
-      }
       res.status(400).json({ message: "Failed to create billing plan", error: error.message });
     }
   });
