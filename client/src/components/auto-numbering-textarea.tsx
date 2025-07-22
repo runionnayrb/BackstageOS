@@ -207,9 +207,17 @@ const AutoNumberingTextarea: React.FC<AutoNumberingTextareaProps> = ({
   }, [value]);
 
   if (!isEditing) {
-    // Display mode - show formatted content
+    // Display mode - show formatted content with same styling as edit mode
     return (
-      <div className={`p-1 min-h-[18px] whitespace-pre-line ${className}`}>
+      <div 
+        className={`p-1 min-h-[18px] whitespace-pre-line text-black ${className}`}
+        style={{ 
+          height: '18px', 
+          lineHeight: '1.2',
+          fontFamily: 'inherit',
+          fontSize: 'inherit' // Use same font size as edit mode
+        }}
+      >
         {currentValue || placeholder}
       </div>
     );
