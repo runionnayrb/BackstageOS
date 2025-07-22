@@ -564,8 +564,11 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                 // Remove header child and adjust notes positioning
                 const notesChild = item.children?.find((child: any) => child.type === 'notes');
                 if (notesChild) {
+                  // For Date field, position it directly after Day field
+                  const newY = fieldId === 'date' ? 2 : item.y; // Date at y=2, Day keeps original position
                   return {
                     ...item,
+                    y: newY,
                     h: 2, // Reduced height
                     children: [{
                       ...notesChild,
@@ -585,6 +588,12 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
             items: migratedItems
           };
           setConfiguration(migratedConfig);
+          
+          // Force save the migrated configuration to database
+          console.log('🔄 Force saving migrated configuration to remove headers permanently');
+          setUserHasEditedLayout(false); // Allow this migration save
+          onConfigurationChange?.(migratedConfig);
+          
           setTimeout(() => setIsLayoutMounted(true), 150);
         } else {
           console.log('🔄 Using saved configuration directly');
