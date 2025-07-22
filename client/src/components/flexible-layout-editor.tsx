@@ -569,10 +569,8 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       minW: item.minW || 3, // Default minimum 25% width
       minH: item.minH || 1,
       maxW: item.maxW || 12, // Default maximum 100% width
-      maxH: item.maxH,
-      isResizable: effectiveEditMode ? (item.isResizable !== false) : false,
-      isDraggable: effectiveEditMode ? (item.isDraggable !== false) : false,
-      static: !effectiveEditMode // Make items static in view mode to prevent any repositioning
+      maxH: item.maxH
+      // No isResizable, isDraggable, or static properties - let the grid handle this via global props
     }));
     
     console.log('🔍 Layout items created:', layout.map(l => ({ id: l.i, x: l.x, y: l.y, static: l.static })));
@@ -857,7 +855,6 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
           {isLayoutMounted && (
             <div className="w-full" style={{ width: '1200px', maxWidth: '100%' }}>
               <ResponsiveGridLayout
-                key={`grid-${effectiveEditMode ? 'edit' : 'view'}-${JSON.stringify(configuration.items.map(i => ({ id: i.id, x: i.x, y: i.y })))}`}
                 className="layout"
                 layouts={layouts}
                 breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
