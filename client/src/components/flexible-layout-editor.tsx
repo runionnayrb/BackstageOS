@@ -563,18 +563,95 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
     }
   }, [showSettings, template]);
 
+  // Helper function to snap width to quarters (25%, 50%, 75%, 100%)
+  const snapToQuarters = useCallback((width: number) => {
+    const quarterSnapPoints = [3, 6, 9, 12]; // 25%, 50%, 75%, 100% of 12-column grid
+    return quarterSnapPoints.reduce((closest, snap) => 
+      Math.abs(width - snap) < Math.abs(width - closest) ? snap : closest
+    );
+  }, []);
+
+  // Helper function to calculate intelligent widths based on side-by-side positioning
+  const calculateIntelligentWidths = useCallback((items: LayoutItem[]) => {
+    const processedItems = [...items];
+    
+    // Group items by Y position to find side-by-side components
+    const rowGroups = new Map<number, LayoutItem[]>();
+    processedItems.forEach(item => {
+      const y = item.y;
+      if (!rowGroups.has(y)) {
+        rowGroups.set(y, []);
+      }
+      rowGroups.get(y)!.push(item);
+    });
+    
+    // Process each row to adjust widths
+    rowGroups.forEach((rowItems, y) => {
+      // Sort by x position
+      rowItems.sort((a, b) => a.x - b.x);
+      
+      // Only adjust if multiple items in the same row AND they overlap in Y
+      if (rowItems.length > 1) {
+        // Check if items actually overlap in Y (not just same starting Y)
+        const hasYOverlap = rowItems.some((item1, i) => 
+          rowItems.some((item2, j) => 
+            i !== j && 
+            item1.y < item2.y + item2.h && 
+            item2.y < item1.y + item1.h
+          )
+        );
+
+        if (hasYOverlap) {
+          const maxSideBySide = Math.min(rowItems.length, 4); // Max 4 components
+          const equalWidth = 12 / maxSideBySide; // Equal distribution
+          
+          rowItems.forEach((item, index) => {
+            const itemIndex = processedItems.findIndex(p => p.id === item.id);
+            if (itemIndex !== -1) {
+              processedItems[itemIndex] = {
+                ...processedItems[itemIndex],
+                x: Math.floor(index * equalWidth),
+                w: snapToQuarters(equalWidth), // Snap to quarters
+                minW: 3, // Minimum 25% (3/12)
+                maxW: 12 // Can expand to full width
+              };
+            }
+          });
+        }
+      }
+      
+      // Apply quarter snapping to all items for consistent sizing
+      rowItems.forEach(item => {
+        const itemIndex = processedItems.findIndex(p => p.id === item.id);
+        if (itemIndex !== -1) {
+          processedItems[itemIndex] = {
+            ...processedItems[itemIndex],
+            w: snapToQuarters(processedItems[itemIndex].w),
+            minW: 3, // Minimum 25% (3/12)
+            maxW: 12 // Maximum 100% (12/12)
+          };
+        }
+      });
+    });
+    
+    return processedItems;
+  }, [snapToQuarters]);
+
   // Convert configuration items to react-grid-layout format
   const convertToGridLayouts = useCallback((items: LayoutItem[]) => {
-    const layout = items.map(item => ({
+    // Apply intelligent width calculations
+    const intelligentItems = calculateIntelligentWidths(items);
+    
+    const layout = intelligentItems.map(item => ({
       i: item.id,
       x: item.x,
       y: item.y,
       w: item.w,
       h: item.h,
-      minW: Math.min(item.minW || 1, item.w), // Ensure minW doesn't exceed actual width
-      minH: Math.min(item.minH || 1, item.h), // Ensure minH doesn't exceed actual height
-      maxW: item.maxW && item.maxW > item.w ? item.maxW : undefined, // Only set maxW if it's larger than current width
-      maxH: item.maxH && item.maxH > item.h ? item.maxH : undefined, // Only set maxH if it's larger than current height
+      minW: item.minW || 3, // Default minimum 25% width
+      minH: item.minH || 1,
+      maxW: item.maxW || 12, // Default maximum 100% width
+      maxH: item.maxH,
       isResizable: item.isResizable !== false,
       isDraggable: item.isDraggable !== false,
       static: !effectiveEditMode
@@ -587,7 +664,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       xs: layout,
       xxs: layout
     };
-  }, [effectiveEditMode]);
+  }, [effectiveEditMode, calculateIntelligentWidths]);
 
   // Update layouts when configuration changes
   useEffect(() => {
@@ -598,7 +675,7 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
   const handleLayoutChange = (layout: Layout[], allLayouts: Layouts) => {
     if (!effectiveEditMode) return;
 
-    const updatedItems = configuration.items.map(item => {
+    let updatedItems = configuration.items.map(item => {
       const layoutItem = layout.find(l => l.i === item.id);
       if (layoutItem) {
         return {
@@ -611,6 +688,9 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
       }
       return item;
     });
+
+    // Apply intelligent width adjustments after drag/resize
+    updatedItems = calculateIntelligentWidths(updatedItems);
 
     const newConfig = {
       ...configuration,
@@ -800,16 +880,18 @@ export const FlexibleLayoutEditor: React.FC<FlexibleLayoutEditorProps> = ({
                 cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
                 rowHeight={18}
                 width={1200}
-                margin={[2, 2]}
-                containerPadding={[0, 0]}
+                margin={[4, 4]}
+                containerPadding={[8, 8]}
                 isDraggable={effectiveEditMode}
                 isResizable={effectiveEditMode}
                 onLayoutChange={handleLayoutChange}
+                onResizeStop={handleLayoutChange}
                 draggableHandle=".drag-handle"
-                useCSSTransforms={false}
+                useCSSTransforms={true}
                 compactType={null}
                 preventCollision={false}
                 allowOverlap={true}
+                resizeHandles={['se']}
                 style={{ minHeight: '400px', width: '100%' }}
               >
                 {configuration.items.map((item) => (
