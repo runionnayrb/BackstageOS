@@ -753,7 +753,10 @@ export default function TemplateSettings() {
                     {/* Header - Inline Editable */}
                     <div className="text-center mb-6 pb-4 border-b">
                       <EditableHeaderFooter
-                        content={selectedPhase === 'tech' ? (globalSettings?.defaultHeader || template.header) : template.header}
+                        content={selectedPhase === 'tech' ? 
+                          (globalSettings?.defaultHeader?.replace(/{{showName}}/g, project?.name || 'Show Name') || template.header.replace(/{{showName}}/g, project?.name || 'Show Name')) : 
+                          template.header.replace(/{{showName}}/g, project?.name || 'Show Name')
+                        }
                         onChange={(newHeader) => {
                           if (selectedPhase === 'tech') {
                             // For tech templates, update global settings
@@ -870,7 +873,10 @@ export default function TemplateSettings() {
                     {/* Footer - Inline Editable */}
                     <div className="mt-8 pt-4 border-t text-center text-sm text-gray-600">
                       <EditableHeaderFooter
-                        content={selectedPhase === 'tech' ? (globalSettings?.defaultFooter || template.footer) : template.footer}
+                        content={selectedPhase === 'tech' ? 
+                          (globalSettings?.defaultFooter?.replace(/{{showName}}/g, project?.name || 'Show Name') || template.footer.replace(/{{showName}}/g, project?.name || 'Show Name')) : 
+                          template.footer.replace(/{{showName}}/g, project?.name || 'Show Name')
+                        }
                         onChange={(newFooter) => {
                           if (selectedPhase === 'tech') {
                             // For tech templates, update global settings
