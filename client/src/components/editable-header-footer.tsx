@@ -1,7 +1,5 @@
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { queryClient } from '@/lib/queryClient';
-import InlineFormattingToolbar from './inline-formatting-toolbar';
 
 interface EditableHeaderFooterProps {
   content: string;
@@ -20,7 +18,6 @@ export default function EditableHeaderFooter({
   type,
   effectiveEditMode
 }: EditableHeaderFooterProps) {
-  const [showToolbar, setShowToolbar] = useState(false);
   const headerRef = useRef<HTMLDivElement>(null);
 
   // Query to fetch show settings
@@ -68,15 +65,11 @@ export default function EditableHeaderFooter({
           suppressContentEditableWarning
           data-template-header={type === 'header' ? "true" : undefined}
           data-template-footer={type === 'footer' ? "true" : undefined}
-          onClick={() => {
+
+          onInput={(e) => {
             if (effectiveEditMode) {
-              console.log(`🎯 ${type.toUpperCase()} CLICKED - Setting up for editing`);
-              setShowToolbar(true);
-            }
-          }}
-          onFocus={() => {
-            if (effectiveEditMode) {
-              console.log(`🎯 ${type.toUpperCase()} FOCUSED - Setting up for editing`);
+              const newContent = e.currentTarget.textContent || '';
+              onChange(newContent);
             }
           }}
           onBlur={() => {
@@ -106,54 +99,7 @@ export default function EditableHeaderFooter({
         />
       </div>
 
-      {/* Use the working InlineFormattingToolbar - only show in edit mode */}
-      {effectiveEditMode && (
-        <InlineFormattingToolbar
-          targetElement={showToolbar ? headerRef.current : null}
-          isVisible={showToolbar}
-          onAutoSave={async () => {
-          if (headerRef.current) {
-            const newContent = headerRef.current.textContent || '';
-            onChange(newContent);
-            
-            // Capture and save formatting to database
-            const computedStyle = window.getComputedStyle(headerRef.current);
-            const formatting = {
-              color: computedStyle.color,
-              fontSize: computedStyle.fontSize,
-              fontWeight: computedStyle.fontWeight,
-              fontStyle: computedStyle.fontStyle,
-              textAlign: computedStyle.textAlign,
-              fontFamily: computedStyle.fontFamily,
-              textDecoration: computedStyle.textDecoration,
-              backgroundColor: computedStyle.backgroundColor,
-            };
-            
-            // Save formatting to database
-            try {
-              const endpoint = type === 'header' ? 'header-formatting' : 'footer-formatting';
-              const response = await fetch(`/api/projects/${projectId}/settings/${endpoint}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ formatting })
-              });
-              
-              if (response.ok) {
-                console.log(`${type} formatting saved successfully`);
-                // Invalidate cache to reload updated formatting
-                queryClient.invalidateQueries({
-                  queryKey: ['/api/projects', projectId, 'settings']
-                });
-              }
-            } catch (error) {
-              console.error(`Error saving ${type} formatting:`, error);
-            }
-          }
-        }}
-          showVariables={true} // Show variables for both headers and footers
-          onClose={() => setShowToolbar(false)}
-        />
-      )}
+      {/* No inline formatting toolbar - all formatting handled by global settings */}
     </>
   );
 }
