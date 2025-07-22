@@ -35,6 +35,13 @@ export default function Header() {
   const { selectedBetaAccess, selectedProfileType, setSelectedBetaAccess, setSelectedProfileType } = useAdminView();
   const [defaultUserId, setDefaultUserId] = useState<string>("");
 
+  // Fetch profile types for dynamic dropdown
+  const { data: profileTypes = [] } = useQuery({
+    queryKey: ['/api/admin/account-types'],
+    enabled: isAdmin(user),
+    select: (data: any[]) => data || [],
+  });
+
   // Fetch all users for account switching (admin only)
   const { data: allUsers = [] } = useQuery({
     queryKey: ['/api/admin/users', selectedProfileType, selectedBetaAccess],
@@ -374,8 +381,11 @@ export default function Header() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="all">All Types</SelectItem>
-                          <SelectItem value="freelance">Freelance</SelectItem>
-                          <SelectItem value="fulltime">Full-time</SelectItem>
+                          {profileTypes.map((profileType: any) => (
+                            <SelectItem key={profileType.id} value={profileType.name}>
+                              {profileType.name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
