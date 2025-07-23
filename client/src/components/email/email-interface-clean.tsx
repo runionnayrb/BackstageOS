@@ -1150,19 +1150,20 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
             : 'animate-in slide-in-from-bottom-full'
         }`}>
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b bg-white">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between border-b bg-white">
+            <div className="p-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleCloseEmailModal}
-                className="h-8 w-8 p-0"
+                className="h-6 w-6 p-0 hover:bg-transparent group/icon"
+                title="Close"
               >
-                <X className="h-5 w-5" />
+                <X className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
               </Button>
             </div>
             
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 p-4">
               <Button
                 variant="ghost"
                 size="sm"
