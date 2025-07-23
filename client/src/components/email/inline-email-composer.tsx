@@ -62,14 +62,14 @@ export function InlineEmailComposer({
     enabled: isOpen && !!fromAccountId,
   });
 
-  // Fetch contacts for autocomplete if we have a project ID
+  // Fetch contacts for autocomplete if we have a project ID  
   const { data: contacts = [] } = useQuery({
     queryKey: ['/api/contacts'],
     enabled: isOpen,
-  });
+  }) as { data: Array<{ id: number; firstName: string; lastName: string; email: string | null; projectId: number }> };
 
   // Find the specific account from the accounts list
-  const emailAccount = emailAccounts?.find((account: any) => account.id === fromAccountId);
+  const emailAccount = (emailAccounts as any[])?.find((account: any) => account.id === fromAccountId);
 
   // Helper function to get reply recipients based on mode
   const getReplyRecipients = () => {
@@ -374,7 +374,7 @@ export function InlineEmailComposer({
             </Button>
             <Button
               onClick={handleSend}
-              disabled={sendEmailMutation.isPending || !toAddresses.trim() || !subject.trim()}
+              disabled={sendEmailMutation.isPending || toAddresses.length === 0 || !subject.trim()}
               className="text-blue-600 hover:text-blue-700 p-2 h-auto rounded-full disabled:opacity-50"
               variant="ghost"
             >
