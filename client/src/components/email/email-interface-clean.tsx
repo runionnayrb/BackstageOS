@@ -1141,9 +1141,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         </div>
       </div>
 
-      {/* Email Modal - Within Content Area, positioned below any headers */}
+      {/* Email Modal - Full viewport height, positioned to reach bottom of main app header */}
       {showEmailModal && modalEmail && (
-        <div className={`absolute top-0 left-0 right-0 bottom-0 z-50 bg-white flex flex-col transition-transform duration-300 ease-out ${
+        <div className={`fixed top-16 left-0 right-0 bottom-0 z-50 bg-white flex flex-col transition-transform duration-300 ease-out ${
           emailModalClosing 
             ? 'animate-out slide-out-to-bottom-full' 
             : 'animate-in slide-in-from-bottom-full'
