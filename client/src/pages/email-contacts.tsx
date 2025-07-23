@@ -18,11 +18,19 @@ export default function EmailContacts() {
   const [, setLocation] = useLocation();
 
   // Fetch global contacts for email system with caching
-  const { data: contacts = [], isLoading } = useQuery<Contact[]>({
+  const { data: contacts = [], isLoading, error } = useQuery<Contact[]>({
     queryKey: ['/api/contacts'],
     enabled: true,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+  });
+
+  // Debug logging
+  console.log('📧 Email Contacts Page:', {
+    contacts: contacts,
+    contactsLength: contacts.length,
+    isLoading,
+    error
   });
 
   const formatContactName = (contact: Contact) => 
