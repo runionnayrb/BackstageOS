@@ -38,6 +38,8 @@ import {
   ArrowLeft,
   Contact,
   MailOpen,
+  Folder,
+  FolderOpen,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -50,6 +52,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface EmailAccount {
   id: number;
@@ -845,6 +848,86 @@ export default function EmailManager() {
                     >
                       <Archive className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
                     </Button>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={bulkActionMutation?.isPending || selectedMessages.size === 0}
+                          className="h-8 w-8 p-0 hover:bg-transparent group"
+                          title="Move to folder"
+                        >
+                          <FolderOpen className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-48" align="end">
+                        <div className="space-y-1">
+                          <div className="px-3 py-2 text-sm font-medium text-gray-700 border-b border-gray-100">
+                            Move to:
+                          </div>
+                          {activeFolder !== 'inbox' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleBulkAction('move', 'inbox')}
+                              disabled={bulkActionMutation?.isPending}
+                              className="w-full h-8 justify-start text-sm"
+                            >
+                              <Inbox className="h-4 w-4 mr-2" />
+                              Inbox
+                            </Button>
+                          )}
+                          {activeFolder !== 'sent' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleBulkAction('move', 'sent')}
+                              disabled={bulkActionMutation?.isPending}
+                              className="w-full h-8 justify-start text-sm"
+                            >
+                              <Send className="h-4 w-4 mr-2" />
+                              Sent
+                            </Button>
+                          )}
+                          {activeFolder !== 'drafts' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleBulkAction('move', 'drafts')}
+                              disabled={bulkActionMutation?.isPending}
+                              className="w-full h-8 justify-start text-sm"
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              Drafts
+                            </Button>
+                          )}
+                          {activeFolder !== 'archive' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleBulkAction('move', 'archive')}
+                              disabled={bulkActionMutation?.isPending}
+                              className="w-full h-8 justify-start text-sm"
+                            >
+                              <Archive className="h-4 w-4 mr-2" />
+                              Archive
+                            </Button>
+                          )}
+                          {activeFolder !== 'trash' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleBulkAction('move', 'trash')}
+                              disabled={bulkActionMutation?.isPending}
+                              className="w-full h-8 justify-start text-sm"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Trash
+                            </Button>
+                          )}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                     <Button
                       variant="ghost"
                       size="sm"
