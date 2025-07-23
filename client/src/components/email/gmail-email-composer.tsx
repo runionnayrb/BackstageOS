@@ -214,12 +214,20 @@ export function GmailEmailComposer({
   // Update form fields when reply message or compose mode changes
   useEffect(() => {
     const newRecipients = getReplyRecipients();
-    setToAddresses(newRecipients.to || (composeMode === 'compose' && initialRecipient ? initialRecipient : ''));
+    setToAddresses(newRecipients.to.length > 0 ? newRecipients.to : (composeMode === 'compose' && initialRecipient ? [initialRecipient] : []));
     setCcAddresses(newRecipients.cc);
     setBccAddresses(newRecipients.bcc);
     setShowCc(newRecipients.showCc);
     setShowBcc(newRecipients.showBcc);
   }, [replyToMessage, composeMode, fromEmail, initialRecipient]);
+
+  console.log('🔍 Mobile Gmail Composer Debug:', { 
+    isOpen, 
+    contactsLength: contacts.length, 
+    contacts: contacts.slice(0, 3),
+    toAddressesType: typeof toAddresses,
+    toAddresses 
+  });
 
   // Update content with signature when email account is loaded
   useEffect(() => {

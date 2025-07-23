@@ -28,6 +28,15 @@ export function EmailContactSelector({
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  console.log('📧 EmailContactSelector Debug:', { 
+    contactsLength: contacts.length, 
+    selectedEmailsLength: selectedEmails.length,
+    contacts: contacts.slice(0, 2),
+    selectedEmails,
+    placeholder,
+    disabled 
+  });
+
   // Format contact display
   const formatContactDisplay = (contact: Contact) => 
     `${contact.firstName} ${contact.lastName}`;
