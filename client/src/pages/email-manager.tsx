@@ -1040,15 +1040,6 @@ export default function EmailManager() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">
-                Manage members for {selectedGroup?.name}
-              </p>
-              <Button size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Member
-              </Button>
-            </div>
 
             {/* Group Members List */}
             <div className="space-y-2 max-h-96 overflow-y-auto">
