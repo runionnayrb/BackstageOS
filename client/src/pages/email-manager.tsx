@@ -800,9 +800,9 @@ export default function EmailManager() {
                 
                 {/* Dynamic header content - title or selection controls */}
                 {selectedMessages?.size > 0 ? (
-                  // Selection mode - show select all checkbox and bulk actions
+                  // Selection mode - show select all checkbox and bulk actions on same line
                   <div className="flex items-center gap-1 px-1">
-                    {/* Checkbox container matching email row positioning */}
+                    {/* Checkbox and text */}
                     <div className="w-6 h-6 flex-shrink-0">
                       <Checkbox
                         checked={selectedMessages.size === filteredMessages?.length && filteredMessages?.length > 0}
@@ -810,53 +810,51 @@ export default function EmailManager() {
                         className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                       />
                     </div>
-                    <span className="text-sm font-medium text-gray-600 ml-2">
+                    <span className="text-sm font-medium text-gray-600 ml-2 mr-4">
                       {selectedMessages.size} of {filteredMessages?.length || 0} selected
                     </span>
                     
-                    {/* Bulk action buttons */}
-                    <div className="flex items-center gap-1 ml-4">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleBulkAction('mark-read')}
-                        disabled={bulkActionMutation?.isPending}
-                        className="h-8 w-8 p-0 hover:bg-transparent group"
-                        title="Mark as read"
-                      >
-                        <MailOpen className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleBulkAction('mark-unread')}
-                        disabled={bulkActionMutation?.isPending}
-                        className="h-8 w-8 p-0 hover:bg-transparent group"
-                        title="Mark as unread"
-                      >
-                        <Mail className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleBulkAction('archive')}
-                        disabled={bulkActionMutation?.isPending}
-                        className="h-8 w-8 p-0 hover:bg-transparent group"
-                        title="Archive"
-                      >
-                        <Archive className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleBulkAction('delete')}
-                        disabled={bulkActionMutation?.isPending}
-                        className="h-8 w-8 p-0 hover:bg-transparent group"
-                        title="Delete"
-                      >
-                        <Trash2 className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
-                      </Button>
-                    </div>
+                    {/* Bulk action buttons - inline with checkbox */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleBulkAction('mark-read')}
+                      disabled={bulkActionMutation?.isPending}
+                      className="h-8 w-8 p-0 hover:bg-transparent group"
+                      title="Mark as read"
+                    >
+                      <MailOpen className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleBulkAction('mark-unread')}
+                      disabled={bulkActionMutation?.isPending}
+                      className="h-8 w-8 p-0 hover:bg-transparent group"
+                      title="Mark as unread"
+                    >
+                      <Mail className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleBulkAction('archive')}
+                      disabled={bulkActionMutation?.isPending}
+                      className="h-8 w-8 p-0 hover:bg-transparent group"
+                      title="Archive"
+                    >
+                      <Archive className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleBulkAction('delete')}
+                      disabled={bulkActionMutation?.isPending}
+                      className="h-8 w-8 p-0 hover:bg-transparent group"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                    </Button>
                   </div>
                 ) : (
                   // Normal mode - show folder title aligned with sender text
