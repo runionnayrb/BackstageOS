@@ -919,9 +919,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         </div>
       </div>
 
-      {/* Email Modal - Full Screen Style */}
+      {/* Email Modal - Within Content Area, positioned below any headers */}
       {showEmailModal && modalEmail && (
-        <div className={`fixed inset-0 z-50 bg-white flex flex-col transition-transform duration-300 ease-out ${
+        <div className={`absolute top-0 left-0 right-0 bottom-0 z-50 bg-white flex flex-col transition-transform duration-300 ease-out ${
           emailModalClosing 
             ? 'animate-out slide-out-to-bottom-full' 
             : 'animate-in slide-in-from-bottom-full'
