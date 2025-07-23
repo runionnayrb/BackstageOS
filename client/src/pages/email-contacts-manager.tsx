@@ -24,6 +24,7 @@ export default function EmailContactsManager() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const projectId = params.id ? parseInt(params.id) : null;
+  const isGlobalView = !projectId;
 
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContact, setNewContact] = useState({
@@ -50,9 +51,9 @@ export default function EmailContactsManager() {
     enabled: !!projectId,
   });
 
-  // Fetch email contacts
+  // Fetch email contacts - use global endpoint if no project ID
   const { data: emailContacts = [], isLoading } = useQuery<EmailContact[]>({
-    queryKey: ['/api/email-contacts', projectId],
+    queryKey: isGlobalView ? ['/api/contacts'] : ['/api/email-contacts', projectId],
     enabled: true,
   });
 

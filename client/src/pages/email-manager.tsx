@@ -573,7 +573,7 @@ export default function EmailManager() {
               <div className="space-y-1">
                 <button
                   onClick={() => {
-                    window.location.href = '/personnel';
+                    window.location.href = '/email-contacts';
                     closeMobileMenu();
                   }}
                   className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
@@ -635,7 +635,7 @@ export default function EmailManager() {
             onSettings={() => setShowMobileSettings(true)}
             onDistroManagement={() => setShowGroupManager(true)}
             onTemplateSettings={() => setShowTemplateManager(true)}
-            onContacts={() => window.location.href = '/personnel'}
+            onContacts={() => window.location.href = '/email-contacts'}
             sharedInboxes={[]}
             hasPersonalAccount={hasPersonalAccount}
             isAdmin={user?.isAdmin || false}
