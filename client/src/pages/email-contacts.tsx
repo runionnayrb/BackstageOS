@@ -197,15 +197,16 @@ export default function EmailContacts() {
       </div>
 
       {/* Inline Email Composer */}
-      {showComposer && (
+      {showComposer && defaultAccount && (
         <InlineEmailComposer
           isOpen={showComposer}
           onClose={() => {
             setShowComposer(false);
             setComposeRecipient('');
           }}
+          fromAccountId={defaultAccount.id}
+          fromEmail={defaultAccount.emailAddress}
           initialRecipient={composeRecipient}
-          accountId={defaultAccount?.id}
         />
       )}
     </div>
