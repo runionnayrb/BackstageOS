@@ -726,7 +726,7 @@ export default function EmailManager() {
           } relative`}
         >
 
-          <div className="px-2 md:px-4 lg:px-8 py-2 md:py-6">
+          <div className="px-1 md:px-2 py-2 md:py-4">
           {/* Header - Mobile with hamburger left, search right */}
           <div>
             <div className="flex items-center justify-between mb-4">
