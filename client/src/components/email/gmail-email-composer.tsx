@@ -439,10 +439,22 @@ export function GmailEmailComposer({
   };
 
   const handleClose = () => {
+    console.log('🚪 Close button clicked - checking content...');
+    const contentExists = hasContent();
+    console.log('🚪 Has content:', contentExists, { 
+      toCount: toAddresses.length, 
+      ccCount: ccAddresses.length, 
+      bccCount: bccAddresses.length, 
+      subject: subject.trim(), 
+      attachments: attachments.length 
+    });
+    
     // Check if there's any content, show dialog if there is
-    if (hasContent()) {
+    if (contentExists) {
+      console.log('🚪 Showing exit dialog...');
       setShowExitDialog(true);
     } else {
+      console.log('🚪 No content, closing immediately...');
       // No content, close immediately
       closeWithAnimation();
     }
