@@ -588,8 +588,28 @@ export default function TemplateSettings() {
         }));
       }
       
-      // Refetch templates to get updated data
+      // Force update the show settings timestamp by touching the settings
+      const touchSettings = async () => {
+        try {
+          // Get current settings and save them again to update timestamp
+          const currentSettings = await apiRequest("GET", `/api/projects/${projectId}/settings`);
+          if (currentSettings) {
+            await apiRequest("PUT", `/api/projects/${projectId}/settings`, {
+              ...currentSettings,
+              updatedAt: new Date().toISOString()
+            });
+            console.log('✅ Settings timestamp updated');
+          }
+        } catch (error) {
+          console.log('⚠️ Could not update timestamp directly:', error);
+        }
+      };
+      
+      touchSettings();
+      
+      // Refetch templates to get updated data and update show settings timestamp
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
     },
     onError: (error) => {
       setIsSaving(false);
@@ -810,6 +830,8 @@ export default function TemplateSettings() {
                             [phase]: updatedTemplate
                           }));
                           saveTemplate.mutate(updatedTemplate);
+                          // Force timestamp update by touching settings
+                          queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'settings'] });
                         }}
                         onConfigurationChange={async (config) => {
                           console.log('💾 Saving layout configuration:', config);
