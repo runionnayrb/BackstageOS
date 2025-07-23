@@ -386,6 +386,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const toggleSelectAll = () => {
     if (selectedMessages.size === filteredMessages.length) {
       setSelectedMessages(new Set());
+      setIsSelectionMode(false); // Exit selection mode when unchecking select all
     } else {
       setSelectedMessages(new Set(filteredMessages.map(msg => msg.id)));
     }
@@ -544,25 +545,15 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         {/* Desktop-Only Search Header */}
         <div className="hidden md:block absolute top-0 left-0 right-0 h-12 md:h-16 bg-white border-b border-gray-200 px-2 md:px-4 z-50">
           <div className="flex items-center gap-2 md:gap-6 h-full">
-            {isSelectionMode ? (
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center gap-3">
-                  <Checkbox
-                    checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
-                    onCheckedChange={toggleSelectAll}
-                  />
-                  <span className="text-sm font-medium">
-                    {selectedMessages.size} of {filteredMessages.length} selected
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={exitSelectionMode}
-                  className="h-8 px-3 text-sm"
-                >
-                  Done
-                </Button>
+            {isSelectionMode && selectedMessages.size > 0 ? (
+              <div className="flex items-center gap-3">
+                <Checkbox
+                  checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+                <span className="text-sm font-medium">
+                  {selectedMessages.size} of {filteredMessages.length} selected
+                </span>
               </div>
             ) : (
               <div className="flex items-center justify-end w-full">
