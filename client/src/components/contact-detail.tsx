@@ -111,6 +111,31 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
     },
   });
 
+  // Delete contact mutation
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest(`/api/projects/${contact.projectId}/contacts/${contact.id}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${contact.projectId}/contacts`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+      toast({
+        title: "Success",
+        description: "Contact deleted successfully",
+      });
+      onClose(); // Close the modal after deletion
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete contact",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -127,6 +152,12 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
 
   const handleSave = () => {
     updateMutation.mutate(formData);
+  };
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this contact?")) {
+      deleteMutation.mutate();
+    }
   };
 
   // Photo upload mutation
@@ -682,6 +713,21 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
           )}
         </div>
       </div>
+
+      {/* Delete Contact Button - Only show when editing */}
+      {isEditing && (
+        <div className="pt-6 border-t">
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={deleteMutation.isPending}
+            className="w-full bg-red-600 hover:bg-red-700 text-white"
+          >
+            {deleteMutation.isPending ? "Deleting..." : "Delete Contact"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
