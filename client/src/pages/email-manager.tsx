@@ -1316,8 +1316,8 @@ export default function EmailManager() {
             </div>
           </div>
 
-          <DialogFooter className="flex-row justify-between items-center">
-            <div className="text-sm text-gray-500">
+          <DialogFooter className="flex flex-row justify-between items-center">
+            <div className="text-sm text-gray-500 !mt-0">
               Created: {new Date().toLocaleDateString('en-US', { 
                 month: 'long', 
                 day: 'numeric', 
