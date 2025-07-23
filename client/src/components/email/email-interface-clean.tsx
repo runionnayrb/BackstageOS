@@ -541,14 +541,6 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
           <div className="flex items-center gap-2 md:gap-6 h-full">
             {isSelectionMode ? (
               <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={exitSelectionMode}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
                 <Checkbox
                   checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
                   onCheckedChange={toggleSelectAll}
