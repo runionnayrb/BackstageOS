@@ -442,6 +442,7 @@ export function InlineEmailComposer({
               onChange={setToAddresses}
               placeholder="Recipients"
               label="To:"
+              projectId={projectId}
             />
             <div className="absolute top-3 right-4 flex items-center space-x-2">
               {!showCc && (
@@ -473,6 +474,7 @@ export function InlineEmailComposer({
               onChange={setCcAddresses}
               placeholder="CC recipients"
               label="Cc:"
+              projectId={projectId}
             />
           )}
 
@@ -484,6 +486,7 @@ export function InlineEmailComposer({
               onChange={setBccAddresses}
               placeholder="BCC recipients"
               label="Bcc:"
+              projectId={projectId}
             />
           )}
 

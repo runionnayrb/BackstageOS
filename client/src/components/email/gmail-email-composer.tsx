@@ -609,6 +609,7 @@ export function GmailEmailComposer({
                 selectedEmails={toAddresses}
                 onChange={setToAddresses}
                 placeholder=""
+                projectId={projectId}
               />
             </div>
             <div className="flex items-center space-x-2">
@@ -643,6 +644,7 @@ export function GmailEmailComposer({
                   selectedEmails={ccAddresses}
                   onChange={setCcAddresses}
                   placeholder=""
+                  projectId={projectId}
                 />
               </div>
               {!showBcc && (
@@ -667,6 +669,7 @@ export function GmailEmailComposer({
                   selectedEmails={bccAddresses}
                   onChange={setBccAddresses}
                   placeholder=""
+                  projectId={projectId}
                 />
               </div>
             </div>
