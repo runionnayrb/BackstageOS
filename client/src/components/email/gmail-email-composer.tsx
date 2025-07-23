@@ -555,7 +555,11 @@ export function GmailEmailComposer({
         <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
           <Button 
             variant="ghost" 
-            onClick={handleClose}
+            onClick={(e) => {
+              console.log('🔥 CLOSE BUTTON CLICKED!', e);
+              e.stopPropagation();
+              handleClose();
+            }}
             className="text-gray-600 hover:text-gray-800 p-2 h-auto rounded-full"
           >
             <X className="h-5 w-5" />
