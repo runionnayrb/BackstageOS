@@ -1131,9 +1131,6 @@ export default function EmailManager() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Create New Distro</DialogTitle>
-            <DialogDescription>
-              Create a new distribution list for easy messaging to specific team members.
-            </DialogDescription>
           </DialogHeader>
           
           {/* Updated timestamp */}
@@ -1173,7 +1170,7 @@ export default function EmailManager() {
 
             <div className="space-y-2">
               <Label>Contacts</Label>
-              <div className="border border-gray-200 rounded-lg p-4 max-h-96 overflow-y-auto">
+              <div className="border border-gray-200 rounded-lg p-4 min-h-[24rem] max-h-96 overflow-y-auto">
                 {contacts && contacts.length > 0 ? (
                   <div className="space-y-4">
                     {/* Group contacts by show */}
@@ -1319,7 +1316,7 @@ export default function EmailManager() {
             </div>
           </div>
 
-          <DialogFooter className="flex justify-between items-center">
+          <DialogFooter className="flex-row justify-between items-center">
             <div className="text-sm text-gray-500">
               Created: {new Date().toLocaleDateString('en-US', { 
                 month: 'long', 
