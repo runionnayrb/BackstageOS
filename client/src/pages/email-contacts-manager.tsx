@@ -62,47 +62,7 @@ export default function EmailContactsManager() {
     enabled: true,
   });
 
-  // Sync contacts mutation (project-specific)
-  const syncContactsMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/projects/${projectId}/sync-contacts-to-email`, {
-      method: 'POST',
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/email-contacts'] });
-      toast({
-        title: "Contacts synced successfully",
-        description: "All show contacts have been added to your email contacts.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Sync failed",
-        description: "There was an error syncing your contacts.",
-        variant: "destructive",
-      });
-    },
-  });
 
-  // Bulk sync all contacts mutation
-  const bulkSyncContactsMutation = useMutation({
-    mutationFn: () => apiRequest('/api/sync-all-contacts-to-email', {
-      method: 'POST',
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/email-contacts'] });
-      toast({
-        title: "All contacts synced successfully",
-        description: "All contacts from all your shows have been added to your email contacts.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Bulk sync failed",
-        description: "There was an error syncing all your contacts.",
-        variant: "destructive",
-      });
-    },
-  });
 
   // Add contact mutation
   const addContactMutation = useMutation({
@@ -206,15 +166,7 @@ export default function EmailContactsManager() {
     },
   });
 
-  const handleSyncContacts = () => {
-    if (projectId) {
-      syncContactsMutation.mutate();
-    }
-  };
 
-  const handleBulkSyncContacts = () => {
-    bulkSyncContactsMutation.mutate();
-  };
 
   const handleAddContact = () => {
     addContactMutation.mutate(newContact);
@@ -265,17 +217,6 @@ export default function EmailContactsManager() {
           </p>
         </div>
         <div className="flex gap-2">
-          {projectId && (
-            <Button 
-              onClick={handleSyncContacts}
-              disabled={syncContactsMutation.isPending}
-              variant="outline"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              {syncContactsMutation.isPending ? 'Syncing...' : 'Sync Show Contacts'}
-            </Button>
-          )}
-          
           <Dialog open={addContactOpen} onOpenChange={setAddContactOpen}>
             <DialogTrigger asChild>
               <Button>
