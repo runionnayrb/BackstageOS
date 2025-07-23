@@ -751,13 +751,16 @@ export default function EmailManager() {
                 {/* Dynamic header content - title or selection controls */}
                 {selectedMessages?.size > 0 ? (
                   // Selection mode - show select all checkbox and bulk actions
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      checked={selectedMessages.size === filteredMessages?.length && filteredMessages?.length > 0}
-                      onCheckedChange={toggleSelectAll}
-                      className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                    />
-                    <span className="text-sm md:text-base font-medium text-gray-900">
+                  <div className="flex items-center gap-1">
+                    {/* Checkbox container matching email row positioning */}
+                    <div className="w-6 h-6 flex-shrink-0">
+                      <Checkbox
+                        checked={selectedMessages.size === filteredMessages?.length && filteredMessages?.length > 0}
+                        onCheckedChange={toggleSelectAll}
+                        className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                      />
+                    </div>
+                    <span className="text-sm md:text-base font-medium text-gray-900 ml-2">
                       {selectedMessages.size} of {filteredMessages?.length || 0} selected
                     </span>
                     
