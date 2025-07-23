@@ -760,10 +760,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   Error loading messages
                 </div>
               )}
-              {/* Select All Checkbox Row - positioned directly over individual checkboxes */}
+              {/* Select All Checkbox Row - positioned exactly over individual checkboxes */}
               {!isSelectionMode && filteredMessages.length > 0 && (
-                <div className="hidden md:block sticky top-0 bg-white border-b border-gray-200 px-4 py-2 z-10">
-                  <div className="flex items-center">
+                <div className="hidden md:block sticky top-0 bg-white border-b border-gray-200 px-3 md:px-4 py-2 z-10">
+                  <div className="flex items-center gap-3">
                     {/* Select all checkbox - positioned exactly where individual email checkboxes appear */}
                     <div className="w-6 h-6 flex-shrink-0 opacity-0 hover:opacity-100 transition-opacity">
                       <Checkbox
