@@ -165,17 +165,19 @@ export default function EmailContacts() {
                             {project.name}
                           </Badge>
                         )}
-                        {hoveredContactId === contact.id && (
-                          <button
-                            onClick={() => {
-                              const email = getContactEmail(contact);
-                              window.location.href = `mailto:${email}`;
-                            }}
-                            className="p-1.5 hover:bg-gray-200 rounded transition-colors"
-                          >
-                            <Mail className="w-4 h-4 text-gray-700" />
-                          </button>
-                        )}
+                        <button
+                          onClick={() => {
+                            const email = getContactEmail(contact);
+                            window.location.href = `mailto:${email}`;
+                          }}
+                          className={`p-1.5 rounded transition-all ${
+                            hoveredContactId === contact.id
+                              ? 'opacity-100 hover:bg-gray-200'
+                              : 'opacity-0'
+                          }`}
+                        >
+                          <Mail className="w-4 h-4 text-gray-700" />
+                        </button>
                       </div>
                     </div>
                   );
