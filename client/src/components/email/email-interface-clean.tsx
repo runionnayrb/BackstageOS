@@ -542,72 +542,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   return (
     <>
       <div className="relative h-[calc(100vh-120px)] bg-background">
-        {/* Desktop-Only Email Interface Header */}
-        <div className="hidden md:block absolute top-0 left-0 right-0 h-12 md:h-16 bg-white border-b border-gray-200 px-2 md:px-4 z-50">
-          <div className="flex items-center justify-between h-full">
-            {/* Left side - Select all checkbox when emails are selected */}
-            <div className="flex items-center gap-3">
-              {isSelectionMode && selectedMessages.size > 0 && (
-                <>
-                  <Checkbox
-                    checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
-                    onCheckedChange={toggleSelectAll}
-                  />
-                  <span className="text-sm font-medium">
-                    {selectedMessages.size} of {filteredMessages.length} selected
-                  </span>
-                </>
-              )}
-            </div>
-            
-            {/* Right side - Empty for now */}
-            <div></div>
-          </div>
-        </div>
 
-        {/* Bulk Actions Toolbar - Right Aligned */}
-        {isSelectionMode && selectedMessages.size > 0 && (
-          <div className="hidden md:block absolute top-16 left-0 right-0 h-12 bg-blue-50 border-b border-blue-200 px-4 z-40">
-            <div className="flex items-center justify-end gap-2 h-full">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleBulkAction('mark-read')}
-                disabled={bulkActionMutation.isPending}
-                className="h-8 w-8 p-0"
-              >
-                <MailOpen className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleBulkAction('mark-unread')}
-                disabled={bulkActionMutation.isPending}
-                className="h-8 w-8 p-0"
-              >
-                <Mail className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleBulkAction('archive')}
-                disabled={bulkActionMutation.isPending}
-                className="h-8 w-8 p-0"
-              >
-                <Archive className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleBulkAction('delete')}
-                disabled={bulkActionMutation.isPending}
-                className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        )}
 
         {/* Mobile Selection Header */}
         <div className="md:hidden">
@@ -725,7 +660,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         </div>
 
         {/* Content Area - Mobile Responsive */}
-        <div className={`pt-0 h-full ${isSelectionMode && selectedMessages.size > 0 ? 'md:pt-28' : 'md:pt-16'}`}>
+        <div className="pt-0 h-full">
           {/* Full-Width Email List */}
           <ScrollArea className="h-full">
             <div className="space-y-0">
@@ -740,6 +675,61 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 </div>
               )}
 
+              {/* Desktop Select All Header - appears above email rows when in selection mode */}
+              {isSelectionMode && filteredMessages.length > 0 && (
+                <div className="hidden md:block bg-white border-b border-gray-200 px-3 md:px-4 py-2">
+                  <div className="flex items-center gap-3">
+                    {/* Select all checkbox positioned to align with individual email checkboxes */}
+                    <div className="w-6 h-6 flex-shrink-0">
+                      <Checkbox
+                        checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
+                        onCheckedChange={toggleSelectAll}
+                        className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                      />
+                    </div>
+                    
+                    {/* Action buttons - right aligned */}
+                    <div className="flex-1 flex justify-end items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleBulkAction('mark-read')}
+                        disabled={bulkActionMutation.isPending}
+                        className="h-8 w-8 p-0"
+                      >
+                        <MailOpen className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleBulkAction('mark-unread')}
+                        disabled={bulkActionMutation.isPending}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Mail className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleBulkAction('archive')}
+                        disabled={bulkActionMutation.isPending}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Archive className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleBulkAction('delete')}
+                        disabled={bulkActionMutation.isPending}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
               
               {filteredMessages.map((message: EmailMessage) => {
                 const isCurrentSwipe = swipeState.messageId === message.id;
