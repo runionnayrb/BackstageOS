@@ -321,12 +321,7 @@ export default function EnhancedHeader() {
                     </>
                   )}
                   
-                  <DropdownMenuSeparator />
-                  
-                  <DropdownMenuItem onClick={() => setLocation('/feedback')}>
-                    <MessageSquare className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                    Send Feedback
-                  </DropdownMenuItem>
+
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
