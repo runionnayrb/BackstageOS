@@ -159,16 +159,66 @@ export default function EmailManager() {
     }
   };
 
-  // Bulk action mutation - placeholder for now
-  const bulkActionMutation = {
-    isPending: false,
-    mutate: (options: any) => {
-      console.log('Bulk action:', options);
+  // Bulk action mutation
+  const bulkActionMutation = useMutation({
+    mutationFn: async ({ messageIds, action, targetFolder }: { messageIds: number[]; action: string; targetFolder?: string }) => {
+      if (!selectedAccount) throw new Error('No selected account');
+      
+      console.log('🗑️ Bulk action requested:', { messageIds, action, targetFolder, accountId: selectedAccount.id });
+      
+      const response = await fetch('/api/email/messages/bulk-action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messageIds,
+          action,
+          accountId: selectedAccount.id,
+          targetFolder,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to perform bulk action');
+      }
+      const result = await response.json();
+      console.log('✅ Bulk action completed:', result);
+      return result;
+    },
+    onSuccess: () => {
+      // Clear selection
+      setSelectedMessages(new Set());
+      
+      // Invalidate and refetch ALL email queries to ensure fresh data
+      if (selectedAccount) {
+        queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', selectedAccount.id] });
+        queryClient.invalidateQueries({ queryKey: ['/api/email/unread-count'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/email/stats', selectedAccount.id] });
+        
+        // Force refresh the current view
+        queryClient.refetchQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
+      }
+      
+      toast({
+        title: "Success",
+        description: "Bulk action completed successfully",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Bulk action failed:', error);
+      toast({
+        title: "Error",
+        description: "Failed to perform bulk action",
+        variant: "destructive",
+      });
     }
-  };
+  });
 
   const handleBulkAction = (action: string, targetFolder?: string) => {
-    console.log('Handle bulk action:', action, targetFolder);
+    const messageIds = Array.from(selectedMessages);
+    if (messageIds.length === 0) return;
+    
+    bulkActionMutation.mutate({ messageIds, action, targetFolder });
   };
   
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
