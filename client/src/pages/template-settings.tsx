@@ -643,8 +643,18 @@ export default function TemplateSettings() {
               <Card className="min-h-[600px]">
                 <CardHeader>
                   <div>
-                    <CardTitle>
+                    <CardTitle className="flex items-center gap-2">
                       {template.name}
+                      {selectedPhase === 'tech' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setIsEditMode(!isEditMode)}
+                          className="h-6 w-6 p-0"
+                        >
+                          {isEditMode ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                        </Button>
+                      )}
                     </CardTitle>
                     {/* Updated timestamp without loading animation */}
                     <div className="text-sm text-gray-500 mt-1">
@@ -684,53 +694,39 @@ export default function TemplateSettings() {
                 </CardHeader>
                 <CardContent className="p-8">
                   {/* Template Editing Toolbar - Only show for tech templates */}
-                  {selectedPhase === 'tech' && (
+                  {selectedPhase === 'tech' && isEditMode && (
                     <div className="flex items-center justify-between p-4 mb-4">
                       <div className="flex items-center gap-2">
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => setIsEditMode(!isEditMode)}
+                          onClick={() => {
+                            console.log('🔥 PLUS BUTTON CLICKED - template-settings.tsx');
+                            console.log('🔍 Ref current:', flexibleLayoutRef.current);
+                            console.log('🔍 addNewItem function:', flexibleLayoutRef.current?.addNewItem);
+                            flexibleLayoutRef.current?.addNewItem('department-header');
+                          }}
                         >
-                          {isEditMode ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+                          <Plus className="h-4 w-4" />
                         </Button>
                         
-                        {isEditMode && (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                console.log('🔥 PLUS BUTTON CLICKED - template-settings.tsx');
-                                console.log('🔍 Ref current:', flexibleLayoutRef.current);
-                                console.log('🔍 addNewItem function:', flexibleLayoutRef.current?.addNewItem);
-                                flexibleLayoutRef.current?.addNewItem('department-header');
-                              }}
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
-                            
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => flexibleLayoutRef.current?.addNewItem('empty-space')}
-                            >
-                              [    ]
-                            </Button>
-                          </>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => flexibleLayoutRef.current?.addNewItem('empty-space')}
+                        >
+                          [    ]
+                        </Button>
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {isEditMode && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => flexibleLayoutRef.current?.resetLayout()}
-                          >
-                            <RotateCcw className="h-4 w-4" />
-                          </Button>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => flexibleLayoutRef.current?.resetLayout()}
+                        >
+                          <RotateCcw className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   )}
