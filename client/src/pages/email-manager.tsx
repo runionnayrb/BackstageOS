@@ -745,9 +745,9 @@ export default function EmailManager() {
                 composeToEmail={composeToEmail}
               />
               
-              {/* Compose Window - Overlay on top, right side */}
+              {/* Compose Window - Fixed to stick to bottom properly */}
               {showCompose && (
-                <div className="absolute top-0 right-0 bottom-0 w-full md:w-[600px] bg-white border-l border-gray-200 shadow-lg z-[60]">
+                <div className="fixed top-0 right-0 bottom-0 w-full md:w-[600px] bg-white border-l border-gray-200 shadow-lg z-[60]">
                   <InlineEmailComposer
                     isOpen={showCompose}
                     onClose={() => setShowCompose(false)}

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { EmailContactSelector } from './email-contact-selector';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,8 +69,12 @@ export function InlineEmailComposer({
     enabled: isOpen,
   });
 
+  // State for selected account (initialize with the passed fromAccountId)
+  const [selectedAccountId, setSelectedAccountId] = useState<number>(fromAccountId);
+
   // Find the specific account from the accounts list
-  const emailAccount = (emailAccounts as any[])?.find((account: any) => account.id === fromAccountId);
+  const emailAccount = (emailAccounts as any[])?.find((account: any) => account.id === selectedAccountId);
+  const selectedAccount = emailAccount;
 
   // Helper function to get reply recipients based on mode
   const getReplyRecipients = () => {
@@ -148,10 +153,15 @@ export function InlineEmailComposer({
 
   const [content, setContent] = useState('');
 
+  // Update selectedAccountId when fromAccountId prop changes
+  useEffect(() => {
+    setSelectedAccountId(fromAccountId);
+  }, [fromAccountId]);
+
   // Load signature when email account is available
   useEffect(() => {
     if (emailAccount?.signature && composeMode === 'compose' && content === '') {
-      console.log('Signature effect triggered:', { emailAccount, signature: emailAccount.signature, isLoadingAccounts, content, composeMode, fromAccountId });
+      console.log('Signature effect triggered:', { emailAccount, signature: emailAccount.signature, isLoadingAccounts, content, composeMode, selectedAccountId });
       
       console.log('Signature loaded:', emailAccount.signature);
       const plainTextSignature = htmlToPlainText(emailAccount.signature);
@@ -165,7 +175,7 @@ export function InlineEmailComposer({
         setContent(newContent);
       }
     }
-  }, [emailAccount, composeMode, fromAccountId]);
+  }, [emailAccount, composeMode, selectedAccountId]);
 
   // Reset form when modal opens/closes or recipient changes
   useEffect(() => {
@@ -234,7 +244,7 @@ export function InlineEmailComposer({
 
       if (attachments.length > 0) {
         const formData = new FormData();
-        formData.append('fromAccountId', fromAccountId.toString());
+        formData.append('fromAccountId', selectedAccountId.toString());
         formData.append('toAddresses', toAddressesStr);
         if (ccAddressesStr) formData.append('ccAddresses', ccAddressesStr);
         if (bccAddressesStr) formData.append('bccAddresses', bccAddressesStr);
@@ -257,7 +267,7 @@ export function InlineEmailComposer({
         });
       } else {
         const emailData = {
-          fromAccountId,
+          fromAccountId: selectedAccountId,
           toAddresses: toAddressesStr,
           ccAddresses: ccAddressesStr || undefined,
           bccAddresses: bccAddressesStr || undefined,
@@ -445,10 +455,35 @@ export function InlineEmailComposer({
             />
           )}
 
-          {/* From field */}
+          {/* From field with account selector */}
           <div className="flex items-center px-4 py-3 border-b border-gray-100">
             <span className="text-gray-500 text-sm w-12 flex-shrink-0">From:</span>
-            <span className="text-sm text-gray-600">{fromEmail}</span>
+            <div className="flex-1">
+              {emailAccounts && (emailAccounts as any[]).length > 1 ? (
+                <Select 
+                  value={selectedAccountId.toString()} 
+                  onValueChange={(value) => setSelectedAccountId(parseInt(value))}
+                >
+                  <SelectTrigger className="w-full border-none shadow-none p-0 h-auto text-sm text-gray-600 hover:text-gray-900">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(emailAccounts as any[]).map((account: any) => (
+                      <SelectItem key={account.id} value={account.id.toString()}>
+                        <div className="flex flex-col items-start">
+                          <div className="font-medium">{account.displayName}</div>
+                          <div className="text-xs text-gray-500">{account.emailAddress}</div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <span className="text-sm text-gray-600">
+                  {selectedAccount?.displayName} ({selectedAccount?.emailAddress})
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Attachments display */}
