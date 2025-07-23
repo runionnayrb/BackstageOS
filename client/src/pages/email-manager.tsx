@@ -806,8 +806,8 @@ export default function EmailManager() {
                     </div>
                   </div>
                 ) : (
-                  // Normal mode - show folder title
-                  <h1 className="text-xl md:text-3xl font-bold text-gray-900 flex-shrink-0">
+                  // Normal mode - show folder title aligned with sender text
+                  <h1 className="text-xl md:text-3xl font-bold text-gray-900 flex-shrink-0 md:ml-7">
                     {getFolderDisplayName(activeFolder)}
                   </h1>
                 )}
