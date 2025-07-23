@@ -138,6 +138,7 @@ export default function EmailManager() {
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [showSharedInboxes, setShowSharedInboxes] = useState(false);
   const [activeTab, setActiveTab] = useState("inbox");
+  const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
   const { toast } = useToast();
 
   // Fetch email accounts
@@ -1145,12 +1146,12 @@ export default function EmailManager() {
               hour: '2-digit', 
               minute: '2-digit',
               hour12: false 
-            }).substring(0, 5)}
+            })}
           </div>
           
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="groupName">Group Name *</Label>
+              <Label htmlFor="groupName">Distro Name *</Label>
               <Input
                 id="groupName"
                 value={newGroupName}
@@ -1194,9 +1195,23 @@ export default function EmailManager() {
                         selectedMembers.includes(contact.id)
                       );
 
+                      const isExpanded = expandedProjects.includes(projectId);
+                      
                       return (
                         <div key={projectId} className="border-b pb-4 last:border-b-0">
                           <div className="flex items-center space-x-2 mb-2">
+                            <button
+                              onClick={() => {
+                                if (isExpanded) {
+                                  setExpandedProjects(expandedProjects.filter(id => id !== projectId));
+                                } else {
+                                  setExpandedProjects([...expandedProjects, projectId]);
+                                }
+                              }}
+                              className="p-0.5 hover:bg-gray-100 rounded"
+                            >
+                              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            </button>
                             <input
                               type="checkbox"
                               checked={isAllProjectSelected}
@@ -1218,7 +1233,8 @@ export default function EmailManager() {
                           </div>
                           
                           {/* Group by contact type within each show */}
-                          <div className="ml-6 space-y-3">
+                          {isExpanded && (
+                            <div className="ml-6 space-y-3">
                             {Object.entries(
                               projectContacts.reduce((acc, contact) => {
                                 const category = contact.category || 'Other';
@@ -1282,6 +1298,7 @@ export default function EmailManager() {
                               );
                             })}
                           </div>
+                          )}
                         </div>
                       );
                     })}
@@ -1312,7 +1329,7 @@ export default function EmailManager() {
                 hour: '2-digit', 
                 minute: '2-digit',
                 hour12: false 
-              }).substring(0, 5)}
+              })}
             </div>
             <div className="flex gap-2">
               <Button 
