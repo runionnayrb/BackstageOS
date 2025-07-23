@@ -104,7 +104,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
   // Delete contact mutation
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('DELETE', `/api/projects/${contact.projectId}/contacts/${contact.id}`);
+      return apiRequest('DELETE', `/api/contacts/${contact.id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${contact.projectId}/contacts`] });
