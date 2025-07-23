@@ -558,17 +558,36 @@ export default function TemplateSettings() {
         fields: template.fields,
       };
 
+      let response;
       if (isExisting) {
         // Update existing template
-        await apiRequest("PATCH", `/api/projects/${projectId}/templates/${template.id}`, templateData);
+        response = await apiRequest("PATCH", `/api/projects/${projectId}/templates/${template.id}`, templateData);
       } else {
         // Create new template - don't include ID for auto-generation
-        await apiRequest("POST", `/api/projects/${projectId}/templates`, templateData);
+        response = await apiRequest("POST", `/api/projects/${projectId}/templates`, templateData);
       }
+      
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       setIsSaving(false);
       setLastSaved(new Date());
+      
+      console.log('🎉 Template save successful:', response);
+      
+      // If this was a new template creation, update the local state with the new ID
+      if (response && response.id) {
+        console.log('📝 Updating template ID from default to:', response.id);
+        const templateWithNewId = {
+          ...templates[selectedPhase],
+          id: response.id.toString()
+        };
+        setTemplates(prev => ({
+          ...prev,
+          [selectedPhase]: templateWithNewId
+        }));
+      }
+      
       // Refetch templates to get updated data
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
     },
