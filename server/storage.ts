@@ -1241,12 +1241,9 @@ export class DatabaseStorage implements IStorage {
 
   async getEmailContactsByUserIdAndProject(userId: number, projectId: number | null): Promise<EmailContact[]> {
     if (projectId === null) {
-      // Get only personal contacts (not tied to any project)
+      // Get ALL user contacts (personal + all project contacts) - unified view for email composer
       const result = await db.select().from(emailContacts).where(
-        and(
-          eq(emailContacts.userId, userId),
-          isNull(emailContacts.projectId)
-        )
+        eq(emailContacts.userId, userId)
       );
       return result;
     } else {
