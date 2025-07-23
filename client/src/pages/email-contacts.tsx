@@ -56,6 +56,14 @@ export default function EmailContacts() {
     isLoading,
     error
   });
+  
+  console.log('📧 Composer Debug:', {
+    showComposer,
+    composeRecipient,
+    defaultAccount,
+    emailAccounts,
+    emailAccountsLength: emailAccounts.length
+  });
 
   const formatContactName = (contact: Contact) => 
     `${contact.firstName} ${contact.lastName}`;
@@ -167,10 +175,14 @@ export default function EmailContacts() {
                           {formatContactName(contact)}
                         </span>
                         <button
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
                             const email = getContactEmail(contact);
+                            console.log('📧 Email icon clicked:', { contact: contact.firstName + ' ' + contact.lastName, email });
                             setComposeRecipient(email);
                             setShowComposer(true);
+                            console.log('📧 Composer state set:', { showComposer: true, composeRecipient: email });
                           }}
                           className={`p-1 rounded transition-all mr-2 ${
                             hoveredContactId === contact.id
@@ -200,18 +212,23 @@ export default function EmailContacts() {
         </Card>
       </div>
 
-      {/* Inline Email Composer */}
+      {/* Inline Email Composer Modal Overlay */}
       {showComposer && defaultAccount && (
-        <InlineEmailComposer
-          isOpen={showComposer}
-          onClose={() => {
-            setShowComposer(false);
-            setComposeRecipient('');
-          }}
-          fromAccountId={defaultAccount.id}
-          fromEmail={defaultAccount.emailAddress}
-          initialRecipient={composeRecipient}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl h-[600px] mx-4">
+            <InlineEmailComposer
+              isOpen={showComposer}
+              onClose={() => {
+                console.log('📧 Closing composer');
+                setShowComposer(false);
+                setComposeRecipient('');
+              }}
+              fromAccountId={defaultAccount.id}
+              fromEmail={defaultAccount.emailAddress}
+              initialRecipient={composeRecipient}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
