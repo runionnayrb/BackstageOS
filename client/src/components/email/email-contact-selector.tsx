@@ -164,73 +164,71 @@ export function EmailContactSelector({
     <div ref={containerRef} className="flex items-center px-4 py-3 border-b border-gray-100">
       <span className="text-gray-500 text-sm w-12 flex-shrink-0">{label}</span>
       <div className="flex-1">
-        <Popover open={open} onOpenChange={setOpen}>
-          <PopoverTrigger asChild>
-            <div
-              className="min-h-[20px] w-full bg-transparent cursor-text flex flex-wrap gap-1 items-center"
-              onClick={() => {
-                if (!disabled) {
-                  inputRef.current?.focus();
-                  setOpen(true);
-                }
-              }}
-            >
-              {selectedEmails.map((email, index) => (
-                <Badge
-                  key={index}
-                  variant="secondary"
-                  className="flex items-center gap-1 text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800"
-                >
-                  {email}
-                  {!disabled && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveEmail(email);
-                      }}
-                      className="ml-1 h-3 w-3 rounded-full outline-none hover:bg-blue-300 dark:hover:bg-blue-700"
-                    >
-                      <X className="h-2 w-2" />
-                    </button>
-                  )}
-                </Badge>
-              ))}
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputValue}
-                onChange={(e) => handleInputChange(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onBlur={handleBlur}
-                className="flex-1 min-w-[120px] text-sm text-gray-900 bg-transparent border-none outline-none placeholder-gray-400"
-                placeholder={selectedEmails.length === 0 ? placeholder : ""}
-                disabled={disabled}
-                autoComplete="email"
-              />
-            </div>
-          </PopoverTrigger>
-          <PopoverContent 
-            className="w-80 p-0 z-50 bg-white border border-gray-200 shadow-lg" 
-            align="start"
-            onOpenAutoFocus={(e) => e.preventDefault()}
+        <div className="relative">
+          <div
+            className="min-h-[20px] w-full bg-transparent cursor-text flex flex-wrap gap-1 items-center"
+            onClick={() => {
+              if (!disabled) {
+                inputRef.current?.focus();
+                setOpen(true);
+              }
+            }}
           >
-            {console.log('🎯 PopoverContent rendering with filteredContacts:', filteredContacts.length)}
-            <div className="p-4 bg-yellow-100 border-2 border-yellow-500">
-              <div className="text-sm font-bold text-black mb-2">CONTACT PICKER VISIBLE - {filteredContacts.length} contacts</div>
-              {filteredContacts.slice(0, 3).map((contact) => (
-                <div 
-                  key={contact.id}
-                  className="p-2 bg-white mb-1 border cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSelectContact(contact)}
-                >
-                  <div className="font-medium">{formatContactDisplay(contact)}</div>
-                  <div className="text-xs text-gray-500">{getContactEmail(contact)}</div>
-                </div>
-              ))}
+            {selectedEmails.map((email, index) => (
+              <Badge
+                key={index}
+                variant="secondary"
+                className="flex items-center gap-1 text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800"
+              >
+                {email}
+                {!disabled && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveEmail(email);
+                    }}
+                    className="ml-1 h-3 w-3 rounded-full outline-none hover:bg-blue-300 dark:hover:bg-blue-700"
+                  >
+                    <X className="h-2 w-2" />
+                  </button>
+                )}
+              </Badge>
+            ))}
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputValue}
+              onChange={(e) => handleInputChange(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={handleBlur}
+              className="flex-1 min-w-[120px] text-sm text-gray-900 bg-transparent border-none outline-none placeholder-gray-400"
+              placeholder={selectedEmails.length === 0 ? placeholder : ""}
+              disabled={disabled}
+              autoComplete="email"
+            />
+          </div>
+          
+          {/* Custom dropdown positioned absolutely */}
+          {open && (
+            <div className="absolute top-full left-0 right-0 z-[9999] bg-white border border-gray-200 shadow-lg rounded-md mt-1 max-h-64 overflow-y-auto">
+              {console.log('🎯 Custom dropdown visible with filteredContacts:', filteredContacts.length)}
+              <div className="p-4 bg-yellow-100 border-2 border-yellow-500">
+                <div className="text-sm font-bold text-black mb-2">CONTACT PICKER VISIBLE - {filteredContacts.length} contacts</div>
+                {filteredContacts.slice(0, 5).map((contact) => (
+                  <div 
+                    key={contact.id}
+                    className="p-2 bg-white mb-1 border cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSelectContact(contact)}
+                  >
+                    <div className="font-medium">{formatContactDisplay(contact)}</div>
+                    <div className="text-xs text-gray-500">{getContactEmail(contact)}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </PopoverContent>
-        </Popover>
+          )}
+        </div>
       </div>
     </div>
   );
