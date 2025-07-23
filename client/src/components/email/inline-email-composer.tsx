@@ -389,7 +389,7 @@ export function InlineEmailComposer({
   return (
     <>
       {/* Inline composer panel */}
-      <div className="w-full bg-white border-l border-gray-200 flex flex-col" style={{ height: '600px' }}>
+      <div className="w-full h-full bg-white flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">
