@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Users, Mail, ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
+import { InlineEmailComposer } from "@/components/email/inline-email-composer";
 
 interface Contact {
   id: number;
@@ -23,6 +24,8 @@ interface Project {
 export default function EmailContacts() {
   const [, setLocation] = useLocation();
   const [hoveredContactId, setHoveredContactId] = useState<number | null>(null);
+  const [showComposer, setShowComposer] = useState(false);
+  const [composeRecipient, setComposeRecipient] = useState<string>('');
 
   // Fetch global contacts for email system with caching
   const { data: contacts = [], isLoading, error } = useQuery<Contact[]>({
@@ -37,6 +40,14 @@ export default function EmailContacts() {
     queryKey: ['/api/projects'],
     enabled: true,
   });
+  
+  // Fetch user's email accounts
+  const { data: emailAccounts = [] } = useQuery({
+    queryKey: ['/api/email/accounts'],
+  });
+  
+  // Get the default email account
+  const defaultAccount = emailAccounts.find((account: any) => account.isDefault) || emailAccounts[0];
 
   // Debug logging
   console.log('📧 Email Contacts Page:', {
@@ -74,10 +85,6 @@ export default function EmailContacts() {
             <ArrowLeft className="w-4 h-4" />
             Back to Email
           </Button>
-          <div className="flex items-center gap-2">
-            <Users className="w-6 h-6 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Email Contacts</h1>
-          </div>
         </div>
 
         {/* Summary Stats */}
@@ -158,7 +165,8 @@ export default function EmailContacts() {
                         <button
                           onClick={() => {
                             const email = getContactEmail(contact);
-                            window.location.href = `mailto:${email}`;
+                            setComposeRecipient(email);
+                            setShowComposer(true);
                           }}
                           className={`p-1 rounded transition-all mr-2 ${
                             hoveredContactId === contact.id
@@ -187,6 +195,19 @@ export default function EmailContacts() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Inline Email Composer */}
+      {showComposer && (
+        <InlineEmailComposer
+          isOpen={showComposer}
+          onClose={() => {
+            setShowComposer(false);
+            setComposeRecipient('');
+          }}
+          initialRecipient={composeRecipient}
+          accountId={defaultAccount?.id}
+        />
+      )}
     </div>
   );
 }
