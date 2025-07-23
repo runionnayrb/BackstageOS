@@ -5204,6 +5204,29 @@ Best regards,
     }
   });
 
+  // Global contacts route for email system (returns all user's contacts across projects)
+  app.get('/api/contacts', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      // Get all projects owned by the user
+      const projects = await storage.getProjectsByOwnerId(userId);
+      const projectIds = projects.map(p => p.id);
+      
+      // Get all contacts from all user projects
+      let allContacts: any[] = [];
+      for (const projectId of projectIds) {
+        const contacts = await storage.getContactsByProjectId(projectId);
+        allContacts = allContacts.concat(contacts);
+      }
+      
+      res.json(allContacts);
+    } catch (error) {
+      console.error("Error fetching global contacts:", error);
+      res.status(500).json({ message: "Failed to fetch contacts" });
+    }
+  });
+
   // Contacts API routes
   app.get('/api/projects/:id/contacts', isAuthenticated, async (req: any, res) => {
     try {
