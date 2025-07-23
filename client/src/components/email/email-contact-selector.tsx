@@ -137,15 +137,18 @@ export function EmailContactSelector({
   };
 
   const handleBlur = () => {
-    // Add manual email on blur if it contains @
-    if (inputValue.trim() && inputValue.includes('@')) {
-      const email = inputValue.trim();
-      if (!selectedEmails.includes(email)) {
-        onChange([...selectedEmails, email]);
+    // Delay closing to allow click events to process
+    setTimeout(() => {
+      // Add manual email on blur if it contains @
+      if (inputValue.trim() && inputValue.includes('@')) {
+        const email = inputValue.trim();
+        if (!selectedEmails.includes(email)) {
+          onChange([...selectedEmails, email]);
+        }
+        setInputValue("");
       }
-      setInputValue("");
-    }
-    setOpen(false);
+      setOpen(false);
+    }, 200);
   };
 
   // Close dropdown when clicking outside
@@ -219,7 +222,11 @@ export function EmailContactSelector({
                   <div 
                     key={contact.id}
                     className="p-2 bg-white mb-1 border cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSelectContact(contact)}
+                    onMouseDown={(e) => {
+                      e.preventDefault(); // Prevent blur event
+                      console.log('🎯 Contact clicked:', contact.firstName, contact.lastName);
+                      handleSelectContact(contact);
+                    }}
                   >
                     <div className="font-medium">{formatContactDisplay(contact)}</div>
                     <div className="text-xs text-gray-500">{getContactEmail(contact)}</div>
