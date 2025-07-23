@@ -346,6 +346,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       const count = messageIds.length;
       const messageText = count === 1 ? 'message' : 'messages';
       
+      console.log('🎯 Toast switch - action received:', action, 'type:', typeof action);
+      
       switch (action) {
         case 'delete':
           toast({
