@@ -809,16 +809,10 @@ export default function EmailManager() {
                       className="bg-white border border-gray-300 rounded-t-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
                       onClick={() => handleRestoreComposer(composer.id)}
                     >
-                      <div className="px-3 py-2 flex items-center justify-between min-w-[200px] max-w-[250px]">
+                      <div className="px-3 py-2 flex items-center justify-between min-w-[250px] max-w-[312px]">
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-medium text-gray-900 truncate">
                             {composer.subject || 'New Message'}
-                          </div>
-                          <div className="text-xs text-gray-500 truncate">
-                            {composer.toAddresses.length > 0 
-                              ? `To: ${composer.toAddresses.map(addr => addr.firstName || addr.email).join(', ')}`
-                              : 'New Message'
-                            }
                           </div>
                         </div>
                         <Button

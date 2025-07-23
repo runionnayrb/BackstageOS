@@ -368,6 +368,34 @@ Required environment variables:
 
 ## Recent Changes
 
+### July 23, 2025: **GMAIL-STYLE MINIMIZE FUNCTIONALITY FOR EMAIL COMPOSITION COMPLETE**
+**Successfully implemented complete Gmail-style minimize functionality for both desktop and mobile email composers:**
+
+**Email Composer Minimize Features:**
+- **Minimize Button**: Added minus icon button to all compose window headers (InlineEmailComposer and GmailEmailComposer)
+- **State Preservation**: Complete composer data preservation including recipients, subject, content, attachments, CC/BCC fields
+- **Bottom Tab System**: Minimized emails appear as tabs at bottom-right of screen with click-to-restore functionality
+- **Multiple Composers**: Support for multiple simultaneous minimized compose windows with individual state management
+- **Tab Styling**: Minimized tabs are 25% longer (250px-312px) and display only subject text as requested
+- **Close Functionality**: X button on each minimized tab allows closing without restoring
+- **Data Integrity**: All compose form data (recipients, content, attachments) preserved during minimize/restore cycles
+
+**Technical Implementation:**
+- Added onMinimize prop to InlineEmailComposer with handleMinimize function capturing complete composer state
+- Enhanced EmailManager with minimizedComposers state array and restoration logic
+- Created bottom tab system with proper z-index positioning and hover effects
+- Implemented handleRestoreComposer and handleCloseMinimizedComposer functions for tab interaction
+- Updated tab dimensions from 200px-250px to 250px-312px for 25% length increase per user preference
+- Simplified tab content to show only subject text, removing recipient information
+
+**System Benefits:**
+- Theater professionals can minimize compose windows during workflow interruptions
+- Multiple email compositions can be managed simultaneously without losing work
+- Subject-only tab display provides clean, Gmail-style interface
+- Complete data preservation ensures no email content is lost during minimize/restore operations
+
+**Status**: Complete Gmail-style minimize functionality operational across all email composition interfaces with user-preferred tab sizing and content display.
+
 ### July 23, 2025: **INLINE EMAIL COMPOSITION FROM CONTACTS PAGE COMPLETE**
 **Successfully integrated inline email composer functionality directly into the email contacts page:**
 
