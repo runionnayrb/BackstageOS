@@ -760,11 +760,12 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   Error loading messages
                 </div>
               )}
-              {/* Select All Checkbox - Desktop only */}
+              {/* Select All Checkbox Row - positioned inline with email checkboxes */}
               {!isSelectionMode && filteredMessages.length > 0 && (
                 <div className="hidden md:block sticky top-0 bg-white border-b border-gray-200 px-4 py-2 z-10">
-                  <div className="flex items-center">
-                    <div className="w-6 h-6 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-3">
+                    {/* Select all checkbox - positioned where individual email checkboxes appear */}
+                    <div className="w-6 h-6 flex-shrink-0 opacity-0 hover:opacity-100 transition-opacity">
                       <Checkbox
                         checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
                         onCheckedChange={toggleSelectAll}
@@ -776,6 +777,13 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         }}
                         className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                       />
+                    </div>
+                    {/* Space for unread indicator alignment */}
+                    <div className="w-2 h-2 flex-shrink-0"></div>
+                    {/* Alignment spacing to match email row layout */}
+                    <div className="w-32 md:w-40 flex-shrink-0"></div>
+                    <div className="flex-1 min-w-0 text-xs text-gray-400 font-medium">
+                      Select all emails
                     </div>
                   </div>
                 </div>
