@@ -572,14 +572,32 @@ export function InlineEmailComposer({
           </div>
 
           {/* Message content */}
-          <div className="flex-1 p-4">
+          <div className="flex-1 p-4 flex flex-col">
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              className="w-full h-full text-sm text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 resize-none"
+              className="w-full text-sm text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 resize-none"
               placeholder="Write your message..."
-              style={{ minHeight: '200px' }}
+              style={{ 
+                minHeight: '200px',
+                maxHeight: composeMode === 'reply' && replyToMessage ? '200px' : '400px',
+                flex: composeMode === 'reply' && replyToMessage ? 'none' : '1'
+              }}
             />
+            
+            {/* Original email thread for replies */}
+            {composeMode === 'reply' && replyToMessage && (
+              <div className="mt-4 pt-4 border-t border-gray-200 flex-1 overflow-y-auto">
+                <div className="text-sm text-gray-600 mb-2">
+                  On {new Date().toLocaleDateString()} at {new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}, <span className="font-medium">{replyToMessage.fromAddress}</span> wrote:
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4 max-h-60 overflow-y-auto">
+                  <div className="text-sm text-gray-700 whitespace-pre-wrap">
+                    {replyToMessage.content}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

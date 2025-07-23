@@ -32,6 +32,7 @@ interface EmailInterfaceProps {
   selectedMessages?: Set<number>;
   onSelectedMessagesChange?: (messages: Set<number>) => void;
   onFilteredMessagesChange?: (messages: any[]) => void;
+  onReply?: (message: any, mode?: 'reply' | 'replyAll' | 'forward') => void;
 }
 
 // Utility function to extract display name from email address
@@ -92,7 +93,7 @@ function ContactPreview({ emailAddress, children }: ContactPreviewProps) {
   );
 }
 
-export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange, activeFolder = "inbox", showTheaterFeatures, onShowTheaterFeaturesChange, composeToEmail, selectedMessages: propSelectedMessages, onSelectedMessagesChange, onFilteredMessagesChange }: EmailInterfaceProps) {
+export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange, activeFolder = "inbox", showTheaterFeatures, onShowTheaterFeaturesChange, composeToEmail, selectedMessages: propSelectedMessages, onSelectedMessagesChange, onFilteredMessagesChange, onReply }: EmailInterfaceProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [modalEmail, setModalEmail] = useState<EmailMessage | null>(null);
@@ -484,15 +485,12 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const handleReply = () => {
     if (!modalEmail) return;
     
-    // Set reply message data and compose mode
-    setReplyMessage(modalEmail);
-    setComposeMode('reply');
-    
-    // Close modal and open composer
+    // Close modal first
     handleCloseEmailModal();
     
-    if (onShowComposeChange) {
-      onShowComposeChange(true);
+    // Use parent callback to handle reply
+    if (onReply) {
+      onReply(modalEmail, 'reply');
     }
     
     console.log('Reply to:', modalEmail.subject);
@@ -501,15 +499,12 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   const handleReplyAll = () => {
     if (!modalEmail) return;
     
-    // Set reply message data and compose mode for reply all
-    setReplyMessage(modalEmail);
-    setComposeMode('replyAll');
-    
-    // Close modal and open composer
+    // Close modal first
     handleCloseEmailModal();
     
-    if (onShowComposeChange) {
-      onShowComposeChange(true);
+    // Use parent callback to handle reply all
+    if (onReply) {
+      onReply(modalEmail, 'replyAll');
     }
     
     console.log('Reply All to:', modalEmail.subject);
@@ -876,10 +871,8 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setReplyMessage(message);
-                              setComposeMode('reply');
-                              if (onShowComposeChange) {
-                                onShowComposeChange(true);
+                              if (onReply) {
+                                onReply(message, 'reply');
                               }
                             }}
                             className="h-6 w-6 p-0 hover:bg-transparent"

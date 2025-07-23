@@ -111,6 +111,10 @@ export default function EmailManager() {
   const [showCompose, setShowCompose] = useState(false);
   const [composeToEmail, setComposeToEmail] = useState<string>('');
   
+  // Reply functionality state
+  const [replyMessage, setReplyMessage] = useState<any>(null);
+  const [composeMode, setComposeMode] = useState<'compose' | 'reply' | 'replyAll' | 'forward'>('compose');
+  
   // Minimized compose system
   const [minimizedComposers, setMinimizedComposers] = useState<Array<{
     id: string;
@@ -139,6 +143,15 @@ export default function EmailManager() {
     setActiveComposer(null);
   };
   
+  // Handler for reply functionality
+  const handleReply = (message: any, mode: 'reply' | 'replyAll' | 'forward' = 'reply') => {
+    setReplyMessage(message);
+    setComposeMode(mode);
+    setShowCompose(true);
+    // Clear the to email when replying since it will be auto-populated
+    setComposeToEmail('');
+  };
+
   const handleRestoreComposer = (composerId: string) => {
     const composer = minimizedComposers.find(c => c.id === composerId);
     if (composer) {
@@ -997,8 +1010,10 @@ export default function EmailManager() {
                 onShowComposeChange={(show) => {
                   setShowCompose(show);
                   if (!show) {
-                    // Clear recipient email when closing compose
+                    // Clear recipient email and reply data when closing compose
                     setComposeToEmail('');
+                    setReplyMessage(null);
+                    setComposeMode('compose');
                   }
                 }}
                 activeFolder={activeFolder}
@@ -1008,6 +1023,7 @@ export default function EmailManager() {
                 selectedMessages={selectedMessages}
                 onSelectedMessagesChange={setSelectedMessages}
                 onFilteredMessagesChange={setFilteredMessages}
+                onReply={handleReply}
               />
               
               {/* Compose Window - Fixed to stick to bottom properly */}
@@ -1020,8 +1036,17 @@ export default function EmailManager() {
                     fromAccountId={selectedAccount.id}
                     fromEmail={selectedAccount.emailAddress}
                     projectId={selectedAccount.projectId}
-                    composeMode="compose"
+                    composeMode={composeMode}
                     initialRecipient={composeToEmail}
+                    replyToMessage={replyMessage ? {
+                      id: replyMessage.id.toString(),
+                      subject: replyMessage.subject,
+                      fromAddress: replyMessage.fromAddress,
+                      content: replyMessage.content,
+                      toAddresses: replyMessage.toAddresses,
+                      ccAddresses: replyMessage.ccAddresses,
+                      bccAddresses: replyMessage.bccAddresses
+                    } : undefined}
                   />
                 </div>
               )}
