@@ -875,10 +875,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 onReply(message, 'reply');
                               }
                             }}
-                            className="h-6 w-6 p-0 hover:bg-transparent"
+                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
                             title="Reply"
                           >
-                            <Reply className="h-3 w-3 text-gray-500 hover:text-blue-600 transition-colors" />
+                            <Reply className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -891,10 +891,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 onShowComposeChange(true);
                               }
                             }}
-                            className="h-6 w-6 p-0 hover:bg-transparent"
+                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
                             title="Forward"
                           >
-                            <Forward className="h-3 w-3 text-gray-500 hover:text-blue-600 transition-colors" />
+                            <Forward className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
                           </Button>
                           <Popover>
                             <PopoverTrigger asChild>
@@ -902,10 +902,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 variant="ghost"
                                 size="sm"
                                 onClick={(e) => e.stopPropagation()}
-                                className="h-6 w-6 p-0 hover:bg-transparent"
+                                className="h-6 w-6 p-0 hover:bg-transparent group/icon"
                                 title="Move to folder"
                               >
-                                <FolderOpen className="h-3 w-3 text-gray-500 hover:text-blue-600 transition-colors" />
+                                <FolderOpen className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-40" align="end">
@@ -1018,10 +1018,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 targetFolder: 'archive'
                               });
                             }}
-                            className="h-6 w-6 p-0 hover:bg-transparent"
+                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
                             title="Archive"
                           >
-                            <Archive className="h-3 w-3 text-gray-500 hover:text-blue-600 transition-colors" />
+                            <Archive className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1035,10 +1035,10 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                                 targetFolder: 'trash'
                               });
                             }}
-                            className="h-6 w-6 p-0 hover:bg-transparent"
+                            className="h-6 w-6 p-0 hover:bg-transparent group/icon"
                             title="Delete"
                           >
-                            <Trash2 className="h-3 w-3 text-gray-500 hover:text-blue-600 transition-colors" />
+                            <Trash2 className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
                           </Button>
                         </div>
                         
