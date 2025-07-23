@@ -90,11 +90,12 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("POST", `/api/projects/${projectId}/contacts`, data);
-      return response.json();
+      return await apiRequest("POST", `/api/projects/${projectId}/contacts`, data);
     },
     onSuccess: () => {
       toast({ title: "Contact created successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       onSuccess();
     },
     onError: (error: any) => {
@@ -108,11 +109,12 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest("PATCH", `/api/contacts/${contact?.id}`, data);
-      return response.json();
+      return await apiRequest("PATCH", `/api/contacts/${contact?.id}`, data);
     },
     onSuccess: () => {
       toast({ title: "Contact updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       onSuccess();
     },
     onError: (error: any) => {
@@ -130,6 +132,8 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
     },
     onSuccess: () => {
       toast({ title: "Contact deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects', projectId, 'contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       onSuccess();
     },
     onError: (error: any) => {
