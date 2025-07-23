@@ -288,6 +288,7 @@ export interface IStorage {
   getReportTemplateById(id: number): Promise<ReportTemplate | undefined>;
   createReportTemplate(template: InsertReportTemplate): Promise<ReportTemplate>;
   updateReportTemplate(id: number, template: Partial<InsertReportTemplate>): Promise<ReportTemplate>;
+  updateTemplateLayoutConfiguration(projectId: number, templateType: string, layoutConfiguration: any): Promise<ReportTemplate>;
   deleteReportTemplate(id: number): Promise<void>;
 
   // Report notes operations
@@ -891,6 +892,20 @@ export class DatabaseStorage implements IStorage {
 
   async updateReportTemplate(id: number, template: Partial<InsertReportTemplate>): Promise<ReportTemplate> {
     const result = await db.update(reportTemplates).set(template).where(eq(reportTemplates.id, id)).returning();
+    return result[0];
+  }
+
+  async updateTemplateLayoutConfiguration(projectId: number, templateType: string, layoutConfiguration: any): Promise<ReportTemplate> {
+    const result = await db.update(reportTemplates)
+      .set({ 
+        layoutConfiguration: layoutConfiguration,
+        updatedAt: new Date()
+      })
+      .where(and(
+        eq(reportTemplates.projectId, projectId),
+        eq(reportTemplates.type, templateType)
+      ))
+      .returning();
     return result[0];
   }
 

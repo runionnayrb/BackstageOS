@@ -143,6 +143,7 @@ export const reportTemplates = pgTable("report_templates", {
   header: text("header"), // template header with variables
   footer: text("footer"), // template footer with variables
   fields: jsonb("fields").notNull(), // JSON array of field definitions with order, type, etc.
+  layoutConfiguration: jsonb("layout_configuration"), // Drag-and-drop layout positioning for headers and notes
   isDefault: boolean("is_default").default(false),
   isPublic: boolean("is_public").default(false), // Can be shared with other users
   createdBy: integer("created_by").notNull().references(() => users.id),

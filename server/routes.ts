@@ -3732,7 +3732,7 @@ Best regards,
   app.put("/api/projects/:id/settings/layout-configuration", isAuthenticated, async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
-      const { layoutConfiguration } = req.body;
+      const { layoutConfiguration, templateType } = req.body;
       
       const project = await storage.getProjectById(projectId);
       if (!project) {
@@ -3744,16 +3744,14 @@ Best regards,
         return res.status(403).json({ message: "Access denied" });
       }
 
-      // Update the settings
-      const updatedSettings = await storage.updateShowSettings(projectId, {
-        layoutConfiguration: layoutConfiguration
-      });
+      // Update the template layout configuration
+      const updatedTemplate = await storage.updateTemplateLayoutConfiguration(projectId, templateType || 'tech', layoutConfiguration);
 
-      // Return the complete updated settings object for cache consistency
-      res.json(updatedSettings);
+      // Return the complete updated template object for cache consistency
+      res.json(updatedTemplate);
     } catch (error) {
-      console.error("Error updating layout configuration:", error);
-      res.status(500).json({ message: "Failed to update layout configuration" });
+      console.error("Error updating template layout configuration:", error);
+      res.status(500).json({ message: "Failed to update template layout configuration" });
     }
   });
 

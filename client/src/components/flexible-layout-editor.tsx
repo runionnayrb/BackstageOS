@@ -543,7 +543,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
 
   // Initialize layout when template is available (only on first load)
   useEffect(() => {
-    if (template && configuration.items.length === 0 && !initialLoadComplete && !showSettings?.layoutConfiguration) {
+    if (template && configuration.items.length === 0 && !initialLoadComplete && !template?.layoutConfiguration) {
       const initialConfig = {
         items: generateLayoutFromTemplate(),
         gridCols: 12,
@@ -553,7 +553,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
       setConfiguration(initialConfig);
       setIsLayoutMounted(true);
     }
-  }, [template, generateLayoutFromTemplate, configuration.items.length, initialLoadComplete, showSettings]);
+  }, [template, generateLayoutFromTemplate, configuration.items.length, initialLoadComplete]);
 
   // Load configuration from settings ONLY on the very first load, never again
   useEffect(() => {
@@ -564,8 +564,8 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     }
     
     // Only load if we haven't completed initial load and user hasn't made changes
-    if ((showSettings as any)?.layoutConfiguration && !initialLoadComplete) {
-      const savedConfig = (showSettings as any).layoutConfiguration;
+    if (template?.layoutConfiguration && !initialLoadComplete) {
+      const savedConfig = template.layoutConfiguration;
       console.log('🔄 First-time loading saved layout configuration:', savedConfig);
       
       // Check if saved config uses old format (individual items) or new format (grouped sections)
@@ -646,7 +646,7 @@ export const FlexibleLayoutEditor = forwardRef<FlexibleLayoutEditorRef, Flexible
     } else if (initialLoadComplete || userHasEditedLayout) {
       console.log('🚫 Skipping configuration reload - user changes are protected');
     }
-  }, [showSettings, template, initialLoadComplete, userHasEditedLayout, generateLayoutFromTemplate]);
+  }, [template, initialLoadComplete, userHasEditedLayout, generateLayoutFromTemplate, onConfigurationChange]);
 
   // Helper function to snap width to quarters (25%, 50%, 75%, 100%)
   const snapToQuarters = useCallback((width: number) => {

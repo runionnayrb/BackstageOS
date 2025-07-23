@@ -733,16 +733,17 @@ export default function TemplateSettings() {
                         </>
                       )}
                     </CardTitle>
-                    {/* Updated timestamp without loading animation */}
+                    {/* Updated timestamp using template updatedAt */}
                     <div className="text-sm text-gray-500 mt-1">
-                      {showSettings?.updatedAt ? (
+                      {(template?.updatedAt || showSettings?.updatedAt) ? (
                         <span>
                           Updated: {(() => {
                             // Parse user's schedule settings for time format and timezone
                             const scheduleSettings = parseScheduleSettings(showSettings?.scheduleSettings);
                             const timeFormat = scheduleSettings.timeFormat === '24' ? '24' : '12';
                             const timezone = scheduleSettings.timezone;
-                            const date = new Date(showSettings.updatedAt);
+                            // Use template updatedAt first, fallback to show settings updatedAt
+                            const date = new Date(template?.updatedAt || showSettings?.updatedAt);
                             
                             // Format date as "July 22, 2025"
                             const dateStr = date.toLocaleDateString('en-US', {
@@ -838,15 +839,17 @@ export default function TemplateSettings() {
                           setIsSaving(true);
                           try {
                             const response = await apiRequest("PUT", `/api/projects/${projectId}/settings/layout-configuration`, {
-                              layoutConfiguration: config
+                              layoutConfiguration: config,
+                              templateType: selectedPhase // Pass the current template type (tech, rehearsal, etc.)
                             });
                             console.log('✅ Layout configuration saved successfully:', response);
                             
                             setLastSaved(new Date());
                             
-                            // Layout change automatically saved to database
-                            // No cache invalidation needed - change is permanent
-                            console.log('📝 Layout change permanently saved to database');
+                            // Layout change automatically saved to template table
+                            // Invalidate template queries to update timestamp display
+                            queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/templates`] });
+                            console.log('📝 Layout change permanently saved to template - timestamp will update');
                             
                           } catch (error) {
                             console.error('❌ Failed to save layout configuration:', error);
