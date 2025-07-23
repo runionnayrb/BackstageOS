@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2, Check, X, Mail, MailOpen, FolderOpen, User, Folder, Send, File } from 'lucide-react';
+import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2, Check, X, Mail, MailOpen, FolderOpen, User, Folder, Send, File, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { EmailAccountConfig } from './email-account-config';
@@ -600,6 +600,54 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     // Don't close the email modal - let user return to it if they cancel
   };
 
+  // Navigation functions for previous/next email
+  const getCurrentEmailIndex = () => {
+    if (!modalEmail || !filteredMessages.length) return -1;
+    return filteredMessages.findIndex(msg => msg.id === modalEmail.id);
+  };
+
+  const handlePreviousEmail = () => {
+    const currentIndex = getCurrentEmailIndex();
+    if (currentIndex > 0) {
+      const previousEmail = filteredMessages[currentIndex - 1];
+      setModalEmail(previousEmail);
+      
+      // Mark as read if the email is unread
+      if (!previousEmail.isRead) {
+        markAsReadMutation.mutate({
+          messageId: previousEmail.id,
+          accountId: selectedAccount.id,
+        });
+      }
+    }
+  };
+
+  const handleNextEmail = () => {
+    const currentIndex = getCurrentEmailIndex();
+    if (currentIndex >= 0 && currentIndex < filteredMessages.length - 1) {
+      const nextEmail = filteredMessages[currentIndex + 1];
+      setModalEmail(nextEmail);
+      
+      // Mark as read if the email is unread
+      if (!nextEmail.isRead) {
+        markAsReadMutation.mutate({
+          messageId: nextEmail.id,
+          accountId: selectedAccount.id,
+        });
+      }
+    }
+  };
+
+  const hasPreviousEmail = () => {
+    const currentIndex = getCurrentEmailIndex();
+    return currentIndex > 0;
+  };
+
+  const hasNextEmail = () => {
+    const currentIndex = getCurrentEmailIndex();
+    return currentIndex >= 0 && currentIndex < filteredMessages.length - 1;
+  };
+
   return (
     <>
       <div className="relative h-[calc(100vh-120px)] bg-background">
@@ -1164,6 +1212,29 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
             </div>
             
             <div className="flex items-center gap-1 p-4">
+              {/* Navigation arrows */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handlePreviousEmail}
+                disabled={!hasPreviousEmail()}
+                className="h-6 w-6 p-0 hover:bg-transparent group/icon disabled:opacity-40"
+                title="Previous email"
+              >
+                <ChevronLeft className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNextEmail}
+                disabled={!hasNextEmail()}
+                className="h-6 w-6 p-0 hover:bg-transparent group/icon disabled:opacity-40 mr-2"
+                title="Next email"
+              >
+                <ChevronRight className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
+              </Button>
+              
+              {/* Email actions */}
               <Button
                 variant="ghost"
                 size="sm"
