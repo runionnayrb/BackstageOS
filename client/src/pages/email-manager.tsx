@@ -751,7 +751,7 @@ export default function EmailManager() {
                 {/* Dynamic header content - title or selection controls */}
                 {selectedMessages?.size > 0 ? (
                   // Selection mode - show select all checkbox and bulk actions
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 px-0.5">
                     {/* Checkbox container matching email row positioning */}
                     <div className="w-6 h-6 flex-shrink-0">
                       <Checkbox
