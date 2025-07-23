@@ -335,6 +335,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       }
       const result = await response.json();
       console.log('✅ Bulk action completed:', result);
+      console.log('🎯 Mutation returning:', { result, action, messageIds, targetFolder });
       return { result, action, messageIds, targetFolder };
     },
     onSuccess: ({ result, action, messageIds, targetFolder }) => {
