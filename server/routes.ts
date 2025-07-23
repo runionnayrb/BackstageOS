@@ -5527,6 +5527,18 @@ Best regards,
     }
   });
 
+  app.post('/api/sync-all-contacts-to-email', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.user.id.toString());
+      
+      await storage.syncAllContactsToEmailContacts(userId);
+      res.json({ message: "All contacts synced to email contacts successfully" });
+    } catch (error) {
+      console.error("Error syncing all contacts to email:", error);
+      res.status(500).json({ message: "Failed to sync all contacts to email" });
+    }
+  });
+
   // Distribution Lists Routes
   app.get('/api/distribution-lists', isAuthenticated, async (req: any, res) => {
     try {

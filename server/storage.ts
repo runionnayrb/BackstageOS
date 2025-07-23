@@ -1423,6 +1423,64 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async syncAllContactsToEmailContacts(userId: number): Promise<void> {
+    // Get all projects for this user
+    const userProjects = await this.getProjectsByOwnerId(userId.toString());
+    
+    let totalSynced = 0;
+    
+    // For each project, sync all its contacts
+    for (const project of userProjects) {
+      const showContacts = await this.getContactsByProjectId(project.id);
+      
+      // For each show contact, create or update corresponding email contact
+      for (const showContact of showContacts) {
+        // Check if this contact is already synced
+        const existingEmailContact = await db.select().from(emailContacts).where(
+          and(
+            eq(emailContacts.userId, userId),
+            eq(emailContacts.originalContactId, showContact.id)
+          )
+        );
+
+        if (existingEmailContact.length === 0) {
+          // Create new email contact
+          await db.insert(emailContacts).values({
+            userId,
+            projectId: project.id,
+            originalContactId: showContact.id,
+            firstName: showContact.firstName,
+            lastName: showContact.lastName,
+            email: showContact.email,
+            phone: showContact.phone,
+            role: showContact.role,
+            notes: showContact.notes,
+            contactCategory: showContact.contactCategory,
+            isManuallyAdded: false,
+            createdBy: userId,
+          });
+          totalSynced++;
+        } else {
+          // Update existing email contact with latest show contact data
+          await db.update(emailContacts)
+            .set({
+              firstName: showContact.firstName,
+              lastName: showContact.lastName,
+              email: showContact.email,
+              phone: showContact.phone,
+              role: showContact.role,
+              notes: showContact.notes,
+              contactCategory: showContact.contactCategory,
+              updatedAt: new Date(),
+            })
+            .where(eq(emailContacts.id, existingEmailContact[0].id));
+        }
+      }
+    }
+    
+    console.log(`🔄 Bulk sync completed: ${totalSynced} contacts synced for user ${userId}`);
+  }
+
   // Contact availability operations
   async getContactAvailability(contactId: number, projectId: number): Promise<ContactAvailability[]> {
     const result = await db.select()

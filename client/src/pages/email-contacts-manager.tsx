@@ -62,7 +62,7 @@ export default function EmailContactsManager() {
     enabled: true,
   });
 
-  // Sync contacts mutation
+  // Sync contacts mutation (project-specific)
   const syncContactsMutation = useMutation({
     mutationFn: () => apiRequest(`/api/projects/${projectId}/sync-contacts-to-email`, {
       method: 'POST',
@@ -78,6 +78,27 @@ export default function EmailContactsManager() {
       toast({
         title: "Sync failed",
         description: "There was an error syncing your contacts.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Bulk sync all contacts mutation
+  const bulkSyncContactsMutation = useMutation({
+    mutationFn: () => apiRequest('/api/sync-all-contacts-to-email', {
+      method: 'POST',
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/email-contacts'] });
+      toast({
+        title: "All contacts synced successfully",
+        description: "All contacts from all your shows have been added to your email contacts.",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Bulk sync failed",
+        description: "There was an error syncing all your contacts.",
         variant: "destructive",
       });
     },
@@ -189,6 +210,10 @@ export default function EmailContactsManager() {
     if (projectId) {
       syncContactsMutation.mutate();
     }
+  };
+
+  const handleBulkSyncContacts = () => {
+    bulkSyncContactsMutation.mutate();
   };
 
   const handleAddContact = () => {
