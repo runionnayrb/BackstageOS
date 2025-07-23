@@ -85,6 +85,10 @@ export default function EmailContacts() {
             <ArrowLeft className="w-4 h-4" />
             Back to Email
           </Button>
+          <div className="flex items-center gap-2">
+            <Users className="w-6 h-6 text-blue-600" />
+            <h1 className="text-2xl font-bold text-gray-900">Email Contacts</h1>
+          </div>
         </div>
 
         {/* Summary Stats */}
