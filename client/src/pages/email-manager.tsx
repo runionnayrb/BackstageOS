@@ -731,6 +731,7 @@ export default function EmailManager() {
                     onClose={() => setShowCompose(false)}
                     fromAccountId={selectedAccount.id}
                     fromEmail={selectedAccount.emailAddress}
+                    projectId={selectedAccount.projectId}
                     composeMode="compose"
                     initialRecipient={composeToEmail}
                   />

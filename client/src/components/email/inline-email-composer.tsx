@@ -4,6 +4,7 @@ import { X, Send, ChevronDown, Paperclip, MoreHorizontal, FileText } from 'lucid
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { EmailContactSelector } from './email-contact-selector';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,7 @@ interface InlineEmailComposerProps {
   onClose: () => void;
   fromAccountId: number;
   fromEmail: string;
+  projectId?: number;
   replyToMessage?: {
     id: string;
     subject: string;
@@ -45,6 +47,7 @@ export function InlineEmailComposer({
   onClose, 
   fromAccountId, 
   fromEmail,
+  projectId,
   replyToMessage,
   forwardMessage,
   composeMode = 'compose',
@@ -59,18 +62,24 @@ export function InlineEmailComposer({
     enabled: isOpen && !!fromAccountId,
   });
 
+  // Fetch contacts for autocomplete if we have a project ID
+  const { data: contacts = [] } = useQuery({
+    queryKey: ['/api/contacts'],
+    enabled: isOpen,
+  });
+
   // Find the specific account from the accounts list
   const emailAccount = emailAccounts?.find((account: any) => account.id === fromAccountId);
 
   // Helper function to get reply recipients based on mode
   const getReplyRecipients = () => {
-    if (!replyToMessage) return { to: '', cc: '', bcc: '', showCc: false, showBcc: false };
+    if (!replyToMessage) return { to: [], cc: [], bcc: [], showCc: false, showBcc: false };
     
     if (composeMode === 'reply') {
       return {
-        to: replyToMessage.fromAddress,
-        cc: '',
-        bcc: '',
+        to: [replyToMessage.fromAddress],
+        cc: [],
+        bcc: [],
         showCc: false,
         showBcc: false
       };
@@ -84,23 +93,23 @@ export function InlineEmailComposer({
       const allRecipients = [...filteredTo, ...filteredCc].filter(addr => addr !== replyToMessage.fromAddress);
       
       return {
-        to: replyToMessage.fromAddress,
-        cc: allRecipients.join(', '),
-        bcc: '',
+        to: [replyToMessage.fromAddress],
+        cc: allRecipients,
+        bcc: [],
         showCc: allRecipients.length > 0,
         showBcc: false
       };
     }
     
-    return { to: '', cc: '', bcc: '', showCc: false, showBcc: false };
+    return { to: [], cc: [], bcc: [], showCc: false, showBcc: false };
   };
 
   const replyRecipients = getReplyRecipients();
 
   // Form state
-  const [toAddresses, setToAddresses] = useState<string>(replyRecipients.to || (composeMode === 'compose' && initialRecipient ? initialRecipient : ''));
-  const [ccAddresses, setCcAddresses] = useState<string>(replyRecipients.cc);
-  const [bccAddresses, setBccAddresses] = useState<string>(replyRecipients.bcc);
+  const [toAddresses, setToAddresses] = useState<string[]>(replyRecipients.to || (composeMode === 'compose' && initialRecipient ? [initialRecipient] : []));
+  const [ccAddresses, setCcAddresses] = useState<string[]>(replyRecipients.cc);
+  const [bccAddresses, setBccAddresses] = useState<string[]>(replyRecipients.bcc);
   const [showCc, setShowCc] = useState(replyRecipients.showCc);
   const [showBcc, setShowBcc] = useState(replyRecipients.showBcc);
   const [showExitDialog, setShowExitDialog] = useState(false);
@@ -178,20 +187,20 @@ export function InlineEmailComposer({
   // Update recipient when initialRecipient changes
   useEffect(() => {
     if (composeMode === 'compose' && initialRecipient && isOpen) {
-      setToAddresses(initialRecipient);
+      setToAddresses([initialRecipient]);
     }
   }, [initialRecipient, composeMode, isOpen]);
 
   // Helper function to check if there's meaningful content (excluding signature)
   const hasContent = () => {
-    const trimmedTo = toAddresses.trim();
-    const trimmedCc = ccAddresses.trim(); 
-    const trimmedBcc = bccAddresses.trim();
+    const hasToAddresses = toAddresses.length > 0;
+    const hasCcAddresses = ccAddresses.length > 0;
+    const hasBccAddresses = bccAddresses.length > 0;
     const trimmedSubject = subject.trim();
     const trimmedContent = content.trim();
     
     // Check if any field has content
-    if (trimmedTo || trimmedCc || trimmedBcc || trimmedSubject) {
+    if (hasToAddresses || hasCcAddresses || hasBccAddresses || trimmedSubject) {
       return true;
     }
     
@@ -215,16 +224,20 @@ export function InlineEmailComposer({
   // Send email mutation
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
-      if (!toAddresses.trim() || !subject.trim()) {
+      if (toAddresses.length === 0 || !subject.trim()) {
         throw new Error('To address and subject are required');
       }
+
+      const toAddressesStr = toAddresses.join(', ');
+      const ccAddressesStr = ccAddresses.length > 0 ? ccAddresses.join(', ') : '';
+      const bccAddressesStr = bccAddresses.length > 0 ? bccAddresses.join(', ') : '';
 
       if (attachments.length > 0) {
         const formData = new FormData();
         formData.append('fromAccountId', fromAccountId.toString());
-        formData.append('toAddresses', toAddresses.trim());
-        if (ccAddresses.trim()) formData.append('ccAddresses', ccAddresses.trim());
-        if (bccAddresses.trim()) formData.append('bccAddresses', bccAddresses.trim());
+        formData.append('toAddresses', toAddressesStr);
+        if (ccAddressesStr) formData.append('ccAddresses', ccAddressesStr);
+        if (bccAddressesStr) formData.append('bccAddresses', bccAddressesStr);
         formData.append('subject', subject.trim());
         formData.append('content', content.trim());
         if (replyToMessage?.id) formData.append('threadId', replyToMessage.id);
@@ -245,9 +258,9 @@ export function InlineEmailComposer({
       } else {
         const emailData = {
           fromAccountId,
-          toAddresses: toAddresses.trim(),
-          ccAddresses: ccAddresses.trim() || undefined,
-          bccAddresses: bccAddresses.trim() || undefined,
+          toAddresses: toAddressesStr,
+          ccAddresses: ccAddressesStr || undefined,
+          bccAddresses: bccAddressesStr || undefined,
           subject: subject.trim(),
           content: content.trim(),
           threadId: replyToMessage?.id ? parseInt(replyToMessage.id) : null
@@ -263,9 +276,9 @@ export function InlineEmailComposer({
       });
       
       // Clear form and close
-      setToAddresses('');
-      setCcAddresses('');
-      setBccAddresses('');
+      setToAddresses([]);
+      setCcAddresses([]);
+      setBccAddresses([]);
       setSubject('');
       setContent('');
       setAttachments([]);
@@ -380,17 +393,15 @@ export function InlineEmailComposer({
         {/* Email fields */}
         <div className="flex-1 flex flex-col bg-white overflow-y-auto">
           {/* To field */}
-          <div className="flex items-center px-4 py-3 border-b border-gray-100">
-            <span className="text-gray-500 text-sm w-12 flex-shrink-0">To:</span>
-            <input
-              type="email"
-              value={toAddresses}
-              onChange={(e) => setToAddresses(e.target.value)}
-              className="flex-1 text-sm text-gray-900 bg-transparent border-none outline-none placeholder-gray-400"
+          <div className="relative">
+            <EmailContactSelector
+              contacts={contacts}
+              selectedEmails={toAddresses}
+              onChange={setToAddresses}
               placeholder="Recipients"
-              autoComplete="email"
+              label="To:"
             />
-            <div className="flex items-center space-x-2 ml-2">
+            <div className="absolute top-3 right-4 flex items-center space-x-2">
               {!showCc && (
                 <Button 
                   variant="ghost" 
@@ -414,32 +425,24 @@ export function InlineEmailComposer({
 
           {/* CC field */}
           {showCc && (
-            <div className="flex items-center px-4 py-3 border-b border-gray-100">
-              <span className="text-gray-500 text-sm w-12 flex-shrink-0">Cc:</span>
-              <input
-                type="email"
-                value={ccAddresses}
-                onChange={(e) => setCcAddresses(e.target.value)}
-                className="flex-1 text-sm text-gray-900 bg-transparent border-none outline-none placeholder-gray-400"
-                placeholder="CC recipients"
-                autoComplete="email"
-              />
-            </div>
+            <EmailContactSelector
+              contacts={contacts}
+              selectedEmails={ccAddresses}
+              onChange={setCcAddresses}
+              placeholder="CC recipients"
+              label="Cc:"
+            />
           )}
 
           {/* BCC field */}
           {showBcc && (
-            <div className="flex items-center px-4 py-3 border-b border-gray-100">
-              <span className="text-gray-500 text-sm w-12 flex-shrink-0">Bcc:</span>
-              <input
-                type="email"
-                value={bccAddresses}
-                onChange={(e) => setBccAddresses(e.target.value)}
-                className="flex-1 text-sm text-gray-900 bg-transparent border-none outline-none placeholder-gray-400"
-                placeholder="BCC recipients"
-                autoComplete="email"
-              />
-            </div>
+            <EmailContactSelector
+              contacts={contacts}
+              selectedEmails={bccAddresses}
+              onChange={setBccAddresses}
+              placeholder="BCC recipients"
+              label="Bcc:"
+            />
           )}
 
           {/* From field */}
