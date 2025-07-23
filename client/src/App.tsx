@@ -77,7 +77,7 @@ import Checkout from "@/pages/checkout";
 import Subscribe from "@/pages/subscribe";
 import Billing from "@/pages/billing";
 import NotesTracking from "@/pages/notes-tracking";
-import EmailContactsManager from "@/pages/email-contacts-manager";
+import EmailContacts from "@/pages/email-contacts";
 
 
 function Router() {
@@ -226,7 +226,7 @@ function Router() {
         <Route path="/tasks" component={TaskManagement} />
         <Route path="/shows/:id/notes" component={Notes} />
         <Route path="/shows/:id/notes-tracking" component={NotesTracking} />
-        <Route path="/shows/:id/email-contacts" component={EmailContactsManager} />
+        <Route path="/shows/:id/email-contacts" component={EmailContacts} />
         <Route path="/notes" component={Notes} />
         <Route path="/shows/:id/templates/new" component={TemplateBuilder} />
         <Route path="/shows/:id/templates/:templateId/edit" component={TemplateBuilder} />
@@ -246,7 +246,7 @@ function Router() {
         <Route path="/admin/seo" component={SeoManager} />
         <Route path="/email" component={EmailManager} />
         <Route path="/email-manager" component={EmailManager} />
-        <Route path="/email-contacts" component={EmailContactsManager} />
+        <Route path="/email-contacts" component={EmailContacts} />
         <Route path="/tools" component={Tools} />
         <Route path="/chat" component={Chat} />
         <Route path="/shows/:showId/theater-email" component={TheaterEmail} />
