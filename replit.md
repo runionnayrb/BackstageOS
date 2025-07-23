@@ -8,7 +8,7 @@ BackstageOS is a comprehensive theater management platform specifically designed
 
 ### Core Platform
 - **Show-Centric Organization**: All data tied to specific productions with complete isolation between shows
-- **Professional Authentication**: Secure login system with user profile management (freelance vs full-time)
+- **Professional Authentication**: Secure login system with user profile management (freelance vs full-time) - Login error "res.json is not a function" fixed (Jan 23, 2025)
 - **Responsive Design**: Clean, minimal interface optimized for theater professionals
 - **Version Tracking**: Complete changelog with release notes accessible from any page
 
