@@ -776,7 +776,7 @@ export default function EmailManager() {
           } relative`}
         >
 
-          <div className="px-1 md:px-2 py-2 md:py-4">
+          <div className="px-1 md:px-4 py-2 md:py-4">
           {/* Header - Mobile with hamburger left, search right */}
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -801,7 +801,7 @@ export default function EmailManager() {
                 {/* Dynamic header content - title or selection controls */}
                 {selectedMessages?.size > 0 ? (
                   // Selection mode - show select all checkbox and bulk actions
-                  <div className="flex items-center gap-1 px-0.5">
+                  <div className="flex items-center gap-1 px-1">
                     {/* Checkbox container matching email row positioning */}
                     <div className="w-6 h-6 flex-shrink-0">
                       <Checkbox
