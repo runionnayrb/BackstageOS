@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { X, Send, ChevronDown, Paperclip, MoreHorizontal, FileText } from 'lucide-react';
+import { X, Send, ChevronDown, Paperclip, MoreHorizontal, FileText, Minus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -20,6 +20,7 @@ import {
 interface InlineEmailComposerProps {
   isOpen: boolean;
   onClose: () => void;
+  onMinimize?: (composerData: any) => void;
   fromAccountId: number;
   fromEmail: string;
   projectId?: number;
@@ -46,6 +47,7 @@ interface InlineEmailComposerProps {
 export function InlineEmailComposer({ 
   isOpen, 
   onClose, 
+  onMinimize,
   fromAccountId, 
   fromEmail,
   projectId,
@@ -334,6 +336,23 @@ export function InlineEmailComposer({
     onClose();
   };
 
+  const handleMinimize = () => {
+    if (onMinimize) {
+      const composerData = {
+        subject,
+        toAddresses,
+        ccAddresses,
+        bccAddresses,
+        content,
+        fromAccountId: selectedAccountId,
+        attachments,
+        showCc,
+        showBcc
+      };
+      onMinimize(composerData);
+    }
+  };
+
   // File attachment handler
   const handleAttachmentClick = () => {
     const fileInput = document.createElement('input');
@@ -393,6 +412,16 @@ export function InlineEmailComposer({
             >
               <Send className="h-4 w-4" />
             </Button>
+            {onMinimize && (
+              <Button 
+                variant="ghost" 
+                onClick={handleMinimize}
+                className="text-gray-600 hover:text-gray-800 p-2 h-auto rounded-full"
+                title="Minimize"
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+            )}
             <Button 
               variant="ghost" 
               onClick={handleClose}

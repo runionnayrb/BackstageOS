@@ -105,6 +105,45 @@ export default function EmailManager() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [showCompose, setShowCompose] = useState(false);
   const [composeToEmail, setComposeToEmail] = useState<string>('');
+  
+  // Minimized compose system
+  const [minimizedComposers, setMinimizedComposers] = useState<Array<{
+    id: string;
+    subject: string;
+    toAddresses: any[];
+    fromAccountId: number;
+    composeData: any;
+  }>>([]);
+  const [activeComposer, setActiveComposer] = useState<string | null>(null);
+  
+  // Functions for managing minimized composers
+  const handleMinimizeComposer = (composerData: any) => {
+    const composerId = Date.now().toString();
+    setMinimizedComposers(prev => [...prev, {
+      id: composerId,
+      subject: composerData.subject || 'New Message',
+      toAddresses: composerData.toAddresses || [],
+      fromAccountId: composerData.fromAccountId,
+      composeData: composerData
+    }]);
+    setShowCompose(false);
+    setActiveComposer(null);
+  };
+  
+  const handleRestoreComposer = (composerId: string) => {
+    const composer = minimizedComposers.find(c => c.id === composerId);
+    if (composer) {
+      setActiveComposer(composerId);
+      setShowCompose(true);
+      // Remove from minimized list when restored
+      setMinimizedComposers(prev => prev.filter(c => c.id !== composerId));
+    }
+  };
+  
+  const handleCloseMinimizedComposer = (composerId: string) => {
+    setMinimizedComposers(prev => prev.filter(c => c.id !== composerId));
+  };
+  
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileMenuAnimating, setIsMobileMenuAnimating] = useState(false);
@@ -751,12 +790,51 @@ export default function EmailManager() {
                   <InlineEmailComposer
                     isOpen={showCompose}
                     onClose={() => setShowCompose(false)}
+                    onMinimize={handleMinimizeComposer}
                     fromAccountId={selectedAccount.id}
                     fromEmail={selectedAccount.emailAddress}
                     projectId={selectedAccount.projectId}
                     composeMode="compose"
                     initialRecipient={composeToEmail}
                   />
+                </div>
+              )}
+              
+              {/* Minimized Composer Tabs - Fixed at bottom of screen */}
+              {minimizedComposers.length > 0 && (
+                <div className="fixed bottom-0 right-0 flex items-end space-x-1 z-[50] p-2">
+                  {minimizedComposers.map((composer) => (
+                    <div
+                      key={composer.id}
+                      className="bg-white border border-gray-300 rounded-t-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                      onClick={() => handleRestoreComposer(composer.id)}
+                    >
+                      <div className="px-3 py-2 flex items-center justify-between min-w-[200px] max-w-[250px]">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">
+                            {composer.subject || 'New Message'}
+                          </div>
+                          <div className="text-xs text-gray-500 truncate">
+                            {composer.toAddresses.length > 0 
+                              ? `To: ${composer.toAddresses.map(addr => addr.firstName || addr.email).join(', ')}`
+                              : 'New Message'
+                            }
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 ml-2 hover:bg-red-50 hover:text-red-600"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCloseMinimizedComposer(composer.id);
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
