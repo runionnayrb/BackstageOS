@@ -49,6 +49,12 @@ export default function MobileBottomNav() {
   // Parse current show ID from URL
   const currentShowId = location.match(/\/shows\/(\d+)/)?.[1];
   
+  console.log('🔍 Mobile Nav Debug:', { 
+    location,
+    currentShowId,
+    currentShowIdNumber: currentShowId ? parseInt(currentShowId) : undefined
+  });
+  
   // Get feature settings for the current show
   const { isFeatureEnabled, isEmailEnabled } = useFeatureSettings(currentShowId);
   

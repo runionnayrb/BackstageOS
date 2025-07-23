@@ -71,6 +71,7 @@ export function GmailEmailComposer({
   console.log('🔍 Contacts Query Debug:', { 
     isOpen,
     projectId,
+    projectIdType: typeof projectId,
     queryKey: projectId ? ['/api/projects', projectId, 'contacts'] : ['/api/contacts'],
     isLoadingContacts,
     contactsError,
@@ -234,7 +235,9 @@ export function GmailEmailComposer({
   }, [replyToMessage, composeMode, fromEmail, initialRecipient]);
 
   console.log('🔍 Mobile Gmail Composer Debug:', { 
-    isOpen, 
+    isOpen,
+    projectId,
+    projectIdPassed: !!projectId,
     contactsLength: contacts.length, 
     contacts: contacts.slice(0, 3),
     toAddressesType: typeof toAddresses,
