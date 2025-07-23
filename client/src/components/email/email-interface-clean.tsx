@@ -959,42 +959,45 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                         <span className="text-sm text-gray-500">
                           {formatDate(message.dateSent)}
                         </span>
-                        {!isSelectionMode && (
-                          <div className="hidden md:flex items-center gap-1">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                // Handle star
-                              }}
-                            >
-                              <Star className="h-3 w-3" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-gray-100"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                // Archive this specific message
-                                bulkActionMutation.mutate({
-                                  messageIds: [message.id],
-                                  action: 'archive',
-                                  accountId: selectedAccount.id,
-                                  targetFolder: 'archive'
-                                });
-                              }}
-                            >
-                              <Archive className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                  
+                  {/* Move folder dropdown */}
+                  {moveDropdownOpen === message.id && (
+                    <div className="absolute top-full left-0 z-50 mt-1 w-40 bg-white border border-gray-200 rounded-md shadow-lg">
+                      <div className="py-1">
+                        <button
+                          onClick={() => {
+                            bulkActionMutation.mutate({
+                              messageIds: [message.id],
+                              action: 'move',
+                              targetFolder: 'inbox',
+                              accountId: selectedAccount.id
+                            });
+                            setMoveDropdownOpen(null);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                        >
+                          Move to Inbox
+                        </button>
+                        <button
+                          onClick={() => {
+                            bulkActionMutation.mutate({
+                              messageIds: [message.id],
+                              action: 'move',
+                              targetFolder: 'trash',
+                              accountId: selectedAccount.id
+                            });
+                            setMoveDropdownOpen(null);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                        >
+                          Move to Trash
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
               })}
