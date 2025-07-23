@@ -535,7 +535,12 @@ export function GmailEmailComposer({
         className={`fixed inset-0 bg-black/50 transition-opacity duration-300 ${
           isAnimating ? 'opacity-100' : 'opacity-0'
         }`}
-        onClick={handleClose}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            console.log('🎯 Backdrop clicked');
+            handleClose();
+          }
+        }}
       />
       
       {/* Gmail-style composer */}
@@ -550,20 +555,23 @@ export function GmailEmailComposer({
           position: 'fixed',
           overflow: 'hidden'
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Header with icons matching Gmail */}
         <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-200">
-          <Button 
-            variant="ghost" 
+          <button 
+            type="button"
             onClick={(e) => {
               console.log('🔥 CLOSE BUTTON CLICKED!', e);
+              e.preventDefault();
               e.stopPropagation();
               handleClose();
             }}
-            className="text-gray-600 hover:text-gray-800 p-2 h-auto rounded-full"
+            className="text-gray-600 hover:text-gray-800 p-2 h-8 w-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors"
+            style={{ zIndex: 10001 }}
           >
             <X className="h-5 w-5" />
-          </Button>
+          </button>
           
           <div className="flex items-center space-x-3">
             <Button 
@@ -735,7 +743,7 @@ export function GmailEmailComposer({
       
       {/* Exit confirmation dialog */}
       <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
-        <AlertDialogContent className="max-w-sm">
+        <AlertDialogContent className="max-w-sm" style={{ zIndex: 10002 }}>
           <AlertDialogHeader>
             <AlertDialogTitle>Save Draft?</AlertDialogTitle>
             <AlertDialogDescription>
