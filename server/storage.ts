@@ -1213,14 +1213,68 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllContactsByUserId(userId: string): Promise<Contact[]> {
-    // Single optimized query to get all contacts from user's projects
-    const result = await db.select()
+    // Get contacts from user's projects (show contacts)
+    const projectContacts = await db.select()
       .from(contacts)
       .innerJoin(projects, eq(contacts.projectId, projects.id))
       .where(eq(projects.ownerId, userId))
       .orderBy(contacts.firstName, contacts.lastName);
     
-    return result.map(row => row.contacts);
+    // Get email contacts that don't have originalContactId (manually added email contacts)
+    const userIdNum = parseInt(userId);
+    const emailContactsResult = await db.select()
+      .from(emailContacts)
+      .where(
+        and(
+          eq(emailContacts.userId, userIdNum),
+          isNull(emailContacts.originalContactId)
+        )
+      )
+      .orderBy(emailContacts.firstName, emailContacts.lastName);
+    
+    // Convert email contacts to Contact format
+    const convertedEmailContacts = emailContactsResult.map(ec => ({
+      id: ec.id + 100000, // Offset ID to avoid conflicts
+      projectId: ec.projectId || 0,
+      firstName: ec.firstName,
+      lastName: ec.lastName,
+      email: ec.email,
+      phone: ec.phone,
+      category: ec.contactCategory || 'vendor',
+      role: ec.role,
+      notes: ec.notes,
+      photoUrl: null,
+      emergencyContactName: null,
+      emergencyContactPhone: null,
+      emergencyContactEmail: null,
+      emergencyContactRelationship: null,
+      allergies: null,
+      medicalNotes: null,
+      castTypes: null,
+      equityStatus: null,
+      createdBy: ec.createdBy,
+      createdAt: ec.createdAt,
+      updatedAt: ec.updatedAt
+    }));
+    
+    // Combine and deduplicate contacts
+    const allContacts = [...projectContacts.map(row => row.contacts), ...convertedEmailContacts];
+    
+    // Remove duplicates based on email
+    const uniqueContacts = allContacts.reduce((acc, contact) => {
+      if (contact.email && !acc.find(c => c.email === contact.email)) {
+        acc.push(contact);
+      } else if (!contact.email) {
+        acc.push(contact);
+      }
+      return acc;
+    }, [] as Contact[]);
+    
+    return uniqueContacts.sort((a, b) => {
+      const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+      const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
   }
 
   async getContactById(id: number): Promise<Contact | undefined> {
