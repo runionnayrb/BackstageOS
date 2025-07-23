@@ -771,40 +771,40 @@ export default function EmailManager() {
                         size="sm"
                         onClick={() => handleBulkAction('mark-read')}
                         disabled={bulkActionMutation?.isPending}
-                        className="h-8 w-8 p-0 hover:bg-transparent"
+                        className="h-8 w-8 p-0 hover:bg-transparent group"
                         title="Mark as read"
                       >
-                        <MailOpen className="h-4 w-4 text-gray-600 hover:text-blue-600 transition-colors" />
+                        <MailOpen className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleBulkAction('mark-unread')}
                         disabled={bulkActionMutation?.isPending}
-                        className="h-8 w-8 p-0 hover:bg-transparent"
+                        className="h-8 w-8 p-0 hover:bg-transparent group"
                         title="Mark as unread"
                       >
-                        <Mail className="h-4 w-4 text-gray-600 hover:text-blue-600 transition-colors" />
+                        <Mail className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleBulkAction('archive')}
                         disabled={bulkActionMutation?.isPending}
-                        className="h-8 w-8 p-0 hover:bg-transparent"
+                        className="h-8 w-8 p-0 hover:bg-transparent group"
                         title="Archive"
                       >
-                        <Archive className="h-4 w-4 text-gray-600 hover:text-blue-600 transition-colors" />
+                        <Archive className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => handleBulkAction('delete')}
                         disabled={bulkActionMutation?.isPending}
-                        className="h-8 w-8 p-0 hover:bg-transparent"
+                        className="h-8 w-8 p-0 hover:bg-transparent group"
                         title="Delete"
                       >
-                        <Trash2 className="h-4 w-4 text-gray-600 hover:text-blue-600 transition-colors" />
+                        <Trash2 className="h-4 w-4 text-gray-600 group-hover:text-blue-600 transition-colors" />
                       </Button>
                     </div>
                   </div>
