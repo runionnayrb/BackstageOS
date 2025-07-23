@@ -60,7 +60,7 @@ export function InlineEmailComposer({
   // Fetch all email accounts and find the specific one
   const { data: emailAccounts, isLoading: isLoadingAccounts } = useQuery({
     queryKey: ['/api/email/accounts'],
-    enabled: isOpen && !!fromAccountId,
+    enabled: isOpen,
   });
 
   // Fetch email contacts for autocomplete (unified contacts from all shows + personal)
@@ -75,6 +75,8 @@ export function InlineEmailComposer({
   // Find the specific account from the accounts list
   const emailAccount = (emailAccounts as any[])?.find((account: any) => account.id === selectedAccountId);
   const selectedAccount = emailAccount;
+
+
 
   // Helper function to get reply recipients based on mode
   const getReplyRecipients = () => {
@@ -465,7 +467,10 @@ export function InlineEmailComposer({
                   onValueChange={(value) => setSelectedAccountId(parseInt(value))}
                 >
                   <SelectTrigger className="w-full border-none shadow-none p-0 h-auto text-sm text-gray-600 hover:text-gray-900">
-                    <SelectValue />
+                    <div className="flex flex-col items-start text-left">
+                      <div className="font-medium">{selectedAccount?.displayName}</div>
+                      <div className="text-xs text-gray-500">{selectedAccount?.emailAddress}</div>
+                    </div>
                   </SelectTrigger>
                   <SelectContent>
                     {(emailAccounts as any[]).map((account: any) => (
