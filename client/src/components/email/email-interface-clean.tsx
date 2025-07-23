@@ -29,6 +29,9 @@ interface EmailInterfaceProps {
   showTheaterFeatures?: boolean;
   onShowTheaterFeaturesChange?: (show: boolean) => void;
   composeToEmail?: string;
+  selectedMessages?: Set<number>;
+  onSelectedMessagesChange?: (messages: Set<number>) => void;
+  onFilteredMessagesChange?: (messages: any[]) => void;
 }
 
 // Utility function to extract display name from email address
@@ -89,13 +92,15 @@ function ContactPreview({ emailAddress, children }: ContactPreviewProps) {
   );
 }
 
-export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange, activeFolder = "inbox", showTheaterFeatures, onShowTheaterFeaturesChange, composeToEmail }: EmailInterfaceProps) {
+export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange, activeFolder = "inbox", showTheaterFeatures, onShowTheaterFeaturesChange, composeToEmail, selectedMessages: propSelectedMessages, onSelectedMessagesChange, onFilteredMessagesChange }: EmailInterfaceProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [modalEmail, setModalEmail] = useState<EmailMessage | null>(null);
   const [emailModalClosing, setEmailModalClosing] = useState(false);
   const [showConfiguration, setShowConfiguration] = useState(false);
-  const [selectedMessages, setSelectedMessages] = useState<Set<number>>(new Set());
+  // Use prop selectedMessages or fallback to local state
+  const selectedMessages = propSelectedMessages || new Set<number>();
+  const setSelectedMessages = onSelectedMessagesChange || (() => {});
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [pendingDeleteAction, setPendingDeleteAction] = useState<{ messageIds: number[]; action: string; targetFolder?: string } | null>(null);
@@ -381,6 +386,18 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
     message.fromAddress?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     message.content?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Update parent component with filtered messages
+  useEffect(() => {
+    if (onFilteredMessagesChange) {
+      onFilteredMessagesChange(filteredMessages);
+    }
+  }, [filteredMessages, onFilteredMessagesChange]);
+
+  // Update selection mode based on selected messages
+  useEffect(() => {
+    setIsSelectionMode(selectedMessages.size > 0);
+  }, [selectedMessages]);
 
   // Helper functions for bulk actions
   const toggleSelectAll = () => {
@@ -675,61 +692,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 </div>
               )}
 
-              {/* Desktop Select All Header - appears above email rows when in selection mode */}
-              {isSelectionMode && filteredMessages.length > 0 && (
-                <div className="hidden md:block bg-white border-b border-gray-200 px-3 md:px-4 py-2">
-                  <div className="flex items-center gap-3">
-                    {/* Select all checkbox positioned to align with individual email checkboxes */}
-                    <div className="w-6 h-6 flex-shrink-0">
-                      <Checkbox
-                        checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
-                        onCheckedChange={toggleSelectAll}
-                        className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                      />
-                    </div>
-                    
-                    {/* Action buttons - right aligned */}
-                    <div className="flex-1 flex justify-end items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleBulkAction('mark-read')}
-                        disabled={bulkActionMutation.isPending}
-                        className="h-8 w-8 p-0"
-                      >
-                        <MailOpen className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleBulkAction('mark-unread')}
-                        disabled={bulkActionMutation.isPending}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Mail className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleBulkAction('archive')}
-                        disabled={bulkActionMutation.isPending}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Archive className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleBulkAction('delete')}
-                        disabled={bulkActionMutation.isPending}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
+
               
               {filteredMessages.map((message: EmailMessage) => {
                 const isCurrentSwipe = swipeState.messageId === message.id;

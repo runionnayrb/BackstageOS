@@ -37,7 +37,9 @@ import {
   Settings,
   ArrowLeft,
   Contact,
+  MailOpen,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -116,6 +118,10 @@ export default function EmailManager() {
   }>>([]);
   const [activeComposer, setActiveComposer] = useState<string | null>(null);
   
+  // Email selection state
+  const [selectedMessages, setSelectedMessages] = useState<Set<number>>(new Set());
+  const [filteredMessages, setFilteredMessages] = useState<any[]>([]);
+  
   // Functions for managing minimized composers
   const handleMinimizeComposer = (composerData: any) => {
     const composerId = Date.now().toString();
@@ -142,6 +148,27 @@ export default function EmailManager() {
   
   const handleCloseMinimizedComposer = (composerId: string) => {
     setMinimizedComposers(prev => prev.filter(c => c.id !== composerId));
+  };
+
+  // Selection management functions
+  const toggleSelectAll = () => {
+    if (selectedMessages.size === filteredMessages.length && filteredMessages.length > 0) {
+      setSelectedMessages(new Set());
+    } else {
+      setSelectedMessages(new Set(filteredMessages.map(msg => msg.id)));
+    }
+  };
+
+  // Bulk action mutation - placeholder for now
+  const bulkActionMutation = {
+    isPending: false,
+    mutate: (options: any) => {
+      console.log('Bulk action:', options);
+    }
+  };
+
+  const handleBulkAction = (action: string, targetFolder?: string) => {
+    console.log('Handle bulk action:', action, targetFolder);
   };
   
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -703,7 +730,7 @@ export default function EmailManager() {
           {/* Header - Mobile with hamburger left, search right */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              {/* Left side - hamburger and title */}
+              {/* Left side - hamburger, title/selection controls */}
               <div className="flex items-center gap-1.5">
                 {/* Mobile hamburger menu - left side */}
                 <Button
@@ -721,10 +748,69 @@ export default function EmailManager() {
                   )} />
                 </Button>
                 
-                {/* Email title */}
-                <h1 className="text-xl md:text-3xl font-bold text-gray-900 flex-shrink-0">
-                  {getFolderDisplayName(activeFolder)}
-                </h1>
+                {/* Dynamic header content - title or selection controls */}
+                {selectedMessages?.size > 0 ? (
+                  // Selection mode - show select all checkbox and bulk actions
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={selectedMessages.size === filteredMessages?.length && filteredMessages?.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                      className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                    />
+                    <span className="text-sm md:text-base font-medium text-gray-900">
+                      {selectedMessages.size} of {filteredMessages?.length || 0} selected
+                    </span>
+                    
+                    {/* Bulk action buttons */}
+                    <div className="flex items-center gap-1 ml-4">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleBulkAction('mark-read')}
+                        disabled={bulkActionMutation?.isPending}
+                        className="h-8 w-8 p-0"
+                        title="Mark as read"
+                      >
+                        <MailOpen className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleBulkAction('mark-unread')}
+                        disabled={bulkActionMutation?.isPending}
+                        className="h-8 w-8 p-0"
+                        title="Mark as unread"
+                      >
+                        <Mail className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleBulkAction('archive')}
+                        disabled={bulkActionMutation?.isPending}
+                        className="h-8 w-8 p-0"
+                        title="Archive"
+                      >
+                        <Archive className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleBulkAction('delete')}
+                        disabled={bulkActionMutation?.isPending}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  // Normal mode - show folder title
+                  <h1 className="text-xl md:text-3xl font-bold text-gray-900 flex-shrink-0">
+                    {getFolderDisplayName(activeFolder)}
+                  </h1>
+                )}
               </div>
               
               {/* Right side - Search bar */}
@@ -785,6 +871,9 @@ export default function EmailManager() {
                 showTheaterFeatures={showTheaterFeatures}
                 onShowTheaterFeaturesChange={setShowTheaterFeatures}
                 composeToEmail={composeToEmail}
+                selectedMessages={selectedMessages}
+                onSelectedMessagesChange={setSelectedMessages}
+                onFilteredMessagesChange={setFilteredMessages}
               />
               
               {/* Compose Window - Fixed to stick to bottom properly */}
