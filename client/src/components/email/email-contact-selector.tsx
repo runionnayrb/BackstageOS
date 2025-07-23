@@ -118,6 +118,20 @@ export function EmailContactSelector({
   };
 
   const handleInputChange = (value: string) => {
+    console.log('🔍 EmailContactSelector Input Change:', { 
+      value, 
+      shouldOpen: value.length > 0,
+      filteredContactsLength: value.length > 0 ? availableContacts.filter(contact => {
+        const displayName = formatContactDisplay(contact);
+        const email = getContactEmail(contact);
+        const searchTerm = value.toLowerCase();
+        
+        return displayName.toLowerCase().includes(searchTerm) ||
+               contact.firstName.toLowerCase().includes(searchTerm) ||
+               contact.lastName.toLowerCase().includes(searchTerm) ||
+               email.toLowerCase().includes(searchTerm);
+      }).length : 0
+    });
     setInputValue(value);
     setOpen(value.length > 0);
   };
@@ -197,41 +211,24 @@ export function EmailContactSelector({
             </div>
           </PopoverTrigger>
           <PopoverContent 
-            className="w-80 p-0" 
+            className="w-80 p-0 z-50 bg-white border border-gray-200 shadow-lg" 
             align="start"
             onOpenAutoFocus={(e) => e.preventDefault()}
           >
-            <Command>
-              <CommandList>
-                {filteredContacts.length === 0 ? (
-                  <CommandEmpty>
-                    {inputValue.includes('@') 
-                      ? "Press Enter to add this email" 
-                      : "No contacts found. Type an email address to add manually."}
-                  </CommandEmpty>
-                ) : (
-                  <CommandGroup>
-                    {filteredContacts.map((contact) => (
-                      <CommandItem
-                        key={contact.id}
-                        onSelect={() => handleSelectContact(contact)}
-                        className="flex items-center space-x-2 px-3 py-2 cursor-pointer"
-                      >
-                        <Users className="h-4 w-4 text-gray-400" />
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900">
-                            {formatContactDisplay(contact)}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {getContactEmail(contact)}
-                          </div>
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-              </CommandList>
-            </Command>
+            {console.log('🎯 PopoverContent rendering with filteredContacts:', filteredContacts.length)}
+            <div className="p-4 bg-yellow-100 border-2 border-yellow-500">
+              <div className="text-sm font-bold text-black mb-2">CONTACT PICKER VISIBLE - {filteredContacts.length} contacts</div>
+              {filteredContacts.slice(0, 3).map((contact) => (
+                <div 
+                  key={contact.id}
+                  className="p-2 bg-white mb-1 border cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSelectContact(contact)}
+                >
+                  <div className="font-medium">{formatContactDisplay(contact)}</div>
+                  <div className="text-xs text-gray-500">{getContactEmail(contact)}</div>
+                </div>
+              ))}
+            </div>
           </PopoverContent>
         </Popover>
       </div>
