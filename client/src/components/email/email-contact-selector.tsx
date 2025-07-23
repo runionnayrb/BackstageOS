@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import type { EmailContact, EmailGroup } from "@shared/schema";
@@ -30,7 +29,6 @@ export function EmailContactSelector({
 }: EmailContactSelectorProps) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
-  const [showDistroPopup, setShowDistroPopup] = useState<EmailGroup | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -234,8 +232,8 @@ export function EmailContactSelector({
                   {isDistro && <Users className="h-3 w-3" />}
                   {displayEmail}
                   {isDistro && distroGroup && (
-                    <Dialog>
-                      <DialogTrigger asChild>
+                    <Popover>
+                      <PopoverTrigger asChild>
                         <button
                           type="button"
                           onClick={(e) => e.stopPropagation()}
@@ -244,27 +242,25 @@ export function EmailContactSelector({
                         >
                           <Eye className="h-2 w-2" />
                         </button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-md">
-                        <DialogHeader>
-                          <DialogTitle className="flex items-center gap-2">
-                            <Users className="h-4 w-4" />
-                            {distroGroup.name}
-                          </DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-2">
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80 p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-purple-600" />
+                            <h4 className="font-semibold text-sm">{distroGroup.name}</h4>
+                          </div>
                           {distroGroup.description && (
                             <p className="text-sm text-gray-600">{distroGroup.description}</p>
                           )}
                           <div className="text-sm">
-                            <strong>Members:</strong> {distroGroup.memberCount || 0}
+                            <span className="font-medium">Members:</span> {distroGroup.memberCount || 0}
                           </div>
                           <div className="text-xs text-gray-500">
                             Click to view detailed member list
                           </div>
                         </div>
-                      </DialogContent>
-                    </Dialog>
+                      </PopoverContent>
+                    </Popover>
                   )}
                   {!disabled && (
                     <button
@@ -374,30 +370,7 @@ export function EmailContactSelector({
         </div>
       </div>
 
-      {/* Distribution List Popup Dialog */}
-      {showDistroPopup && (
-        <Dialog open={!!showDistroPopup} onOpenChange={() => setShowDistroPopup(null)}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                {showDistroPopup.name}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              {showDistroPopup.description && (
-                <p className="text-sm text-gray-600">{showDistroPopup.description}</p>
-              )}
-              <div className="text-sm">
-                <strong>Members:</strong> {showDistroPopup.memberCount || 0}
-              </div>
-              <div className="text-xs text-gray-500">
-                This distribution list will expand to include all members when the email is sent.
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+
     </div>
   );
 }
