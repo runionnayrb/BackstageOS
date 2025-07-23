@@ -16,7 +16,8 @@ import {
   Edit,
   Users,
   ChevronDown,
-  FileText
+  FileText,
+  Contact
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -58,6 +59,7 @@ interface EmailSidebarProps {
   onSettings?: () => void;
   onDistroManagement?: () => void;
   onTemplateSettings?: () => void;
+  onContacts?: () => void;
 }
 
 export function EmailSidebar({
@@ -77,7 +79,8 @@ export function EmailSidebar({
   onFolderChange,
   onSettings,
   onDistroManagement = () => {},
-  onTemplateSettings = () => {}
+  onTemplateSettings = () => {},
+  onContacts = () => {}
 }: EmailSidebarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -320,6 +323,25 @@ export function EmailSidebar({
         {/* Theater Tools Section */}
         <div className={cn("mt-6 pt-4 border-t border-gray-100", isCollapsed ? "px-2" : "px-4")}>
           <div className="space-y-1">
+            {/* Contacts */}
+            <button 
+              onClick={onContacts}
+              className={cn(
+                "w-full flex items-center rounded-md hover:bg-gray-50 transition-colors text-gray-700",
+                isCollapsed ? "justify-center p-3" : "px-3 py-2 text-sm"
+              )}
+              title={isCollapsed ? "Contacts" : undefined}
+            >
+              {isCollapsed ? (
+                <Contact className="h-5 w-5" />
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Contact className="h-5 w-5" />
+                  <span>Contacts</span>
+                </div>
+              )}
+            </button>
+
             {/* Distro Management */}
             <button 
               onClick={onDistroManagement}

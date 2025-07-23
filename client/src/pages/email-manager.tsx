@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,6 +36,7 @@ import {
   Theater,
   Settings,
   ArrowLeft,
+  Contact,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -570,6 +571,16 @@ export default function EmailManager() {
             {/* Theater Tools Section */}
             <div className="border-t border-gray-200 pt-4">
               <div className="space-y-1">
+                <button
+                  onClick={() => {
+                    window.location.href = '/personnel';
+                    closeMobileMenu();
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-md text-sm transition-colors hover:bg-gray-50 text-gray-700 flex items-center space-x-2"
+                >
+                  <Contact className="w-4 h-4" />
+                  <span>Contacts</span>
+                </button>
 
                 <button
                   onClick={() => {
@@ -624,6 +635,7 @@ export default function EmailManager() {
             onSettings={() => setShowMobileSettings(true)}
             onDistroManagement={() => setShowGroupManager(true)}
             onTemplateSettings={() => setShowTemplateManager(true)}
+            onContacts={() => window.location.href = '/personnel'}
             sharedInboxes={[]}
             hasPersonalAccount={hasPersonalAccount}
             isAdmin={user?.isAdmin || false}
