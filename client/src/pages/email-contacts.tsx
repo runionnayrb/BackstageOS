@@ -151,11 +151,10 @@ export default function EmailContacts() {
                       onMouseEnter={() => setHoveredContactId(contact.id)}
                       onMouseLeave={() => setHoveredContactId(null)}
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">
+                      <div className="flex items-center">
+                        <span className="font-medium text-gray-900 w-48">
                           {formatContactName(contact)}
                         </span>
-                        <span className="text-gray-500">•</span>
                         <span className="text-gray-600">
                           {getContactEmail(contact)}
                         </span>
