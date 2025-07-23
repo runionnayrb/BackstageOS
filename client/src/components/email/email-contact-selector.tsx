@@ -42,14 +42,7 @@ export function EmailContactSelector({
     }
   }, [open]);
 
-  console.log('📧 EmailContactSelector Debug:', { 
-    contactsLength: contacts.length, 
-    selectedEmailsLength: selectedEmails.length,
-    contacts: contacts.slice(0, 2),
-    selectedEmails,
-    placeholder,
-    disabled 
-  });
+
 
   // Format contact display
   const formatContactDisplay = (contact: EmailContact) => 
@@ -132,20 +125,6 @@ export function EmailContactSelector({
   };
 
   const handleInputChange = (value: string) => {
-    console.log('🔍 EmailContactSelector Input Change:', { 
-      value, 
-      shouldOpen: value.length > 0,
-      filteredContactsLength: value.length > 0 ? availableContacts.filter(contact => {
-        const displayName = formatContactDisplay(contact);
-        const email = getContactEmail(contact);
-        const searchTerm = value.toLowerCase();
-        
-        return displayName.toLowerCase().includes(searchTerm) ||
-               contact.firstName.toLowerCase().includes(searchTerm) ||
-               contact.lastName.toLowerCase().includes(searchTerm) ||
-               email.toLowerCase().includes(searchTerm);
-      }).length : 0
-    });
     setInputValue(value);
     setOpen(value.length > 0);
   };
@@ -227,23 +206,20 @@ export function EmailContactSelector({
           </div>
           
           {/* Custom dropdown positioned absolutely */}
-          {open && (
+          {open && filteredContacts.length > 0 && (
             <div className="absolute top-full left-0 right-0 z-[9999] bg-white border border-gray-200 shadow-lg rounded-md mt-1 max-h-64 overflow-y-auto">
-              {console.log('🎯 Custom dropdown visible with filteredContacts:', filteredContacts.length)}
-              <div className="p-4 bg-yellow-100 border-2 border-yellow-500">
-                <div className="text-sm font-bold text-black mb-2">CONTACT PICKER VISIBLE - {filteredContacts.length} contacts</div>
-                {filteredContacts.slice(0, 5).map((contact) => (
+              <div className="py-1">
+                {filteredContacts.map((contact) => (
                   <div 
                     key={contact.id}
-                    className="p-2 bg-white mb-1 border cursor-pointer hover:bg-gray-100"
+                    className="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800"
                     onMouseDown={(e) => {
                       e.preventDefault(); // Prevent blur event
-                      console.log('🎯 Contact clicked:', contact.firstName, contact.lastName);
                       handleSelectContact(contact);
                     }}
                   >
-                    <div className="font-medium">{formatContactDisplay(contact)}</div>
-                    <div className="text-xs text-gray-500">{getContactEmail(contact)}</div>
+                    <div className="font-medium text-gray-900 dark:text-gray-100">{formatContactDisplay(contact)}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{getContactEmail(contact)}</div>
                   </div>
                 ))}
               </div>
