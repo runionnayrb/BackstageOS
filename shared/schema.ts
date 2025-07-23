@@ -440,6 +440,24 @@ export const contacts = pgTable("contacts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Email contacts - unified contacts for email system (personal + show-specific)
+export const emailContacts = pgTable("email_contacts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }), // null for personal contacts
+  originalContactId: integer("original_contact_id").references(() => contacts.id, { onDelete: "cascade" }), // Link to show contact if synced
+  firstName: varchar("first_name").notNull(),
+  lastName: varchar("last_name").notNull(),
+  email: varchar("email"),
+  phone: varchar("phone"),
+  role: varchar("role"), // Their role/title
+  notes: text("notes"),
+  isManuallyAdded: boolean("is_manually_added").default(false), // true if added directly to email, false if synced from show
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Contact availability system
 export const contactAvailability = pgTable("contact_availability", {
   id: serial("id").primaryKey(),
@@ -2286,6 +2304,12 @@ export const insertContactSchema = createInsertSchema(contacts).omit({
   equityStatus: z.union([z.enum(["equity", "non-equity"]), z.null()]).optional(),
 });
 
+export const insertEmailContactSchema = createInsertSchema(emailContacts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertContactAvailabilitySchema = createInsertSchema(contactAvailability).omit({
   id: true,
   createdAt: true,
@@ -2652,6 +2676,8 @@ export type BetaSettings = typeof betaSettings.$inferSelect;
 export type InsertBetaSettings = z.infer<typeof insertBetaSettingsSchema>;
 export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
+export type EmailContact = typeof emailContacts.$inferSelect;
+export type InsertEmailContact = z.infer<typeof insertEmailContactSchema>;
 export type DomainRoute = typeof domainRoutes.$inferSelect;
 export type InsertDomainRoute = z.infer<typeof insertDomainRouteSchema>;
 export type ErrorLog = typeof errorLogs.$inferSelect & {

@@ -14,6 +14,7 @@ import {
   feedback,
   betaSettings,
   contacts,
+  emailContacts,
   contactAvailability,
   scheduleEvents,
   scheduleEventParticipants,
@@ -103,6 +104,8 @@ import {
   type InsertBetaSettings,
   type Contact,
   type InsertContact,
+  type EmailContact,
+  type InsertEmailContact,
   type ContactAvailability,
   type InsertContactAvailability,
   type ScheduleEvent,
@@ -356,6 +359,14 @@ export interface IStorage {
   createContact(contact: InsertContact): Promise<Contact>;
   updateContact(id: number, contact: Partial<InsertContact>): Promise<Contact>;
   deleteContact(id: number): Promise<void>;
+
+  // Email contacts operations (unified contacts for email system)
+  getEmailContactsByUserId(userId: number): Promise<EmailContact[]>;
+  getEmailContactsByUserIdAndProject(userId: number, projectId: number | null): Promise<EmailContact[]>;
+  createEmailContact(contact: InsertEmailContact): Promise<EmailContact>;
+  updateEmailContact(id: number, contact: Partial<InsertEmailContact>): Promise<EmailContact>;
+  deleteEmailContact(id: number): Promise<void>;
+  syncShowContactsToEmailContacts(userId: number, projectId: number): Promise<void>;
 
   // Contact availability operations
   getContactAvailability(contactId: number, projectId: number): Promise<ContactAvailability[]>;
@@ -1214,6 +1225,100 @@ export class DatabaseStorage implements IStorage {
 
   async deleteContact(id: number): Promise<void> {
     await db.delete(contacts).where(eq(contacts.id, id));
+  }
+
+  // Email contacts operations (unified contacts for email system)
+  async getEmailContactsByUserId(userId: number): Promise<EmailContact[]> {
+    const result = await db.select().from(emailContacts).where(eq(emailContacts.userId, userId));
+    return result;
+  }
+
+  async getEmailContactsByUserIdAndProject(userId: number, projectId: number | null): Promise<EmailContact[]> {
+    if (projectId === null) {
+      // Get only personal contacts (not tied to any project)
+      const result = await db.select().from(emailContacts).where(
+        and(
+          eq(emailContacts.userId, userId),
+          isNull(emailContacts.projectId)
+        )
+      );
+      return result;
+    } else {
+      // Get both project contacts and personal contacts
+      const result = await db.select().from(emailContacts).where(
+        and(
+          eq(emailContacts.userId, userId),
+          or(
+            eq(emailContacts.projectId, projectId),
+            isNull(emailContacts.projectId)
+          )
+        )
+      );
+      return result;
+    }
+  }
+
+  async createEmailContact(contact: InsertEmailContact): Promise<EmailContact> {
+    const result = await db.insert(emailContacts).values(contact).returning();
+    return result[0];
+  }
+
+  async updateEmailContact(id: number, contact: Partial<InsertEmailContact>): Promise<EmailContact> {
+    const result = await db.update(emailContacts)
+      .set({ ...contact, updatedAt: new Date() })
+      .where(eq(emailContacts.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteEmailContact(id: number): Promise<void> {
+    await db.delete(emailContacts).where(eq(emailContacts.id, id));
+  }
+
+  async syncShowContactsToEmailContacts(userId: number, projectId: number): Promise<void> {
+    // Get all contacts for this project
+    const showContacts = await this.getContactsByProjectId(projectId);
+    
+    // For each show contact, create or update corresponding email contact
+    for (const showContact of showContacts) {
+      // Check if this contact is already synced
+      const existingEmailContact = await db.select().from(emailContacts).where(
+        and(
+          eq(emailContacts.userId, userId),
+          eq(emailContacts.originalContactId, showContact.id)
+        )
+      );
+
+      if (existingEmailContact.length === 0) {
+        // Create new email contact
+        await db.insert(emailContacts).values({
+          userId,
+          projectId,
+          originalContactId: showContact.id,
+          firstName: showContact.firstName,
+          lastName: showContact.lastName,
+          email: showContact.email,
+          phone: showContact.phone,
+          role: showContact.role,
+          notes: showContact.notes,
+          isManuallyAdded: false,
+          createdBy: userId,
+        });
+      } else {
+        // Update existing email contact with latest show contact data
+        await db.update(emailContacts)
+          .set({
+            firstName: showContact.firstName,
+            lastName: showContact.lastName,
+            email: showContact.email,
+            phone: showContact.phone,
+            role: showContact.role,
+            notes: showContact.notes,
+            updatedAt: new Date(),
+          })
+          .where(eq(emailContacts.id, existingEmailContact[0].id));
+      }
+    }
   }
 
   // Contact availability operations

@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { parseScheduleSettings, formatTimeDisplay } from "@/lib/timeUtils";
 import { CastSelector } from "@/components/cast-selector";
-import type { DailyCall, Project, Contact, ScheduleEvent } from "@shared/schema";
+import type { DailyCall, Project, EmailContact, ScheduleEvent } from "@shared/schema";
 
 interface DailyCallSheetParams {
   id: string;
@@ -65,9 +65,9 @@ export default function DailyCallSheet() {
     enabled: !!actualProjectId,
   });
 
-  // Fetch contacts (cast members)
-  const { data: contacts = [] } = useQuery<Contact[]>({
-    queryKey: ['/api/projects', actualProjectId, 'contacts'],
+  // Fetch email contacts (unified contacts from all shows + personal) 
+  const { data: contacts = [] } = useQuery({
+    queryKey: ['/api/email-contacts', actualProjectId ? parseInt(actualProjectId) : null],
     enabled: !!actualProjectId,
   });
 

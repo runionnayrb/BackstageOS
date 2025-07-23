@@ -14,7 +14,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
+import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertEmailContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -5419,6 +5419,111 @@ Best regards,
     } catch (error) {
       console.error("Error deleting contact:", error);
       res.status(500).json({ message: "Failed to delete contact" });
+    }
+  });
+
+  // Email Contacts Routes (Unified contacts for email system)
+  app.get('/api/email-contacts', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.user.id.toString());
+      const projectId = req.query.projectId ? parseInt(req.query.projectId) : null;
+      
+      const emailContacts = await storage.getEmailContactsByUserIdAndProject(userId, projectId);
+      res.json(emailContacts);
+    } catch (error) {
+      console.error("Error fetching email contacts:", error);
+      res.status(500).json({ message: "Failed to fetch email contacts" });
+    }
+  });
+
+  app.post('/api/email-contacts', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.user.id.toString());
+      
+      const emailContactData = insertEmailContactSchema.parse({
+        ...req.body,
+        userId,
+        createdBy: userId,
+        isManuallyAdded: true,
+      });
+
+      const emailContact = await storage.createEmailContact(emailContactData);
+      res.json(emailContact);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid email contact data", errors: error.errors });
+      }
+      console.error("Error creating email contact:", error);
+      res.status(500).json({ message: "Failed to create email contact" });
+    }
+  });
+
+  app.put('/api/email-contacts/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const emailContactId = parseInt(req.params.id);
+      const userId = parseInt(req.user.id.toString());
+      
+      // Verify ownership
+      const emailContact = await storage.getEmailContactsByUserId(userId);
+      if (!emailContact.find(c => c.id === emailContactId)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updateData = insertEmailContactSchema.partial().omit({
+        userId: true,
+        createdBy: true,
+      }).parse(req.body);
+
+      const updatedEmailContact = await storage.updateEmailContact(emailContactId, updateData);
+      res.json(updatedEmailContact);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid email contact data", errors: error.errors });
+      }
+      console.error("Error updating email contact:", error);
+      res.status(500).json({ message: "Failed to update email contact" });
+    }
+  });
+
+  app.delete('/api/email-contacts/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const emailContactId = parseInt(req.params.id);
+      const userId = parseInt(req.user.id.toString());
+      
+      // Verify ownership
+      const emailContact = await storage.getEmailContactsByUserId(userId);
+      if (!emailContact.find(c => c.id === emailContactId)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteEmailContact(emailContactId);
+      res.json({ message: "Email contact deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting email contact:", error);
+      res.status(500).json({ message: "Failed to delete email contact" });
+    }
+  });
+
+  app.post('/api/projects/:id/sync-contacts-to-email', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const userId = parseInt(req.user.id.toString());
+      
+      const project = await storage.getProjectById(projectId);
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership
+      if (project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.syncShowContactsToEmailContacts(userId, projectId);
+      res.json({ message: "Show contacts synced to email contacts successfully" });
+    } catch (error) {
+      console.error("Error syncing contacts to email:", error);
+      res.status(500).json({ message: "Failed to sync contacts to email" });
     }
   });
 

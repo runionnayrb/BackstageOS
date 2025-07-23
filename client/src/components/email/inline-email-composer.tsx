@@ -62,11 +62,11 @@ export function InlineEmailComposer({
     enabled: isOpen && !!fromAccountId,
   });
 
-  // Fetch contacts for autocomplete if we have a project ID  
+  // Fetch email contacts for autocomplete (unified contacts from all shows + personal)
   const { data: contacts = [] } = useQuery({
-    queryKey: ['/api/contacts'],
+    queryKey: ['/api/email-contacts', projectId],
     enabled: isOpen,
-  }) as { data: Array<{ id: number; firstName: string; lastName: string; email: string | null; projectId: number }> };
+  });
 
   // Find the specific account from the accounts list
   const emailAccount = (emailAccounts as any[])?.find((account: any) => account.id === fromAccountId);

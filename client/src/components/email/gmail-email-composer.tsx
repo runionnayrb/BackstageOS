@@ -62,9 +62,9 @@ export function GmailEmailComposer({
     enabled: isOpen && !!fromAccountId,
   });
 
-  // Fetch contacts for the contact selector - use project-specific contacts when projectId is available
-  const { data: contacts = [], isLoading: isLoadingContacts, error: contactsError } = useQuery<Contact[]>({
-    queryKey: projectId ? ['/api/projects', projectId, 'contacts'] : ['/api/contacts'],
+  // Fetch email contacts for the contact selector (unified contacts from all shows + personal)
+  const { data: contacts = [], isLoading: isLoadingContacts, error: contactsError } = useQuery({
+    queryKey: ['/api/email-contacts', projectId],
     enabled: isOpen,
   });
 

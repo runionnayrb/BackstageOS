@@ -4,10 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import type { Contact } from "@shared/schema";
+import type { EmailContact } from "@shared/schema";
 
 interface EmailContactSelectorProps {
-  contacts: Contact[];
+  contacts: EmailContact[];
   selectedEmails: string[];
   onChange: (emails: string[]) => void;
   placeholder?: string;
@@ -38,11 +38,11 @@ export function EmailContactSelector({
   });
 
   // Format contact display
-  const formatContactDisplay = (contact: Contact) => 
+  const formatContactDisplay = (contact: EmailContact) => 
     `${contact.firstName} ${contact.lastName}`;
 
-  // Get contact email for display
-  const getContactEmail = (contact: Contact) => 
+  // Get contact email for display  
+  const getContactEmail = (contact: EmailContact) => 
     contact.email || `${contact.firstName.toLowerCase()}.${contact.lastName.toLowerCase()}@example.com`;
 
   // Filter available contacts (not already selected)
@@ -63,7 +63,7 @@ export function EmailContactSelector({
            email.toLowerCase().includes(searchTerm);
   });
 
-  const handleSelectContact = (contact: Contact) => {
+  const handleSelectContact = (contact: EmailContact) => {
     const email = getContactEmail(contact);
     if (!selectedEmails.includes(email)) {
       onChange([...selectedEmails, email]);
