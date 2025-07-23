@@ -368,6 +368,31 @@ Required environment variables:
 
 ## Recent Changes
 
+### July 23, 2025: **BULK ACTION TOAST NOTIFICATIONS FIXED WITH ACTION-SPECIFIC MESSAGES**
+**Successfully resolved generic bulk action toast notifications to show specific action-based messages:**
+
+**Issue Identified:**
+- Generic "Bulk action completed successfully" message was appearing for all bulk email actions instead of specific messages
+- Problem traced to EmailManager component's bulk action mutation overriding EmailInterface's specific toast messages
+- EmailInterface had correct action-specific messages but EmailManager was showing generic fallback
+
+**Solution Implemented:**
+- Updated EmailManager's `bulkActionMutation.onSuccess` callback to receive action parameters and show specific messages
+- Added comprehensive action-specific toast messages matching EmailInterface functionality:
+  - "Messages deleted" for delete actions
+  - "Messages marked as read/unread" for read status changes  
+  - "Messages archived" for archive actions
+  - "Messages moved to [folder]" for move operations
+- Cleaned up debug logs from EmailInterface component
+
+**System Benefits:**
+- Theater professionals now receive clear, action-specific feedback for bulk email operations
+- Consistent toast messaging across both individual and bulk email actions
+- Enhanced user experience with precise confirmation of completed actions
+- Professional interface matching Gmail-style expectations
+
+**Status**: Bulk action toast notifications now display specific, informative messages for all email management operations.
+
 ### July 23, 2025: **GMAIL-STYLE EMAIL LIST VIEW WITH PERFECT CHECKBOX ALIGNMENT COMPLETE**
 **Successfully implemented complete Gmail-style email list view with precise layout matching Gmail reference image:**
 
