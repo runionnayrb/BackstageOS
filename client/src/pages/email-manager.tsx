@@ -69,6 +69,16 @@ interface EmailStats {
 }
 
 export default function EmailManager() {
+  const queryClient = useQueryClient();
+  
+  // Prefetch contacts data for better performance
+  useEffect(() => {
+    queryClient.prefetchQuery({
+      queryKey: ['/api/contacts'],
+      staleTime: 5 * 60 * 1000,
+    });
+  }, [queryClient]);
+  
   // Helper function to get folder display name
   const getFolderDisplayName = (folder: string) => {
     switch (folder) {
@@ -88,7 +98,7 @@ export default function EmailManager() {
   };
 
   // Get URL parameters for smart email routing
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const urlParams = new URLSearchParams(location.split('?')[1] || '');
 
   const [selectedAccount, setSelectedAccount] = useState<EmailAccount | null>(null);
@@ -128,7 +138,6 @@ export default function EmailManager() {
   const [selectedProject, setSelectedProject] = useState<any>(null);
   const [showSharedInboxes, setShowSharedInboxes] = useState(false);
   const [activeTab, setActiveTab] = useState("inbox");
-  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   // Fetch email accounts
@@ -635,7 +644,7 @@ export default function EmailManager() {
             onSettings={() => setShowMobileSettings(true)}
             onDistroManagement={() => setShowGroupManager(true)}
             onTemplateSettings={() => setShowTemplateManager(true)}
-            onContacts={() => window.location.href = '/email-contacts'}
+            onContacts={() => setLocation('/email-contacts')}
             sharedInboxes={[]}
             hasPersonalAccount={hasPersonalAccount}
             isAdmin={user?.isAdmin || false}

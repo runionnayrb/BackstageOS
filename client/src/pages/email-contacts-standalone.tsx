@@ -14,15 +14,15 @@ interface Contact {
   projectId?: number;
 }
 
-export default function EmailContacts() {
+export default function EmailContactsStandalone() {
   const [, setLocation] = useLocation();
 
-  // Fetch global contacts for email system with caching
-  const { data: contacts = [], isLoading } = useQuery<Contact[]>({
+  // Fetch global contacts for email system with caching and background updates
+  const { data: contacts = [], isLoading, error } = useQuery<Contact[]>({
     queryKey: ['/api/contacts'],
-    enabled: true,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
   const formatContactName = (contact: Contact) => 
@@ -31,10 +31,19 @@ export default function EmailContacts() {
   const getContactEmail = (contact: Contact) => 
     contact.email || `${contact.firstName.toLowerCase()}.${contact.lastName.toLowerCase()}@example.com`;
 
-  if (isLoading) {
+  // Show minimal loading state without full page spinner
+  if (isLoading && contacts.length === 0) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-48 mb-6"></div>
+            <div className="space-y-4">
+              <div className="h-24 bg-gray-200 rounded"></div>
+              <div className="h-64 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -57,6 +66,9 @@ export default function EmailContacts() {
             <Users className="w-6 h-6 text-blue-600" />
             <h1 className="text-2xl font-bold text-gray-900">Email Contacts</h1>
           </div>
+          {error && (
+            <span className="text-sm text-red-500">Failed to load contacts</span>
+          )}
         </div>
 
         {/* Summary Stats */}
@@ -108,6 +120,9 @@ export default function EmailContacts() {
             <CardTitle className="flex items-center gap-2">
               <Mail className="w-5 h-5" />
               All Contacts
+              {isLoading && contacts.length > 0 && (
+                <span className="text-sm text-gray-500 font-normal">Updating...</span>
+              )}
             </CardTitle>
           </CardHeader>
           <CardContent>

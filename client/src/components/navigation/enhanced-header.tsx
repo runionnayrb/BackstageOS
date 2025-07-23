@@ -49,11 +49,12 @@ export default function EnhancedHeader() {
 
 
 
-  // Fetch total unread email count
+  // Fetch total unread email count - staleTime added to reduce refetches
   const { data: unreadEmailData } = useQuery({
     queryKey: ['/api/email/unread-count'],
     enabled: !!user,
     refetchInterval: 600000, // Refresh every 10 minutes (cost reduction)
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
   });
 
   // Parse current location to determine navigation context
@@ -127,11 +128,12 @@ export default function EnhancedHeader() {
     return breadcrumbs;
   };
 
-  // Fetch all users for account switching (admin only)
+  // Fetch all users for account switching (admin only) - with staleTime to reduce refetches
   const { data: allUsers = [] } = useQuery({
     queryKey: ['/api/admin/users'],
     enabled: isOriginalAdmin(user),
     select: (data: any[]) => data || [],
+    staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
   });
 
   // Set default user ID to Bryan Runion when users are loaded
@@ -151,10 +153,11 @@ export default function EnhancedHeader() {
 
 
 
-  // Fetch current switch status
+  // Fetch current switch status - with staleTime to reduce refetches
   const { data: switchStatus } = useQuery<SwitchStatus>({
     queryKey: ['/api/admin/switch-status'],
     enabled: isOriginalAdmin(user),
+    staleTime: 10 * 60 * 1000, // Consider data fresh for 10 minutes
   });
 
   // Switch account mutation
