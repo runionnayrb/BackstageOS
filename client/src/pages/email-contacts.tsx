@@ -152,9 +152,22 @@ export default function EmailContacts() {
                       onMouseLeave={() => setHoveredContactId(null)}
                     >
                       <div className="flex items-center">
-                        <span className="font-medium text-gray-900 w-48">
+                        <span className="font-medium text-gray-900 w-64">
                           {formatContactName(contact)}
                         </span>
+                        <button
+                          onClick={() => {
+                            const email = getContactEmail(contact);
+                            window.location.href = `mailto:${email}`;
+                          }}
+                          className={`p-1 rounded transition-all mr-2 ${
+                            hoveredContactId === contact.id
+                              ? 'opacity-100 hover:bg-gray-200'
+                              : 'opacity-0'
+                          }`}
+                        >
+                          <Mail className="w-4 h-4 text-gray-700" />
+                        </button>
                         <span className="text-gray-600">
                           {getContactEmail(contact)}
                         </span>
@@ -165,19 +178,6 @@ export default function EmailContacts() {
                             {project.name}
                           </Badge>
                         )}
-                        <button
-                          onClick={() => {
-                            const email = getContactEmail(contact);
-                            window.location.href = `mailto:${email}`;
-                          }}
-                          className={`p-1.5 rounded transition-all ${
-                            hoveredContactId === contact.id
-                              ? 'opacity-100 hover:bg-gray-200'
-                              : 'opacity-0'
-                          }`}
-                        >
-                          <Mail className="w-4 h-4 text-gray-700" />
-                        </button>
                       </div>
                     </div>
                   );
