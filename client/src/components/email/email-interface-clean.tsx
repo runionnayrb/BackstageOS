@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Search, Star, Archive, Reply, ReplyAll, Forward, Trash2, Check, X, Mail, MailOpen, FolderOpen, User, Folder, Send, File } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 import { EmailAccountConfig } from './email-account-config';
 import { GmailEmailComposer } from './gmail-email-composer';
 import { EmailMessage } from '@shared/schema';
@@ -94,6 +95,7 @@ function ContactPreview({ emailAddress, children }: ContactPreviewProps) {
 }
 
 export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange, activeFolder = "inbox", showTheaterFeatures, onShowTheaterFeaturesChange, composeToEmail, selectedMessages: propSelectedMessages, onSelectedMessagesChange, onFilteredMessagesChange, onReply }: EmailInterfaceProps) {
+  const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [modalEmail, setModalEmail] = useState<EmailMessage | null>(null);
@@ -333,12 +335,58 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       }
       const result = await response.json();
       console.log('✅ Bulk action completed:', result);
-      return result;
+      return { result, action, messageIds, targetFolder };
     },
-    onSuccess: () => {
+    onSuccess: ({ result, action, messageIds, targetFolder }) => {
       // Clear selection and exit selection mode
       setSelectedMessages(new Set());
       setIsSelectionMode(false);
+      
+      // Show specific success message based on action
+      const count = messageIds.length;
+      const messageText = count === 1 ? 'message' : 'messages';
+      
+      switch (action) {
+        case 'delete':
+          toast({
+            title: "Messages deleted",
+            description: `${count} ${messageText} moved to trash`,
+          });
+          break;
+        case 'archive':
+          toast({
+            title: "Messages archived",
+            description: `${count} ${messageText} moved to archive`,
+          });
+          break;
+        case 'markRead':
+          toast({
+            title: "Messages marked as read",
+            description: `${count} ${messageText} marked as read`,
+          });
+          break;
+        case 'markUnread':
+          toast({
+            title: "Messages marked as unread",
+            description: `${count} ${messageText} marked as unread`,
+          });
+          break;
+        case 'move':
+          const folderName = targetFolder === 'inbox' ? 'Inbox' : 
+                            targetFolder === 'drafts' ? 'Drafts' :
+                            targetFolder === 'archive' ? 'Archive' :
+                            targetFolder === 'trash' ? 'Trash' : targetFolder;
+          toast({
+            title: "Messages moved",
+            description: `${count} ${messageText} moved to ${folderName}`,
+          });
+          break;
+        default:
+          toast({
+            title: "Action completed",
+            description: `Bulk action completed for ${count} ${messageText}`,
+          });
+      }
       
       // Invalidate and refetch ALL email queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['/api/email/accounts', selectedAccount.id] });
