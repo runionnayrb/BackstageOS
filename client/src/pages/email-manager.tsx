@@ -760,7 +760,7 @@ export default function EmailManager() {
                         className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                       />
                     </div>
-                    <span className="text-sm md:text-base font-medium text-gray-900 ml-2">
+                    <span className="text-sm font-medium text-gray-600 ml-2">
                       {selectedMessages.size} of {filteredMessages?.length || 0} selected
                     </span>
                     
