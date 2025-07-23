@@ -622,6 +622,8 @@ export default function EmailManager() {
             activeFolder={activeFolder}
             onFolderChange={setActiveFolder}
             onSettings={() => setShowMobileSettings(true)}
+            onDistroManagement={() => setShowGroupManager(true)}
+            onTemplateSettings={() => setShowTemplateManager(true)}
             sharedInboxes={[]}
             hasPersonalAccount={hasPersonalAccount}
             isAdmin={user?.isAdmin || false}

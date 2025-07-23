@@ -15,7 +15,8 @@ import {
   ArrowRight,
   Edit,
   Users,
-  ChevronDown
+  ChevronDown,
+  FileText
 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,8 @@ interface EmailSidebarProps {
   activeFolder: string;
   onFolderChange: (folder: string) => void;
   onSettings?: () => void;
+  onDistroManagement?: () => void;
+  onTemplateSettings?: () => void;
 }
 
 export function EmailSidebar({
@@ -72,7 +75,9 @@ export function EmailSidebar({
   onCreateSharedInbox = () => {},
   activeFolder,
   onFolderChange,
-  onSettings
+  onSettings,
+  onDistroManagement = () => {},
+  onTemplateSettings = () => {}
 }: EmailSidebarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -312,25 +317,66 @@ export function EmailSidebar({
           })}
         </div>
 
-        {/* Settings Button */}
+        {/* Theater Tools Section */}
         <div className={cn("mt-6 pt-4 border-t border-gray-100", isCollapsed ? "px-2" : "px-4")}>
-          <button 
-            onClick={onSettings}
-            className={cn(
-              "w-full flex items-center rounded-md hover:bg-gray-50 transition-colors text-gray-700",
-              isCollapsed ? "justify-center p-3" : "px-3 py-2 text-sm"
-            )}
-            title={isCollapsed ? "Settings" : undefined}
-          >
-            {isCollapsed ? (
-              <Settings className="h-5 w-5" />
-            ) : (
-              <div className="flex items-center space-x-2">
+          <div className="space-y-1">
+            {/* Distro Management */}
+            <button 
+              onClick={onDistroManagement}
+              className={cn(
+                "w-full flex items-center rounded-md hover:bg-gray-50 transition-colors text-gray-700",
+                isCollapsed ? "justify-center p-3" : "px-3 py-2 text-sm"
+              )}
+              title={isCollapsed ? "Distro Management" : undefined}
+            >
+              {isCollapsed ? (
+                <Users className="h-5 w-5" />
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Users className="h-5 w-5" />
+                  <span>Distro Management</span>
+                </div>
+              )}
+            </button>
+
+            {/* Email Templates */}
+            <button 
+              onClick={onTemplateSettings}
+              className={cn(
+                "w-full flex items-center rounded-md hover:bg-gray-50 transition-colors text-gray-700",
+                isCollapsed ? "justify-center p-3" : "px-3 py-2 text-sm"
+              )}
+              title={isCollapsed ? "Email Templates" : undefined}
+            >
+              {isCollapsed ? (
+                <FileText className="h-5 w-5" />
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <FileText className="h-5 w-5" />
+                  <span>Email Templates</span>
+                </div>
+              )}
+            </button>
+
+            {/* Settings */}
+            <button 
+              onClick={onSettings}
+              className={cn(
+                "w-full flex items-center rounded-md hover:bg-gray-50 transition-colors text-gray-700",
+                isCollapsed ? "justify-center p-3" : "px-3 py-2 text-sm"
+              )}
+              title={isCollapsed ? "Settings" : undefined}
+            >
+              {isCollapsed ? (
                 <Settings className="h-5 w-5" />
-                <span>Settings</span>
-              </div>
-            )}
-          </button>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  <Settings className="h-5 w-5" />
+                  <span>Settings</span>
+                </div>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
