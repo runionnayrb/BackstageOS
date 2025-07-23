@@ -795,7 +795,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                             : 'translateX(0)',
                     }}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       {/* Hover Checkbox - Desktop only */}
                       <div className="hidden md:block w-6 h-6 flex-shrink-0">
                         {isSelectionMode ? (
