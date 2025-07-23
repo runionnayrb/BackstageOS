@@ -65,6 +65,12 @@ const validatePhoneNumber = (phone: string): string | null => {
 };
 
 export function ContactForm({ projectId, category, contact, onClose, onSuccess }: ContactFormProps) {
+  console.log('ContactForm Debug:', {
+    contact,
+    hasContact: !!contact,
+    contactId: contact?.id,
+    isEditing: !!contact?.id
+  });
   const [formData, setFormData] = useState({
     firstName: contact?.firstName || "",
     lastName: contact?.lastName || "",
@@ -452,19 +458,28 @@ export function ContactForm({ projectId, category, contact, onClose, onSuccess }
           </CardContent>
         </Card>
 
-        <div className="flex justify-between pt-4">
+        {/* Form Actions */}
+        <div className="flex justify-between items-center pt-6 border-t">
+          {/* Delete button on the left - only show when editing existing contact */}
           <div>
-            {contact && (
+            {contact && contact.id ? (
               <Button
                 type="button"
                 variant="destructive"
                 onClick={handleDelete}
                 disabled={deleteMutation.isPending}
+                className="bg-red-600 hover:bg-red-700 text-white"
               >
                 {deleteMutation.isPending ? "Deleting..." : "Delete Contact"}
               </Button>
+            ) : (
+              <div className="text-sm text-gray-500">
+                {/* Empty div to maintain layout */}
+              </div>
             )}
           </div>
+          
+          {/* Save/Cancel buttons on the right */}
           <div className="flex gap-2">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
