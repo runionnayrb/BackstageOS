@@ -5210,7 +5210,7 @@ Best regards,
       const userId = req.user.id.toString();
       
       // Get all projects owned by the user
-      const projects = await storage.getProjectsByOwnerId(userId);
+      const projects = await storage.getProjectsByUserId(userId);
       const projectIds = projects.map(p => p.id);
       
       // Get all contacts from all user projects
