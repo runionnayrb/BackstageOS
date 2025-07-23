@@ -1166,46 +1166,46 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 variant="ghost"
                 size="sm"
                 onClick={handleReply}
-                className="h-8 w-8 p-0"
+                className="h-6 w-6 p-0 hover:bg-transparent group/icon"
                 title="Reply"
               >
-                <Reply className="h-4 w-4" />
+                <Reply className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleReplyAll}
-                className="h-8 w-8 p-0"
+                className="h-6 w-6 p-0 hover:bg-transparent group/icon"
                 title="Reply All"
               >
-                <ReplyAll className="h-4 w-4" />
+                <ReplyAll className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleForward}
-                className="h-8 w-8 p-0"
+                className="h-6 w-6 p-0 hover:bg-transparent group/icon"
                 title="Forward"
               >
-                <Forward className="h-4 w-4" />
+                <Forward className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleArchive}
-                className="h-8 w-8 p-0"
+                className="h-6 w-6 p-0 hover:bg-transparent group/icon"
                 title="Archive"
               >
-                <Archive className="h-4 w-4" />
+                <Archive className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleDelete}
-                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                className="h-6 w-6 p-0 hover:bg-transparent group/icon"
                 title="Delete"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-3 w-3 text-gray-500 group-hover/icon:text-blue-600 transition-colors" />
               </Button>
             </div>
           </div>
