@@ -34,6 +34,7 @@ interface EmailInterfaceProps {
   onSelectedMessagesChange?: (messages: Set<number>) => void;
   onFilteredMessagesChange?: (messages: any[]) => void;
   onReply?: (message: any, mode?: 'reply' | 'replyAll' | 'forward') => void;
+  isSidebarCollapsed?: boolean;
 }
 
 // Utility function to extract display name from email address
@@ -94,7 +95,7 @@ function ContactPreview({ emailAddress, children }: ContactPreviewProps) {
   );
 }
 
-export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange, activeFolder = "inbox", showTheaterFeatures, onShowTheaterFeaturesChange, composeToEmail, selectedMessages: propSelectedMessages, onSelectedMessagesChange, onFilteredMessagesChange, onReply }: EmailInterfaceProps) {
+export function EmailInterface({ selectedAccount, onBack, showCompose, onShowComposeChange, activeFolder = "inbox", showTheaterFeatures, onShowTheaterFeaturesChange, composeToEmail, selectedMessages: propSelectedMessages, onSelectedMessagesChange, onFilteredMessagesChange, onReply, isSidebarCollapsed = false }: EmailInterfaceProps) {
   const { toast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [showEmailModal, setShowEmailModal] = useState(false);
@@ -1141,9 +1142,9 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         </div>
       </div>
 
-      {/* Email Modal - Full viewport height, positioned to reach bottom of main app header */}
+      {/* Email Modal - Full viewport height, positioned after sidebar */}
       {showEmailModal && modalEmail && (
-        <div className={`fixed top-16 left-0 right-0 bottom-0 z-50 bg-white flex flex-col transition-transform duration-300 ease-out ${
+        <div className={`fixed top-16 left-0 ${isSidebarCollapsed ? 'md:left-16' : 'md:left-64'} right-0 bottom-0 z-50 bg-white flex flex-col transition-transform duration-300 ease-out ${
           emailModalClosing 
             ? 'animate-out slide-out-to-bottom-full' 
             : 'animate-in slide-in-from-bottom-full'

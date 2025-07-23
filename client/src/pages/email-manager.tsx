@@ -1065,6 +1065,7 @@ export default function EmailManager() {
                 onSelectedMessagesChange={setSelectedMessages}
                 onFilteredMessagesChange={setFilteredMessages}
                 onReply={handleReply}
+                isSidebarCollapsed={isSidebarCollapsed}
               />
               
               {/* Compose Window - Fixed to stick to bottom properly */}
