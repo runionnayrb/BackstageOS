@@ -80,10 +80,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest(`/api/projects/${contact.projectId}/contacts/${contact.id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      });
+      return apiRequest('PUT', `/api/projects/${contact.projectId}/contacts/${contact.id}`, data);
     },
     onSuccess: (updatedContact) => {
       // Update the contact in the parent component
@@ -107,9 +104,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
   // Delete contact mutation
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/projects/${contact.projectId}/contacts/${contact.id}`, {
-        method: 'DELETE',
-      });
+      return apiRequest('DELETE', `/api/projects/${contact.projectId}/contacts/${contact.id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${contact.projectId}/contacts`] });
@@ -159,10 +154,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
       const formData = new FormData();
       formData.append('photo', file);
       
-      return apiRequest(`/api/projects/${contact.projectId}/contacts/${contact.id}/photo`, {
-        method: 'POST',
-        body: formData,
-      });
+      return apiRequest('POST', `/api/projects/${contact.projectId}/contacts/${contact.id}/photo`, formData);
     },
     onSuccess: (data) => {
       // Update the contact object
@@ -187,9 +179,7 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
   // Photo delete mutation
   const deletePhotoMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/projects/${contact.projectId}/contacts/${contact.id}/photo`, {
-        method: 'DELETE',
-      });
+      return apiRequest('DELETE', `/api/projects/${contact.projectId}/contacts/${contact.id}/photo`);
     },
     onSuccess: () => {
       // Update the contact object
