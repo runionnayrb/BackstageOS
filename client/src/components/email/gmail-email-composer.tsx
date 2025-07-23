@@ -60,6 +60,12 @@ export function GmailEmailComposer({
     enabled: isOpen && !!fromAccountId,
   });
 
+  // Fetch contacts for the contact selector
+  const { data: contacts = [] } = useQuery({
+    queryKey: ['/api/contacts'],
+    enabled: isOpen,
+  });
+
   // Find the specific account from the accounts list
   const emailAccount = emailAccounts?.find((account: any) => account.id === fromAccountId);
 
@@ -552,8 +558,9 @@ export function GmailEmailComposer({
             <span className="text-gray-500 text-base">To:  </span>
             <div className="flex-1">
               <EmailContactSelector
+                contacts={contacts}
                 selectedEmails={toAddresses}
-                onEmailsChange={setToAddresses}
+                onChange={setToAddresses}
                 placeholder=""
               />
             </div>
@@ -585,8 +592,9 @@ export function GmailEmailComposer({
               <span className="text-gray-500 text-base">Cc:    </span>
               <div className="flex-1">
                 <EmailContactSelector
+                  contacts={contacts}
                   selectedEmails={ccAddresses}
-                  onEmailsChange={setCcAddresses}
+                  onChange={setCcAddresses}
                   placeholder=""
                 />
               </div>
@@ -608,8 +616,9 @@ export function GmailEmailComposer({
               <span className="text-gray-500 text-base">Bcc:   </span>
               <div className="flex-1">
                 <EmailContactSelector
+                  contacts={contacts}
                   selectedEmails={bccAddresses}
-                  onEmailsChange={setBccAddresses}
+                  onChange={setBccAddresses}
                   placeholder=""
                 />
               </div>
