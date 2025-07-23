@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, Mail, ArrowLeft } from "lucide-react";
 import { useLocation } from "wouter";
+import { useState } from "react";
 
 interface Contact {
   id: number;
@@ -14,8 +15,14 @@ interface Contact {
   projectId?: number;
 }
 
+interface Project {
+  id: number;
+  name: string;
+}
+
 export default function EmailContacts() {
   const [, setLocation] = useLocation();
+  const [hoveredContactId, setHoveredContactId] = useState<number | null>(null);
 
   // Fetch global contacts for email system with caching
   const { data: contacts = [], isLoading, error } = useQuery<Contact[]>({
@@ -23,6 +30,12 @@ export default function EmailContacts() {
     enabled: true,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+  });
+
+  // Fetch all projects to get show names
+  const { data: projects = [] } = useQuery<Project[]>({
+    queryKey: ['/api/projects'],
+    enabled: true,
   });
 
   // Debug logging
@@ -128,48 +141,46 @@ export default function EmailContacts() {
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {contacts.map((contact) => (
-                  <div
-                    key={contact.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-semibold">
-                          {contact.firstName.charAt(0)}{contact.lastName.charAt(0)}
+              <div className="space-y-1">
+                {contacts.map((contact) => {
+                  const project = projects.find(p => p.id === contact.projectId);
+                  return (
+                    <div
+                      key={contact.id}
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                      onMouseEnter={() => setHoveredContactId(contact.id)}
+                      onMouseLeave={() => setHoveredContactId(null)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-900">
+                          {formatContactName(contact)}
+                        </span>
+                        <span className="text-gray-500">•</span>
+                        <span className="text-gray-600">
+                          {getContactEmail(contact)}
                         </span>
                       </div>
-                      <div>
-                        <p className="font-medium text-gray-900">
-                          {formatContactName(contact)}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          {getContactEmail(contact)}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        {project && (
+                          <Badge variant="secondary" className="text-xs">
+                            {project.name}
+                          </Badge>
+                        )}
+                        {hoveredContactId === contact.id && (
+                          <button
+                            onClick={() => {
+                              const email = getContactEmail(contact);
+                              window.location.href = `mailto:${email}`;
+                            }}
+                            className="p-1.5 hover:bg-gray-200 rounded transition-colors"
+                          >
+                            <Mail className="w-4 h-4 text-gray-700" />
+                          </button>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      {contact.role && (
-                        <Badge variant="secondary" className="text-xs">
-                          {contact.role}
-                        </Badge>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const email = getContactEmail(contact);
-                          window.location.href = `mailto:${email}`;
-                        }}
-                        className="flex items-center gap-1"
-                      >
-                        <Mail className="w-3 h-3" />
-                        Email
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
