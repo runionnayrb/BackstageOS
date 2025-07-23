@@ -39,6 +39,7 @@ interface GmailEmailComposerProps {
   };
   composeMode?: 'compose' | 'reply' | 'replyAll' | 'forward';
   initialRecipient?: string;
+  projectId?: number;
 }
 
 export function GmailEmailComposer({ 
@@ -49,7 +50,8 @@ export function GmailEmailComposer({
   replyToMessage,
   forwardMessage,
   composeMode = 'compose',
-  initialRecipient
+  initialRecipient,
+  projectId
 }: GmailEmailComposerProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -60,10 +62,20 @@ export function GmailEmailComposer({
     enabled: isOpen && !!fromAccountId,
   });
 
-  // Fetch contacts for the contact selector
-  const { data: contacts = [] } = useQuery({
-    queryKey: ['/api/contacts'],
+  // Fetch contacts for the contact selector - use project-specific contacts when projectId is available
+  const { data: contacts = [], isLoading: isLoadingContacts, error: contactsError } = useQuery<Contact[]>({
+    queryKey: projectId ? ['/api/projects', projectId, 'contacts'] : ['/api/contacts'],
     enabled: isOpen,
+  });
+
+  console.log('🔍 Contacts Query Debug:', { 
+    isOpen,
+    projectId,
+    queryKey: projectId ? ['/api/projects', projectId, 'contacts'] : ['/api/contacts'],
+    isLoadingContacts,
+    contactsError,
+    contactsLength: contacts.length,
+    contacts: contacts.slice(0, 2)
   });
 
   // Find the specific account from the accounts list

@@ -205,6 +205,7 @@ export default function MobileBottomNav() {
           fromAccountId={primaryEmailAccount.id}
           fromEmail={primaryEmailAccount.emailAddress}
           composeMode="compose"
+          projectId={currentShowId ? parseInt(currentShowId) : undefined}
         />
       )}
       
