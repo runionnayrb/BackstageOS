@@ -648,18 +648,18 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     size="sm"
                     onClick={() => handleBulkAction('archive')}
                     disabled={bulkActionMutation.isPending || selectedMessages.size === 0}
-                    className="h-9 w-9 p-0"
+                    className="h-9 w-9 p-0 hover:bg-transparent"
                   >
-                    <Archive className="h-5 w-5 text-blue-600" />
+                    <Archive className="h-5 w-5 text-gray-600 hover:text-blue-600 transition-colors" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleBulkAction('delete')}
                     disabled={bulkActionMutation.isPending || selectedMessages.size === 0}
-                    className="h-9 w-9 p-0"
+                    className="h-9 w-9 p-0 hover:bg-transparent"
                   >
-                    <Trash2 className="h-5 w-5 text-blue-600" />
+                    <Trash2 className="h-5 w-5 text-gray-600 hover:text-blue-600 transition-colors" />
                   </Button>
                 </div>
               </div>
