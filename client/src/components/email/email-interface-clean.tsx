@@ -1211,7 +1211,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md z-[70]" style={{ zIndex: '70' }}>
           <DialogHeader>
             <DialogTitle>Delete Messages</DialogTitle>
             <DialogDescription>
