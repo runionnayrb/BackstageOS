@@ -604,7 +604,7 @@ export function InlineEmailComposer({
 
       {/* Exit confirmation dialog */}
       <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="z-[70]" style={{ zIndex: '70' }}>
           <AlertDialogHeader>
             <AlertDialogTitle>Save Draft?</AlertDialogTitle>
             <AlertDialogDescription>

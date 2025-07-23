@@ -31,6 +31,15 @@
   -webkit-line-clamp: 3;
 }
 
+/* Email composer dialog z-index override */
+[data-radix-dialog-overlay] {
+  z-index: 65 !important;
+}
+
+[data-radix-dialog-content] {
+  z-index: 70 !important;
+}
+
 /* React Grid Layout and Resizable Styles */
 .react-grid-item {
   transition: all 200ms ease;
