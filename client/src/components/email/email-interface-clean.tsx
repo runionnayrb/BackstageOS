@@ -539,7 +539,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         {/* Desktop-Only Search Header */}
         <div className="hidden md:block absolute top-0 left-0 right-0 h-12 md:h-16 bg-white border-b border-gray-200 px-2 md:px-4 z-50">
           <div className="flex items-center gap-2 md:gap-6 h-full">
-            {isSelectionMode ? (
+            {isSelectionMode && selectedMessages.size > 0 ? (
               <div className="flex items-center gap-3">
                 <Checkbox
                   checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
@@ -752,27 +752,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   Error loading messages
                 </div>
               )}
-              {/* Select All Checkbox Row - positioned exactly over individual checkboxes */}
-              {!isSelectionMode && filteredMessages.length > 0 && (
-                <div className="hidden md:block sticky top-0 bg-white border-b border-gray-200 px-3 md:px-4 py-2 z-10">
-                  <div className="flex items-center gap-3">
-                    {/* Select all checkbox - positioned exactly where individual email checkboxes appear */}
-                    <div className="w-6 h-6 flex-shrink-0 opacity-0 hover:opacity-100 transition-opacity">
-                      <Checkbox
-                        checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
-                        onCheckedChange={toggleSelectAll}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!isSelectionMode) {
-                            setIsSelectionMode(true);
-                          }
-                        }}
-                        className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
+
               
               {filteredMessages.map((message: EmailMessage) => {
                 const isCurrentSwipe = swipeState.messageId === message.id;
