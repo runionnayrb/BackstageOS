@@ -399,6 +399,11 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       newSelection.add(messageId);
     }
     setSelectedMessages(newSelection);
+    
+    // Exit selection mode if no messages are selected
+    if (newSelection.size === 0) {
+      setIsSelectionMode(false);
+    }
   };
 
   const handleBulkAction = (action: string, targetFolder?: string) => {
