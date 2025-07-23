@@ -568,50 +568,36 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 size="sm"
                 onClick={() => handleBulkAction('mark-read')}
                 disabled={bulkActionMutation.isPending}
-                className="h-8 px-3 text-sm"
+                className="h-8 w-8 p-0"
               >
-                <MailOpen className="h-4 w-4 mr-1" />
-                Mark Read
+                <MailOpen className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleBulkAction('mark-unread')}
                 disabled={bulkActionMutation.isPending}
-                className="h-8 px-3 text-sm"
+                className="h-8 w-8 p-0"
               >
-                <Mail className="h-4 w-4 mr-1" />
-                Mark Unread
+                <Mail className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleBulkAction('archive')}
                 disabled={bulkActionMutation.isPending}
-                className="h-8 px-3 text-sm"
+                className="h-8 w-8 p-0"
               >
-                <Archive className="h-4 w-4 mr-1" />
-                Archive
+                <Archive className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleBulkAction('delete')}
                 disabled={bulkActionMutation.isPending}
-                className="h-8 px-3 text-sm text-red-600 hover:text-red-700"
+                className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
               >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Delete
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleBulkAction('move', 'trash')}
-                disabled={bulkActionMutation.isPending}
-                className="h-8 px-3 text-sm"
-              >
-                <FolderOpen className="h-4 w-4 mr-1" />
-                Move to Trash
+                <Trash2 className="h-4 w-4" />
               </Button>
             </div>
           </div>
