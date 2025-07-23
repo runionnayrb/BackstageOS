@@ -171,7 +171,7 @@ export function InlineEmailComposer({
   useEffect(() => {
     if (isOpen) {
       const recipients = getReplyRecipients();
-      setToAddresses(recipients.to || (composeMode === 'compose' && initialRecipient ? initialRecipient : ''));
+      setToAddresses(recipients.to || (composeMode === 'compose' && initialRecipient ? [initialRecipient] : []));
       setCcAddresses(recipients.cc);
       setBccAddresses(recipients.bcc);
       setShowCc(recipients.showCc);
