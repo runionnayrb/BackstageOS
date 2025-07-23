@@ -462,27 +462,40 @@ export function InlineEmailComposer({
             <span className="text-gray-500 text-sm w-12 flex-shrink-0">From:</span>
             <div className="flex-1">
               {emailAccounts && (emailAccounts as any[]).length > 1 ? (
-                <Select 
-                  value={selectedAccountId.toString()} 
-                  onValueChange={(value) => setSelectedAccountId(parseInt(value))}
-                >
-                  <SelectTrigger className="w-full border-none shadow-none p-0 h-auto text-sm text-gray-600 hover:text-gray-900">
-                    <div className="flex flex-col items-start text-left">
-                      <div className="font-medium">{selectedAccount?.displayName}</div>
-                      <div className="text-xs text-gray-500">{selectedAccount?.emailAddress}</div>
+                <div className="relative">
+                  <div 
+                    className="w-full cursor-pointer text-sm text-gray-600 hover:text-gray-900"
+                    onClick={() => setShowAccountDropdown(!showAccountDropdown)}
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex flex-col items-start text-left">
+                        <div className="font-medium">{selectedAccount?.displayName}</div>
+                        <div className="text-xs text-gray-500">{selectedAccount?.emailAddress}</div>
+                      </div>
+                      <ChevronDown className={`h-4 w-4 text-gray-400 flex-shrink-0 ml-2 transition-transform ${showAccountDropdown ? 'rotate-180' : ''}`} />
                     </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(emailAccounts as any[]).map((account: any) => (
-                      <SelectItem key={account.id} value={account.id.toString()}>
-                        <div className="flex flex-col items-start">
-                          <div className="font-medium">{account.displayName}</div>
-                          <div className="text-xs text-gray-500">{account.emailAddress}</div>
+                  </div>
+                  
+                  {showAccountDropdown && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-[60] max-h-60 overflow-auto">
+                      {(emailAccounts as any[]).map((account: any) => (
+                        <div
+                          key={account.id}
+                          className="px-3 py-2 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                          onClick={() => {
+                            setSelectedAccountId(account.id);
+                            setShowAccountDropdown(false);
+                          }}
+                        >
+                          <div className="flex flex-col items-start">
+                            <div className="font-medium text-sm">{account.displayName}</div>
+                            <div className="text-xs text-gray-500">{account.emailAddress}</div>
+                          </div>
                         </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ) : (
                 <span className="text-sm text-gray-600">
                   {selectedAccount?.displayName} ({selectedAccount?.emailAddress})
