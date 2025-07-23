@@ -760,6 +760,27 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                   Error loading messages
                 </div>
               )}
+              {/* Select All Checkbox - Desktop only */}
+              {!isSelectionMode && filteredMessages.length > 0 && (
+                <div className="hidden md:block sticky top-0 bg-white border-b border-gray-200 px-4 py-2 z-10">
+                  <div className="flex items-center">
+                    <div className="w-6 h-6 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                      <Checkbox
+                        checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
+                        onCheckedChange={toggleSelectAll}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!isSelectionMode) {
+                            setIsSelectionMode(true);
+                          }
+                        }}
+                        className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {filteredMessages.map((message: EmailMessage) => {
                 const isCurrentSwipe = swipeState.messageId === message.id;
                 const swipeDistance = isCurrentSwipe ? swipeState.currentX - swipeState.startX : 0;
@@ -771,6 +792,16 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 const isRevealed = revealedActions.messageId === message.id;
                 const hasDropdownOpen = moveDropdownOpen === message.id;
                 const revealedType = isRevealed ? revealedActions.type : null;
+                
+                // Format date in "Jul 23" format
+                const formatDate = (dateString: string | null) => {
+                  if (!dateString) return '';
+                  const date = new Date(dateString);
+                  return date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric' 
+                  });
+                };
                 
                 return (
                 <div
@@ -838,7 +869,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                     onTouchStart={(e) => handleTouchStart(e, message.id)}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
-                    className={`w-full block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group px-3 md:px-4 py-2 md:py-3 border-b border-gray-100 transition-transform duration-75 ease-out ${
+                    className={`w-full block text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none group px-3 md:px-4 py-3 border-b border-gray-100 transition-transform duration-75 ease-out ${
                       isSelectionMode && selectedMessages.has(message.id) ? 'bg-blue-50' : ''
                     }`}
                     style={{
@@ -851,53 +882,82 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                             : 'translateX(0)',
                     }}
                   >
-                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-1 md:gap-0">
-                    {/* Left side - Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start gap-2 mb-1">
-                        {isSelectionMode && (
-                          <div className="mt-1">
+                    <div className="flex items-center gap-3">
+                      {/* Hover Checkbox - Desktop only */}
+                      <div className="hidden md:block w-6 h-6 flex-shrink-0">
+                        {isSelectionMode ? (
+                          <Checkbox
+                            checked={selectedMessages.has(message.id)}
+                            onCheckedChange={() => toggleSelectMessage(message.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                          />
+                        ) : (
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                             <Checkbox
-                              checked={selectedMessages.has(message.id)}
-                              onCheckedChange={() => toggleSelectMessage(message.id)}
+                              checked={false}
+                              onCheckedChange={() => {
+                                setIsSelectionMode(true);
+                                toggleSelectMessage(message.id);
+                              }}
                               onClick={(e) => e.stopPropagation()}
+                              className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                             />
                           </div>
                         )}
-                        {!message.isRead && !isSelectionMode && (
-                          <div className="w-2 h-2 bg-blue-600 rounded-full mt-1"></div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span className={`font-medium text-sm md:text-base truncate ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
-                              {message.subject || 'No Subject'}
+                      </div>
+
+                      {/* Mobile selection checkbox */}
+                      {isSelectionMode && (
+                        <div className="md:hidden">
+                          <Checkbox
+                            checked={selectedMessages.has(message.id)}
+                            onCheckedChange={() => toggleSelectMessage(message.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                          />
+                        </div>
+                      )}
+
+                      {/* Unread indicator */}
+                      {!message.isRead && !isSelectionMode && (
+                        <div className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0"></div>
+                      )}
+
+                      {/* Sender name - fixed width */}
+                      <div className="w-32 md:w-40 flex-shrink-0">
+                        <span className={`text-sm font-medium truncate block ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
+                          <ContactPreview emailAddress={message.fromAddress || ''}>
+                            <span className="hover:text-blue-600 transition-colors cursor-pointer">
+                              {getDisplayName(message.fromAddress || '')}
                             </span>
-                            {message.hasAttachments && (
-                              <span className="text-xs text-gray-500">📎</span>
-                            )}
-                            {message.isImportant && (
-                              <span className="text-xs text-yellow-500">⭐</span>
-                            )}
-                          </div>
-                          
-                          <div className="flex flex-col gap-0.5 text-xs md:text-sm text-gray-500">
-                            <span className="truncate font-medium">
-                              <ContactPreview emailAddress={message.fromAddress || ''}>
-                                <span className="hover:text-blue-600 transition-colors cursor-pointer">
-                                  {getDisplayName(message.fromAddress || '')}
-                                </span>
-                              </ContactPreview>
-                            </span>
-                            <span className="truncate text-xs opacity-75 md:hidden">{message.content?.slice(0, 50) || 'No preview'}</span>
-                            <span className="truncate text-sm opacity-75 hidden md:block">{message.content?.slice(0, 80) || 'No content preview'}</span>
-                          </div>
+                          </ContactPreview>
+                        </span>
+                      </div>
+
+                      {/* Subject - flexible width */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm truncate ${!message.isRead ? 'font-semibold text-black' : 'text-gray-700'}`}>
+                            {message.subject || 'No Subject'}
+                          </span>
+                          {message.hasAttachments && (
+                            <span className="text-xs text-gray-500 flex-shrink-0">📎</span>
+                          )}
+                          {message.isImportant && (
+                            <span className="text-xs text-yellow-500 flex-shrink-0">⭐</span>
+                          )}
+                        </div>
+                        {/* Mobile preview text */}
+                        <div className="md:hidden mt-1">
+                          <span className="text-xs text-gray-500 truncate block">{message.content?.slice(0, 60) || 'No preview'}</span>
                         </div>
                       </div>
 
-                      {/* Right side - Time - Mobile Optimized */}
-                      <div className="flex items-center justify-end gap-1 flex-shrink-0 md:ml-4 text-right">
-                        <span className="text-xs text-gray-400">
-                          {message.dateSent ? new Date(message.dateSent).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                      {/* Date - right aligned */}
+                      <div className="flex-shrink-0 text-right">
+                        <span className="text-sm text-gray-500">
+                          {formatDate(message.dateSent)}
                         </span>
                         {!isSelectionMode && (
                           <div className="hidden md:flex items-center gap-1">
