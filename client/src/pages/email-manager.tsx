@@ -201,7 +201,7 @@ export default function EmailManager() {
       console.log('✅ Bulk action completed:', result);
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (result, { messageIds, action, targetFolder }) => {
       // Clear selection
       setSelectedMessages(new Set());
       
@@ -215,10 +215,51 @@ export default function EmailManager() {
         queryClient.refetchQueries({ queryKey: ['/api/email/accounts', selectedAccount.id, activeFolder] });
       }
       
-      toast({
-        title: "Success",
-        description: "Bulk action completed successfully",
-      });
+      // Show specific success message based on action
+      const count = messageIds.length;
+      const messageText = count === 1 ? 'message' : 'messages';
+      
+      switch (action) {
+        case 'delete':
+          toast({
+            title: "Messages deleted",
+            description: `${count} ${messageText} moved to trash`,
+          });
+          break;
+        case 'archive':
+          toast({
+            title: "Messages archived",
+            description: `${count} ${messageText} moved to archive`,
+          });
+          break;
+        case 'mark-read':
+          toast({
+            title: "Messages marked as read",
+            description: `${count} ${messageText} marked as read`,
+          });
+          break;
+        case 'mark-unread':
+          toast({
+            title: "Messages marked as unread",
+            description: `${count} ${messageText} marked as unread`,
+          });
+          break;
+        case 'move':
+          const folderName = targetFolder === 'inbox' ? 'Inbox' : 
+                            targetFolder === 'drafts' ? 'Drafts' :
+                            targetFolder === 'archive' ? 'Archive' :
+                            targetFolder === 'trash' ? 'Trash' : targetFolder;
+          toast({
+            title: "Messages moved",
+            description: `${count} ${messageText} moved to ${folderName}`,
+          });
+          break;
+        default:
+          toast({
+            title: "Action completed",
+            description: `Bulk action completed for ${count} ${messageText}`,
+          });
+      }
     },
     onError: (error: any) => {
       console.error('Bulk action failed:', error);

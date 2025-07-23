@@ -335,7 +335,6 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       }
       const result = await response.json();
       console.log('✅ Bulk action completed:', result);
-      console.log('🎯 Mutation returning:', { result, action, messageIds, targetFolder });
       return { result, action, messageIds, targetFolder };
     },
     onSuccess: ({ result, action, messageIds, targetFolder }) => {
@@ -346,8 +345,6 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
       // Show specific success message based on action
       const count = messageIds.length;
       const messageText = count === 1 ? 'message' : 'messages';
-      
-      console.log('🎯 Toast switch - action received:', action, 'type:', typeof action);
       
       switch (action) {
         case 'delete':
