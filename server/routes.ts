@@ -5209,16 +5209,8 @@ Best regards,
     try {
       const userId = req.user.id.toString();
       
-      // Get all projects owned by the user
-      const projects = await storage.getProjectsByUserId(userId);
-      const projectIds = projects.map(p => p.id);
-      
-      // Get all contacts from all user projects
-      let allContacts: any[] = [];
-      for (const projectId of projectIds) {
-        const contacts = await storage.getContactsByProjectId(projectId);
-        allContacts = allContacts.concat(contacts);
-      }
+      // Direct database query for better performance instead of multiple calls
+      const allContacts = await storage.getAllContactsByUserId(userId);
       
       res.json(allContacts);
     } catch (error) {

@@ -361,6 +361,7 @@ export interface IStorage {
 
   // Contacts operations
   getContactsByProjectId(projectId: number): Promise<Contact[]>;
+  getAllContactsByUserId(userId: string): Promise<Contact[]>;
   getContactById(id: number): Promise<Contact | undefined>;
   createContact(contact: InsertContact): Promise<Contact>;
   updateContact(id: number, contact: Partial<InsertContact>): Promise<Contact>;
@@ -1209,6 +1210,17 @@ export class DatabaseStorage implements IStorage {
   async getContactsByProjectId(projectId: number): Promise<Contact[]> {
     const result = await db.select().from(contacts).where(eq(contacts.projectId, projectId));
     return result;
+  }
+
+  async getAllContactsByUserId(userId: string): Promise<Contact[]> {
+    // Single optimized query to get all contacts from user's projects
+    const result = await db.select()
+      .from(contacts)
+      .innerJoin(projects, eq(contacts.projectId, projects.id))
+      .where(eq(projects.ownerId, userId))
+      .orderBy(contacts.firstName, contacts.lastName);
+    
+    return result.map(row => row.contacts);
   }
 
   async getContactById(id: number): Promise<Contact | undefined> {
