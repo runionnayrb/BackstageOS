@@ -545,7 +545,7 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
         {/* Desktop-Only Search Header */}
         <div className="hidden md:block absolute top-0 left-0 right-0 h-12 md:h-16 bg-white border-b border-gray-200 px-2 md:px-4 z-50">
           <div className="flex items-center gap-2 md:gap-6 h-full">
-            {isSelectionMode && selectedMessages.size > 0 ? (
+            {isSelectionMode && selectedMessages.size > 0 && (
               <div className="flex items-center gap-3">
                 <Checkbox
                   checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
@@ -554,17 +554,6 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
                 <span className="text-sm font-medium">
                   {selectedMessages.size} of {filteredMessages.length} selected
                 </span>
-              </div>
-            ) : (
-              <div className="flex items-center justify-end w-full">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsSelectionMode(true)}
-                  className="h-8 px-3 text-sm"
-                >
-                  Select
-                </Button>
               </div>
             )}
           </div>
