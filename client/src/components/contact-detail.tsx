@@ -80,17 +80,10 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
 
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch(`/api/projects/${contact.projectId}/contacts/${contact.id}`, {
+      return apiRequest(`/api/projects/${contact.projectId}/contacts/${contact.id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
       });
-      if (!response.ok) {
-        throw new Error('Failed to update contact');
-      }
-      return response.json();
     },
     onSuccess: (updatedContact) => {
       // Update the contact in the parent component
@@ -166,16 +159,10 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
       const formData = new FormData();
       formData.append('photo', file);
       
-      const response = await fetch(`/api/projects/${contact.projectId}/contacts/${contact.id}/photo`, {
+      return apiRequest(`/api/projects/${contact.projectId}/contacts/${contact.id}/photo`, {
         method: 'POST',
         body: formData,
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to upload photo');
-      }
-      
-      return response.json();
     },
     onSuccess: (data) => {
       // Update the contact object
@@ -200,15 +187,9 @@ export function ContactDetail({ contact, onEdit, onClose }: ContactDetailProps) 
   // Photo delete mutation
   const deletePhotoMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/projects/${contact.projectId}/contacts/${contact.id}/photo`, {
+      return apiRequest(`/api/projects/${contact.projectId}/contacts/${contact.id}/photo`, {
         method: 'DELETE',
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to delete photo');
-      }
-      
-      return response.json();
     },
     onSuccess: () => {
       // Update the contact object
