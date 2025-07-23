@@ -359,13 +359,13 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
             description: `${count} ${messageText} moved to archive`,
           });
           break;
-        case 'markRead':
+        case 'mark-read':
           toast({
             title: "Messages marked as read",
             description: `${count} ${messageText} marked as read`,
           });
           break;
-        case 'markUnread':
+        case 'mark-unread':
           toast({
             title: "Messages marked as unread",
             description: `${count} ${messageText} marked as unread`,
