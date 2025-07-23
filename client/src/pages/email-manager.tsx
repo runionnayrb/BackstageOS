@@ -1129,11 +1129,24 @@ export default function EmailManager() {
       <Dialog open={showCreateGroup} onOpenChange={setShowCreateGroup}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Create New Email Group</DialogTitle>
+            <DialogTitle>Create New Distro</DialogTitle>
             <DialogDescription>
-              Create a new email group for easy messaging to specific team members.
+              Create a new distribution list for easy messaging to specific team members.
             </DialogDescription>
           </DialogHeader>
+          
+          {/* Updated timestamp */}
+          <div className="text-sm text-gray-500 -mt-2">
+            Updated: {new Date().toLocaleDateString('en-US', { 
+              month: 'long', 
+              day: 'numeric', 
+              year: 'numeric' 
+            })} at {new Date().toLocaleTimeString('en-US', { 
+              hour: '2-digit', 
+              minute: '2-digit',
+              hour12: false 
+            }).substring(0, 5)}
+          </div>
           
           <div className="space-y-4">
             <div className="space-y-2">
@@ -1143,16 +1156,6 @@ export default function EmailManager() {
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
                 placeholder="e.g., Cast Only, Crew Team, Creative Team"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="groupDescription">Description</Label>
-              <Input
-                id="groupDescription"
-                value={newGroupDescription}
-                onChange={(e) => setNewGroupDescription(e.target.value)}
-                placeholder="Brief description of this group"
               />
             </div>
 
@@ -1168,40 +1171,120 @@ export default function EmailManager() {
             </div>
 
             <div className="space-y-2">
-              <Label>Group Members</Label>
-              <div className="border border-gray-200 rounded-lg p-4 max-h-60 overflow-y-auto">
+              <Label>Contacts</Label>
+              <div className="border border-gray-200 rounded-lg p-4 max-h-96 overflow-y-auto">
                 {contacts && contacts.length > 0 ? (
-                  <div className="space-y-2">
-                    {contacts.map((contact) => (
-                      <div key={contact.id} className="flex items-center space-x-3">
-                        <input
-                          type="checkbox"
-                          id={`contact-${contact.id}`}
-                          checked={selectedMembers.includes(contact.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedMembers([...selectedMembers, contact.id]);
-                            } else {
-                              setSelectedMembers(selectedMembers.filter(id => id !== contact.id));
-                            }
-                          }}
-                          className="h-4 w-4 text-blue-600 rounded border-gray-300"
-                        />
-                        <label htmlFor={`contact-${contact.id}`} className="flex-1 cursor-pointer">
-                          <div className="flex items-center space-x-2">
-                            <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center">
-                              <span className="text-xs font-medium text-gray-600">
-                                {contact.firstName?.[0]}{contact.lastName?.[0]}
-                              </span>
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium">{contact.firstName} {contact.lastName}</p>
-                              <p className="text-xs text-gray-600">{contact.email}</p>
-                            </div>
+                  <div className="space-y-4">
+                    {/* Group contacts by show */}
+                    {Object.entries(
+                      contacts.reduce((acc, contact) => {
+                        const projectId = contact.projectId || 'email-contacts';
+                        if (!acc[projectId]) {
+                          acc[projectId] = [];
+                        }
+                        acc[projectId].push(contact);
+                        return acc;
+                      }, {} as Record<string, typeof contacts>)
+                    ).map(([projectId, projectContacts]) => {
+                      const projectName = projectId === 'email-contacts' 
+                        ? 'Email Contacts' 
+                        : projects?.find(p => p.id === parseInt(projectId))?.name || 'Unknown Show';
+                      
+                      const isAllProjectSelected = projectContacts.every(contact => 
+                        selectedMembers.includes(contact.id)
+                      );
+
+                      return (
+                        <div key={projectId} className="border-b pb-4 last:border-b-0">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <input
+                              type="checkbox"
+                              checked={isAllProjectSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  // Select all contacts from this project
+                                  const projectContactIds = projectContacts.map(c => c.id);
+                                  setSelectedMembers([...new Set([...selectedMembers, ...projectContactIds])]);
+                                } else {
+                                  // Deselect all contacts from this project
+                                  const projectContactIds = projectContacts.map(c => c.id);
+                                  setSelectedMembers(selectedMembers.filter(id => !projectContactIds.includes(id)));
+                                }
+                              }}
+                              className="h-4 w-4 text-blue-600 rounded border-gray-300"
+                            />
+                            <span className="font-semibold text-sm">{projectName}</span>
+                            <span className="text-xs text-gray-500">({projectContacts.length})</span>
                           </div>
-                        </label>
-                      </div>
-                    ))}
+                          
+                          {/* Group by contact type within each show */}
+                          <div className="ml-6 space-y-3">
+                            {Object.entries(
+                              projectContacts.reduce((acc, contact) => {
+                                const category = contact.category || 'Other';
+                                if (!acc[category]) {
+                                  acc[category] = [];
+                                }
+                                acc[category].push(contact);
+                                return acc;
+                              }, {} as Record<string, typeof projectContacts>)
+                            ).map(([category, categoryContacts]) => {
+                              const isAllCategorySelected = categoryContacts.every(contact => 
+                                selectedMembers.includes(contact.id)
+                              );
+
+                              return (
+                                <div key={category}>
+                                  <div className="flex items-center space-x-2 mb-1">
+                                    <input
+                                      type="checkbox"
+                                      checked={isAllCategorySelected}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          // Select all contacts from this category
+                                          const categoryContactIds = categoryContacts.map(c => c.id);
+                                          setSelectedMembers([...new Set([...selectedMembers, ...categoryContactIds])]);
+                                        } else {
+                                          // Deselect all contacts from this category
+                                          const categoryContactIds = categoryContacts.map(c => c.id);
+                                          setSelectedMembers(selectedMembers.filter(id => !categoryContactIds.includes(id)));
+                                        }
+                                      }}
+                                      className="h-4 w-4 text-blue-600 rounded border-gray-300"
+                                    />
+                                    <span className="text-sm font-medium capitalize">{category.replace(/_/g, ' ')}</span>
+                                    <span className="text-xs text-gray-500">({categoryContacts.length})</span>
+                                  </div>
+                                  
+                                  <div className="ml-6 space-y-1">
+                                    {categoryContacts.map(contact => (
+                                      <label key={contact.id} className="flex items-center space-x-2 py-1 cursor-pointer hover:bg-gray-50 rounded px-2">
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedMembers.includes(contact.id)}
+                                          onChange={(e) => {
+                                            if (e.target.checked) {
+                                              setSelectedMembers([...selectedMembers, contact.id]);
+                                            } else {
+                                              setSelectedMembers(selectedMembers.filter(id => id !== contact.id));
+                                            }
+                                          }}
+                                          className="h-4 w-4 text-blue-600 rounded border-gray-300"
+                                        />
+                                        <span className="text-sm">{contact.firstName} {contact.lastName}</span>
+                                        {contact.email && (
+                                          <span className="text-xs text-gray-500">({contact.email})</span>
+                                        )}
+                                      </label>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-4 text-gray-500">
@@ -1212,26 +1295,39 @@ export default function EmailManager() {
                 )}
               </div>
               {selectedMembers.length > 0 && (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 mt-2">
                   {selectedMembers.length} member{selectedMembers.length === 1 ? '' : 's'} selected
                 </p>
               )}
             </div>
           </div>
 
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowCreateGroup(false)}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleCreateGroup}
-              disabled={createGroupMutation.isPending || !newGroupName.trim()}
-            >
-              {createGroupMutation.isPending ? "Creating..." : "Create Group"}
-            </Button>
+          <DialogFooter className="flex justify-between items-center">
+            <div className="text-sm text-gray-500">
+              Created: {new Date().toLocaleDateString('en-US', { 
+                month: 'long', 
+                day: 'numeric', 
+                year: 'numeric' 
+              })} at {new Date().toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: false 
+              }).substring(0, 5)}
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCreateGroup(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleCreateGroup}
+                disabled={createGroupMutation.isPending || !newGroupName.trim()}
+              >
+                {createGroupMutation.isPending ? "Creating..." : "Create Group"}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
