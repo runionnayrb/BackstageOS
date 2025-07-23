@@ -4,6 +4,7 @@ import { X, Send, ChevronDown, Paperclip, MoreHorizontal, FileText } from 'lucid
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { EmailContactSelector } from './email-contact-selector';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,14 +65,14 @@ export function GmailEmailComposer({
 
   // Helper function to get reply recipients based on mode
   const getReplyRecipients = () => {
-    if (!replyToMessage) return { to: '', cc: '', bcc: '', showCc: false, showBcc: false };
+    if (!replyToMessage) return { to: [], cc: [], bcc: [], showCc: false, showBcc: false };
     
     if (composeMode === 'reply') {
       // For reply: send to original sender only
       return {
-        to: replyToMessage.fromAddress,
-        cc: '',
-        bcc: '',
+        to: [replyToMessage.fromAddress],
+        cc: [],
+        bcc: [],
         showCc: false,
         showBcc: false
       };
@@ -88,23 +89,23 @@ export function GmailEmailComposer({
       const allRecipients = [...filteredTo, ...filteredCc].filter(addr => addr !== replyToMessage.fromAddress);
       
       return {
-        to: replyToMessage.fromAddress,
-        cc: allRecipients.join(', '),
-        bcc: '',
+        to: [replyToMessage.fromAddress],
+        cc: allRecipients,
+        bcc: [],
         showCc: allRecipients.length > 0,
         showBcc: false
       };
     }
     
-    return { to: '', cc: '', bcc: '', showCc: false, showBcc: false };
+    return { to: [], cc: [], bcc: [], showCc: false, showBcc: false };
   };
 
   const replyRecipients = getReplyRecipients();
 
   // Form state - initialize with reply recipients if applicable, or initial recipient for compose mode
-  const [toAddresses, setToAddresses] = useState<string>(replyRecipients.to || (composeMode === 'compose' && initialRecipient ? initialRecipient : ''));
-  const [ccAddresses, setCcAddresses] = useState<string>(replyRecipients.cc);
-  const [bccAddresses, setBccAddresses] = useState<string>(replyRecipients.bcc);
+  const [toAddresses, setToAddresses] = useState<string[]>(replyRecipients.to.length > 0 ? replyRecipients.to : (composeMode === 'compose' && initialRecipient ? [initialRecipient] : []));
+  const [ccAddresses, setCcAddresses] = useState<string[]>(replyRecipients.cc);
+  const [bccAddresses, setBccAddresses] = useState<string[]>(replyRecipients.bcc);
   const [showCc, setShowCc] = useState(replyRecipients.showCc);
   const [showBcc, setShowBcc] = useState(replyRecipients.showBcc);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -264,7 +265,7 @@ export function GmailEmailComposer({
   // Check if there's any content in the email (excluding signature-only content)
   const hasContent = () => {
     // Check basic fields first
-    if (toAddresses.trim() || ccAddresses.trim() || bccAddresses.trim() || subject.trim() || attachments.length > 0) {
+    if (toAddresses.length > 0 || ccAddresses.length > 0 || bccAddresses.length > 0 || subject.trim() || attachments.length > 0) {
       return true;
     }
     
@@ -295,9 +296,9 @@ export function GmailEmailComposer({
     mutationFn: async () => {
       const draftData = {
         fromAccountId,
-        toAddresses: toAddresses.trim() || undefined,
-        ccAddresses: ccAddresses.trim() || undefined,
-        bccAddresses: bccAddresses.trim() || undefined,
+        toAddresses: toAddresses.length > 0 ? toAddresses : undefined,
+        ccAddresses: ccAddresses.length > 0 ? ccAddresses : undefined,
+        bccAddresses: bccAddresses.length > 0 ? bccAddresses : undefined,
         subject: subject.trim() || undefined,
         content: content.trim() || undefined,
         isDraft: true
@@ -326,7 +327,7 @@ export function GmailEmailComposer({
   // Send email mutation
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
-      if (!toAddresses.trim() || !subject.trim()) {
+      if (toAddresses.length === 0 || !subject.trim()) {
         throw new Error('To address and subject are required');
       }
 
@@ -334,9 +335,9 @@ export function GmailEmailComposer({
       if (attachments.length > 0) {
         const formData = new FormData();
         formData.append('fromAccountId', fromAccountId.toString());
-        formData.append('toAddresses', toAddresses.trim());
-        if (ccAddresses.trim()) formData.append('ccAddresses', ccAddresses.trim());
-        if (bccAddresses.trim()) formData.append('bccAddresses', bccAddresses.trim());
+        formData.append('toAddresses', JSON.stringify(toAddresses));
+        if (ccAddresses.length > 0) formData.append('ccAddresses', JSON.stringify(ccAddresses));
+        if (bccAddresses.length > 0) formData.append('bccAddresses', JSON.stringify(bccAddresses));
         formData.append('subject', subject.trim());
         formData.append('content', content.trim());
         if (replyToMessage?.id) formData.append('threadId', replyToMessage.id);
@@ -359,9 +360,9 @@ export function GmailEmailComposer({
         // No attachments, use regular JSON
         const emailData = {
           fromAccountId,
-          toAddresses: toAddresses.trim(),
-          ccAddresses: ccAddresses.trim() || undefined,
-          bccAddresses: bccAddresses.trim() || undefined,
+          toAddresses,
+          ccAddresses: ccAddresses.length > 0 ? ccAddresses : undefined,
+          bccAddresses: bccAddresses.length > 0 ? bccAddresses : undefined,
           subject: subject.trim(),
           content: content.trim(),
           threadId: replyToMessage?.id ? parseInt(replyToMessage.id) : null
@@ -381,9 +382,9 @@ export function GmailEmailComposer({
       
       // Wait for animation to complete, then close and clear form
       setTimeout(() => {
-        setToAddresses('');
-        setCcAddresses('');
-        setBccAddresses('');
+        setToAddresses([]);
+        setCcAddresses([]);
+        setBccAddresses([]);
         setSubject('');
         setContent('');
         setAttachments([]);
@@ -426,9 +427,9 @@ export function GmailEmailComposer({
     requestAnimationFrame(() => {
       // Wait for animation to complete, then close and clear form
       setTimeout(() => {
-        setToAddresses('');
-        setCcAddresses('');
-        setBccAddresses('');
+        setToAddresses([]);
+        setCcAddresses([]);
+        setBccAddresses([]);
         setSubject('');
         setContent('');
         setAttachments([]);
@@ -529,7 +530,7 @@ export function GmailEmailComposer({
             </Button>
             <Button
               onClick={handleSend}
-              disabled={sendEmailMutation.isPending || !toAddresses.trim() || !subject.trim()}
+              disabled={sendEmailMutation.isPending || toAddresses.length === 0 || !subject.trim()}
               className="text-blue-600 hover:text-blue-700 p-2 h-auto rounded-full disabled:opacity-50"
               variant="ghost"
             >
@@ -549,18 +550,13 @@ export function GmailEmailComposer({
           {/* To field */}
           <div className="flex items-center px-4 py-4 border-b border-gray-100">
             <span className="text-gray-500 text-base">To:  </span>
-            <input
-              type="email"
-              value={toAddresses}
-              onChange={(e) => setToAddresses(e.target.value)}
-              className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 py-1 px-2"
-              placeholder=""
-              style={{ fontSize: '16px' }}
-              autoComplete="email"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck="false"
-            />
+            <div className="flex-1">
+              <EmailContactSelector
+                selectedEmails={toAddresses}
+                onEmailsChange={setToAddresses}
+                placeholder=""
+              />
+            </div>
             <div className="flex items-center space-x-2">
               {!showCc && (
                 <Button 
@@ -587,18 +583,13 @@ export function GmailEmailComposer({
           {showCc && (
             <div className="flex items-center px-4 py-4 border-b border-gray-100">
               <span className="text-gray-500 text-base">Cc:    </span>
-              <input
-                type="email"
-                value={ccAddresses}
-                onChange={(e) => setCcAddresses(e.target.value)}
-                className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 py-1 px-2"
-                placeholder=""
-                style={{ fontSize: '16px' }}
-                autoComplete="email"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck="false"
-              />
+              <div className="flex-1">
+                <EmailContactSelector
+                  selectedEmails={ccAddresses}
+                  onEmailsChange={setCcAddresses}
+                  placeholder=""
+                />
+              </div>
               {!showBcc && (
                 <Button 
                   variant="ghost" 
@@ -615,18 +606,13 @@ export function GmailEmailComposer({
           {showBcc && (
             <div className="flex items-center px-4 py-4 border-b border-gray-100">
               <span className="text-gray-500 text-base">Bcc:   </span>
-              <input
-                type="email"
-                value={bccAddresses}
-                onChange={(e) => setBccAddresses(e.target.value)}
-                className="flex-1 text-base text-gray-900 bg-transparent border-none outline-none placeholder-gray-400 py-1 px-2"
-                placeholder=""
-                style={{ fontSize: '16px' }}
-                autoComplete="email"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck="false"
-              />
+              <div className="flex-1">
+                <EmailContactSelector
+                  selectedEmails={bccAddresses}
+                  onEmailsChange={setBccAddresses}
+                  placeholder=""
+                />
+              </div>
             </div>
           )}
 
