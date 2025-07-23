@@ -542,20 +542,26 @@ export function EmailInterface({ selectedAccount, onBack, showCompose, onShowCom
   return (
     <>
       <div className="relative h-[calc(100vh-120px)] bg-background">
-        {/* Desktop-Only Search Header */}
+        {/* Desktop-Only Email Interface Header */}
         <div className="hidden md:block absolute top-0 left-0 right-0 h-12 md:h-16 bg-white border-b border-gray-200 px-2 md:px-4 z-50">
-          <div className="flex items-center gap-2 md:gap-6 h-full">
-            {isSelectionMode && selectedMessages.size > 0 && (
-              <div className="flex items-center gap-3">
-                <Checkbox
-                  checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
-                  onCheckedChange={toggleSelectAll}
-                />
-                <span className="text-sm font-medium">
-                  {selectedMessages.size} of {filteredMessages.length} selected
-                </span>
-              </div>
-            )}
+          <div className="flex items-center justify-between h-full">
+            {/* Left side - Select all checkbox when emails are selected */}
+            <div className="flex items-center gap-3">
+              {isSelectionMode && selectedMessages.size > 0 && (
+                <>
+                  <Checkbox
+                    checked={selectedMessages.size === filteredMessages.length && filteredMessages.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                  <span className="text-sm font-medium">
+                    {selectedMessages.size} of {filteredMessages.length} selected
+                  </span>
+                </>
+              )}
+            </div>
+            
+            {/* Right side - Empty for now */}
+            <div></div>
           </div>
         </div>
 
