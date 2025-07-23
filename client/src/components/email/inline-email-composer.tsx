@@ -71,6 +71,7 @@ export function InlineEmailComposer({
 
   // State for selected account (initialize with the passed fromAccountId)
   const [selectedAccountId, setSelectedAccountId] = useState<number>(fromAccountId);
+  const [showAccountDropdown, setShowAccountDropdown] = useState(false);
 
   // Find the specific account from the accounts list
   const emailAccount = (emailAccounts as any[])?.find((account: any) => account.id === selectedAccountId);
@@ -477,7 +478,7 @@ export function InlineEmailComposer({
                   </div>
                   
                   {showAccountDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-[60] max-h-60 overflow-auto">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-[9999] max-h-60 overflow-auto">
                       {(emailAccounts as any[]).map((account: any) => (
                         <div
                           key={account.id}
