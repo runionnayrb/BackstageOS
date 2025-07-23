@@ -15,6 +15,8 @@ import {
   betaSettings,
   contacts,
   emailContacts,
+  distributionLists,
+  distributionListMembers,
   contactAvailability,
   scheduleEvents,
   scheduleEventParticipants,
@@ -106,6 +108,10 @@ import {
   type InsertContact,
   type EmailContact,
   type InsertEmailContact,
+  type DistributionList,
+  type InsertDistributionList,
+  type DistributionListMember,
+  type InsertDistributionListMember,
   type ContactAvailability,
   type InsertContactAvailability,
   type ScheduleEvent,
@@ -1273,6 +1279,102 @@ export class DatabaseStorage implements IStorage {
 
   async deleteEmailContact(id: number): Promise<void> {
     await db.delete(emailContacts).where(eq(emailContacts.id, id));
+  }
+
+  // Distribution lists operations
+  async getDistributionListsByUserId(userId: number): Promise<DistributionList[]> {
+    const result = await db.select().from(distributionLists).where(eq(distributionLists.userId, userId));
+    return result;
+  }
+
+  async getDistributionListsByUserIdAndProject(userId: number, projectId: number | null): Promise<DistributionList[]> {
+    if (projectId === null) {
+      const result = await db.select().from(distributionLists).where(
+        and(
+          eq(distributionLists.userId, userId),
+          isNull(distributionLists.projectId)
+        )
+      );
+      return result;
+    } else {
+      const result = await db.select().from(distributionLists).where(
+        and(
+          eq(distributionLists.userId, userId),
+          or(
+            eq(distributionLists.projectId, projectId),
+            isNull(distributionLists.projectId)
+          )
+        )
+      );
+      return result;
+    }
+  }
+
+  async createDistributionList(list: InsertDistributionList): Promise<DistributionList> {
+    const result = await db.insert(distributionLists).values(list).returning();
+    return result[0];
+  }
+
+  async updateDistributionList(id: number, list: Partial<InsertDistributionList>): Promise<DistributionList> {
+    const result = await db.update(distributionLists)
+      .set({ ...list, updatedAt: new Date() })
+      .where(eq(distributionLists.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteDistributionList(id: number): Promise<void> {
+    await db.delete(distributionLists).where(eq(distributionLists.id, id));
+  }
+
+  // Distribution list members operations
+  async getDistributionListMembers(listId: number): Promise<(DistributionListMember & { emailContact: EmailContact })[]> {
+    const result = await db
+      .select({
+        id: distributionListMembers.id,
+        distributionListId: distributionListMembers.distributionListId,
+        emailContactId: distributionListMembers.emailContactId,
+        listType: distributionListMembers.listType,
+        createdAt: distributionListMembers.createdAt,
+        emailContact: {
+          id: emailContacts.id,
+          userId: emailContacts.userId,
+          projectId: emailContacts.projectId,
+          originalContactId: emailContacts.originalContactId,
+          firstName: emailContacts.firstName,
+          lastName: emailContacts.lastName,
+          email: emailContacts.email,
+          phone: emailContacts.phone,
+          role: emailContacts.role,
+          notes: emailContacts.notes,
+          isManuallyAdded: emailContacts.isManuallyAdded,
+          createdBy: emailContacts.createdBy,
+          createdAt: emailContacts.createdAt,
+          updatedAt: emailContacts.updatedAt,
+        }
+      })
+      .from(distributionListMembers)
+      .innerJoin(emailContacts, eq(distributionListMembers.emailContactId, emailContacts.id))
+      .where(eq(distributionListMembers.distributionListId, listId));
+    return result;
+  }
+
+  async createDistributionListMember(member: InsertDistributionListMember): Promise<DistributionListMember> {
+    const result = await db.insert(distributionListMembers).values(member).returning();
+    return result[0];
+  }
+
+  async deleteDistributionListMember(id: number): Promise<void> {
+    await db.delete(distributionListMembers).where(eq(distributionListMembers.id, id));
+  }
+
+  async deleteDistributionListMembersByContactAndList(emailContactId: number, distributionListId: number): Promise<void> {
+    await db.delete(distributionListMembers).where(
+      and(
+        eq(distributionListMembers.emailContactId, emailContactId),
+        eq(distributionListMembers.distributionListId, distributionListId)
+      )
+    );
   }
 
   async syncShowContactsToEmailContacts(userId: number, projectId: number): Promise<void> {

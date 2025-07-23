@@ -458,6 +458,27 @@ export const emailContacts = pgTable("email_contacts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Distribution lists for email system
+export const distributionLists = pgTable("distribution_lists", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }), // null for personal lists
+  name: varchar("name").notNull(), // e.g., "Cast", "Crew", "Creative Team"
+  description: text("description"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Distribution list members - links email contacts to distribution lists
+export const distributionListMembers = pgTable("distribution_list_members", {
+  id: serial("id").primaryKey(),
+  distributionListId: integer("distribution_list_id").notNull().references(() => distributionLists.id, { onDelete: "cascade" }),
+  emailContactId: integer("email_contact_id").notNull().references(() => emailContacts.id, { onDelete: "cascade" }),
+  listType: varchar("list_type").notNull(), // "to", "cc", "bcc"
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Contact availability system
 export const contactAvailability = pgTable("contact_availability", {
   id: serial("id").primaryKey(),
@@ -2316,6 +2337,17 @@ export const insertContactAvailabilitySchema = createInsertSchema(contactAvailab
   updatedAt: true,
 });
 
+export const insertDistributionListSchema = createInsertSchema(distributionLists).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertDistributionListMemberSchema = createInsertSchema(distributionListMembers).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertScheduleEventSchema = createInsertSchema(scheduleEvents).omit({
   id: true,
   createdAt: true,
@@ -2678,6 +2710,10 @@ export type Contact = typeof contacts.$inferSelect;
 export type InsertContact = z.infer<typeof insertContactSchema>;
 export type EmailContact = typeof emailContacts.$inferSelect;
 export type InsertEmailContact = z.infer<typeof insertEmailContactSchema>;
+export type DistributionList = typeof distributionLists.$inferSelect;
+export type InsertDistributionList = z.infer<typeof insertDistributionListSchema>;
+export type DistributionListMember = typeof distributionListMembers.$inferSelect;
+export type InsertDistributionListMember = z.infer<typeof insertDistributionListMemberSchema>;
 export type DomainRoute = typeof domainRoutes.$inferSelect;
 export type InsertDomainRoute = z.infer<typeof insertDomainRouteSchema>;
 export type ErrorLog = typeof errorLogs.$inferSelect & {

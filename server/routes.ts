@@ -14,7 +14,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertEmailContactSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
+import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertEmailContactSchema, insertDistributionListSchema, insertDistributionListMemberSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -5524,6 +5524,141 @@ Best regards,
     } catch (error) {
       console.error("Error syncing contacts to email:", error);
       res.status(500).json({ message: "Failed to sync contacts to email" });
+    }
+  });
+
+  // Distribution Lists Routes
+  app.get('/api/distribution-lists', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.user.id.toString());
+      const projectId = req.query.projectId ? parseInt(req.query.projectId) : null;
+      
+      const distributionLists = await storage.getDistributionListsByUserIdAndProject(userId, projectId);
+      res.json(distributionLists);
+    } catch (error) {
+      console.error("Error fetching distribution lists:", error);
+      res.status(500).json({ message: "Failed to fetch distribution lists" });
+    }
+  });
+
+  app.post('/api/distribution-lists', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.user.id.toString());
+      
+      const distributionListData = insertDistributionListSchema.parse({
+        ...req.body,
+        userId,
+        createdBy: userId,
+      });
+      
+      const distributionList = await storage.createDistributionList(distributionListData);
+      res.json(distributionList);
+    } catch (error) {
+      console.error("Error creating distribution list:", error);
+      res.status(500).json({ message: "Failed to create distribution list" });
+    }
+  });
+
+  app.put('/api/distribution-lists/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const listId = parseInt(req.params.id);
+      const userId = parseInt(req.user.id.toString());
+      
+      // Verify ownership
+      const existingList = await storage.getDistributionListsByUserId(userId);
+      if (!existingList.find(l => l.id === listId)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const updateData = insertDistributionListSchema.partial().parse(req.body);
+      const distributionList = await storage.updateDistributionList(listId, updateData);
+      res.json(distributionList);
+    } catch (error) {
+      console.error("Error updating distribution list:", error);
+      res.status(500).json({ message: "Failed to update distribution list" });
+    }
+  });
+
+  app.delete('/api/distribution-lists/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const listId = parseInt(req.params.id);
+      const userId = parseInt(req.user.id.toString());
+      
+      // Verify ownership
+      const existingList = await storage.getDistributionListsByUserId(userId);
+      if (!existingList.find(l => l.id === listId)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteDistributionList(listId);
+      res.json({ message: "Distribution list deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting distribution list:", error);
+      res.status(500).json({ message: "Failed to delete distribution list" });
+    }
+  });
+
+  // Distribution List Members Routes
+  app.get('/api/distribution-lists/:id/members', isAuthenticated, async (req: any, res) => {
+    try {
+      const listId = parseInt(req.params.id);
+      const userId = parseInt(req.user.id.toString());
+      
+      // Verify ownership
+      const existingList = await storage.getDistributionListsByUserId(userId);
+      if (!existingList.find(l => l.id === listId)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const members = await storage.getDistributionListMembers(listId);
+      res.json(members);
+    } catch (error) {
+      console.error("Error fetching distribution list members:", error);
+      res.status(500).json({ message: "Failed to fetch distribution list members" });
+    }
+  });
+
+  app.post('/api/distribution-lists/:id/members', isAuthenticated, async (req: any, res) => {
+    try {
+      const listId = parseInt(req.params.id);
+      const userId = parseInt(req.user.id.toString());
+      
+      // Verify ownership
+      const existingList = await storage.getDistributionListsByUserId(userId);
+      if (!existingList.find(l => l.id === listId)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const memberData = insertDistributionListMemberSchema.parse({
+        ...req.body,
+        distributionListId: listId,
+      });
+      
+      const member = await storage.createDistributionListMember(memberData);
+      res.json(member);
+    } catch (error) {
+      console.error("Error adding distribution list member:", error);
+      res.status(500).json({ message: "Failed to add distribution list member" });
+    }
+  });
+
+  app.delete('/api/distribution-lists/:listId/members/:memberId', isAuthenticated, async (req: any, res) => {
+    try {
+      const listId = parseInt(req.params.listId);
+      const memberId = parseInt(req.params.memberId);
+      const userId = parseInt(req.user.id.toString());
+      
+      // Verify ownership
+      const existingList = await storage.getDistributionListsByUserId(userId);
+      if (!existingList.find(l => l.id === listId)) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.deleteDistributionListMember(memberId);
+      res.json({ message: "Distribution list member removed successfully" });
+    } catch (error) {
+      console.error("Error removing distribution list member:", error);
+      res.status(500).json({ message: "Failed to remove distribution list member" });
     }
   });
 
