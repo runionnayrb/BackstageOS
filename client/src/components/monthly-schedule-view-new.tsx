@@ -594,7 +594,11 @@ export default function MonthlyScheduleView({
                 location: editEventDialog.event.location,
                 notes: editEventDialog.event.notes,
                 isAllDay: editEventDialog.event.isAllDay,
-                isProductionLevel: editEventDialog.event.isProductionLevel,
+                isProductionLevel: (() => {
+                  console.log('🎯 EDIT DIALOG DEBUG - editEventDialog.event.isProductionLevel:', editEventDialog.event.isProductionLevel);
+                  console.log('🎯 EDIT DIALOG DEBUG - full event data:', JSON.stringify(editEventDialog.event, null, 2));
+                  return editEventDialog.event.isProductionLevel;
+                })(),
                 participantIds: editEventDialog.event.participants.map(p => p.contactId),
               }}
             />
