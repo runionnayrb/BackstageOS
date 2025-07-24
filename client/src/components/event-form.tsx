@@ -61,8 +61,8 @@ export default function EventForm({
     endTime: initialValues?.endTime || '10:00',
     location: initialValues?.location || '',
     notes: initialValues?.notes || '',
-    isAllDay: initialValues?.isAllDay || false,
-    isProductionLevel: initialValues?.isProductionLevel || false,
+    isAllDay: initialValues?.isAllDay ?? false,
+    isProductionLevel: initialValues?.isProductionLevel ?? false,
     participantIds: initialValues?.participantIds || [] as number[],
   });
 
