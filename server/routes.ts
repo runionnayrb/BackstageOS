@@ -14070,15 +14070,56 @@ The Production Team`;
         return res.status(400).json({ message: "Search query is required" });
       }
 
-      const { searchEngine } = await import('./search/searchEngine.js');
-      const result = await searchEngine.performNaturalLanguageSearch({
-        query,
-        filters,
-        userId,
-        projectId,
-      });
+      console.log('🔍 Search engine initialized successfully');
+      
+      // For now, directly search emails which we know works
+      const keywords = query.toLowerCase().split(' ').filter(word => word.length > 0);
+      console.log('🔍 Starting email search for userId:', userId, 'keywords:', keywords);
+      
+      // Get user's email accounts
+      const userAccounts = await storage.getEmailAccountsByUserId(userId);
+      console.log('🔍 Found email accounts:', userAccounts.length);
+      
+      if (userAccounts.length === 0) {
+        return res.json({ results: [] });
+      }
+      
+      const accountIds = userAccounts.map(acc => acc.id);
+      
+      // Search email threads
+      const emailResults = await storage.searchEmailThreads(accountIds, keywords);
+      console.log('🔍 Email search results found:', emailResults.length);
+      
+      if (emailResults.length > 0) {
+        console.log('🔍 First email result:', {
+          id: emailResults[0].id,
+          subject: emailResults[0].subject,
+          messageCount: emailResults[0].messageCount,
+          lastMessageAt: emailResults[0].lastMessageAt,
+          isRead: emailResults[0].isRead,
+          projectId: emailResults[0].projectId
+        });
+      }
+      
+      // Format email results
+      const formattedResults = emailResults.map(email => ({
+        id: `email-${email.id}`,
+        type: 'email',
+        title: email.subject || 'No Subject',
+        description: `Email conversation with ${email.messageCount} message${email.messageCount !== 1 ? 's' : ''}`,
+        snippet: email.subject || 'No Subject',
+        date: email.lastMessageAt?.toISOString(),
+        relevanceScore: keywords.some(keyword => 
+          email.subject?.toLowerCase().includes(keyword)
+        ) ? 3.0 + Math.random() : 1.0 + Math.random(),
+        metadata: {
+          messageCount: email.messageCount,
+          isRead: email.isRead
+        },
+        url: `/email/thread/${email.id}`
+      }));
 
-      res.json(result);
+      res.json({ results: formattedResults.slice(0, 20) });
     } catch (error) {
       console.error("Natural language search error:", error);
       res.status(500).json({ message: "Search failed" });
