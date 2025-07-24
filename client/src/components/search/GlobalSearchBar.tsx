@@ -104,7 +104,7 @@ export default function GlobalSearchBar({
                 placeholder={placeholder}
                 value={query}
                 onChange={handleInputChange}
-                className="pl-10 pr-16 h-10 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                className="pl-10 pr-12 sm:pr-16 h-10 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500"
               />
               
               <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
@@ -125,7 +125,7 @@ export default function GlobalSearchBar({
         </PopoverTrigger>
         
         <PopoverContent 
-          className="w-[600px] p-0 border-0 shadow-lg" 
+          className="w-[90vw] sm:w-[600px] p-0 border-0 shadow-lg" 
           align="start"
           sideOffset={8}
         >

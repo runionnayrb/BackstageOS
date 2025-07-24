@@ -396,7 +396,8 @@ Required environment variables:
 - Cross-referenced search results with relevance scoring and context-aware ranking
 
 **User Experience:**
-- Global search bar integrated in EnhancedHeader component with responsive design (hidden on mobile, visible on desktop)
+- Global search bar integrated in EnhancedHeader component with responsive design (visible on both mobile and desktop)
+- Mobile-optimized interface with responsive popover sizing (90vw on mobile, 600px on desktop)
 - SearchProvider wrapped around entire application for context availability
 - Real-time search suggestions with popularity-based ranking
 - Search history tracking and management for improved user experience

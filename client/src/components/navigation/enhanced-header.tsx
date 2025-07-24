@@ -218,11 +218,12 @@ export default function EnhancedHeader() {
               BackstageOS
             </div>
             
-            {/* Search Bar - Added after logo */}
-            <div className="flex-1 max-w-md mx-4 hidden md:block">
-              <div style={{ border: '3px solid red', padding: '4px' }}>
-                <GlobalSearchBar />
-              </div>
+            {/* Search Bar - Now visible on mobile */}
+            <div className="flex-1 max-w-md mx-2 sm:mx-4">
+              <GlobalSearchBar 
+                className="w-full"
+                placeholder="Search..."
+              />
             </div>
 
             {/* Navigation Menu - Moved after BackstageOS */}
