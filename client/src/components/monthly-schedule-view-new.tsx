@@ -87,7 +87,7 @@ export default function MonthlyScheduleView({
   const { data: events = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/schedule-events`],
     select: (data) => {
-      console.log('🎯 EVENTS QUERY - First event data:', JSON.stringify(data?.[0], null, 2));
+      console.log('🎯 EVENTS QUERY - Looking for event ID 55:', data?.find(e => e.id === 55));
       return data;
     }
   });
@@ -393,6 +393,11 @@ export default function MonthlyScheduleView({
                     .map((event: ScheduleEvent) => {
                       const eventTypeColor = getEventTypeColorFromDatabase(event.type, eventTypes);
                       const formatEventTime = (time: string) => formatTimeDisplay(time.slice(0, 5), timeFormat);
+                      
+                      // Log every event to see what data we have
+                      if (event.title === "Another test event") {
+                        console.log('🔍 FOUND "Another test event" in map:', JSON.stringify(event, null, 2));
+                      }
                       
                       return (
                         <Popover 
