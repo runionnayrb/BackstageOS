@@ -932,7 +932,7 @@ The Production Team`
       <div className="md:hidden">
         {/* Main Mobile Header */}
         <div className="px-4 py-3 border-b border-gray-200 bg-white">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between">
             {/* Back button and Dynamic Title */}
             <div className="flex items-center gap-3">
               <Button
@@ -947,10 +947,6 @@ The Production Team`
                 {getHeaderText()}
               </h1>
             </div>
-          </div>
-          <div className="flex items-center justify-between">
-            {/* Controls only - no duplicate date display */}
-            <div></div>
             
             {/* Navigation Controls */}
             <div className="flex items-center gap-2">
