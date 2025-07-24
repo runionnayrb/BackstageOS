@@ -218,13 +218,7 @@ export default function EnhancedHeader() {
               BackstageOS
             </div>
             
-            {/* Search Bar - Now visible on mobile */}
-            <div className="flex-1 max-w-md mx-2 sm:mx-4">
-              <GlobalSearchBar 
-                className="w-full"
-                placeholder="Search..."
-              />
-            </div>
+
 
             {/* Navigation Menu - Moved after BackstageOS */}
             <div className="flex-shrink-0">
@@ -380,8 +374,10 @@ export default function EnhancedHeader() {
             </div>
           )}
 
-          {/* Right side - User menu and admin controls */}
+          {/* Right side - Search, User menu and admin controls */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Expandable Search Icon */}
+            <GlobalSearchBar />
             {/* Show Settings Button - appears when in a show, hidden on mobile */}
             {navContext.showId && showData?.name && (
               <Button

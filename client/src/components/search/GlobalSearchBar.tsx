@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Sparkles, Loader2, Filter, X } from 'lucide-react';
+import { Search, Sparkles, Loader2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -30,6 +30,7 @@ export default function GlobalSearchBar({
 }: GlobalSearchBarProps) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -72,61 +73,124 @@ export default function GlobalSearchBar({
     }
   };
 
+  const handleSearchClick = () => {
+    setIsExpanded(true);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 150);
+  };
+
+  const handleClose = () => {
+    setIsExpanded(false);
+    setIsOpen(false);
+    setQuery('');
+    setResults([]);
+  };
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        inputRef.current?.focus();
+        if (!isExpanded) {
+          handleSearchClick();
+        } else {
+          inputRef.current?.focus();
+        }
       }
       
       if (e.key === 'Escape') {
-        setIsOpen(false);
-        inputRef.current?.blur();
+        if (isExpanded) {
+          handleClose();
+        }
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isExpanded]);
+
+  // Close when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        if (isExpanded && !query.trim()) {
+          handleClose();
+        }
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isExpanded, query]);
 
   return (
-    <div className={`relative w-full ${className}`}>
+    <div className={`relative ${className}`}>
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
-          <form onSubmit={handleSubmit} className="relative">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              
-              <Input
-                ref={inputRef}
-                type="text"
-                placeholder={placeholder}
-                value={query}
-                onChange={handleInputChange}
-                className="pl-10 pr-12 sm:pr-16 h-10 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-              />
-              
-              <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                {searchMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-                ) : (
-                  <Sparkles className="h-4 w-4 text-blue-500" title="AI-powered search" />
-                )}
-                
-                {/* Keyboard shortcut hint */}
-                <div className="hidden sm:flex items-center gap-1 text-xs text-gray-400 ml-1">
-                  <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">⌘</kbd>
-                  <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">K</kbd>
-                </div>
+          <div className="relative">
+            {/* Search Icon Button */}
+            {!isExpanded && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSearchClick}
+                className="h-10 w-10 p-0 hover:bg-gray-100"
+                aria-label="Search"
+              >
+                <Search className="h-5 w-5 text-gray-600" />
+              </Button>
+            )}
+
+            {/* Expanded Search Bar */}
+            {isExpanded && (
+              <div className="absolute right-0 top-0 z-50">
+                <form onSubmit={handleSubmit} className="relative">
+                  <div 
+                    className="relative transition-all duration-300 ease-out"
+                    style={{
+                      width: isExpanded ? '280px' : '40px',
+                      opacity: isExpanded ? 1 : 0,
+                    }}
+                  >
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    
+                    <Input
+                      ref={inputRef}
+                      type="text"
+                      placeholder="Search..."
+                      value={query}
+                      onChange={handleInputChange}
+                      className="pl-10 pr-20 h-10 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-lg"
+                    />
+                    
+                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                      {searchMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-4 w-4 text-blue-500" title="AI-powered search" />
+                      )}
+                      
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleClose}
+                        className="h-6 w-6 p-0 ml-1 hover:bg-gray-100"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                </form>
               </div>
-            </div>
-          </form>
+            )}
+          </div>
         </PopoverTrigger>
         
         <PopoverContent 
           className="w-[90vw] sm:w-[600px] p-0 border-0 shadow-lg" 
-          align="start"
+          align="end"
           sideOffset={8}
         >
           <div className="bg-white rounded-lg border shadow-lg max-h-[80vh] overflow-hidden">
