@@ -396,10 +396,18 @@ Required environment variables:
 - Cross-referenced search results with relevance scoring and context-aware ranking
 
 **User Experience:**
-- Global search bar integrated in header with responsive design (hidden on mobile, visible on desktop)
+- Global search bar integrated in EnhancedHeader component with responsive design (hidden on mobile, visible on desktop)
 - SearchProvider wrapped around entire application for context availability
 - Real-time search suggestions with popularity-based ranking
 - Search history tracking and management for improved user experience
+- Keyboard shortcuts (⌘K) for quick access
+- AI indicator with Sparkles icon showing intelligent search capabilities
+
+**Header Integration Resolution:**
+- Fixed critical issue where search bar was added to wrong header component (header.tsx vs enhanced-header.tsx)
+- Layout uses EnhancedHeader component, search bar now properly integrated and visible
+- Added red border container for visual identification during development
+- Search bar positioned between BackstageOS logo and navigation menu
 
 **System Benefits:**
 - Theater professionals can now ask natural language questions about any aspect of their production
@@ -407,7 +415,7 @@ Required environment variables:
 - Context-aware results provide relevant information based on current project and user permissions
 - Advanced filtering allows precise discovery of specific content types and date ranges
 
-**Status**: Complete AI-powered search system operational - serves as comprehensive "production brain" capable of answering any show-related question with intelligent, contextual results.
+**Status**: Complete AI-powered search system operational with full UI integration - serves as comprehensive "production brain" capable of answering any show-related question with intelligent, contextual results. Search bar confirmed working and visible in header.
 
 ### July 23, 2025: **BULK ACTION TOAST NOTIFICATIONS FIXED WITH ACTION-SPECIFIC MESSAGES**
 **Successfully resolved generic bulk action toast notifications to show specific action-based messages:**

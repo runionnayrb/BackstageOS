@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Search, Sparkles } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 interface GlobalSearchBarProps {
   className?: string;
@@ -9,20 +11,39 @@ export default function GlobalSearchBar({
   className = '', 
   placeholder = "Search productions, people, schedules..." 
 }: GlobalSearchBarProps) {
-  // Debug log to check if component renders
-  console.log('🔍 GlobalSearchBar component is rendering!');
-  
-  // Simplified test version - no context dependencies
+  const [query, setQuery] = useState('');
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setQuery(value);
+    console.log('🔍 Search input:', value);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('🔍 Search submitted:', query);
+    // TODO: Implement AI search functionality
+  };
+
   return (
-    <div className="bg-white border border-gray-300 rounded-md px-3 py-2 w-full" style={{ minHeight: '40px' }}>
-      <input 
-        type="text" 
-        placeholder="Search your production..."
-        className="w-full border-0 outline-none text-sm"
-        style={{ background: 'transparent' }}
-        onChange={(e) => console.log('🔍 Search input:', e.target.value)}
-        onFocus={() => console.log('🔍 Search bar focused')}
-      />
+    <div className={`relative w-full ${className}`}>
+      <form onSubmit={handleSubmit} className="relative">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          
+          <Input
+            type="text"
+            placeholder={placeholder}
+            value={query}
+            onChange={handleInputChange}
+            className="pl-10 pr-10 h-10 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+          />
+          
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <Sparkles className="h-4 w-4 text-blue-500" title="AI-powered search" />
+          </div>
+        </div>
+      </form>
     </div>
   );
 }

@@ -3,10 +3,9 @@ import { Calendar, User, FileText, Package, Shirt, FileImage, Mail, StickyNote, 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLocation } from 'wouter';
-import { SearchResult } from './SearchContext';
+import { SearchResult, useSearch } from './SearchContext';
 
 interface SearchResultsProps {
-  results: SearchResult[];
   onResultClick?: () => void;
 }
 
@@ -85,8 +84,9 @@ const formatResultType = (type: SearchResult['type']) => {
   }
 };
 
-export default function SearchResults({ results, onResultClick }: SearchResultsProps) {
+export default function SearchResults({ onResultClick }: SearchResultsProps) {
   const [, setLocation] = useLocation();
+  const { results, isSearching, searchError } = useSearch();
 
   const handleResultClick = (result: SearchResult) => {
     if (onResultClick) {
@@ -103,6 +103,33 @@ export default function SearchResults({ results, onResultClick }: SearchResultsP
     acc[result.type].push(result);
     return acc;
   }, {} as Record<SearchResult['type'], SearchResult[]>);
+
+  if (isSearching) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+          <p className="text-sm text-gray-500">Searching with AI...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (searchError) {
+    return (
+      <div className="p-4 text-center">
+        <p className="text-red-500 text-sm">{searchError}</p>
+      </div>
+    );
+  }
+
+  if (results.length === 0) {
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-500 text-sm">No results found. Try a different search term.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 p-4">
