@@ -37,14 +37,14 @@ export default function GlobalSearchBar({
   // AI Search mutation with cost controls
   const searchMutation = useMutation({
     mutationFn: async (searchQuery: string) => {
-      console.log('🔍 Performing AI search for:', searchQuery);
+      console.log('🔍 Performing search for:', searchQuery);
       return await apiRequest('POST', '/api/search/natural', {
         query: searchQuery,
         maxResults: 10
       });
     },
     onSuccess: (data) => {
-      console.log('🔍 Search results:', data);
+      console.log('🔍 Search results received:', data);
       setResults(data.results || []);
       setIsOpen(true);
     },
@@ -191,9 +191,17 @@ export default function GlobalSearchBar({
         <PopoverContent 
           className="w-[90vw] sm:w-[600px] p-0 border-0 shadow-lg" 
           align="end"
+          side="bottom"
           sideOffset={8}
+          style={{
+            position: 'fixed',
+            top: '60px', // Position near top to avoid keyboard
+            right: '8px',
+            left: '8px', // Full width on mobile
+            zIndex: 9999
+          }}
         >
-          <div className="bg-white rounded-lg border shadow-lg max-h-[80vh] overflow-hidden">
+          <div className="bg-white rounded-lg border shadow-lg max-h-[60vh] sm:max-h-[80vh] overflow-hidden">
             {/* Results Content */}
             <div className="flex-1 overflow-y-auto">
               {searchMutation.isPending ? (

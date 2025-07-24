@@ -616,6 +616,9 @@ class SearchEngine {
         .limit(20);
 
       console.log('🔍 Email search results found:', emailResults.length);
+      if (emailResults.length > 0) {
+        console.log('🔍 First email result:', emailResults[0]);
+      }
 
       // Get project names
       const projectIds = [...new Set(emailResults.map(e => e.projectId).filter(Boolean))];
