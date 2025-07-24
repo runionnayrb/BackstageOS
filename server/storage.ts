@@ -5287,7 +5287,7 @@ export class DatabaseStorage implements IStorage {
           .where(and(
             eq(projectMembers.userId, editor.id),
             eq(projectMembers.accessLevel, 'editor'),
-            not(eq(projects.status, 'closed'))
+            ne(projects.status, 'closed')
           ));
 
         return {
