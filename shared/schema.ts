@@ -37,9 +37,18 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   profileType: varchar("profile_type"), // 'freelance' or 'fulltime'
+  // User role and access management
+  userRole: varchar("user_role").notNull().default("user"), // 'admin', 'user', 'editor', 'viewer'
   betaAccess: boolean("beta_access").default(false), // true/false for beta access
   betaFeatures: jsonb("beta_features"), // Array of enabled features for beta users
   isAdmin: boolean("is_admin").default(false), // Admin status for user management access
+  // Editor limits tracking
+  maxActiveShows: integer("max_active_shows").default(2), // Maximum active shows for editors
+  currentActiveShows: integer("current_active_shows").default(0), // Current active show count
+  lastActiveAt: timestamp("last_active_at"), // Track last activity across platform
+  totalLogins: integer("total_logins").default(0), // Track login count
+  totalMinutesActive: integer("total_minutes_active").default(0), // Track active time
+  featuresUsed: jsonb("features_used"), // Track which features they use
   // Email settings for show-specific communications via sm@backstageos.com
   defaultReplyToEmail: varchar("default_reply_to_email"),
   emailDisplayName: varchar("email_display_name"),
@@ -107,24 +116,18 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const teamMembers = pgTable("team_members", {
+// Simplified project members - just tracks who has access to which projects
+export const projectMembers = pgTable("project_members", {
   id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull().references(() => projects.id),
-  userId: integer("user_id").references(() => users.id),
-  email: varchar("email").notNull(),
-  name: varchar("name"),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   role: varchar("role").notNull(), // Production Stage Manager, Stage Manager, Production Assistant
-  userType: varchar("user_type").notNull().default("editor"), // editor, viewer
+  accessLevel: varchar("access_level").notNull(), // 'editor', 'viewer'
   status: varchar("status").notNull().default("pending"), // pending, accepted, declined
   invitedBy: integer("invited_by").notNull().references(() => users.id), // Track who invited this member
-  accessLevel: varchar("access_level").notNull().default("editor"), // editor, viewer for compatibility
-  isActive: boolean("is_active").default(true), // Track if editor is active on this show
-  lastActiveAt: timestamp("last_active_at"), // Track last activity
-  totalLogins: integer("total_logins").default(0), // Track login count
-  totalMinutesActive: integer("total_minutes_active").default(0), // Track active time
-  featuresUsed: jsonb("features_used"), // Track which features they use
   invitedAt: timestamp("invited_at").defaultNow(),
   joinedAt: timestamp("joined_at"),
+  lastActiveAt: timestamp("last_active_at"), // Track last activity on this project
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -1167,7 +1170,7 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
     fields: [projects.ownerId],
     references: [users.id],
   }),
-  teamMembers: many(teamMembers),
+  projectMembers: many(projectMembers),
   reports: many(reports),
   reportTemplates: many(reportTemplates),
   showDocuments: many(showDocuments),
@@ -1203,13 +1206,13 @@ export const projectsRelations = relations(projects, ({ one, many }) => ({
   notes: many(notes),
 }));
 
-export const teamMembersRelations = relations(teamMembers, ({ one }) => ({
+export const projectMembersRelations = relations(projectMembers, ({ one }) => ({
   project: one(projects, {
-    fields: [teamMembers.projectId],
+    fields: [projectMembers.projectId],
     references: [projects.id],
   }),
   user: one(users, {
-    fields: [teamMembers.userId],
+    fields: [projectMembers.userId],
     references: [users.id],
   }),
 }));
@@ -2230,7 +2233,7 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   updatedAt: true,
 });
 
-export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({
+export const insertProjectMemberSchema = createInsertSchema(projectMembers).omit({
   id: true,
   invitedAt: true,
   joinedAt: true,
@@ -2478,8 +2481,8 @@ export type ScheduleEventParticipant = typeof scheduleEventParticipants.$inferSe
 export type InsertScheduleEventParticipant = z.infer<typeof insertScheduleEventParticipantSchema>;
 export type ReportNote = typeof reportNotes.$inferSelect;
 export type InsertReportNote = z.infer<typeof insertReportNoteSchema>;
-export type TeamMember = typeof teamMembers.$inferSelect;
-export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+export type ProjectMember = typeof projectMembers.$inferSelect;
+export type InsertProjectMember = z.infer<typeof insertProjectMemberSchema>;
 
 export const insertContactSheetVersionSchema = createInsertSchema(contactSheetVersions).omit({
   id: true,
@@ -2691,8 +2694,8 @@ export type AccountType = typeof accountTypes.$inferSelect;
 export type InsertAccountType = z.infer<typeof insertAccountTypeSchema>;
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
-export type TeamMember = typeof teamMembers.$inferSelect;
-export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+export type ProjectMember = typeof projectMembers.$inferSelect;
+export type InsertProjectMember = z.infer<typeof insertProjectMemberSchema>;
 export type Report = typeof reports.$inferSelect;
 export type InsertReport = z.infer<typeof insertReportSchema>;
 export type ReportTemplate = typeof reportTemplates.$inferSelect;

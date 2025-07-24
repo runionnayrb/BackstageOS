@@ -14,7 +14,7 @@ import { storage } from "./storage";
 import { setupAuth } from "./auth";
 import { requiresBetaAccess, BETA_FEATURES, checkFeatureAccess } from "./betaMiddleware";
 import { isAdmin } from "./adminUtils";
-import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertTeamMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertEmailContactSchema, insertDistributionListSchema, insertDistributionListMemberSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
+import { insertProjectSchema, insertSeasonSchema, insertVenueSchema, insertProjectMemberSchema, insertReportSchema, insertReportTemplateSchema, insertGlobalTemplateSettingsSchema, insertFeedbackSchema, insertContactSchema, insertEmailContactSchema, insertDistributionListSchema, insertDistributionListMemberSchema, insertContactAvailabilitySchema, insertScheduleEventSchema, insertScheduleEventParticipantSchema, insertEventLocationSchema, insertLocationAvailabilitySchema, insertEventTypeSchema, insertErrorLogSchema, insertWaitlistSchema, insertPropsSchema, insertDomainRouteSchema, insertSeoSettingsSchema, insertWaitlistEmailSettingsSchema, insertApiSettingsSchema, insertShowContractSettingsSchema, insertPerformanceTrackerSchema, insertRehearsalTrackerSchema, insertTaskDatabaseSchema, insertTaskPropertySchema, insertTaskSchema, insertTaskAssignmentSchema, insertTaskCommentSchema, insertTaskAttachmentSchema, insertTaskViewSchema, insertNoteFolderSchema, insertNoteSchema, insertNoteCollaboratorSchema, insertNoteCommentSchema, insertNoteAttachmentSchema, insertPublicCalendarShareSchema, insertDailyCallSchema, insertUserActivitySchema, insertApiCostSchema, insertUserSessionSchema, insertFeatureUsageSchema, insertAccountTypeSchema, insertBillingPlanSchema, insertBillingHistorySchema, insertPaymentMethodSchema, insertSubscriptionUsageSchema } from "@shared/schema";
 import { cloudflareService } from "./services/cloudflareService";
 import { ErrorClusteringService } from "./errorClusteringService";
 import { ConflictValidationService } from "./services/conflictValidationService.js";
@@ -1990,7 +1990,63 @@ Respond with valid JSON only.`;
     }
   });
 
-  // ========== EDITOR MANAGEMENT API ROUTES ==========
+  // ========== USER ROLE MANAGEMENT API ROUTES (NEW SINGLE-TABLE APPROACH) ==========
+
+  // Get all users by role (admin, user, editor, viewer)
+  app.get('/api/admin/users-by-role/:role', isAdmin, async (req: any, res) => {
+    try {
+      const { role } = req.params;
+      const validRoles = ['admin', 'user', 'editor', 'viewer'];
+      
+      if (!validRoles.includes(role)) {
+        return res.status(400).json({ message: "Invalid role. Must be one of: admin, user, editor, viewer" });
+      }
+
+      const users = await storage.getUsersByRole(role);
+      res.json(users);
+    } catch (error) {
+      console.error(`Error fetching ${req.params.role} users:`, error);
+      res.status(500).json({ message: `Failed to fetch ${req.params.role} users` });
+    }
+  });
+
+  // Get all editors with their project assignments
+  app.get('/api/admin/editors-with-projects', isAdmin, async (req: any, res) => {
+    try {
+      const editors = await storage.getAllEditorsWithProjects();
+      res.json(editors);
+    } catch (error) {
+      console.error("Error fetching editors with projects:", error);
+      res.status(500).json({ message: "Failed to fetch editors with projects" });
+    }
+  });
+
+  // Update user role
+  app.patch('/api/admin/users/:id/role', isAdmin, async (req: any, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { userRole } = req.body;
+      
+      const validRoles = ['admin', 'user', 'editor', 'viewer'];
+      if (!validRoles.includes(userRole)) {
+        return res.status(400).json({ message: "Invalid role. Must be one of: admin, user, editor, viewer" });
+      }
+
+      const updatedUser = await storage.updateUserRole(userId, userRole);
+      
+      // Update active show count if changing to/from editor
+      if (userRole === 'editor') {
+        await storage.updateUserActiveShowCount(userId);
+      }
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      res.status(500).json({ message: "Failed to update user role" });
+    }
+  });
+
+  // ========== LEGACY EDITOR MANAGEMENT API ROUTES (UPDATED FOR NEW SCHEMA) ==========
 
   // Get all editors for admin dashboard (global editors tab)
   app.get('/api/admin/editors', isAuthenticated, async (req: any, res) => {

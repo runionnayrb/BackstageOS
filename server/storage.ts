@@ -3,7 +3,7 @@ import {
   seasons,
   venues,
   projects,
-  teamMembers,
+  projectMembers,
   reports,
   reportTemplates,
   showDocuments,
@@ -5219,21 +5219,142 @@ export class DatabaseStorage implements IStorage {
     return accessLevel !== null;
   }
 
-  // ========== EDITOR MANAGEMENT METHODS ==========
+  // ========== EDITOR MANAGEMENT METHODS (NEW SINGLE-TABLE APPROACH) ==========
+  
+  // Get all users by role (admin, user, editor, viewer)
+  async getUsersByRole(role: string): Promise<any[]> {
+    const users = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        userRole: users.userRole,
+        profileType: users.profileType,
+        isActive: users.isActive,
+        currentActiveShows: users.currentActiveShows,
+        maxActiveShows: users.maxActiveShows,
+        lastActiveAt: users.lastActiveAt,
+        totalLogins: users.totalLogins,
+        betaAccess: users.betaAccess,
+        createdAt: users.createdAt
+      })
+      .from(users)
+      .where(eq(users.userRole, role))
+      .orderBy(desc(users.createdAt));
+    
+    return users;
+  }
+
+  // Get all editors with their project assignments
+  async getAllEditorsWithProjects(): Promise<any[]> {
+    const editors = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        userRole: users.userRole,
+        profileType: users.profileType,
+        isActive: users.isActive,
+        currentActiveShows: users.currentActiveShows,
+        maxActiveShows: users.maxActiveShows,
+        lastActiveAt: users.lastActiveAt,
+        totalLogins: users.totalLogins,
+        betaAccess: users.betaAccess,
+        createdAt: users.createdAt
+      })
+      .from(users)
+      .where(eq(users.userRole, 'editor'))
+      .orderBy(desc(users.createdAt));
+
+    // Get project assignments for each editor
+    const editorsWithProjects = await Promise.all(
+      editors.map(async (editor) => {
+        const projectAssignments = await db
+          .select({
+            projectId: projectMembers.projectId,
+            projectName: projects.name,
+            role: projectMembers.role,
+            accessLevel: projectMembers.accessLevel,
+            status: projectMembers.status,
+            invitedAt: projectMembers.invitedAt,
+            joinedAt: projectMembers.joinedAt,
+            lastActiveAt: projectMembers.lastActiveAt
+          })
+          .from(projectMembers)
+          .innerJoin(projects, eq(projectMembers.projectId, projects.id))
+          .where(and(
+            eq(projectMembers.userId, editor.id),
+            eq(projectMembers.accessLevel, 'editor'),
+            not(eq(projects.status, 'closed'))
+          ));
+
+        return {
+          ...editor,
+          projectAssignments
+        };
+      })
+    );
+
+    return editorsWithProjects;
+  }
+
+  // Update user role
+  async updateUserRole(userId: number, userRole: string): Promise<any> {
+    const result = await db
+      .update(users)
+      .set({ 
+        userRole,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+      
+    return result[0];
+  }
+
+  // Update user active show count
+  async updateUserActiveShowCount(userId: number): Promise<number> {
+    const activeShowCount = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(projectMembers)
+      .innerJoin(projects, eq(projectMembers.projectId, projects.id))
+      .where(and(
+        eq(projectMembers.userId, userId),
+        eq(projectMembers.accessLevel, 'editor'),
+        eq(projectMembers.status, 'accepted'),
+        not(eq(projects.status, 'closed'))
+      ));
+
+    const count = activeShowCount[0]?.count || 0;
+
+    // Update the user's currentActiveShows field
+    await db
+      .update(users)
+      .set({ 
+        currentActiveShows: count,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
+
+    return count;
+  }
+
+  // ========== LEGACY EDITOR MANAGEMENT METHODS (UPDATED FOR NEW SCHEMA) ==========
 
   async getEditorActiveShowCount(email: string): Promise<number> {
+    const user = await this.getUserByEmail(email);
+    if (!user) return 0;
+    
     const result = await db
       .select({ count: sql<number>`count(*)` })
-      .from(teamMembers)
-      .innerJoin(projects, eq(teamMembers.projectId, projects.id))
+      .from(projectMembers)
+      .innerJoin(projects, eq(projectMembers.projectId, projects.id))
       .where(and(
-        eq(teamMembers.email, email),
-        or(
-          eq(teamMembers.userType, 'editor'),
-          eq(teamMembers.accessLevel, 'editor')
-        ),
-        eq(teamMembers.isActive, true),
-        eq(teamMembers.status, 'accepted'),
+        eq(projectMembers.userId, user.id),
+        eq(projectMembers.accessLevel, 'editor'),
+        eq(projectMembers.status, 'accepted'),
         not(eq(projects.status, 'closed'))
       ));
     
@@ -5241,63 +5362,68 @@ export class DatabaseStorage implements IStorage {
   }
 
   async checkEditorDuplicates(email: string, name: string): Promise<{ duplicate: boolean; type: string; existingMember?: any }> {
-    // Check for exact email match
-    const emailMatch = await db
-      .select({
-        id: teamMembers.id,
-        name: teamMembers.name,
-        email: teamMembers.email,
-        projectName: projects.name
-      })
-      .from(teamMembers)
-      .innerJoin(projects, eq(teamMembers.projectId, projects.id))
-      .where(and(
-        eq(teamMembers.email, email),
-        or(
-          eq(teamMembers.userType, 'editor'),
-          eq(teamMembers.accessLevel, 'editor')
-        ),
-        eq(teamMembers.isActive, true),
-        not(eq(projects.status, 'closed'))
-      ))
-      .limit(1);
-
-    if (emailMatch.length > 0) {
-      return {
-        duplicate: true,
-        type: 'same email, different name',
-        existingMember: emailMatch[0]
-      };
-    }
-
-    // Check for same name with different email
-    if (name) {
-      const nameMatch = await db
+    // Check for user by email
+    const user = await this.getUserByEmail(email);
+    if (user) {
+      // Check if this user is already an editor on any active shows
+      const activeEditorShows = await db
         .select({
-          id: teamMembers.id,
-          name: teamMembers.name,
-          email: teamMembers.email,
-          projectName: projects.name
+          projectId: projectMembers.projectId,
+          projectName: projects.name,
+          role: projectMembers.role
         })
-        .from(teamMembers)
-        .innerJoin(projects, eq(teamMembers.projectId, projects.id))
+        .from(projectMembers)
+        .innerJoin(projects, eq(projectMembers.projectId, projects.id))
         .where(and(
-          eq(teamMembers.name, name),
-          not(eq(teamMembers.email, email)),
-          or(
-            eq(teamMembers.userType, 'editor'),
-            eq(teamMembers.accessLevel, 'editor')
-          ),
-          eq(teamMembers.isActive, true),
+          eq(projectMembers.userId, user.id),
+          eq(projectMembers.accessLevel, 'editor'),
+          eq(projectMembers.status, 'accepted'),
           not(eq(projects.status, 'closed'))
-        ))
-        .limit(1);
+        ));
 
-      if (nameMatch.length > 0) {
+      if (activeEditorShows.length > 0) {
         return {
           duplicate: true,
-          type: 'same name, different email',
-          existingMember: nameMatch[0]
+          type: 'user already registered as editor',
+          existingMember: {
+            name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+            email: user.email,
+            projectName: activeEditorShows.map(s => s.projectName).join(', ')
+          }
+        };
+      }
+    }
+
+    // If name is provided, check for similar users with different emails
+    if (name && name.trim()) {
+      const [firstName, ...lastNameParts] = name.trim().split(' ');
+      const lastName = lastNameParts.join(' ');
+      
+      const nameMatches = await db
+        .select({
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email
+        })
+        .from(users)
+        .where(and(
+          or(
+            eq(users.firstName, firstName),
+            eq(users.lastName, lastName)
+          ),
+          ne(users.email, email)
+        ))
+        .limit(5);
+
+      if (nameMatches.length > 0) {
+        return {
+          duplicate: true,
+          type: 'similar name found with different email',
+          existingMember: {
+            name: `${nameMatches[0].firstName || ''} ${nameMatches[0].lastName || ''}`.trim(),
+            email: nameMatches[0].email
+          }
         };
       }
     }
@@ -5306,42 +5432,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllEditorsForAdmin(): Promise<any[]> {
-    const result = await db
-      .select({
-        id: teamMembers.id,
-        projectId: teamMembers.projectId,
-        projectName: projects.name,
-        userId: teamMembers.userId,
-        email: teamMembers.email,
-        name: teamMembers.name,
-        role: teamMembers.role,
-        status: teamMembers.status,
-        isActive: teamMembers.isActive,
-        lastActiveAt: teamMembers.lastActiveAt,
-        totalLogins: teamMembers.totalLogins,
-        totalMinutesActive: teamMembers.totalMinutesActive,
-        featuresUsed: teamMembers.featuresUsed,
-        invitedBy: teamMembers.invitedBy,
-        invitedAt: teamMembers.invitedAt,
-        joinedAt: teamMembers.joinedAt,
-        // Include inviter information
-        inviterName: users.firstName,
-        inviterLastName: users.lastName,
-        inviterEmail: users.email
-      })
-      .from(teamMembers)
-      .innerJoin(projects, eq(teamMembers.projectId, projects.id))
-      .leftJoin(users, eq(teamMembers.invitedBy, users.id))
-      .where(and(
-        or(
-          eq(teamMembers.userType, 'editor'),
-          eq(teamMembers.accessLevel, 'editor')
-        ),
-        not(eq(projects.status, 'closed'))
-      ))
-      .orderBy(teamMembers.email, projects.name);
-
-    return result;
+    // Use new single-table approach - get all users with editor role
+    return await this.getAllEditorsWithProjects();
   }
 
   async getUserInvitedTeamMembers(userId: number): Promise<any[]> {

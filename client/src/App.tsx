@@ -37,6 +37,7 @@ import GlobalTemplateSettings from "@/pages/global-template-settings";
 import NewReport from "@/pages/new-report";
 import ReportViewer from "./pages/report-viewer";
 import AdminDashboard from "@/pages/admin-dashboard";
+import AdminUserRoles from "@/pages/admin-user-roles";
 import ProfileSettings from "@/pages/profile-settings";
 import Calendar from "@/pages/calendar";
 import Schedule from "@/pages/schedule";
@@ -246,6 +247,7 @@ function Router() {
         <Route path="/login" component={AuthPage} />
 
         <Route path="/admin" component={AdminDashboard} />
+        <Route path="/admin/user-roles" component={AdminUserRoles} />
         <Route path="/admin/pages" component={PageManager} />
         <Route path="/admin/dns" component={DNSManager} />
         <Route path="/admin/domains" component={DomainManager} />

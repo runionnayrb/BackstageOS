@@ -32,8 +32,14 @@ export default function AdminDashboard() {
       <div className="w-full min-h-screen">
         <div className="flex flex-col space-y-4 mb-4 sm:mb-6 px-6 pt-6">
           <div className="mb-4"></div>
-          <div>
+          <div className="flex items-center justify-between">
             <h1 className="text-xl sm:text-2xl font-bold">Admin Dashboard</h1>
+            <Link href="/admin/user-roles">
+              <Button variant="outline" size="sm">
+                <Users className="h-4 w-4 mr-2" />
+                Advanced User Roles
+              </Button>
+            </Link>
           </div>
         </div>
 
