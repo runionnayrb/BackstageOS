@@ -231,7 +231,7 @@ import {
 
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, ne, sql, gte, lte, or, isNull, count, max } from "drizzle-orm";
+import { eq, and, desc, ne, sql, gte, lte, or, isNull, count, max, not } from "drizzle-orm";
 
 export interface IStorage {
   // User operations (email/password auth)
