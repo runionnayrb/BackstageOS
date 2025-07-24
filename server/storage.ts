@@ -5433,39 +5433,33 @@ export class DatabaseStorage implements IStorage {
 
   async getAllEditorsForAdmin(): Promise<any[]> {
     // Use new single-table approach - get all users with editor role
-    return await this.getAllEditorsWithProjects();
+    const result = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        userRole: users.userRole,
+        profileType: users.profileType,
+        isActive: users.isActive,
+        currentActiveShows: users.currentActiveShows,
+        maxActiveShows: users.maxActiveShows,
+        lastActiveAt: users.lastActiveAt,
+        totalLogins: users.totalLogins,
+        betaAccess: users.betaAccess,
+        createdAt: users.createdAt
+      })
+      .from(users)
+      .where(eq(users.userRole, 'editor'))
+      .orderBy(desc(users.createdAt));
+    
+    return result;
   }
 
   async getUserInvitedTeamMembers(userId: number): Promise<any[]> {
-    const result = await db
-      .select({
-        id: teamMembers.id,
-        projectId: teamMembers.projectId,
-        projectName: projects.name,
-        email: teamMembers.email,
-        name: teamMembers.name,
-        role: teamMembers.role,
-        status: teamMembers.status,
-        isActive: teamMembers.isActive,
-        userType: teamMembers.userType,
-        accessLevel: teamMembers.accessLevel,
-        lastActiveAt: teamMembers.lastActiveAt,
-        totalLogins: teamMembers.totalLogins,
-        invitedAt: teamMembers.invitedAt,
-        joinedAt: teamMembers.joinedAt
-      })
-      .from(teamMembers)
-      .innerJoin(projects, eq(teamMembers.projectId, projects.id))
-      .where(and(
-        eq(teamMembers.invitedBy, userId),
-        or(
-          eq(teamMembers.userType, 'editor'),
-          eq(teamMembers.accessLevel, 'editor')
-        )
-      ))
-      .orderBy(teamMembers.invitedAt);
-
-    return result;
+    // Return empty array for now - this method was for legacy teamMembers expansion
+    // In new architecture, invited team members are handled differently
+    return [];
   }
 
 }
