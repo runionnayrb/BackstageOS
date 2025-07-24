@@ -246,14 +246,14 @@ export default function GlobalSearchBar({
             <Search className="h-5 w-5 text-gray-600" />
           </Button>
         ) : (
-          // Expanded search bar that grows from the icon to the left
-          <div className="relative">
+          // Expanded search bar that grows from the icon position to the left
+          <div className="absolute right-0 top-0">
             <form onSubmit={handleSubmit} className="relative">
               <div 
                 className="relative transition-all duration-300 ease-out flex items-center"
                 style={{
-                  width: '240px',
-                  transform: 'translateX(-200px)', // Expand to the left
+                  width: '200px',
+                  transform: 'translateX(-160px)', // Move left but keep the search icon area visible
                 }}
               >
                 <Input
