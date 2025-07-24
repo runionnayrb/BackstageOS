@@ -168,6 +168,16 @@ export default function WeeklyScheduleView({
   // Fetch schedule events
   const { data: events = [], isLoading } = useQuery<ScheduleEvent[]>({
     queryKey: [`/api/projects/${projectId}/schedule-events`],
+    select: (data) => {
+      console.log('📅 Weekly view - All events:', data?.map(e => ({
+        id: e.id,
+        title: e.title,
+        date: e.date,
+        isAllDay: e.isAllDay,
+        isProductionLevel: e.isProductionLevel
+      })));
+      return data;
+    }
   });
 
   // Debug logging to track events changes
@@ -202,9 +212,10 @@ export default function WeeklyScheduleView({
     
     // Apply event type filtering based on user selections
     // Always include important date events regardless of filtering
-    // If no event types are selected at all, show only important dates
+    // If no event types are selected at all, show ALL events (not just important dates)
     if (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
-      eventsToFilter = eventsToFilter.filter(event => event.type === 'important_date');
+      // Show all events when no filters are selected
+      console.log('📅 No filters selected - showing all events');
     } else {
       eventsToFilter = eventsToFilter.filter(event => {
         // Always include important date events
