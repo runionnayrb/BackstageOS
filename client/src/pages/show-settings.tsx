@@ -1538,46 +1538,12 @@ The Production Team`
 
         <TabsContent value="team" className="mt-6">
           <div className="space-y-6">
-            {/* Team Management */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Team Management</CardTitle>
-                <CardDescription>
-                  Manage your production team members with role-based access control.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Default Role Selection */}
-                <div className="space-y-2">
-                  <Label htmlFor="defaultRole">Default Role for New Members</Label>
-                  <Select
-                    value={(settings as any)?.teamMemberSettings?.defaultRole || "Production Assistant"}
-                    onValueChange={(value) =>
-                      handleSettingsUpdate("teamMemberSettings", { defaultRole: value })
-                    }
-                  >
-                    <SelectTrigger className="max-w-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Production Stage Manager">Production Stage Manager</SelectItem>
-                      <SelectItem value="Stage Manager">Stage Manager</SelectItem>
-                      <SelectItem value="Production Assistant">Production Assistant</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-muted-foreground">
-                    New team members will be assigned this role by default.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Editor Invitations */}
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Production Team (Editors)</CardTitle>
+                    <CardTitle>Stage Management Team (Editors)</CardTitle>
                     <CardDescription>
                       Invite up to 3 team members with editing permissions for this production.
                     </CardDescription>
