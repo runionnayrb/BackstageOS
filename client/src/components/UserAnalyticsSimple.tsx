@@ -47,6 +47,14 @@ interface UserAnalytics {
     lastSession: Date | null;
   };
   costBreakdown: Array<{ service: string; cost: number; requests: number }>;
+  searchMetrics: {
+    totalSearches: number;
+    dailySearches: number;
+    naturalLanguageSearches: number;
+    advancedSearches: number;
+    averageResponseTime: number;
+    searchCost: number;
+  };
 }
 
 interface BillingPlan {
@@ -386,6 +394,38 @@ export default function UserAnalyticsSimple() {
                             <div>Sessions: {user.sessionStats.totalSessions}</div>
                             <div>Avg Session: {formatTime(user.sessionStats.averageSession)}</div>
                           </div>
+
+                          {user.searchMetrics && user.searchMetrics.totalSearches > 0 && (
+                            <div>
+                              <div className="text-sm font-medium mb-1">Search Usage (30 days):</div>
+                              <div className="space-y-1 text-xs">
+                                <div className="flex justify-between">
+                                  <span>Total Searches:</span>
+                                  <span>{user.searchMetrics.totalSearches}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Daily Searches:</span>
+                                  <span>{user.searchMetrics.dailySearches}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Natural Language:</span>
+                                  <span>{user.searchMetrics.naturalLanguageSearches}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Advanced Searches:</span>
+                                  <span>{user.searchMetrics.advancedSearches}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Avg Response Time:</span>
+                                  <span>{user.searchMetrics.averageResponseTime}ms</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Search Cost:</span>
+                                  <span>{formatCurrency(user.searchMetrics.searchCost)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
                           {user.costBreakdown.length > 0 && (
                             <div>

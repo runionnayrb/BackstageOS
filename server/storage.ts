@@ -4112,6 +4112,27 @@ export class DatabaseStorage implements IStorage {
         .sort((a, b) => b.usage - a.usage)
         .slice(0, 5);
 
+      // Get search history and metrics
+      const searchHistory = await db.select()
+        .from(searchHistory)
+        .where(
+          and(
+            eq(searchHistory.userId, user.id),
+            sql`${searchHistory.createdAt} >= ${thirtyDaysAgo}`
+          )
+        );
+
+      const searchMetrics = {
+        totalSearches: searchHistory.length,
+        dailySearches: searchHistory.filter(search => search.createdAt >= todayStart).length,
+        naturalLanguageSearches: searchHistory.filter(search => search.queryType === 'natural').length,
+        advancedSearches: searchHistory.filter(search => search.queryType === 'advanced').length,
+        averageResponseTime: searchHistory.length > 0 
+          ? Math.round(searchHistory.reduce((sum, search) => sum + (search.responseTime || 0), 0) / searchHistory.length)
+          : 0,
+        searchCost: monthlyCosts.filter(cost => cost.service === 'OpenAI' && (cost.description?.includes('search') || cost.endpoint?.includes('search'))).reduce((sum, cost) => sum + parseFloat(cost.cost), 0)
+      };
+
       // Cost breakdown by service
       const costBreakdown = monthlyCosts.reduce((breakdown, cost) => {
         const existing = breakdown.find(item => item.service === cost.service);
@@ -4141,6 +4162,7 @@ export class DatabaseStorage implements IStorage {
         },
         costBreakdown,
         lastSeen: lastSession?.startTime || null,
+        searchMetrics,
         // Include billing status fields for user status calculation
         isActive: user.isActive ?? true, // Default to true if not set
         subscriptionStatus: user.subscriptionStatus,
