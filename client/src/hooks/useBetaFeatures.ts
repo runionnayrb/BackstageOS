@@ -42,19 +42,33 @@ export function useBetaFeatures() {
     // Check if user has beta access and the specific feature
     if (!user.betaAccess) return false;
     
-    const betaFeatures = user.betaFeatures ? JSON.parse(user.betaFeatures as string) : [];
-    return betaFeatures.includes(featureId);
+    try {
+      const betaFeatures = user.betaFeatures ? JSON.parse(user.betaFeatures as string) : [];
+      return betaFeatures.includes(featureId);
+    } catch (error) {
+      console.warn('Error parsing betaFeatures JSON:', error, 'Raw value:', user.betaFeatures);
+      return false;
+    }
   };
 
   const canAccessFeature = (featureId: string): boolean => {
     // Debug logging
+    const betaFeaturesArray = user?.betaFeatures ? (() => {
+      try {
+        return JSON.parse(user.betaFeatures as string);
+      } catch {
+        return [];
+      }
+    })() : [];
+    
     console.log(`🔍 Beta Access Check for ${featureId}:`, {
       userId: user?.id,
       isAdmin: user?.isAdmin,
       featureEnabled: isFeatureEnabled(featureId),
       userAccess: hasUserAccess(featureId),
       betaAccess: user?.betaAccess,
-      betaFeatures: user?.betaFeatures ? JSON.parse(user.betaFeatures as string) : []
+      betaFeatures: betaFeaturesArray,
+      rawBetaFeatures: user?.betaFeatures
     });
     
     // Admins can always access everything
