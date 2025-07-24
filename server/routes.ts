@@ -14155,6 +14155,58 @@ The Production Team`;
           });
         });
         
+        // Search schedule events for questions about schedules
+        console.log('🔍 Searching schedule events...');
+        const allEvents = [];
+        
+        // Get events from all user's projects
+        for (const project of projects) {
+          try {
+            const events = await storage.getEventsByProjectId(project.id);
+            allEvents.push(...events.map(event => ({ ...event, projectName: project.name, projectId: project.id })));
+          } catch (error) {
+            console.log(`🔍 Could not get events for project ${project.id}:`, error.message);
+          }
+        }
+        
+        console.log('🔍 Found total events:', allEvents.length);
+        
+        const matchingEvents = allEvents.filter(event => {
+          const searchText = [
+            event.title,
+            event.description,
+            event.location,
+            event.eventType,
+            event.projectName
+          ].filter(Boolean).join(' ').toLowerCase();
+          
+          return keywords.some(keyword => searchText.includes(keyword));
+        });
+        
+        console.log('🔍 Matching schedule events:', matchingEvents.length);
+        
+        matchingEvents.forEach(event => {
+          results.push({
+            id: `event-${event.id}`,
+            type: 'event',
+            title: event.title,
+            description: `${event.eventType || 'Event'} • ${event.location || 'TBD'}${event.description ? ` • ${event.description}` : ''}`,
+            snippet: event.description || '',
+            date: event.startTime?.toISOString(),
+            relevanceScore: keywords.some(keyword => 
+              event.title.toLowerCase().includes(keyword)
+            ) ? 3.0 + Math.random() : 1.0 + Math.random(),
+            metadata: {
+              eventType: event.eventType,
+              location: event.location,
+              startTime: event.startTime,
+              endTime: event.endTime
+            },
+            projectName: event.projectName,
+            url: `/shows/${event.projectId}/schedule`
+          });
+        });
+        
       } catch (searchError) {
         console.error('Search error:', searchError);
       }
