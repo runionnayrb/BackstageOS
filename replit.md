@@ -394,10 +394,11 @@ Required environment variables:
 - GET /api/schedule-events/:id/with-children - Get event with all child events
 
 **Frontend Interface Integration:**
-- Updated ScheduleEvent interface across all schedule components to include parentEventId and isProductionLevel fields
+- Updated ScheduleEvent interface across ALL schedule components to include parentEventId and isProductionLevel fields
 - Added childEvents array property for events with hierarchical relationships
-- Updated monthly-schedule-view-new.tsx, daily-schedule-view-vertical.tsx, daily-schedule-view.tsx, and daily-schedule-view-broken.tsx interfaces
+- Updated ALL schedule views: monthly-schedule-view-new.tsx, weekly-schedule-view.tsx, daily-schedule-view.tsx, daily-schedule-view-vertical.tsx, and daily-schedule-view-broken.tsx
 - Created comprehensive ScheduleRelationshipMapping component with production/daily event management interface
+- Fixed critical bug where weekly view was missing isProductionLevel in edit modal's initialValues, causing checkbox state not to persist
 
 **Schedule Relationship Mapping Component Features:**
 - Production Events Panel showing all production-level events for selection
@@ -406,6 +407,12 @@ Required environment variables:
 - Visual relationship indicators with green badges for linked events
 - Link/unlink functionality with proper mutation handling and cache invalidation
 - Schedule Relationship Overview showing connection between production planning and actual execution
+
+**Production-Level Event Toggle Implementation:**
+- Added "Production-Level Event" checkbox to EventForm component with proper state management
+- Backend correctly stores and retrieves isProductionLevel field in database
+- All schedule views now properly display and edit production-level event status
+- Fixed weekly view edit modal to properly pass isProductionLevel value to form
 
 **Professional Stage Management Benefits:**
 - Track plan versus reality execution without automatic synchronization that could disrupt workflows
@@ -425,7 +432,7 @@ Required environment variables:
 - Smart relationship suggestions help stage managers track variance between planned and actual execution
 - Professional stage management workflow enhancement with zero risk to existing data
 
-**Status**: Complete Schedule Relationship Mapping system operational with full database schema, backend API, frontend interface, and routing integration. System provides professional stage management tools for tracking production plan versus execution reality with optional relationship mapping.
+**Status**: Complete Schedule Relationship Mapping system fully operational including production-level event toggle. All schedule views (monthly, weekly, daily) now properly support isProductionLevel field with consistent interface across the entire platform.
 
 ### July 24, 2025: **COMPREHENSIVE SMART SEARCH SYSTEM IMPLEMENTATION COMPLETE**
 **Successfully implemented complete intelligent search system serving as the "brain of the production" for BackstageOS:**
