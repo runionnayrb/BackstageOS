@@ -72,7 +72,7 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/team-members`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
       toast({
         title: "Team member invited",
         description: `${variant === "editor" ? "Editor" : "Viewer"} has been invited to the production.`,

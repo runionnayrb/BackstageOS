@@ -40,11 +40,7 @@ export function TeamMembersList({ accessLevel }: TeamMembersListProps) {
   const queryClient = useQueryClient();
 
   const { data: teamMembers = [], isLoading } = useQuery({
-    queryKey: [`/api/projects/${projectId}/team-members`],
-    queryFn: async (): Promise<TeamMember[]> => {
-      const response = await apiRequest(`/api/projects/${projectId}/team-members`);
-      return response;
-    },
+    queryKey: ["/api/projects", projectId, "team-members"],
     enabled: !!projectId,
   });
 
@@ -55,7 +51,7 @@ export function TeamMembersList({ accessLevel }: TeamMembersListProps) {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/team-members`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", projectId, "team-members"] });
       toast({
         title: "Team member removed",
         description: "The team member has been removed from the production.",

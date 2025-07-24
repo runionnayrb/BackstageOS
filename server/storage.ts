@@ -5179,7 +5179,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUserAccessLevel(userId: number, projectId: number): Promise<string | null> {
     // Check if user is admin first
-    const user = await this.getUserById(userId);
+    const user = await this.getUser(userId.toString());
     if (user?.isAdmin) {
       return 'admin';
     }
