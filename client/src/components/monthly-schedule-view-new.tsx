@@ -583,6 +583,7 @@ export default function MonthlyScheduleView({
           </DialogHeader>
           {editEventDialog.event && (() => {
             console.log('🚨 EDIT DIALOG EVENT:', JSON.stringify(editEventDialog.event, null, 2));
+            console.log('🚨 Event isProductionLevel value:', editEventDialog.event.isProductionLevel);
             const initialValuesForForm = {
               title: editEventDialog.event.title,
               description: editEventDialog.event.description,
