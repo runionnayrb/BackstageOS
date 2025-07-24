@@ -46,7 +46,6 @@ export default function GlobalSearchBar({
     onSuccess: (data) => {
       console.log('🔍 Search results received:', data);
       setResults(data.results || []);
-      setIsOpen(true);
     },
     onError: (error: any) => {
       console.error('🔍 Search error:', error);
