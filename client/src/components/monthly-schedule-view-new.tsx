@@ -87,7 +87,7 @@ export default function MonthlyScheduleView({
   const { data: events = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/schedule-events`],
     select: (data) => {
-      console.log('🎯 EVENTS QUERY - Looking for event ID 55:', data?.find(e => e.id === 55));
+      console.log('🎯 ALL EVENTS WITH "Another test event":', data?.filter(e => e.title === "Another test event"));
       return data;
     }
   });
