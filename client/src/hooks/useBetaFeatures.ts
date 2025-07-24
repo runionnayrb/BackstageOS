@@ -84,9 +84,9 @@ export function useBetaFeatures() {
       rawBetaFeatures: effectiveUser?.betaFeatures
     });
     
-    // Only original admin (not viewed user) can bypass restrictions
+    // Original admin can bypass restrictions when NOT viewing as another user
     if (user?.isAdmin && !switchStatus?.isViewingAs) {
-      console.log(`✅ Original admin access granted for ${featureId}`);
+      console.log(`✅ Original admin bypass - full access granted for ${featureId}`);
       return true;
     }
     
