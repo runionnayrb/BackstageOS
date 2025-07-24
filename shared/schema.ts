@@ -3575,3 +3575,120 @@ export type InsertNoteAttachment = z.infer<typeof insertNoteAttachmentSchema>;
 
 export type DailyCall = typeof dailyCalls.$inferSelect;
 export type InsertDailyCall = z.infer<typeof insertDailyCallSchema>;
+
+// ========== SEARCH SYSTEM ==========
+
+// Search indexes for full-text search optimization
+export const searchIndexes = pgTable("search_indexes", {
+  id: serial("id").primaryKey(),
+  entityType: varchar("entity_type").notNull(), // 'event', 'contact', 'report', 'prop', 'costume', 'script', 'email', 'note'
+  entityId: integer("entity_id").notNull(),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(),
+  content: text("content").notNull(),
+  searchVector: text("search_vector"), // Full-text search vector
+  metadata: jsonb("metadata").notNull().default('{}'),
+  relevanceBoost: decimal("relevance_boost").default("1.0"), // Boost factor for search ranking
+  isActive: boolean("is_active").default(true),
+  lastIndexed: timestamp("last_indexed").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Search history for users
+export const searchHistory = pgTable("search_history", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  query: text("query").notNull(),
+  queryType: varchar("query_type").notNull(), // 'natural', 'advanced'
+  filters: jsonb("filters").default('[]'),
+  resultCount: integer("result_count").default(0),
+  clickedResultId: varchar("clicked_result_id"), // Track which result was clicked
+  responseTime: integer("response_time"), // Search response time in ms
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Search suggestions for autocomplete
+export const searchSuggestions = pgTable("search_suggestions", {
+  id: serial("id").primaryKey(),
+  text: varchar("text").notNull(),
+  type: varchar("type").notNull(), // 'entity', 'action', 'filter'
+  category: varchar("category"), // 'person', 'event', 'prop', etc.
+  popularity: integer("popularity").default(1),
+  projectId: integer("project_id").references(() => projects.id, { onDelete: "cascade" }),
+  isGlobal: boolean("is_global").default(false), // Global suggestions vs project-specific
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Search analytics for performance monitoring
+export const searchAnalytics = pgTable("search_analytics", {
+  id: serial("id").primaryKey(),
+  date: date("date").notNull(),
+  totalSearches: integer("total_searches").default(0),
+  naturalLanguageSearches: integer("natural_language_searches").default(0),
+  advancedSearches: integer("advanced_searches").default(0),
+  avgResponseTime: decimal("avg_response_time"),
+  uniqueUsers: integer("unique_users").default(0),
+  popularQueries: jsonb("popular_queries").default('[]'),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ========== SEARCH SYSTEM RELATIONS ==========
+
+export const searchIndexesRelations = relations(searchIndexes, ({ one }) => ({
+  project: one(projects, {
+    fields: [searchIndexes.projectId],
+    references: [projects.id],
+  }),
+}));
+
+export const searchHistoryRelations = relations(searchHistory, ({ one }) => ({
+  user: one(users, {
+    fields: [searchHistory.userId],  
+    references: [users.id],
+  }),
+}));
+
+export const searchSuggestionsRelations = relations(searchSuggestions, ({ one }) => ({
+  project: one(projects, {
+    fields: [searchSuggestions.projectId],
+    references: [projects.id],
+  }),
+}));
+
+// ========== SEARCH SYSTEM INSERT SCHEMAS ==========
+
+export const insertSearchIndexSchema = createInsertSchema(searchIndexes).omit({
+  id: true,
+  lastIndexed: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSearchHistorySchema = createInsertSchema(searchHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSearchSuggestionSchema = createInsertSchema(searchSuggestions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSearchAnalyticsSchema = createInsertSchema(searchAnalytics).omit({
+  id: true,
+  createdAt: true,
+});
+
+// ========== SEARCH SYSTEM TYPES ==========
+
+export type SearchIndex = typeof searchIndexes.$inferSelect;
+export type InsertSearchIndex = z.infer<typeof insertSearchIndexSchema>;
+export type SearchHistory = typeof searchHistory.$inferSelect;
+export type InsertSearchHistory = z.infer<typeof insertSearchHistorySchema>;
+export type SearchSuggestion = typeof searchSuggestions.$inferSelect;
+export type InsertSearchSuggestion = z.infer<typeof insertSearchSuggestionSchema>;
+export type SearchAnalytics = typeof searchAnalytics.$inferSelect;
+export type InsertSearchAnalytics = z.infer<typeof insertSearchAnalyticsSchema>;

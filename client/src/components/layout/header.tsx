@@ -10,6 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from "react";
 import { useAdminView } from "@/contexts/AdminViewContext";
+import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
 
 interface SwitchStatus {
   isViewingAs: boolean;
@@ -207,6 +208,11 @@ export default function Header() {
                 BackstageOS
               </span>
             </Button>
+          </div>
+
+          {/* Search Bar - centered */}
+          <div className="flex-1 max-w-md mx-8 hidden md:block">
+            <GlobalSearchBar />
           </div>
           
           <div className="flex items-center space-x-4">

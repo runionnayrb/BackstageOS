@@ -10,6 +10,7 @@ import { useSEO } from "@/hooks/useSEO";
 import { useEffect } from "react";
 import ErrorBoundary from "@/components/error-boundary";
 import { AdminViewProvider } from "@/contexts/AdminViewContext";
+import { SearchProvider } from "@/components/search/SearchContext";
 import AuthPage from "@/pages/auth-page";
 import ProfileSelection from "@/pages/profile-selection";
 import Layout from "@/components/layout/layout";
@@ -270,10 +271,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AdminViewProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <SearchProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          </SearchProvider>
         </AdminViewProvider>
       </AuthProvider>
     </QueryClientProvider>

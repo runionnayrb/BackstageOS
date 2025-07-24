@@ -14057,6 +14057,102 @@ The Production Team`;
     }
   });
 
+  // ========== SEARCH API ROUTES ==========
+  
+  // Natural language search
+  app.post('/api/search/natural', isAuthenticated, async (req: any, res) => {
+    try {
+      const { query, filters = [] } = req.body;
+      const userId = req.user.id;
+      const projectId = req.body.projectId;
+
+      if (!query?.trim()) {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+
+      const { searchEngine } = await import('./search/searchEngine.js');
+      const result = await searchEngine.performNaturalLanguageSearch({
+        query,
+        filters,
+        userId,
+        projectId,
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("Natural language search error:", error);
+      res.status(500).json({ message: "Search failed" });
+    }
+  });
+
+  // Advanced search with filters
+  app.post('/api/search/advanced', isAuthenticated, async (req: any, res) => {
+    try {
+      const { filters = [] } = req.body;
+      const userId = req.user.id;
+      const projectId = req.body.projectId;
+
+      const { searchEngine } = await import('./search/searchEngine.js');
+      const result = await searchEngine.performAdvancedSearch({
+        filters,
+        userId,
+        projectId,
+      });
+
+      res.json(result);
+    } catch (error) {
+      console.error("Advanced search error:", error);
+      res.status(500).json({ message: "Advanced search failed" });
+    }
+  });
+
+  // Get search suggestions for autocomplete
+  app.get('/api/search/suggestions', isAuthenticated, async (req: any, res) => {
+    try {
+      const input = req.query.q as string || '';
+      const userId = req.user.id;
+      const projectId = req.query.projectId ? parseInt(req.query.projectId as string) : undefined;
+
+      if (input.length < 2) {
+        return res.json({ suggestions: [] });
+      }
+
+      const { searchEngine } = await import('./search/searchEngine.js');
+      const result = await searchEngine.getSuggestions(input, userId, projectId);
+
+      res.json(result);
+    } catch (error) {
+      console.error("Search suggestions error:", error);
+      res.status(500).json({ message: "Failed to get suggestions" });
+    }
+  });
+
+  // Get search history for user
+  app.get('/api/search/history', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const limit = parseInt(req.query.limit as string) || 10;
+
+      const searchHistory = await storage.getSearchHistoryByUserId(userId, limit);
+      res.json({ history: searchHistory });
+    } catch (error) {
+      console.error("Search history error:", error);
+      res.status(500).json({ message: "Failed to get search history" });
+    }
+  });
+
+  // Clear search history for user
+  app.delete('/api/search/history', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      await storage.clearSearchHistoryByUserId(userId);
+      res.json({ message: "Search history cleared" });
+    } catch (error) {
+      console.error("Clear search history error:", error);
+      res.status(500).json({ message: "Failed to clear search history" });
+    }
+  });
+
   const server = createServer(app);
   
   // Start email cleanup scheduler for automatic 30-day trash cleanup

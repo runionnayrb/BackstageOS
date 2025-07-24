@@ -75,6 +75,10 @@ import {
   billingHistory,
   paymentMethods,
   subscriptionUsage,
+  searchHistory,
+  searchIndexes,
+  searchSuggestions,
+  searchAnalytics,
 
   type User,
   type UpsertUser,
@@ -216,6 +220,14 @@ import {
   type InsertPaymentMethod,
   type SubscriptionUsage,
   type InsertSubscriptionUsage,
+  type SearchHistory,
+  type InsertSearchHistory,
+  type SearchIndex,
+  type InsertSearchIndex,  
+  type SearchSuggestion,
+  type InsertSearchSuggestion,
+  type SearchAnalytics,
+  type InsertSearchAnalytics,
 
 } from "@shared/schema";
 import { db } from "./db";
@@ -641,6 +653,13 @@ export interface IStorage {
   
   getSubscriptionUsage(userId: number, planId: string): Promise<SubscriptionUsage[]>;
   createSubscriptionUsage(usage: InsertSubscriptionUsage): Promise<SubscriptionUsage>;
+
+  // Search system operations
+  getSearchHistoryByUserId(userId: number, limit?: number): Promise<SearchHistory[]>;
+  clearSearchHistoryByUserId(userId: number): Promise<void>;
+  createSearchIndex(index: InsertSearchIndex): Promise<SearchIndex>;
+  updateSearchIndex(id: number, index: Partial<InsertSearchIndex>): Promise<SearchIndex>;
+  getSearchSuggestionsByQuery(query: string, projectId?: number): Promise<SearchSuggestion[]>;
   
   updateUserSubscription(userId: number, subscriptionData: {
     stripeCustomerId?: string;
@@ -4765,6 +4784,58 @@ export class DatabaseStorage implements IStorage {
   async createSubscriptionUsage(usage: InsertSubscriptionUsage): Promise<SubscriptionUsage> {
     const result = await db.insert(subscriptionUsage).values(usage).returning();
     return result[0];
+  }
+
+  // ========== SEARCH SYSTEM OPERATIONS ==========
+
+  async getSearchHistoryByUserId(userId: number, limit: number = 10): Promise<SearchHistory[]> {
+    const result = await db
+      .select()
+      .from(searchHistory)
+      .where(eq(searchHistory.userId, userId))
+      .orderBy(desc(searchHistory.createdAt))
+      .limit(limit);
+    return result;
+  }
+
+  async clearSearchHistoryByUserId(userId: number): Promise<void> {
+    await db.delete(searchHistory).where(eq(searchHistory.userId, userId));
+  }
+
+  async createSearchIndex(index: InsertSearchIndex): Promise<SearchIndex> {
+    const result = await db.insert(searchIndexes).values(index).returning();
+    return result[0];
+  }
+
+  async updateSearchIndex(id: number, index: Partial<InsertSearchIndex>): Promise<SearchIndex> {
+    const result = await db
+      .update(searchIndexes)
+      .set({ ...index, updatedAt: new Date() })
+      .where(eq(searchIndexes.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async getSearchSuggestionsByQuery(query: string, projectId?: number): Promise<SearchSuggestion[]> {
+    let queryBuilder = db
+      .select()
+      .from(searchSuggestions)
+      .where(sql`${searchSuggestions.text} ILIKE ${`%${query}%`}`);
+
+    if (projectId) {
+      queryBuilder = queryBuilder.where(
+        or(
+          eq(searchSuggestions.projectId, projectId),
+          eq(searchSuggestions.isGlobal, true)
+        )
+      );
+    }
+
+    const result = await queryBuilder
+      .orderBy(desc(searchSuggestions.popularity), searchSuggestions.text)
+      .limit(10);
+    
+    return result;
   }
 
   // User Subscription Update (overridden method to handle billing fields)
