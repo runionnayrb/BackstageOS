@@ -47,6 +47,11 @@ export function useBetaFeatures() {
   };
 
   const canAccessFeature = (featureId: string): boolean => {
+    // Admins can always access everything
+    if (user?.isAdmin) {
+      return true;
+    }
+    
     // Feature must be enabled in beta settings AND user must have access
     return isFeatureEnabled(featureId) && hasUserAccess(featureId);
   };

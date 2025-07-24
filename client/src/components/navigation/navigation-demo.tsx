@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import BreadcrumbNavigation from "./breadcrumb-navigation";
-import QuickSectionSwitcher from "./quick-section-switcher";
+
 import RecentShowsSwitcher from "./recent-shows-switcher";
 import ContextAwareBackButton from "./context-aware-back-button";
 import { useNavigation } from "@/hooks/useNavigation";
@@ -53,36 +53,7 @@ export default function NavigationDemo() {
         </CardContent>
       </Card>
 
-      {/* Quick Section Switcher Demo */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            Quick Section Switcher
-            <Badge variant="outline">Show Context</Badge>
-          </CardTitle>
-          <CardDescription>
-            Fast switching between sections within a show (Reports, Calendar, Script, etc.)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="bg-gray-50 p-4 rounded-lg flex items-center">
-            <QuickSectionSwitcher 
-              currentShowId="1"
-              currentShowName="Hamlet"
-              currentSection="reports"
-            />
-          </div>
-          <div className="text-sm text-gray-600">
-            <strong>Key Features:</strong>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Shows current section with icon</li>
-              <li>Dropdown reveals all available sections</li>
-              <li>Active section highlighted</li>
-              <li>Icons provide visual context</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Quick Section Switcher Demo - REMOVED (Outdated) */}
 
       {/* Recent Shows Switcher Demo */}
       <Card>

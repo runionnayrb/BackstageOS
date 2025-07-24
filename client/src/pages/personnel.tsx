@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ContactDetailModal } from "@/components/contact-detail-modal";
 import { WeeklyAvailabilityEditor } from "@/components/weekly-availability-editor";
 import { ContactForm } from "@/components/contact-form";
-import QuickSectionSwitcher from "@/components/navigation/quick-section-switcher";
+
 
 interface PersonnelParams {
   id: string;
