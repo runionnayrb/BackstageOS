@@ -568,11 +568,15 @@ class SearchEngine {
    */
   private async searchEmails(processedQuery: any, filters: any[], userId: number): Promise<SearchResult[]> {
     try {
+      console.log('🔍 Starting email search for userId:', userId, 'keywords:', processedQuery.keywords);
+      
       // First get user's email accounts
       const userAccounts = await db
         .select({ id: emailAccounts.id })
         .from(emailAccounts)
         .where(eq(emailAccounts.userId, userId));
+      
+      console.log('🔍 Found email accounts:', userAccounts.length);
       
       if (userAccounts.length === 0) {
         return []; // No email accounts for this user
@@ -610,6 +614,8 @@ class SearchEngine {
         .where(whereClause)
         .orderBy(desc(emailThreads.lastMessageAt))
         .limit(20);
+
+      console.log('🔍 Email search results found:', emailResults.length);
 
       // Get project names
       const projectIds = [...new Set(emailResults.map(e => e.projectId).filter(Boolean))];
@@ -785,3 +791,6 @@ class SearchEngine {
 }
 
 export const searchEngine = new SearchEngine();
+
+// Test the search engine directly
+console.log('🔍 Search engine initialized successfully');
