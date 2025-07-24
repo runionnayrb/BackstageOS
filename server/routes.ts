@@ -5731,6 +5731,7 @@ Best regards,
 
   // PATCH route for project-specific schedule events (used by monthly view)
   app.patch('/api/projects/:projectId/schedule-events/:eventId', isAuthenticated, async (req: any, res) => {
+    console.log('🚨 PROJECT-SPECIFIC PATCH ROUTE HIT!', req.params);
     try {
       const projectId = parseInt(req.params.projectId);
       const eventId = parseInt(req.params.eventId);
@@ -6039,6 +6040,7 @@ Best regards,
   });
 
   app.patch('/api/schedule-events/:id', isAuthenticated, async (req: any, res) => {
+    console.log('🚨 GENERIC PATCH ROUTE HIT!', req.params, req.url);
     try {
       const eventId = parseInt(req.params.id);
       const event = await storage.getScheduleEventById(eventId);
