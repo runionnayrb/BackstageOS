@@ -116,6 +116,13 @@ export const teamMembers = pgTable("team_members", {
   role: varchar("role").notNull(), // Production Stage Manager, Stage Manager, Production Assistant
   userType: varchar("user_type").notNull().default("editor"), // editor, viewer
   status: varchar("status").notNull().default("pending"), // pending, accepted, declined
+  invitedBy: integer("invited_by").notNull().references(() => users.id), // Track who invited this member
+  accessLevel: varchar("access_level").notNull().default("editor"), // editor, viewer for compatibility
+  isActive: boolean("is_active").default(true), // Track if editor is active on this show
+  lastActiveAt: timestamp("last_active_at"), // Track last activity
+  totalLogins: integer("total_logins").default(0), // Track login count
+  totalMinutesActive: integer("total_minutes_active").default(0), // Track active time
+  featuresUsed: jsonb("features_used"), // Track which features they use
   invitedAt: timestamp("invited_at").defaultNow(),
   joinedAt: timestamp("joined_at"),
   createdAt: timestamp("created_at").defaultNow(),

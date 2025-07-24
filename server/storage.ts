@@ -292,6 +292,11 @@ export interface IStorage {
 
   // Team member operations
   getTeamMembersByProjectId(projectId: number): Promise<TeamMember[]>;
+  // Editor limit and duplicate protection methods
+  getEditorActiveShowCount(email: string): Promise<number>;
+  checkEditorDuplicates(email: string, name: string): Promise<{ duplicate: boolean; type: string; existingMember?: any }>;
+  getAllEditorsForAdmin(): Promise<any[]>;
+  getUserInvitedTeamMembers(userId: number): Promise<any[]>;
   inviteTeamMember(teamMember: InsertTeamMember): Promise<TeamMember>;
   updateTeamMemberStatus(id: number, status: string): Promise<TeamMember>;
   deleteTeamMember(id: number): Promise<void>;
@@ -5129,6 +5134,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createTeamMember(teamMember: InsertTeamMember): Promise<TeamMember> {
+    // Check editor limits before creating
+    if (teamMember.userType === 'editor' || teamMember.accessLevel === 'editor') {
+      const activeShowCount = await this.getEditorActiveShowCount(teamMember.email);
+      if (activeShowCount >= 2) {
+        throw new Error(`Editor already assigned to maximum 2 active shows (currently: ${activeShowCount})`);
+      }
+
+      // Check for duplicates
+      const duplicateCheck = await this.checkEditorDuplicates(teamMember.email, teamMember.name || '');
+      if (duplicateCheck.duplicate) {
+        throw new Error(`Duplicate editor detected: ${duplicateCheck.type}. Existing: ${duplicateCheck.existingMember?.name} (${duplicateCheck.existingMember?.email})`);
+      }
+    }
+
     const result = await db.insert(teamMembers).values({
       ...teamMember,
       invitedAt: new Date(),
@@ -5198,6 +5217,163 @@ export class DatabaseStorage implements IStorage {
   async getUserProjectAccess(userId: number, projectId: number): Promise<boolean> {
     const accessLevel = await this.getUserAccessLevel(userId, projectId);
     return accessLevel !== null;
+  }
+
+  // ========== EDITOR MANAGEMENT METHODS ==========
+
+  async getEditorActiveShowCount(email: string): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(teamMembers)
+      .innerJoin(projects, eq(teamMembers.projectId, projects.id))
+      .where(and(
+        eq(teamMembers.email, email),
+        or(
+          eq(teamMembers.userType, 'editor'),
+          eq(teamMembers.accessLevel, 'editor')
+        ),
+        eq(teamMembers.isActive, true),
+        eq(teamMembers.status, 'accepted'),
+        not(eq(projects.status, 'closed'))
+      ));
+    
+    return result[0]?.count || 0;
+  }
+
+  async checkEditorDuplicates(email: string, name: string): Promise<{ duplicate: boolean; type: string; existingMember?: any }> {
+    // Check for exact email match
+    const emailMatch = await db
+      .select({
+        id: teamMembers.id,
+        name: teamMembers.name,
+        email: teamMembers.email,
+        projectName: projects.name
+      })
+      .from(teamMembers)
+      .innerJoin(projects, eq(teamMembers.projectId, projects.id))
+      .where(and(
+        eq(teamMembers.email, email),
+        or(
+          eq(teamMembers.userType, 'editor'),
+          eq(teamMembers.accessLevel, 'editor')
+        ),
+        eq(teamMembers.isActive, true),
+        not(eq(projects.status, 'closed'))
+      ))
+      .limit(1);
+
+    if (emailMatch.length > 0) {
+      return {
+        duplicate: true,
+        type: 'same email, different name',
+        existingMember: emailMatch[0]
+      };
+    }
+
+    // Check for same name with different email
+    if (name) {
+      const nameMatch = await db
+        .select({
+          id: teamMembers.id,
+          name: teamMembers.name,
+          email: teamMembers.email,
+          projectName: projects.name
+        })
+        .from(teamMembers)
+        .innerJoin(projects, eq(teamMembers.projectId, projects.id))
+        .where(and(
+          eq(teamMembers.name, name),
+          not(eq(teamMembers.email, email)),
+          or(
+            eq(teamMembers.userType, 'editor'),
+            eq(teamMembers.accessLevel, 'editor')
+          ),
+          eq(teamMembers.isActive, true),
+          not(eq(projects.status, 'closed'))
+        ))
+        .limit(1);
+
+      if (nameMatch.length > 0) {
+        return {
+          duplicate: true,
+          type: 'same name, different email',
+          existingMember: nameMatch[0]
+        };
+      }
+    }
+
+    return { duplicate: false, type: '' };
+  }
+
+  async getAllEditorsForAdmin(): Promise<any[]> {
+    const result = await db
+      .select({
+        id: teamMembers.id,
+        projectId: teamMembers.projectId,
+        projectName: projects.name,
+        userId: teamMembers.userId,
+        email: teamMembers.email,
+        name: teamMembers.name,
+        role: teamMembers.role,
+        status: teamMembers.status,
+        isActive: teamMembers.isActive,
+        lastActiveAt: teamMembers.lastActiveAt,
+        totalLogins: teamMembers.totalLogins,
+        totalMinutesActive: teamMembers.totalMinutesActive,
+        featuresUsed: teamMembers.featuresUsed,
+        invitedBy: teamMembers.invitedBy,
+        invitedAt: teamMembers.invitedAt,
+        joinedAt: teamMembers.joinedAt,
+        // Include inviter information
+        inviterName: users.firstName,
+        inviterLastName: users.lastName,
+        inviterEmail: users.email
+      })
+      .from(teamMembers)
+      .innerJoin(projects, eq(teamMembers.projectId, projects.id))
+      .leftJoin(users, eq(teamMembers.invitedBy, users.id))
+      .where(and(
+        or(
+          eq(teamMembers.userType, 'editor'),
+          eq(teamMembers.accessLevel, 'editor')
+        ),
+        not(eq(projects.status, 'closed'))
+      ))
+      .orderBy(teamMembers.email, projects.name);
+
+    return result;
+  }
+
+  async getUserInvitedTeamMembers(userId: number): Promise<any[]> {
+    const result = await db
+      .select({
+        id: teamMembers.id,
+        projectId: teamMembers.projectId,
+        projectName: projects.name,
+        email: teamMembers.email,
+        name: teamMembers.name,
+        role: teamMembers.role,
+        status: teamMembers.status,
+        isActive: teamMembers.isActive,
+        userType: teamMembers.userType,
+        accessLevel: teamMembers.accessLevel,
+        lastActiveAt: teamMembers.lastActiveAt,
+        totalLogins: teamMembers.totalLogins,
+        invitedAt: teamMembers.invitedAt,
+        joinedAt: teamMembers.joinedAt
+      })
+      .from(teamMembers)
+      .innerJoin(projects, eq(teamMembers.projectId, projects.id))
+      .where(and(
+        eq(teamMembers.invitedBy, userId),
+        or(
+          eq(teamMembers.userType, 'editor'),
+          eq(teamMembers.accessLevel, 'editor')
+        )
+      ))
+      .orderBy(teamMembers.invitedAt);
+
+    return result;
   }
 
 }

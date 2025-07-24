@@ -1,6 +1,6 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { useParams } from "wouter";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import {
   Dialog,
@@ -27,11 +27,12 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Eye } from "lucide-react";
+import { UserPlus, Eye, AlertTriangle, Shield } from "lucide-react";
 
 const inviteTeamMemberSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -63,6 +64,23 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
     },
   });
 
+  // Check editor limits when email is provided and variant is editor
+  const checkLimitsMutation = useMutation({
+    mutationFn: async ({ email, name }: { email: string; name: string }) => {
+      const response = await apiRequest('POST', '/api/admin/check-editor-limits', { email, name });
+      return response.json();
+    },
+  });
+
+  const emailValue = form.watch("email");
+  
+  // Trigger limits check when email changes and variant is editor
+  React.useEffect(() => {
+    if (variant === "editor" && emailValue && emailValue.includes('@')) {
+      checkLimitsMutation.mutate({ email: emailValue, name: "" });
+    }
+  }, [emailValue, variant]);
+
   const inviteTeamMemberMutation = useMutation({
     mutationFn: async (data: InviteTeamMemberForm) => {
       return apiRequest(`/api/projects/${projectId}/team-members`, {
@@ -90,8 +108,23 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
   });
 
   const onSubmit = (data: InviteTeamMemberForm) => {
+    // For editors, check limits before submitting
+    if (variant === "editor" && !checkLimitsMutation.data?.canInvite) {
+      toast({
+        title: "Cannot invite editor",
+        description: "Editor limits exceeded or duplicate detected. Please check the warnings above.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     inviteTeamMemberMutation.mutate(data);
   };
+
+  const limitsData = checkLimitsMutation.data;
+  const showLimitWarning = variant === "editor" && limitsData && !limitsData.canInvite;
+
+
 
   const defaultTrigger = variant === "editor" ? (
     <Button>
@@ -166,6 +199,42 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
               )}
             />
 
+            {/* Editor Limits Warning */}
+            {variant === "editor" && emailValue && checkLimitsMutation.isLoading && (
+              <Alert>
+                <Shield className="h-4 w-4" />
+                <AlertDescription>
+                  Checking editor limits and duplicate protection...
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {showLimitWarning && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  {limitsData?.limitReached && (
+                    <div>Editor already assigned to maximum 2 active shows ({limitsData.activeShowCount} shows).</div>
+                  )}
+                  {limitsData?.duplicateCheck?.duplicate && (
+                    <div>
+                      Duplicate editor detected: {limitsData.duplicateCheck.type}. 
+                      Existing: {limitsData.duplicateCheck.existingMember?.name} ({limitsData.duplicateCheck.existingMember?.email})
+                    </div>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {variant === "editor" && limitsData?.canInvite && (
+              <Alert>
+                <Shield className="h-4 w-4" />
+                <AlertDescription>
+                  ✓ Editor can be invited ({limitsData.activeShowCount}/2 shows assigned)
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="flex justify-end space-x-2 pt-4">
               <Button 
                 type="button" 
@@ -176,7 +245,7 @@ export function InviteTeamMemberDialog({ variant, trigger }: InviteTeamMemberDia
               </Button>
               <Button 
                 type="submit" 
-                disabled={inviteTeamMemberMutation.isPending}
+                disabled={inviteTeamMemberMutation.isPending || showLimitWarning}
               >
                 {inviteTeamMemberMutation.isPending ? "Inviting..." : "Send Invitation"}
               </Button>

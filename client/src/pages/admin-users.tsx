@@ -6,11 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Edit, Save, X, ArrowLeft } from "lucide-react";
+import { Trash2, Edit, Save, X, ArrowLeft, ChevronDown, ChevronRight, Users } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import AdminGuard from "@/components/admin-guard";
 import { apiRequest } from "@/lib/queryClient";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface User {
   id: string;
@@ -37,6 +38,7 @@ const BETA_FEATURES = [
 
 function AdminUsersContent() {
   const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
   const [editForm, setEditForm] = useState<{
     profileType: string;
     betaAccess: boolean;
@@ -119,6 +121,18 @@ function AdminUsersContent() {
     setEditForm({ profileType: '', betaAccess: false, betaFeatures: [] });
   };
 
+  const toggleUserExpansion = (userId: string) => {
+    setExpandedUsers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  };
+
   const handleFeatureToggle = (featureId: string, checked: boolean) => {
     setEditForm(prev => ({
       ...prev,
@@ -132,6 +146,52 @@ function AdminUsersContent() {
     return betaAccess 
       ? <Badge className="bg-green-100 text-green-800">Beta Access</Badge>
       : <Badge variant="secondary">No Beta Access</Badge>;
+  };
+
+  // Component to show invited editors for a user
+  const InvitedEditorsExpansion = ({ userId }: { userId: string }) => {
+    const { data: invitedEditors, isLoading } = useQuery({
+      queryKey: ['/api/admin/users', userId, 'invited-editors'],
+      enabled: expandedUsers.has(userId)
+    });
+
+    if (isLoading) {
+      return <div className="text-sm text-muted-foreground">Loading invited editors...</div>;
+    }
+
+    if (!invitedEditors || invitedEditors.length === 0) {
+      return <div className="text-sm text-muted-foreground">No editors invited by this user</div>;
+    }
+
+    return (
+      <div className="space-y-2">
+        <h4 className="text-sm font-medium">Invited Editors ({invitedEditors.length})</h4>
+        <div className="grid gap-2">
+          {invitedEditors.map((editor: any) => (
+            <div key={editor.id} className="flex items-center justify-between p-2 border rounded-lg">
+              <div className="flex-1">
+                <div className="font-medium text-sm">{editor.name || editor.email}</div>
+                <div className="text-xs text-muted-foreground">{editor.email}</div>
+                <div className="text-xs text-muted-foreground">
+                  {editor.projectName} • {editor.role}
+                </div>
+              </div>
+              <div className="flex flex-col items-end space-y-1">
+                <Badge variant={editor.status === 'accepted' ? 'default' : 
+                               editor.status === 'pending' ? 'secondary' : 'destructive'}>
+                  {editor.status}
+                </Badge>
+                {editor.status === 'accepted' && editor.totalLogins > 0 && (
+                  <div className="text-xs text-muted-foreground">
+                    {editor.totalLogins} logins
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -158,14 +218,27 @@ function AdminUsersContent() {
           <Card key={user.id}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg">
-                    {user.firstName && user.lastName 
-                      ? `${user.firstName} ${user.lastName}`
-                      : user.email
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleUserExpansion(user.id)}
+                    className="p-1 h-8 w-8"
+                  >
+                    {expandedUsers.has(user.id) ? 
+                      <ChevronDown className="h-4 w-4" /> : 
+                      <ChevronRight className="h-4 w-4" />
                     }
-                  </CardTitle>
-                  <CardDescription>{user.email}</CardDescription>
+                  </Button>
+                  <div>
+                    <CardTitle className="text-lg">
+                      {user.firstName && user.lastName 
+                        ? `${user.firstName} ${user.lastName}`
+                        : user.email
+                      }
+                    </CardTitle>
+                    <CardDescription>{user.email}</CardDescription>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {getBetaAccessBadge(user.betaAccess)}
@@ -279,6 +352,13 @@ function AdminUsersContent() {
                       </Button>
                     )}
                   </div>
+                </div>
+              )}
+              
+              {/* Expanded content showing invited editors */}
+              {expandedUsers.has(user.id) && !editingUser && (
+                <div className="border-t pt-4 mt-4">
+                  <InvitedEditorsExpansion userId={user.id} />
                 </div>
               )}
             </CardContent>

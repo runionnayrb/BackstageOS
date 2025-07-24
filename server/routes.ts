@@ -1990,6 +1990,69 @@ Respond with valid JSON only.`;
     }
   });
 
+  // ========== EDITOR MANAGEMENT API ROUTES ==========
+
+  // Get all editors for admin dashboard (global editors tab)
+  app.get('/api/admin/editors', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const editors = await storage.getAllEditorsForAdmin();
+      res.json(editors);
+    } catch (error) {
+      console.error("Error fetching all editors:", error);
+      res.status(500).json({ message: "Failed to fetch editors" });
+    }
+  });
+
+  // Get invited team members by user (for admin dashboard expansion)
+  app.get('/api/admin/users/:userId/invited-editors', isAuthenticated, async (req: any, res) => {
+    try {
+      const adminUserId = req.user.id.toString();
+      
+      if (!isAdmin(adminUserId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const targetUserId = parseInt(req.params.userId);
+      const invitedEditors = await storage.getUserInvitedTeamMembers(targetUserId);
+      res.json(invitedEditors);
+    } catch (error) {
+      console.error("Error fetching user invited editors:", error);
+      res.status(500).json({ message: "Failed to fetch invited editors" });
+    }
+  });
+
+  // Check editor limits and duplicates before invitation
+  app.post('/api/admin/check-editor-limits', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id.toString();
+      
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { email, name } = req.body;
+      
+      const activeShowCount = await storage.getEditorActiveShowCount(email);
+      const duplicateCheck = await storage.checkEditorDuplicates(email, name);
+      
+      res.json({
+        activeShowCount,
+        canInvite: activeShowCount < 2 && !duplicateCheck.duplicate,
+        limitReached: activeShowCount >= 2,
+        duplicateCheck
+      });
+    } catch (error) {
+      console.error("Error checking editor limits:", error);
+      res.status(500).json({ message: "Failed to check editor limits" });
+    }
+  });
+
   // User Analytics endpoints
   app.get('/api/admin/user-analytics', async (req: any, res) => {
     try {
