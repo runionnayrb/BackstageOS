@@ -246,35 +246,43 @@ export default function GlobalSearchBar({
             <Search className="h-5 w-5 text-gray-600" />
           </Button>
         ) : (
-          // Expanded search bar - grows to the left from where the icon was
-          <form onSubmit={handleSubmit} className="relative flex items-center">
-            <Input
-              ref={inputRef}
-              type="text"
-              placeholder="Search..."
-              value={query}
-              onChange={handleInputChange}
-              className="w-48 h-10 pl-3 pr-12 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-lg rounded-lg"
-            />
-            
-            <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-              {searchMutation.isPending ? (
-                <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-              ) : (
-                <Search className="h-4 w-4 text-gray-400" />
-              )}
-              
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleClose}
-                className="h-6 w-6 p-0 ml-1 hover:bg-gray-100"
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          </form>
+          // Expanded search bar with right-to-left animation
+          <div className="absolute right-0 top-0 h-10">
+            <form onSubmit={handleSubmit} className="relative">
+              <div className="animate-in slide-in-from-right-4 duration-300 ease-out">
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="Search..."
+                  value={query}
+                  onChange={handleInputChange}
+                  className="w-72 h-10 pl-3 pr-12 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-lg rounded-lg"
+                  style={{ transform: 'translateX(-248px)' }}
+                />
+                
+                <div 
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1"
+                  style={{ transform: 'translateX(-248px) translateY(-50%)' }}
+                >
+                  {searchMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
+                  ) : (
+                    <Search className="h-4 w-4 text-gray-400" />
+                  )}
+                  
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClose}
+                    className="h-6 w-6 p-0 ml-1 hover:bg-gray-100"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </div>
         )}
       </div>
 
