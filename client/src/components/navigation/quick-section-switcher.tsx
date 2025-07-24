@@ -55,6 +55,11 @@ export default function QuickSectionSwitcher({
       href: `/shows/${currentShowId}/performance-tracker`
     },
     {
+      id: "schedule-mapping",
+      title: "Schedule Mapping",
+      href: `/shows/${currentShowId}/schedule-mapping`
+    },
+    {
       id: "report-notes",
       title: "Report Notes",
       href: `/shows/${currentShowId}/notes-tracking`

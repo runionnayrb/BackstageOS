@@ -40,6 +40,8 @@ interface ScheduleEvent {
   location?: string;
   notes?: string;
   isAllDay: boolean;
+  parentEventId?: number | null;
+  isProductionLevel?: boolean;
   participants: {
     id: number;
     contactId: number;
@@ -48,6 +50,7 @@ interface ScheduleEvent {
     isRequired: boolean;
     status: string;
   }[];
+  childEvents?: ScheduleEvent[]; // For events with children
 }
 
 interface Contact {

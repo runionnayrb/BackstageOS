@@ -521,6 +521,9 @@ export const scheduleEvents = pgTable("schedule_events", {
   location: varchar("location"),
   notes: text("notes"),
   isAllDay: boolean("is_all_day").default(false),
+  // Schedule Relationship Mapping fields
+  parentEventId: integer("parent_event_id").references(() => scheduleEvents.id, { onDelete: "set null" }), // Links daily events to production events
+  isProductionLevel: boolean("is_production_level").default(false), // true for production schedule events, false for daily detail events
   createdBy: integer("created_by").notNull().references(() => users.id),
   updatedBy: integer("updated_by").references(() => users.id), // Track who last updated the event
   createdAt: timestamp("created_at").defaultNow(),

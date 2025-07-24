@@ -368,6 +368,65 @@ Required environment variables:
 
 ## Recent Changes
 
+### July 24, 2025: **SCHEDULE RELATIONSHIP MAPPING SYSTEM IMPLEMENTATION COMPLETE**
+**Successfully implemented comprehensive Schedule Relationship Mapping system enabling bidirectional awareness between production schedules and daily execution tracking:**
+
+**Database Schema Extension:**
+- Added parentEventId field to schedule_events table for linking daily events to production-level events
+- Added isProductionLevel boolean field to distinguish between production schedule events and daily detail events
+- Updated all storage interface select queries to include new relationship mapping fields
+- Successfully migrated database schema with proper foreign key relationships
+
+**Backend Storage Methods:**
+- Implemented getProductionLevelEvents() method to fetch production-level events for a project
+- Added getDailyEventsForParent() method to retrieve daily events linked to a production event
+- Created createDailyEventFromProduction() method for creating daily events with automatic parent linking
+- Implemented linkDailyEventToProduction() and unlinkDailyEvent() methods for manual relationship management
+- Added getEventWithChildren() method to fetch events with their complete child event hierarchy
+
+**API Route System:**
+- Added comprehensive API routes under "SCHEDULE RELATIONSHIP MAPPING API ROUTES" section
+- GET /api/projects/:id/production-events - Fetch production-level events for a project
+- GET /api/schedule-events/:id/daily-events - Get daily events for a parent production event
+- POST /api/schedule-events/:id/create-daily-event - Create daily event from production event
+- POST /api/schedule-events/:dailyId/link-to-production/:parentId - Link existing daily event to production
+- POST /api/schedule-events/:id/unlink - Unlink daily event from production parent
+- GET /api/schedule-events/:id/with-children - Get event with all child events
+
+**Frontend Interface Integration:**
+- Updated ScheduleEvent interface across all schedule components to include parentEventId and isProductionLevel fields
+- Added childEvents array property for events with hierarchical relationships
+- Updated monthly-schedule-view-new.tsx, daily-schedule-view-vertical.tsx, daily-schedule-view.tsx, and daily-schedule-view-broken.tsx interfaces
+- Created comprehensive ScheduleRelationshipMapping component with production/daily event management interface
+
+**Schedule Relationship Mapping Component Features:**
+- Production Events Panel showing all production-level events for selection
+- Daily Detail Events Panel showing linked daily events for selected production event
+- Create Daily Event dialog for generating daily events from production events
+- Visual relationship indicators with green badges for linked events
+- Link/unlink functionality with proper mutation handling and cache invalidation
+- Schedule Relationship Overview showing connection between production planning and actual execution
+
+**Professional Stage Management Benefits:**
+- Track plan versus reality execution without automatic synchronization that could disrupt workflows
+- Bidirectional awareness between production schedules (created at production start) and weekly/daily schedules (created ongoing)
+- Smart suggestions for relationship mapping without forcing automatic changes
+- Complete data isolation ensuring no cross-contamination between production planning and execution tracking
+- Professional workflow preservation with optional enhancement only
+
+**Route Integration:**
+- Added /shows/:id/schedule-mapping route accessible within show context
+- Integrated component into main application routing with proper parameter handling
+- Component accessible for all show projects with appropriate authentication checks
+
+**System Benefits:**
+- Theater professionals can now maintain separate production schedules and daily execution schedules with optional relationship mapping
+- Complete visibility into plan versus reality execution without disrupting existing carefully-tuned workflows
+- Smart relationship suggestions help stage managers track variance between planned and actual execution
+- Professional stage management workflow enhancement with zero risk to existing data
+
+**Status**: Complete Schedule Relationship Mapping system operational with full database schema, backend API, frontend interface, and routing integration. System provides professional stage management tools for tracking production plan versus execution reality with optional relationship mapping.
+
 ### July 24, 2025: **COMPREHENSIVE SMART SEARCH SYSTEM IMPLEMENTATION COMPLETE**
 **Successfully implemented complete intelligent search system serving as the "brain of the production" for BackstageOS:**
 

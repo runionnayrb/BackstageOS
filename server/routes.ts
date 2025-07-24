@@ -7994,6 +7994,206 @@ Best regards,
     }
   });
 
+  // ========== SCHEDULE RELATIONSHIP MAPPING API ROUTES ==========
+
+  // Get production-level events for a project
+  app.get('/api/projects/:id/production-events', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProjectById(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+
+      // Check ownership or team membership
+      if (project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const productionEvents = await storage.getProductionLevelEvents(projectId);
+      res.json(productionEvents);
+    } catch (error) {
+      console.error("Error fetching production events:", error);
+      res.status(500).json({ message: "Failed to fetch production events" });
+    }
+  });
+
+  // Get daily events for a parent production event
+  app.get('/api/schedule-events/:id/daily-events', isAuthenticated, async (req: any, res) => {
+    try {
+      const parentEventId = parseInt(req.params.id);
+      const parentEvent = await storage.getScheduleEventById(parentEventId);
+      
+      if (!parentEvent) {
+        return res.status(404).json({ message: "Parent event not found" });
+      }
+
+      // Check project access
+      const project = await storage.getProjectById(parentEvent.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(parentEvent.projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      const dailyEvents = await storage.getDailyEventsForParent(parentEventId);
+      res.json(dailyEvents);
+    } catch (error) {
+      console.error("Error fetching daily events:", error);
+      res.status(500).json({ message: "Failed to fetch daily events" });
+    }
+  });
+
+  // Create a daily event from a production event
+  app.post('/api/schedule-events/:id/create-daily-event', isAuthenticated, async (req: any, res) => {
+    try {
+      const parentEventId = parseInt(req.params.id);
+      const parentEvent = await storage.getScheduleEventById(parentEventId);
+      
+      if (!parentEvent) {
+        return res.status(404).json({ message: "Parent event not found" });
+      }
+
+      // Check project access
+      const project = await storage.getProjectById(parentEvent.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Validate the event data
+      const eventData = insertScheduleEventSchema.parse({
+        ...req.body,
+        projectId: parentEvent.projectId,
+        createdBy: parseInt(req.user.id.toString()),
+      });
+
+      const dailyEvent = await storage.createDailyEventFromProduction(parentEventId, eventData);
+      
+      // Handle participants if provided
+      if (req.body.participants && Array.isArray(req.body.participants)) {
+        for (const participantId of req.body.participants) {
+          await storage.addEventParticipant({
+            eventId: dailyEvent.id,
+            contactId: participantId,
+            isRequired: true,
+            status: 'pending',
+          });
+        }
+      }
+
+      // Return complete event with participants
+      const completeEvent = await storage.getScheduleEventById(dailyEvent.id);
+      res.status(201).json(completeEvent);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid event data", errors: error.errors });
+      }
+      console.error("Error creating daily event:", error);
+      res.status(500).json({ message: "Failed to create daily event" });
+    }
+  });
+
+  // Link an existing daily event to a production event
+  app.post('/api/schedule-events/:dailyId/link-to-production/:parentId', isAuthenticated, async (req: any, res) => {
+    try {
+      const dailyEventId = parseInt(req.params.dailyId);
+      const parentEventId = parseInt(req.params.parentId);
+      
+      const dailyEvent = await storage.getScheduleEventById(dailyEventId);
+      const parentEvent = await storage.getScheduleEventById(parentEventId);
+      
+      if (!dailyEvent || !parentEvent) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      // Check access to both events
+      const project = await storage.getProjectById(dailyEvent.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Ensure both events belong to the same project
+      if (dailyEvent.projectId !== parentEvent.projectId) {
+        return res.status(400).json({ message: "Events must belong to the same project" });
+      }
+
+      // Ensure parent event is production level
+      if (!parentEvent.isProductionLevel) {
+        return res.status(400).json({ message: "Parent event must be a production-level event" });
+      }
+
+      await storage.linkDailyEventToProduction(dailyEventId, parentEventId);
+      
+      // Return updated daily event
+      const updatedEvent = await storage.getScheduleEventById(dailyEventId);
+      res.json(updatedEvent);
+    } catch (error) {
+      console.error("Error linking daily event:", error);
+      res.status(500).json({ message: "Failed to link daily event" });
+    }
+  });
+
+  // Unlink a daily event from its production parent
+  app.post('/api/schedule-events/:id/unlink', isAuthenticated, async (req: any, res) => {
+    try {
+      const dailyEventId = parseInt(req.params.id);
+      const dailyEvent = await storage.getScheduleEventById(dailyEventId);
+      
+      if (!dailyEvent) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      // Check project access
+      const project = await storage.getProjectById(dailyEvent.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      await storage.unlinkDailyEvent(dailyEventId);
+      
+      // Return updated event
+      const updatedEvent = await storage.getScheduleEventById(dailyEventId);
+      res.json(updatedEvent);
+    } catch (error) {
+      console.error("Error unlinking daily event:", error);
+      res.status(500).json({ message: "Failed to unlink daily event" });
+    }
+  });
+
+  // Get an event with all its child events
+  app.get('/api/schedule-events/:id/with-children', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const eventWithChildren = await storage.getEventWithChildren(eventId);
+      
+      if (!eventWithChildren) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      // Check project access
+      const project = await storage.getProjectById(eventWithChildren.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        const teamMembers = await storage.getTeamMembersByProjectId(eventWithChildren.projectId);
+        const teamMember = teamMembers.find(tm => tm.userId === req.user.id);
+        if (!teamMember) {
+          return res.status(403).json({ message: "Access denied" });
+        }
+      }
+
+      res.json(eventWithChildren);
+    } catch (error) {
+      console.error("Error fetching event with children:", error);
+      res.status(500).json({ message: "Failed to fetch event with children" });
+    }
+  });
+
   // ========== EMAIL SYSTEM ROUTES ==========
 
   // Check if email system is set up

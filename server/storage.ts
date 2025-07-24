@@ -671,6 +671,25 @@ export interface IStorage {
     paymentMethodRequired?: boolean;
     grandfatheredFree?: boolean;
   }): Promise<User>;
+
+  // Schedule Events operations
+  getScheduleEventsByProjectId(projectId: number): Promise<any[]>;
+  getScheduleEventsByProjectAndDate(projectId: number, date: string): Promise<any[]>;
+  getScheduleEventById(eventId: number): Promise<any>;
+  createScheduleEvent(event: any): Promise<any>;
+  updateScheduleEvent(eventId: number, updates: any): Promise<any>;
+  deleteScheduleEvent(eventId: number): Promise<void>;
+  addEventParticipant(participant: any): Promise<any>;
+  removeEventParticipant(eventId: number, contactId: number): Promise<void>;
+  removeAllEventParticipants(eventId: number): Promise<void>;
+
+  // Schedule Relationship Mapping operations
+  getProductionLevelEvents(projectId: number): Promise<any[]>;
+  getDailyEventsForParent(parentEventId: number): Promise<any[]>;
+  createDailyEventFromProduction(parentEventId: number, eventData: any): Promise<any>;
+  linkDailyEventToProduction(dailyEventId: number, parentEventId: number): Promise<void>;
+  unlinkDailyEvent(dailyEventId: number): Promise<void>;
+  getEventWithChildren(eventId: number): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2067,6 +2086,8 @@ export class DatabaseStorage implements IStorage {
       location: scheduleEvents.location,
       notes: scheduleEvents.notes,
       isAllDay: scheduleEvents.isAllDay,
+      parentEventId: scheduleEvents.parentEventId,
+      isProductionLevel: scheduleEvents.isProductionLevel,
       createdBy: scheduleEvents.createdBy,
       createdAt: scheduleEvents.createdAt,
       updatedAt: scheduleEvents.updatedAt,
@@ -2139,6 +2160,8 @@ export class DatabaseStorage implements IStorage {
       location: scheduleEvents.location,
       notes: scheduleEvents.notes,
       isAllDay: scheduleEvents.isAllDay,
+      parentEventId: scheduleEvents.parentEventId,
+      isProductionLevel: scheduleEvents.isProductionLevel,
       createdBy: scheduleEvents.createdBy,
       createdAt: scheduleEvents.createdAt,
       updatedAt: scheduleEvents.updatedAt,
@@ -2213,6 +2236,148 @@ export class DatabaseStorage implements IStorage {
   async removeAllEventParticipants(eventId: number): Promise<void> {
     await db.delete(scheduleEventParticipants)
       .where(eq(scheduleEventParticipants.eventId, eventId));
+  }
+
+  // Schedule Relationship Mapping methods
+  async getProductionLevelEvents(projectId: number): Promise<any[]> {
+    const result = await db.select({
+      id: scheduleEvents.id,
+      projectId: scheduleEvents.projectId,
+      title: scheduleEvents.title,
+      description: scheduleEvents.description,
+      date: scheduleEvents.date,
+      startTime: scheduleEvents.startTime,
+      endTime: scheduleEvents.endTime,
+      type: scheduleEvents.type,
+      location: scheduleEvents.location,
+      notes: scheduleEvents.notes,
+      isAllDay: scheduleEvents.isAllDay,
+      parentEventId: scheduleEvents.parentEventId,
+      isProductionLevel: scheduleEvents.isProductionLevel,
+      createdBy: scheduleEvents.createdBy,
+      createdAt: scheduleEvents.createdAt,
+      updatedAt: scheduleEvents.updatedAt,
+    })
+    .from(scheduleEvents)
+    .where(and(
+      eq(scheduleEvents.projectId, projectId),
+      eq(scheduleEvents.isProductionLevel, true)
+    ))
+    .orderBy(scheduleEvents.date, scheduleEvents.startTime);
+
+    // Get participants for each event
+    const eventsWithParticipants = await Promise.all(
+      result.map(async (event) => {
+        const participants = await db.select({
+          id: scheduleEventParticipants.id,
+          contactId: scheduleEventParticipants.contactId,
+          contactFirstName: contacts.firstName,
+          contactLastName: contacts.lastName,
+          isRequired: scheduleEventParticipants.isRequired,
+          status: scheduleEventParticipants.status,
+        })
+        .from(scheduleEventParticipants)
+        .leftJoin(contacts, eq(scheduleEventParticipants.contactId, contacts.id))
+        .where(eq(scheduleEventParticipants.eventId, event.id));
+
+        return {
+          ...event,
+          participants,
+        };
+      })
+    );
+
+    return eventsWithParticipants;
+  }
+
+  async getDailyEventsForParent(parentEventId: number): Promise<any[]> {
+    const result = await db.select({
+      id: scheduleEvents.id,
+      projectId: scheduleEvents.projectId,
+      title: scheduleEvents.title,
+      description: scheduleEvents.description,
+      date: scheduleEvents.date,
+      startTime: scheduleEvents.startTime,
+      endTime: scheduleEvents.endTime,
+      type: scheduleEvents.type,
+      location: scheduleEvents.location,
+      notes: scheduleEvents.notes,
+      isAllDay: scheduleEvents.isAllDay,
+      parentEventId: scheduleEvents.parentEventId,
+      isProductionLevel: scheduleEvents.isProductionLevel,
+      createdBy: scheduleEvents.createdBy,
+      createdAt: scheduleEvents.createdAt,
+      updatedAt: scheduleEvents.updatedAt,
+    })
+    .from(scheduleEvents)
+    .where(eq(scheduleEvents.parentEventId, parentEventId))
+    .orderBy(scheduleEvents.date, scheduleEvents.startTime);
+
+    // Get participants for each event
+    const eventsWithParticipants = await Promise.all(
+      result.map(async (event) => {
+        const participants = await db.select({
+          id: scheduleEventParticipants.id,
+          contactId: scheduleEventParticipants.contactId,
+          contactFirstName: contacts.firstName,
+          contactLastName: contacts.lastName,
+          isRequired: scheduleEventParticipants.isRequired,
+          status: scheduleEventParticipants.status,
+        })
+        .from(scheduleEventParticipants)
+        .leftJoin(contacts, eq(scheduleEventParticipants.contactId, contacts.id))
+        .where(eq(scheduleEventParticipants.eventId, event.id));
+
+        return {
+          ...event,
+          participants,
+        };
+      })
+    );
+
+    return eventsWithParticipants;
+  }
+
+  async createDailyEventFromProduction(parentEventId: number, eventData: any): Promise<any> {
+    // Create the daily event with parent linkage
+    const result = await db.insert(scheduleEvents).values({
+      ...eventData,
+      parentEventId,
+      isProductionLevel: false,
+    }).returning();
+    return result[0];
+  }
+
+  async linkDailyEventToProduction(dailyEventId: number, parentEventId: number): Promise<void> {
+    await db.update(scheduleEvents)
+      .set({ 
+        parentEventId,
+        updatedAt: new Date()
+      })
+      .where(eq(scheduleEvents.id, dailyEventId));
+  }
+
+  async unlinkDailyEvent(dailyEventId: number): Promise<void> {
+    await db.update(scheduleEvents)
+      .set({ 
+        parentEventId: null,
+        updatedAt: new Date()
+      })
+      .where(eq(scheduleEvents.id, dailyEventId));
+  }
+
+  async getEventWithChildren(eventId: number): Promise<any> {
+    // Get the main event
+    const event = await this.getScheduleEventById(eventId);
+    if (!event) return null;
+
+    // Get all child events
+    const childEvents = await this.getDailyEventsForParent(eventId);
+
+    return {
+      ...event,
+      childEvents,
+    };
   }
 
   // Event Locations methods
