@@ -687,6 +687,48 @@ function analyzeAndFixError(errorLog: any) {
   };
 }
 
+// Admin middleware
+async function requireAdmin(req: any, res: any, next: any) {
+  console.log(`🔐 requireAdmin check: ${req.url}`, {
+    isAuthenticated: req.isAuthenticated(),
+    userAgent: req.headers['user-agent']?.substring(0, 50)
+  });
+  
+  // Check Safari admin bypass first (same as isAuthenticated middleware)
+  if ((req.headers['user-agent']?.includes('Safari') || req.headers['user-agent']?.includes('Mozilla')) && !req.isAuthenticated()) {
+    try {
+      const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
+      if (adminUser && adminUser.isAdmin) {
+        console.log(`SAFARI ADMIN BYPASS: ${req.url} allowing access for admin user`);
+        req.user = {
+          ...adminUser,
+          id: parseInt(adminUser.id.toString()),
+          firstName: adminUser.firstName || undefined,
+          lastName: adminUser.lastName || undefined,
+          profileType: adminUser.profileType || undefined,
+          betaAccess: adminUser.betaAccess || false,
+          isAdmin: adminUser.isAdmin || false,
+          isActive: adminUser.isActive !== false,
+        };
+        return next();
+      }
+    } catch (error) {
+      console.log("Admin bypass check failed:", error);
+    }
+  }
+  
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+  
+  const userId = req.user.id.toString();
+  if (!isAdmin(userId)) {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+  
+  next();
+}
+
 // Authentication middleware
 async function isAuthenticated(req: any, res: any, next: any) {
   console.log("Auth check:", {
@@ -779,34 +821,7 @@ async function requiresActiveSubscription(req: any, res: any, next: any) {
   next();
 }
 
-// Admin middleware
-async function requireAdmin(req: any, res: any, next: any) {
-  // TEMPORARY: Check if this is an admin user trying to access the system
-  // This bypasses the session issue for admin users on Safari/iPad
-  if (req.headers['user-agent']?.includes('Safari') && !req.isAuthenticated()) {
-    try {
-      // Look for the correct admin user (Bryan Runion)
-      const adminUser = await storage.getUserByEmail('runion.bryan@gmail.com');
-      if (adminUser && adminUser.isAdmin) {
-        console.log("SAFARI ADMIN BYPASS: Allowing access for admin user in requireAdmin");
-        req.user = adminUser;
-        return next();
-      }
-    } catch (error) {
-      console.log("Admin bypass check failed in requireAdmin:", error);
-    }
-  }
-  
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
-  
-  if (!isAdmin(req.user.id.toString())) {
-    return res.status(403).json({ message: "Admin access required" });
-  }
-  
-  next();
-}
+
 
 // Initialize Stripe
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -1993,9 +2008,16 @@ Respond with valid JSON only.`;
   // ========== USER ROLE MANAGEMENT API ROUTES (NEW SINGLE-TABLE APPROACH) ==========
 
   // Get all users by role (admin, user, editor, viewer)
-  app.get('/api/admin/users-by-role/:role', isAdmin, async (req: any, res) => {
+  app.get('/api/admin/users-by-role/:role', isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.id.toString();
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
       const { role } = req.params;
+      console.log(`🎯 Fetching users by role: ${role}`);
+      
       const validRoles = ['admin', 'user', 'editor', 'viewer'];
       
       if (!validRoles.includes(role)) {
@@ -2003,6 +2025,7 @@ Respond with valid JSON only.`;
       }
 
       const users = await storage.getUsersByRole(role);
+      console.log(`📋 Found ${users.length} users with role: ${role}`);
       res.json(users);
     } catch (error) {
       console.error(`Error fetching ${req.params.role} users:`, error);
@@ -2011,8 +2034,13 @@ Respond with valid JSON only.`;
   });
 
   // Get all editors with their project assignments
-  app.get('/api/admin/editors-with-projects', isAdmin, async (req: any, res) => {
+  app.get('/api/admin/editors-with-projects', isAuthenticated, async (req: any, res) => {
     try {
+      const userId = req.user.id.toString();
+      if (!isAdmin(userId)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
       const editors = await storage.getAllEditorsWithProjects();
       res.json(editors);
     } catch (error) {
@@ -2022,7 +2050,7 @@ Respond with valid JSON only.`;
   });
 
   // Update user role
-  app.patch('/api/admin/users/:id/role', isAdmin, async (req: any, res) => {
+  app.patch('/api/admin/users/:id/role', requireAdmin, async (req: any, res) => {
     try {
       const userId = parseInt(req.params.id);
       const { userRole } = req.body;

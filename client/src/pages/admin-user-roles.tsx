@@ -59,8 +59,6 @@ export default function AdminUserRoles() {
   const queryClient = useQueryClient();
   const [selectedRole, setSelectedRole] = useState<string>("admin");
 
-  console.log("AdminUserRoles render - selectedRole:", selectedRole);
-
   // Fetch users by role (for non-editor tabs)
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ["/api/admin/users-by-role", selectedRole],
@@ -71,14 +69,6 @@ export default function AdminUserRoles() {
   const { data: editorsWithProjects = [], isLoading: editorsLoading } = useQuery({
     queryKey: ["/api/admin/editors-with-projects"],
     enabled: selectedRole === "editor",
-  });
-
-  console.log("Query data:", {
-    selectedRole,
-    users: users.length,
-    editorsWithProjects: editorsWithProjects.length,
-    usersLoading,
-    editorsLoading
   });
 
   // Update user role mutation
