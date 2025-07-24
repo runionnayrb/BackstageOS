@@ -77,6 +77,7 @@ export function useBetaFeatures() {
       effectiveUserId: effectiveUser?.id,
       effectiveUserIsAdmin: effectiveUser?.isAdmin,
       isViewingAs: switchStatus?.isViewingAs,
+      viewingUserId: switchStatus?.viewingUser?.id,
       featureEnabled: isFeatureEnabled(featureId),
       userAccess: hasUserAccess(featureId),
       betaAccess: effectiveUser?.betaAccess,
@@ -84,9 +85,19 @@ export function useBetaFeatures() {
       rawBetaFeatures: effectiveUser?.betaFeatures
     });
     
-    // Original admin can bypass restrictions when NOT viewing as another user
-    if (user?.isAdmin && !switchStatus?.isViewingAs) {
-      console.log(`✅ Original admin bypass - full access granted for ${featureId}`);
+    // Admin can bypass restrictions when viewing as themselves (not another user)
+    const isViewingAsAdmin = switchStatus?.isViewingAs && switchStatus?.viewingUser?.id === user?.id;
+    const isOriginalAdmin = user?.isAdmin && !switchStatus?.isViewingAs;
+    
+    console.log(`🔍 Admin bypass check:`, {
+      userIsAdmin: user?.isAdmin,
+      isOriginalAdmin,
+      isViewingAsAdmin,
+      canBypass: user?.isAdmin && (isOriginalAdmin || isViewingAsAdmin)
+    });
+    
+    if (user?.isAdmin && (isOriginalAdmin || isViewingAsAdmin)) {
+      console.log(`✅ Admin bypass - full access granted for ${featureId}`);
       return true;
     }
     
