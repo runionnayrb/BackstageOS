@@ -194,8 +194,8 @@ export default function EventForm({
             onCheckedChange={(checked) => setFormData({ ...formData, isProductionLevel: !!checked })}
           />
           <Label htmlFor="isProductionLevel" className="flex items-center space-x-2">
-            <span>Production-Level Event</span>
-            <span className="text-xs text-muted-foreground">(Plan vs Reality Tracking)</span>
+            <span>Add to Production Calendar</span>
+            <span className="text-xs text-muted-foreground">(Master production schedule)</span>
           </Label>
         </div>
       </div>
