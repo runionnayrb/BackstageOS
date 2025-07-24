@@ -211,7 +211,7 @@ export default function Header() {
           </div>
 
           {/* Search Bar - centered */}
-          <div className="flex-1 max-w-md mx-8 hidden md:block">
+          <div className="flex-1 max-w-md mx-2 md:mx-8">
             <GlobalSearchBar />
           </div>
           

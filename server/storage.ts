@@ -4113,7 +4113,7 @@ export class DatabaseStorage implements IStorage {
         .slice(0, 5);
 
       // Get search history and metrics
-      const searchHistory = await db.select()
+      const userSearchHistory = await db.select()
         .from(searchHistory)
         .where(
           and(
@@ -4123,12 +4123,12 @@ export class DatabaseStorage implements IStorage {
         );
 
       const searchMetrics = {
-        totalSearches: searchHistory.length,
-        dailySearches: searchHistory.filter(search => search.createdAt >= todayStart).length,
-        naturalLanguageSearches: searchHistory.filter(search => search.queryType === 'natural').length,
-        advancedSearches: searchHistory.filter(search => search.queryType === 'advanced').length,
-        averageResponseTime: searchHistory.length > 0 
-          ? Math.round(searchHistory.reduce((sum, search) => sum + (search.responseTime || 0), 0) / searchHistory.length)
+        totalSearches: userSearchHistory.length,
+        dailySearches: userSearchHistory.filter(search => search.createdAt >= todayStart).length,
+        naturalLanguageSearches: userSearchHistory.filter(search => search.queryType === 'natural').length,
+        advancedSearches: userSearchHistory.filter(search => search.queryType === 'advanced').length,
+        averageResponseTime: userSearchHistory.length > 0 
+          ? Math.round(userSearchHistory.reduce((sum, search) => sum + (search.responseTime || 0), 0) / userSearchHistory.length)
           : 0,
         searchCost: monthlyCosts.filter(cost => cost.service === 'OpenAI' && (cost.description?.includes('search') || cost.endpoint?.includes('search'))).reduce((sum, cost) => sum + parseFloat(cost.cost), 0)
       };
