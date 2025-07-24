@@ -53,6 +53,8 @@ interface ScheduleEvent {
   location?: string;
   notes?: string;
   isAllDay: boolean;
+  parentEventId?: number | null;
+  isProductionLevel?: boolean;
   participants: {
     id: number;
     contactId: number;
@@ -1715,6 +1717,7 @@ export default function WeeklyScheduleView({
                   location: editingEvent.location || '',
                   notes: editingEvent.notes || '',
                   isAllDay: editingEvent.isAllDay,
+                  isProductionLevel: editingEvent.isProductionLevel,
                   participantIds: editingEvent.participants.map(p => p.contactId),
                 }}
               />
