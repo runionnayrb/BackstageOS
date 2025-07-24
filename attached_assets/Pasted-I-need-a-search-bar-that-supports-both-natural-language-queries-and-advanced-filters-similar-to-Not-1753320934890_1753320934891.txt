@@ -1,0 +1,65 @@
+I need a search bar that supports both natural language queries and advanced filters, similar to Notion or Linear, with AI-powered results.
+
+⸻
+
+✅ Core Requirements:
+
+1. Natural Language Query Support
+	•	Users should be able to type free-form queries like:
+	•	“How many rehearsals have we had?”
+	•	“When is John available on Tuesday, July 22?”
+	•	“What time is our next production meeting?”
+	•	“Which performances got canceled?”
+	•	The system should:
+	•	Parse natural language using OpenAI (or another LLM API)
+	•	Interpret the user’s intent
+	•	Query the appropriate internal database tables (e.g., calendar, availability, reports, notes)
+	•	Return contextual results in structured format (dates, times, counts, status, links to records, etc.)
+
+⸻
+
+2. Advanced Filter Mode (Toggleable)
+	•	Users can switch from Natural Language to “Advanced Filter Mode”
+	•	Filter UI should include:
+	•	Date picker (range or single)
+	•	Show selector (multi-select)
+	•	Person selector (autocomplete)
+	•	Tag or type (e.g., Rehearsal, Meeting, Performance, Note, Contact, Email)
+
+⸻
+
+3. Live Auto-Suggestions
+	•	While typing, show:
+	•	Recently used queries
+	•	Smart suggestions (team names, cue words, schedule blocks)
+	•	Matching show/event titles, team members, or tags
+	•	Suggest natural phrasing (like “rehearsals this week”)
+
+⸻
+
+4. UI Design Requirements
+	•	Clean, modern, distraction-free
+	•	Use Inter or SF Pro font
+	•	Bar positioned in top nav, persistent across views
+	•	Dropdown result panel or right-side slide-in preview
+	•	Clicking results takes user directly to that item (event, note, report, etc.)
+
+⸻
+
+5. Data Sources to Query
+
+Ensure the search indexes:
+	•	Calendar events (rehearsals, performances, meetings)
+	•	Team availability data
+	•	Script notes and annotations
+	•	Reports (rehearsal, tech, performance, meetings)
+	•	Shared files and internal notes
+	•	Contacts (crew, cast, vendors, etc.)
+	•	Connected emails (optional)
+
+⸻
+
+💡 Bonus (If Time Allows)
+	•	Add voice search integration
+	•	Add keyboard shortcut (e.g., CMD+K) to open the search bar from anywhere
+	•	Use GPT-4 to summarize or rephrase long notes in results if needed
