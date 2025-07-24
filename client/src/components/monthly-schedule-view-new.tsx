@@ -240,7 +240,12 @@ export default function MonthlyScheduleView({
 
   // Handle event editing
   const handleEditEvent = (eventData: any) => {
-    updateEventMutation.mutate(eventData);
+    if (editEventDialog.event) {
+      updateEventMutation.mutate({
+        id: editEventDialog.event.id,
+        ...eventData
+      });
+    }
   };
 
   // Handle event deletion
