@@ -11,30 +11,24 @@ import { formatDistanceToNow } from "date-fns";
 
 interface Editor {
   id: number;
-  projectId: number;
-  projectName: string;
-  userId?: number;
   email: string;
-  name: string;
-  role: string;
-  status: 'invited' | 'accepted' | 'declined';
+  firstName: string;
+  lastName: string;
+  userRole: string;
+  profileType: string;
   isActive: boolean;
+  currentActiveShows: number;
+  maxActiveShows: number;
   lastActiveAt?: string;
   totalLogins: number;
-  totalMinutesActive?: number;
-  featuresUsed?: string;
-  invitedBy: number;
-  invitedAt: string;
-  joinedAt?: string;
-  inviterName?: string;
-  inviterLastName?: string;
-  inviterEmail?: string;
+  betaAccess: string;
+  createdAt: string;
 }
 
 function AdminEditorsContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("invitedAt");
+  const [sortBy, setSortBy] = useState("createdAt");
 
   const { data: editors, isLoading } = useQuery<Editor[]>({
     queryKey: ['/api/admin/editors']
@@ -42,27 +36,32 @@ function AdminEditorsContent() {
 
   const filteredAndSortedEditors = editors
     ?.filter(editor => {
+      const fullName = `${editor.firstName || ''} ${editor.lastName || ''}`.trim();
       const matchesSearch = 
-        editor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         editor.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        editor.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        editor.role?.toLowerCase().includes(searchTerm.toLowerCase());
+        editor.userRole.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        editor.profileType.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesStatus = statusFilter === "all" || editor.status === statusFilter;
+      const matchesStatus = statusFilter === "all" || 
+        (statusFilter === "active" && editor.isActive) ||
+        (statusFilter === "inactive" && !editor.isActive);
       
       return matchesSearch && matchesStatus;
     })
     ?.sort((a, b) => {
       switch (sortBy) {
-        case "invitedAt":
-          return new Date(b.invitedAt).getTime() - new Date(a.invitedAt).getTime();
+        case "createdAt":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         case "lastActive":
           if (!a.lastActiveAt && !b.lastActiveAt) return 0;
           if (!a.lastActiveAt) return 1;
           if (!b.lastActiveAt) return -1;
           return new Date(b.lastActiveAt).getTime() - new Date(a.lastActiveAt).getTime();
-        case "project":
-          return a.projectName.localeCompare(b.projectName);
+        case "name":
+          const aName = `${a.firstName || ''} ${a.lastName || ''}`.trim();
+          const bName = `${b.firstName || ''} ${b.lastName || ''}`.trim();
+          return aName.localeCompare(bName);
         case "email":
           return a.email.localeCompare(b.email);
         default:
@@ -70,24 +69,16 @@ function AdminEditorsContent() {
       }
     }) || [];
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'accepted':
-        return <Badge className="bg-green-100 text-green-800"><UserCheck className="w-3 h-3 mr-1" />Accepted</Badge>;
-      case 'invited':
-        return <Badge variant="secondary"><Clock className="w-3 h-3 mr-1" />Invited</Badge>;
-      case 'declined':
-        return <Badge variant="destructive"><UserX className="w-3 h-3 mr-1" />Declined</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
+  const getStatusBadge = (isActive: boolean) => {
+    if (isActive) {
+      return <Badge className="bg-green-100 text-green-800"><UserCheck className="w-3 h-3 mr-1" />Active</Badge>;
+    } else {
+      return <Badge variant="secondary"><UserX className="w-3 h-3 mr-1" />Inactive</Badge>;
     }
   };
 
-  const getInviterName = (editor: Editor) => {
-    if (editor.inviterName && editor.inviterLastName) {
-      return `${editor.inviterName} ${editor.inviterLastName}`;
-    }
-    return editor.inviterEmail || 'Unknown';
+  const getEditorName = (editor: Editor) => {
+    return `${editor.firstName || ''} ${editor.lastName || ''}`.trim() || editor.email;
   };
 
   const formatLastActive = (lastActiveAt?: string) => {
@@ -105,19 +96,8 @@ function AdminEditorsContent() {
     );
   }
 
-  // Group editors by email to show editor limits tracking
-  const editorsByEmail = filteredAndSortedEditors.reduce((acc, editor) => {
-    if (!acc[editor.email]) {
-      acc[editor.email] = [];
-    }
-    acc[editor.email].push(editor);
-    return acc;
-  }, {} as Record<string, Editor[]>);
-
-  // Get editors with multiple shows (limit tracking)
-  const editorsWithMultipleShows = Object.entries(editorsByEmail)
-    .filter(([_, editorList]) => editorList.length > 1)
-    .map(([email, editorList]) => ({ email, count: editorList.length, editors: editorList }));
+  // Show editors approaching limits
+  const editorsAtOrNearLimit = filteredAndSortedEditors.filter(e => e.currentActiveShows >= 1);
 
   return (
     <div className="container mx-auto p-6">
@@ -147,7 +127,7 @@ function AdminEditorsContent() {
               <UserCheck className="h-5 w-5 text-green-500" />
               <div>
                 <div className="text-2xl font-bold">
-                  {filteredAndSortedEditors.filter(e => e.status === 'accepted').length}
+                  {filteredAndSortedEditors.filter(e => e.isActive).length}
                 </div>
                 <div className="text-sm text-muted-foreground">Active Editors</div>
               </div>
@@ -160,9 +140,9 @@ function AdminEditorsContent() {
               <Clock className="h-5 w-5 text-yellow-500" />
               <div>
                 <div className="text-2xl font-bold">
-                  {filteredAndSortedEditors.filter(e => e.status === 'invited').length}
+                  {filteredAndSortedEditors.filter(e => e.currentActiveShows > 0).length}
                 </div>
-                <div className="text-sm text-muted-foreground">Pending Invites</div>
+                <div className="text-sm text-muted-foreground">Editors with Shows</div>
               </div>
             </div>
           </CardContent>
@@ -172,8 +152,10 @@ function AdminEditorsContent() {
             <div className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-red-500" />
               <div>
-                <div className="text-2xl font-bold">{editorsWithMultipleShows.length}</div>
-                <div className="text-sm text-muted-foreground">Multi-Show Editors</div>
+                <div className="text-2xl font-bold">
+                  {filteredAndSortedEditors.filter(e => e.currentActiveShows >= e.maxActiveShows).length}
+                </div>
+                <div className="text-sm text-muted-foreground">At Limit</div>
               </div>
             </div>
           </CardContent>
@@ -185,7 +167,7 @@ function AdminEditorsContent() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search editors, projects, or roles..."
+            placeholder="Search editors, names, or roles..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -197,9 +179,8 @@ function AdminEditorsContent() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="accepted">Accepted</SelectItem>
-            <SelectItem value="invited">Invited</SelectItem>
-            <SelectItem value="declined">Declined</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
           </SelectContent>
         </Select>
         <Select value={sortBy} onValueChange={setSortBy}>
@@ -207,37 +188,37 @@ function AdminEditorsContent() {
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="invitedAt">Invitation Date</SelectItem>
+            <SelectItem value="createdAt">Created Date</SelectItem>
             <SelectItem value="lastActive">Last Active</SelectItem>
-            <SelectItem value="project">Project Name</SelectItem>
+            <SelectItem value="name">Name</SelectItem>
             <SelectItem value="email">Email</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Editor Limit Warnings */}
-      {editorsWithMultipleShows.length > 0 && (
-        <Card className="mb-6 border-orange-200 bg-orange-50">
+      {/* Editor Activity Summary */}
+      {editorsAtOrNearLimit.length > 0 && (
+        <Card className="mb-6 border-blue-200 bg-blue-50">
           <CardHeader>
-            <CardTitle className="text-orange-800">Editor Limit Tracking</CardTitle>
-            <CardDescription className="text-orange-700">
-              Editors assigned to multiple shows (limit: 2 active shows per editor)
+            <CardTitle className="text-blue-800">Active Editors</CardTitle>
+            <CardDescription className="text-blue-700">
+              Editors currently working on shows (limit: {editorsAtOrNearLimit[0]?.maxActiveShows || 2} active shows per editor)
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {editorsWithMultipleShows.map(({ email, count, editors }) => (
-                <div key={email} className="flex items-center justify-between p-2 bg-white rounded border">
+              {editorsAtOrNearLimit.map((editor) => (
+                <div key={editor.id} className="flex items-center justify-between p-2 bg-white rounded border">
                   <div>
-                    <div className="font-medium">{editors[0].name || email}</div>
-                    <div className="text-sm text-muted-foreground">{email}</div>
+                    <div className="font-medium">{getEditorName(editor)}</div>
+                    <div className="text-sm text-muted-foreground">{editor.email}</div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={count >= 2 ? "destructive" : "secondary"}>
-                      {count} shows
+                    <Badge variant={editor.currentActiveShows >= editor.maxActiveShows ? "destructive" : "secondary"}>
+                      {editor.currentActiveShows}/{editor.maxActiveShows} shows
                     </Badge>
                     <div className="text-xs text-muted-foreground">
-                      {editors.map(e => e.projectName).join(', ')}
+                      {editor.profileType} • {editor.userRole}
                     </div>
                   </div>
                 </div>
@@ -250,20 +231,20 @@ function AdminEditorsContent() {
       {/* Editors List */}
       <div className="grid gap-4">
         {filteredAndSortedEditors.map((editor) => (
-          <Card key={`${editor.projectId}-${editor.email}`}>
+          <Card key={editor.id}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-lg">
-                    {editor.name || editor.email}
+                    {getEditorName(editor)}
                   </CardTitle>
                   <CardDescription>
-                    {editor.email} • {editor.projectName}
+                    {editor.email} • {editor.profileType}
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  {getStatusBadge(editor.status)}
-                  <Badge variant="outline">{editor.role}</Badge>
+                  {getStatusBadge(editor.isActive)}
+                  <Badge variant="outline">{editor.userRole}</Badge>
                 </div>
               </div>
             </CardHeader>
@@ -271,44 +252,29 @@ function AdminEditorsContent() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
-                  <div className="font-medium text-muted-foreground">Invited By</div>
-                  <div>{getInviterName(editor)}</div>
+                  <div className="font-medium text-muted-foreground">Account Created</div>
+                  <div>{formatDistanceToNow(new Date(editor.createdAt), { addSuffix: true })}</div>
                   <div className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(editor.invitedAt), { addSuffix: true })}
+                    Beta Access: {editor.betaAccess}
                   </div>
                 </div>
                 
-                {editor.status === 'accepted' && (
-                  <>
-                    <div>
-                      <div className="font-medium text-muted-foreground">Activity</div>
-                      <div>{editor.totalLogins || 0} logins</div>
-                      <div className="text-xs text-muted-foreground">
-                        Last active: {formatLastActive(editor.lastActiveAt)}
-                      </div>
-                    </div>
-                    
-                    {editor.featuresUsed && (
-                      <div>
-                        <div className="font-medium text-muted-foreground">Features Used</div>
-                        <div className="text-xs">
-                          {JSON.parse(editor.featuresUsed).slice(0, 3).join(', ')}
-                          {JSON.parse(editor.featuresUsed).length > 3 && '...'}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
-                
-                {editor.status === 'invited' && (
-                  <div>
-                    <div className="font-medium text-muted-foreground">Status</div>
-                    <div>Invitation pending</div>
-                    <div className="text-xs text-muted-foreground">
-                      Invited {formatDistanceToNow(new Date(editor.invitedAt), { addSuffix: true })}
-                    </div>
+                <div>
+                  <div className="font-medium text-muted-foreground">Activity</div>
+                  <div>{editor.totalLogins || 0} logins</div>
+                  <div className="text-xs text-muted-foreground">
+                    Last active: {formatLastActive(editor.lastActiveAt)}
                   </div>
-                )}
+                </div>
+                
+                <div>
+                  <div className="font-medium text-muted-foreground">Show Limit</div>
+                  <div>{editor.currentActiveShows}/{editor.maxActiveShows} active shows</div>
+                  <div className="text-xs text-muted-foreground">
+                    {editor.currentActiveShows >= editor.maxActiveShows ? 'At limit' : 
+                     `${editor.maxActiveShows - editor.currentActiveShows} available`}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
