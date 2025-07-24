@@ -433,6 +433,7 @@ export default function MonthlyScheduleView({
                                 className="h-6 w-6 p-0"
                                 onClick={() => {
                                   setOpenPopoverId(null);
+                                  console.log('🔥 SETTING EDIT EVENT DIALOG with event:', JSON.stringify(event, null, 2));
                                   if (onEventEdit) {
                                     onEventEdit(event);
                                   } else {
