@@ -20,6 +20,8 @@ interface MonthlyScheduleViewProps {
   selectedContactIds: number[];
   selectedEventTypes: string[];
   selectedIndividualTypes: string[];
+  showProductionCalendar?: boolean;
+  onProductionCalendarFilterChange?: (show: boolean) => void;
   showAllDayEvents: boolean;
   setShowAllDayEvents: (show: boolean) => void;
   createEventDialog: boolean;
@@ -69,6 +71,8 @@ export default function MonthlyScheduleView({
   selectedContactIds,
   selectedEventTypes,
   selectedIndividualTypes,
+  showProductionCalendar = true,
+  onProductionCalendarFilterChange,
   showAllDayEvents,
   setShowAllDayEvents,
   createEventDialog,
@@ -120,14 +124,19 @@ export default function MonthlyScheduleView({
     
     let filteredEvents = events.filter((event: ScheduleEvent) => event.date === dateStr);
     
+    // Apply production calendar filter if enabled
+    if (showProductionCalendar) {
+      filteredEvents = filteredEvents.filter((event: ScheduleEvent) => event.isProductionLevel === true);
+    }
+    
     // Apply event type filtering based on user selections
     // Always include important date events and production-level events regardless of filtering
     // If no event types are selected at all, show all events (changed from only important dates)
-    if (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
+    if (!showProductionCalendar && selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
       // Show all events when no filters are selected (previously only showed important_date events)
       // This includes production-level events and regular events
       filteredEvents = filteredEvents; // Show all events
-    } else {
+    } else if (!showProductionCalendar) {
       filteredEvents = filteredEvents.filter(event => {
         // Always include important date events and production-level events
         if (event.type === 'important_date' || event.isProductionLevel) {

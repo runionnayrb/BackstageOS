@@ -64,6 +64,7 @@ export default function Schedule() {
   const [selectedContactIds, setSelectedContactIds] = useState<number[]>([]);
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [selectedIndividualTypes, setSelectedIndividualTypes] = useState<string[]>([]);
+  const [showProductionCalendar, setShowProductionCalendar] = useState(true); // Default to true for monthly view
   const [timeIncrement, setTimeIncrement] = useState<15 | 30 | 60>(30);
   const [showAllDayEvents, setShowAllDayEvents] = useState(true);
   const [createEventDialog, setCreateEventDialog] = useState(false);
@@ -749,6 +750,18 @@ The Production Team`
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            {viewMode === 'monthly' && (
+              <Button
+                variant={showProductionCalendar ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowProductionCalendar(!showProductionCalendar)}
+                className="text-xs px-2 py-1 h-auto"
+                title="Production Calendar"
+              >
+                <Crown className="h-3 w-3 mr-1" />
+                Production
+              </Button>
+            )}
             <Button
               variant={showAllDayEvents ? "default" : "outline"}
               size="sm"
@@ -1076,6 +1089,17 @@ The Production Team`
                 </Select>
               </div>
               
+              {/* Production Calendar Button - only for monthly view */}
+              {viewMode === 'monthly' && (
+                <button
+                  onClick={() => setShowProductionCalendar(!showProductionCalendar)}
+                  className="p-2 h-8 border-0 bg-transparent hover:bg-gray-100 rounded-md transition-colors"
+                  title="Production Calendar"
+                >
+                  <Crown className={`h-4 w-4 ${showProductionCalendar ? 'text-blue-500' : 'text-gray-600'}`} />
+                </button>
+              )}
+              
               {/* All Day Button - middle - show in all views */}
               <button
                 onClick={() => setShowAllDayEvents(!showAllDayEvents)}
@@ -1144,6 +1168,8 @@ The Production Team`
             onEventTypeFilterChange={setSelectedEventTypes}
             selectedIndividualTypes={selectedIndividualTypes}
             onIndividualTypeFilterChange={setSelectedIndividualTypes}
+            showProductionCalendar={showProductionCalendar}
+            onProductionCalendarFilterChange={setShowProductionCalendar}
             timeIncrement={timeIncrement}
             setTimeIncrement={setTimeIncrement}
             showAllDayEvents={showAllDayEvents}
