@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useRef } from "react";
 import { useFeatureSettings } from "@/hooks/useFeatureSettings";
+import { useBetaFeatures } from "@/hooks/useBetaFeatures";
 import BreadcrumbNavigation from "./breadcrumb-navigation";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import GlobalSearchBar from "@/components/search/GlobalSearchBar";
@@ -91,6 +92,9 @@ export default function EnhancedHeader() {
 
   // Get feature settings for the current show
   const { isFeatureEnabled, isEmailEnabled } = useFeatureSettings(navContext.showId);
+  
+  // Get beta feature access
+  const { canAccessFeature } = useBetaFeatures();
 
   // Generate breadcrumbs based on current location
   const getBreadcrumbs = () => {
@@ -312,10 +316,12 @@ export default function EnhancedHeader() {
                           Contacts
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/performance-tracker`)}>
-                        <TrendingUp className="h-4 w-4 mr-2" strokeWidth={1.5} />
-                        Performance Tracker
-                      </DropdownMenuItem>
+                      {canAccessFeature('performance-tracker') && (
+                        <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/performance-tracker`)}>
+                          <TrendingUp className="h-4 w-4 mr-2" strokeWidth={1.5} />
+                          Performance Tracker
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => setLocation(`/shows/${navContext.showId}/schedule-mapping`)}>
                         <Calendar className="h-4 w-4 mr-2" strokeWidth={1.5} />
                         Schedule Mapping
