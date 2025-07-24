@@ -5852,6 +5852,97 @@ Best regards,
     }
   }
 
+  // PUT route for schedule events (used by monthly view)
+  app.put('/api/schedule-events/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const eventId = parseInt(req.params.id);
+      const event = await storage.getScheduleEventById(eventId);
+      
+      if (!event) {
+        return res.status(404).json({ message: "Event not found" });
+      }
+
+      // Check project ownership
+      const project = await storage.getProjectById(event.projectId);
+      if (!project || project.ownerId != req.user.id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const updateEventSchema = insertScheduleEventSchema.partial().omit({
+        projectId: true,
+        createdBy: true,
+      });
+      
+      const validatedData = updateEventSchema.parse(req.body);
+      
+      console.log('📝 PUT /api/schedule-events/:id - Debug logging:');
+      console.log('🔍 Event ID:', eventId);
+      console.log('📦 Raw request body:', JSON.stringify(req.body, null, 2));
+      console.log('✅ Validated data:', JSON.stringify(validatedData, null, 2));
+      console.log('🏗️ Current event isProductionLevel:', event.isProductionLevel);
+      console.log('🆕 New isProductionLevel:', validatedData.isProductionLevel);
+      
+      // Validate for conflicts if participants are provided or if time/date/location is being updated
+      if ((req.body.participants && Array.isArray(req.body.participants) && req.body.participants.length > 0) || validatedData.location) {
+        const eventDate = validatedData.date || event.date;
+        const startTime = validatedData.startTime || event.startTime;
+        const endTime = validatedData.endTime || event.endTime;
+        const locationName = validatedData.location || event.location;
+        
+        const conflictResult = await conflictValidationService.validateEventConflicts(
+          event.projectId,
+          eventDate,
+          startTime,
+          endTime,
+          req.body.participants || [],
+          locationName,
+          eventId // Exclude the current event being edited
+        );
+
+        if (conflictResult.hasConflicts) {
+          return res.status(409).json({
+            message: "Cannot update event due to scheduling conflicts",
+            conflicts: conflictResult.conflicts
+          });
+        }
+      }
+      
+      const updatedEvent = await storage.updateScheduleEvent(eventId, validatedData, req.user.id);
+      
+      console.log('💾 Database update result:', JSON.stringify(updatedEvent, null, 2));
+      
+      // Sync important date changes back to project
+      await syncImportantDateEventToProject(event, validatedData);
+      
+      // Handle participants update if provided
+      if (req.body.participants && Array.isArray(req.body.participants)) {
+        // Remove existing participants
+        await storage.removeAllEventParticipants(eventId);
+        
+        // Add new participants
+        for (const participantId of req.body.participants) {
+          await storage.addEventParticipant({
+            eventId: eventId,
+            contactId: participantId,
+            isRequired: true,
+            status: 'pending',
+          });
+        }
+      }
+
+      // Return updated event with participants
+      const eventWithParticipants = await storage.getScheduleEventById(eventId);
+      console.log('🎭 Final event returned:', JSON.stringify(eventWithParticipants, null, 2));
+      res.json(eventWithParticipants);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid event data", errors: error.errors });
+      }
+      console.error("Error updating schedule event:", error);
+      res.status(500).json({ message: "Failed to update schedule event" });
+    }
+  });
+
   app.patch('/api/schedule-events/:id', isAuthenticated, async (req: any, res) => {
     try {
       const eventId = parseInt(req.params.id);
