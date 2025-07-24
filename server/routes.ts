@@ -5874,6 +5874,13 @@ Best regards,
       
       const validatedData = updateEventSchema.parse(req.body);
       
+      console.log('📝 PATCH /api/schedule-events/:id - Debug logging:');
+      console.log('🔍 Event ID:', eventId);
+      console.log('📦 Raw request body:', JSON.stringify(req.body, null, 2));
+      console.log('✅ Validated data:', JSON.stringify(validatedData, null, 2));
+      console.log('🏗️ Current event isProductionLevel:', event.isProductionLevel);
+      console.log('🆕 New isProductionLevel:', validatedData.isProductionLevel);
+      
       // Validate for conflicts if participants are provided or if time/date/location is being updated
       if ((req.body.participants && Array.isArray(req.body.participants) && req.body.participants.length > 0) || validatedData.location) {
         const eventDate = validatedData.date || event.date;
