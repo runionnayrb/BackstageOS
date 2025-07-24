@@ -281,7 +281,7 @@ export default function GlobalSearchBar({
       </div>
 
       {/* Mobile Search Results Modal - Centered on screen */}
-      {isOpen && (
+      {isOpen && isExpanded && (
         <div className="md:hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] overflow-hidden">
             {/* Results Content */}
