@@ -575,6 +575,7 @@ export default function MonthlyScheduleView({
       </div>
 
       {/* Edit Event Dialog */}
+      {console.log('🚨🚨 EDIT DIALOG STATE:', editEventDialog)}
       <Dialog open={editEventDialog.isOpen} onOpenChange={(open) => setEditEventDialog({ isOpen: open })}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
