@@ -16,6 +16,16 @@ interface BetaSettings {
 
 export function useBetaFeatures() {
   const { user } = useAuth();
+  
+  // Get switch status to determine effective user
+  const { data: switchStatus } = useQuery({
+    queryKey: ['/api/admin/switch-status'],
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+  
+  // Use effective user (viewing user if switched, otherwise original user)
+  const effectiveUser = switchStatus?.isViewingAs ? switchStatus.viewingUser : user;
 
   const { data: betaSettings, isLoading } = useQuery({
     queryKey: ['/api/admin/beta-settings'],
@@ -32,52 +42,55 @@ export function useBetaFeatures() {
   };
 
   const hasUserAccess = (featureId: string): boolean => {
-    if (!user) return false;
+    if (!effectiveUser) return false;
     
     // Owner always has access (from middleware)
-    if (user.id.toString() === '44106967') {
+    if (effectiveUser.id.toString() === '44106967') {
       return true;
     }
 
     // Check if user has beta access and the specific feature
-    if (!user.betaAccess) return false;
+    if (!effectiveUser.betaAccess) return false;
     
     try {
-      const betaFeatures = user.betaFeatures ? JSON.parse(user.betaFeatures as string) : [];
+      const betaFeatures = effectiveUser.betaFeatures ? JSON.parse(effectiveUser.betaFeatures as string) : [];
       return betaFeatures.includes(featureId);
     } catch (error) {
-      console.warn('Error parsing betaFeatures JSON:', error, 'Raw value:', user.betaFeatures);
+      console.warn('Error parsing betaFeatures JSON:', error, 'Raw value:', effectiveUser.betaFeatures);
       return false;
     }
   };
 
   const canAccessFeature = (featureId: string): boolean => {
     // Debug logging
-    const betaFeaturesArray = user?.betaFeatures ? (() => {
+    const betaFeaturesArray = effectiveUser?.betaFeatures ? (() => {
       try {
-        return JSON.parse(user.betaFeatures as string);
+        return JSON.parse(effectiveUser.betaFeatures as string);
       } catch {
         return [];
       }
     })() : [];
     
     console.log(`🔍 Beta Access Check for ${featureId}:`, {
-      userId: user?.id,
-      isAdmin: user?.isAdmin,
+      originalUserId: user?.id,
+      originalUserIsAdmin: user?.isAdmin,
+      effectiveUserId: effectiveUser?.id,
+      effectiveUserIsAdmin: effectiveUser?.isAdmin,
+      isViewingAs: switchStatus?.isViewingAs,
       featureEnabled: isFeatureEnabled(featureId),
       userAccess: hasUserAccess(featureId),
-      betaAccess: user?.betaAccess,
+      betaAccess: effectiveUser?.betaAccess,
       betaFeatures: betaFeaturesArray,
-      rawBetaFeatures: user?.betaFeatures
+      rawBetaFeatures: effectiveUser?.betaFeatures
     });
     
-    // Admins can always access everything
-    if (user?.isAdmin) {
-      console.log(`✅ Admin access granted for ${featureId}`);
+    // Only original admin (not viewed user) can bypass restrictions
+    if (user?.isAdmin && !switchStatus?.isViewingAs) {
+      console.log(`✅ Original admin access granted for ${featureId}`);
       return true;
     }
     
-    // Feature must be enabled in beta settings AND user must have access
+    // Feature must be enabled in beta settings AND effective user must have access
     const result = isFeatureEnabled(featureId) && hasUserAccess(featureId);
     console.log(`${result ? '✅' : '❌'} Beta access result for ${featureId}:`, result);
     return result;
