@@ -178,6 +178,8 @@ export default function Header() {
 
   const currentUser = switchStatus?.isViewingAs ? switchStatus?.viewingUser : user;
 
+  console.log('🔍 Header component rendering, user:', user);
+  
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="px-4 sm:px-6 lg:px-8">

@@ -13,6 +13,7 @@ import { useState, useEffect, useRef } from "react";
 import { useFeatureSettings } from "@/hooks/useFeatureSettings";
 import BreadcrumbNavigation from "./breadcrumb-navigation";
 import { useAdminView } from "@/contexts/AdminViewContext";
+import GlobalSearchBar from "@/components/search/GlobalSearchBar";
 
 interface SwitchStatus {
   isViewingAs: boolean;
@@ -215,6 +216,13 @@ export default function EnhancedHeader() {
               onClick={() => setLocation('/')}
             >
               BackstageOS
+            </div>
+            
+            {/* Search Bar - Added after logo */}
+            <div className="flex-1 max-w-md mx-4 hidden md:block">
+              <div style={{ border: '3px solid red', padding: '4px' }}>
+                <GlobalSearchBar />
+              </div>
             </div>
 
             {/* Navigation Menu - Moved after BackstageOS */}
