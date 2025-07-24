@@ -579,31 +579,35 @@ export default function MonthlyScheduleView({
           <DialogHeader>
             <DialogTitle>Edit Event</DialogTitle>
           </DialogHeader>
-          {editEventDialog.event && (
-            <EventForm
-              projectId={projectId}
-              contacts={contacts}
-              eventTypes={eventTypes}
-              initialDate={editEventDialog.event.date}
-              onSubmit={handleEditEvent}
-              onCancel={() => setEditEventDialog({ isOpen: false })}
-              timeFormat={timeFormat}
-              initialValues={{
-                title: editEventDialog.event.title,
-                description: editEventDialog.event.description,
-                type: editEventDialog.event.type,
-                startDate: editEventDialog.event.date,
-                endDate: editEventDialog.event.date,
-                startTime: editEventDialog.event.startTime.slice(0, 5), // Remove seconds
-                endTime: editEventDialog.event.endTime.slice(0, 5), // Remove seconds
-                location: editEventDialog.event.location,
-                notes: editEventDialog.event.notes,
-                isAllDay: editEventDialog.event.isAllDay,
-                isProductionLevel: editEventDialog.event.isProductionLevel,
-                participantIds: editEventDialog.event.participants.map(p => p.contactId),
-              }}
-            />
-          )}
+          {editEventDialog.event && (() => {
+            const initialValuesForForm = {
+              title: editEventDialog.event.title,
+              description: editEventDialog.event.description,
+              type: editEventDialog.event.type,
+              startDate: editEventDialog.event.date,
+              endDate: editEventDialog.event.date,
+              startTime: editEventDialog.event.startTime.slice(0, 5),
+              endTime: editEventDialog.event.endTime.slice(0, 5),
+              location: editEventDialog.event.location,
+              notes: editEventDialog.event.notes,
+              isAllDay: editEventDialog.event.isAllDay,
+              isProductionLevel: editEventDialog.event.isProductionLevel,
+              participantIds: editEventDialog.event.participants.map(p => p.contactId),
+            };
+            console.log('🚨 BEFORE EventForm - initialValues:', JSON.stringify(initialValuesForForm, null, 2));
+            return (
+              <EventForm
+                projectId={projectId}
+                contacts={contacts}
+                eventTypes={eventTypes}
+                initialDate={editEventDialog.event.date}
+                onSubmit={handleEditEvent}
+                onCancel={() => setEditEventDialog({ isOpen: false })}
+                timeFormat={timeFormat}
+                initialValues={initialValuesForForm}
+              />
+            );
+          })()}
           <div className="flex justify-between pt-4">
             <Button
               variant="destructive"
