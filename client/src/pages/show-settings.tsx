@@ -1561,7 +1561,7 @@ The Production Team`
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Viewers</CardTitle>
+                    <CardTitle>Production Team</CardTitle>
                     <CardDescription>
                       Invite unlimited viewers with read-only access to production information.
                     </CardDescription>
