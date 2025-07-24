@@ -125,78 +125,28 @@ export default function GlobalSearchBar({
   }, [isExpanded, query]);
 
   return (
-    <div className={`relative ${className}`}>
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <div className="relative">
-            {/* Search Icon Button */}
-            {!isExpanded && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSearchClick}
-                className="h-10 w-10 p-0 hover:bg-gray-100"
-                aria-label="Search"
-              >
-                <Search className="h-5 w-5 text-gray-600" />
-              </Button>
-            )}
-
-            {/* Expanded Search Bar - positioned to expand left from search icon */}
-            {isExpanded && (
-              <div className="absolute top-0 z-50" style={{ right: '0px' }}>
-                <form onSubmit={handleSubmit} className="relative">
-                  <div 
-                    className="relative transition-all duration-300 ease-out"
-                    style={{
-                      width: isExpanded ? '240px' : '40px',
-                      opacity: isExpanded ? 1 : 0,
-                      transform: 'translateX(-200px)', // Move left so it expands from right edge
-                    }}
-                  >
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    
-                    <Input
-                      ref={inputRef}
-                      type="text"
-                      placeholder="Search..."
-                      value={query}
-                      onChange={handleInputChange}
-                      className="pl-10 pr-20 h-10 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-lg rounded-lg"
-                    />
-                    
-                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                      {searchMutation.isPending ? (
-                        <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
-                      ) : (
-                        <Sparkles className="h-4 w-4 text-blue-500" title="Smart search" />
-                      )}
-                      
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={handleClose}
-                        className="h-6 w-6 p-0 ml-1 hover:bg-gray-100"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            )}
-          </div>
-        </PopoverTrigger>
-        
-        <PopoverContent 
-          className="w-[95vw] sm:w-[600px] p-0 border-0 shadow-lg" 
-          align="center"
-          side="bottom"
-          sideOffset={8}
-          avoidCollisions={true}
-          collisionPadding={8}
-        >
+    <>
+      {/* Desktop Search with Popover */}
+      <div className={`hidden md:block relative ${className}`}>
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSearchClick}
+              className="h-10 w-10 p-0 hover:bg-gray-100"
+              aria-label="Search"
+            >
+              <Search className="h-5 w-5 text-gray-600" />
+            </Button>
+          </PopoverTrigger>
+          
+          <PopoverContent 
+            className="w-[600px] p-0 border-0 shadow-lg" 
+            align="end"
+            side="bottom"
+            sideOffset={8}
+          >
           <div className="bg-white rounded-lg border shadow-lg max-h-[60vh] sm:max-h-[80vh] overflow-hidden">
             {/* Results Content */}
             <div className="flex-1 overflow-y-auto">
