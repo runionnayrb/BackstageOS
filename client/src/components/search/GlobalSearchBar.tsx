@@ -20,6 +20,18 @@ export default function GlobalSearchBar({
 }: GlobalSearchBarProps) {
   // Debug log to check if component renders
   console.log('GlobalSearchBar rendering');
+  
+  // Simple placeholder for testing visibility
+  return (
+    <div className="bg-white border border-gray-300 rounded-md px-3 py-2 w-full">
+      <input 
+        type="text" 
+        placeholder="Search your production..."
+        className="w-full border-0 outline-none text-sm"
+        style={{ background: 'transparent' }}
+      />
+    </div>
+  );
   const {
     query,
     setQuery,
