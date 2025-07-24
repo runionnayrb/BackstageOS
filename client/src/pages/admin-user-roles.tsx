@@ -242,43 +242,25 @@ export default function AdminUserRoles() {
           </TabsTrigger>
         </TabsList>
 
-        {["admin", "user", "viewer"].map((role) => (
+        {["admin", "user", "editor", "viewer"].map((role) => (
           <TabsContent key={role} value={role} className="mt-6">
-            {usersLoading ? (
+            {(role === "editor" ? editorsLoading : usersLoading) ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">Loading {role}s...</p>
               </div>
-            ) : users.length === 0 ? (
+            ) : (role === "editor" ? editorsWithProjects : users).length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">No {role}s found</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {users.map((user: User) => (
+                {(role === "editor" ? editorsWithProjects : users).map((user: User) => (
                   <UserCard key={user.id} user={user} />
                 ))}
               </div>
             )}
           </TabsContent>
         ))}
-
-        <TabsContent value="editor" className="mt-6">
-          {editorsLoading ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500">Loading editors...</p>
-            </div>
-          ) : editorsWithProjects.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No editors found</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {editorsWithProjects.map((user: User) => (
-                <UserCard key={user.id} user={user} />
-              ))}
-            </div>
-          )}
-        </TabsContent>
       </Tabs>
     </div>
   );
