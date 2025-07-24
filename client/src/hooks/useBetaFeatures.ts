@@ -47,13 +47,26 @@ export function useBetaFeatures() {
   };
 
   const canAccessFeature = (featureId: string): boolean => {
+    // Debug logging
+    console.log(`🔍 Beta Access Check for ${featureId}:`, {
+      userId: user?.id,
+      isAdmin: user?.isAdmin,
+      featureEnabled: isFeatureEnabled(featureId),
+      userAccess: hasUserAccess(featureId),
+      betaAccess: user?.betaAccess,
+      betaFeatures: user?.betaFeatures ? JSON.parse(user.betaFeatures as string) : []
+    });
+    
     // Admins can always access everything
     if (user?.isAdmin) {
+      console.log(`✅ Admin access granted for ${featureId}`);
       return true;
     }
     
     // Feature must be enabled in beta settings AND user must have access
-    return isFeatureEnabled(featureId) && hasUserAccess(featureId);
+    const result = isFeatureEnabled(featureId) && hasUserAccess(featureId);
+    console.log(`${result ? '✅' : '❌'} Beta access result for ${featureId}:`, result);
+    return result;
   };
 
   const getFeatureStatus = (featureId: string): 'enabled' | 'disabled' | 'no-access' | 'loading' => {
