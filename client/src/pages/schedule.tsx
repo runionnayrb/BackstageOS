@@ -1388,6 +1388,7 @@ The Production Team`
                   location: editingEvent.location || '',
                   notes: editingEvent.notes || '',
                   isAllDay: editingEvent.isAllDay,
+                  isProductionLevel: editingEvent.isProductionLevel,
                   participantIds: editingEvent.participants.map((p: any) => p.contactId),
                 }}
               />
