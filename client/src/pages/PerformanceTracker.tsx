@@ -26,8 +26,9 @@ import { format } from "date-fns";
 import { PerformanceTrackerForm } from "@/components/PerformanceTrackerForm";
 import { RehearsalTrackerForm } from "@/components/RehearsalTrackerForm";
 import { ShowContractSettingsForm } from "@/components/ShowContractSettingsForm";
+import BetaFeatureGuard from "@/components/BetaFeatureGuard";
 
-export default function PerformanceTracker() {
+function PerformanceTrackerContent() {
   const { id } = useParams<{ id: string }>();
   const projectId = parseInt(id || "0");
   const { user } = useAuth();
@@ -449,5 +450,13 @@ export default function PerformanceTracker() {
         />
       )}
     </div>
+  );
+}
+
+export default function PerformanceTracker() {
+  return (
+    <BetaFeatureGuard featureId="performance-tracker">
+      <PerformanceTrackerContent />
+    </BetaFeatureGuard>
   );
 }

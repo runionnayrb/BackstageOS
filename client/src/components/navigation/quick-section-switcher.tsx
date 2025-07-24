@@ -3,6 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useLocation } from "wouter";
+import { useBetaFeatures } from "@/hooks/useBetaFeatures";
 
 interface Section {
   id: string;
@@ -22,8 +23,9 @@ export default function QuickSectionSwitcher({
   currentSection 
 }: QuickSectionSwitcherProps) {
   const [, setLocation] = useLocation();
+  const { canAccessFeature } = useBetaFeatures();
 
-  const sections: Section[] = [
+  const allSections: Section[] = [
     {
       id: "reports",
       title: "Reports",
@@ -65,6 +67,14 @@ export default function QuickSectionSwitcher({
       href: `/shows/${currentShowId}/notes-tracking`
     }
   ];
+
+  // Filter sections based on beta feature access
+  const sections = allSections.filter(section => {
+    if (section.id === 'performance-tracker') {
+      return canAccessFeature('performance-tracker');
+    }
+    return true;
+  });
 
   const currentSectionData = sections.find(s => s.id === currentSection);
 

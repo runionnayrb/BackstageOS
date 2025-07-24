@@ -10690,7 +10690,7 @@ Best regards,
   });
 
   // Performance Tracking
-  app.get("/api/projects/:id/performance-tracker", isAuthenticated, async (req: any, res) => {
+  app.get("/api/projects/:id/performance-tracker", isAuthenticated, requiresBetaAccess('performance-tracker'), async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const project = await storage.getProjectById(projectId);
@@ -10714,7 +10714,7 @@ Best regards,
     }
   });
 
-  app.post("/api/projects/:id/performance-tracker", isAuthenticated, async (req: any, res) => {
+  app.post("/api/projects/:id/performance-tracker", isAuthenticated, requiresBetaAccess('performance-tracker'), async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const project = await storage.getProjectById(projectId);
@@ -10743,7 +10743,7 @@ Best regards,
     }
   });
 
-  app.put("/api/projects/:id/performance-tracker/:performanceId", isAuthenticated, async (req: any, res) => {
+  app.put("/api/projects/:id/performance-tracker/:performanceId", isAuthenticated, requiresBetaAccess('performance-tracker'), async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const performanceId = parseInt(req.params.performanceId);
@@ -10769,7 +10769,7 @@ Best regards,
     }
   });
 
-  app.delete("/api/projects/:id/performance-tracker/:performanceId", isAuthenticated, async (req: any, res) => {
+  app.delete("/api/projects/:id/performance-tracker/:performanceId", isAuthenticated, requiresBetaAccess('performance-tracker'), async (req: any, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const performanceId = parseInt(req.params.performanceId);
