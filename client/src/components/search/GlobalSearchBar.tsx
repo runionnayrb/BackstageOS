@@ -18,6 +18,8 @@ export default function GlobalSearchBar({
   className = '', 
   placeholder = "Search productions, people, schedules..." 
 }: GlobalSearchBarProps) {
+  // Debug log to check if component renders
+  console.log('GlobalSearchBar rendering');
   const {
     query,
     setQuery,
@@ -121,7 +123,7 @@ export default function GlobalSearchBar({
   };
 
   return (
-    <div ref={searchRef} className={`relative ${className}`}>
+    <div ref={searchRef} className={`relative ${className}`} style={{ border: '2px solid red' }}>
       {/* Search Input */}
       <div className="relative">
         <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">

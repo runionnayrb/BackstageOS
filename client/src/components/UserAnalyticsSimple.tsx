@@ -112,8 +112,14 @@ export default function UserAnalyticsSimple() {
     select: (data: any[]) => data || [],
   });
 
-  const { data: users = [], isLoading } = useQuery<UserAnalytics[]>({
+  const { data: users = [], isLoading, error } = useQuery<UserAnalytics[]>({
     queryKey: ["/api/admin/user-analytics"],
+    onError: (error) => {
+      console.error('Failed to fetch user analytics:', error);
+    },
+    onSuccess: (data) => {
+      console.log('User analytics data received:', data);
+    }
   });
 
   const { data: stats } = useQuery<UserAnalyticsStats>({
@@ -368,6 +374,20 @@ export default function UserAnalyticsSimple() {
               </TableRow>
             </TableHeader>
             <TableBody>
+              {error && (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center text-red-500 p-4">
+                    Error loading users: {error.message || 'Unknown error'}
+                  </TableCell>
+                </TableRow>
+              )}
+              {!error && users.length === 0 && !isLoading && (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center text-gray-500 p-4">
+                    No users found. Debug: users array length = {users.length}
+                  </TableCell>
+                </TableRow>
+              )}
               {users.map((user) => (
                 <TableRow key={user.id} className="cursor-pointer hover:bg-gray-50">
                   <TableCell>
