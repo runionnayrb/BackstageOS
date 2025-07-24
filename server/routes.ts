@@ -14081,7 +14081,7 @@ The Production Team`;
       try {
         // Search contacts
         console.log('🔍 Searching contacts...');
-        const contacts = await storage.getContactsByUserId(userId);
+        const contacts = await storage.getAllContactsByUserId(userId.toString());
         console.log('🔍 Found contacts:', contacts.length);
         
         const matchingContacts = contacts.filter(contact => {
@@ -14121,7 +14121,7 @@ The Production Team`;
         
         // Search projects  
         console.log('🔍 Searching projects...');
-        const projects = await storage.getProjectsByUserId(userId);
+        const projects = await storage.getProjectsByUserId(userId.toString());
         console.log('🔍 Found projects:', projects.length);
         
         const matchingProjects = projects.filter(project => {
