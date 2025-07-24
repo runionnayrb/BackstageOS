@@ -10,6 +10,7 @@ import {
   scripts, 
   emailThreads, 
   emailMessages,
+  emailAccounts,
   notes,
   projects,
   users
@@ -567,7 +568,18 @@ class SearchEngine {
    */
   private async searchEmails(processedQuery: any, filters: any[], userId: number): Promise<SearchResult[]> {
     try {
-      const conditions = [eq(emailThreads.userId, userId)];
+      // First get user's email accounts
+      const userAccounts = await db
+        .select({ id: emailAccounts.id })
+        .from(emailAccounts)
+        .where(eq(emailAccounts.userId, userId));
+      
+      if (userAccounts.length === 0) {
+        return []; // No email accounts for this user
+      }
+      
+      const accountIds = userAccounts.map(acc => acc.id);
+      const conditions = [inArray(emailThreads.accountId, accountIds)];
       
       if (processedQuery.keywords?.length > 0) {
         const textConditions = processedQuery.keywords.map((keyword: string) => 
@@ -576,7 +588,7 @@ class SearchEngine {
             sql`EXISTS (
               SELECT 1 FROM ${emailMessages} em 
               WHERE em.thread_id = ${emailThreads.id} 
-              AND (em.content ILIKE ${`%${keyword}%`} OR em.from_email ILIKE ${`%${keyword}%`})
+              AND (em.content ILIKE ${`%${keyword}%`} OR em.from_address ILIKE ${`%${keyword}%`})
             )`
           )
         );
@@ -589,7 +601,7 @@ class SearchEngine {
         .select({
           id: emailThreads.id,
           subject: emailThreads.subject,
-          participantCount: emailThreads.participantCount,
+          messageCount: emailThreads.messageCount,
           lastMessageAt: emailThreads.lastMessageAt,
           isRead: emailThreads.isRead,
           projectId: emailThreads.projectId,
@@ -612,13 +624,13 @@ class SearchEngine {
         id: `email-${email.id}`,
         type: 'email' as const,
         title: email.subject || 'No Subject',
-        description: `Email conversation with ${email.participantCount} participants`,
+        description: `Email conversation with ${email.messageCount} messages`,
         projectId: email.projectId || undefined,
         projectName: email.projectId ? projectMap.get(email.projectId) : undefined,
         date: email.lastMessageAt || undefined,
         relevanceScore: 1.0,
         metadata: {
-          participantCount: email.participantCount,
+          messageCount: email.messageCount,
           isRead: email.isRead,
         },
         url: `/email/thread/${email.id}`,
