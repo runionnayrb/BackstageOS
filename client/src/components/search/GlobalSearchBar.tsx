@@ -142,15 +142,16 @@ export default function GlobalSearchBar({
               </Button>
             )}
 
-            {/* Expanded Search Bar */}
+            {/* Expanded Search Bar - positioned to expand left from search icon */}
             {isExpanded && (
-              <div className="absolute right-0 top-0 z-50">
+              <div className="absolute top-0 z-50" style={{ right: '0px' }}>
                 <form onSubmit={handleSubmit} className="relative">
                   <div 
                     className="relative transition-all duration-300 ease-out"
                     style={{
-                      width: isExpanded ? '280px' : '40px',
+                      width: isExpanded ? '240px' : '40px',
                       opacity: isExpanded ? 1 : 0,
+                      transform: 'translateX(-200px)', // Move left so it expands from right edge
                     }}
                   >
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -161,7 +162,7 @@ export default function GlobalSearchBar({
                       placeholder="Search..."
                       value={query}
                       onChange={handleInputChange}
-                      className="pl-10 pr-20 h-10 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-lg"
+                      className="pl-10 pr-20 h-10 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-lg rounded-lg"
                     />
                     
                     <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
@@ -189,17 +190,12 @@ export default function GlobalSearchBar({
         </PopoverTrigger>
         
         <PopoverContent 
-          className="w-[90vw] sm:w-[600px] p-0 border-0 shadow-lg" 
-          align="end"
+          className="w-[95vw] sm:w-[600px] p-0 border-0 shadow-lg" 
+          align="center"
           side="bottom"
           sideOffset={8}
-          style={{
-            position: 'fixed',
-            top: '60px', // Position near top to avoid keyboard
-            right: '8px',
-            left: '8px', // Full width on mobile
-            zIndex: 9999
-          }}
+          avoidCollisions={true}
+          collisionPadding={8}
         >
           <div className="bg-white rounded-lg border shadow-lg max-h-[60vh] sm:max-h-[80vh] overflow-hidden">
             {/* Results Content */}
