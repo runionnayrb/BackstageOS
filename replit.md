@@ -368,6 +368,35 @@ Required environment variables:
 
 ## Recent Changes
 
+### July 24, 2025: **BETA CONFIGURATION FEATURE VISIBILITY CONTROL SYSTEM COMPLETE**
+**Successfully implemented comprehensive beta configuration system where admin dashboard settings actually control feature visibility in user accounts:**
+
+**Beta Feature Control Logic:**
+- Admin users can always access all features regardless of beta settings when viewing with their own privileges
+- When admin switches to view as another user, they see only the features that user would see based on beta configuration
+- Non-admin users only see features that are both enabled in beta configuration AND granted to their account
+- Feature visibility properly respects account switching states and effective user permissions
+
+**Technical Implementation:**
+- Enhanced useBetaFeatures hook with proper effective user detection using switch status
+- Fixed admin bypass logic to work correctly during account switching sessions
+- Added comprehensive debug logging for beta access checks and admin bypass conditions
+- Implemented proper differentiation between original admin privileges and viewed user privileges
+
+**Admin Bypass Logic:**
+- Original admin (not switching): Full access to all features
+- Admin viewing as themselves (after switching back): Full access to all features  
+- Admin viewing as another user: Only sees what that user would see
+- Non-admin users: Restricted to enabled beta features they have access to
+
+**System Benefits:**
+- Beta configuration toggles in admin dashboard now actually control what users see
+- Admin can test feature visibility by switching to user accounts
+- Professional feature rollout control with proper admin oversight capabilities
+- Complete isolation between admin testing and user experience
+
+**Status**: Beta configuration feature visibility control system fully operational with proper admin bypass logic and account switching integration.
+
 ### July 24, 2025: **SCHEDULE RELATIONSHIP MAPPING SYSTEM IMPLEMENTATION COMPLETE**
 **Successfully implemented comprehensive Schedule Relationship Mapping system enabling bidirectional awareness between production schedules and daily execution tracking:**
 
