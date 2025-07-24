@@ -247,8 +247,9 @@ export default function GlobalSearchBar({
         ) : (
           // Expanded search bar with results below - slides in from right
           <div className="fixed top-3 right-3 left-3 z-50 animate-in slide-in-from-right-4 duration-300">
-            <form onSubmit={handleSubmit} className="relative">
-              <Input
+            <div className="relative">
+              <form onSubmit={handleSubmit} className="relative">
+                <Input
                 ref={inputRef}
                 type="text"
                 placeholder="Search..."
@@ -274,45 +275,44 @@ export default function GlobalSearchBar({
                   <X className="h-3 w-3" />
                 </Button>
               </div>
-            </form>
+              </form>
 
-            {/* Search Results - Appear below search bar */}
-            {(results.length > 0 || searchMutation.isPending || query.length >= 2) && (
-              <div className="mt-2 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto">
+            {/* Google-style dropdown results */}
+            {query.length >= 1 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-gray-200 max-h-80 overflow-y-auto z-50">
                 {searchMutation.isPending ? (
-                  <div className="flex items-center justify-center p-8">
-                    <div className="text-center">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-                      <p className="text-sm text-gray-500">Searching...</p>
-                    </div>
+                  <div className="p-4 text-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                    <p className="text-sm text-gray-500">Searching...</p>
                   </div>
                 ) : results.length > 0 ? (
-                  <div className="p-4 space-y-3">
+                  <div className="py-2">
                     {results.map((result) => (
                       <div
                         key={result.id}
-                        className="p-3 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-100"
+                        className="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
                         onClick={() => {
                           window.location.href = result.url;
-                          setIsOpen(false);
                           setIsExpanded(false);
+                          setQuery('');
+                          setResults([]);
                         }}
                       >
                         <div className="flex items-start gap-3">
-                          <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                          <div className="flex-shrink-0 w-6 h-6 bg-blue-100 rounded flex items-center justify-center">
                             <span className="text-blue-600 text-xs font-medium">
                               {result.type.charAt(0).toUpperCase()}
                             </span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-gray-900 text-sm truncate">
+                            <h3 className="font-medium text-gray-900 text-sm leading-tight">
                               {result.title}
                             </h3>
-                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                            <p className="text-xs text-gray-500 mt-1 leading-tight">
                               {result.snippet}
                             </p>
-                            <div className="flex items-center gap-2 mt-2">
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
                                 {result.type}
                               </span>
                               {result.relevanceScore && (
@@ -327,22 +327,23 @@ export default function GlobalSearchBar({
                     ))}
                   </div>
                 ) : query.length >= 2 && !searchMutation.isPending ? (
-                  <div className="p-8 text-center">
+                  <div className="p-4 text-center">
                     <p className="text-gray-500 text-sm">No results found. Try a different search term.</p>
                   </div>
-                ) : (
-                  <div className="p-8 text-center">
-                    <div className="flex items-center justify-center gap-2 text-blue-600 mb-2">
-                      <Sparkles className="h-5 w-5" />
-                      <span className="font-medium">Smart Search</span>
+                ) : query.length === 1 ? (
+                  <div className="p-4 text-center">
+                    <div className="flex items-center justify-center gap-2 text-blue-600 mb-1">
+                      <Sparkles className="h-4 w-4" />
+                      <span className="font-medium text-sm">Smart Search</span>
                     </div>
-                    <p className="text-gray-500 text-sm">
-                      Ask questions like "Who's playing Lady Macbeth?" or "What props do we need for Act 2?"
+                    <p className="text-gray-500 text-xs">
+                      Type more to search across your production
                     </p>
                   </div>
-                )}
+                ) : null}
               </div>
             )}
+            </div>
           </div>
         )}
       </div>
