@@ -5223,7 +5223,7 @@ export class DatabaseStorage implements IStorage {
   
   // Get all users by role (admin, user, editor, viewer)
   async getUsersByRole(role: string): Promise<any[]> {
-    const users = await db
+    const result = await db
       .select({
         id: users.id,
         email: users.email,
@@ -5243,12 +5243,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.userRole, role))
       .orderBy(desc(users.createdAt));
     
-    return users;
+    return result;
   }
 
   // Get all editors with their project assignments
   async getAllEditorsWithProjects(): Promise<any[]> {
-    const editors = await db
+    const editorsResult = await db
       .select({
         id: users.id,
         email: users.email,
@@ -5270,7 +5270,7 @@ export class DatabaseStorage implements IStorage {
 
     // Get project assignments for each editor
     const editorsWithProjects = await Promise.all(
-      editors.map(async (editor) => {
+      editorsResult.map(async (editor) => {
         const projectAssignments = await db
           .select({
             projectId: projectMembers.projectId,
