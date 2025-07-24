@@ -434,6 +434,7 @@ export default function MonthlyScheduleView({
                                 onClick={() => {
                                   setOpenPopoverId(null);
                                   console.log('🔥 SETTING EDIT EVENT DIALOG with event:', JSON.stringify(event, null, 2));
+                                  console.log('🔥 Event has isProductionLevel?', 'isProductionLevel' in event, event.isProductionLevel);
                                   if (onEventEdit) {
                                     onEventEdit(event);
                                   } else {
@@ -580,6 +581,7 @@ export default function MonthlyScheduleView({
             <DialogTitle>Edit Event</DialogTitle>
           </DialogHeader>
           {editEventDialog.event && (() => {
+            console.log('🚨 EDIT DIALOG EVENT:', JSON.stringify(editEventDialog.event, null, 2));
             const initialValuesForForm = {
               title: editEventDialog.event.title,
               description: editEventDialog.event.description,
