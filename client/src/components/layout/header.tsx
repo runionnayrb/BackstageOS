@@ -10,7 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import React, { useState, useEffect } from "react";
 import { useAdminView } from "@/contexts/AdminViewContext";
-import { GlobalSearchBar } from "@/components/search/GlobalSearchBar";
+import GlobalSearchBar from "@/components/search/GlobalSearchBar";
 
 interface SwitchStatus {
   isViewingAs: boolean;
