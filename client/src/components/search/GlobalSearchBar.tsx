@@ -246,7 +246,7 @@ export default function GlobalSearchBar({
             <Search className="h-5 w-5 text-gray-600" />
           </Button>
         ) : (
-          // Expanded search bar - slides in from right
+          // Expanded search bar with results below - slides in from right
           <div className="fixed top-3 right-3 left-3 z-50 animate-in slide-in-from-right-4 duration-300">
             <form onSubmit={handleSubmit} className="relative">
               <Input
@@ -276,105 +276,79 @@ export default function GlobalSearchBar({
                 </Button>
               </div>
             </form>
+
+            {/* Search Results - Appear below search bar */}
+            {(results.length > 0 || searchMutation.isPending || query.length >= 2) && (
+              <div className="mt-2 bg-white rounded-lg shadow-xl border border-gray-200 max-h-96 overflow-y-auto">
+                {searchMutation.isPending ? (
+                  <div className="flex items-center justify-center p-8">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                      <p className="text-sm text-gray-500">Searching...</p>
+                    </div>
+                  </div>
+                ) : results.length > 0 ? (
+                  <div className="p-4 space-y-3">
+                    {results.map((result) => (
+                      <div
+                        key={result.id}
+                        className="p-3 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-100"
+                        onClick={() => {
+                          window.location.href = result.url;
+                          setIsOpen(false);
+                          setIsExpanded(false);
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <span className="text-blue-600 text-xs font-medium">
+                              {result.type.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-gray-900 text-sm truncate">
+                              {result.title}
+                            </h3>
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                              {result.snippet}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                {result.type}
+                              </span>
+                              {result.relevanceScore && (
+                                <span className="text-xs text-gray-400">
+                                  {Math.round(result.relevanceScore * 100)}% match
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : query.length >= 2 && !searchMutation.isPending ? (
+                  <div className="p-8 text-center">
+                    <p className="text-gray-500 text-sm">No results found. Try a different search term.</p>
+                  </div>
+                ) : (
+                  <div className="p-8 text-center">
+                    <div className="flex items-center justify-center gap-2 text-blue-600 mb-2">
+                      <Sparkles className="h-5 w-5" />
+                      <span className="font-medium">Smart Search</span>
+                    </div>
+                    <p className="text-gray-500 text-sm">
+                      Ask questions like "Who's playing Lady Macbeth?" or "What props do we need for Act 2?"
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      {/* Mobile Search Results Modal - Centered on screen */}
-      {isOpen && isExpanded && (
-        <div className="md:hidden fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] overflow-hidden">
-            {/* Results Content */}
-            <div className="flex-1 overflow-y-auto">
-              {searchMutation.isPending ? (
-                <div className="flex items-center justify-center p-8">
-                  <div className="text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-500">Searching...</p>
-                  </div>
-                </div>
-              ) : results.length > 0 ? (
-                <div className="p-4 space-y-3">
-                  {results.map((result) => (
-                    <div
-                      key={result.id}
-                      className="p-3 hover:bg-gray-50 rounded-lg cursor-pointer border border-gray-100"
-                      onClick={() => {
-                        window.location.href = result.url;
-                        setIsOpen(false);
-                      }}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <span className="text-blue-600 text-xs font-medium">
-                            {result.type.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-900 text-sm truncate">
-                            {result.title}
-                          </h3>
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">
-                            {result.snippet}
-                          </p>
-                          <div className="flex items-center gap-2 mt-2">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                              {result.type}
-                            </span>
-                            {result.relevanceScore && (
-                              <span className="text-xs text-gray-400">
-                                {Math.round(result.relevanceScore * 100)}% match
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : query.length >= 2 && !searchMutation.isPending ? (
-                <div className="p-8 text-center">
-                  <p className="text-gray-500 text-sm">No results found. Try a different search term.</p>
-                </div>
-              ) : (
-                <div className="p-8 text-center">
-                  <div className="flex items-center justify-center gap-2 text-blue-600 mb-2">
-                    <Sparkles className="h-5 w-5" />
-                    <span className="font-medium">Smart Search</span>
-                  </div>
-                  <p className="text-gray-500 text-sm">
-                    Ask questions like "Who's playing Lady Macbeth?" or "What props do we need for Act 2?"
-                  </p>
-                </div>
-              )}
-            </div>
-            
-            {/* Footer with search stats and close button */}
-            <div className="border-t bg-gray-50 px-3 py-2 text-xs text-gray-500 flex justify-between items-center">
-              <span>
-                {searchMutation.isPending ? (
-                  "Searching..."
-                ) : results.length > 0 ? (
-                  `${results.length} result${results.length !== 1 ? 's' : ''} found`
-                ) : (
-                  <span className="flex items-center gap-1">
-                    <Sparkles className="h-3 w-3" />
-                    Smart search
-                  </span>
-                )}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsOpen(false)}
-                className="h-6 w-6 p-0 hover:bg-gray-200"
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+
     </>
   );
 }
