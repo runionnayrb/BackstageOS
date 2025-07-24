@@ -86,6 +86,16 @@ export default function MonthlyScheduleView({
   // Fetch all data needed for event creation/editing
   const { data: events = [] } = useQuery({
     queryKey: [`/api/projects/${projectId}/schedule-events`],
+    select: (data) => {
+      console.log('📅 All events in monthly view:', data?.map(e => ({
+        id: e.id,
+        title: e.title,
+        date: e.date,
+        isAllDay: e.isAllDay,
+        isProductionLevel: e.isProductionLevel
+      })));
+      return data;
+    }
   });
 
   const { data: contacts = [] } = useQuery({
