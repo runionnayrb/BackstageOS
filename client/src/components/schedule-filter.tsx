@@ -32,6 +32,9 @@ interface ScheduleFilterProps {
   onEventTypeFilterChange: (eventTypes: string[]) => void;
   selectedIndividualTypes: string[];
   onIndividualTypeFilterChange: (individualTypes: string[]) => void;
+  showProductionCalendar?: boolean;
+  onProductionCalendarFilterChange?: (show: boolean) => void;
+  viewMode?: 'monthly' | 'weekly' | 'daily';
   defaultTab?: string;
   hidePeopleTab?: boolean;
 }
@@ -44,6 +47,9 @@ export default function ScheduleFilter({
   onEventTypeFilterChange,
   selectedIndividualTypes,
   onIndividualTypeFilterChange,
+  showProductionCalendar = true,
+  onProductionCalendarFilterChange,
+  viewMode = 'monthly',
   defaultTab = "people",
   hidePeopleTab = false
 }: ScheduleFilterProps) {
@@ -372,6 +378,30 @@ export default function ScheduleFilter({
 
           <TabsContent value="events" className="m-0">
             <div className="max-h-96 overflow-y-auto">
+              {/* Production Calendar Filter - Only for monthly view */}
+              {viewMode === 'monthly' && (
+                <div className="p-4 border-b bg-gray-50">
+                  <div 
+                    className="flex items-center space-x-3 p-2 rounded bg-white cursor-pointer hover:bg-gray-50"
+                    onClick={() => onProductionCalendarFilterChange?.(!showProductionCalendar)}
+                  >
+                    <Checkbox
+                      checked={showProductionCalendar}
+                      onChange={() => onProductionCalendarFilterChange?.(!showProductionCalendar)}
+                      className="pointer-events-none"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        Production Calendar
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Show only events marked for production calendar
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Show Schedule Section */}
               <div className="p-4 border-b bg-gray-50">
                 <div className="flex items-center justify-between mb-3">
