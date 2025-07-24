@@ -14072,54 +14072,98 @@ The Production Team`;
 
       console.log('🔍 Search engine initialized successfully');
       
-      // For now, directly search emails which we know works
+      // For now, search contacts which we know works
       const keywords = query.toLowerCase().split(' ').filter(word => word.length > 0);
-      console.log('🔍 Starting email search for userId:', userId, 'keywords:', keywords);
+      console.log('🔍 Starting search for userId:', userId, 'keywords:', keywords);
       
-      // Get user's email accounts
-      const userAccounts = await storage.getEmailAccountsByUserId(userId);
-      console.log('🔍 Found email accounts:', userAccounts.length);
+      const results = [];
       
-      if (userAccounts.length === 0) {
-        return res.json({ results: [] });
-      }
-      
-      const accountIds = userAccounts.map(acc => acc.id);
-      
-      // Search email threads
-      const emailResults = await storage.searchEmailThreads(accountIds, keywords);
-      console.log('🔍 Email search results found:', emailResults.length);
-      
-      if (emailResults.length > 0) {
-        console.log('🔍 First email result:', {
-          id: emailResults[0].id,
-          subject: emailResults[0].subject,
-          messageCount: emailResults[0].messageCount,
-          lastMessageAt: emailResults[0].lastMessageAt,
-          isRead: emailResults[0].isRead,
-          projectId: emailResults[0].projectId
+      try {
+        // Search contacts
+        console.log('🔍 Searching contacts...');
+        const contacts = await storage.getContactsByUserId(userId);
+        console.log('🔍 Found contacts:', contacts.length);
+        
+        const matchingContacts = contacts.filter(contact => {
+          const searchText = [
+            contact.firstName,
+            contact.lastName,
+            contact.email,
+            contact.phone,
+            contact.role,
+            contact.notes
+          ].filter(Boolean).join(' ').toLowerCase();
+          
+          return keywords.some(keyword => searchText.includes(keyword));
         });
+        
+        console.log('🔍 Matching contacts:', matchingContacts.length);
+        
+        matchingContacts.forEach(contact => {
+          results.push({
+            id: `contact-${contact.id}`,
+            type: 'contact',
+            title: [contact.firstName, contact.lastName].filter(Boolean).join(' ') || contact.email || 'Unknown Contact',
+            description: `${contact.role || 'Contact'}${contact.email ? ` • ${contact.email}` : ''}${contact.phone ? ` • ${contact.phone}` : ''}`,
+            snippet: contact.notes || '',
+            date: contact.updatedAt?.toISOString(),
+            relevanceScore: keywords.some(keyword => 
+              [contact.firstName, contact.lastName, contact.email].filter(Boolean).join(' ').toLowerCase().includes(keyword)
+            ) ? 3.0 + Math.random() : 1.0 + Math.random(),
+            metadata: {
+              role: contact.role,
+              email: contact.email,
+              phone: contact.phone
+            },
+            url: `/contacts`
+          });
+        });
+        
+        // Search projects  
+        console.log('🔍 Searching projects...');
+        const projects = await storage.getProjectsByUserId(userId);
+        console.log('🔍 Found projects:', projects.length);
+        
+        const matchingProjects = projects.filter(project => {
+          const searchText = [
+            project.name,
+            project.description,
+            project.venue
+          ].filter(Boolean).join(' ').toLowerCase();
+          
+          return keywords.some(keyword => searchText.includes(keyword));
+        });
+        
+        console.log('🔍 Matching projects:', matchingProjects.length);
+        
+        matchingProjects.forEach(project => {
+          results.push({
+            id: `project-${project.id}`,
+            type: 'project',
+            title: project.name,
+            description: `${project.venue || 'Production'}${project.description ? ` • ${project.description}` : ''}`,
+            snippet: project.description || '',
+            date: project.updatedAt?.toISOString(),
+            relevanceScore: keywords.some(keyword => 
+              project.name.toLowerCase().includes(keyword)
+            ) ? 3.0 + Math.random() : 1.0 + Math.random(),
+            metadata: {
+              venue: project.venue,
+              openingNight: project.openingNight
+            },
+            url: `/shows/${project.id}`
+          });
+        });
+        
+      } catch (searchError) {
+        console.error('Search error:', searchError);
       }
       
-      // Format email results
-      const formattedResults = emailResults.map(email => ({
-        id: `email-${email.id}`,
-        type: 'email',
-        title: email.subject || 'No Subject',
-        description: `Email conversation with ${email.messageCount} message${email.messageCount !== 1 ? 's' : ''}`,
-        snippet: email.subject || 'No Subject',
-        date: email.lastMessageAt?.toISOString(),
-        relevanceScore: keywords.some(keyword => 
-          email.subject?.toLowerCase().includes(keyword)
-        ) ? 3.0 + Math.random() : 1.0 + Math.random(),
-        metadata: {
-          messageCount: email.messageCount,
-          isRead: email.isRead
-        },
-        url: `/email/thread/${email.id}`
-      }));
-
-      res.json({ results: formattedResults.slice(0, 20) });
+      // Sort by relevance score
+      results.sort((a, b) => b.relevanceScore - a.relevanceScore);
+      
+      console.log('🔍 Total search results:', results.length);
+      res.json({ results: results.slice(0, 20) });
     } catch (error) {
       console.error("Natural language search error:", error);
       res.status(500).json({ message: "Search failed" });
