@@ -113,10 +113,13 @@ export const teamMembers = pgTable("team_members", {
   userId: integer("user_id").references(() => users.id),
   email: varchar("email").notNull(),
   name: varchar("name"),
-  role: varchar("role").notNull(),
+  role: varchar("role").notNull(), // Production Stage Manager, Stage Manager, Production Assistant
+  userType: varchar("user_type").notNull().default("editor"), // editor, viewer
   status: varchar("status").notNull().default("pending"), // pending, accepted, declined
   invitedAt: timestamp("invited_at").defaultNow(),
   joinedAt: timestamp("joined_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const reports = pgTable("reports", {
@@ -2224,6 +2227,8 @@ export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({
   id: true,
   invitedAt: true,
   joinedAt: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertReportSchema = createInsertSchema(reports).omit({
@@ -2466,6 +2471,8 @@ export type ScheduleEventParticipant = typeof scheduleEventParticipants.$inferSe
 export type InsertScheduleEventParticipant = z.infer<typeof insertScheduleEventParticipantSchema>;
 export type ReportNote = typeof reportNotes.$inferSelect;
 export type InsertReportNote = z.infer<typeof insertReportNoteSchema>;
+export type TeamMember = typeof teamMembers.$inferSelect;
+export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
 
 export const insertContactSheetVersionSchema = createInsertSchema(contactSheetVersions).omit({
   id: true,

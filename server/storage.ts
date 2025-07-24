@@ -5099,6 +5099,107 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  // ========== TEAM MEMBER MANAGEMENT METHODS ==========
+
+  async getTeamMembersByProjectId(projectId: number): Promise<TeamMember[]> {
+    const result = await db
+      .select({
+        id: teamMembers.id,
+        projectId: teamMembers.projectId,
+        userId: teamMembers.userId,
+        role: teamMembers.role,
+        roleType: teamMembers.roleType,
+        accessLevel: teamMembers.accessLevel,
+        status: teamMembers.status,
+        invitedAt: teamMembers.invitedAt,
+        joinedAt: teamMembers.joinedAt,
+        createdAt: teamMembers.createdAt,
+        updatedAt: teamMembers.updatedAt,
+        // Include user information
+        userName: users.firstName,
+        userLastName: users.lastName,
+        userEmail: users.email,
+      })
+      .from(teamMembers)
+      .leftJoin(users, eq(teamMembers.userId, users.id))
+      .where(eq(teamMembers.projectId, projectId))
+      .orderBy(teamMembers.createdAt);
+    
+    return result;
+  }
+
+  async createTeamMember(teamMember: InsertTeamMember): Promise<TeamMember> {
+    const result = await db.insert(teamMembers).values({
+      ...teamMember,
+      invitedAt: new Date(),
+      status: 'invited',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }).returning();
+    return result[0];
+  }
+
+  async updateTeamMember(id: number, updates: Partial<InsertTeamMember>): Promise<TeamMember> {
+    const result = await db
+      .update(teamMembers)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(teamMembers.id, id))
+      .returning();
+    return result[0];
+  }
+
+  async deleteTeamMember(id: number): Promise<void> {
+    await db.delete(teamMembers).where(eq(teamMembers.id, id));
+  }
+
+  async getTeamMemberByUserAndProject(userId: number, projectId: number): Promise<TeamMember | null> {
+    const result = await db
+      .select()
+      .from(teamMembers)
+      .where(and(
+        eq(teamMembers.userId, userId),
+        eq(teamMembers.projectId, projectId)
+      ))
+      .limit(1);
+    
+    return result[0] || null;
+  }
+
+  async getEditorCountByProject(projectId: number): Promise<number> {
+    const result = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(teamMembers)
+      .where(and(
+        eq(teamMembers.projectId, projectId),
+        eq(teamMembers.accessLevel, 'editor')
+      ));
+    
+    return result[0]?.count || 0;
+  }
+
+  async getUserAccessLevel(userId: number, projectId: number): Promise<string | null> {
+    // Check if user is admin first
+    const user = await this.getUserById(userId);
+    if (user?.isAdmin) {
+      return 'admin';
+    }
+
+    // Check if user owns the project
+    const project = await this.getProjectById(projectId);
+    if (project?.createdBy === userId) {
+      return 'user';
+    }
+
+    // Check team member access level
+    const teamMember = await this.getTeamMemberByUserAndProject(userId, projectId);
+    return teamMember?.accessLevel || null;
+  }
+
+  async getUserProjectAccess(userId: number, projectId: number): Promise<boolean> {
+    const accessLevel = await this.getUserAccessLevel(userId, projectId);
+    return accessLevel !== null;
+  }
+
 }
 
 export const storage = new DatabaseStorage();

@@ -16,6 +16,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAdminView } from "@/contexts/AdminViewContext";
 import { PersonalScheduleShare } from "@/components/personal-schedule-share";
 import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
+import { InviteTeamMemberDialog } from "@/components/team/InviteTeamMemberDialog";
+import { TeamMembersList } from "@/components/team/TeamMembersList";
 import {
   Dialog,
   DialogContent,
@@ -1535,81 +1537,77 @@ The Production Team`
         </TabsContent>
 
         <TabsContent value="team" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Team Member Settings</CardTitle>
-              <CardDescription>
-                Configure how team members can join and participate in this {showLabel.toLowerCase()}.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Allow Team Invitations</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Team members can invite others to join this {showLabel.toLowerCase()}
-                  </p>
-                </div>
-                <Switch
-                  checked={(settings as any)?.teamMemberSettings?.allowInvitations || false}
-                  onCheckedChange={(checked) =>
-                    handleSettingsUpdate("teamMemberSettings", { allowInvitations: checked })
-                  }
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Require Approval</Label>
-                  <p className="text-sm text-muted-foreground">
-                    New team members need approval before joining
-                  </p>
-                </div>
-                <Switch
-                  checked={(settings as any)?.teamMemberSettings?.requireApproval || false}
-                  onCheckedChange={(checked) =>
-                    handleSettingsUpdate("teamMemberSettings", { requireApproval: checked })
-                  }
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-6">
+            {/* Team Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Team Management</CardTitle>
+                <CardDescription>
+                  Manage your production team members with role-based access control.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Default Role Selection */}
                 <div className="space-y-2">
-                  <Label htmlFor="defaultRole">Default Role</Label>
+                  <Label htmlFor="defaultRole">Default Role for New Members</Label>
                   <Select
-                    value={(settings as any)?.teamMemberSettings?.defaultRole || "member"}
+                    value={(settings as any)?.teamMemberSettings?.defaultRole || "Production Assistant"}
                     onValueChange={(value) =>
                       handleSettingsUpdate("teamMemberSettings", { defaultRole: value })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="max-w-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="member">Team Member</SelectItem>
-                      <SelectItem value="assistant">Assistant {isFullTime ? "Stage Manager" : "Manager"}</SelectItem>
-                      <SelectItem value="lead">Lead {isFullTime ? "Stage Manager" : "Manager"}</SelectItem>
-                      <SelectItem value="admin">Administrator</SelectItem>
+                      <SelectItem value="Production Stage Manager">Production Stage Manager</SelectItem>
+                      <SelectItem value="Stage Manager">Stage Manager</SelectItem>
+                      <SelectItem value="Production Assistant">Production Assistant</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-sm text-muted-foreground">
+                    New team members will be assigned this role by default.
+                  </p>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="space-y-2">
-                  <Label htmlFor="maxMembers">Maximum Members</Label>
-                  <Input
-                    id="maxMembers"
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={(settings as any)?.teamMemberSettings?.maxMembers || 20}
-                    onChange={(e) =>
-                      handleSettingsUpdate("teamMemberSettings", { maxMembers: parseInt(e.target.value) })
-                    }
-                  />
+            {/* Editor Invitations */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Production Team (Editors)</CardTitle>
+                    <CardDescription>
+                      Invite up to 3 team members with editing permissions for this production.
+                    </CardDescription>
+                  </div>
+                  <InviteTeamMemberDialog variant="editor" />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent>
+                <TeamMembersList accessLevel="editor" />
+              </CardContent>
+            </Card>
+
+            {/* Viewer Invitations */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Viewers</CardTitle>
+                    <CardDescription>
+                      Invite unlimited viewers with read-only access to production information.
+                    </CardDescription>
+                  </div>
+                  <InviteTeamMemberDialog variant="viewer" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <TeamMembersList accessLevel="viewer" />
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="sharing" className="mt-6">

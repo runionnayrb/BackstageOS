@@ -10358,6 +10358,129 @@ Best regards,
   });
 
   // =============================================================================
+  // TEAM MEMBER MANAGEMENT API ENDPOINTS
+  // =============================================================================
+
+  // Get team members for a project
+  app.get('/api/projects/:id/team-members', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      
+      // Check if user has access to this project
+      const hasAccess = await storage.getUserProjectAccess(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const teamMembers = await storage.getTeamMembersByProjectId(projectId);
+      res.json(teamMembers);
+    } catch (error) {
+      console.error("Error fetching team members:", error);
+      res.status(500).json({ message: "Failed to fetch team members" });
+    }
+  });
+
+  // Invite team member to project
+  app.post('/api/projects/:id/team-members', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const { email, role, roleType, accessLevel } = req.body;
+
+      // Validate request
+      const validatedData = insertTeamMemberSchema.parse({
+        projectId,
+        email,
+        role,
+        roleType,
+        accessLevel,
+        invitedBy: req.user.id,
+      });
+
+      // Check editor limit
+      if (accessLevel === 'editor') {
+        const editorCount = await storage.getEditorCountByProject(projectId);
+        if (editorCount >= 3) {
+          return res.status(400).json({ 
+            message: "Cannot invite more than 3 editors per production" 
+          });
+        }
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByEmail(email);
+      if (existingUser) {
+        // User exists, check if already a team member
+        const existingMember = await storage.getTeamMemberByUserAndProject(existingUser.id, projectId);
+        if (existingMember) {
+          return res.status(400).json({ 
+            message: "User is already a member of this production" 
+          });
+        }
+        
+        // Add existing user to team
+        const teamMember = await storage.createTeamMember({
+          ...validatedData,
+          userId: existingUser.id,
+        });
+        
+        res.status(201).json(teamMember);
+      } else {
+        // User doesn't exist, create invitation (for future implementation)
+        const teamMember = await storage.createTeamMember(validatedData);
+        res.status(201).json(teamMember);
+      }
+    } catch (error) {
+      console.error("Error inviting team member:", error);
+      res.status(500).json({ message: "Failed to invite team member" });
+    }
+  });
+
+  // Update team member role or access
+  app.put('/api/team-members/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const memberId = parseInt(req.params.id);
+      const { role, roleType, accessLevel } = req.body;
+
+      const teamMember = await storage.updateTeamMember(memberId, {
+        role,
+        roleType,
+        accessLevel,
+      });
+
+      res.json(teamMember);
+    } catch (error) {
+      console.error("Error updating team member:", error);
+      res.status(500).json({ message: "Failed to update team member" });
+    }
+  });
+
+  // Remove team member from project
+  app.delete('/api/team-members/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const memberId = parseInt(req.params.id);
+      
+      await storage.deleteTeamMember(memberId);
+      res.json({ message: "Team member removed successfully" });
+    } catch (error) {
+      console.error("Error removing team member:", error);
+      res.status(500).json({ message: "Failed to remove team member" });
+    }
+  });
+
+  // Get user's access level for a project
+  app.get('/api/projects/:id/access-level', isAuthenticated, async (req: any, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const accessLevel = await storage.getUserAccessLevel(req.user.id, projectId);
+      
+      res.json({ accessLevel });
+    } catch (error) {
+      console.error("Error fetching user access level:", error);
+      res.status(500).json({ message: "Failed to fetch access level" });
+    }
+  });
+
+  // =============================================================================
   // THEATER EMAIL MANAGEMENT API ENDPOINTS (Phase 4 Features)
   // =============================================================================
 
