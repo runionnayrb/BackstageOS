@@ -368,8 +368,8 @@ Required environment variables:
 
 ## Recent Changes
 
-### July 24, 2025: **COMPREHENSIVE AI-POWERED SEARCH SYSTEM IMPLEMENTATION COMPLETE**
-**Successfully implemented complete AI-powered search system serving as the "brain of the production" for BackstageOS:**
+### July 24, 2025: **COMPREHENSIVE SMART SEARCH SYSTEM IMPLEMENTATION COMPLETE**
+**Successfully implemented complete intelligent search system serving as the "brain of the production" for BackstageOS:**
 
 **Search Engine Architecture:**
 - Created comprehensive search engine (searchEngine.ts) with natural language processing capabilities using OpenAI API
@@ -402,7 +402,7 @@ Required environment variables:
 - Real-time search suggestions with popularity-based ranking
 - Search history tracking and management for improved user experience
 - Keyboard shortcuts (⌘K) for quick access
-- AI indicator with Sparkles icon showing intelligent search capabilities
+- Smart search indicator with Sparkles icon showing intelligent search capabilities
 
 **Header Integration Resolution:**
 - Fixed critical issue where search bar was added to wrong header component (header.tsx vs enhanced-header.tsx)
@@ -416,7 +416,7 @@ Required environment variables:
 - Context-aware results provide relevant information based on current project and user permissions
 - Advanced filtering allows precise discovery of specific content types and date ranges
 
-**Status**: Complete AI-powered search system operational with full UI integration - serves as comprehensive "production brain" capable of answering any show-related question with intelligent, contextual results. Search bar confirmed working and visible in header.
+**Status**: Complete intelligent search system operational with full UI integration - serves as comprehensive "production brain" capable of answering any show-related question with intelligent, contextual results. Search bar confirmed working and visible in header.
 
 ### July 23, 2025: **BULK ACTION TOAST NOTIFICATIONS FIXED WITH ACTION-SPECIFIC MESSAGES**
 **Successfully resolved generic bulk action toast notifications to show specific action-based messages:**

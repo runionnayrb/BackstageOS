@@ -168,7 +168,7 @@ export default function GlobalSearchBar({
                       {searchMutation.isPending ? (
                         <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />
                       ) : (
-                        <Sparkles className="h-4 w-4 text-blue-500" title="AI-powered search" />
+                        <Sparkles className="h-4 w-4 text-blue-500" title="Smart search" />
                       )}
                       
                       <Button
@@ -200,7 +200,7 @@ export default function GlobalSearchBar({
                 <div className="flex items-center justify-center p-8">
                   <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
-                    <p className="text-sm text-gray-500">Searching with AI...</p>
+                    <p className="text-sm text-gray-500">Searching...</p>
                   </div>
                 </div>
               ) : results.length > 0 ? (
@@ -248,7 +248,7 @@ export default function GlobalSearchBar({
                 <div className="p-8 text-center">
                   <div className="flex items-center justify-center gap-2 text-blue-600 mb-2">
                     <Sparkles className="h-5 w-5" />
-                    <span className="font-medium">AI-Powered Search</span>
+                    <span className="font-medium">Smart Search</span>
                   </div>
                   <p className="text-gray-500 text-sm">
                     Ask questions like "Who's playing Lady Macbeth?" or "What props do we need for Act 2?"
@@ -262,14 +262,14 @@ export default function GlobalSearchBar({
               <div className="border-t bg-gray-50 px-3 py-2 text-xs text-gray-500 flex justify-between items-center">
                 <span>
                   {searchMutation.isPending ? (
-                    "Searching with AI..."
+                    "Searching..."
                   ) : (
                     `${results.length} result${results.length !== 1 ? 's' : ''} found`
                   )}
                 </span>
                 <span className="flex items-center gap-1">
                   <Sparkles className="h-3 w-3" />
-                  AI-powered
+                  Smart search
                 </span>
               </div>
             )}
