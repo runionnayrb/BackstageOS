@@ -111,14 +111,16 @@ export default function MonthlyScheduleView({
     let filteredEvents = events.filter((event: ScheduleEvent) => event.date === dateStr);
     
     // Apply event type filtering based on user selections
-    // Always include important date events regardless of filtering
-    // If no event types are selected at all, show only important dates
+    // Always include important date events and production-level events regardless of filtering
+    // If no event types are selected at all, show all events (changed from only important dates)
     if (selectedEventTypes.length === 0 && selectedIndividualTypes.length === 0) {
-      filteredEvents = filteredEvents.filter(event => event.type === 'important_date');
+      // Show all events when no filters are selected (previously only showed important_date events)
+      // This includes production-level events and regular events
+      filteredEvents = filteredEvents; // Show all events
     } else {
       filteredEvents = filteredEvents.filter(event => {
-        // Always include important date events
-        if (event.type === 'important_date') {
+        // Always include important date events and production-level events
+        if (event.type === 'important_date' || event.isProductionLevel) {
           return true;
         }
         
@@ -161,9 +163,9 @@ export default function MonthlyScheduleView({
     }
 
     if (!showAllDayEvents) {
-      // Always show important date events regardless of All Day toggle
+      // Always show important date events and production-level events regardless of All Day toggle
       filteredEvents = filteredEvents.filter((event: ScheduleEvent) => 
-        !event.isAllDay || event.type === 'important_date'
+        !event.isAllDay || event.type === 'important_date' || event.isProductionLevel
       );
     }
 
