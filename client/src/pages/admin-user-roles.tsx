@@ -59,16 +59,26 @@ export default function AdminUserRoles() {
   const queryClient = useQueryClient();
   const [selectedRole, setSelectedRole] = useState<string>("admin");
 
-  // Fetch users by role
+  console.log("AdminUserRoles render - selectedRole:", selectedRole);
+
+  // Fetch users by role (for non-editor tabs)
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ["/api/admin/users-by-role", selectedRole],
-    enabled: !!selectedRole,
+    enabled: !!selectedRole && selectedRole !== "editor",
   });
 
   // Fetch editors with projects (for editor tab only)
   const { data: editorsWithProjects = [], isLoading: editorsLoading } = useQuery({
     queryKey: ["/api/admin/editors-with-projects"],
     enabled: selectedRole === "editor",
+  });
+
+  console.log("Query data:", {
+    selectedRole,
+    users: users.length,
+    editorsWithProjects: editorsWithProjects.length,
+    usersLoading,
+    editorsLoading
   });
 
   // Update user role mutation
@@ -242,25 +252,31 @@ export default function AdminUserRoles() {
           </TabsTrigger>
         </TabsList>
 
-        {["admin", "user", "editor", "viewer"].map((role) => (
-          <TabsContent key={role} value={role} className="mt-6">
-            {(role === "editor" ? editorsLoading : usersLoading) ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Loading {role}s...</p>
-              </div>
-            ) : (role === "editor" ? editorsWithProjects : users).length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No {role}s found</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {(role === "editor" ? editorsWithProjects : users).map((user: User) => (
-                  <UserCard key={user.id} user={user} />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        ))}
+        {["admin", "user", "editor", "viewer"].map((role) => {
+          const isEditor = role === "editor";
+          const isLoading = isEditor ? editorsLoading : usersLoading;
+          const userData = isEditor ? editorsWithProjects : users;
+          
+          return (
+            <TabsContent key={role} value={role} className="mt-6">
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Loading {role}s...</p>
+                </div>
+              ) : userData.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No {role}s found</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {userData.map((user: User) => (
+                    <UserCard key={user.id} user={user} />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          );
+        })}
       </Tabs>
     </div>
   );
