@@ -1726,6 +1726,7 @@ Respond with valid JSON only.`;
           
           const msg = {
             to: waitlistEntry.email,
+            bcc: 'bryan@backstageos.com', // BCC all waitlist emails to Bryan
             from: {
               email: fromEmail,
               name: fromName
@@ -8016,6 +8017,7 @@ Best regards,
 
           const msg = {
             to: entry.email,
+            bcc: 'bryan@backstageos.com', // BCC all bulk emails to Bryan
             from: {
               email: fromEmail,
               name: fromName
@@ -8161,6 +8163,7 @@ Best regards,
 
       const msg = {
         to: testEmail,
+        bcc: 'bryan@backstageos.com', // BCC all test emails to Bryan
         from: {
           email: fromEmail,
           name: fromName
