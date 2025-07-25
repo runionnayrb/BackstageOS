@@ -21,7 +21,9 @@ import {
   CheckCircle,
   AlertCircle,
   Eye,
-  ChevronDown
+  ChevronDown,
+  Megaphone,
+  Bell
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -108,31 +110,32 @@ export function ScheduleVersionHistory({ projectId, onClose }: ScheduleVersionHi
   const currentVersion = versions.find((v: any) => v.isCurrent);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 max-h-[80vh] overflow-y-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <History className="h-6 w-6 text-blue-600" />
           <div>
-            <h2 className="text-xl font-semibold">Schedule Version Control</h2>
-            <p className="text-sm text-gray-600">
+            <h2 className="text-lg sm:text-xl font-semibold">Schedule Version Control</h2>
+            <p className="text-sm text-gray-600 hidden sm:block">
               Manage schedule versions and team member access
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setShowPersonalSchedules(!showPersonalSchedules)}
-            className="gap-2"
+            className="gap-2 text-xs sm:text-sm"
           >
             <Users className="h-4 w-4" />
-            {showPersonalSchedules ? 'Hide' : 'Show'} Personal Schedules
+            <span className="hidden sm:inline">{showPersonalSchedules ? 'Hide' : 'Show'} Personal Schedules</span>
+            <span className="sm:hidden">Schedules</span>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2 text-xs sm:text-sm">
                 <FileText className="h-4 w-4" />
                 Publish
                 <ChevronDown className="h-4 w-4" />
@@ -144,7 +147,9 @@ export function ScheduleVersionHistory({ projectId, onClose }: ScheduleVersionHi
                   setSelectedVersionType('major');
                   setShowPublishDialog(true);
                 }}
+                className="gap-2"
               >
+                <Megaphone className="h-4 w-4" />
                 Major Version
               </DropdownMenuItem>
               <DropdownMenuItem
@@ -152,7 +157,9 @@ export function ScheduleVersionHistory({ projectId, onClose }: ScheduleVersionHi
                   setSelectedVersionType('minor');
                   setShowPublishDialog(true);
                 }}
+                className="gap-2"
               >
+                <Bell className="h-4 w-4" />
                 Minor Version
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -162,22 +169,22 @@ export function ScheduleVersionHistory({ projectId, onClose }: ScheduleVersionHi
 
       {/* Current Version Info */}
       {currentVersion && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <CheckCircle className="h-5 w-5 text-blue-600" />
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="font-medium">Current Version: {currentVersion.version}</span>
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+            <CheckCircle className="h-5 w-5 text-blue-600 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                <span className="font-medium text-sm sm:text-base">Current Version: {currentVersion.version}</span>
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs w-fit">
                   {currentVersion.versionType}
                 </Badge>
               </div>
-              <p className="text-sm text-gray-600 mt-1">{currentVersion.title}</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-2">{currentVersion.title}</p>
               <p className="text-xs text-gray-500">
                 Published {formatDistanceToNow(new Date(currentVersion.publishedAt))} ago
               </p>
             </div>
-            <div className="text-right text-sm text-gray-600">
+            <div className="text-xs sm:text-sm text-gray-600 flex-shrink-0">
               <div>{currentVersion.scheduleData?.totalEvents || 0} events</div>
             </div>
           </div>
@@ -205,39 +212,37 @@ export function ScheduleVersionHistory({ projectId, onClose }: ScheduleVersionHi
             {versions.map((version: any) => (
               <div
                 key={version.id}
-                className={`border rounded-lg p-4 ${
+                className={`border rounded-lg p-3 sm:p-4 ${
                   version.isCurrent ? 'border-blue-200 bg-blue-50' : 'border-gray-200'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Version {version.version}</span>
-                      <Badge
-                        variant={version.versionType === 'major' ? 'default' : 'secondary'}
-                        className={version.versionType === 'major' ? 'bg-purple-100 text-purple-800' : ''}
-                      >
-                        {version.versionType}
-                      </Badge>
-                      {version.isCurrent && (
-                        <Badge className="bg-blue-100 text-blue-800">Current</Badge>
-                      )}
-                    </div>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                    <span className="font-medium text-sm sm:text-base">Version {version.version}</span>
+                    <Badge
+                      variant={version.versionType === 'major' ? 'default' : 'secondary'}
+                      className={`text-xs ${version.versionType === 'major' ? 'bg-purple-100 text-purple-800' : ''}`}
+                    >
+                      {version.versionType}
+                    </Badge>
+                    {version.isCurrent && (
+                      <Badge className="bg-blue-100 text-blue-800 text-xs">Current</Badge>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Clock className="h-4 w-4" />
-                    {formatDistanceToNow(new Date(version.publishedAt))} ago
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="truncate">{formatDistanceToNow(new Date(version.publishedAt))} ago</span>
                   </div>
                 </div>
                 
                 <div className="mt-2 space-y-1">
-                  <h4 className="font-medium text-gray-900">{version.title}</h4>
+                  <h4 className="font-medium text-gray-900 text-sm sm:text-base line-clamp-2">{version.title}</h4>
                   {version.description && (
-                    <p className="text-sm text-gray-600">{version.description}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 line-clamp-3">{version.description}</p>
                   )}
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs text-gray-500">
                     <span>{version.scheduleData?.totalEvents || 0} events</span>
-                    <span>Published by {version.publishedBy}</span>
+                    <span className="truncate">Published by {version.publishedBy}</span>
                   </div>
                 </div>
               </div>
@@ -264,25 +269,25 @@ export function ScheduleVersionHistory({ projectId, onClose }: ScheduleVersionHi
             <div className="grid gap-3">
               {personalSchedules.map((schedule: any) => (
                 <div key={schedule.id} className="border rounded-lg p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium">{schedule.contactName}</p>
-                      <p className="text-sm text-gray-600">{schedule.contactEmail}</p>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm sm:text-base truncate">{schedule.contactName}</p>
+                      <p className="text-xs sm:text-sm text-gray-600 truncate">{schedule.contactEmail}</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-shrink-0">
                       <Badge variant="outline" className="text-xs">
                         v{schedule.currentVersion}
                       </Badge>
-                      <Button variant="ghost" size="sm" className="gap-1 text-xs">
+                      <Button variant="ghost" size="sm" className="gap-1 text-xs px-2 py-1">
                         <Eye className="h-3 w-3" />
-                        View
+                        <span className="hidden sm:inline">View</span>
                       </Button>
                     </div>
                   </div>
                   
-                  <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
-                    <span>Token: {schedule.accessToken?.slice(0, 12)}...</span>
-                    <span>
+                  <div className="mt-2 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs text-gray-500">
+                    <span className="truncate">Token: {schedule.accessToken?.slice(0, 8)}...</span>
+                    <span className="flex-shrink-0">
                       Notifications: {schedule.emailPreferences?.newVersion ? 'On' : 'Off'}
                     </span>
                   </div>
@@ -295,10 +300,10 @@ export function ScheduleVersionHistory({ projectId, onClose }: ScheduleVersionHi
 
       {/* Publish Version Dialog */}
       <Dialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md w-full mx-4 sm:mx-auto max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Publish New Schedule Version</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg sm:text-xl">Publish New Schedule Version</DialogTitle>
+            <DialogDescription className="text-sm sm:text-base">
               Create a new version of your schedule. All team members will be notified and their personal schedules will be updated.
             </DialogDescription>
           </DialogHeader>

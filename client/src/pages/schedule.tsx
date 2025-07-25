@@ -1429,7 +1429,7 @@ The Production Team`
 
       {/* Version Control Dialog */}
       <Dialog open={showVersionControl} onOpenChange={setShowVersionControl}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden w-[95vw] sm:w-full mx-auto">
           <ScheduleVersionHistory 
             projectId={projectId}
             onClose={() => setShowVersionControl(false)}
