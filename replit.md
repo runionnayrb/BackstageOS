@@ -56,6 +56,7 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **System Event Type IDs**: Costume Fitting (-6, green), Wig Fitting (-7, purple), Hair and Make-Up (-8, yellow), Vocal Coaching (-9, cyan)
 - **Optimistic Updates**: Implemented optimistic updates for show schedule filtering toggles to eliminate database lag and removed toast notifications
 - **Complete Integration**: All system event types now available in schedule views with proper color coding and immediate toggle response
+- **New Project Defaults**: Updated project creation process to automatically include all system event types and Macbeth's enabled event type settings as defaults for new shows
 
 ### Notes System Features (Completed)
 - **Rich Text Editor**: TipTap-powered editor with comprehensive formatting toolbar
