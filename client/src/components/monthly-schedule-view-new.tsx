@@ -193,9 +193,8 @@ export default function MonthlyScheduleView({
 
   // Mutations for creating and editing events
   const createEventMutation = useMutation({
-    mutationFn: (eventData: any) => apiRequest('POST', `/api/schedule-events`, {
+    mutationFn: (eventData: any) => apiRequest('POST', `/api/projects/${projectId}/schedule-events`, {
       ...eventData,
-      projectId,
     }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
@@ -215,9 +214,11 @@ export default function MonthlyScheduleView({
   });
 
   const updateEventMutation = useMutation({
-    mutationFn: ({ id, ...eventData }: any) => apiRequest('PUT', `/api/schedule-events/${id}`, eventData),
+    mutationFn: ({ id, ...eventData }: any) => apiRequest('PATCH', `/api/projects/${projectId}/schedule-events/${id}`, eventData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      // Also invalidate Show Settings query since Important Date events sync to project settings
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
       setEditEventDialog({ isOpen: false });
       toast({
         title: "Event updated successfully",
@@ -234,9 +235,11 @@ export default function MonthlyScheduleView({
   });
 
   const deleteEventMutation = useMutation({
-    mutationFn: (eventId: number) => apiRequest('DELETE', `/api/schedule-events/${eventId}`),
+    mutationFn: (eventId: number) => apiRequest('DELETE', `/api/projects/${projectId}/schedule-events/${eventId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      // Also invalidate Show Settings query since Important Date events sync to project settings
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
       setEditEventDialog({ isOpen: false });
       toast({
         title: "Event deleted successfully",
