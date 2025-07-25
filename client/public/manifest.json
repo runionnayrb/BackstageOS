@@ -1,8 +1,8 @@
 {
-  "name": "BackstageOS Studio v6",
-  "short_name": "BackstageOS v6",
+  "name": "BackstageOS",
+  "short_name": "BackstageOS",
   "description": "Professional stage management software built for theater professionals. Manage productions from prep to closing night.",
-  "start_url": "/?pwa=v6",
+  "start_url": "/?pwa=true",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
