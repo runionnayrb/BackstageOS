@@ -44,7 +44,7 @@ BackstageOS is a comprehensive theater management platform specifically designed
 
 ### Progressive Web App (PWA) Implementation (July 25, 2025)
 - **PWA Foundation**: Complete Progressive Web App implementation enabling mobile installation without App Store
-- **Service Worker**: Background sync capabilities, offline functionality, and aggressive auto-updates (v3.0.0)
+- **Service Worker**: Background sync capabilities, offline functionality, and aggressive auto-updates (v6.0.0)
 - **Web App Manifest**: Professional branding with BackstageOS icons, splash screens, and native app appearance
 - **Install Experience**: Smart install banners for iOS Safari (Add to Home Screen instructions) and Chrome/Edge (native install prompts)
 - **Offline Support**: Framework ready for offline reports, cached show data, and sync when connection returns
@@ -54,9 +54,21 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **Dynamic Island Integration**: PWA-specific Dynamic Island with production status indicator for iOS devices
 - **iOS Safe Areas**: Proper viewport-fit=cover support with safe area padding for notched devices
 - **White Background Theme**: Clean professional appearance with white background instead of blue
-- **Cache Busting**: Service worker v3.0.0 with complete cache clearing, service worker unregistration, and forced refresh system
+- **Cache Busting**: Service worker v6.0.0 with complete cache clearing, service worker unregistration, and forced refresh system
 - **PWA Detection**: Intelligent browser vs PWA mode detection with appropriate status messages ("Development Mode" vs "Live Production (PWA)")
 - **Update Notifications**: Prominent "Dynamic Island Update Available!" notifications with immediate update capability
+
+### PWA iOS Status Bar Issue Investigation (July 25, 2025) - ONGOING
+**Critical Issue**: Despite multiple aggressive approaches (v1.0.0 through v6.0.0), iOS PWA continues showing blue status bar instead of white
+**Attempted Solutions**:
+- Service worker nuclear cache clearing (v5.0.0, v6.0.0)
+- Complete manifest identity changes ("BackstageOS Studio v6")
+- CSS-level `@media (display-mode: standalone)` white background forcing
+- JavaScript PWABackgroundFixer with DOM manipulation
+- iOS status bar meta tag changes (`apple-mobile-web-app-status-bar-style`)
+- Multiple PWA deletion/reinstallation cycles
+**Current Status**: Blue status bar persists despite all technical approaches
+**Root Cause**: Investigating whether iOS PWA cache is more persistent than standard approaches can resolve
 
 ### Schedule Tab Mobile Optimization (July 25, 2025)
 - **Mobile-Responsive Grids**: Updated schedule settings grid from fixed 3-column to responsive (1 column mobile, 2 tablet, 3 desktop)
