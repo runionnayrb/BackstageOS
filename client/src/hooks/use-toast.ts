@@ -171,6 +171,20 @@ function toast({ ...props }: Toast) {
 
 function useToast() {
   console.log("useToast hook called - using direct useState import");
+  console.log("useState is:", useState);
+  console.log("useEffect is:", useEffect);
+  console.log("typeof useState:", typeof useState);
+  
+  if (!useState || typeof useState !== 'function') {
+    console.error("CRITICAL: useState is not available!");
+    // Fallback to prevent crash
+    return {
+      toasts: [],
+      toast,
+      dismiss: () => {},
+    };
+  }
+  
   const [state, setState] = useState<State>(memoryState)
 
   useEffect(() => {
