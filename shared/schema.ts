@@ -94,6 +94,7 @@ export const venues = pgTable("venues", {
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(),
+  slug: varchar("slug").notNull(),
   description: text("description"),
   venue: varchar("venue"), // For freelance users (free text) or venue name reference
   venueId: integer("venue_id").references(() => venues.id), // For full-time users

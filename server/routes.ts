@@ -2592,17 +2592,43 @@ Respond with valid JSON only.`;
           return typeof val === "string" ? new Date(val) : val;
         }),
         season: z.string().optional().or(z.literal("")),
+        venueId: z.union([z.string(), z.number(), z.null()]).optional().transform((val) => {
+          if (!val || val === "") return null;
+          return typeof val === "string" ? parseInt(val) : val;
+        }),
+        seasonId: z.union([z.string(), z.number(), z.null()]).optional().transform((val) => {
+          if (!val || val === "") return null;
+          return typeof val === "string" ? parseInt(val) : val;
+        }),
         ownerId: z.number(),
       });
 
       console.log("Received project data:", req.body);
+
+      // Helper function to generate a slug from the project name
+      const generateSlug = (name: string) => {
+        return name
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim()
+          .substring(0, 50);
+      };
 
       const projectData = projectSchema.parse({
         ...req.body,
         ownerId: parseInt(userId),
       });
 
-      const project = await storage.createProject(projectData);
+      // Generate slug from project name
+      const slug = generateSlug(projectData.name);
+      const projectDataWithSlug = {
+        ...projectData,
+        slug: slug,
+      };
+
+      const project = await storage.createProject(projectDataWithSlug);
       
       // Create default show settings with email template
       const defaultEmailSubject = '{{showName}} Schedule v{{version}}';
