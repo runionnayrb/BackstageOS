@@ -33,6 +33,7 @@ export default function GlobalSearchBar({
   const [isExpanded, setIsExpanded] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   // AI Search mutation with cost controls
   const searchMutation = useMutation({
@@ -112,7 +113,7 @@ export default function GlobalSearchBar({
   // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (inputRef.current && !inputRef.current.contains(event.target as Node)) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
         if (isExpanded && !query.trim()) {
           handleClose();
         }
@@ -140,7 +141,7 @@ export default function GlobalSearchBar({
           </Button>
         ) : (
           // Expanded search bar with dropdown results
-          <div className="flex items-center">
+          <div className="flex items-center" ref={searchContainerRef}>
             <div className="relative" style={{ width: '300px' }}>
               <form onSubmit={handleSubmit} className="relative">
                 <Input
