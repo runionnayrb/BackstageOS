@@ -445,6 +445,8 @@ The Production Team`
       apiRequest('PATCH', `/api/projects/${projectId}/schedule-events/${eventId}`, eventData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/schedule-events`] });
+      // Also invalidate Show Settings query since Important Date events sync to project settings
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/settings`] });
       setEditingEvent(null);
       toast({
         title: "Event updated successfully",
