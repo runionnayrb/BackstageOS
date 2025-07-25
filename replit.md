@@ -44,16 +44,19 @@ BackstageOS is a comprehensive theater management platform specifically designed
 
 ### Progressive Web App (PWA) Implementation (July 25, 2025)
 - **PWA Foundation**: Complete Progressive Web App implementation enabling mobile installation without App Store
-- **Service Worker**: Background sync capabilities, offline functionality, and automatic updates (v2.0.0)
+- **Service Worker**: Background sync capabilities, offline functionality, and aggressive auto-updates (v3.0.0)
 - **Web App Manifest**: Professional branding with BackstageOS icons, splash screens, and native app appearance
 - **Install Experience**: Smart install banners for iOS Safari (Add to Home Screen instructions) and Chrome/Edge (native install prompts)
 - **Offline Support**: Framework ready for offline reports, cached show data, and sync when connection returns
 - **Mobile Native Feel**: Standalone display mode, custom status bar styling, and professional app appearance
-- **Update Management**: Automatic background updates with user-friendly notification system
+- **Update Management**: Aggressive cache-busting system with forced updates and complete cache clearing
 - **Theater-Specific Features**: Foundation for push notifications (show calls, rehearsal reminders) and offline note-taking
 - **Dynamic Island Integration**: PWA-specific Dynamic Island with production status indicator for iOS devices
 - **iOS Safe Areas**: Proper viewport-fit=cover support with safe area padding for notched devices
 - **White Background Theme**: Clean professional appearance with white background instead of blue
+- **Cache Busting**: Service worker v3.0.0 with complete cache clearing, service worker unregistration, and forced refresh system
+- **PWA Detection**: Intelligent browser vs PWA mode detection with appropriate status messages ("Development Mode" vs "Live Production (PWA)")
+- **Update Notifications**: Prominent "Dynamic Island Update Available!" notifications with immediate update capability
 
 ### Schedule Tab Mobile Optimization (July 25, 2025)
 - **Mobile-Responsive Grids**: Updated schedule settings grid from fixed 3-column to responsive (1 column mobile, 2 tablet, 3 desktop)
