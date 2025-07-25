@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText, User, Send, Crown } from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Clock, Plus, Calendar, X, History, Settings, FileText, User, Send, Crown, Megaphone, Bell } from "lucide-react";
 import { ChangeSummaryEditor } from "@/components/ChangeSummaryEditor";
 import WeeklyScheduleView from "@/components/weekly-schedule-view";
 import MobileWeeklyScheduleView from "@/components/mobile-weekly-schedule-view";
@@ -814,7 +814,7 @@ The Production Team`
                       setShowPublishVersionConfirm(true);
                     }}
                   >
-                    <Crown className="h-4 w-4 mr-2 text-yellow-600" />
+                    <Megaphone className="h-4 w-4 mr-2 text-yellow-600" />
                     Major Version
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -823,7 +823,7 @@ The Production Team`
                       setShowPublishVersionConfirm(true);
                     }}
                   >
-                    <Crown className="h-4 w-4 mr-2 text-yellow-500" />
+                    <Bell className="h-4 w-4 mr-2 text-yellow-500" />
                     Minor Version
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -1104,7 +1104,7 @@ The Production Team`
                       setShowPublishVersionConfirm(true);
                     }}
                   >
-                    <Crown className="h-4 w-4 mr-2 text-yellow-600" />
+                    <Megaphone className="h-4 w-4 mr-2 text-yellow-600" />
                     Major Version
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -1113,7 +1113,7 @@ The Production Team`
                       setShowPublishVersionConfirm(true);
                     }}
                   >
-                    <Crown className="h-4 w-4 mr-2 text-yellow-500" />
+                    <Bell className="h-4 w-4 mr-2 text-yellow-500" />
                     Minor Version
                   </DropdownMenuItem>
                   <DropdownMenuItem
