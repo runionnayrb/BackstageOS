@@ -1,9 +1,9 @@
 // BackstageOS Service Worker  
-// Version 4.0.0 - Force Header White Background Fix
+// Version 5.0.0 - NUCLEAR CACHE BYPASS
 
-const CACHE_NAME = 'backstageos-v4';
-const STATIC_CACHE_NAME = 'backstageos-static-v4';
-const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v4';
+const CACHE_NAME = 'backstageos-v5-' + Date.now();
+const STATIC_CACHE_NAME = 'backstageos-static-v5-' + Date.now();
+const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v5-' + Date.now();
 
 // Core files to cache for offline functionality
 const STATIC_ASSETS = [
@@ -22,58 +22,51 @@ const CACHEABLE_APIS = [
   '/api/notes'
 ];
 
-// Install event - cache core assets
+// Install event - BYPASS ALL CACHING
 self.addEventListener('install', event => {
-  console.log('[SW] Installing BackstageOS Service Worker v4.0.0 - Force White Background');
+  console.log('[SW] Installing BackstageOS Service Worker v5.0.0 - NUCLEAR CACHE BYPASS');
   
-  event.waitUntil(
-    Promise.all([
-      caches.open(STATIC_CACHE_NAME).then(cache => {
-        console.log('[SW] Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
-      }),
-      // Skip waiting to activate immediately and force update
-      self.skipWaiting()
-    ])
-  );
+  // Skip all caching and force immediate activation
+  event.waitUntil(self.skipWaiting());
 });
 
-// Activate event - clean up old caches
+// Activate event - DESTROY ALL CACHES
 self.addEventListener('activate', event => {
-  console.log('[SW] Activating BackstageOS Service Worker v4.0.0 - Force white background fix');
+  console.log('[SW] Activating BackstageOS Service Worker v5.0.0 - NUCLEAR OPTION');
   
   event.waitUntil(
     Promise.all([
-      // Clean up ALL old caches to force fresh content
+      // Delete EVERY single cache - no exceptions
       caches.keys().then(cacheNames => {
-        console.log('[SW] Clearing all caches for Dynamic Island update');
+        console.log('[SW] NUCLEAR: Destroying all caches:', cacheNames);
         return Promise.all(
           cacheNames.map(cacheName => {
-            console.log('[SW] Deleting cache:', cacheName);
+            console.log('[SW] NUCLEAR: Deleting cache:', cacheName);
             return caches.delete(cacheName);
           })
         );
       }),
-      // Take control of all clients immediately
+      // Take control immediately
       self.clients.claim()
     ])
   );
   
-  // Notify all clients that new version is available
+  // Force reload all clients immediately
   self.clients.matchAll().then(clients => {
     clients.forEach(client => {
+      console.log('[SW] NUCLEAR: Force reloading client');
       client.postMessage({
-        type: 'NEW_VERSION_AVAILABLE',
-        version: '4.0.0'
+        type: 'FORCE_RELOAD',
+        version: '5.0.0',
+        message: 'NUCLEAR CACHE CLEAR - RELOADING NOW'
       });
     });
   });
 });
 
-// Fetch event - implement caching strategies
+// Fetch event - NUCLEAR CACHE BYPASS
 self.addEventListener('fetch', event => {
   const { request } = event;
-  const url = new URL(request.url);
   
   // Skip non-GET requests
   if (request.method !== 'GET') {
@@ -81,28 +74,20 @@ self.addEventListener('fetch', event => {
   }
   
   // Skip cross-origin requests
-  if (url.origin !== location.origin) {
+  if (!request.url.startsWith(self.location.origin)) {
     return;
   }
   
-  // Handle different types of requests
-  if (url.pathname.startsWith('/api/')) {
-    // API requests - Network First with cache fallback
-    event.respondWith(handleAPIRequest(request));
-  } else if (STATIC_ASSETS.some(asset => url.pathname === asset)) {
-    // Static assets - Cache First
-    event.respondWith(handleStaticAsset(request));
-  } else if (url.pathname.endsWith('.js') || 
-             url.pathname.endsWith('.css') || 
-             url.pathname.endsWith('.png') || 
-             url.pathname.endsWith('.jpg') || 
-             url.pathname.endsWith('.svg')) {
-    // Other static resources - Cache First
-    event.respondWith(handleStaticAsset(request));
-  } else {
-    // App routes - Network First with SPA fallback
-    event.respondWith(handleAppRoute(request));
-  }
+  console.log('[SW] NUCLEAR: Always fetching fresh from network:', request.url);
+  
+  // ALWAYS fetch fresh - NO CACHING AT ALL
+  event.respondWith(
+    fetch(request.url + (request.url.includes('?') ? '&' : '?') + 'v=' + Date.now())
+      .catch(() => {
+        // Fallback to regular fetch if cache-busting fails
+        return fetch(request);
+      })
+  );
 });
 
 // Handle API requests with network-first strategy

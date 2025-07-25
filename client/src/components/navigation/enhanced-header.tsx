@@ -229,7 +229,7 @@ export default function EnhancedHeader() {
           <div className="pwa-dynamic-island">
             <div className="pwa-status-dot"></div>
             <span className="text-white text-xs font-medium">
-              {isPWA ? 'Live Production (PWA) v3.0.0' : 'Development Mode v3.0.0'}
+              {isPWA ? 'Live Production (PWA) v5.0.0' : 'Development Mode v5.0.0'}
             </span>
           </div>
         </div>

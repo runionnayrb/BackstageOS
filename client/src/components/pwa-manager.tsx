@@ -128,6 +128,18 @@ export function PWAManager({ children }: PWAManagerProps) {
               ),
             });
           }
+          
+          if (event.data?.type === 'FORCE_RELOAD') {
+            console.log('[PWA] NUCLEAR: Force reload triggered by service worker');
+            toast({
+              title: "NUCLEAR UPDATE v" + event.data.version,
+              description: event.data.message,
+            });
+            // Force immediate reload with cache busting
+            setTimeout(() => {
+              window.location.href = window.location.href + '?nuclear=' + Date.now();
+            }, 1000);
+          }
         });
 
       } catch (error) {
