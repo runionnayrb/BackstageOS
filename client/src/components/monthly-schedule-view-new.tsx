@@ -622,11 +622,18 @@ export default function MonthlyScheduleView({
               const matchedEventType = eventTypes.find(et => et.id === editEventDialog.event.eventTypeId);
               console.log('🔍 Looking for eventTypeId:', editEventDialog.event.eventTypeId, 'found:', matchedEventType);
               if (matchedEventType) {
-                eventTypeName = matchedEventType.name.toLowerCase().replace(/\s+/g, '_');
-                console.log('🎯 SUCCESS! Mapping Important Date eventTypeId', editEventDialog.event.eventTypeId, 'to event type:', matchedEventType.name, '-> normalized:', eventTypeName);
+                // Use the actual event type name from Show Settings, not normalized
+                eventTypeName = matchedEventType.name;
+                console.log('🎯 SUCCESS! Important Date eventTypeId', editEventDialog.event.eventTypeId, 'mapped to event type:', matchedEventType.name);
+                console.log('🎯 EventForm will receive type:', eventTypeName);
               } else {
                 console.log('❌ No matching event type found for eventTypeId:', editEventDialog.event.eventTypeId);
               }
+            } else {
+              console.log('❌ Conditions not met for mapping:', {
+                isImportantDate: editEventDialog.event.type === 'important_date', 
+                hasEventTypeId: !!editEventDialog.event.eventTypeId
+              });
             }
             
             const initialValuesForForm = {
