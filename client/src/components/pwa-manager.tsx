@@ -32,10 +32,19 @@ export function PWAManager({ children }: PWAManagerProps) {
     // Listen for online/offline status
     const handleOnline = () => {
       setIsOnline(true);
+      toast({
+        title: "Back online",
+        description: "Your data will sync automatically.",
+      });
     };
 
     const handleOffline = () => {
       setIsOnline(false);
+      toast({
+        title: "You're offline",
+        description: "Don't worry - you can still use BackstageOS. Changes will sync when you're back online.",
+        variant: "destructive",
+      });
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -52,7 +61,6 @@ export function PWAManager({ children }: PWAManagerProps) {
   const registerServiceWorker = async () => {
     if ('serviceWorker' in navigator) {
       try {
-        // Standard service worker registration without aggressive cache busting
         const registration = await navigator.serviceWorker.register('/sw.js');
         
         console.log('[PWA] Service Worker registered successfully');
@@ -64,6 +72,27 @@ export function PWAManager({ children }: PWAManagerProps) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 setHasUpdate(true);
+                toast({
+                  title: "Update available",
+                  description: "A new version of BackstageOS is ready.",
+                  action: (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={handleUpdate}
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                          Updating...
+                        </>
+                      ) : (
+                        'Update Now'
+                      )}
+                    </Button>
+                  ),
+                });
               }
             });
           }
@@ -72,18 +101,10 @@ export function PWAManager({ children }: PWAManagerProps) {
         // Listen for messages from service worker
         navigator.serviceWorker.addEventListener('message', (event) => {
           if (event.data?.type === 'SYNC_COMPLETE') {
-            console.log('[PWA] Data synced:', event.data.data);
-          }
-          
-          if (event.data?.type === 'NEW_VERSION_AVAILABLE') {
-            console.log('[PWA] New version message received:', event.data.version);
-            setHasUpdate(true);
-          }
-          
-          if (event.data?.type === 'FORCE_RELOAD') {
-            console.log('[PWA] Force reload message received - setting update flag instead of auto-reloading');
-            // Set update flag instead of immediately reloading to prevent infinite loops
-            setHasUpdate(true);
+            toast({
+              title: "Data synced",
+              description: `${event.data.data.reportsCount} reports synchronized.`,
+            });
           }
         });
 
@@ -101,6 +122,10 @@ export function PWAManager({ children }: PWAManagerProps) {
       if (outcome === 'accepted') {
         setInstallPrompt(null);
         setIsInstalled(true);
+        toast({
+          title: "BackstageOS installed!",
+          description: "You can now access BackstageOS from your home screen.",
+        });
       }
     }
   };
@@ -108,35 +133,23 @@ export function PWAManager({ children }: PWAManagerProps) {
   const handleUpdate = async () => {
     if ('serviceWorker' in navigator) {
       setIsUpdating(true);
-      console.log('[PWA] Starting force update process');
       
       try {
-        // Clear all caches first
-        if ('caches' in window) {
-          const cacheNames = await caches.keys();
-          await Promise.all(cacheNames.map(name => caches.delete(name)));
-          console.log('[PWA] Cleared all caches');
-        }
-        
         const registration = await navigator.serviceWorker.getRegistration();
         if (registration?.waiting) {
           // Tell the waiting service worker to skip waiting and become active
           registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          
+          // Reload the page to use the new service worker
+          window.location.reload();
         }
-        
-        // Force unregister and re-register service worker
-        await registration?.unregister();
-        console.log('[PWA] Unregistered old service worker');
-        
-        // Wait a moment then reload with cache busting
-        setTimeout(() => {
-          window.location.href = window.location.href + '?cache-bust=' + Date.now();
-        }, 500);
-        
       } catch (error) {
         console.error('[PWA] Update failed:', error);
-        // Fallback to hard refresh
-        window.location.reload(true);
+        toast({
+          title: "Update failed",
+          description: "Please refresh the page manually.",
+          variant: "destructive",
+        });
       } finally {
         setIsUpdating(false);
         setHasUpdate(false);
@@ -151,14 +164,41 @@ export function PWAManager({ children }: PWAManagerProps) {
       {/* PWA Install Banner */}
       <PWAInstallBanner 
         onInstall={() => {
-          console.log('[PWA] BackstageOS installed');
+          toast({
+            title: "BackstageOS installed!",
+            description: "You can now access BackstageOS from your home screen.",
+          });
         }}
         onDismiss={() => {
           console.log('[PWA] Install banner dismissed');
         }}
       />
 
-      {/* Removed update notifications completely */}
+      {/* Offline Indicator */}
+      <div className="fixed top-4 right-4 z-50">
+        {!isOnline && (
+          <div className="bg-yellow-500 text-yellow-50 px-3 py-2 rounded-lg shadow-lg flex items-center space-x-2 text-sm">
+            <WifiOff className="h-4 w-4" />
+            <span>Offline Mode</span>
+          </div>
+        )}
+        
+        {isOnline && hasUpdate && (
+          <div className="bg-blue-500 text-blue-50 px-3 py-2 rounded-lg shadow-lg flex items-center space-x-2 text-sm">
+            <RefreshCw className="h-4 w-4" />
+            <span>Update available</span>
+            <Button 
+              size="sm" 
+              variant="secondary" 
+              onClick={handleUpdate}
+              disabled={isUpdating}
+              className="ml-2 h-6 px-2 text-xs"
+            >
+              {isUpdating ? 'Updating...' : 'Update'}
+            </Button>
+          </div>
+        )}
+      </div>
     </>
   );
 }

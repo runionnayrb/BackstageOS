@@ -1,9 +1,9 @@
 // BackstageOS Service Worker  
-// Version 8.0.0 - PRODUCTION FIX
+// Version 2.0.0 - Updated for Dynamic Island
 
-const CACHE_NAME = 'backstageos-v8-' + Date.now();
-const STATIC_CACHE_NAME = 'backstageos-static-v8-' + Date.now();
-const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v8-' + Date.now();
+const CACHE_NAME = 'backstageos-v2';
+const STATIC_CACHE_NAME = 'backstageos-static-v2';
+const DYNAMIC_CACHE_NAME = 'backstageos-dynamic-v2';
 
 // Core files to cache for offline functionality
 const STATIC_ASSETS = [
@@ -22,51 +22,51 @@ const CACHEABLE_APIS = [
   '/api/notes'
 ];
 
-// Install event - BYPASS ALL CACHING
+// Install event - cache core assets
 self.addEventListener('install', event => {
-  console.log('[SW] Installing BackstageOS Service Worker v8.0.0 - PRODUCTION FIX');
-  
-  // Skip all caching and force immediate activation
-  event.waitUntil(self.skipWaiting());
-});
-
-// Activate event - DESTROY ALL CACHES
-self.addEventListener('activate', event => {
-  console.log('[SW] Activating BackstageOS Service Worker v8.0.0 - PRODUCTION FIX');
+  console.log('[SW] Installing BackstageOS Service Worker');
   
   event.waitUntil(
     Promise.all([
-      // Delete EVERY single cache - no exceptions
+      caches.open(STATIC_CACHE_NAME).then(cache => {
+        console.log('[SW] Caching static assets');
+        return cache.addAll(STATIC_ASSETS);
+      }),
+      // Skip waiting to activate immediately
+      self.skipWaiting()
+    ])
+  );
+});
+
+// Activate event - clean up old caches
+self.addEventListener('activate', event => {
+  console.log('[SW] Activating BackstageOS Service Worker');
+  
+  event.waitUntil(
+    Promise.all([
+      // Clean up old caches
       caches.keys().then(cacheNames => {
-        console.log('[SW] NUCLEAR: Destroying all caches:', cacheNames);
         return Promise.all(
           cacheNames.map(cacheName => {
-            console.log('[SW] NUCLEAR: Deleting cache:', cacheName);
-            return caches.delete(cacheName);
+            if (cacheName !== STATIC_CACHE_NAME && 
+                cacheName !== DYNAMIC_CACHE_NAME && 
+                cacheName !== CACHE_NAME) {
+              console.log('[SW] Deleting old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
           })
         );
       }),
-      // Take control immediately
+      // Take control of all clients
       self.clients.claim()
     ])
   );
-  
-  // Notify clients of service worker activation (without forcing reload)
-  self.clients.matchAll().then(clients => {
-    clients.forEach(client => {
-      console.log('[SW] Service worker activated, notifying client');
-      client.postMessage({
-        type: 'NEW_VERSION_AVAILABLE',
-        version: '8.0.0',
-        message: 'Service worker activated'
-      });
-    });
-  });
 });
 
-// Fetch event - NUCLEAR CACHE BYPASS
+// Fetch event - implement caching strategies
 self.addEventListener('fetch', event => {
   const { request } = event;
+  const url = new URL(request.url);
   
   // Skip non-GET requests
   if (request.method !== 'GET') {
@@ -74,20 +74,28 @@ self.addEventListener('fetch', event => {
   }
   
   // Skip cross-origin requests
-  if (!request.url.startsWith(self.location.origin)) {
+  if (url.origin !== location.origin) {
     return;
   }
   
-  console.log('[SW] NUCLEAR: Always fetching fresh from network:', request.url);
-  
-  // ALWAYS fetch fresh - NO CACHING AT ALL
-  event.respondWith(
-    fetch(request.url + (request.url.includes('?') ? '&' : '?') + 'v=' + Date.now())
-      .catch(() => {
-        // Fallback to regular fetch if cache-busting fails
-        return fetch(request);
-      })
-  );
+  // Handle different types of requests
+  if (url.pathname.startsWith('/api/')) {
+    // API requests - Network First with cache fallback
+    event.respondWith(handleAPIRequest(request));
+  } else if (STATIC_ASSETS.some(asset => url.pathname === asset)) {
+    // Static assets - Cache First
+    event.respondWith(handleStaticAsset(request));
+  } else if (url.pathname.endsWith('.js') || 
+             url.pathname.endsWith('.css') || 
+             url.pathname.endsWith('.png') || 
+             url.pathname.endsWith('.jpg') || 
+             url.pathname.endsWith('.svg')) {
+    // Other static resources - Cache First
+    event.respondWith(handleStaticAsset(request));
+  } else {
+    // App routes - Network First with SPA fallback
+    event.respondWith(handleAppRoute(request));
+  }
 });
 
 // Handle API requests with network-first strategy

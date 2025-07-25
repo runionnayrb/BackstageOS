@@ -49,6 +49,12 @@ export default function MobileBottomNav() {
   // Parse current show ID from URL
   const currentShowId = location.match(/\/shows\/(\d+)/)?.[1];
   
+  console.log('🔍 Mobile Nav Debug:', { 
+    location,
+    currentShowId,
+    currentShowIdNumber: currentShowId ? parseInt(currentShowId) : undefined
+  });
+  
   // Get feature settings for the current show
   const { isFeatureEnabled, isEmailEnabled } = useFeatureSettings(currentShowId);
   
@@ -132,7 +138,7 @@ export default function MobileBottomNav() {
   return (
     <>
       {/* Bottom navigation - only visible on mobile */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50 pwa-footer-nav">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
         <div className="flex items-center justify-around py-2">
           {/* Fixed navigation items */}
           {fixedNavItems.map((item) => {
