@@ -140,7 +140,7 @@ export default function GlobalSearchBar({
           </Button>
         ) : (
           // Expanded search bar with dropdown results
-          <div className="absolute right-0 top-0 flex items-center">
+          <div className="flex items-center">
             <div className="relative" style={{ width: '300px' }}>
               <form onSubmit={handleSubmit} className="relative">
                 <Input
@@ -149,7 +149,7 @@ export default function GlobalSearchBar({
                   placeholder="Search..."
                   value={query}
                   onChange={handleInputChange}
-                  className="w-full h-10 pl-3 pr-12 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-lg rounded-lg animate-in slide-in-from-right-4 duration-300"
+                  className="w-full h-10 pl-3 pr-12 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500 shadow-lg rounded-lg animate-in slide-in-from-left-4 duration-300"
                 />
                 
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
