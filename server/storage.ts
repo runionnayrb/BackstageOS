@@ -5286,8 +5286,7 @@ export class DatabaseStorage implements IStorage {
           .innerJoin(projects, eq(projectMembers.projectId, projects.id))
           .where(and(
             eq(projectMembers.userId, editor.id),
-            eq(projectMembers.accessLevel, 'editor'),
-            not(eq(projects.status, 'closed'))
+            eq(projectMembers.accessLevel, 'editor')
           ));
 
         return {
@@ -5323,8 +5322,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(projectMembers.userId, userId),
         eq(projectMembers.accessLevel, 'editor'),
-        eq(projectMembers.status, 'accepted'),
-        not(eq(projects.status, 'closed'))
+        eq(projectMembers.status, 'accepted')
       ));
 
     const count = activeShowCount[0]?.count || 0;
@@ -5354,8 +5352,7 @@ export class DatabaseStorage implements IStorage {
       .where(and(
         eq(projectMembers.userId, user.id),
         eq(projectMembers.accessLevel, 'editor'),
-        eq(projectMembers.status, 'accepted'),
-        not(eq(projects.status, 'closed'))
+        eq(projectMembers.status, 'accepted')
       ));
     
     return result[0]?.count || 0;
@@ -5377,8 +5374,7 @@ export class DatabaseStorage implements IStorage {
         .where(and(
           eq(projectMembers.userId, user.id),
           eq(projectMembers.accessLevel, 'editor'),
-          eq(projectMembers.status, 'accepted'),
-          not(eq(projects.status, 'closed'))
+          eq(projectMembers.status, 'accepted')
         ));
 
       if (activeEditorShows.length > 0) {
