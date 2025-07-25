@@ -8317,13 +8317,28 @@ Best regards,
       });
     } catch (error: any) {
       console.error("Error sending test email:", error);
+      console.error("Full SendGrid error response:", JSON.stringify(error.response, null, 2));
+      
+      // Log the email message that failed for debugging
+      console.error("Failed email message details:", JSON.stringify({
+        to: testEmail,
+        from: fromEmail,
+        fromName: fromName,
+        subject: testSubject,
+        htmlLength: testBody?.length || 0,
+        textLength: plainTextBody?.length || 0,
+        bcc: 'bryan@backstageos.com'
+      }, null, 2));
       
       // Handle specific SendGrid errors
       if (error.response && error.response.body && error.response.body.errors) {
-        const sendgridError = error.response.body.errors[0];
+        const sendgridErrors = error.response.body.errors;
+        console.error("SendGrid validation errors:", JSON.stringify(sendgridErrors, null, 2));
+        
         return res.status(400).json({ 
-          message: `SendGrid Error: ${sendgridError.message}`,
-          details: sendgridError
+          message: `SendGrid Error: ${sendgridErrors[0].message}`,
+          details: sendgridErrors,
+          fullError: error.response.body
         });
       }
       
