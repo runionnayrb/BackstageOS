@@ -12,7 +12,7 @@ import ErrorBoundary from "@/components/error-boundary";
 import { AdminViewProvider } from "@/contexts/AdminViewContext";
 import { SearchProvider } from "@/components/search/SearchContext";
 import { PWAManager } from "@/components/pwa-manager";
-import { debugLabelMatching } from "@/lib/labelDebugger";
+
 import AuthPage from "@/pages/auth-page";
 import ProfileSelection from "@/pages/profile-selection";
 import Layout from "@/components/layout/layout";
@@ -108,14 +108,7 @@ function Router() {
     return () => window.removeEventListener('popstate', handleRouteChange);
   }, []);
   
-  // Debug label matching after components load
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      debugLabelMatching();
-    }, 3000); // Wait 3 seconds for components to render
-    
-    return () => clearTimeout(timer);
-  }, [user]); // Re-run when user changes
+
 
   // Update user ID when authentication changes - always call
   useEffect(() => {
