@@ -178,12 +178,15 @@ export default function EditorAnalytics() {
           </Card>
         </div>
       )}
-
-      {/* Editor Analytics Table */}
+      {/* Editor List */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-semibold">Editor Analytics & Management</CardTitle>
-          <div className="text-sm text-gray-600">Comprehensive analytics for all editors with role-based access control</div>
+          <CardTitle className="flex items-center justify-between">
+            <span>Editor Analytics & Management</span>
+            <div className="text-sm font-normal text-gray-600">
+              {filteredEditors.length} editors
+            </div>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -191,131 +194,160 @@ export default function EditorAnalytics() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Editor</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Account Status</TableHead>
+                  <TableHead>Subscription</TableHead>
                   <TableHead>Activity</TableHead>
-                  <TableHead>Sessions</TableHead>
-                  <TableHead>Cost</TableHead>
+                  <TableHead>Cost/Day</TableHead>
+                  <TableHead>Cost/Month</TableHead>
                   <TableHead>Top Features</TableHead>
-                  <TableHead>Search Metrics</TableHead>
+                  <TableHead>Last Seen</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
+                {filteredEditors.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center text-gray-500 p-4">
+                      No editors found.
+                    </TableCell>
+                  </TableRow>
+                )}
                 {filteredEditors.map((editor) => (
-                  <TableRow key={editor.id}>
+                  <TableRow key={editor.id} className="cursor-pointer hover:bg-gray-50">
                     <TableCell>
-                      <div className="flex flex-col">
-                        <div className="font-medium">{editor.firstName} {editor.lastName}</div>
-                        <div className="text-sm text-gray-500">{editor.email}</div>
-                        <div className="text-xs text-gray-400">
-                          Created {format(new Date(editor.createdAt), 'MMM d, yyyy')}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        {getStatusBadge(editor.isActive)}
-                        {getActivityBadge(editor.activityLevel)}
-                        {editor.lastSeen && (
-                          <div className="text-xs text-gray-500">
-                            Last seen {format(new Date(editor.lastSeen), 'MMM d')}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <div className="space-y-1">
+                            <div className="font-medium">
+                              {editor.firstName && editor.lastName 
+                                ? `${editor.firstName} ${editor.lastName}` 
+                                : editor.email}
+                              {editor.isAdmin && <span className="text-xs text-blue-600 ml-2">Admin</span>}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {editor.profileType && `${editor.profileType}`}
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm space-y-1">
-                        <div>Sessions: {editor.sessionStats.totalSessions.toLocaleString()}</div>
-                        <div>Avg: {editor.sessionStats.averageSession}min</div>
-                        {editor.sessionStats.lastSession && (
-                          <div className="text-xs text-gray-500">
-                            Last: {format(new Date(editor.sessionStats.lastSession), 'MMM d')}
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm space-y-1">
-                        <div>{formatCurrency(editor.dailyCost)}/day</div>
-                        <div className="font-medium">{formatCurrency(editor.monthlyCost)}/mo</div>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-blue-600">
-                              View breakdown
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-80">
-                            <div className="space-y-2">
-                              <h4 className="font-medium">Cost Breakdown</h4>
-                              {editor.costBreakdown.map((item, idx) => (
-                                <div key={idx} className="flex justify-between text-sm">
-                                  <span>{item.service}</span>
-                                  <div className="text-right">
-                                    <div>{formatCurrency(item.cost)}</div>
-                                    <div className="text-xs text-gray-500">{item.requests.toLocaleString()} requests</div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80">
+                          <div className="space-y-3">
+                            <div className="font-medium">{editor.email}</div>
+                            <div className="text-sm space-y-1">
+                              <div>Profile: {editor.profileType || 'Not set'}</div>
+                              <div>Joined: {format(new Date(editor.createdAt), 'MMM d, yyyy')}</div>
+                              <div>Sessions: {editor.sessionStats.totalSessions}</div>
+                              <div>Avg Session: {editor.sessionStats.averageSession} min</div>
+                            </div>
+
+                            {editor.searchMetrics && editor.searchMetrics.totalSearches > 0 && (
+                              <div>
+                                <div className="text-sm font-medium mb-1">Search Usage (30 days):</div>
+                                <div className="space-y-1 text-xs">
+                                  <div className="flex justify-between">
+                                    <span>Total Searches:</span>
+                                    <span>{editor.searchMetrics.totalSearches}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Daily Searches:</span>
+                                    <span>{editor.searchMetrics.dailySearches}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Natural Language:</span>
+                                    <span>{editor.searchMetrics.naturalLanguageSearches}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Advanced Searches:</span>
+                                    <span>{editor.searchMetrics.advancedSearches}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Avg Response Time:</span>
+                                    <span>{editor.searchMetrics.averageResponseTime}ms</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Search Cost:</span>
+                                    <span>{formatCurrency(editor.searchMetrics.searchCost)}</span>
                                   </div>
                                 </div>
-                              ))}
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm space-y-1">
-                        {editor.topFeatures.slice(0, 2).map((feature, idx) => (
-                          <div key={idx} className="flex justify-between">
-                            <span className="truncate max-w-20">{feature.feature}</span>
-                            <span className="text-xs text-gray-500">{formatPercentage(feature.percentage)}</span>
-                          </div>
-                        ))}
-                        {editor.topFeatures.length > 2 && (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-auto p-0 text-xs text-blue-600">
-                                +{editor.topFeatures.length - 2} more
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-64">
-                              <div className="space-y-2">
-                                <h4 className="font-medium">Feature Usage</h4>
-                                {editor.topFeatures.map((feature, idx) => (
-                                  <div key={idx} className="flex justify-between text-sm">
-                                    <span>{feature.feature}</span>
-                                    <div className="text-right">
-                                      <div>{formatPercentage(feature.percentage)}</div>
-                                      <div className="text-xs text-gray-500">{feature.usage.toLocaleString()} uses</div>
-                                    </div>
-                                  </div>
-                                ))}
                               </div>
-                            </PopoverContent>
-                          </Popover>
+                            )}
+
+                            {editor.costBreakdown.length > 0 && (
+                              <div>
+                                <div className="text-sm font-medium mb-1">Cost Breakdown:</div>
+                                <div className="space-y-1 text-xs">
+                                  {editor.costBreakdown.map((item, idx) => (
+                                    <div key={idx} className="flex justify-between">
+                                      <span>{item.service}:</span>
+                                      <span>{formatCurrency(item.cost)} ({item.requests} calls)</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    </TableCell>
+
+                    <TableCell>
+                      <Badge 
+                        variant={editor.isActive ? "outline" : "destructive"}
+                        className={editor.isActive ? "border-green-500 text-green-700" : ""}
+                      >
+                        {editor.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="space-y-1">
+                        <Badge variant="secondary" className="border-purple-500 text-purple-700">
+                          Free
+                        </Badge>
+                        {editor.grandfatheredFree && (
+                          <Badge variant="secondary" className="text-xs">Grandfathered</Badge>
                         )}
                       </div>
                     </TableCell>
+
                     <TableCell>
-                      <div className="text-sm space-y-1">
-                        <div>Total: {editor.searchMetrics.totalSearches.toLocaleString()}</div>
-                        <div>Today: {editor.searchMetrics.dailySearches}</div>
-                        <div className="text-xs text-gray-500">
-                          {editor.searchMetrics.naturalLanguageSearches} NL, {editor.searchMetrics.advancedSearches} advanced
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Avg: {editor.searchMetrics.averageResponseTime}ms
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          Cost: {formatCurrency(editor.searchMetrics.searchCost)}
-                        </div>
+                      {getActivityBadge(editor.activityLevel)}
+                    </TableCell>
+
+                    <TableCell className="font-mono text-sm">
+                      {formatCurrency(editor.dailyCost)}
+                    </TableCell>
+
+                    <TableCell className="font-mono text-sm">
+                      {formatCurrency(editor.monthlyCost)}
+                    </TableCell>
+
+                    <TableCell>
+                      <div className="space-y-1 text-xs">
+                        {editor.topFeatures.slice(0, 2).map((feature, idx) => (
+                          <div key={idx} className="flex items-center justify-between">
+                            <span>{feature.feature}</span>
+                            <span className="text-gray-500">{feature.percentage}%</span>
+                          </div>
+                        ))}
                       </div>
                     </TableCell>
+
+                    <TableCell className="text-sm text-gray-500">
+                      {editor.lastSeen 
+                        ? format(new Date(editor.lastSeen), 'MMM d, h:mm a')
+                        : 'Never'
+                      }
+                    </TableCell>
+
                     <TableCell>
-                      <div className="flex space-x-2">
-                        <Button variant="ghost" size="sm">
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <Settings className="h-4 w-4" />
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => console.log('Edit editor:', editor.id)}
+                        >
+                          <Settings className="h-3 w-3" />
                         </Button>
                       </div>
                     </TableCell>
