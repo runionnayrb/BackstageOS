@@ -90,10 +90,7 @@ export default function AdminDashboard() {
             </TabsContent>
 
             <TabsContent value="billing" className="space-y-4 sm:space-y-6">
-              <div>
-                <h2 className="text-lg sm:text-xl font-semibold mb-4 sm:mb-6">Billing Plan Management</h2>
-                <BillingManagement />
-              </div>
+              <BillingManagement />
             </TabsContent>
 
             <TabsContent value="features" className="space-y-4 sm:space-y-6">
