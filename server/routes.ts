@@ -6156,24 +6156,24 @@ Best regards,
 
   // Helper function to sync important date event changes back to project
   async function syncImportantDateEventToProject(event: any, updatedData: any) {
-    if (event.type !== 'important_date') {
-      return; // Only handle important date events
-    }
-
+    // Check if this is an Important Date event by its title (since we no longer use "important_date" type)
     const importantDateMapping: { [key: string]: string } = {
-      'Prep Start': 'prep_start_date',
-      'First Rehearsal': 'first_rehearsal_date', 
-      'Designer Run': 'designer_run_date',
-      'First Tech': 'first_tech_date',
-      'First Preview': 'first_preview_date',
-      'Opening Night': 'opening_night',
-      'Closing': 'closing_date'
+      'Prep Start': 'prepStartDate',
+      'First Rehearsal': 'firstRehearsalDate', 
+      'Designer Run': 'designerRunDate',
+      'First Tech': 'firstTechDate',
+      'First Preview': 'firstPreviewDate',
+      'Opening Night': 'openingNight',
+      'Closing': 'closingDate'
     };
 
     const projectField = importantDateMapping[event.title];
     if (!projectField) {
+      console.log('🚫 Not an Important Date event, skipping sync for:', event.title);
       return; // Not a recognized important date
     }
+
+    console.log('🔄 Important Date event detected, syncing:', event.title, '→', projectField);
 
     const newDate = updatedData.date;
     if (newDate) {
@@ -6181,7 +6181,9 @@ Best regards,
       const updateData: any = {};
       updateData[projectField] = new Date(newDate);
       
+      console.log('💾 Updating project with Important Date change:', updateData);
       await storage.updateProject(event.projectId, updateData);
+      console.log('✅ Important Date synced successfully to Show Settings');
     }
   }
 
