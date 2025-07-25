@@ -1700,29 +1700,49 @@ Respond with valid JSON only.`;
             body = body.replace(new RegExp(variable, 'g'), value);
           });
 
-          // Aggressive HTML cleaning to completely strip rich text editor formatting
+          // Balanced HTML cleaning to remove rich text editor artifacts while preserving content
           console.log('Original body before cleaning:', body.substring(0, 200) + '...');
           
-          // Remove ALL style attributes that are causing spacing issues
+          // Remove problematic style attributes that cause spacing issues, but keep basic structure
           body = body.replace(/style="[^"]*"/g, '');
           
-          // Remove empty paragraphs and divs with breaks that create unwanted spacing
-          body = body.replace(/<p><br><\/p>/g, '');
-          body = body.replace(/<div><br><\/div>/g, '');
-          body = body.replace(/<p><\/p>/g, '');
-          body = body.replace(/<div><\/div>/g, '');
-          body = body.replace(/<span[^>]*><\/span>/g, '');
+          // Remove empty elements but preserve content structure
+          body = body.replace(/<p><br><\/p>/g, '<br>'); // Convert empty p tags to line breaks
+          body = body.replace(/<div><br><\/div>/g, '<br>'); // Convert empty div tags to line breaks
+          body = body.replace(/<p><\/p>/g, ''); // Remove completely empty paragraphs
+          body = body.replace(/<div><\/div>/g, ''); // Remove completely empty divs
+          body = body.replace(/<span[^>]*><\/span>/g, ''); // Remove empty spans
           
-          // Remove problematic margin-causing elements
-          body = body.replace(/<p>\s*<\/p>/g, ''); // Remove empty paragraphs with whitespace
-          body = body.replace(/<div>\s*<\/div>/g, ''); // Remove empty divs with whitespace
+          // Clean up excessive whitespace but preserve content
+          body = body.replace(/<p>\s*<\/p>/g, ''); // Remove paragraphs with only whitespace
+          body = body.replace(/<div>\s*<\/div>/g, ''); // Remove divs with only whitespace
           
-          // Clean up line breaks and spacing
+          // Ensure we have proper email structure - wrap content if needed
+          if (body && !body.includes('<p>') && !body.includes('<div>') && body.trim().length > 0) {
+            body = `<p>${body}</p>`;
+          }
+          
+          // Final cleanup of spacing
           body = body.replace(/\n\s*\n/g, '\n');
-          body = body.replace(/>\s+</g, '><'); // Remove whitespace between tags
           body = body.trim();
           
           console.log('Cleaned body after processing:', body.substring(0, 200) + '...');
+          
+          // Validate email has content before sending
+          const textContent = body.replace(/<[^>]*>/g, '').trim();
+          if (!textContent || textContent.length < 10) {
+            console.error('Email body appears to be empty or too short after cleaning:', textContent);
+            throw new Error('Email content validation failed - body is empty or too short');
+          }
+          
+          // Create enhanced plain text version
+          let plainTextBody = body
+            .replace(/<br\s*\/?>/gi, '\n')
+            .replace(/<\/p>/gi, '\n\n')
+            .replace(/<\/div>/gi, '\n')
+            .replace(/<[^>]*>/g, '')
+            .replace(/\n\s*\n\s*\n/g, '\n\n')
+            .trim();
           
           const msg = {
             to: waitlistEntry.email,
@@ -1733,7 +1753,7 @@ Respond with valid JSON only.`;
             },
             subject: subject,
             html: body,
-            text: body.replace(/<[^>]*>/g, ''), // Strip HTML for text version
+            text: plainTextBody,
             headers: {
               'BIMI-Selector': 'default',
               'X-BIMI-Selector': 'default',
@@ -1743,6 +1763,9 @@ Respond with valid JSON only.`;
           
           await sgMail.send(msg);
           console.log(`✅ Welcome email sent to ${waitlistEntry.email} using sender: ${fromEmail}`);
+          console.log(`📧 Email content length - HTML: ${body.length} chars, Text: ${plainTextBody.length} chars`);
+          console.log(`📧 HTML preview: ${body.substring(0, 100)}...`);
+          console.log(`📧 Text preview: ${plainTextBody.substring(0, 100)}...`);
           console.log(`🎨 BIMI headers included: BIMI-Selector=default, Authentication-Results present`);
         }
       } catch (emailError) {
@@ -8137,29 +8160,49 @@ Best regards,
         testBody = testBody.replace(new RegExp(variable, 'g'), value);
       });
 
-      // Apply same aggressive HTML cleaning as waitlist emails for consistency
+      // Apply same balanced HTML cleaning as waitlist emails for consistency
       console.log('Original test body before cleaning:', testBody.substring(0, 200) + '...');
       
-      // Remove ALL style attributes that are causing spacing issues
+      // Remove problematic style attributes that cause spacing issues, but keep basic structure
       testBody = testBody.replace(/style="[^"]*"/g, '');
       
-      // Remove empty paragraphs and divs with breaks that create unwanted spacing
-      testBody = testBody.replace(/<p><br><\/p>/g, '');
-      testBody = testBody.replace(/<div><br><\/div>/g, '');
-      testBody = testBody.replace(/<p><\/p>/g, '');
-      testBody = testBody.replace(/<div><\/div>/g, '');
-      testBody = testBody.replace(/<span[^>]*><\/span>/g, '');
+      // Remove empty elements but preserve content structure
+      testBody = testBody.replace(/<p><br><\/p>/g, '<br>'); // Convert empty p tags to line breaks
+      testBody = testBody.replace(/<div><br><\/div>/g, '<br>'); // Convert empty div tags to line breaks
+      testBody = testBody.replace(/<p><\/p>/g, ''); // Remove completely empty paragraphs
+      testBody = testBody.replace(/<div><\/div>/g, ''); // Remove completely empty divs
+      testBody = testBody.replace(/<span[^>]*><\/span>/g, ''); // Remove empty spans
       
-      // Remove problematic margin-causing elements
-      testBody = testBody.replace(/<p>\s*<\/p>/g, ''); // Remove empty paragraphs with whitespace
-      testBody = testBody.replace(/<div>\s*<\/div>/g, ''); // Remove empty divs with whitespace
+      // Clean up excessive whitespace but preserve content
+      testBody = testBody.replace(/<p>\s*<\/p>/g, ''); // Remove paragraphs with only whitespace
+      testBody = testBody.replace(/<div>\s*<\/div>/g, ''); // Remove divs with only whitespace
       
-      // Clean up line breaks and spacing
+      // Ensure we have proper email structure - wrap content if needed
+      if (testBody && !testBody.includes('<p>') && !testBody.includes('<div>') && testBody.trim().length > 0) {
+        testBody = `<p>${testBody}</p>`;
+      }
+      
+      // Final cleanup of spacing
       testBody = testBody.replace(/\n\s*\n/g, '\n');
-      testBody = testBody.replace(/>\s+</g, '><'); // Remove whitespace between tags
       testBody = testBody.trim();
       
       console.log('Cleaned test body after processing:', testBody.substring(0, 200) + '...');
+      
+      // Validate email has content before sending
+      const textContent = testBody.replace(/<[^>]*>/g, '').trim();
+      if (!textContent || textContent.length < 10) {
+        console.error('Test email body appears to be empty or too short after cleaning:', textContent);
+        throw new Error('Test email content validation failed - body is empty or too short');
+      }
+      
+      // Create enhanced plain text version
+      let plainTextBody = testBody
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/p>/gi, '\n\n')
+        .replace(/<\/div>/gi, '\n')
+        .replace(/<[^>]*>/g, '')
+        .replace(/\n\s*\n\s*\n/g, '\n\n')
+        .trim();
 
       const msg = {
         to: testEmail,
@@ -8170,7 +8213,7 @@ Best regards,
         },
         subject: testSubject,
         html: testBody,
-        text: testBody.replace(/<[^>]*>/g, ''), // Strip HTML for text version
+        text: plainTextBody,
         headers: {
           'BIMI-Selector': 'default',
           'X-BIMI-Selector': 'default',
