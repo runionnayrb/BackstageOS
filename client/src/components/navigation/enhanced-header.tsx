@@ -208,24 +208,32 @@ export default function EnhancedHeader() {
 
   const breadcrumbs = getBreadcrumbs();
 
-  // PWA Detection
+  // PWA Detection - Multiple methods for better compatibility
   const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                window.navigator.standalone === true ||
+                (window.navigator as any).standalone === true ||
                 document.referrer.includes('android-app://');
+
+  // Console log for debugging
+  console.log('PWA Detection:', {
+    standalone: window.matchMedia('(display-mode: standalone)').matches,
+    navigatorStandalone: (window.navigator as any).standalone,
+    referrer: document.referrer,
+    isPWA: isPWA
+  });
 
   return (
     <div ref={headerRef} className={`bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm ${isPWA ? 'pt-safe' : ''}`}>
-      {/* PWA Dynamic Island Area - Only visible in PWA mode */}
-      {isPWA && (
-        <div className="bg-white px-4 pt-2 pb-1 pwa-only">
-          <div className="flex justify-center">
-            <div className="pwa-dynamic-island">
-              <div className="pwa-status-dot"></div>
-              <span className="text-white text-xs font-medium">Live Production</span>
-            </div>
+      {/* PWA Dynamic Island Area - Always show for now to test */}
+      <div className="bg-white px-4 pt-2 pb-1">
+        <div className="flex justify-center">
+          <div className="pwa-dynamic-island">
+            <div className="pwa-status-dot"></div>
+            <span className="text-white text-xs font-medium">
+              {isPWA ? 'Live Production (PWA)' : 'Development Mode'}
+            </span>
           </div>
         </div>
-      )}
+      </div>
       
       {/* Main Header */}
       <div className="px-4 sm:px-6 lg:px-8">
