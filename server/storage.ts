@@ -5325,6 +5325,85 @@ export class DatabaseStorage implements IStorage {
     return usersWithEditors;
   }
 
+  // Get editors with their invited sub-editors hierarchically
+  async getEditorsWithInvitedEditors(): Promise<any[]> {
+    // Get all users with user_role = 'editor'
+    const editorsResult = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        userRole: users.userRole,
+        profileType: users.profileType,
+        isActive: users.isActive,
+        totalLogins: users.totalLogins,
+        lastActiveAt: users.lastActiveAt,
+        createdAt: users.createdAt
+      })
+      .from(users)
+      .where(eq(users.userRole, 'editor'))
+      .orderBy(desc(users.createdAt));
+
+    // For each user, get the editors they have invited
+    const usersWithEditors = await Promise.all(
+      usersResult.map(async (user) => {
+        const invitedEditors = await db
+          .select({
+            editorId: users.id,
+            editorEmail: users.email,
+            editorFirstName: users.firstName,
+            editorLastName: users.lastName,
+            projectId: projectMembers.projectId,
+            projectName: projects.name,
+            accessLevel: projectMembers.accessLevel,
+            status: projectMembers.status,
+            invitedAt: projectMembers.invitedAt,
+            joinedAt: projectMembers.joinedAt
+          })
+          .from(projectMembers)
+          .innerJoin(users, eq(projectMembers.userId, users.id))
+          .innerJoin(projects, eq(projectMembers.projectId, projects.id))
+          .where(and(
+            eq(projectMembers.invitedBy, user.id),
+            eq(projectMembers.accessLevel, 'editor')
+          ))
+          .orderBy(users.email, projects.name);
+
+        // Group editors by editor (in case same editor invited to multiple projects)
+        const editorsMap = new Map();
+        invitedEditors.forEach(editor => {
+          const key = editor.editorId;
+          if (!editorsMap.has(key)) {
+            editorsMap.set(key, {
+              id: editor.editorId,
+              email: editor.editorEmail,
+              firstName: editor.editorFirstName,
+              lastName: editor.editorLastName,
+              projects: []
+            });
+          }
+          editorsMap.get(key).projects.push({
+            projectId: editor.projectId,
+            projectName: editor.projectName,
+            accessLevel: editor.accessLevel,
+            status: editor.status,
+            invitedAt: editor.invitedAt,
+            joinedAt: editor.joinedAt
+          });
+        });
+
+        return {
+          ...user,
+          invitedEditors: Array.from(editorsMap.values()),
+          editorCount: editorsMap.size
+        };
+      })
+    );
+
+    return usersWithEditors;
+  }
+
   // Get all editors with their project assignments
   async getAllEditorsWithProjects(): Promise<any[]> {
     const editorsResult = await db
