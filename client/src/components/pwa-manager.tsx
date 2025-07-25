@@ -166,8 +166,8 @@ export function PWAManager({ children }: PWAManagerProps) {
         }}
       />
 
-      {/* Offline Indicator */}
-      <div className="fixed top-4 right-4 z-50">
+      {/* Offline Indicator - Mobile Only */}
+      <div className="fixed top-4 right-4 z-50 md:hidden">
         {!isOnline && (
           <div className="bg-yellow-500 text-yellow-50 px-3 py-2 rounded-lg shadow-lg flex items-center space-x-2 text-sm">
             <WifiOff className="h-4 w-4" />
