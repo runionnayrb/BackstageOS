@@ -2438,59 +2438,10 @@ export class DatabaseStorage implements IStorage {
 
   // Event types management
   async getEventTypesByProjectId(projectId: number): Promise<any[]> {
-    // Get all event types from database for this project
+    // Simply return all event types from the database for this project
+    // These are managed through the Show Settings page in the Schedule tab
     const allEventTypes = await db.select().from(eventTypes).where(eq(eventTypes.projectId, projectId));
-    
-    // Define system event types that should be available by default
-    const systemEventTypes = [
-      { id: -1, name: 'Rehearsal', description: 'Regular rehearsal sessions', color: '#3b82f6', isDefault: true, projectId },
-      { id: -2, name: 'Tech Rehearsal', description: 'Technical rehearsals with full equipment', color: '#f97316', isDefault: true, projectId },
-      { id: -3, name: 'Preview', description: 'Preview performances', color: '#eab308', isDefault: true, projectId },
-      { id: -4, name: 'Performance', description: 'Live performances', color: '#10b981', isDefault: true, projectId },
-      { id: -5, name: 'Meeting', description: 'Team meetings and discussions', color: '#8b5cf6', isDefault: true, projectId },
-      { id: -6, name: 'Costume Fitting', description: 'Costume fittings and adjustments', color: '#ec4899', isDefault: true, projectId },
-      { id: -7, name: 'Wig Fitting', description: 'Wig fittings and styling', color: '#6366f1', isDefault: true, projectId },
-      { id: -8, name: 'Hair and Make-Up', description: 'Hair and makeup sessions', color: '#14b8a6', isDefault: true, projectId },
-      { id: -9, name: 'Vocal Coaching', description: 'Vocal coaching sessions', color: '#ef4444', isDefault: true, projectId },
-      { id: -10, name: 'DARK', description: 'Dark days - no scheduled activities', color: '#6b7280', isDefault: true, projectId }
-    ];
-    
-    // Create a map of database records by name to identify which system types have database equivalents
-    const databaseTypesByName = new Map();
-    const customEventTypes = [];
-    
-    allEventTypes.forEach(eventType => {
-      const nameLowerCase = eventType.name.toLowerCase();
-      databaseTypesByName.set(nameLowerCase, eventType);
-      
-      if (!eventType.isDefault) {
-        // This is a completely custom event type (not overriding a system type)
-        customEventTypes.push(eventType);
-      }
-    });
-    
-    // For each system event type, use the database version if it exists, otherwise use the default
-    const finalEventTypes = [];
-    
-    systemEventTypes.forEach(systemType => {
-      const nameLowerCase = systemType.name.toLowerCase();
-      const databaseVersion = databaseTypesByName.get(nameLowerCase);
-      
-      if (databaseVersion) {
-        // Use the database version (with positive ID) instead of system version (negative ID)
-        finalEventTypes.push(databaseVersion);
-      } else {
-        // No database version exists, use the system default (but only if not hidden)
-        if (!systemType.name?.startsWith('HIDDEN_')) {
-          finalEventTypes.push(systemType);
-        }
-      }
-    });
-    
-    // Add any custom event types that don't override system types
-    finalEventTypes.push(...customEventTypes);
-    
-    return finalEventTypes;
+    return allEventTypes;
   }
 
   async createEventType(eventType: any): Promise<any> {
