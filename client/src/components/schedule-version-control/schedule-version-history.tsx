@@ -30,9 +30,10 @@ import { formatDistanceToNow } from "date-fns";
 interface ScheduleVersionHistoryProps {
   projectId: string;
   onClose: () => void;
+  hideHeader?: boolean;
 }
 
-export function ScheduleVersionHistory({ projectId, onClose }: ScheduleVersionHistoryProps) {
+export function ScheduleVersionHistory({ projectId, onClose, hideHeader = false }: ScheduleVersionHistoryProps) {
   const [showPublishDialog, setShowPublishDialog] = useState(false);
   const [selectedVersionType, setSelectedVersionType] = useState<'major' | 'minor'>('minor');
   const [versionTitle, setVersionTitle] = useState('');
@@ -110,9 +111,10 @@ export function ScheduleVersionHistory({ projectId, onClose }: ScheduleVersionHi
   const currentVersion = versions.find((v: any) => v.isCurrent);
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-h-[80vh] overflow-y-auto">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {!hideHeader && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <History className="h-6 w-6 text-blue-600" />
           <div>
@@ -166,6 +168,7 @@ export function ScheduleVersionHistory({ projectId, onClose }: ScheduleVersionHi
           </DropdownMenu>
         </div>
       </div>
+      )}
 
       {/* Current Version Info */}
       {currentVersion && (

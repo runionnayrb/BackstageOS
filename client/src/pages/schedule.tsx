@@ -1,10 +1,11 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -112,6 +113,19 @@ export default function Schedule() {
   const [localEmailBody, setLocalEmailBody] = useState('');
   const [emailBodyEditor, setEmailBodyEditor] = useState(null);
   const [localChangeSummary, setLocalChangeSummary] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Mobile detection hook
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 640); // sm breakpoint
+    };
+
+    checkIsMobile();
+    window.addEventListener('resize', checkIsMobile);
+
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
 
   const insertVariable = (field: 'subject' | 'body' | 'changeSummary', variable: string) => {
     if (field === 'changeSummary') {
@@ -1427,15 +1441,37 @@ The Production Team`
         </>
       )}
 
-      {/* Version Control Dialog */}
-      <Dialog open={showVersionControl} onOpenChange={setShowVersionControl}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden w-[95vw] sm:w-full mx-auto">
-          <ScheduleVersionHistory 
-            projectId={projectId}
-            onClose={() => setShowVersionControl(false)}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Version Control - Mobile Sheet / Desktop Dialog */}
+      {isMobile ? (
+        <Sheet open={showVersionControl} onOpenChange={setShowVersionControl}>
+          <SheetContent 
+            side="bottom" 
+            className="h-[95vh] p-0 flex flex-col rounded-t-lg"
+          >
+            <SheetHeader className="p-4 pb-3 border-b bg-white sticky top-0 z-10 rounded-t-lg">
+              <SheetTitle className="text-left text-lg font-semibold">Schedule Version Control</SheetTitle>
+            </SheetHeader>
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4">
+                <ScheduleVersionHistory 
+                  projectId={projectId}
+                  onClose={() => setShowVersionControl(false)}
+                  hideHeader={true}
+                />
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={showVersionControl} onOpenChange={setShowVersionControl}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden w-[95vw] sm:w-full mx-auto">
+            <ScheduleVersionHistory 
+              projectId={projectId}
+              onClose={() => setShowVersionControl(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Advanced Settings Dialog */}
       <Dialog open={showAdvancedSettings} onOpenChange={setShowAdvancedSettings}>
