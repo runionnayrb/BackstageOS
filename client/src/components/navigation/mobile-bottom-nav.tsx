@@ -106,7 +106,7 @@ export default function MobileBottomNav() {
       }
       
       // Settings always available
-      menuItems.push({ label: 'Settings', href: `/shows/${currentShowId}/settings`, icon: Settings });
+      menuItems.push({ label: 'Show Settings', href: `/shows/${currentShowId}/settings`, icon: Settings });
       
       return menuItems;
     } else {

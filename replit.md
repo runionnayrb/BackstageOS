@@ -49,6 +49,7 @@ BackstageOS is a comprehensive theater management platform specifically designed
 - **Duplicate Removal**: Removed duplicate "Personal Schedule Sharing" section that appeared above email templates, keeping only the main "Schedule Sharing" section
 - **UI Icon Enhancements**: Added Bell icons to notification settings and Calendar icons to calendar sharing buttons with black outline styling matching app design
 - **Section Organization**: Moved Event Locations above Event Types in schedule settings for more logical workflow organization
+- **Mobile Navigation Context**: Updated mobile three-dot menu to display "Show Settings" instead of "Settings" when inside a specific show for clearer context
 
 ### Complete System Event Types Implementation (July 25, 2025)
 - **Full System Event Types Restoration**: Added missing system event types (Costume Fitting, Wig Fitting, Hair and Make-Up, Vocal Coaching) to existing project database
