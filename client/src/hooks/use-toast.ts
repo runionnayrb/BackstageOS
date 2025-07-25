@@ -1,4 +1,4 @@
-import * as React from "react"
+import { useState, useEffect } from "react"
 import type { ReactNode } from "react"
 
 import type {
@@ -91,8 +91,6 @@ export const reducer = (state: State, action: Action): State => {
     case "DISMISS_TOAST": {
       const { toastId } = action
 
-      // ! Side effects ! - This could be extracted into a dismissToast() action,
-      // but I'll keep it here for simplicity
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
@@ -127,14 +125,14 @@ export const reducer = (state: State, action: Action): State => {
   }
 }
 
+// Create a global listeners array and state that will be shared
 const listeners: Array<(state: State) => void> = []
+let globalState: State = { toasts: [] }
 
-let memoryState: State = { toasts: [] }
-
-function dispatch(action: Action) {
-  memoryState = reducer(memoryState, action)
+const dispatch = (action: Action) => {
+  globalState = reducer(globalState, action)
   listeners.forEach((listener) => {
-    listener(memoryState)
+    listener(globalState)
   })
 }
 
@@ -170,9 +168,9 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
-  const [state, setState] = React.useState<State>(memoryState)
+  const [state, setState] = useState<State>(globalState)
 
-  React.useEffect(() => {
+  useEffect(() => {
     listeners.push(setState)
     return () => {
       const index = listeners.indexOf(setState)
@@ -180,7 +178,7 @@ function useToast() {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+  }, [])
 
   return {
     ...state,
