@@ -223,17 +223,7 @@ export default function EnhancedHeader() {
 
   return (
     <div ref={headerRef} className={`bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm ${isPWA ? 'pt-safe' : ''}`}>
-      {/* PWA Dynamic Island Area - Always show for now to test */}
-      <div className="bg-white px-4 pt-2 pb-1">
-        <div className="flex justify-center">
-          <div className="pwa-dynamic-island">
-            <div className="pwa-status-dot"></div>
-            <span className="text-white text-xs font-medium">
-              {isPWA ? 'Live Production (PWA)' : 'Development Mode'}
-            </span>
-          </div>
-        </div>
-      </div>
+
       
       {/* Main Header */}
       <div className="px-4 sm:px-6 lg:px-8">
