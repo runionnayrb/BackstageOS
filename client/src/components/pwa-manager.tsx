@@ -32,19 +32,10 @@ export function PWAManager({ children }: PWAManagerProps) {
     // Listen for online/offline status
     const handleOnline = () => {
       setIsOnline(true);
-      toast({
-        title: "Back online",
-        description: "Your data will sync automatically.",
-      });
     };
 
     const handleOffline = () => {
       setIsOnline(false);
-      toast({
-        title: "You're offline",
-        description: "Don't worry - you can still use BackstageOS. Changes will sync when you're back online.",
-        variant: "destructive",
-      });
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -76,27 +67,6 @@ export function PWAManager({ children }: PWAManagerProps) {
             newWorker.addEventListener('statechange', () => {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
                 setHasUpdate(true);
-                toast({
-                  title: "Dynamic Island Update Available!",
-                  description: "New PWA features are ready to install.",
-                  action: (
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={handleUpdate}
-                      disabled={isUpdating}
-                    >
-                      {isUpdating ? (
-                        <>
-                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                          Updating...
-                        </>
-                      ) : (
-                        'Update Now'
-                      )}
-                    </Button>
-                  ),
-                });
               }
             });
           }
@@ -105,36 +75,16 @@ export function PWAManager({ children }: PWAManagerProps) {
         // Listen for messages from service worker
         navigator.serviceWorker.addEventListener('message', (event) => {
           if (event.data?.type === 'SYNC_COMPLETE') {
-            toast({
-              title: "Data synced",
-              description: `${event.data.data.reportsCount} reports synchronized.`,
-            });
+            console.log('[PWA] Data synced:', event.data.data);
           }
           
           if (event.data?.type === 'NEW_VERSION_AVAILABLE') {
             console.log('[PWA] New version message received:', event.data.version);
             setHasUpdate(true);
-            toast({
-              title: "Dynamic Island Update v" + event.data.version,
-              description: "PWA features have been updated!",
-              action: (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleUpdate}
-                >
-                  Update Now
-                </Button>
-              ),
-            });
           }
           
           if (event.data?.type === 'FORCE_RELOAD') {
-            console.log('[PWA] NUCLEAR: Force reload triggered by service worker');
-            toast({
-              title: "NUCLEAR UPDATE v" + event.data.version,
-              description: event.data.message,
-            });
+            console.log('[PWA] Force reload triggered by service worker');
             // Force immediate reload with cache busting
             setTimeout(() => {
               window.location.href = window.location.href + '?nuclear=' + Date.now();
@@ -156,10 +106,6 @@ export function PWAManager({ children }: PWAManagerProps) {
       if (outcome === 'accepted') {
         setInstallPrompt(null);
         setIsInstalled(true);
-        toast({
-          title: "BackstageOS installed!",
-          description: "You can now access BackstageOS from your home screen.",
-        });
       }
     }
   };
@@ -210,10 +156,7 @@ export function PWAManager({ children }: PWAManagerProps) {
       {/* PWA Install Banner */}
       <PWAInstallBanner 
         onInstall={() => {
-          toast({
-            title: "BackstageOS installed!",
-            description: "You can now access BackstageOS from your home screen.",
-          });
+          console.log('[PWA] BackstageOS installed');
         }}
         onDismiss={() => {
           console.log('[PWA] Install banner dismissed');
