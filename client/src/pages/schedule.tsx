@@ -814,7 +814,7 @@ The Production Team`
                       setShowPublishVersionConfirm(true);
                     }}
                   >
-                    <Megaphone className="h-4 w-4 mr-2 text-yellow-600" />
+                    <Megaphone className="h-4 w-4 mr-2" />
                     Major Version
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -823,7 +823,7 @@ The Production Team`
                       setShowPublishVersionConfirm(true);
                     }}
                   >
-                    <Bell className="h-4 w-4 mr-2 text-yellow-500" />
+                    <Bell className="h-4 w-4 mr-2" />
                     Minor Version
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -1104,7 +1104,7 @@ The Production Team`
                       setShowPublishVersionConfirm(true);
                     }}
                   >
-                    <Megaphone className="h-4 w-4 mr-2 text-yellow-600" />
+                    <Megaphone className="h-4 w-4 mr-2" />
                     Major Version
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -1113,7 +1113,7 @@ The Production Team`
                       setShowPublishVersionConfirm(true);
                     }}
                   >
-                    <Bell className="h-4 w-4 mr-2 text-yellow-500" />
+                    <Bell className="h-4 w-4 mr-2" />
                     Minor Version
                   </DropdownMenuItem>
                   <DropdownMenuItem
